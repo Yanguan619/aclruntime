@@ -396,7 +396,6 @@ def multidevice_run(args):
         cur_args = copy.deepcopy(args)
         cur_args.device = int(device_list[i])
         cur_args.input = None if splits == None else list(splits)[i]
-        print("i:{} inputs:{}".format(i, cur_args.input))
         p.apply_async(main, args=(cur_args, i, msgq), error_callback=print_subproces_run_error)
 
     p.close()

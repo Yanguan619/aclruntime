@@ -29,7 +29,6 @@ if not torch.cuda.is_available():
 
 from ..common.utils import check_file_or_directory_path, print_error_log, \
     print_warn_log, CompareException, Const, get_time, print_info_log, modify_dump_path
-from .backward import Backward
 
 DumpCount = 0
 forward_init_status = False
@@ -422,10 +421,6 @@ def overflow_check(name, **kwargs):
     pid = kwargs.get('pid')
     dump_mode = kwargs.get('dump_mode', "api")
     DumpUtil.dump_config = kwargs.get('dump_config')
-    dump_config = kwargs.get('dump_config')
-    if dump_mode == "acl":
-        backward_obj = Backward()
-        torch.autograd.backward = backward_obj.backward
     if not pid:
         return RuntimeError("Not get the specified process pid.")
 
@@ -465,7 +460,6 @@ def overflow_check(name, **kwargs):
                            .format(OverFlowUtil.real_overflow_dump_times, module_name, os.path.realpath(dump_file_name)))
             if dump_mode == "acl":
                 acl_dump(module, module_name)
-           
 
             # clear overflow flag for the next check
             torch_npu._C._clear_overflow_npu()
@@ -478,21 +472,7 @@ def overflow_check(name, **kwargs):
         if "forward" in module_name:
             forward_acl_dump(module, module_name)
         if "backward" in module_name:
-            backward_acl_dump()
-
-    def backward_acl_dump():
-        global forward_init_status
-        global backward_init_status
-        if not forward_init_status and not backward_init_status:
-            backward_init_status = True
-            torch_npu.npu.init_dump()
-            torch_npu.npu.set_dump(dump_config)
-            torch_npu.npu.synchronize()
-            torch.autograd.backward(backward_obj.tensors, backward_obj.gradient, backward_obj.retain_graph,
-                                    backward_obj.create_graph, inputs=backward_obj.inputs)
-            torch_npu.npu.synchronize()
-            torch_npu.npu.finalize_dump()
-            print_info_log("Dump backward op file.")
-            raise ValueError("[Acl backward only support one time, will stop when detecct backward overflow]")
+            print_info_log("The overflow is caused by backward operator {}. "
+                           "You can use reverse acl dump(mode='acl') to get operator dump data.".format(module_name))
 
     return overflowcheck_hook

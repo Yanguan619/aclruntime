@@ -477,6 +477,11 @@ set_overflow_check_switch("OFF")
 
 ...
 
+# 对于反向溢出场景获取反向acl级别数据
+# 使用acl模式，配置上梯度输入文件，再进行一次dump
+register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='dump.json')
+set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
+set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
 ```
 ##### dump.json配置示例
 ```

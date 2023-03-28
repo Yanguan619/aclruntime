@@ -477,6 +477,11 @@ set_overflow_check_switch("OFF")
 
 ...
 
+# 对于反向溢出场景获取反向acl级别数据
+# 使用acl模式，配置上梯度输入文件，再进行一次dump
+register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='dump.json')
+set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
+set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
 ```
 ##### dump.json配置示例
 ```
@@ -522,16 +527,20 @@ set_overflow_check_switch("OFF")
 ##### 注意事项
 此功能原理是，针对溢出阶段，开启acl dump模式，重新对溢出阶段执行，落盘数据。
 * dump_mode="acl"场景下，会增加npu的内存消耗，请用户谨慎开启。
+
 * 针对前向溢出api，可以通过以上原理，重新精准执行到溢出前向api，因此可以得到前向溢出api的全部acl数据。
+
 * 部分api存在调用嵌套关系，比如functional.batch_norm实际调用torch.batch_norm, 该场景会影响acl init初始化多次，导致功能异常。针对此场景，后续会针对性做适配，当前版本可能存在此问题
-* 针对反向场景，通过以上原理，由于torch反向自动化机制，只能重新执行loss.backward（即反向入口），因此得到的是反向全流程的acl数据。
-* 反向需要用户backward调用时传入参数retain_graph=True，例如loss.backward(retain_graph=True)
+
 * 针对前向溢出api，可以通过overflow_nums，配置允许的溢出次数，并将每次溢出api的全部acl数据dump下来，到达指定溢出次数后停止，停止后会看到堆栈打印包含如下字段。
   ValueError: [overflow xxx times]: dump file is saved in 'xxxxx.pkl'.
   其中xxx times为用户设置的次数，xxxxx.pkl为文件生成路径
-* dump_mode="acl"，针对反向溢出场景的特殊性，overflow_nums不生效，反向检测到一次溢出后，就会停止，并将反向全流程acl数据dump。运行结束会看到堆栈打印包含如下字段。
-  raise ValueError("[Acl backward only support one time, will stop when detect backward overflow]")
-  ValueError: [Acl backward only support one time, will stop when detect backward overflow]
+  
+* 对于反向溢出场景获取acl级别数据，第一轮获取反向算子的输入数据，准备好后配置dump.json，并配置好输入数据路径，相关配置如下：
+
+  register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='dump.json')
+  set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
+  set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
 
 #### 场景四 单机多卡场景使用精度比对工具
 

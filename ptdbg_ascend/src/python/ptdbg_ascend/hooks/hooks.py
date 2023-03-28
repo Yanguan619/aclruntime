@@ -32,7 +32,9 @@ from ..common.utils import check_file_or_directory_path, print_error_log, \
 from .backward import Backward
 
 DumpCount = 0
-init_status = False
+forward_init_status = False
+backward_init_status = False
+range_begin_flag, range_end_flag = False, False
 
 
 class DumpUtil(object):
@@ -43,6 +45,7 @@ class DumpUtil(object):
     dump_switch_scope = []
     dump_init_enable = False
     dump_api_list = []
+    backward_input = {}
 
     @staticmethod
     def set_dump_path(save_path):
@@ -56,6 +59,8 @@ class DumpUtil(object):
         DumpUtil.dump_init_enable = True
         DumpUtil.dump_switch_scope = scope
         DumpUtil.dump_api_list = [api.lower() for api in api_list]
+        if mode == Const.ACL:
+            DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
     def check_list_or_acl_mode(name_prefix):
         global DumpCount
@@ -65,10 +70,17 @@ class DumpUtil(object):
                 return True
 
     def check_range_mode(name_prefix):
-        start = int(DumpUtil.dump_switch_scope[0].split('_', 1)[0])
-        end = int(DumpUtil.dump_switch_scope[1].split('_', 1)[0])
-        curr = int(name_prefix.split('_', 1)[0])
-        return start <= curr <= end
+        global range_begin_flag
+        global range_end_flag
+        if name_prefix.startswith(DumpUtil.dump_switch_scope[0]):
+            range_begin_flag = True
+            return True
+        if name_prefix.startswith(DumpUtil.dump_switch_scope[1]):
+            range_end_flag = True
+            return True
+        if range_begin_flag and not range_end_flag:
+            return True
+        return False
 
     def check_stack_mode(name_prefix):
         if len(DumpUtil.dump_switch_scope) == 0:
@@ -168,7 +180,14 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[]):
         assert len(scope) != 0, "set_dump_switch, scope param set invalid, it's should not be an empty list."
     if mode == Const.STACK:
         assert len(scope) <= 2, "set_dump_switch, scope param set invalid, it's must be [start, end] or []."
+    if mode == Const.ACL:
+        assert len(scope) == 1, "set_dump_switch, scope param set invalid, only one api name is supported in acl mode."
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list)
+
+
+def set_backward_input(backward_input):
+    for index, api_name in enumerate(DumpUtil.dump_switch_scope):
+        DumpUtil.backward_input[api_name] = backward_input[index]
 
 
 def set_overflow_check_switch(switch):
@@ -229,6 +248,42 @@ def seed_all(seed=1234):
     np.random.seed(seed)
     torch.manual_seed(seed)
 
+def get_process_rank(model):
+    print("Rank id is not provided. Trying to get the rank id of the model.")
+    try:
+        device = next(model.parameters()).device 
+    except StopIteration:
+        print('There is no parameter in the model. Fail to get rank id.')
+        return 0
+    if device.type == 'cpu':
+        print("Warning: the debugger is unable to get the rank id. "
+            "This may cause the dumpped data to be corrupted in the "
+            "case of DDP. Transfer the model to npu or gpu before "
+            "register_hook() to avoid this warning.")
+        return 0
+    else:
+        return device.index
+
+def make_dump_dirs(rank, pid):
+    if DumpUtil.dump_path is not None:
+        dump_root_dir, dump_file_name = os.path.split(DumpUtil.dump_path)
+        dump_file_name_body, _ = os.path.splitext(dump_file_name)
+    else:
+        dump_root_dir, dump_file_name, dump_file_name_body = './', 'dummy.pkl', ''
+    time = get_time()
+    time_dir = os.path.join(dump_root_dir, dump_file_name_body + '_' + str(time))
+    if rank == 0 and not os.path.exists(time_dir): # add rank==0 to prevent repeated mkdir
+        os.mkdir(time_dir)
+    while not os.path.exists(time_dir): # wait for rank 0 process to create timedir
+        pass 
+    rank_dir = os.path.join(time_dir, 'rank' + str(rank))
+    if not os.path.exists(rank_dir):
+        os.mkdir(rank_dir)
+    pid_dir = os.path.join(rank_dir, 'pid' + str(pid))
+    if not os.path.exists(pid_dir):
+        os.mkdir(pid_dir)
+    DumpUtil.dump_dir = pid_dir 
+    DumpUtil.set_dump_path(os.path.join(pid_dir, dump_file_name))
 
 def make_dump_data_dir(dump_file_name):
     dump_path, file_name = os.path.split(os.path.realpath(dump_file_name))
@@ -241,9 +296,8 @@ def make_dump_data_dir(dump_file_name):
 
 def _set_dump_switch4api_list(name):
     if DumpUtil.dump_api_list:
-        api_name = name.split("_")[1].lower()
-        if api_name in DumpUtil.dump_api_list and DumpUtil.dump_switch == "ON":
-            DumpUtil.dump_switch = "OFF"
+        api_name = name.rsplit("_", 2)[0].split("_", 1)[1].lower()
+        DumpUtil.dump_switch = "ON" if api_name in DumpUtil.dump_api_list else "OFF"
 
 
 def dump_stack_info(name_template, dump_file):
@@ -262,14 +316,11 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, moudle):
 
     if DumpUtil.get_dump_switch():
         if DumpUtil.dump_init_enable:
-            dump_acc_cmp.call_number = 0
             DumpUtil.dump_init_enable = False
             DumpUtil.dump_data_dir = make_dump_data_dir(dump_file) \
-                if DumpUtil.dump_switch_mode != Const.STACK else ""
-        else:
-            dump_acc_cmp.call_number = dump_acc_cmp.call_number + 1
+                if DumpUtil.dump_switch_mode not in [Const.STACK, Const.ACL] else ""
 
-        name_prefix = f"{dump_acc_cmp.call_number}_{name}"
+        name_prefix = name
         name_template = f"{name_prefix}" + "_{}"
         if DumpUtil.dump_switch_mode in [Const.ALL, Const.API_LIST]:
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
@@ -279,20 +330,23 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, moudle):
         elif DumpUtil.check_switch_scope(name_prefix):
             dump_stack_info(name_template, dump_file)
             if DumpUtil.dump_switch_mode == Const.ACL:
-                acl_dump(moudle, name)
+                acl_dump(moudle, name, name_prefix)
             elif DumpUtil.dump_switch_mode != Const.STACK:
                 dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
 
 
-def acl_dump(module, module_name):
-    if "forward" in module_name:
+def acl_dump(module, module_name, name_prefix):
+    if name_prefix in DumpUtil.backward_input:
+        dump_mode_backward_acl_dump(module, module_name, DumpUtil.backward_input.get(name_prefix))
+    else:
         forward_acl_dump(module, module_name)
 
 
 def forward_acl_dump(module, module_name):
-    global init_status
-    if not init_status:
-        init_status = True
+    global forward_init_status
+    global backward_init_status
+    if not forward_init_status and not backward_init_status:
+        forward_init_status = True
         torch_npu.npu.init_dump()
         torch_npu.npu.set_dump(DumpUtil.dump_config)
         torch_npu.npu.synchronize()
@@ -301,7 +355,26 @@ def forward_acl_dump(module, module_name):
         torch_npu.npu.finalize_dump()
     del module.input_args
     del module.input_kwargs
-    init_status = False
+    forward_init_status = False
+    print_info_log("Dump %s op file." % module_name)
+
+
+def dump_mode_backward_acl_dump(module, module_name, grad_path):
+    global forward_init_status
+    global backward_init_status
+    if not forward_init_status and not backward_init_status:
+        forward_init_status = True
+        output = module.forward(*module.input_args, **module.input_kwargs)
+        grad = torch.tensor(np.load(grad_path)).to("npu").requires_grad_()
+        torch_npu.npu.init_dump()
+        torch_npu.npu.set_dump(DumpUtil.dump_config)
+        torch_npu.npu.synchronize()
+        output.backward(grad, retain_graph=True)
+        torch_npu.npu.synchronize()
+        torch_npu.npu.finalize_dump()
+    del module.input_args
+    del module.input_kwargs
+    forward_init_status = False
     print_info_log("Dump %s op file." % module_name)
 
 
@@ -341,6 +414,10 @@ def dump_overflow(module_name, stack_str, in_feat, out_feat, dump_file):
 
 
 def overflow_check(name, **kwargs):
+    if DumpUtil.dump_path:
+        DumpUtil.dump_dir = os.path.dirname(DumpUtil.dump_path)
+    else:
+        DumpUtil.dump_dir = './'
     overflow_nums = kwargs.get('overflow_nums', 1)
     pid = kwargs.get('pid')
     dump_mode = kwargs.get('dump_mode', "api")
@@ -360,8 +437,12 @@ def overflow_check(name, **kwargs):
         if torch.cuda.is_available():
             print_warn_log("Overflow detection is not supported in the GPU environment.")
             return
+        global backward_init_status
+        if backward_init_status or forward_init_status:
+            return
         module_name = name
         module.has_overflow = torch_npu._C._check_overflow_npu()
+
         if not module.has_overflow:
             if hasattr(module, 'input_args'):
                 del module.input_args
@@ -369,10 +450,14 @@ def overflow_check(name, **kwargs):
                 del module.input_kwargs
         if module.has_overflow and OverFlowUtil.check_overflow_dump_times(overflow_nums):
             OverFlowUtil.inc_overflow_dump_times()
-            dump_file_name = "Overflow_info_{}_{}.pkl".format(get_time(), OverFlowUtil.real_overflow_dump_times)
+            dump_file_name = os.path.join(DumpUtil.dump_dir,
+                "Overflow_info_{}_{}.pkl".format(get_time(), OverFlowUtil.real_overflow_dump_times))
             stack_str = []
             for (_, path, line, func, code, _) in inspect.stack()[3:]:
-                stack_line = [path, str(line), func, code[0].strip()]
+                if code:
+                    stack_line = [path, str(line), func, code[0].strip()]
+                else:
+                    stack_line = [path, str(line), func, code]
                 stack_str.append(stack_line)
             dump_overflow(module_name, stack_str, in_feat, out_feat, dump_file_name)
 
@@ -396,14 +481,18 @@ def overflow_check(name, **kwargs):
             backward_acl_dump()
 
     def backward_acl_dump():
-        torch_npu.npu.init_dump()
-        torch_npu.npu.set_dump(dump_config)
-        torch_npu.npu.synchronize()
-        torch.autograd.backward(backward_obj.tensors, backward_obj.gradient, backward_obj.retain_graph,
-                                backward_obj.create_graph, inputs=backward_obj.inputs)
-        torch_npu.npu.synchronize()
-        torch_npu.npu.finalize_dump()
-        print_info_log("Dump backward op file.")
-        raise ValueError("[Acl backward only support one time, will stop when detecct backward overflow]")
+        global forward_init_status
+        global backward_init_status
+        if not forward_init_status and not backward_init_status:
+            backward_init_status = True
+            torch_npu.npu.init_dump()
+            torch_npu.npu.set_dump(dump_config)
+            torch_npu.npu.synchronize()
+            torch.autograd.backward(backward_obj.tensors, backward_obj.gradient, backward_obj.retain_graph,
+                                    backward_obj.create_graph, inputs=backward_obj.inputs)
+            torch_npu.npu.synchronize()
+            torch_npu.npu.finalize_dump()
+            print_info_log("Dump backward op file.")
+            raise ValueError("[Acl backward only support one time, will stop when detecct backward overflow]")
 
     return overflowcheck_hook

@@ -37,16 +37,6 @@ class Constant:
     MAX_READ_FILE_BYTES = 1024 * 1024  # 1M
     MAX_TAR_SIZE = 1 * 1024 * 1024 * 1024   # 1G
 
-    SCRIPT = "script"
-
-    TYPE_COMPILE = 'compile'
-    TYPE_DUMP = 'dump'
-    TYPE_BBOX = 'bbox'
-
-    DIR_ASCEND = 'ascend'
-    DIR_LOG = 'log'
-    DIR_SLOG = 'slog'
-    DIR_BBOX = 'hisi_logs'
     DIR_PLOG = 'plog'
 
     AIC_ERROR_TUPLE_LEN = 9
@@ -67,10 +57,8 @@ class Constant:
                      "DT_DUAL": 5}
     #aicore_error_parser
     OBJ_DUMP_FILE = "cce-objdump"
-    ADDR_OVERFLOW = 0
     ALLOC_ADDR = 1
-    ACTUAL_ADDR = 2
-    GRAPH_FILE = 3
+    GRAPH_FILE = 2
 
     # collection
     EXCEPTION_PATTERN = r"<exception_print>TIME:(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+)[ \S]+?" \

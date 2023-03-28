@@ -522,12 +522,15 @@ class AscendOpKernelRunner:
         tiling_hbm.append(hbm_pointer)
         kernel_args.append(hbm_pointer)
 
-    def _execute_kernel(self, kernel: AscendOpKernel, kernel_args, block_dim):
+    def _execute_kernel(self, kernel: AscendOpKernel, kernel_args, block_dim, tiling_key):
         if self.profiling:
             self.ascend_device.start_online_profiling(self._stream, self.profiling_times)
         if not kernel.is_registered_to_device():
             registered_binary = self.ascend_device.register_device_binary_kernel(kernel.bin_path, magic=kernel.magic)
-            stub_func_p = self.ascend_device.register_function(registered_binary, kernel.stub_func_name, 0)
+            try:
+                stub_func_p = self.ascend_device.register_function(registered_binary, f"{kernel.stub_func_name}_{tiling_key}", 0)
+            except RuntimeError:
+                stub_func_p = self.ascend_device.register_function(registered_binary, f"{kernel.stub_func_name}__kernel0", 0)
             kernel.set_stub_func_p(stub_func_p)
 
         def _execute_kernel():
@@ -552,7 +555,7 @@ class AscendOpKernelRunner:
             self.ascend_device.stop_online_profiling(self._stream)
 
     def run(self, kernel: AscendOpKernel, inputs, output_input_ref: List[List[int]] = None,
-            tiling=None, block_dim=None, actual_output_info=None) -> Union[
+            tiling_data=None, tiling_key=None, block_dim=None, actual_output_info=None) -> Union[
                 AscendOpKernelParam, List[AscendOpKernelParam], None]:
         """
         run
@@ -569,11 +572,11 @@ class AscendOpKernelRunner:
         workspace_hbm_p_list = []
         self._fill_workspace(kernel, workspace_hbm_p_list, kernel_args)
         tiling_hbm = []
-        self._fill_tiling(kernel, tiling, tiling_hbm, kernel_args)
+        self._fill_tiling(kernel, tiling_data, tiling_hbm, kernel_args)
         knl_args = [arg.value for arg in kernel_args]
         if not block_dim:
             block_dim = kernel.block_dim
-        self._execute_kernel(kernel, knl_args, block_dim)
+        self._execute_kernel(kernel, knl_args, block_dim, tiling_key)
         for workspace_hbm_p in workspace_hbm_p_list:
             self.ascend_device.free(workspace_hbm_p)
         for tiling_hbm_p in tiling_hbm:

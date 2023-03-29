@@ -19,7 +19,7 @@ class AicErrorInfo:
     def __init__(self: any) -> None:
         self.dev_id = ""
         self.core_id = ""
-        self.aic_error = "" # err_code
+        self.aic_error = ""  # err_code
         self.aicerror_bit = []  # [1,2,3...]
         self.task_id = ""
         self.stream_id = ""
@@ -95,8 +95,7 @@ current pc   : %s
         # 0x800000 推断
         conclusion = ""
         if self.current_pc == "0x0":
-            conclusion = "Memory of operator code has been overwrited " \
-                         "falsely\n"
+            conclusion = "Memory of operator code has been overwrited falsely\n"
         if conclusion != "":
             msg = "********************Root cause conclusion****************" \
                   "*****\n%s\n" % conclusion + msg
@@ -116,12 +115,12 @@ current pc   : %s
             output_params = used_addrs.get("output_addr")
         workspace = used_addrs.get("workspace")
         for input_param in input_params:
-            index  = input_param.get("index")
+            index = input_param.get("index")
             if input_param.get("invalid"):
                 result_str += f"*[ERROR]input[{index}] is out of range\n"
 
         for output_param in output_params:
-            index  = output_param.get("index")
+            index = output_param.get("index")
             if output_param.get("invalid"):
                 result_str += f"*[ERROR]output[{index}] is out of range\n"
         result_str += "\n"
@@ -167,6 +166,7 @@ current pc   : %s
                 aicerror_info_list.append("\nCCU_ERR_INFO: " + self._analyse_ccu_errinfo())
             elif err_type == "biu":
                 aicerror_info_list.append("\nBIU_ERR_INFO: " + self._analyse_biu_errinfo())
+            aicerror_info_list.append(f"\n{aicerr_info}")
             aicerror_info_list.append("\n\n")
         aicerror_info = "".join(aicerror_info_list).strip("\n")
         return aicerror_info

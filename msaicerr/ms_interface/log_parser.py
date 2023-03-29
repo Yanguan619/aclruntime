@@ -10,7 +10,7 @@ from ms_interface import utils
 from ms_interface.constant import Constant
 
 
-class LogParser:
+class HostLogParser:
     def __init__(self, collect_plog_path: str):
         self.ai_core_error_list = []
         self.kernel_name_list = []
@@ -60,9 +60,9 @@ class LogParser:
         return result
 
     def get_op_info(self: any) -> tuple:
-        aicore_err_cmd = ['grep', 'thers is an aicore error|there is an .*aivec.* error exception', '-inrE', 
+        aicore_err_cmd = ['grep', 'there is an aicore error|there is an .*aivec.* error exception', '-inrE', 
                           self.collect_plog_path]
-        aicore_err_regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?device\((\d+)\),.*?core id is (\d+)," \
+        aicore_err_regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?device\((.*)\),.*?core id is (\d+)," \
                             r"\s+error code = (\S+),.*?pc start:\s(\S+),\scurrent:\s(\S+),\svec error info:\s(\S+)," \
                             r"\smte error info:\s(\S+),\sifu error info:\s(\S+),\sccu error info:\s(\S+)," \
                             r"\scube error info:\s(\S+),\sbiu error info:\s(\S+),\saic error mask:\s(\S+)," \
@@ -76,7 +76,7 @@ class LogParser:
             extra_info = self._get_extra_info(aic_err)
             if node_name == '' and kernel_name == '':
                 continue
-
+            
             # 适配原开发过程中的device_aic_err
             device_aic_err = [None] * 9
             device_aic_err[0] = aic_err[0]  # err time

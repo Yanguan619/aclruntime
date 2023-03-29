@@ -2,14 +2,16 @@
 
 ## 前置条件
 1. 进行模型训练时，发现了Aicore Error问题。暂不支持推理场景。
-2. 使用asys收集工具，收集aicore error时的日志信息。使用指导：http:turing-toolchain.msk.hisilicon.com/chapter-01/diagnosis_infer.html
+2. 使用asys收集工具，收集aicore error时的日志信息。参考命令：
+`asys launch --task="sh ../app_run.sh" [--output="path"]`
+具体使用方法参见指导：http://turing-toolchain.msk.hisilicon.com/chapter-01/diagnosis_infer.html
 3. 使用Aicore Error分析工具解析问题。
 
 ## 工具使用方法
 1. 获取asys工具收集文件夹路径，例如：/home/root/asys_output_20230328160000000
-2. 调用本工具解析，以默认安装路径为例，解析指令：
+2. 下载[aicore error分析工具](https://gitee.com/ascend/tools)，传输至运行环境目录下，以root为例，参考命令：
 ```
-cd /usr/local/Ascend/latest/tools/msaicerr
+cd /home/root/tools/msaicerr
 python3 msaicerr.py -p /home/root/asys_output_20230328160000000
 ```
 注：可以使用命令：`python3 msaicerr.py -h`，查看具体参数的含义。

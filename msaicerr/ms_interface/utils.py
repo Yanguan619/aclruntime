@@ -98,7 +98,7 @@ def check_path_valid(path: str, isdir: bool = False, output: bool = False) -> No
             os.makedirs(path, mode=Constant.DIRECTORY_MASK)
         except OSError as ex:
             print_error_log(f'Failed to create {path}. '
-                           f'Please check that the path is accessible or the disk space is enough. {str(ex)}')
+                            f'Please check that the path is accessible or the disk space is enough. {str(ex)}')
             raise AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
         finally:
             pass
@@ -170,7 +170,7 @@ def copy_src_to_dest(src_file_list: list, dest_path: str):
     """
     check_path_valid(dest_path, isdir=True, output=True)
     for file in src_file_list:
-        dest_file = os.path.join(dest_path, os.path.dirname(file))
+        dest_file = os.path.join(dest_path, os.path.basename(file))
         # 文件夹
         if os.path.isdir(file):
             original_files = [os.path.join(file, name) for name in os.listdir(file)]
@@ -244,10 +244,10 @@ def strplogtime(str_time: str):
     return datetime.strptime(new_str, '%Y-%m-%d-%H:%M:%S.%f')
 
 
-def get_inquire_result(inquire_cmd, regexp):
-    status, data = execute_command(inquire_cmd)
+def get_inquire_result(grep_cmd, regexp):
+    status, data = execute_command(grep_cmd)
     if status != 0:
-        print_error_log(f"Failed to execute command:{inquire_cmd}.")
+        print_error_log(f"Failed to execute command:{grep_cmd}.")
         raise AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR)
     ret = re.findall(regexp, data, re.M | re.S)
     if len(ret) == 0:

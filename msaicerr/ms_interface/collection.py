@@ -14,7 +14,7 @@ from ms_interface.log_parser import HostLogParser
 from ms_interface.constant import Constant
 
 
-class Collection():
+class Collection:
     """
     Collection class
     """
@@ -38,7 +38,7 @@ class Collection():
         utils.check_path_valid(self.report_path, isdir=True)
         utils.check_path_valid(self.output_path, isdir=True, output=True)
 
-    def collect(self: any) -> None:
+    def collect(self: any):
         """
         collect info
         """
@@ -64,9 +64,9 @@ class Collection():
         # collect compile
         utils.print_info_log('Start to collect compile file.')
         kernel_dest_path = self.collect_file("kernel", collect_path)
-        utils.print_info_log(f"The ops file is saved in {kernel_dest_path}")
+        utils.print_info_log(f"The ops file is saved in {kernel_dest_path}.")
         proto_dest_path = self.collect_file("proto", collect_path)
-        utils.print_info_log(f"The graph file is saved in {proto_dest_path}")
+        utils.print_info_log(f"The graph file is saved in {proto_dest_path}.")
 
         # collect dump
         utils.print_info_log('Start to collect dump file.')
@@ -89,7 +89,7 @@ class Collection():
             if plog_path_ret and Constant.DIR_PLOG in plog_path_ret[0]:
                 original_path = plog_path_ret[0].split(Constant.DIR_PLOG)[0]
             else:
-                utils.print_error_log(f"The {Constant.DIR_PLOG} log path cannot be found in {self.report_path}")
+                utils.print_error_log(f"The {Constant.DIR_PLOG} log path cannot be found in {self.report_path}.")
                 raise utils.AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
             dest_path = os.path.join(collect_target_path, original_path.split(self.report_path)[1][1:])
             utils.check_path_valid(dest_path, isdir=True, output=True)
@@ -125,7 +125,7 @@ class Collection():
             for node_name in self.node_name_list:
                 find_path_cmd = ['find', self.report_path, '-name', 
                                  f"*.{node_name.replace('/', '_').replace('.', '_')}.*"]
-                regexp = r"[_\-/0-9a-zA-Z]{1,}"
+                regexp = r"[_\.\-/0-9a-zA-Z]{1,}"
                 dump_file_list = utils.get_inquire_result(find_path_cmd, regexp)
                 if not dump_file_list:
                     utils.print_error_log(f"The {node_name} file path cannot be found in {self.report_path}.")

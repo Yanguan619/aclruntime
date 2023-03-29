@@ -117,8 +117,7 @@ class AicoreErrorParser:
         :return: 可用空间的list
         '''
         alloc_cmd = ['grep', 'DevMalloc: Succ,', '-nr', self.collection.collect_plog_path]
-        alloc_regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?size\s*=\s*([" \
-                       r"\d]+).+?ptr\s*=\s*([\da-zA-Z]+)"
+        alloc_regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?size\s*=\s*([\d]+).+?ptr\s*=\s*([\da-zA-Z]+)"
         alloc_ret = utils.get_inquire_result(alloc_cmd, alloc_regexp)
 
         free_cmd = ['grep', 'DevFree: mem', '-nr', self.collection.collect_plog_path]
@@ -139,14 +138,14 @@ class AicoreErrorParser:
         utils.print_info_log(f"get available addr: {avl_addr}")
         return avl_addr
 
-    def _get_necessary_addrs(self: any, kernal_name: str) -> dict:
+    def _get_necessary_addrs(self: any, kernel_name: str) -> dict:
         '''
         获取occur_time时刻可用的地址
-        :param kernal_name: 发生aicore error的kernal_name
+        :param kernel_name: 发生aicore error的kernel_name
         :return: 需要的空间
         '''
         result = {}
-        aic_info_cmd = ['grep', '-r',  '-C', '7',  "\[AIC_INFO\] dev_func:{}".format(kernal_name), self.collection.collect_applog_path]
+        aic_info_cmd = ['grep', '-r',  '-C', '7',  "\[AIC_INFO\] dev_func:{}".format(kernel_name), self.collection.collect_applog_path]
         _, aic_info = utils.execute_command(aic_info_cmd)
         utils.print_info_log(f"===============================\n{aic_info}\n==================================")
 
@@ -188,13 +187,13 @@ class AicoreErrorParser:
         if len(aic_info_workspace_ret) == 0:
             utils.print_warn_log(f"Failed to get {aic_info_workspace_regex} from [AIC_INFO].")
         elif len(aic_info_workspace_ret[0]) == 0:
-            utils.print_info_log(f"Failed to get {aic_info_workspace_regex}.")
+            utils.print_warn_log(f"Failed to get {aic_info_workspace_regex}.")
             workspace = "0"
         else:
             workspace = aic_info_workspace_ret[0][0]
             
         # tiling
-        tiling_data_regexp = r"\[AIC_INFO\]\stiling_data:(\\.*\@\\.*)\\[0-9]{3})"
+        tiling_data_regexp = r"\[AIC_INFO\]\stiling_data:(\\.*\@\\.*\\[0-9]{3})"
         tiling_data_ret = re.findall(tiling_data_regexp, aic_info, re.M)
         if len(tiling_data_ret) == 0:
             utils.print_warn_log(f"Failed to get {tiling_data_regexp}")
@@ -238,7 +237,7 @@ class AicoreErrorParser:
         input_params = used_addrs.get("input_addr")
         output_params = used_addrs.get("output_addr")
         if not input_params and not output_params:
-            utils.print_error_log("Unable to get input parameters and output paramters.")
+            utils.print_error_log("Unable to get input parameters and output parameters.")
             raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
         
         for input_param in input_params:
@@ -270,7 +269,7 @@ class AicoreErrorParser:
             input_output_addrs.append(op_io)
         for output in in_out_list.get("output_addr"):
             op_io = OpInputOutput()
-            op_io.name = f"output[{input.get('index')}]"
+            op_io.name = f"output[{output.get('index')}]"
             op_io.addr = output.get('addr')
             op_io.idx = int(output.get('index'))
             op_io.dtype = output.get('dtype')
@@ -295,7 +294,7 @@ class AicoreErrorParser:
     def _analyse_alloc_addr_range(self: any, alloc_addr: any, input_output_addrs: list) -> None:
         alloc_addr_range = self._get_alloc_addr_range(alloc_addr)
         for i in input_output_addrs:
-            begin_addr = int(i.addr, 16)
+            begin_addr = i.addr
             end_addr = begin_addr + i.size - 1 if i.size > 0 else begin_addr
             begin_in_range = self._check_addr_in_alloc(alloc_addr_range, begin_addr)
             if begin_in_range is False:
@@ -312,9 +311,9 @@ class AicoreErrorParser:
         alloc_in_range = False
         for _, (begin_alloc, end_alloc) in enumerate(alloc_addr_range):
             if begin_alloc <= alloc_addr <= end_alloc:
-                alloc_addr_range = True
+                alloc_in_range = True
                 break
-        return alloc_addr_range
+        return alloc_in_range
     
     @staticmethod
     def _check_actual_addr(i: any, alloc_addr_range: list) -> None:
@@ -441,7 +440,7 @@ class AicoreErrorParser:
             cce_code_num = self._read_decompile_file(decompile_file, err_pc, info)
             # cce to tbe code number
             if not os.path.exists(loc_json_file) or os.stat(loc_json_file).st_size is 0:
-                utils.print_warn_log(f"file {loc_json_file} not exist or file is empty.")
+                utils.print_warn_log(f"The file {loc_json_file} is not exist or file is empty.")
                 return True
             self._read_loc_json_file(loc_json_file, cce_code_num, info)
         return True
@@ -461,7 +460,7 @@ class AicoreErrorParser:
                 break
 
         if find_i == -1:
-            utils.print_warn_log(f"Get fault instruction failed, file({decompile_file}) diff({diff_str})")
+            utils.print_warn_log(f"Get fault instruction failed, file({decompile_file}) diff({diff_str}).")
             return False
 
         begin_i = 0 if find_i < 9 else find_i - 9
@@ -484,7 +483,7 @@ class AicoreErrorParser:
         utils.print_info_log(f'The ai core error info for No.{index} is saved in {info_file}.')
 
     def _aicore_error_data(self: any) -> list:
-        utils.print_info_log("Start to get DevMalloc address infomation.")
+        utils.print_info_log("Start to get DevMalloc address information.")
         aicore_error_data_list = []
 
         # 获取分配的device地址
@@ -533,18 +532,15 @@ class AicoreErrorParser:
 
             utils.print_info_log(f"******************No.{i} {info.err_time}******************")
             info.err_time_obj = utils.strplogtime(info.err_time)
-            err_i_folder_name = f"aicerror_{i}_{time.strftime("%Y%m%d%H%M%S", info.err_time_obj.timetuple())}"
+            err_i_folder_name = f"aicerror_{i}_{time.strftime('%Y%m%d%H%M%S', info.err_time_obj.timetuple())}"
             err_i_folder = os.path.join(self.output_path, err_i_folder_name)
             utils.check_path_valid(err_i_folder, isdir=True, output=True)
-            # get hisi log
-            self._get_hisi_log(info, err_i_folder)
             # get op info in build proto file
             self._get_op_by_graph(aicore_error_data_list[Constant.GRAPH_FILE], info)
             kernel_meta_path = self.collection.collect_kernel_path
         
             # 反编译  出错指令
-            result = self._decompile([info.kernel_name, kernel_meta_path],
-                                        err_i_folder, info)
+            result = self._decompile(kernel_meta_path, err_i_folder, info)
             if not result:
                 utils.print_warn_log(f"decompile kernel_meta file {os.path.join(kernel_meta_path, info.kernel_name)}.o failed.")
             try:
@@ -559,7 +555,7 @@ class AicoreErrorParser:
                 raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
 
 
-            info.input_output_addrs = self._get_input_output_addrs(info, aicore_error_data_list[Constant.ACTUAL_ADDR])
+            info.input_output_addrs = self._get_input_output_addrs(info, aicore_error_data_list[Constant.ALLOC_ADDR])
 
             # parse dump
             if self.collection.collect_dump_path:

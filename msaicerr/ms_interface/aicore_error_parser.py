@@ -532,7 +532,7 @@ class AicoreErrorParser:
 
             utils.print_info_log(f"******************No.{i} {info.err_time}******************")
             info.err_time_obj = utils.strplogtime(info.err_time)
-            err_i_folder_name = f"aicerror_{i}_{time.strftime("%Y%m%d%H%M%S", info.err_time_obj.timetuple())}"
+            err_i_folder_name = f"aicerror_{i}_{time.strftime('%Y%m%d%H%M%S', info.err_time_obj.timetuple())}"
             err_i_folder = os.path.join(self.output_path, err_i_folder_name)
             utils.check_path_valid(err_i_folder, isdir=True, output=True)
             # get op info in build proto file

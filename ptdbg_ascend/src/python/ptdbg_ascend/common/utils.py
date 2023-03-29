@@ -23,9 +23,15 @@ from datetime import datetime, timezone
 
 import numpy as np
 import torch
-if not torch.cuda.is_available():
-    from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
+try:
+    imprt torch_npu
+except ImportError:
+    is_gpu=True
+else:
+    is_gpu=False
 
+if not is_gpu:
+    from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
 
 device = collections.namedtuple('device', ['type', 'index'])
 
@@ -295,7 +301,7 @@ def format_value(value):
 
 
 def torch_device_guard(func):
-    if torch.cuda.is_available():
+    if is_gpu:
         return func
     # Parse args/kwargs matched torch.device objects
 

@@ -24,8 +24,12 @@ import stat
 import numpy as np
 import torch
 
-if not torch.cuda.is_available():
+try:
     import torch_npu
+except ImportError:
+    is_gpu=True
+else:
+    is_gpu=False
 
 from ..common.utils import check_file_or_directory_path, print_error_log, \
     print_warn_log, CompareException, Const, get_time, print_info_log, modify_dump_path
@@ -429,7 +433,7 @@ def overflow_check(name, **kwargs):
             return
         if pid != os.getpid():
             return
-        if torch.cuda.is_available():
+        if is_gpu:
             print_warn_log("Overflow detection is not supported in the GPU environment.")
             return
         global backward_init_status

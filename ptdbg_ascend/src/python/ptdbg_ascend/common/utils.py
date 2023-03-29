@@ -299,7 +299,6 @@ def format_value(value):
 
 
 def torch_device_guard(func):
-    global is_gpu
     if is_gpu:
         return func
     # Parse args/kwargs matched torch.device objects

@@ -265,6 +265,7 @@ set_dump_switch("ON", mode="api_stack")
 * 文件npu_dump.pkl 中包含dump数据的api名称、dtype、 shape、统计信息：max, min, mean.<br/>
 * 文件夹npu_dump_timestamp，文件夹下为numpy格式的dump数据.<br/>
   numpy文件保存的前缀和Pytorch对应关系如下
+
 | 前缀                | Torch模块                                                                                         |
 | ------------------- |---------------------------------------------------------------------------------------------------|
 | Tensor              |  torch.Tensor                                                                                     |

@@ -54,7 +54,7 @@ def initialize_hook(hook):
     for attr_name in dir(wrap_vf.HOOKVfOP):
         if attr_name.startswith("wrap_"):
             setattr(torch._VF, attr_name[5:], getattr(wrap_vf.HOOKVfOP, attr_name))
-    global is_gpu
+    
     if not is_gpu:
         wrap_npu_custom.wrap_npu_ops_and_bind(hook)
         for attr_name in dir(wrap_npu_custom.HOOKNpuOP):

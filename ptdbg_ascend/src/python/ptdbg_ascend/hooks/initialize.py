@@ -76,7 +76,6 @@ def register_hook(model, hook, **kwargs):
     make_dump_dirs(rank, pid)
     hook_name = hook.__name__
 
-    global is_gpu
     if "overflow_check" in hook_name and not is_gpu:
         if hasattr(torch_npu._C, "_enable_overflow_npu"):
             torch_npu._C._enable_overflow_npu()

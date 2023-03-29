@@ -433,7 +433,6 @@ def overflow_check(name, **kwargs):
             return
         if pid != os.getpid():
             return
-        global is_gpu
         if is_gpu:
             print_warn_log("Overflow detection is not supported in the GPU environment.")
             return

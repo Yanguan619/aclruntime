@@ -13,8 +13,8 @@ import time
 import argparse
 import tarfile
 from ms_interface import utils
-from ms_interface.constant import Constant
 from ms_interface.collection import Collection
+from ms_interface.constant import Constant
 from ms_interface.aicore_error_parser import AicoreErrorParser
 from ms_interface.single_op_case import SingleOpCase
 
@@ -53,7 +53,7 @@ def main() -> int:
     if not args.report_path and not args.tar_file:
         utils.print_error_log("There must be one of the parameters report_path and tar_file.")
         return Constant.MS_AICERR_INVALID_PARAM_ERROR
-    
+        
     # 如果输入参数中没有报告地址
     if not args.output_path:
         utils.print_info_log("The tool directory will be used to as the output address of the analysis report.")
@@ -80,7 +80,7 @@ def main() -> int:
         parser = AicoreErrorParser(collection, output_path, collect_time)
         parser.parse()
 
-        single_op_case = SingleOpCase(collection, parser.input)
+        single_op_case = SingleOpCase(collection)
         single_op_case.run()
 
     except utils.AicErrException as error:

@@ -1282,6 +1282,61 @@ class TestClass():
         ret = os.system(cmd)
         assert ret != 0
 
+    def test_pure_inference_profiler_normal(self):
+        batch_size = 1
+        output_path = os.path.join(self.model_base_path, "output", "tmp")
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+        log_path = os.path.join(output_path, "profiler.log")
+        model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+
+        # GE_PROFILIGN_TO_STD_OUT=0
+        env_label = os.getenv('GE_PROFILIGN_TO_STD_OUT', 'null')
+        if env_label is not 'null':
+            del os.environ['GE_PROFILIGN_TO_STD_OUT']
+        cmd = "{} --model {} --device {} --profiler True --output {} > {}".format(TestCommonClass.cmd_prefix, model_path,
+            TestCommonClass.default_device_id, output_path, log_path)
+        print("run cmd:{}".format(cmd))
+        ret = os.system(cmd)
+        assert ret == 0
+
+        label_is_exist = False
+        with open(log_path) as f:
+            for line in f:
+                if "find no msprof continue use acl.json mode" in line:
+                    label_is_exist = True
+                    break
+
+        msprof_bin = shutil.which('msprof')
+        if msprof_bin is None:
+            assert label_is_exist == True
+        else:
+            assert label_is_exist == False
+
+        # GE_PROFILIGN_TO_STD_OUT=1
+        os.environ['GE_PROFILIGN_TO_STD_OUT']="1"
+        label_is_exist = False
+        os.remove(log_path)
+        shutil.rmtree(output_path)
+        os.makedirs(output_path)
+
+        cmd = "{} --model {} --device {} --profiler True --output {} > {}".format(TestCommonClass.cmd_prefix, model_path,
+            TestCommonClass.default_device_id, output_path, log_path)
+        print("run cmd:{}".format(cmd))
+        ret = os.system(cmd)
+        assert ret == 0
+
+        with open(log_path) as f:
+            for line in f:
+                if "find no msprof continue use acl.json mode" in line:
+                    label_is_exist = True
+                    break
+
+        assert label_is_exist == True
+
+        shutil.rmtree(output_path)
+        del os.environ['GE_PROFILIGN_TO_STD_OUT']
+
 
 if __name__ == '__main__':
     pytest.main(['test_infer_resnet50.py', '-vs'])

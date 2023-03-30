@@ -23,6 +23,12 @@ TMP_PATH = '/tmp/saved_model2om'
 TMP_PB_NAME = 'model.pb'
 TMP_OM_NAME = 'model'
 
+TYPE_MAP = {
+    'FP32': 'DT_FLOAT',
+    'UINT8': 'DT_UINT8',
+    'FP16': 'DT_HALF',
+}
+
 
 @contextlib.contextmanager
 def captured_output():
@@ -292,8 +298,46 @@ def make_temp_path(base_path, dir_name, file_name):
     return tmp_dir_path, tmp_file_path
 
 
+def update_output_type(output_type, output_nodes):
+    if not output_type:
+        return
+    if output_type in TYPE_MAP.keys():
+        for name in output_nodes.keys():
+            node = output_nodes[name]
+            output_nodes[name] = NodeInfo(node.name, node.shape, TYPE_MAP[output_type], node.full_name)
+    else:
+        for i in output_type.split(';'):
+            index = i.rfind(':')
+            node_name = i[:index]
+            node = output_nodes[node_name]
+            output_nodes[node_name] = NodeInfo(node.name, node.shape, TYPE_MAP[i[index + 1:]], node.full_name)
+
+
+def update_input_type(input_fp16_nodes, input_nodes):
+    unhandled_nodes = list(input_nodes.keys())
+    for name in input_fp16_nodes.split(';'):
+        for i in unhandled_nodes[:]:
+            node = input_nodes[i]
+            if node.name == name:
+                input_nodes[i] = NodeInfo(node.name, node.shape, TYPE_MAP['FP16'], node.full_name)
+                unhandled_nodes.remove(i)
+
+
+def update_atc_args(type_args, rest_args):
+    for k, v in type_args.items():
+        if v not in (None, ''):
+            rest_args.append(f'--{k}={v}')
+
+
+def update_type(input_nodes, output_nodes, output_type, input_fp16_nodes):
+    if output_type:
+        update_output_type(output_type, output_nodes)
+    if input_fp16_nodes:
+        update_input_type(input_fp16_nodes, input_nodes)
+
+
 def main(input_path, output_path, input_shape, soc_version, profiling, method_name, new_input_nodes, new_output_nodes,
-         rest_args):
+         type_args, rest_args):
     try:
         now_time = int(time.time())
         tmp_pb_path, tmp_pb_file = make_temp_path(TMP_PATH, f"pb_dir_{now_time}", TMP_PB_NAME)
@@ -311,12 +355,14 @@ def main(input_path, output_path, input_shape, soc_version, profiling, method_na
             print_input_shape(input_nodes)
         gen_pb_txt(tmp_pb_file)
         out_nodes = get_out_nodes(output_nodes)
+        update_atc_args(type_args, rest_args)
         if profiling is not None:
             ret = pb_to_om_with_profiling(tmp_pb_file, tmp_om_file, input_shape, out_nodes, profiling, rest_args)
         else:
             ret = pb_to_om(tmp_pb_file, tmp_om_file, soc_version, input_shape, out_nodes, rest_args)
         if ret.returncode != 0:
             return
+        update_type(input_nodes, output_nodes, **type_args)
         om_file_path = os.path.join(tmp_om_path, os.listdir(tmp_om_path)[0])
         print(f"[INFO]: The om model has been converted and the HW Saved Model is ready to be generated.")
         method_name = method_name or saved_model_method_name
@@ -347,6 +393,10 @@ def get_args():
                              'Separate multiple nodes with semicolons (;).'
                              'Use double quotation marks (") to enclose each argument.'
                              'E.g.: "loss:loss/Softmax:0"')
+    parser.add_argument("--output_type", default='', help="ATC Parameter: Specifies the network output node type "
+                                                          "or specifies the output type of a particular output node.")
+    parser.add_argument("--input_fp16_nodes", default='',
+                        help="ATC Parameter: Specifies the name of the input node whose input data type is float16.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--soc_version", help="The soc version. "
                                              "This parameter is not required when profiling is set.")
@@ -358,4 +408,5 @@ def get_args():
 if __name__ == "__main__":
     args, unknown_args = get_args()
     main(args.input_path, args.output_path, args.input_shape, args.soc_version, args.profiling, args.method_name,
-         args.new_input_nodes, args.new_output_nodes, unknown_args)
+         args.new_input_nodes, args.new_output_nodes,
+         {'output_type': args.output_type, 'input_fp16_nodes': args.input_fp16_nodes}, unknown_args)

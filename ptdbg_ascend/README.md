@@ -287,28 +287,25 @@ set_dump_switch("ON", mode="api_stack")
 * 溢出检测的pkl文件名格式为Overflow_info_{timestamp}.pkl，每次溢出时时间戳不同<br/>
   pkl文件中包含dump数据的api名称、dtype、 shape(不包含统计信息max, min, mean)。
 * 对应的dump数据存放目录为Overflow_info_{timestamp}，dump数据为完整Tensor数据，存放格式为numpy。
-* 单机多卡比对功能已上线，dump数据文件夹组织统一改为模仿ACL溢出检测dump文件夹格式。假设set_dump_path设置为`./dump_path/myDump.pkl`，则dump数据会dump在：`./dump_path/myDump_{time}/rank{rankid}/pid{pid}/`路径下。比如：
+* 单机多卡比对功能已上线，dump数据文件夹组织统一改为模仿ACL溢出检测dump文件夹格式。假设set_dump_path设置为`./dump_path/myDump.pkl`，则dump数据会dump在：`./dump_path/{dump_tag}/rank{rankid}/`路径下。其中`{dump_tag}`是set_dump_path接口的一个参数，默认为ptdbg_dump。文件夹结构样例如下：
 
   ```
   ├── dump_path
-  │   └── myDump_20230323_083936
+  │   └── ptdbg_dump
   │       ├── rank0
-  │       │   └── pid38378
-  │       │   	├── myDump_20230323_083955
-  |       |       |   ├── 0_Functional_conv2d_forward_output.npy
-  |       |       |   ...
-  |       |       |   └── 119_Fcuntion_linear_backward_output.npy
-  │       │  		└── myDump.pkl
+  │       │   ├── myDump_20230323_083955
+  |       |   |    ├── Tensor_permute_1_forward.npy
+  |       |   |    ...
+  |       |   |    └── Fcuntion_linear_5_backward_output.npy
+  │       │   └── myDump.pkl
   │       ├── rank1
-  │       │   └── pid38379
-  |       |       ├── myDump_20230323_083955
-  |       |       |   └── ...
-  |       |       └── myDump.pkl 
+  |       |   ├── myDump_20230323_083955
+  |       |   |   └── ...
+  |       |   └── myDump.pkl 
   │       ├── rank2
-  │       │   └── pid38380
-  |       |       ├── myDump_20230323_083955
-  |       |       |   └── ...
-  |       |       └── myDump.pkl 
+  |       |   ├── myDump_20230323_083955
+  |       |   |   └── ...
+  |       |   └── myDump.pkl 
   │       ├── ...
   │       |
   |       └── rank7
@@ -327,8 +324,8 @@ from ptdbg_ascend import *
 
 # 在main函数开始前固定随机数
 seed_all()
-# 设置dump路径（含文件名）
-set_dump_path("./npu_dump.pkl")
+# 设置dump路径（含文件名），多卡使用时最好也在main函数开始前设置
+set_dump_path("./npu_dump.pkl", dump_tag="dump_conv2d")
 
 ...
 
@@ -555,46 +552,43 @@ set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
 
 **文件夹格式改动**
 
-为了支持单机多卡场景，我们模仿ACL溢出检测dump的文件夹，区分了不同rank和不同pid所dump的数据文件。假设dump路径设置为`set_dump_path('./dump_path/dump_name.pkl')`，则dump数据会dump在：`./dump_path/dump_name_{time}/rank{rankid}/pid{pid}/`路径下。比如：
+为了支持单机多卡场景，我们模仿ACL溢出检测dump的文件夹，区分了不同rank所dump的数据文件。假设dump路径设置为`set_dump_path('./dump_path/myDump.pkl', dump_tag='dump_conv2d')`，则dump数据会dump在：`./dump_path/dump_tag/rank{rankid}/`路径下。比如：
 
-```
-├── dump_path
-│   └── dump_name_20230323_083936
-│       ├── rank0
-│       │   └── pid38378
-│       │   	├── myDump_20230323_083955
-|       |       |   ├── 0_Functional_conv2d_forward_output.npy
-|       |       |   ...
-|       |       |   └── 119_Fcuntion_linear_backward_output.npy
-│       │  		└── myDump.pkl
-│       ├── rank1
-│       │   └── pid38379
-|       |       ├── myDump_20230323_083955
-|       |       |   └── ...
-|       |       └── myDump.pkl 
-│       ├── rank2
-│       │   └── pid38380
-|       |       ├── myDump_20230323_083955
-|       |       |   └── ...
-|       |       └── myDump.pkl 
-│       ├── ...
-│       |
-|       └── rank7
-```
+  ```
+  ├── dump_path
+  │   └── dump_conv2d
+  │       ├── rank0
+  │       │   ├── myDump
+  |       |   |    ├── Tensor_permute_1_forward.npy
+  |       |   |    ...
+  |       |   |    └── Fcuntion_linear_5_backward_output.npy
+  │       │   └── myDump.pkl
+  │       ├── rank1
+  |       |   ├── myDump
+  |       |   |   └── ...
+  |       |   └── myDump.pkl 
+  │       ├── rank2
+  |       |   ├── myDump
+  |       |   |   └── ...
+  |       |   └── myDump.pkl 
+  │       ├── ...
+  │       |
+  |       └── rank7
+  ```
 
-具体地说，dump_path下首先产生一个`{dump_name}_{time}`文件夹，其中`dump_name`是所设置dump路径文件名**不包括**扩展名的部分，可以用来提高文件夹辨识度。这个文件夹中会根据实际使用卡的数量产生若干`rank`文件夹。每个`rank`文件夹下会包含以其运行的进程的pid命名的文件夹。
+具体地说，dump_path下首先产生一个`{dump_tag}`文件夹，`dump_tag`是set_dump_path传入参数设置的，可以用来提高文件夹辨识度。这个文件夹中会根据实际使用卡的数量产生若干`rank`文件夹。每张卡上dump结果产生pkl和npy数据文件夹会存在对应的rank文件夹下。需要注意的是，如果以相同的dump_path和dump_tag运行两次，则**第二次的数据文件会覆盖第一次的**。
 
-1. 为了方便区分不同卡上的进程，调用register_hook时建议传入各自进程所对应的`rank`，比如
+1. 为了方便区分不同卡上的dump数据，调用register_hook时可以考虑传入各自进程所对应的`rank`，比如
 
 ```
 register_hook(model, acc_cmp_dump, rank=0)
 ```
 
-`rank`将决定该进程所dump数据被存入哪个`rank`文件夹。如果不显式传入，工具将隐式从传入模型的参数读取`device.index`信息作为`rank`。
+`rank`将决定该进程所dump数据被存入哪个`rank`文件夹。如果不清楚当前rank id或者不显式传入，工具将隐式从传入模型的参数读取`device.index`信息作为`rank`。
 
-2. dump数据之后的比对建议使用`compare_distributed`接口。调用该接口需要传入两个参数，分别代表需要比对的两次运行数据所在的总文件夹路径，即上文所说的`{dump_path}/{dump_name}_{time}` 。比如在上面的例子中，我们可以传入 `dump_path/dump_name_20230323_083936` 作为其中一个参数。
+2. dump数据之后的比对建议使用`compare_distributed`接口。调用该接口需要传入两个参数，分别代表需要比对的两次运行数据所在的总文件夹路径，即上文所说的`{dump_path}/{dump_tag}` 。比如在上面的例子中，我们可以传入 `dump_path/dump_conv2d` 作为其中一个参数。
 
-   假设我们又运行了一次模型，产生了`dump_path/dump_name_20230323_084050`文件夹，要比对以上两次运行所产生的数据差异，就可以把这两个路径分别作为两个参数传入。
+   假设我们又运行了一次模型，产生了`dump_torch111/dump_conv2d`文件夹，要比对以上两次运行所产生的数据差异，就可以把这两个路径分别作为两个参数传入。
 
 **注意：两次运行须用相同数量的卡，传入的两个文件夹下须有相同个数的rank文件夹，否则将无法比对。**
 

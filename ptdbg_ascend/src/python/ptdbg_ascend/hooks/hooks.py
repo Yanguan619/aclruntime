@@ -50,7 +50,7 @@ class DumpUtil(object):
     dump_init_enable = False
     dump_api_list = []
     backward_input = {}
-    dump_dir_tag = 'distributed'
+    dump_dir_tag = 'ptdbg_dump'
 
     @staticmethod
     def set_dump_path(save_path):
@@ -158,7 +158,7 @@ class OverFlowUtil(object):
         return OverFlowUtil.real_overflow_dump_times < need_dump_times
 
 
-def set_dump_path(fpath=None, dump_tag='distributed'):
+def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
     if fpath is None:
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
         return
@@ -274,24 +274,23 @@ def make_dump_dirs(rank, pid):
         dump_root_dir, dump_file_name = os.path.split(DumpUtil.dump_path)
         dump_file_name_body, _ = os.path.splitext(dump_file_name)
     else:
-        dump_root_dir, dump_file_name, dump_file_name_body = './', 'dummy.pkl', ''
+        dump_root_dir, dump_file_name, dump_file_name_body = './', 'anonymous.pkl', 'anonymous'
     tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag)
     Path(tag_dir).mkdir(parents=True, exist_ok=True)
     rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
     if not os.path.exists(rank_dir):
         os.mkdir(rank_dir)
-    pid_dir = os.path.join(rank_dir, 'pid' + str(pid))
-    if not os.path.exists(pid_dir):
-        os.mkdir(pid_dir)
-    DumpUtil.dump_dir = pid_dir 
+    DumpUtil.dump_dir = rank_dir
     DumpUtil.set_dump_path(os.path.join(pid_dir, dump_file_name))
 
 def make_dump_data_dir(dump_file_name):
     dump_path, file_name = os.path.split(os.path.realpath(dump_file_name))
     name_body, name_extension = os.path.splitext(file_name)
-    output_dir = os.path.join(dump_path, f"{name_body}_{get_time()}")
+    output_dir = os.path.join(dump_path, f"{name_body}")
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
+    else:
+        os.system(f'rm -rf {output_dir}')
     return output_dir
 
 

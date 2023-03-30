@@ -339,15 +339,6 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
         return contents 
 
     def extract_pkl_and_data_dir(dirname):
-        pids = check_and_return_dir_contents(dirname, 'pid')
-        if len(pids) != 1:
-            msg = ("Multiple pids are detected in one rank. "
-            "This case is not supported by compare_distributed() because "
-            "we do not know the matching of the pids. "
-            "You may manually match the pids and use compare() to compare them. ")
-            raise NotImplementedError(msg)
-        pid = pids[0] 
-        dirname = os.path.join(dirname, pid)
         pkl_path, dump_data_dir, pkl_name, dump_data_dirname = '', '', '', ''
         for fname in os.listdir(dirname):
             full_path = os.path.join(dirname, fname)
@@ -365,7 +356,7 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
             print_error_log(f'No directory is found in dump dir {dirname}. ')
             raise CompareException(CompareException.NO_DUMP_FILE_ERROR)
         name_body, ext = os.path.splitext(pkl_name)
-        pattern = re.compile(f'{name_body}[_0-9]+$')
+        pattern = re.compile(f'{name_body}$')
         match = pattern.match(dump_data_dirname)
         if match is None:
             print_error_log('The names of pkl and directory do not match! '

@@ -281,7 +281,7 @@ def make_dump_dirs(rank, pid):
     if not os.path.exists(rank_dir):
         os.mkdir(rank_dir)
     DumpUtil.dump_dir = rank_dir
-    DumpUtil.set_dump_path(os.path.join(pid_dir, dump_file_name))
+    DumpUtil.set_dump_path(os.path.join(rank_dir, dump_file_name))
 
 def make_dump_data_dir(dump_file_name):
     dump_path, file_name = os.path.split(os.path.realpath(dump_file_name))

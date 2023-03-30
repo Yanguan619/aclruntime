@@ -325,7 +325,7 @@ def check_file_mode(npu_pkl, bench_pkl, stack_mode):
         if npu_pkl_name.startswith("api_stack") or bench_pkl_name.startswith("api_stack"):
             raise Exception("The current file contains stack information, please turn on the stack_mode")
 
-def compare_distributed(npu_dump_dir, bench_dump_dir, **kwargs):
+def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
     def check_and_return_dir_contents(dump_dir, prefix):
         contents = os.listdir(dump_dir)
         pattern = re.compile(f'^{prefix}[0-9]+$')
@@ -394,7 +394,7 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, **kwargs):
             'bench_dump_data_dir': bench_dump_data_dir,
             'is_print_compare_log':True
         }
-        compare(dump_result_param, './output', True, suffix=f'_{nr}-{br}', **kwargs)
+        compare(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)
 
 def compare(input_parma, output_path, shape_flag=True, stack_mode=False, suffix=''):
     try:

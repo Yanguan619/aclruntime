@@ -412,8 +412,12 @@ def dump_overflow(module_name, stack_str, in_feat, out_feat, dump_file):
     name_template = f"{module_name}" + "_{}"
     DumpUtil.dump_data_dir = make_dump_data_dir(dump_file)
     _dump_tensor_completely(stack_str, name_template.format("stack_info"), dump_file)
-    _dump_tensor_completely(in_feat, name_template.format("input"), dump_file)
-    _dump_tensor_completely(out_feat, name_template.format("output"), dump_file)
+    if "forward" in name_template:
+        _dump_tensor_completely(in_feat, name_template.format("input"), dump_file)
+        _dump_tensor_completely(out_feat, name_template.format("output"), dump_file)
+    else:
+        _dump_tensor_completely(in_feat, name_template.format("output"), dump_file)
+        _dump_tensor_completely(out_feat, name_template.format("input"), dump_file)
 
 
 def overflow_check(name, **kwargs):

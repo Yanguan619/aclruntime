@@ -549,7 +549,7 @@ set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
 
   register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='dump.json')
   set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
-  set_backward_input(["xxx/Functional_conv2d_1_backward_output.0.npy"])
+  set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
 
 #### 场景四 单机多卡场景使用精度比对工具
 

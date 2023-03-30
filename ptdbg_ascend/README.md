@@ -586,9 +586,9 @@ register_hook(model, acc_cmp_dump, rank=0)
 
 `rank`将决定该进程所dump数据被存入哪个`rank`文件夹。如果不清楚当前rank id或者不显式传入，工具将隐式从传入模型的参数读取`device.index`信息作为`rank`。
 
-2. dump数据之后的比对建议使用`compare_distributed`接口。调用该接口需要传入两个参数，分别代表需要比对的两次运行数据所在的总文件夹路径，即上文所说的`{dump_path}/{dump_tag}` 。比如在上面的例子中，我们可以传入 `dump_path/dump_conv2d` 作为其中一个参数。
+2. dump数据之后的比对建议使用`compare_distributed`接口。调用该接口需要传入`npu_dump_dir`, `bench_dump_dir`, `output_path`三个参数，前两者代表需要比对的两次运行数据所在的总文件夹路径，即上文所说的`{dump_path}/{dump_tag}` 。比如在上面的例子中，我们可以传入 `dump_path/dump_conv2d` 作为其中一个参数。
 
-   假设我们又运行了一次模型，产生了`dump_torch111/dump_conv2d`文件夹，要比对以上两次运行所产生的数据差异，就可以把这两个路径分别作为两个参数传入。
+   假设我们又运行了一次模型，产生了`dump_torch111/dump_conv2d`文件夹，要比对以上两次运行所产生的数据差异，就可以把这两个路径分别作为两个参数传入。另外，原本`compare`比对函数支持的参数如`shape_flag`、`stack_mode`等，`compare_distributed`也支持。
 
 **注意：两次运行须用相同数量的卡，传入的两个文件夹下须有相同个数的rank文件夹，否则将无法比对。**
 

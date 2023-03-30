@@ -20,9 +20,10 @@ import json
 import os
 import random
 import stat
-
+from pathlib import Path
 import numpy as np
 import torch
+
 
 try:
     import torch_npu
@@ -49,6 +50,7 @@ class DumpUtil(object):
     dump_init_enable = False
     dump_api_list = []
     backward_input = {}
+    dump_dir_tag = 'distributed'
 
     @staticmethod
     def set_dump_path(save_path):
@@ -156,7 +158,7 @@ class OverFlowUtil(object):
         return OverFlowUtil.real_overflow_dump_times < need_dump_times
 
 
-def set_dump_path(fpath=None):
+def set_dump_path(fpath=None, dir_tag='distributed'):
     if fpath is None:
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
         return
@@ -168,6 +170,7 @@ def set_dump_path(fpath=None):
     if os.path.exists(real_path):
         os.remove(real_path)
     DumpUtil.set_dump_path(real_path)
+    DumpUtil.dir_tag = dir_tag
 
 
 def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[]):
@@ -273,12 +276,14 @@ def make_dump_dirs(rank, pid):
         dump_file_name_body, _ = os.path.splitext(dump_file_name)
     else:
         dump_root_dir, dump_file_name, dump_file_name_body = './', 'dummy.pkl', ''
-    time = get_time()
-    time_dir = os.path.join(dump_root_dir, dump_file_name_body + '_' + str(time))
-    if rank == 0 and not os.path.exists(time_dir): # add rank==0 to prevent repeated mkdir
-        os.mkdir(time_dir)
-    while not os.path.exists(time_dir): # wait for rank 0 process to create timedir
-        pass 
+    # time = get_time()
+    # time_dir = os.path.join(dump_root_dir, dump_file_name_body + '_' + str(time))
+    # if rank == 0 and not os.path.exists(time_dir): # add rank==0 to prevent repeated mkdir
+    #     os.mkdir(time_dir)
+    # while not os.path.exists(time_dir): # wait for rank 0 process to create timedir
+    #     pass
+    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag)
+    Path(tag_dir).mkdir(parents=True, exist_ok=True)
     rank_dir = os.path.join(time_dir, 'rank' + str(rank))
     if not os.path.exists(rank_dir):
         os.mkdir(rank_dir)

@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 import numpy as np
 import torch
 try:
-    imprt torch_npu
+    import torch_npu
 except ImportError:
     is_gpu=True
 else:

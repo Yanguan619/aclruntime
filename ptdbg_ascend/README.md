@@ -273,6 +273,7 @@ set_dump_switch("ON", mode="api_stack")
 | Functional          |  torch.nn.functional                                                                              |
 | NPU                 |  NPU亲和算子                                                                                       |
 | VF                  |  torch._VF                                                                                        |
+
 当dump模式配置为 "api_stack"时 假设配置的dump文件名为npu_dump.pkl，文件名会被添加api_stack前缀，此时dump的结果为两部分：
 * 文件api_stack_npu_dump.pkl 中包含dump数据的api名称、dtype、 shape、统计信息：max, min, mean，以及堆栈信息。<br/>
 * 文件夹api_stack_npu_dump_timestamp，文件夹下为numpy格式的dump数据.<br/>
@@ -548,7 +549,7 @@ set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
 
   register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='dump.json')
   set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
-  set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
+  set_backward_input(["xxx/Functional_conv2d_1_backward_output.0.npy"])
 
 #### 场景四 单机多卡场景使用精度比对工具
 

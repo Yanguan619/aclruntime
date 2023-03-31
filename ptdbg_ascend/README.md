@@ -324,7 +324,8 @@ from ptdbg_ascend import *
 
 # 在main函数开始前固定随机数
 seed_all()
-# 设置dump路径（含文件名），多卡使用时最好也在main函数开始前设置
+# 设置dump路径（含文件名）和dump_tag。dump_tag会体现在数据文件夹的文件名上
+# 多卡使用时最好也在main函数开始前设置
 set_dump_path("./npu_dump.pkl", dump_tag="dump_conv2d")
 
 ...

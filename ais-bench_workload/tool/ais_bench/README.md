@@ -485,10 +485,8 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
   该方式进行性能数据采集时，首先检查是否存在msprof命令：
 
   - 若命令存在，则使用该命令进行性能数据采集、解析并导出为可视化的timeline和summary文件。
-  - 若命令不存在，则调用acl.json文件进行性能数据采集。
-  - 若环境配置了GE_PROFILING_TO_STD_OUT=1，则使用--profiler参数采集性能数据时调用的是acl.json文件。
-
-  msprof命令不存在或环境配置了GE_PROFILING_TO_STD_OUT=1情况下，采集的性能数据文件未自动解析，需要参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>数据解析与导出”章节，将性能数据解析并导出为可视化的timeline和summary文件。
+  - 若命令不存在，则调用acl.json文件进行性能数据采集。采集的性能数据文件未自动解析，需要参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>数据解析与导出”章节，将性能数据解析并导出为可视化的timeline和summary文件。
+  - 若环境配置了GE_PROFILING_TO_STD_OUT=1，则使用--profiler参数采集性能数据时调用的是acl.json文件。采集的性能数据文件未自动解析，需要参见《[解析profiling文件](https://gitee.com/ascend/tools/blob/master/ada/doc/ada_pa.md)》对性能数据进行解析。
 
   更多性能数据采集参数介绍请参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>性能数据采集（msprof命令行方式）”章节。
 

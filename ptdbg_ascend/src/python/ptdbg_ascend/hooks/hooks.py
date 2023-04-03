@@ -23,7 +23,7 @@ import stat
 from pathlib import Path
 import numpy as np
 import torch
-
+import shutil
 
 try:
     import torch_npu
@@ -290,7 +290,7 @@ def make_dump_data_dir(dump_file_name):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     else:
-        os.system(f'rm -rf {output_dir}')
+        shutil.rmtree(output_dir, ignore_errors=True)
     return output_dir
 
 

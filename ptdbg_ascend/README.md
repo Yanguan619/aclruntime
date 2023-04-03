@@ -293,17 +293,17 @@ set_dump_switch("ON", mode="api_stack")
   ├── dump_path
   │   └── ptdbg_dump_v1.0
   │       ├── rank0
-  │       │   ├── myDump_20230323_083955
+  │       │   ├── myDump
   |       |   |    ├── Tensor_permute_1_forward.npy
   |       |   |    ...
   |       |   |    └── Fcuntion_linear_5_backward_output.npy
   │       │   └── myDump.pkl
   │       ├── rank1
-  |       |   ├── myDump_20230323_083955
+  |       |   ├── myDump
   |       |   |   └── ...
   |       |   └── myDump.pkl 
   │       ├── rank2
-  |       |   ├── myDump_20230323_083955
+  |       |   ├── myDump
   |       |   |   └── ...
   |       |   └── myDump.pkl 
   │       ├── ...
@@ -553,7 +553,7 @@ set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
 
 **文件夹格式改动**
 
-为了支持单机多卡场景，我们模仿ACL溢出检测dump的文件夹，区分了不同rank所dump的数据文件。假设dump路径设置为`set_dump_path('./dump_path/myDump.pkl', dump_tag='dump_conv2d')`，则dump数据会dump在：`./dump_path/dump_tag_{version}/rank{rankid}/`路径下。比如：
+为了支持单机多卡场景，我们模仿ACL溢出检测dump的文件夹，区分了不同rank所dump的数据文件。假设dump路径设置为`set_dump_path('./dump_path/myDump.pkl', dump_tag='dump_conv2d')`，则数据（pkl和包含npy文件的文件夹）会dump在：`./dump_path/dump_tag_{version}/rank{rankid}/`路径下。比如：
 
   ```
   ├── dump_path

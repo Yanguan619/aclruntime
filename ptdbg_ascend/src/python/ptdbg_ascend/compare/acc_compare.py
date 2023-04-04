@@ -325,7 +325,7 @@ def check_file_mode(npu_pkl, bench_pkl, stack_mode):
         if npu_pkl_name.startswith("api_stack") or bench_pkl_name.startswith("api_stack"):
             raise Exception("The current file contains stack information, please turn on the stack_mode")
 
-def compare_distributed(npu_dump_dir, bench_dump_dir, **kwargs):
+def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
     def check_and_return_dir_contents(dump_dir, prefix):
         contents = os.listdir(dump_dir)
         pattern = re.compile(f'^{prefix}[0-9]+$')
@@ -339,15 +339,6 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, **kwargs):
         return contents 
 
     def extract_pkl_and_data_dir(dirname):
-        pids = check_and_return_dir_contents(dirname, 'pid')
-        if len(pids) != 1:
-            msg = ("Multiple pids are detected in one rank. "
-            "This case is not supported by compare_distributed() because "
-            "we do not know the matching of the pids. "
-            "You may manually match the pids and use compare() to compare them. ")
-            raise NotImplementedError(msg)
-        pid = pids[0] 
-        dirname = os.path.join(dirname, pid)
         pkl_path, dump_data_dir, pkl_name, dump_data_dirname = '', '', '', ''
         for fname in os.listdir(dirname):
             full_path = os.path.join(dirname, fname)
@@ -365,7 +356,7 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, **kwargs):
             print_error_log(f'No directory is found in dump dir {dirname}. ')
             raise CompareException(CompareException.NO_DUMP_FILE_ERROR)
         name_body, ext = os.path.splitext(pkl_name)
-        pattern = re.compile(f'{name_body}[_0-9]+$')
+        pattern = re.compile(f'{name_body}$')
         match = pattern.match(dump_data_dirname)
         if match is None:
             print_error_log('The names of pkl and directory do not match! '
@@ -394,7 +385,7 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, **kwargs):
             'bench_dump_data_dir': bench_dump_data_dir,
             'is_print_compare_log':True
         }
-        compare(dump_result_param, './output', True, suffix=f'_{nr}-{br}', **kwargs)
+        compare(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)
 
 def compare(input_parma, output_path, shape_flag=True, stack_mode=False, suffix=''):
     try:

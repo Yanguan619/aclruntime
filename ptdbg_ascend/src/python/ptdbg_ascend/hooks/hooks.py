@@ -20,9 +20,10 @@ import json
 import os
 import random
 import stat
-
+from pathlib import Path
 import numpy as np
 import torch
+import shutil
 
 try:
     import torch_npu
@@ -31,7 +32,7 @@ except ImportError:
 else:
     is_gpu=False
 
-from ..common.utils import check_file_or_directory_path, print_error_log, \
+from ..common.utils import check_file_or_directory_path, print_error_log, __version__, \
     print_warn_log, CompareException, Const, get_time, print_info_log, modify_dump_path
 
 DumpCount = 0
@@ -49,6 +50,7 @@ class DumpUtil(object):
     dump_init_enable = False
     dump_api_list = []
     backward_input = {}
+    dump_dir_tag = 'ptdbg_dump'
 
     @staticmethod
     def set_dump_path(save_path):
@@ -156,7 +158,7 @@ class OverFlowUtil(object):
         return OverFlowUtil.real_overflow_dump_times < need_dump_times
 
 
-def set_dump_path(fpath=None):
+def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
     if fpath is None:
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
         return
@@ -164,10 +166,10 @@ def set_dump_path(fpath=None):
     if os.path.isdir(real_path):
         print_error_log("set_dump_path '{}' error, please set a valid filename.".format(real_path))
         raise CompareException(CompareException.INVALID_PATH_ERROR)
-    check_file_or_directory_path(os.path.dirname(real_path), True)
     if os.path.exists(real_path):
         os.remove(real_path)
     DumpUtil.set_dump_path(real_path)
+    DumpUtil.dump_dir_tag = dump_tag
 
 
 def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[]):
@@ -252,14 +254,14 @@ def seed_all(seed=1234):
     torch.manual_seed(seed)
 
 def get_process_rank(model):
-    print("Rank id is not provided. Trying to get the rank id of the model.")
+    print_info_log("Rank id is not provided. Trying to get the rank id of the model.")
     try:
         device = next(model.parameters()).device 
     except StopIteration:
-        print('There is no parameter in the model. Fail to get rank id.')
+        print_warn_log('There is no parameter in the model. Fail to get rank id.')
         return 0
     if device.type == 'cpu':
-        print("Warning: the debugger is unable to get the rank id. "
+        print_warn_log("Warning: the debugger is unable to get the rank id. "
             "This may cause the dumpped data to be corrupted in the "
             "case of DDP. Transfer the model to npu or gpu before "
             "register_hook() to avoid this warning.")
@@ -272,28 +274,23 @@ def make_dump_dirs(rank, pid):
         dump_root_dir, dump_file_name = os.path.split(DumpUtil.dump_path)
         dump_file_name_body, _ = os.path.splitext(dump_file_name)
     else:
-        dump_root_dir, dump_file_name, dump_file_name_body = './', 'dummy.pkl', ''
-    time = get_time()
-    time_dir = os.path.join(dump_root_dir, dump_file_name_body + '_' + str(time))
-    if rank == 0 and not os.path.exists(time_dir): # add rank==0 to prevent repeated mkdir
-        os.mkdir(time_dir)
-    while not os.path.exists(time_dir): # wait for rank 0 process to create timedir
-        pass 
-    rank_dir = os.path.join(time_dir, 'rank' + str(rank))
+        dump_root_dir, dump_file_name, dump_file_name_body = './', 'anonymous.pkl', 'anonymous'
+    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_{__version__}')
+    Path(tag_dir).mkdir(parents=True, exist_ok=True)
+    rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
     if not os.path.exists(rank_dir):
         os.mkdir(rank_dir)
-    pid_dir = os.path.join(rank_dir, 'pid' + str(pid))
-    if not os.path.exists(pid_dir):
-        os.mkdir(pid_dir)
-    DumpUtil.dump_dir = pid_dir 
-    DumpUtil.set_dump_path(os.path.join(pid_dir, dump_file_name))
+    DumpUtil.dump_dir = rank_dir
+    DumpUtil.set_dump_path(os.path.join(rank_dir, dump_file_name))
 
 def make_dump_data_dir(dump_file_name):
     dump_path, file_name = os.path.split(os.path.realpath(dump_file_name))
     name_body, name_extension = os.path.splitext(file_name)
-    output_dir = os.path.join(dump_path, f"{name_body}_{get_time()}")
+    output_dir = os.path.join(dump_path, f"{name_body}")
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
+    else:
+        shutil.rmtree(output_dir, ignore_errors=True)
     return output_dir
 
 
@@ -306,7 +303,7 @@ def _set_dump_switch4api_list(name):
 def dump_stack_info(name_template, dump_file):
     stack_str = []
     for (_, path, line, func, code, _) in inspect.stack()[3:]:
-        stack_line = [path, str(line), func, code[0].strip()]
+        stack_line = [path, str(line), func, code[0].strip() if code else code]
         stack_str.append(stack_line)
     _dump_tensor_completely(stack_str, name_template.format("stack_info"), dump_file)
 
@@ -458,7 +455,7 @@ def overflow_check(name, **kwargs):
             stack_str = []
             for (_, path, line, func, code, _) in inspect.stack()[3:]:
                 if code:
-                    stack_line = [path, str(line), func, code[0].strip()]
+                    stack_line = [path, str(line), func, code[0].strip() if code else code]
                 else:
                     stack_line = [path, str(line), func, code]
                 stack_str.append(stack_line)

@@ -65,7 +65,8 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 ### 数据dump
 #### 使用说明
 1) seed_all和set_dump_path在训练主函数main一开始就调用，避免随机数固定不全；
-2) set_dump_switch提供多种dump模式，可以根据不同场景选择dump方式
+2) register_hook须在set_dump_path之后调用，避免dump数据路径设置错误
+3) set_dump_switch提供多种dump模式，可以根据不同场景选择dump方式
 ```
 # 多种dump模式介绍
 

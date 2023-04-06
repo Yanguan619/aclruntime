@@ -8,8 +8,11 @@ Huawei Technologies Co., Ltd. All Rights Reserved © 2020
 """
 
 import os
+import numpy as np
 
 from ms_interface import utils
+from ms_interface.constant import Constant
+from ms_interface.dump_data_parser import DumpDataParser
 from ms_interface.single_op_test_frame.common.ascend_tbe_op import AscendOpKernel, AscendOpKernelRunner
 
 
@@ -28,7 +31,15 @@ class SingleOpCase:
             op_kernel = AscendOpKernel(bin_path, json_path)
             tiling_data = self.collection.tiling_list[1]
             tiling_key = self.collection.tiling_list[0]
-            input_data_list = self.collection.input_list
+            block_dim = self.collection.tiling_list[2]
+            input_data_list = []
+            for (_, tensor) in enumerate(self.collection.input_list):
+                if tensor.data_type not in DumpDataParser.DATA_TYPE_TO_DTYPE_MAP:
+                    utils.print_error_log(f"The output data type({tensor.data_type}) does not support.")
+                    raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
+                dtype = DumpDataParser.DATA_TYPE_TO_DTYPE_MAP.get(tensor.data_type).get(Constant.DTYPE)
+                array = np.frombuffer(tensor.data, dtype=dtype)
+                input_data_list.append(array)
             output_data_list = runner.run(op_kernel, inputs=input_data_list, tiling_data=tiling_data, 
-                                          block_dim=op_kernel.block_dim, tiling_key=tiling_key)
+                                          block_dim=block_dim, tiling_key=tiling_key)
 

@@ -89,7 +89,8 @@ class Collection:
             if plog_path_ret and Constant.DIR_PLOG in plog_path_ret[0]:
                 original_path = plog_path_ret[0].split(Constant.DIR_PLOG)[0]
             else:
-                utils.print_error_log(f"The {Constant.DIR_PLOG} log path cannot be found in {self.report_path}.")
+                utils.print_error_log(
+                    f"Plog file cannot be collected, the {Constant.DIR_PLOG} log path cannot be found in {self.report_path}.")
                 raise utils.AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
             dest_path = os.path.join(collect_target_path, original_path.split(self.report_path)[1][1:])
             utils.check_path_valid(dest_path, isdir=True, output=True)
@@ -101,10 +102,12 @@ class Collection:
                 regexp = r"([_\-/0-9a-zA-Z]{1,}\.json|[_\-/0-9a-zA-Z]{1,}\.o|[_\-/0-9a-zA-Z]{1,}\.cce)"
                 kernel_file_list = utils.get_inquire_result(find_path_cmd, regexp)
                 if not kernel_file_list:
-                    utils.print_error_log(f"The {kernel_name} file path cannot be found in {self.report_path}.")
+                    utils.print_warn_log(f"The {kernel_name} file path cannot be found in {self.report_path}.")
+                    continue
                 original_files.extend(kernel_file_list)
             if not original_files:
-                utils.print_error_log(f"The kernel file cannot be found in {self.report_path}.")
+                utils.print_error_log(
+                    f"Kernel file cannot be collected, the kernel file cannot be found in {self.report_path}.")
                 raise utils.AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
             collect_compile_path = os.path.join(collect_target_path, "compile")
             utils.check_path_valid(collect_compile_path, isdir=True, output=True)
@@ -116,23 +119,26 @@ class Collection:
             regexp = r"([_\-/0-9a-zA-Z]{1,}_Build.txt)"
             graph_file_list = utils.get_inquire_result(find_path_cmd, regexp)
             if not graph_file_list:
-                utils.print_error_log(f"The graph file cannot be found in {self.report_path}.")
+                utils.print_error_log(
+                    f"Graph file cannot be collected, the graph file cannot be found in {self.report_path}.")
                 raise utils.AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
             original_files = graph_file_list
             dest_path = os.path.join(collect_target_path, "compile")
             utils.check_path_valid(dest_path, isdir=True, output=True)
         elif key == "dump":
             for node_name in self.node_name_list:
-                find_path_cmd = ['find', self.report_path, '-name', 
+                find_path_cmd = ['find', self.report_path, '-name',
                                  f"*.{node_name.replace('/', '_').replace('.', '_')}.*"]
                 regexp = r"[_\.\-/0-9a-zA-Z]{1,}"
                 dump_file_list = utils.get_inquire_result(find_path_cmd, regexp)
                 if not dump_file_list:
-                    utils.print_error_log(f"The {node_name} file path cannot be found in {self.report_path}.")
+                    utils.print_warn_log(f"The {node_name} file path cannot be found in {self.report_path}.")
+                    continue
                 original_files.extend(dump_file_list)
             if not original_files:
-                utils.print_error_log(f"The dump file cannot be found in {self.report_path}.")
-                raise utils.AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR) 
+                utils.print_error_log(
+                    f"Dump file cannot be collected, the dump file cannot be found in {self.report_path}.")
+                raise utils.AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
             dest_path = os.path.join(collect_target_path, "dump")
             utils.check_path_valid(dest_path, isdir=True, output=True)
             self.collect_dump_path = dest_path

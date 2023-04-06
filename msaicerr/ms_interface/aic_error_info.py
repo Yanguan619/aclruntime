@@ -127,14 +127,14 @@ current pc   : %s
         for input_param in input_params:
             index = int(input_param.get("index"))
             size = int(input_param.get("size"))
-            addr = int(input_param.get("addr"))
+            addr = int(input_param.get("addr"), 16) if input_param.get("addr").startswith("0x") else int(input_param.get("addr"))
             end_addr = addr + size
             result_str += f"input[{index}] addr: {hex(addr)} end_addr:{hex(end_addr)} size: {hex(size)}\n"
 
         for output_param in output_params:
             index = int(output_param.get("index"))
             size = int(output_param.get("size"))
-            addr = int(output_param.get("addr"))
+            addr = int(output_param.get("addr"), 16) if output_param.get("addr").startswith("0x") else int(output_param.get("addr"))
             end_addr = addr + size
             result_str += f"output[{index}] addr: {hex(addr)} end_addr:{hex(end_addr)} size: {hex(size)}\n"
 

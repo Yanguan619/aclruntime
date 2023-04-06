@@ -26,7 +26,7 @@ python3 msaicerr.py -p /home/root/asys_output_20230328160000000
 - 暂不支持推理场景。
 
 ## 问题分析和定位
-本程序运行完毕，会打印Write summary xxxx/info.txt, 用户可以直接通过info.txt文件进行问题分析和定位。
+本程序运行完毕，会打印/home/root/tools/msaicerr/info_{时间戳}/info.txt, 用户可以直接通过info.txt文件进行问题分析和定位。
 关键信息说明：
 ```
 ***********************1. Basic information********************

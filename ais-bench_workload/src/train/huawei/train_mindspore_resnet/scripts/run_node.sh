@@ -7,6 +7,8 @@
 function get_train_cmd()
 {
     [[ $RANK_SIZE -gt 1 ]] && DISTRUTE_ENABLE="True" || DISTRUTE_ENABLE="False"
+    CONFIG_PATH=$WORK_PATH/code/config/resnet50_imagenet2012_Boost_config.yaml
+    isexisted=`cat resnet50_imagenet2012_Boost_config.yaml |grep "output_dir" |grep -v grep |awk -F= 'NR==1{print $NF}'`
     if [ ! -n "$isexisted" ]; then
         OUTPUT_PARA_NAME="output_path"
     else
@@ -21,7 +23,7 @@ function get_train_cmd()
         --$OUTPUT_PARA_NAME="$RUN_PATH"  \
         --save_checkpoint=True  \
         --save_checkpoint_epochs=${EPOCH_SIZE} \
-        --config_path=$WORK_PATH/code/config/resnet50_imagenet2012_Boost_config.yaml
+        --config_path=$CONFIG_PATH
         "
         # for mindspore1.5
         export ENV_FUSION_CLEAR=1

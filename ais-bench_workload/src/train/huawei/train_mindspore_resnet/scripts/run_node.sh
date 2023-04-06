@@ -7,6 +7,7 @@
 function get_train_cmd()
 {
     [[ $RANK_SIZE -gt 1 ]] && DISTRUTE_ENABLE="True" || DISTRUTE_ENABLE="False"
+    # 基准代码r2.0.0版本中训练配置文件resnet50_imagenet2012_Boost_config.yaml中，将训练参数output_path改为output_dir
     CONFIG_PATH=$WORK_PATH/code/config/resnet50_imagenet2012_Boost_config.yaml
     isexisted=`cat $CONFIG_PATH |grep "output_dir" |grep -v grep |awk -F= 'NR==1{print $NF}'`
     if [ ! -n "$isexisted" ]; then

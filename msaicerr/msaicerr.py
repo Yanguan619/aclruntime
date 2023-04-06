@@ -18,10 +18,12 @@ from ms_interface.constant import Constant
 from ms_interface.aicore_error_parser import AicoreErrorParser
 from ms_interface.single_op_case import SingleOpCase
 
+
 def extract_tar(tar_file, path):
     tar = tarfile.open(tar_file, "r")
     tar.extractall(path)
     tar.close()
+
 
 def get_select_dir(path):
     subdir = os.listdir(path)
@@ -29,6 +31,7 @@ def get_select_dir(path):
         sys.exit("[ERROR] found more than one subdir in collect tar")
     report_path = os.path.join(path, subdir[0])
     return report_path
+
 
 def main() -> int:
     """
@@ -53,7 +56,7 @@ def main() -> int:
     if not args.report_path and not args.tar_file:
         utils.print_error_log("There must be one of the parameters report_path and tar_file.")
         return Constant.MS_AICERR_INVALID_PARAM_ERROR
-        
+
     # 如果输入参数中没有报告地址
     if not args.output_path:
         utils.print_info_log("The tool directory will be used to as the output address of the analysis report.")
@@ -83,11 +86,12 @@ def main() -> int:
         single_op_case = SingleOpCase(collection)
         single_op_case.run()
 
+        return Constant.MS_AICERR_NONE_ERROR
+
     except utils.AicErrException as error:
+        utils.print_error_log(
+            f"The aicore error analysis tool has an exception, and error code is {error.error_info}.")
         return error.error_info
-    finally:
-        pass
-    return Constant.MS_AICERR_NONE_ERROR
 
 
 if __name__ == '__main__':

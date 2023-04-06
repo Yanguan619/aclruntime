@@ -145,7 +145,8 @@ class AicoreErrorParser:
         :return: 需要的空间
         '''
         result = {}
-        aic_info_cmd = ['grep', '-r',  '-C', '7',  "\[AIC_INFO\] dev_func:{}".format(kernel_name), self.collection.collect_applog_path]
+        aic_info_cmd = ['grep', '-r', '-C', '7', "\[AIC_INFO\] dev_func:{}".format(kernel_name),
+                        self.collection.collect_plog_path]
         _, aic_info = utils.execute_command(aic_info_cmd)
         utils.print_info_log(f"===============================\n{aic_info}\n==================================")
 
@@ -181,7 +182,7 @@ class AicoreErrorParser:
             output_param["dtype"] = output_info[3]
             output_param["addr"] = output_info[4]
             output_params.append(output_param)
-        
+
         aic_info_workspace_regex = r"\[AIC_INFO\]\sworkspace_bytes|workspace_size:(.*?)"
         aic_info_workspace_ret = re.findall(aic_info_workspace_regex, aic_info, re.M)
         if len(aic_info_workspace_ret) == 0:
@@ -191,15 +192,19 @@ class AicoreErrorParser:
             workspace = "0"
         else:
             workspace = aic_info_workspace_ret[0][0]
-            
+
         # tiling
-        tiling_data_regexp = r"\[AIC_INFO\]\stiling_data:(\\.*\@\\.*\\[0-9]{3})"
+        tiling_data_regexp = r"\[AIC_INFO\]\stiling_data:(.*)"
         tiling_data_ret = re.findall(tiling_data_regexp, aic_info, re.M)
         if len(tiling_data_ret) == 0:
             utils.print_warn_log(f"Failed to get {tiling_data_regexp}")
             tiling_data = None
         else:
-            tiling_data = bytes(tiling_data_ret[0], 'utf-8')
+            if tiling_data_ret[0].startswith("0x"):
+                temp_tiling_data = tiling_data_ret[0].replace(" 0x", "")[2:-1]
+                tiling_data = bytes.fromhex(temp_tiling_data)
+            else:
+                tiling_data = bytes(tiling_data_ret[0], 'utf-8')
 
         tiling_key_regexp = r"\[AIC_INFO\]\stiling_key:([0-9]{1,})"
         tiling_key_ret = re.findall(tiling_key_regexp, aic_info, re.M)
@@ -209,10 +214,20 @@ class AicoreErrorParser:
         else:
             tiling_key = tiling_key_ret[0]
 
+        block_dim_regexp = r"\[AIC_INFO\]\sblock_dim:(\d+)"
+        block_dim_ret = re.findall(block_dim_regexp, aic_info. re.M)
+        if len(block_dim_ret) == 0:
+            utils.print_warn_log(f"Failed to get {block_dim_regexp} from [AIC_INFO].")
+        elif len(block_dim_ret[0]) == 0:
+            utils.print_warn_log(f"Failed to get {block_dim_regexp} is null.")
+            block_dim = -1
+        else:
+            block_dim = int(block_dim_ret[0])
+
         result["input_addr"] = input_params
         result["output_addr"] = output_params
         result["workspace"] = workspace
-        result["tiling"] = [tiling_key, tiling_data]
+        result["tiling"] = [tiling_key, tiling_data, block_dim]
         return result
 
     def _cal_shape_size(self, shape_str):
@@ -225,13 +240,13 @@ class AicoreErrorParser:
     def _check_addr_in_range(self, addr, ranges):
         if not isinstance(addr, int):
             addr = int(addr)
-       
+
         for addr_range in ranges:
             range_left = utils.get_hexstr_value(addr_range[0])
             range_right = utils.get_hexstr_value(addr_range[0]) + addr_range[1]
             if range_left <= addr < range_right:
                 return True
-        return  False
+        return False
 
     def _check_addr(self, avaliable_addrs, used_addrs):
         input_params = used_addrs.get("input_addr")
@@ -239,9 +254,9 @@ class AicoreErrorParser:
         if not input_params and not output_params:
             utils.print_error_log("Unable to get input parameters and output parameters.")
             raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
-        
+
         for input_param in input_params:
-            start_addr = int(input_param.get("addr"))
+            start_addr = int(input_param.get("addr"), 16) if input_param.get("addr").startswith("0x") else int(input_param.get("addr"))
             shape_size = self._cal_shape_size(input_param.get("shape"))
             size_of_dtype = Constant.SIZE_OF_DTYPE.get(input_param.get("dtype"))
             end_addr = int(start_addr) + int(shape_size) * int(size_of_dtype)
@@ -249,13 +264,13 @@ class AicoreErrorParser:
             input_param["size"] = int(shape_size) * int(size_of_dtype)
 
         for output_param in output_params:
-            start_addr = int(output_param.get("addr"))
+            start_addr = int(output_param.get("addr"), 16) if output_param.get("addr").startswith("0x") else int(output_param.get("addr"))
             shape_size = self._cal_shape_size(output_param.get("shape"))
             size_of_dtype = Constant.SIZE_OF_DTYPE.get(output_param.get("dtype"))
-            end_addr = int(output_param.get("addr")) + int(shape_size) * int(size_of_dtype)
+            end_addr = int(start_addr) + int(shape_size) * int(size_of_dtype)
             utils.print_info_log(f"shape_size is {shape_size}, size_of_dtype is {size_of_dtype}")
             output_param["size"] = int(shape_size) * int(size_of_dtype)
-    
+
     def _get_input_output_addrs(self: any, info: any, alloc_addr: str) -> list:
         in_out_list = info.necessary_addr
         input_output_addrs = []
@@ -314,7 +329,7 @@ class AicoreErrorParser:
                 alloc_in_range = True
                 break
         return alloc_in_range
-    
+
     @staticmethod
     def _check_actual_addr(i: any, alloc_addr_range: list) -> None:
         # check actual addr
@@ -359,12 +374,19 @@ class AicoreErrorParser:
     def _decompile(self: any, kernel_meta_path: str, dir_path: str, info: any) -> bool:
         kernel_name = info.kernel_name
         diff_str, err_pc = self._get_info_for_decompile(info)
+        tiling_key = info.necessary_addr["tiling"][0]
 
         # decompile .o file
         cce_file = os.path.join(kernel_meta_path, kernel_name + ".cce")
+        if not os.path.exists(cce_file):
+            utils.print_warn_log(f"The cce file:{cce_file} does not exist.")
+            cce_file = os.path.join(kernel_meta_path, f"{kernel_name}_{tiling_key}.cce")
+            if not os.path.exists(cce_file):
+                utils.print_error_log(f"The cce file:{cce_file} does not exist.")
+                return False
         o_file = os.path.join(kernel_meta_path, kernel_name + ".o")
         json_file = os.path.join(kernel_meta_path, kernel_name + ".json")
-        if not os.path.exists(cce_file) and not os.path.exists(o_file) and not os.path.exists(json_file):
+        if not os.path.exists(o_file) and not os.path.exists(json_file):
             utils.print_error_log("The file that needs to be decompiled does not exist.")
             return False
 
@@ -487,9 +509,8 @@ class AicoreErrorParser:
         aicore_error_data_list = []
 
         # 获取分配的device地址
-        alloc_addr = self._get_alloc_addr()
-        alloc_addr = []
-        utils.print_info_log("Due to security issues, DevMalloc address information cannot be obtained.")
+        alloc_addr = []  # self._get_alloc_addr()
+        utils.print_warn_log("Due to security issues, DevMalloc address information cannot be obtained.")
 
         # get graph file
         graph_file = self._get_graph_file()
@@ -526,7 +547,7 @@ class AicoreErrorParser:
             # parser aic error by slog
             info = AicErrorInfo()
             info.err_time, info.dev_id, info.stream_id, info.task_id, info.core_id, info.aic_error, info.start_pc, \
-            info.extra_info, info.current_pc = current_pc
+                info.extra_info, info.current_pc = current_pc
             info.node_name = self.collection.node_name_list[i]
             info.kernel_name = self.collection.kernel_name_list[i]
 
@@ -537,12 +558,7 @@ class AicoreErrorParser:
             utils.check_path_valid(err_i_folder, isdir=True, output=True)
             # get op info in build proto file
             self._get_op_by_graph(aicore_error_data_list[Constant.GRAPH_FILE], info)
-            kernel_meta_path = self.collection.collect_kernel_path
-        
-            # 反编译  出错指令
-            result = self._decompile(kernel_meta_path, err_i_folder, info)
-            if not result:
-                utils.print_warn_log(f"decompile kernel_meta file {os.path.join(kernel_meta_path, info.kernel_name)}.o failed.")
+
             try:
                 # input output address
                 info.aval_addrs = []  # self._get_available_addrs(info.err_time)
@@ -554,6 +570,11 @@ class AicoreErrorParser:
                 utils.print_error_log("Check addr error failed.")
                 raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
 
+            kernel_meta_path = self.collection.collect_kernel_path
+            # 反编译  出错指令
+            result = self._decompile(kernel_meta_path, err_i_folder, info)
+            if not result:
+                utils.print_warn_log(f"decompile kernel_meta file {os.path.join(kernel_meta_path, info.kernel_name)}.o failed.")
 
             info.input_output_addrs = self._get_input_output_addrs(info, aicore_error_data_list[Constant.ALLOC_ADDR])
 

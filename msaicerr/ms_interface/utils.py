@@ -251,6 +251,6 @@ def get_inquire_result(grep_cmd, regexp):
         raise AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR)
     ret = re.findall(regexp, data, re.M | re.S)
     if len(ret) == 0:
-        print_error_log("Log info does not macth:{regexp} in command result.")
+        print_error_log(f"Log info does not macth:{regexp} in command result.")
         return None
     return ret

@@ -14,7 +14,7 @@ diff -Nur origin/eval.py code/eval.py
 +        ACC_LOG = os.path.join(ACC_DIR, "eval_acc.log")
 +        with open(ACC_LOG, 'w') as f:
 +            f.write("{}".format(res['top_1_accuracy']))
- 
+
  if __name__ == '__main__':
      eval_net()
 diff -Nur origin/train.py code/train.py
@@ -39,13 +39,13 @@ diff -Nur origin/train.py code/train.py
 +   ais_utils_is_existed = False
 +else:
 +   ais_utils_is_existed = True
- 
+
  ms.set_seed(1)
- 
+
 @@ -197,6 +203,7 @@
          ms.load_param_into_net(opt, resume_param)
          config.logger.info('resume train from epoch: %s', config.start_epoch)
- 
+
 +
      # define callbacks
      loss_cb = LossCallBack(config.epoch_size, config.logger, lr, per_print_time=10)
@@ -55,7 +55,7 @@ diff -Nur origin/train.py code/train.py
          eval_cb = eval_callback(model, config, eval_dataset)
          cb.append(eval_cb)
 -
-+    model.build(dataset, None, sink_size=dataset.get_dataset_size(), epoch=config.epoch_size - config.pretrain_epoch_size)
++    model.build(dataset, None, sink_size=dataset.get_dataset_size(), epoch=config.epoch_size)
      # train model
      if config.net_name == "se-resnet50":
          config.epoch_size = config.train_epoch_size
@@ -87,5 +87,5 @@ diff -Nur origin/train.py code/train.py
 +        with open(THROUGHPUT_LOG, 'w') as f:
 +            f.write("{}".format(throughput_rate))
      config.logger.info("If run eval and enable_cache Remember to shut down the cache server via \"cache_admin --stop\"")
- 
- 
+
+

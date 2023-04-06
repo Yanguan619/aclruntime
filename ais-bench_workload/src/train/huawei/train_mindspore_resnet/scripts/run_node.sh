@@ -8,7 +8,7 @@ function get_train_cmd()
 {
     [[ $RANK_SIZE -gt 1 ]] && DISTRUTE_ENABLE="True" || DISTRUTE_ENABLE="False"
     CONFIG_PATH=$WORK_PATH/code/config/resnet50_imagenet2012_Boost_config.yaml
-    isexisted=`cat resnet50_imagenet2012_Boost_config.yaml |grep "output_dir" |grep -v grep |awk -F= 'NR==1{print $NF}'`
+    isexisted=`cat $CONFIG_PATH |grep "output_dir" |grep -v grep |awk -F= 'NR==1{print $NF}'`
     if [ ! -n "$isexisted" ]; then
         OUTPUT_PARA_NAME="output_path"
     else

@@ -42,4 +42,3 @@ class SingleOpCase:
                 input_data_list.append(array)
             output_data_list = runner.run(op_kernel, inputs=input_data_list, tiling_data=tiling_data, 
                                           block_dim=block_dim, tiling_key=tiling_key)
-

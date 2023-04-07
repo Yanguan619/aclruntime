@@ -50,7 +50,7 @@
 
 ## 环境准备
 
-安装了Pytorch 1.8 或者 Pytorch 1.11版本的Linux系统。
+安装了Pytorch 1.8.1 或者 Pytorch 1.11.0版本的Linux系统。
 
 - Linux OS
 
@@ -59,7 +59,7 @@
 ### 从源码安装
 
 您可以从源代码构建 ptdbg_ascend 软件包并将其安装在带NPU或者GPU的AI计算环境上。
-> ptdbg_ascend 与 Pytorch 有严格的版本配套关系，从源码构建前，您需要确保已经正确安装了[Pytorch v1.8 或 V1.11 版本](https://www.pytorch.org) 。
+> ptdbg_ascend 与 Pytorch 有严格的版本配套关系，从源码构建前，您需要确保已经正确安装了[Pytorch v1.8.1 或 V1.11.0 版本](https://www.pytorch.org) 。
 
 #### 环境和依赖
 编译前需要安装wheel包
@@ -84,11 +84,11 @@ bash ./configure
 > 您的会话可能有所不同。
 
 ```BASH
-Please specify the location of python with available pytorch v1.8/v1.11 site-packages installed. [Default is /usr/bin/python3]
+Please specify the location of python with available pytorch v1.8.1/v1.11.0 site-packages installed. [Default is /usr/bin/python3]
 (You can make this quiet by set env [ADAPTER_TARGET_PYTHON_PATH]):
 ```
 
-此时，要求您输入安装了 Pytorch v1.8或者v1.11 版本的python解释器路径，如果默认路径是正确的，直接回车，否则请输入正确的 python 解释器路径。
+此时，要求您输入安装了 Pytorch v1.8.1或者v1.11.0 版本的python解释器路径，如果默认路径是正确的，直接回车，否则请输入正确的 python 解释器路径。
 > 您可以通过设置 ADAPTER_TARGET_PYTHON_PATH的环境变量，来抑制交互式窗口弹出，但是要确保路径是有效的，否则，仍然会要求您输入正确的 python 解释器路径。
 
 键入后，会耗费几秒钟以确保您的输入是有效的，配置完成后会输出如下提示信息。

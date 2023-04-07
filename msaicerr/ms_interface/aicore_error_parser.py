@@ -215,7 +215,7 @@ class AicoreErrorParser:
             tiling_key = tiling_key_ret[0]
 
         block_dim_regexp = r"\[AIC_INFO\]\sblock_dim:(\d+)"
-        block_dim_ret = re.findall(block_dim_regexp, aic_info. re.M)
+        block_dim_ret = re.findall(block_dim_regexp, aic_info, re.M)
         if len(block_dim_ret) == 0:
             utils.print_warn_log(f"Failed to get {block_dim_regexp} from [AIC_INFO].")
         elif len(block_dim_ret[0]) == 0:

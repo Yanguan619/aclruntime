@@ -9,13 +9,15 @@
 
 ## 工具使用方法
 1. 获取asys工具收集文件夹路径，例如：/home/root/asys_output_20230328160000000
-2. 下载[aicore error分析工具](https://gitee.com/ascend/tools)，传输至运行环境目录下，以root为例，参考命令：
+2. 设置环境变量，参考命令：
+`source /usr/local/Ascend/latest/bin/setenv.bash`
+3. 下载[aicore error分析工具](https://gitee.com/ascend/tools)，传输至运行环境目录下，以root为例，参考命令：
 ```
 cd /home/root/tools/msaicerr
 python3 msaicerr.py -p /home/root/asys_output_20230328160000000
 ```
 注：可以使用命令：`python3 msaicerr.py -h`，查看具体参数的含义。
-3. 针对aicore error，会生成相应的info.txt，开发者可根据info.txt进行异常分析。
+4. 针对aicore error，会生成相应的info.txt，开发者可根据info.txt进行异常分析。
 
 ## 概述
 在执行训练发现AI Core error问题时，使用AI Core Error Analyzer工具可以自动快速准确地收集定位AI Core Error问题所需的关键信息，提升开发者对AI Core Error的排查效率。
@@ -26,7 +28,7 @@ python3 msaicerr.py -p /home/root/asys_output_20230328160000000
 - 暂不支持推理场景。
 
 ## 问题分析和定位
-本程序运行完毕，会打印/home/root/tools/msaicerr/info_{时间戳}/info.txt, 用户可以直接通过info.txt文件进行问题分析和定位。
+本程序运行完毕，会打印/home/root/tools/msaicerr/info_{时间戳}/{aicore_{number}_{时间戳}/info.txt, 用户可以直接通过info.txt文件进行问题分析和定位。
 关键信息说明：
 ```
 ***********************1. Basic information********************

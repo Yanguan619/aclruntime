@@ -410,19 +410,41 @@ set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
 
 具体地说，dump_path下首先产生一个`{dump_tag}_{version}`文件夹，`dump_tag`是set_dump_path传入参数设置的，可以用来提高文件夹辨识度。`version`是工具版本，用于区分不同版本工具所dump的数据这个文件夹中会根据实际使用卡的数量产生若干`rank`文件夹。每张卡上dump结果产生pkl和npy数据文件夹会存在对应的rank文件夹下。需要注意的是，如果以相同的dump_path和dump_tag运行两次，则**第二次的数据文件会覆盖第一次的**。
 
-1. 为了方便区分不同卡上的dump数据，调用register_hook时可以考虑传入各自进程所对应的`rank`，比如
+**单机多卡使用说明**
+1. set_dump_path 设置dump目标路径
+
+由于上述文件夹结构改动，你可能已经注意到了最终dump的pkl路径和原本set_dump_path传入的路径不同。另外，我们给set_dump_path新增了一个参数`dump_tag`，用来标识本次dump的用途，优化文件夹结构。
+比如，你正在用工具调试ResNet50，首先做了一次全量dump，可以
+
+```
+set_dump_path('./dump_resnet50/dump.pkl', dump_tag='all')
+```
+经过全量dump你发现其中某个conv2d算子计算误差较大，想要定位到代码行，那么可以
+```
+set_dump_path('./dump_resnet50/dump.pkl', dump_tag='conv2d_stack')
+```
+并在set_dump_switch启用stack模式。这样在`dump_resnet50`文件夹下就会分别有`all_{version}`和`conv2d_stack_{version}`两个文件夹，方便查看。
+
+2. register_hook 注册工具的dump或溢出检测钩子
+
+为了方便区分不同卡上的dump数据，调用register_hook时可以通过`rank`参数传入各自进程所对应的rank id，比如
 
 ```
 register_hook(model, acc_cmp_dump, rank=0)
 ```
 
-`rank`将决定该进程所dump数据被存入哪个`rank`文件夹。如果不清楚当前rank id或者不显式传入，工具将隐式从传入模型的参数读取`device.index`信息作为`rank`。
+`rank`将决定该进程所dump数据被存入哪个`rank`文件夹（如上面文件夹格式所描述）。如果不清楚当前rank id或者不显式传入，
+工具将隐式从传入模型的参数读取`device.index`信息作为`rank`。
+需要注意的是，由于该函数会创建各卡dump数据时的目标`rank`文件夹，因此在调用register_hook前必须先set_dump_path，否则set_dump_path会失效。
+3. compare_distributed 分布式比对
 
-2. dump数据之后的比对建议使用`compare_distributed`接口。调用该接口需要传入`npu_dump_dir`, `bench_dump_dir`, `output_path`三个参数，前两者代表需要比对的两次运行数据所在的总文件夹路径，即上文所说的`{dump_path}/{dump_tag}_{version}` 。比如在上面的例子中，我们可以传入 `dump_path/dump_conv2d_v1.0` 作为其中一个参数。
+dump数据之后的比对建议使用`compare_distributed`接口。调用该接口需要传入`npu_dump_dir`, `bench_dump_dir`, `output_path`三个参数，前两者代表需要比对的两次运行数据所在的总文件夹路径，即上文所说的`{dump_path}/{dump_tag}_{version}` 。函数会自动检测文件夹下的`rank`文件夹并按顺序一一对应，并调用compare逐个做比对，最终对每对`rank`文件夹生成一个csv比对结果。
 
-   假设我们又运行了一次模型，产生了`dump_torch111/dump_conv2d_v1.0`文件夹，要比对以上两次运行所产生的数据差异，就可以把这两个路径分别作为两个参数传入。另外，原本`compare`比对函数支持的参数如`shape_flag`、`stack_mode`等，`compare_distributed`也支持。
+在上面的例子中，我们可以传入 `dump_path/dump_conv2d_v1.0` 作为`npu_dump_dir`或`npu_dump_dir`参数。
 
-**注意：两次运行须用相同数量的卡，传入的两个文件夹下须有相同个数的rank文件夹，否则将无法比对。**
+   假设我们要比对的对象是，产生了`dump_gpu/dump_conv2d_v1.0`文件夹，要比对以上两次运行所产生的数据差异，就可以把这个路径作为`bench_dump_dir`传入。另外，原本`compare`比对函数支持的参数如`shape_flag`、`stack_mode`等，`compare_distributed`函数也支持。
+
+**注意：两次运行须用相同数量的卡，传入`compare_distributed`的两个文件夹下须有相同个数的rank文件夹，且不包含其他无关文件，否则将无法比对。**
 
 ### **NPU自定义算子dump**
 对于NPU vs NPU场景，本工具还支持对NPU自定义算子的数据dump，目前支持列表如下

@@ -291,6 +291,7 @@ def make_dump_data_dir(dump_file_name):
         os.mkdir(output_dir)
     else:
         shutil.rmtree(output_dir, ignore_errors=True)
+        os.mkdir(output_dir)
     return output_dir
 
 

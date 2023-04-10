@@ -53,6 +53,12 @@ get_git_info(){
         git_url="https://gitee.com/mindspore/models.git"
         modelzoo_sub_dir="models/official/nlp/bert"
     elif [ "$branch_args" == "r1.8" ];then
+        branch="r1.8"
+        patch_file_name="r1.8"
+        commitid="e68e09de9e97eeccc0804bc5f43f764a7a2bdbee"
+        git_url="https://gitee.com/mindspore/models.git"
+        modelzoo_sub_dir="models/official/nlp/bert"
+    elif [ "$branch_args" == "r1.8" ];then
         branch="master"
         patch_file_name="r1.8"
         commitid="b68b6bfa919465567d89bc7fdcf6d0e63967d5aa"

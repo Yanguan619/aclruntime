@@ -263,8 +263,8 @@ def get_process_rank(model):
     if device.type == 'cpu':
         print_warn_log("Warning: the debugger is unable to get the rank id. "
             "This may cause the dumpped data to be corrupted in the "
-            "case of DDP. Transfer the model to npu or gpu before "
-            "register_hook() to avoid this warning.")
+            "case of distributed training. (You may ignore this if you are using only one card.) "
+            "Transfer the model to npu or gpu before register_hook() to avoid this warning.")
         return 0
     else:
         return device.index
@@ -276,21 +276,25 @@ def make_dump_dirs(rank, pid):
     else:
         dump_root_dir, dump_file_name, dump_file_name_body = './', 'anonymous.pkl', 'anonymous'
     tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_{__version__}')
-    Path(tag_dir).mkdir(parents=True, exist_ok=True)
+    Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
     rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
     if not os.path.exists(rank_dir):
-        os.mkdir(rank_dir)
+        os.mkdir(rank_dir, mode=0o750)
     DumpUtil.dump_dir = rank_dir
-    DumpUtil.set_dump_path(os.path.join(rank_dir, dump_file_name))
+    dump_file_path = os.path.join(rank_dir, dump_file_name)
+    if os.path.exists(dump_file_path) and not os.path.isdir(dump_file_path):
+        os.remove(dump_file_path)
+    DumpUtil.set_dump_path(dump_file_path)
 
 def make_dump_data_dir(dump_file_name):
     dump_path, file_name = os.path.split(os.path.realpath(dump_file_name))
     name_body, name_extension = os.path.splitext(file_name)
     output_dir = os.path.join(dump_path, f"{name_body}")
     if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
+        os.mkdir(output_dir, mode=0o750)
     else:
         shutil.rmtree(output_dir, ignore_errors=True)
+        os.mkdir(output_dir, mode=0o750)
     return output_dir
 
 

@@ -22,7 +22,7 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 
 1. 下载ptdbg_ascend精度工具的whl包。
 
-   - [ptdbg_ascend-1.0-py3-none-any.whl](https://ptdbg.obs.cn-north-4.myhuaweicloud.com/package/ptdbg_ascend/1.0/ptdbg_ascend-1.0-py3-none-any.whl)
+   - [ptdbg_ascend-1.0-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/1.0/ptdbg_ascend-1.0-py3-none-any.whl)
 
 2. 执行如下命令，进行安装。
 

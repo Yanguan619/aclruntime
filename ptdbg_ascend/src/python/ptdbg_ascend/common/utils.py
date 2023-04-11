@@ -50,7 +50,7 @@ class Const:
     DUMP_RATIO_MAX = 100
     SUMMERY_DATA_NUMS = 256
     FLOAT_EPSILON = np.finfo(float).eps
-    NAN = 'NaN'
+    NAN = 'Nan'
     SUPPORT_DUMP_MODE = ['api', 'acl']
 
     # dump mode

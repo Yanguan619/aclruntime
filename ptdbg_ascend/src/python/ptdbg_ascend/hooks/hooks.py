@@ -199,14 +199,37 @@ def set_overflow_check_switch(switch):
     assert switch in ["ON", "OFF"], "Please set overflow switch with 'ON' or 'OFF'."
     OverFlowUtil.set_overflow_check_switch(switch)
 
+def dump_not_float_tensor(x, prefix, dump_step, dump_file_name):
+    with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
+                   "a") as f:
+        summery_data = []
+        if x.numel() == 0 or len(x.shape) == 0 or x.dtype == torch.bool:
+            tensor_max = []
+            tensor_min = []
+            tensor_mean = []
+        else:
+            tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
+            tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()
+            tensor_mean = torch._C._VariableFunctionsClass.mean(x.float()).cpu().detach().float().numpy().tolist()
+        saved_tensor = x.contiguous().cpu().detach().numpy()
+        summery_data.extend([tensor_max, tensor_min, tensor_mean])
+        output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
+        np.save(output_path, saved_tensor)
+        json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
+        f.write('\n')
 
-def dump_tensor(x, prefix, dump_step, dump_file_name):
+
+def dump_tensor(x, prefix, dump_step, dump_file_name, is_must_dump=False):
     if isinstance(x, (tuple, list)) and x:
+        is_dump = False
         for i, item in enumerate(x):
-            dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
+            is_dump = is_dump or dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
+        return is_dump
     elif isinstance(x, torch.Tensor):
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
-            return
+            if is_must_dump:
+                dump_not_float_tensor(x, prefix, dump_step, dump_file_name)
+            return False
 
         with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                        "a") as f:
@@ -224,6 +247,7 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
             json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
 
             f.write('\n')
+    return True
 
 
 def _dump_tensor_completely(x, prefix, dump_file_name):
@@ -384,11 +408,11 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
     if "backward" in name_template:
-        dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
-        dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file)
+        is_must_dump = dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
+        dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file, is_must_dump)
     else:
-        dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
-        dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
+        is_must_dump = dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
+        dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, is_must_dump)
 
 
 def acc_cmp_dump(name, **kwargs):

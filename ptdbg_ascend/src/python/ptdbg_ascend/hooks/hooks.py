@@ -221,9 +221,10 @@ def dump_not_float_tensor(x, prefix, dump_step, dump_file_name):
 
 def dump_tensor(x, prefix, dump_step, dump_file_name, is_must_dump=False):
     if isinstance(x, (tuple, list)) and x:
-        is_dump = False
+        is_dump = is_must_dump
         for i, item in enumerate(x):
-            is_dump = is_dump or dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
+            is_tensor_dump = dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
+            is_dump = is_dump or is_tensor_dump
         return is_dump
     elif isinstance(x, torch.Tensor):
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
@@ -408,10 +409,10 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
     if "backward" in name_template:
-        is_must_dump = dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
+        is_must_dump = dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file, False)
         dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file, is_must_dump)
     else:
-        is_must_dump = dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
+        is_must_dump = dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, False)
         dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, is_must_dump)
 
 

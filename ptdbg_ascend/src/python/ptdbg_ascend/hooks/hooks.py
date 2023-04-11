@@ -368,6 +368,10 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
     global backward_init_status
     if not forward_init_status and not backward_init_status:
         forward_init_status = True
+        module.input_args = list(module.input_args)
+        for i, data in enumerate(module.input_args):
+            if isinstance(data, torch.Tensor):
+                module.input_args[i] = data.detach().requires_grad_()
         output = module.forward(*module.input_args, **module.input_kwargs)
         grad = torch.tensor(np.load(grad_path)).to("npu").requires_grad_()
         torch_npu.npu.init_dump()

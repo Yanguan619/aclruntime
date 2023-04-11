@@ -203,10 +203,14 @@ def dump_not_float_tensor(x, prefix, dump_step, dump_file_name):
     with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                    "a") as f:
         summery_data = []
-        if x.numel() == 0 or len(x.shape) == 0 or x.dtype == torch.bool:
+        if x.numel() == 0 or x.dtype == torch.bool:
             tensor_max = []
             tensor_min = []
             tensor_mean = []
+        elif len(x.shape) == 0:
+            tensor_max = x.cpu().detach().float().numpy().tolist()
+            tensor_min = x.cpu().detach().float().numpy().tolist()
+            tensor_mean = x.cpu().detach().float().numpy().tolist()
         else:
             tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
             tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()

@@ -102,6 +102,7 @@ current pc   : %s
         else:
             msg = "********************Root cause conclusion****************" \
                   "*****\n%s\n" % "Not available" + msg
+        msg = "Analysis result: success.\n" + msg
         return msg
 
     def _get_addr_check_str(self: any) -> str:

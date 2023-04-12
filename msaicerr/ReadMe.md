@@ -16,7 +16,7 @@
 cd /home/root/tools/msaicerr
 python3 msaicerr.py -p /home/root/asys_output_20230328160000000
 ```
-注：可以使用命令：`python3 msaicerr.py -h`，查看具体参数的含义。
+> 可以使用命令：`python3 msaicerr.py -h`，查看具体参数的含义。
 4. 针对aicore error，会生成相应的info.txt，开发者可根据info.txt进行异常分析。
 
 ## 概述

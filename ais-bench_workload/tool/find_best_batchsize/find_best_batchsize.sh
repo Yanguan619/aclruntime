@@ -119,8 +119,8 @@ calc_throughput_atc()
     best_batchsize=0
     best_throughput=0
     for batchsize in `seq $MAX_BATCH_NUM`; do
-        sumary_file=`find $CACHE_PATH/$batchsize -name sumary.json`
-        local _throughput=$(get_sumary_throughput ${*_summary_file} )
+        sumary_file=`find $CACHE_PATH/$batchsize -name *_summary.json`
+        local _throughput=$(get_sumary_throughput ${summary_file} )
         echo "batchsize:$batchsize throughput:$_throughput"
         [[ `echo "$_throughput > $best_throughput" |bc` == 0 ]] || { best_throughput=$_throughput;best_batchsize=$batchsize; }
      done
@@ -133,8 +133,8 @@ calc_throughput_aoe()
     best_throughput=0
     batchsize=1
     while [ $batchsize -le $MAX_BATCH_NUM ]; do
-        sumary_file=`find $CACHE_PATH/$batchsize -name sumary.json`
-        local _throughput=$(get_sumary_throughput ${*_summary_file} )
+        sumary_file=`find $CACHE_PATH/$batchsize -name *_summary.json`
+        local _throughput=$(get_sumary_throughput ${summary_file} )
         echo "batchsize:$batchsize throughput:$_throughput"
         [[ `echo "$_throughput > $best_throughput" |bc` == 0 ]] || { best_throughput=$_throughput;best_batchsize=$batchsize; }
         batchsize=`expr $batchsize \* 2`

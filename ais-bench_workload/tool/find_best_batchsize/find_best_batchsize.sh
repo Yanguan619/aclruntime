@@ -1,4 +1,5 @@
 #!/bin/bash
+#add aoe mode (demo)
 CUR_PATH=$(dirname $(readlink -f "$0"))
 
 # 返回码

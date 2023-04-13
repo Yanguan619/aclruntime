@@ -736,7 +736,8 @@ class AscendRTSApi:
             if error_code == 3:
                 return "CAMODEL_NULL_CONTEXT"
         if error_code >= len(rts_info.RT_ERROR_CODE_DICT[error_type]):
-            raise RuntimeError("Received invalid runtime error code: " + hex(0x07000000 + error_type + error_code))
+            logger.log_err("Received invalid runtime error code: " + hex(0x07000000 + error_type + error_code))
+            return
         return rts_info.RT_ERROR_CODE_DICT[error_type][error_code]
 
     def parse_error(self, rt_error: ctypes.c_uint64, rt_api_name: str, extra_info: str = "") -> None:
@@ -756,13 +757,16 @@ class AscendRTSApi:
 
         rt_error_magic = rt_error & 0xFF000000
         if rt_error_magic != 0x07000000 and not self.camodel:
-            raise RuntimeError("Received invalid runtime error code:" + hex(rt_error) + extra_info)
+            logger.log_err("Received invalid runtime error code:" + hex(rt_error) + extra_info)
+            return
         rt_error_type = rt_error & 0x00FF0000
         if rt_error_type not in rts_info.RT_ERROR_CODE_DICT and not self.camodel:
-            raise RuntimeError("Received invalid runtime error type: " + hex(rt_error) + extra_info)
+            logger.log_err("Received invalid runtime error type: " + hex(rt_error) + extra_info)
+            return
         rt_error_code = rt_error & 0x0000FFFF
-        raise RuntimeError("Runtime API call " + "() failed:"
+        logger.log_err("Runtime API call " + "() failed:"
                            + self._parse_error_code(rt_error_type, rt_error_code) + extra_info)
+        return
 
     def get_memory_info_ex(self, memory_info_type: str):
         """

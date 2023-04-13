@@ -39,13 +39,8 @@ class AicErrorInfo:
         self.dump_info = ""
         self.aval_addrs = []
         self.necessary_addr = {}
-
-        self.ifu_key = "IFU_ERR_INFO"
-        self.ccu_key = "CCU_ERR_INFO"
-        self.biu_key = "BIU_ERR_INFO"
-        self.cube_key = "CUBE_ERR_INFO"
-        self.mte_key = "MTE_ERR_INFO"
-        self.vec_key = "VEC_ERR_INFO"
+        self.atomic_add_err = False
+        self.single_op_test_result = True
 
     def analyse(self: any) -> str:
         """
@@ -55,55 +50,63 @@ class AicErrorInfo:
         aicerror_info = self._get_aicerror_info()
 
         addr_check_str = self._get_addr_check_str()
+        single_op_test_result = "No Error" if self.single_op_test_result else "Aicore Error"
 
-        msg = """
+        analysis_result = "Analysis result: success."
+        conclusion = self._get_conclusion()
+
+        msg = f"""{analysis_result}
+
+"**********************Root cause conclusion******************"
+{conclusion}
+
 ***********************1. Basic information********************
-error time   : %s
-device id    : %s
-core id      : %s
-task id      : %s
-stream id    : %s
-node name    : %s
-kernel name  : %s
+error time   : {self.err_time}
+device id    : {self.dev_id}
+core id      : {self.core_id}
+task id      : {self.task_id}
+stream id    : {self.stream_id}
+node name    : {self.node_name}
+kernel name  : {self.kernel_name}
 
 ***********************2. AICERROR code***********************
-error code  : %s
+error code  : {self.aic_error}
 error bits : 
-%s
+{aicerror_info}
 
 ***********************3. Instructions************************
-start   pc   : %s
-current pc   : %s
-%s
+start   pc   : {self.start_pc}
+current pc   : {self.current_pc}
+instruction  : {self.instr}
 
 ****************4. Input and output of node*******************
-%s
+{addr_check_str}
 
-***********************5. Op in graph*************************
-%s
+***********************5. Dump info*************************
+{self.dump_info}
 
-""" % (self.err_time, self.dev_id, self.core_id, self.task_id, 
-       self.stream_id, self.node_name, self.kernel_name,
-       self.aic_error, aicerror_info, self.start_pc, 
-       self.current_pc, self.instr, addr_check_str, self.operator)
-        if self.dump_info != "":
-            msg += """
-***********************6. Dump info*************************
-%s
-""" % self.dump_info
+********************6. Single Op Test***********************
+{single_op_test_result}
 
-        # 0x800000 推断
+***********************7. Op in graph*************************
+{self.operator}
+
+"""
+        return msg
+
+    def _get_conclusion(self: any) -> str:
         conclusion = ""
         if self.current_pc == "0x0":
-            conclusion = "Memory of operator code has been overwrited falsely\n"
-        if conclusion != "":
-            msg = "********************Root cause conclusion****************" \
-                  "*****\n%s\n" % conclusion + msg
-        else:
-            msg = "********************Root cause conclusion****************" \
-                  "*****\n%s\n" % "Not available" + msg
-        msg = "Analysis result: success.\n" + msg
-        return msg
+            conclusion = "Memory of operator code has been over write falsely\n"
+        elif self.atomic_add_err:
+            conclusion = "Atomic accumulation exception, please check the input data. According to the precision problem. Check the network accuracy.\n"
+        elif "data invalid" in self.dump_info:
+            conclusion = "Input data is abnormal. Check the network accuracy.\n"
+        elif not self.single_op_test_result:
+            conclusion = "Single op test aicore error, please check op.\n"
+        else :
+            conclusion = "There's no obvious known error, so I can't determine what the error is.\n"
+        return conclusion
 
     def _get_addr_check_str(self: any) -> str:
         result_str = ""
@@ -141,9 +144,9 @@ current pc   : %s
 
         if workspace:
             result_str += f"workspace_bytes:{workspace}\n"
-            
+
         result_str += "\n\nDue to security issues, DevMalloc address information cannot be obtained."
-      
+
         return result_str
 
     def _get_aicerror_info(self: any) -> str:
@@ -182,12 +185,14 @@ current pc   : %s
             ret = [0]
         self.aicerror_bit = ret
         extra_err_key = ""
-        key_map = {"vec": self.vec_key,
-                   "mte": self.mte_key,
-                   "cube": self.cube_key,
-                   "ccu": self.ccu_key,
-                   "biu": self.biu_key,
-                   "ifu": self.ifu_key}
+        key_map = {
+            "vec": Constant.VEC_KEY,
+            "mte": Constant.MTE_KEY,
+            "cube": Constant.CUBE_KEY,
+            "ccu": Constant.CCU_KEY,
+            "biu": Constant.BIU_KEY,
+            "ifu": Constant.IFU_KEY
+        }
         for ret_a in ret:
             error_info = Constant.AIC_ERROR_INFO_DICT.get(ret_a)
             err_type = error_info.split('_')[0].lower()
@@ -204,7 +209,7 @@ current pc   : %s
         return utils.get_01_from_hexstr(ret[0], 7, 0)
 
     def _analyse_ifu_errinfo(self: any) -> str:
-        regexp = self.ifu_key + r"=(\S+)"
+        regexp = Constant.IFU_KEY + r"=(\S+)"
         ret = re.findall(regexp, self.extra_info, re.M)
         if len(ret) == 0:
             return "No IFU_ERR_INFO found"
@@ -229,7 +234,7 @@ current pc   : %s
         return errinfo
 
     def _analyse_mte_errinfo(self: any, err_bit: any) -> str:
-        regexp = self.mte_key + r"=(\S+)"
+        regexp = Constant.MTE_KEY + r"=(\S+)"
         ret = re.findall(regexp, self.extra_info, re.M)
         if len(ret) == 0:
             return "No MTE_ERR_INFO found"
@@ -267,7 +272,7 @@ current pc   : %s
         return errinfo
 
     def _analyse_biu_errinfo(self: any) -> str:
-        regexp = self.biu_key + r"=(\S+)"
+        regexp = Constant.BIU_KEY + r"=(\S+)"
         ret = re.findall(regexp, self.extra_info, re.M)
         if len(ret) == 0:
             return "No BIU_ERR_INFO found"
@@ -280,7 +285,7 @@ current pc   : %s
         return errinfo
 
     def _analyse_ccu_errinfo(self: any) -> str:
-        regexp = self.ccu_key + r"=(\S+)"
+        regexp = Constant.CCU_KEY + r"=(\S+)"
         ret = re.findall(regexp, self.extra_info, re.M)
         if len(ret) == 0:
             return "No CCU_ERR_INFO found"
@@ -295,7 +300,7 @@ current pc   : %s
         return errinfo
 
     def _analyse_cube_errinfo(self: any) -> str:
-        regexp = self.cube_key + r"=(\S+)"
+        regexp = Constant.CUBE_KEY + r"=(\S+)"
         ret = re.findall(regexp, self.extra_info, re.M)
         if len(ret) == 0:
             return "No CUBE_ERR_INFO found"
@@ -310,21 +315,21 @@ current pc   : %s
         return errinfo
 
     def _analyse_vec_errinfo(self: any) -> str:
-        regexp = self.vec_key + r"=(\S+)"
+        regexp = f"{Constant.VEC_KEY}=(\S+)"
         ret = re.findall(regexp, self.extra_info, re.M)
-        if len(ret) == 0:
+        if not ret:
             return "No VEC_ERR_INFO found"
 
         errinfo = ret[0]
         # vec_err_addr
-        code = utils.get_01_from_hexstr(ret[0], 28, 16)
+        code = utils.get_01_from_hexstr(errinfo, 28, 16)
         info = "VEC Error Address [17:5]"
         # 补5位0，猜测值
         approximate = hex(int(code + "00000", 2))
         errinfo += f"\nvec_err_addr bit[28:16]={code}  meaning:{info}  approximate:{approximate}"
 
         # vec_err_rcnt
-        code = utils.get_01_from_hexstr(ret[0], 15, 8)
+        code = utils.get_01_from_hexstr(errinfo, 15, 8)
         info = "VEC Error repeat count [7:0]"
         repeats = str(int(code, 2))
         errinfo += f"\nvec_err_rcnt bit[15:8]={code}  meaning:{info}  repeats:{repeats}"

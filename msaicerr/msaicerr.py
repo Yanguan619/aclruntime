@@ -83,9 +83,6 @@ def main() -> int:
         parser = AicoreErrorParser(collection, output_path, collect_time)
         parser.parse()
 
-        single_op_case = SingleOpCase(collection)
-        single_op_case.run()
-
         return Constant.MS_AICERR_NONE_ERROR
 
     except utils.AicErrException as error:

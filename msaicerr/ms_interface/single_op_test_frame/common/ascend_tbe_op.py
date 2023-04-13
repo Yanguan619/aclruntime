@@ -528,7 +528,10 @@ class AscendOpKernelRunner:
         if not kernel.is_registered_to_device():
             registered_binary = self.ascend_device.register_device_binary_kernel(kernel.bin_path, magic=kernel.magic)
             try:
-                stub_func_p = self.ascend_device.register_function(registered_binary, f"{kernel.stub_func_name}_{tiling_key}", 0)
+                if kernel.stub_func_name.endswith("kernel0"):
+                    stub_func_p = self.ascend_device.register_function(registered_binary, f"{kernel.stub_func_name}", 0)
+                else:
+                    stub_func_p = self.ascend_device.register_function(registered_binary, f"{kernel.stub_func_name}_{tiling_key}", 0)
             except RuntimeError:
                 stub_func_p = self.ascend_device.register_function(registered_binary, f"{kernel.stub_func_name}__kernel0", 0)
             kernel.set_stub_func_p(stub_func_p)

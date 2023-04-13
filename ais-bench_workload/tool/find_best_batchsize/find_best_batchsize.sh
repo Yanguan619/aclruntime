@@ -183,7 +183,7 @@ do
         AOE_MODE=$2
         shift
         ;;
-    -j|--job_typr)
+    -j|--job_type)
         JOB_TYPE=$2
         shift
         ;;

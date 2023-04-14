@@ -21,7 +21,8 @@ cmd="bash ../find_best_batchsize.sh
     --job_type 1
     "
 [[ $cmd != ret_ok ]] && { echo "command failed"; return 1 }
-cmd=`rm -rf ../cache/`
+cmd="rm -rf ../cache/"
+$cmd
 
 echo "test: model_type onnx, aoe_mode off, max_batch_num = 4"
 echo "to test atc mode still avaliable"
@@ -37,7 +38,8 @@ cmd="bash ../find_best_batchsize.sh
     "
 $cmd
 [[ $cmd != ret_ok ]] && { echo "command failed"; return 1 }
-cmd=`rm -rf ../cache/`
+cmd="rm -rf ../cache/"
+$cmd
 
 
 echo "test: model_type pb, aoe_mode on, max_batch_num = 8"
@@ -53,7 +55,8 @@ cmd="bash ../find_best_batchsize.sh
     --job_type 1
     "
 [[ $cmd != ret_ok ]] && { echo "command failed"; return 1 }
-cmd=`rm -rf ../cache/`
+cmd="rm -rf ../cache/"
+$cmd
 
 
 echo "test: model_type caffemodel, aoe_mode on, max_batch_num = 8"
@@ -70,7 +73,8 @@ cmd="bash ../find_best_batchsize.sh
     --job_type 1
     "
 [[ $cmd != ret_ok ]] && { echo "command failed"; return 1 }
-cmd=`rm -rf ../cache/`
+cmd="rm -rf ../cache/"
+$cmd
 
 
 # 异常情况测试
@@ -106,6 +110,3 @@ cmd="bash ../find_best_batchsize.sh
 $cmd
 cmd="rm -rf ../cache/"
 $cmd
-
-
-

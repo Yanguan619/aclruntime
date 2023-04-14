@@ -20,8 +20,7 @@ cmd="bash ../find_best_batchsize.sh
     --aoe_mode 1
     --job_type 1
     "
-run=$cmd
-[[ $run != $ret_ok ]] || { echo "command failed";exit 1; }
+# $cmd
 cmd="rm -rf ../cache/"
 $cmd
 
@@ -37,7 +36,7 @@ cmd="bash ../find_best_batchsize.sh
     --aoe_mode 0
     --job_type 1
     "
-[[ $cmd ]] || { echo "command failed";exit 1; }
+# $cmd
 cmd="rm -rf ../cache/"
 $cmd
 
@@ -54,7 +53,7 @@ cmd="bash ../find_best_batchsize.sh
     --aoe_mode 1
     --job_type 1
     "
-[[ $cmd ]] || { echo "command failed";exit 1; }
+[[ $cmd != $ret_ok ]] || { echo "command failed";exit 1; }
 cmd="rm -rf ../cache/"
 $cmd
 

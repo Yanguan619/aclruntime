@@ -16,7 +16,7 @@ cmd="bash ../find_best_batchsize.sh
     --input_shape_str actual_input_1:batchsize,3,224,244 
     --soc_version Ascend310
     --loop_count 100
-    --max_batch_num 4
+    --max_batch_num 8
     --aoe_mode 1
     --job_type 1
     "
@@ -36,8 +36,7 @@ cmd="bash ../find_best_batchsize.sh
     --aoe_mode 0
     --job_type 1
     "
-# [[ $cmd != ret_ok ]] && { echo "command failed"; return 1 }
-$cmd
+[[ $cmd ]] || { echo "command failed";exit 1; }
 cmd="rm -rf ../cache/"
 $cmd
 
@@ -54,8 +53,7 @@ cmd="bash ../find_best_batchsize.sh
     --aoe_mode 1
     --job_type 1
     "
-# [[ $cmd != ret_ok ]] && { echo "command failed"; return 1 }
-$cmd
+[[ $cmd ]] || { echo "command failed";exit 1; }
 cmd="rm -rf ../cache/"
 $cmd
 
@@ -73,8 +71,7 @@ cmd="bash ../find_best_batchsize.sh
     --aoe_mode 1
     --job_type 1
     "
-# [[ $cmd != ret_ok ]] && { echo "command failed"; return 1 }
-$cmd
+[[ $cmd ]] || { echo "command failed";exit 1; }
 cmd="rm -rf ../cache/"
 $cmd
 

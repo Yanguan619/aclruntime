@@ -19,6 +19,8 @@ cmd="bash ../find_best_batchsize.sh
     --job_type 1
     "
 $cmd
+cmd="rm -rf ../cache/"
+$cmd
 
 echo "test: model_type onnx, aoe_mode off, max_batch_num = 4"
 echo "to test atc mode still avaliable"
@@ -33,6 +35,9 @@ cmd="bash ../find_best_batchsize.sh
     --job_type 1
     "
 $cmd
+cmd="rm -rf ../cache/"
+$cmd
+
 
 echo "test: model_type pb, aoe_mode on, max_batch_num = 8"
 echo "to test aoe mode for tf model"
@@ -47,6 +52,9 @@ cmd="bash ../find_best_batchsize.sh
     --job_type 1
     "
 $cmd
+cmd="rm -rf ../cache/"
+$cmd
+
 
 echo "test: model_type caffemodel, aoe_mode on, max_batch_num = 8"
 echo "to test aoe mode for caffe model"
@@ -62,6 +70,9 @@ cmd="bash ../find_best_batchsize.sh
     --job_type 1
     "
 $cmd
+cmd="rm -rf ../cache/"
+$cmd
+
 
 # 异常情况测试
 echo "test: model_type onnx, aoe_mode = 3, max_batch_num = 8"
@@ -77,6 +88,9 @@ cmd="bash ../find_best_batchsize.sh
     --job_type 1
     "
 $cmd
+cmd="rm -rf ../cache/"
+$cmd
+
 
 echo "test: model_type onnx, job_type = 3, max_batch_num = 8"
 echo "to test illegal job_type input"
@@ -91,5 +105,8 @@ cmd="bash ../find_best_batchsize.sh
     --job_type 3
     "
 $cmd
+cmd="rm -rf ../cache/"
+$cmd
+
 
 

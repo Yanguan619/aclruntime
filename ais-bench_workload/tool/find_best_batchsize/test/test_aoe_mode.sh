@@ -20,7 +20,7 @@ cmd="bash ../find_best_batchsize.sh
     --aoe_mode 1
     --job_type 1
     "
-[[ $cmd != ret_ok ]] && { echo "command failed"; return 1 }
+[[ $cmd != $ret_ok ]] && { echo "command failed";return 1 }
 #$cmd
 cmd="rm -rf ../cache/"
 $cmd

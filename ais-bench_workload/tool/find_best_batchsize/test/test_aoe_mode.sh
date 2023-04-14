@@ -16,7 +16,7 @@ cmd="bash ../find_best_batchsize.sh
     --input_shape_str actual_input_1:batchsize,3,224,244 
     --soc_version Ascend310
     --loop_count 100
-    --max_batch_num 8
+    --max_batch_num 64
     --aoe_mode 1
     --job_type 1
     "

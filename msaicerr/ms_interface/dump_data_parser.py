@@ -21,21 +21,57 @@ class DumpDataParser:
     The class for dump data parser
     """
     DATA_TYPE_TO_DTYPE_MAP = {
-        DD.DT_FLOAT: {Constant.DTYPE: np.float32, Constant.STRUCT_FORMAT_KEY: 'f'},
-        DD.DT_FLOAT16: {Constant.DTYPE: np.float16, Constant.STRUCT_FORMAT_KEY: 'e'},
-        DD.DT_DOUBLE: {Constant.DTYPE: np.float64, Constant.STRUCT_FORMAT_KEY: 'd'},
-        DD.DT_INT8: {Constant.DTYPE: np.int8, Constant.STRUCT_FORMAT_KEY: 'b'},
-        DD.DT_INT16: {Constant.DTYPE: np.int16, Constant.STRUCT_FORMAT_KEY: 'h'},
-        DD.DT_INT32: {Constant.DTYPE: np.int32, Constant.STRUCT_FORMAT_KEY: 'i'},
-        DD.DT_INT64: {Constant.DTYPE: np.int64, Constant.STRUCT_FORMAT_KEY: 'q'},
-        DD.DT_UINT8: {Constant.DTYPE: np.uint8, Constant.STRUCT_FORMAT_KEY: 'B'},
-        DD.DT_UINT16: {Constant.DTYPE: np.uint16, Constant.STRUCT_FORMAT_KEY: 'H'},
-        DD.DT_UINT32: {Constant.DTYPE: np.uint32, Constant.STRUCT_FORMAT_KEY: 'I'},
-        DD.DT_UINT64: {Constant.DTYPE: np.uint64, Constant.STRUCT_FORMAT_KEY: 'Q'},
-        DD.DT_BOOL: {Constant.DTYPE: np.bool_, Constant.STRUCT_FORMAT_KEY: '?'},
+        DD.DT_FLOAT: {
+            Constant.DTYPE: np.float32,
+            Constant.STRUCT_FORMAT_KEY: 'f'
+        },
+        DD.DT_FLOAT16: {
+            Constant.DTYPE: np.float16,
+            Constant.STRUCT_FORMAT_KEY: 'e'
+        },
+        DD.DT_DOUBLE: {
+            Constant.DTYPE: np.float64,
+            Constant.STRUCT_FORMAT_KEY: 'd'
+        },
+        DD.DT_INT8: {
+            Constant.DTYPE: np.int8,
+            Constant.STRUCT_FORMAT_KEY: 'b'
+        },
+        DD.DT_INT16: {
+            Constant.DTYPE: np.int16,
+            Constant.STRUCT_FORMAT_KEY: 'h'
+        },
+        DD.DT_INT32: {
+            Constant.DTYPE: np.int32,
+            Constant.STRUCT_FORMAT_KEY: 'i'
+        },
+        DD.DT_INT64: {
+            Constant.DTYPE: np.int64,
+            Constant.STRUCT_FORMAT_KEY: 'q'
+        },
+        DD.DT_UINT8: {
+            Constant.DTYPE: np.uint8,
+            Constant.STRUCT_FORMAT_KEY: 'B'
+        },
+        DD.DT_UINT16: {
+            Constant.DTYPE: np.uint16,
+            Constant.STRUCT_FORMAT_KEY: 'H'
+        },
+        DD.DT_UINT32: {
+            Constant.DTYPE: np.uint32,
+            Constant.STRUCT_FORMAT_KEY: 'I'
+        },
+        DD.DT_UINT64: {
+            Constant.DTYPE: np.uint64,
+            Constant.STRUCT_FORMAT_KEY: 'Q'
+        },
+        DD.DT_BOOL: {
+            Constant.DTYPE: np.bool_,
+            Constant.STRUCT_FORMAT_KEY: '?'
+        },
     }
 
-    def __init__(self: any, dump_path: str, node_name: str, kernel_name: str) -> None:
+    def __init__(self, dump_path, node_name, kernel_name):
         self.dump_path = dump_path
         self.node_name = node_name
         self.kernel_name = kernel_name
@@ -44,8 +80,7 @@ class DumpDataParser:
     def get_input_data(self):
         return self.input_data_list
 
-    # @staticmethod
-    def _parse_dump_file(self: any, dump_file: str) -> any:
+    def _parse_dump_file(self, dump_file):
         """
         Parse the dump file path by big dump data format
         :param: dump_file the dump file
@@ -60,8 +95,7 @@ class DumpDataParser:
             if file_size <= Constant.UINT64_SIZE:
                 utils.print_error_log(f'The size of {dump_file} is at least greater then {Constant.UINT64_SIZE}, '
                                       f'but the file size is %d. Please check the dump file.')
-                raise utils.AicErrException(
-                    Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
+                raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
             with open(dump_file, 'rb') as dump_data_file:
                 # read header length
                 header_length = dump_data_file.read(Constant.UINT64_SIZE)
@@ -81,7 +115,7 @@ class DumpDataParser:
             pass
 
     @staticmethod
-    def _check_dump_data_vaild(dump_data: any, dump_file: str, header_length: int, file_size: int) -> None:
+    def _check_dump_data_vaild(dump_data, dump_file, header_length, file_size):
         input_data_size = 0
         for item in dump_data.input:
             input_data_size += item.size
@@ -94,13 +128,14 @@ class DumpDataParser:
         # check 8 + content size + sum(input.data) + sum(output.data) + sum(buffer.data) equal to file size
         if header_length + Constant.UINT64_SIZE + input_data_size \
                 + output_data_size + buffer_data_size != file_size:
-            utils.print_error_log(f'The file size({file_size}) of {dump_file} is not equal to {Constant.UINT64_SIZE}(header '
-                                  f'length) + {header_length}(the size of header content) + {input_data_size}(the sum'
-                                  f' of input data) + {output_data_size}(the sum of output data) + {buffer_data_size}(the'
-                                  f' sum of buffer data). Please check the dump file.')
+            utils.print_error_log(
+                f'The file size({file_size}) of {dump_file} is not equal to {Constant.UINT64_SIZE}(header '
+                f'length) + {header_length}(the size of header content) + {input_data_size}(the sum'
+                f' of input data) + {output_data_size}(the sum of output data) + {buffer_data_size}(the'
+                f' sum of buffer data). Please check the dump file.')
             raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
 
-    def _get_dump_data(self: any, dump_file: any, header_length: int, file_size: int) -> any:
+    def _get_dump_data(self, dump_file, header_length, file_size):
         # read header content
         content = dump_file.read(header_length)
         dump_data = DD.DumpData()
@@ -116,6 +151,7 @@ class DumpDataParser:
         if len(dump_data.input) > 0:
             for (index, _) in enumerate(dump_data.input):
                 dump_data.input[index].data = dump_file.read(dump_data.input[index].size)
+            self.input_data_list = dump_data.input
         if len(dump_data.output) > 0:
             for (index, _) in enumerate(dump_data.output):
                 dump_data.output[index].data = dump_file.read(dump_data.output[index].size)
@@ -124,27 +160,48 @@ class DumpDataParser:
                 dump_data.buffer[index].data = dump_file.read(dump_data.buffer[index].size)
         return dump_data
 
-    def _get_dtype_by_data_type(self: any, data_type: any) -> any:
+    def _get_dtype_by_data_type(self, data_type):
         if data_type not in self.DATA_TYPE_TO_DTYPE_MAP:
             utils.print_error_log(f"The output data type({data_type}) does not support.")
             raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
         return self.DATA_TYPE_TO_DTYPE_MAP.get(data_type).get(Constant.DTYPE)
 
-    def _save_tensor_to_file(self: any, tensor_list: list, tensor_type: str, dump_file: str) -> str:
+    def _check_tensor_data(self, index, array, data_dtype):
+        result_info = ""
+        if (np.isinf(array).any() or np.isnan(array).any()):
+            result_info = f'input[{index}] NaN/INF. Input data invalid. Please check!\n'
+            utils.print_error_log(result_info)
+        else:
+            if data_dtype in (np.int16, np.int32, np.int64, np.uint16, np.uint32, np.uint64):
+                dtype_max = np.iinfo(data_dtype).max
+                dtype_min = np.iinfo(data_dtype).min
+            elif data_dtype in (np.float16, np.float32, np.float64):
+                dtype_max = np.finfo(data_dtype).max
+                dtype_min = np.finfo(data_dtype).min
+            else:
+                return ""
+            if (np.max(array) > 0.9 * dtype_max) or (np.min(array) < 0.9 * dtype_min):
+                result_info = f'input[{index}] max {np.max(array)} or min {np.min(array)}. Maybe nput data invalid. Please check!\n'
+                utils.print_error_log(result_info)
+
+        return result_info
+
+    def _save_tensor_to_file(self, tensor_list, tensor_type, dump_file):
         result_info = ''
+
         if len(tensor_list) == 0:
             utils.print_warn_log(f'There is no {tensor_type} in "{dump_file}".')
             return result_info
+
         dump_file_path, _ = os.path.split(dump_file)
         for (index, tensor) in enumerate(tensor_list):
             try:
-                array = np.frombuffer(tensor.data, dtype=self._get_dtype_by_data_type(tensor.data_type))
+                data_dtype = self._get_dtype_by_data_type(tensor.data_type)
+                array = np.frombuffer(tensor.data, dtype=data_dtype)
                 npy_file_name = ".".join([self.kernel_name, tensor_type, str(index), "npy"])
                 np.save(os.path.join(dump_file_path, npy_file_name), array)
-                if (np.isinf(array).any() or np.isnan(array).any()) and tensor_type == "input":
-                    result_info += f'{tensor_type}[{index}] NaN/INF\n'
-                    utils.print_error_log(f'{tensor_type}[{index}] NaN/INF\n')
-                    raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
+                result_info += f'{npy_file_name}\n'
+                result_info += self._check_tensor_data(index, array, data_dtype)
             except (ValueError, IOError, OSError, MemoryError) as error:
                 utils.print_error_log(f'Failed to parse the data of {tensor_type}:{index} of "{dump_file}". {error}')
                 raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
@@ -153,19 +210,17 @@ class DumpDataParser:
 
         return result_info
 
-    def parse_dump_data(self: any, dump_file: str) -> str:
+    def parse_dump_data(self, dump_file):
         """
         Function Description: convert dump data to numpy and bin file
         @param dump_file: the dump file
         """
         dump_data = self._parse_dump_file(dump_file)
-        self.input_data_list = dump_data.input
         # 2. parse dump data
         result_info = self._save_tensor_to_file(dump_data.input, 'input', dump_file)
-        result_info += self._save_tensor_to_file(dump_data.output, 'output', dump_file)
         return result_info
 
-    def parse(self: any) -> str:
+    def parse(self):
         """
         Function Description: dump data parse.
         """

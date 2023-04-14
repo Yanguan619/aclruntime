@@ -217,6 +217,13 @@ class Constant:
     AIPP_ERR_INFO_DICT = {"000": "aipp_mte_ex_round : 表示访问外部存储绕回",
                           "001": "aipp_mte_l1_round : 表示访问L1 buffer绕回",
                           "010": "aipp_mte_inerr : 表示配置AIPP SPR相关的fp16为INF或者NAN"}
+    
+    IFU_KEY = "IFU_ERR_INFO"
+    CCU_KEY = "CCU_ERR_INFO"
+    BIU_KEY = "BIU_ERR_INFO"
+    CUBE_KEY = "CUBE_ERR_INFO"
+    MTE_KEY = "MTE_ERR_INFO"
+    VEC_KEY = "VEC_ERR_INFO"
 
     @property
     def max_top_n(self: any) -> int:

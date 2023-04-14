@@ -17,6 +17,7 @@ from ms_interface import utils
 from ms_interface.constant import Constant
 from ms_interface.aic_error_info import AicErrorInfo
 from ms_interface.dump_data_parser import DumpDataParser
+from tools.msaicerr.ms_interface.single_op_case import SingleOpCase
 
 
 class OpInputOutput:
@@ -81,9 +82,6 @@ class AicoreErrorParser:
 ***************************************************************************************************
 建议选择最近发生的AICERROR，查看其中的info.txt
 
-注意：
-1、只有在device挂起后收集到的算子输入才是正确的，所以请忽略非device挂起情况下info.txt提示的“NaN/INF”
-
 """ % (time.strftime("%Y-%m-%d %H:%M:%S", self.collect_time),
        len(self.collection.ai_core_error_list), "\n".join(summary_info_list))
         summary_file = os.path.join(self.output_path, "README.txt")
@@ -92,6 +90,16 @@ class AicoreErrorParser:
 
         utils.print_info_log('Analysis finished, please check %s, you can '
                              'view README.txt first.' % self.output_path)
+
+    def _get_atomic_err_log(self: any) -> list:
+        cmd = ['grep', 'dha status 1', '-nr', self.collection.collect_plog_path]
+        status, _ = utils.execute_command(cmd)
+        if status == 0:
+            utils.print_info_log("#" * 70)
+            utils.print_info_log("Find \"dha status 1\" in plogs. Maybe atomic add error happened!")
+            utils.print_info_log("#" * 70)
+            return True
+        return False
 
     def _get_alloc_addr(self: any) -> list:
         #  DevMalloc: Succ, size=512, type=2, ptr=0x108040014000
@@ -466,6 +474,18 @@ class AicoreErrorParser:
                 return True
             self._read_loc_json_file(loc_json_file, cce_code_num, info)
         return True
+    
+    @staticmethod
+    def _test_single_op(collection):
+        single_op_case = SingleOpCase(collection)
+        single_op_ret = single_op_case.run()
+
+        if not single_op_ret:
+            split_line="#" * 50
+            utils.print_info_log(split_line)
+            utils.print_info_log("single op test failed! Please Check OP or input data!")
+            utils.print_info_log(split_line)
+        return single_op_ret
 
     @staticmethod
     def _get_occur_before_mark(decompile_file: str, diff_str: str, info: any) -> bool:
@@ -499,10 +519,10 @@ class AicoreErrorParser:
         return True
 
     @staticmethod
-    def _write_errorinfo_file(err_i_folder: str, info: any, index: int) -> None:
+    def _write_errorinfo_file(err_i_folder: str, info: AicErrorInfo, index: int) -> None:
         info_file = os.path.join(err_i_folder, "info.txt")
         utils.write_file(info_file, info.analyse())
-        utils.print_info_log(f'The ai core error info for No.{index} is saved in {info_file}.')
+        utils.print_info_log(f'The ai core error info for No.{index} is saved in {info_file}')
 
     def _aicore_error_data(self: any) -> list:
         utils.print_info_log("Start to get DevMalloc address information.")
@@ -550,6 +570,9 @@ class AicoreErrorParser:
                 info.extra_info, info.current_pc = current_pc
             info.node_name = self.collection.node_name_list[i]
             info.kernel_name = self.collection.kernel_name_list[i]
+            
+            if "0x800000" == info.aic_error:
+                info.atomic_add_err = self._get_atomic_err_log()
 
             utils.print_info_log(f"******************No.{i} {info.err_time}******************")
             info.err_time_obj = utils.strplogtime(info.err_time)
@@ -583,7 +606,7 @@ class AicoreErrorParser:
                 dumpParser = DumpDataParser(self.collection.collect_dump_path, info.node_name, info.kernel_name)
                 info.dump_info = dumpParser.parse()
                 self.collection.input_list = dumpParser.get_input_data()
-
+            info.single_op_test_result = self._test_single_op(self.collection)
             # write info file
             self._write_errorinfo_file(err_i_folder, info, i)
 

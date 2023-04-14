@@ -11,16 +11,16 @@ declare -i ret_ok=0
 echo "test: model_type onnx, aoe_mode on, max_batch_num = 64"
 echo "to test aoe mode for onnx model"
 cmd=`bash ../find_best_batchsize.sh 
-    --model_path /home/y30044005/onnx_MDL/ResNeSt50/resnest50.onnx
+    --model_path /home/y30044005/onnx_MDL/ResNeSt50/resnest50.onnx 
     --python_command python3.8 
-    --input_shape_str actual_input_1:batchsize,3,224,244
+    --input_shape_str actual_input_1:batchsize,3,224,244 
     --soc_version Ascend310
     --loop_count 100
     --max_batch_num 4
     --aoe_mode 1
     --job_type 1
     `
-[[ $cmd != ret_ok ]] { echo "command failed"; return 1 }
+[[ $cmd != ret_ok ]] && { echo "command failed"; return 1 }
 cmd=`rm -rf ../cache/`
 
 echo "test: model_type onnx, aoe_mode off, max_batch_num = 4"
@@ -36,7 +36,7 @@ cmd=`bash ../find_best_batchsize.sh
     --job_type 1
     `
 $cmd
-[[ $cmd != ret_ok ]] { echo "command failed"; return 1 }
+[[ $cmd != ret_ok ]] && { echo "command failed"; return 1 }
 cmd=`rm -rf ../cache/`
 
 
@@ -52,7 +52,7 @@ cmd=`bash ../find_best_batchsize.sh
     --aoe_mode 1
     --job_type 1
     `
-[[ $cmd != ret_ok ]] { echo "command failed"; return 1 }
+[[ $cmd != ret_ok ]] && { echo "command failed"; return 1 }
 cmd=`rm -rf ../cache/`
 
 
@@ -69,7 +69,7 @@ cmd=`bash ../find_best_batchsize.sh
     --aoe_mode 1
     --job_type 1
     `
-[[ $cmd != ret_ok ]] { echo "command failed"; return 1 }
+[[ $cmd != ret_ok ]] && { echo "command failed"; return 1 }
 cmd=`rm -rf ../cache/`
 
 

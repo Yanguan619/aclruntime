@@ -11,8 +11,8 @@ AOE_ON="1"
 
 echo_help()
 {
-    echo "./find_best_batch.sh --model_path /home/BERT_Base_SQuAD1_1_BatchSize_None.pb --input_shape_str \"input_ids:batchsize,384;input_mask:batchsize,384;segment_ids:batchsize,384\" --soc_version \"Ascend310\" --max_batch_num 4"
-    echo "./find_best_batch.sh --model_path /home/resnet50_official.onnx --input_shape_str \"actual_input_1:batchsize,3,224,224\" --soc_version \"Ascend310\" --max_batch_num 120"
+    echo "./find_best_batch.sh --model_path /home/BERT_Base_SQuAD1_1_BatchSize_None.pb --input_shape_str \"input_ids:batchsize,384;input_mask:batchsize,384;segment_ids:batchsize,384\" --soc_version \"Ascend310\" --max_batch_num 4 --aoe_mode 0"
+    echo "./find_best_batch.sh --model_path /home/resnet50_official.onnx --input_shape_str \"actual_input_1:batchsize,3,224,224\" --soc_version \"Ascend310\" --max_batch_num 64 --aoe_mode 1 --job_type 1"
 }
 
 function check_command_exist()

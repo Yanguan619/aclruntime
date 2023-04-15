@@ -88,7 +88,7 @@ set_dump_switch("ON", mode="api_list", api_list=["relu"])
 # 示例6： dump全部api级别输入输出数据以及相应堆栈信息
 set_dump_switch("ON", mode="api_stack")
 ```
-3) dump数据存盘说明：<br/>
+4) dump数据存盘说明：<br/>
 
 - 精度比对dump场景 <br/>
   假设配置的dump文件名为npu_dump.pkl，此时dump的结果为两部分：
@@ -109,17 +109,7 @@ set_dump_switch("ON", mode="api_stack")
 * 文件api_stack_npu_dump.pkl 中包含dump数据的api名称、dtype、 shape、统计信息：max, min, mean，以及堆栈信息。<br/>
 * 文件夹api_stack_npu_dump_timestamp，文件夹下为numpy格式的dump数据.<br/>
 
-4) 整网dump和指定范围dump结果的区别：
-* 指定范围dump时，npu_dump.pkl 中还包含stack信息<br/>
-
-5) 溢出检测dump场景<br/>
-测试不需要配置dump文件名，会在当前目录自动生成：
-
-* 溢出检测的pkl文件名格式为Overflow_info_{timestamp}.pkl，每次溢出时时间戳不同<br/>
-  pkl文件中包含dump数据的api名称、dtype、 shape(不包含统计信息max, min, mean)。
-* 对应的dump数据存放目录为Overflow_info_{timestamp}，dump数据为完整Tensor数据，存放格式为numpy。
-* 单机多卡比对功能已上线，dump数据文件夹组织统一改为模仿ACL溢出检测dump文件夹格式。假设set_dump_path设置为`./dump_path/myDump.pkl`，则dump数据会dump在：`./dump_path/{dump_tag}_{version}/rank{rankid}/`路径下。其中`{dump_tag}`是set_dump_path接口的一个参数，默认为ptdbg_dump, `version`是工具版本，用于区分不同版本工具所dump的数据。文件夹结构样例如下：
-
+**【新改动】** 单机多卡比对功能已上线，dump数据文件夹组织统一改为如下格式
   ```
   ├── dump_path
   │   └── ptdbg_dump_v1.0
@@ -141,10 +131,20 @@ set_dump_switch("ON", mode="api_stack")
   │       |
   |       └── rank7
   ```
-
+引入这个格式是为了区分各卡所dump数据，有多少张卡就有多少个rank文件夹。同时为了避免单卡和多卡使用方式割裂，单机单卡使用工具也会形成上述文件夹格式，仅在卡数量上有区别。
 具体生成方式和单机多卡的精度工具使用教程见下文场景4。
 
-**注意：单机单卡使用工具也会形成上述文件夹格式，仅在卡数量上有区别。**
+
+5) 整网dump和指定范围dump结果的区别：
+* 指定范围dump时，npu_dump.pkl 中还包含stack信息<br/>
+
+6) 溢出检测dump场景<br/>
+测试不需要配置dump文件名，会在当前目录自动生成`ptdbg_dump_v1.0`文件夹，并且按卡数量创建rank文件夹，每张卡dump数据会在对应rank文件夹中：
+
+* 溢出检测的pkl文件名格式为`Overflow_info_{timestamp}.pkl`，每次溢出时时间戳不同<br/>
+  pkl文件中包含dump数据的api名称、dtype、 shape(不包含统计信息max, min, mean)。
+* 对应的dump数据存放目录为`Overflow_info_{timestamp}`，dump数据为完整Tensor数据，存放格式为numpy。
+
 
 ## 场景化示例
 ### 场景1：训练场景的精度问题分析
@@ -381,10 +381,14 @@ set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
   set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
 
 ### 场景四 单机多卡场景使用精度比对工具
+精度工具单机多卡功能继承了单机单卡时工具的所有功能，如果你想了解工具的基本功能，请参阅上面的场景一到场景三。
+如果你已经熟悉单机单卡使用本工具，想了解如何单机多卡使用，那么请参考[迅速上手：单机多卡使用注意事项](./NotesForMultiCardTraining.md)
 
 **文件夹格式改动**
 
-为了支持单机多卡场景，我们模仿ACL溢出检测dump的文件夹，区分了不同rank所dump的数据文件。假设dump路径设置为`set_dump_path('./dump_path/myDump.pkl', dump_tag='dump_conv2d')`，则数据（pkl和包含npy文件的文件夹）会dump在：`./dump_path/dump_tag_{version}/rank{rankid}/`路径下。比如：
+为了支持单机多卡场景，我们模仿ACL溢出检测dump的文件夹，区分了不同rank所dump的数据文件。
+假设dump路径设置为`set_dump_path('./dump_path/myDump.pkl', dump_tag='dump_conv2d')`，
+则数据（pkl和包含npy文件的文件夹）会dump在：`./dump_path/{dump_tag}_{version}/rank{rankid}/`路径下。比如：
 
   ```
   ├── dump_path
@@ -408,12 +412,16 @@ set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
   |       └── rank7
   ```
 
-具体地说，dump_path下首先产生一个`{dump_tag}_{version}`文件夹，`dump_tag`是set_dump_path传入参数设置的，可以用来提高文件夹辨识度。`version`是工具版本，用于区分不同版本工具所dump的数据这个文件夹中会根据实际使用卡的数量产生若干`rank`文件夹。每张卡上dump结果产生pkl和npy数据文件夹会存在对应的rank文件夹下。需要注意的是，如果以相同的dump_path和dump_tag运行两次，则**第二次的数据文件会覆盖第一次的**。
+具体地说，dump_path下首先产生一个`{dump_tag}_{version}`文件夹，`dump_tag`是set_dump_path传入参数设置的，可以用来提高文件夹辨识度。
+`version`是工具版本，用于区分不同版本工具所dump的数据这个文件夹中会根据实际使用卡的数量产生若干`rank`文件夹。
+每张卡上dump结果产生pkl和npy数据文件夹会存在对应的rank文件夹下。
+需要注意的是，如果以相同的dump_path和dump_tag运行两次，则**第二次的数据文件会覆盖第一次的**。
 
 **单机多卡使用说明**
 1. set_dump_path 设置dump目标路径
 
-由于上述文件夹结构改动，你可能已经注意到了最终dump的pkl路径和原本set_dump_path传入的路径不同。另外，我们给set_dump_path新增了一个参数`dump_tag`，用来标识本次dump的用途，优化文件夹结构。
+由于上述文件夹结构改动，你可能已经注意到了最终dump的pkl路径和原本set_dump_path传入的路径不同。
+另外，我们给set_dump_path新增了一个参数`dump_tag`，用来标识本次dump的用途，优化文件夹结构。
 比如，你正在用工具调试ResNet50，首先做了一次全量dump，可以
 
 ```
@@ -423,26 +431,34 @@ set_dump_path('./dump_resnet50/dump.pkl', dump_tag='all')
 ```
 set_dump_path('./dump_resnet50/dump.pkl', dump_tag='conv2d_stack')
 ```
-并在set_dump_switch启用stack模式。这样在`dump_resnet50`文件夹下就会分别有`all_{version}`和`conv2d_stack_{version}`两个文件夹，方便查看。
+并在`set_dump_switch`时启用stack模式。这样在`dump_resnet50`文件夹下就会分别有`all_{version}`和`conv2d_stack_{version}`两个文件夹，方便查看。
 
 2. register_hook 注册工具的dump或溢出检测钩子
 
-为了方便区分不同卡上的dump数据，调用register_hook时可以通过`rank`参数传入各自进程所对应的rank id，比如
+为了方便区分不同卡上的dump数据，调用register_hook时可以通过`rank`参数传入各自进程所对应的`rank_id`，比如
 
 ```
-register_hook(model, acc_cmp_dump, rank=0)
+register_hook(model, acc_cmp_dump, rank=rank_id)
 ```
 
 `rank`将决定该进程所dump数据被存入哪个`rank`文件夹（如上面文件夹格式所描述）。如果不清楚当前rank id或者不显式传入，
-工具将隐式从传入模型的参数读取`device.index`信息作为`rank`。
+工具将隐式从传入模型的参数读取`device.index`信息作为`rank`。因此隐式读取时用户须保证在模型已经上卡之后再调用`register_hook`
 需要注意的是，由于该函数会创建各卡dump数据时的目标`rank`文件夹，因此在调用register_hook前必须先set_dump_path，否则set_dump_path会失效。
+
 3. compare_distributed 分布式比对
 
-dump数据之后的比对建议使用`compare_distributed`接口。调用该接口需要传入`npu_dump_dir`, `bench_dump_dir`, `output_path`三个参数，前两者代表需要比对的两次运行数据所在的总文件夹路径，即上文所说的`{dump_path}/{dump_tag}_{version}` 。函数会自动检测文件夹下的`rank`文件夹并按顺序一一对应，并调用compare逐个做比对，最终对每对`rank`文件夹生成一个csv比对结果。
+dump数据之后的比对建议使用`compare_distributed`接口。调用该接口需要传入`npu_dump_dir`, `bench_dump_dir`, `output_path`三个参数，
+前两者代表需要比对的两次运行数据所在的总文件夹路径，即上文所说的`{dump_path}/{dump_tag}_{version}` 。函数会自动检测文件夹下的`rank`文件夹并按顺序一一对应，
+并调用compare逐个做比对，最终对每对`rank`文件夹生成一个csv比对结果。
 
-在上面的例子中，我们可以传入 `dump_path/dump_conv2d_v1.0` 作为`npu_dump_dir`或`npu_dump_dir`参数。
+在上面的例子中，我们可以传入 `dump_path/dump_conv2d_v1.0` 作为`npu_dump_dir`参数。
 
-   假设我们要比对的对象是，产生了`dump_gpu/dump_conv2d_v1.0`文件夹，要比对以上两次运行所产生的数据差异，就可以把这个路径作为`bench_dump_dir`传入。另外，原本`compare`比对函数支持的参数如`shape_flag`、`stack_mode`等，`compare_distributed`函数也支持。
+   假设我们要比对的标杆数据在`dump_gpu/dump_conv2d_v1.0`文件夹（文件夹下应有对应数量的rank文件夹），要比对以上两次运行所产生的数据差异，
+   就可以把这个路径作为`bench_dump_dir`传入。如：
+```python
+compare_distributed(npu_dump_dir='dump_path/dump_conv2d_v1.0', bench_dump_dir='dump_gpu/dump_conv2d_v1.0', './output')
+```   
+另外，原本`compare`比对函数支持的参数如`shape_flag`、`stack_mode`等，`compare_distributed`函数也支持。
 
 **注意：两次运行须用相同数量的卡，传入`compare_distributed`的两个文件夹下须有相同个数的rank文件夹，且不包含其他无关文件，否则将无法比对。**
 

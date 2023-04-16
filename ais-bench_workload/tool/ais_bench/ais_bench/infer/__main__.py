@@ -284,10 +284,10 @@ def main(args, index=0, msgq=None, device_list=None):
             if args.output_dirname is None:
                 timestr = time.strftime("%Y_%m_%d-%H_%M_%S")
                 output_prefix = os.path.join(args.output, timestr)
-                output_prefix = os.path.join(output_prefix, device_list[index])
+                output_prefix = os.path.join(output_prefix, str(device_list[index]))
             else:
                 output_prefix = os.path.join(args.output, args.output_dirname)
-                output_prefix = os.path.join(output_prefix, device_list[index])
+                output_prefix = os.path.join(output_prefix, str(device_list[index]))
             if not os.path.exists(output_prefix):
                 os.makedirs(output_prefix, 0o755)
             logger.info("output path:{}".format(output_prefix))

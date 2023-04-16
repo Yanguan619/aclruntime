@@ -279,15 +279,15 @@ def main(args, index=0, msgq=None, device_list=None):
     session = init_inference_session(args)
 
     intensors_desc = session.get_inputs()
-    if len(device_list) > 1:
+    if device_list != None and len(device_list) > 1:
         if args.output != None:
             if args.output_dirname is None:
                 timestr = time.strftime("%Y_%m_%d-%H_%M_%S")
                 output_prefix = os.path.join(args.output, timestr)
-                output_prefix = os.path.join(output_prefix, str(device_list[index]))
+                output_prefix = os.path.join(output_prefix, "device" + str(device_list[index]) + "_" + str(index))
             else:
                 output_prefix = os.path.join(args.output, args.output_dirname)
-                output_prefix = os.path.join(output_prefix, str(device_list[index]))
+                output_prefix = os.path.join(output_prefix, "device" + str(device_list[index]) + "_" + str(index))
             if not os.path.exists(output_prefix):
                 os.makedirs(output_prefix, 0o755)
             logger.info("output path:{}".format(output_prefix))

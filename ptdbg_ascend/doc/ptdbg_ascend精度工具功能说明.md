@@ -87,6 +87,9 @@ set_dump_switch("ON", mode="api_list", api_list=["relu"])
 
 # 示例6： dump全部api级别输入输出数据以及相应堆栈信息
 set_dump_switch("ON", mode="api_stack")
+
+# 示例7： dump全部api级别输入输出数据并包含bool和整型tensor和标量，默认不配置为ON，会过滤bool和整型数据
+set_dump_switch("ON", filter_switch="OFF")
 ```
 4) dump数据存盘说明：<br/>
 
@@ -305,7 +308,8 @@ register_hook(model, overflow_check, dump_mode='acl', dump_config='/home/xxx/dum
 ...
 
 # 默认全量进行溢出检测
-# 如果只在特定的step 溢出检测，则在期望溢出检测的迭代开始前打开溢出检测开关，step结束后关掉。
+# 第一个参数表示检测开关，如果只在特定的step 溢出检测，则在期望溢出检测的迭代开始前打开溢出检测开关，step结束后关掉。
+# 第二个可选参数表示是否过滤标量，默认过滤，可以设置filter_switch="OFF"关闭
 set_overflow_check_switch("ON")
 
 ...

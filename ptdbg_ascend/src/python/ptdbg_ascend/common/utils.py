@@ -52,6 +52,8 @@ class Const:
     FLOAT_EPSILON = np.finfo(float).eps
     NAN = 'Nan'
     SUPPORT_DUMP_MODE = ['api', 'acl']
+    ON = 'ON'
+    OFF = 'OFF'
 
     # dump mode
     ALL = "all"

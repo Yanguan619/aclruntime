@@ -63,7 +63,7 @@ bash  ./find_best_batchsize.sh --model_path /home/model/resnet50/resnet50.onnx -
 | --loop_count   | 推理次数。可选参数。默认1000 |
 | --device_id   | 指定运行设备 [0,255]，可选参数，默认0 |
 | --aoe_mode |是否用aoe工具生成om模型，1为采用aoe，0为采用atc，默认1|
-| --job_type|aoe工具的调优方式，可取{1，2，4}，数字对应的调优方式参考aoe工具的官方文档|
+| --job_type|aoe工具的调优方式，可取{1，2}，数字对应的调优方式参考aoe工具的官方文档|
 | --help| 工具使用帮助信息                  |
 
 ### 执行结果

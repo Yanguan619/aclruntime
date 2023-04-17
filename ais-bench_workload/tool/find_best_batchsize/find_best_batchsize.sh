@@ -56,7 +56,7 @@ check_args_valid()
     [[ $MAX_BATCH_NUM -gt 0 && $MAX_BATCH_NUM -le 100 ]] || { echo "max_batch_num:$MAX_BATCH_NUM not valid"; }
     [ "$INPUT_SHAPE_STR" != "" ] || { echo "input_shape_str:$INPUT_SHAPE_STR not valid"; return 1; }
     [[ "$SOC_VERSION" != "" ]] || { echo "soc_version:$SOC_VERSION not valid"; return 1; }
-    [[ "$JOB_TYPE" != "1" && "$JOB_TYPE" != "2" && "$JOB_TYPE" != "4" ]] && { echo "aoe job_type:$JOB_TYPE not valid"; return 1; }
+    [[ "$JOB_TYPE" != "1" && "$JOB_TYPE" != "2" ]] && { echo "aoe job_type:$JOB_TYPE not valid"; return 1; }
     return 0
 }
 

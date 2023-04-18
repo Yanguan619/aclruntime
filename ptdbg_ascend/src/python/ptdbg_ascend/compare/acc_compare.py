@@ -307,11 +307,13 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     except IOError as error:
         return " ", "", "Dump file:{} not found".format(error.filename)
     if len(n_value.shape) == 0:
+        scalar_cos_sim = 1
         if n_value.dtype == bool:
+            scalar_cos_sim = 1 - n_value ^ b_value
             n_value = n_value.astype(float)
             b_value = b_value.astype(float)
         max_abs_err, _ = get_max_abs_err(n_value, b_value)
-        return 1, max_abs_err, "This is type of scalar data, can not compare."
+        return scalar_cos_sim, max_abs_err, "This is type of scalar data, can not compare."
 
     n_value = n_value.reshape(-1).astype(float)
     b_value = b_value.reshape(-1).astype(float)

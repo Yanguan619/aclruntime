@@ -49,6 +49,7 @@ class DumpUtil(object):
     dump_switch_scope = []
     dump_init_enable = False
     dump_api_list = []
+    dump_filter_switch = None
     backward_input = {}
     dump_dir_tag = 'ptdbg_dump'
 
@@ -58,12 +59,13 @@ class DumpUtil(object):
         DumpUtil.dump_init_enable = True
 
     @staticmethod
-    def set_dump_switch(switch, mode, scope, api_list):
+    def set_dump_switch(switch, mode, scope, api_list, filter_switch):
         DumpUtil.dump_switch = switch
         DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_init_enable = True
         DumpUtil.dump_switch_scope = scope
         DumpUtil.dump_api_list = [api.lower() for api in api_list]
+        DumpUtil.dump_filter_switch = filter_switch
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
@@ -137,11 +139,13 @@ class DumpUtil(object):
 
 class OverFlowUtil(object):
     overflow_check_switch = None
+    overflow_filter_switch = None
     real_overflow_dump_times = 0
 
     @staticmethod
-    def set_overflow_check_switch(switch):
+    def set_overflow_check_switch(switch, filter_switch):
         OverFlowUtil.overflow_check_switch = switch
+        OverFlowUtil.overflow_filter_switch = filter_switch
 
     @staticmethod
     def get_overflow_check_switch():
@@ -172,9 +176,10 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
     DumpUtil.dump_dir_tag = dump_tag
 
 
-def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[]):
+def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON):
     global DumpCount
     assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
+    assert filter_switch in ["ON", "OFF"], "Please set filter_switch with 'ON' or 'OFF'."
     if mode == Const.LIST and switch == "ON":
         DumpCount = 0
     if mode == Const.LIST and switch == "OFF":
@@ -187,7 +192,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[]):
         assert len(scope) <= 2, "set_dump_switch, scope param set invalid, it's must be [start, end] or []."
     if mode == Const.ACL:
         assert len(scope) == 1, "set_dump_switch, scope param set invalid, only one api name is supported in acl mode."
-    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list)
+    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch)
 
 
 def set_backward_input(backward_input):
@@ -195,9 +200,10 @@ def set_backward_input(backward_input):
         DumpUtil.backward_input[api_name] = backward_input[index]
 
 
-def set_overflow_check_switch(switch):
+def set_overflow_check_switch(switch, filter_switch=Const.ON):
     assert switch in ["ON", "OFF"], "Please set overflow switch with 'ON' or 'OFF'."
-    OverFlowUtil.set_overflow_check_switch(switch)
+    assert filter_switch in ["ON", "OFF"], "Please set overflow filter_switch with 'ON' or 'OFF'."
+    OverFlowUtil.set_overflow_check_switch(switch, filter_switch)
 
 def dump_not_float_tensor(x, prefix, dump_step, dump_file_name):
     with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
@@ -222,19 +228,27 @@ def dump_not_float_tensor(x, prefix, dump_step, dump_file_name):
         json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
         f.write('\n')
 
+def dump_scalar_para(x, prefix, dump_step, dump_file_name):
+    if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
+        with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
+            summery_data = []
+            summery_data.extend([x, x, x])
+            output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
+            np.save(output_path, x)
+            json.dump([prefix, dump_step, [], str(type(x)), str([]), summery_data], f)
+            f.write('\n')
 
-def dump_tensor(x, prefix, dump_step, dump_file_name, is_must_dump=False):
+
+def dump_tensor(x, prefix, dump_step, dump_file_name):
     if isinstance(x, (tuple, list)) and x:
-        is_dump = is_must_dump
         for i, item in enumerate(x):
-            is_tensor_dump = dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
-            is_dump = is_dump or is_tensor_dump
-        return is_dump
+            dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
+        return
     elif isinstance(x, torch.Tensor):
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
-            if is_must_dump:
+            if DumpUtil.dump_filter_switch == Const.OFF:
                 dump_not_float_tensor(x, prefix, dump_step, dump_file_name)
-            return False
+            return
 
         with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                        "a") as f:
@@ -252,7 +266,8 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, is_must_dump=False):
             json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
 
             f.write('\n')
-    return True
+    elif DumpUtil.dump_filter_switch == Const.OFF:
+        dump_scalar_para(x, prefix, dump_step, dump_file_name)
 
 
 def _dump_tensor_completely(x, prefix, dump_file_name):
@@ -266,14 +281,16 @@ def _dump_tensor_completely(x, prefix, dump_file_name):
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
             _dump_tensor_completely(item, "{}.{}".format(prefix, i), dump_file_name)
-    else:
+    elif isinstance(x, torch.Tensor):
         with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-            if isinstance(x, torch.Tensor) and x.numel() != 0:
+            if x.numel() != 0:
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
                 save_tensor = x.contiguous().cpu().detach().numpy()
                 np.save(output_path, save_tensor)
                 json.dump([prefix, dump_flag, [], str(x.dtype), tuple(x.shape)], f)
             f.write('\n')
+    elif OverFlowUtil.overflow_filter_switch == Const.OFF:
+        dump_scalar_para(x, prefix, dump_flag, dump_file_name)
 
 
 def seed_all(seed=1234):
@@ -426,11 +443,11 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
     if "backward" in name_template:
-        is_must_dump = dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file, False)
-        dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file, is_must_dump)
+        dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
+        dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file)
     else:
-        is_must_dump = dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, False)
-        dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, is_must_dump)
+        dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
+        dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
 
 
 def acc_cmp_dump(name, **kwargs):
@@ -488,7 +505,6 @@ def overflow_check(name, **kwargs):
             return
         module_name = name
         module.has_overflow = torch_npu._C._check_overflow_npu()
-
         if not module.has_overflow:
             if hasattr(module, 'input_args'):
                 del module.input_args

@@ -306,8 +306,15 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
         b_value = np.load(os.path.join(input_parma.get("bench_dump_data_dir"), npu_bench_name_list[1] + ".npy"))
     except IOError as error:
         return " ", "", "Dump file:{} not found".format(error.filename)
-    if n_value.dtype == bool:
-        return Const.NAN, 0, "This is type of bool data, can not compare."
+    if len(n_value.shape) == 0:
+        scalar_cos_sim = 1
+        if n_value.dtype == bool:
+            scalar_cos_sim = 1 - n_value ^ b_value
+            n_value = n_value.astype(float)
+            b_value = b_value.astype(float)
+        max_abs_err, _ = get_max_abs_err(n_value, b_value)
+        return scalar_cos_sim, max_abs_err, "This is type of scalar data, can not compare."
+
     n_value = n_value.reshape(-1).astype(float)
     b_value = b_value.reshape(-1).astype(float)
     err_msg = ""

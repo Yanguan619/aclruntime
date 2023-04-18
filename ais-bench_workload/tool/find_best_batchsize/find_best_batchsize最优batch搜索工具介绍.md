@@ -3,7 +3,7 @@
 ## 介绍
 本文介绍AisBench推理工具中find_best_batchsize专项功能
 
-输入：原始模型文件，支持onnx、pb、prototx格式
+输入：原始模型文件，支持onnx、pb、prototx格式(仅在采用atc工具的模式下支持三种模型，采用aoe工具的模式只支持onnx)
 
 输出：最优的吞吐率，最优的batchsize序号
 

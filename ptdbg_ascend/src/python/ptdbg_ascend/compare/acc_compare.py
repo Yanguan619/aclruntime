@@ -314,7 +314,8 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
             b_value = b_value.astype(float)
         max_abs_err, _ = get_max_abs_err(n_value, b_value)
         return scalar_cos_sim, max_abs_err, "This is type of scalar data, can not compare."
-
+    if n_value.size == 0:
+        return 1, 0, "This is empty data, can not compare."
     n_value = n_value.reshape(-1).astype(float)
     b_value = b_value.reshape(-1).astype(float)
     err_msg = ""

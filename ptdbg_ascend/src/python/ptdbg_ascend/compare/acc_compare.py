@@ -397,8 +397,18 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
         }
         compare(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)
 
+
+def check_compare_param(input_parma, output_path, shape_flag, stack_mode, suffix):
+    if not (isinstance(input_parma, dict) and isinstance(output_path, str) and
+            isinstance(shape_flag, bool) and isinstance(stack_mode, bool) and
+            isinstance(suffix, str)):
+        print_error_log("Invalid input parameters")
+        raise CompareException(CompareException.INVALID_PARAM_ERROR)
+
+
 def compare(input_parma, output_path, shape_flag=True, stack_mode=False, suffix=''):
     try:
+        check_compare_param(input_parma, output_path, shape_flag, stack_mode, suffix)
         check_file_or_directory_path(input_parma.get("npu_pkl_path"), False)
         check_file_or_directory_path(input_parma.get("bench_pkl_path"), False)
         check_file_or_directory_path(input_parma.get("npu_dump_data_dir"), True)

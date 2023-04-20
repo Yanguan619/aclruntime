@@ -384,7 +384,7 @@ set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
   set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
   set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
 
-  需要注意的是，某些torch api的输出不是Tensor类型的数据，如torch.sort。对于这种类型的API，不能直接对输出进行backward，因此需要自己手动构建单API用例用于ACL dump
+  需要注意的是，某些torch api的输出不是Tensor类型的数据，如torch.sort。对于这种类型的API，不能直接对输出进行backward，因此需要自己手动构建单API用例用于ACL dump。
 
 ### 场景四 单机多卡场景使用精度比对工具
 精度工具单机多卡功能继承了单机单卡时工具的所有功能，如果你想了解工具的基本功能，请参阅上面的场景一到场景三。

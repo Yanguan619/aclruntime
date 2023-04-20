@@ -429,8 +429,9 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
                 module.input_args[i] = data.detach().requires_grad_()
         output = module.forward(*module.input_args, **module.input_kwargs)
         if not isinstance(output, torch.Tensor):
-            print_error_log("The output of {} if not of Tensor type and cannot be automatically derived. "
+            print_warn_log("The output of {} if not of Tensor type and cannot be automatically derived. "
                             "you can manually construct a single API backward case for ACL dump.".format(module_name))
+            return
         grad = torch.tensor(np.load(grad_path)).to("npu").requires_grad_()
         torch_npu.npu.init_dump()
         torch_npu.npu.set_dump(DumpUtil.dump_config)

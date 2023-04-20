@@ -149,7 +149,6 @@ def check_mode_valid(DumpUtil):
     if DumpUtil.dump_switch_mode not in Const.DUMP_MODE:
         print_error_log("Current mode %s is not supported. Please use the field in %s" %
                         (DumpUtil.dump_switch_mode, Const.DUMP_MODE))
-        sys.exit()
 
     if DumpUtil.dump_switch_mode == Const.API_LIST and not DumpUtil.dump_api_list:
         print_warn_log("Current dump mode is 'api_list', but the api_list parameter is empty.")

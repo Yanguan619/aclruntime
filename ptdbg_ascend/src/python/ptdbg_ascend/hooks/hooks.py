@@ -69,7 +69,6 @@ class DumpUtil(object):
         DumpUtil.dump_filter_switch = filter_switch
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
-
         check_mode_valid(DumpUtil)
 
     def check_list_or_acl_mode(name_prefix):

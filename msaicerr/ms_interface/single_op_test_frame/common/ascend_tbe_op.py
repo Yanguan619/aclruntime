@@ -52,12 +52,13 @@ class AscendOpKernel:
 
         self.bin_path = bin_path
         self.json_path = json_path
+        self.need_do_tiling = False
         self._parse_json_file(json_path)
         self.stub_func_p = None
         self.input_infos = []
         self.output_infos = []
         self.compile_info = None
-        self.need_do_tiling = False
+        
 
     def is_registered_to_device(self):
         """
@@ -94,6 +95,7 @@ class AscendOpKernel:
         else:
             self.has_tiling = True
             self.tiling_data_size = op_para_size
+            self.need_do_tiling = True
 
     def set_input_info(self, input_infos):
         """

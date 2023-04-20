@@ -69,7 +69,6 @@ class DumpUtil(object):
         DumpUtil.dump_filter_switch = filter_switch
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
-        check_mode_valid(DumpUtil)
 
     def check_list_or_acl_mode(name_prefix):
         global DumpCount
@@ -182,6 +181,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     global DumpCount
     assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
     assert filter_switch in ["ON", "OFF"], "Please set filter_switch with 'ON' or 'OFF'."
+    check_mode_valid(mode)
     if mode == Const.LIST and switch == "ON":
         DumpCount = 0
     if mode == Const.LIST and switch == "OFF":
@@ -194,6 +194,8 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
         assert len(scope) <= 2, "set_dump_switch, scope param set invalid, it's must be [start, end] or []."
     if mode == Const.ACL:
         assert len(scope) == 1, "set_dump_switch, scope param set invalid, only one api name is supported in acl mode."
+    if mode == Const.API_LIST and not api_list:
+        print_warn_log("Current dump mode is 'api_list', but the api_list parameter is empty.")
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch)
 
 

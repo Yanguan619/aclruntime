@@ -33,7 +33,8 @@ else:
     is_gpu=False
 
 from ..common.utils import check_file_or_directory_path, print_error_log, __version__, \
-    print_warn_log, CompareException, Const, get_time, print_info_log, modify_dump_path
+    print_warn_log, CompareException, Const, get_time, print_info_log, modify_dump_path, \
+    check_mode_valid
 
 DumpCount = 0
 forward_init_status = False
@@ -68,6 +69,8 @@ class DumpUtil(object):
         DumpUtil.dump_filter_switch = filter_switch
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
+
+        check_mode_valid(DumpUtil)
 
     def check_list_or_acl_mode(name_prefix):
         global DumpCount

@@ -101,6 +101,7 @@ class CompareException(Exception):
     INVALID_DUMP_RATIO = 12
     INVALID_DUMP_FILE = 13
     UNKNOWN_ERROR = 14
+    INVALID_DUMP_MODE = 15
 
     def __init__(self, code, error_info: str = ""):
         super(CompareException, self).__init__()
@@ -147,8 +148,10 @@ def print_warn_log(warn_msg):
 
 def check_mode_valid(mode):
     if mode not in Const.DUMP_MODE:
-        print_error_log("Current mode %s is not supported. Please use the field in %s" %
-                        (mode, Const.DUMP_MODE))
+        msg = "Current mode '%s' is not supported. Please use the field in %s" % \
+              (mode, Const.DUMP_MODE)
+        print_error_log(msg)
+        raise CompareException(CompareException.INVALID_DUMP_MODE, msg)
 
 
 def check_file_or_directory_path(path, isdir=False):

@@ -20,6 +20,7 @@ import json
 import os
 import random
 import stat
+import sys
 from pathlib import Path
 import numpy as np
 import torch
@@ -179,23 +180,29 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
 
 def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON):
     global DumpCount
-    assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
-    assert filter_switch in ["ON", "OFF"], "Please set filter_switch with 'ON' or 'OFF'."
-    check_mode_valid(mode)
     if mode == Const.LIST and switch == "ON":
         DumpCount = 0
     if mode == Const.LIST and switch == "OFF":
         print_info_log("The number of matched dump is {}".format(DumpCount))
-    if mode == Const.RANGE:
-        assert len(scope) == 2, "set_dump_switch, scope param set invalid, it's must be [start, end]."
-    if mode == Const.LIST:
-        assert len(scope) != 0, "set_dump_switch, scope param set invalid, it's should not be an empty list."
-    if mode == Const.STACK:
-        assert len(scope) <= 2, "set_dump_switch, scope param set invalid, it's must be [start, end] or []."
-    if mode == Const.ACL:
-        assert len(scope) == 1, "set_dump_switch, scope param set invalid, only one api name is supported in acl mode."
-    if mode == Const.API_LIST and not api_list:
-        print_warn_log("Current dump mode is 'api_list', but the api_list parameter is empty.")
+    try:
+        check_mode_valid(mode)
+        assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
+        assert filter_switch in ["ON", "OFF"], "Please set filter_switch with 'ON' or 'OFF'."
+        if mode == Const.RANGE:
+            assert len(scope) == 2, "set_dump_switch, scope param set invalid, it's must be [start, end]."
+        if mode == Const.LIST:
+            assert len(scope) != 0, "set_dump_switch, scope param set invalid, it's should not be an empty list."
+        if mode == Const.STACK:
+            assert len(scope) <= 2, "set_dump_switch, scope param set invalid, it's must be [start, end] or []."
+        if mode == Const.ACL:
+            assert len(scope) == 1, "set_dump_switch, scope param set invalid, only one api name is supported in acl mode."
+        if mode == Const.API_LIST:
+            assert isinstance(api_list, list) and len(api_list) >= 1, \
+                "Current dump mode is 'api_list', but the content of api_list parameter is empty or valid."
+    except (CompareException, AssertionError) as err:
+        if isinstance(err, AssertionError):
+            print_error_log(str(err))
+        sys.exit()
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch)
 
 

@@ -200,8 +200,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
             assert isinstance(api_list, list) and len(api_list) >= 1, \
                 "Current dump mode is 'api_list', but the content of api_list parameter is empty or valid."
     except (CompareException, AssertionError) as err:
-        if isinstance(err, AssertionError):
-            print_error_log(str(err))
+        print_error_log(str(err))
         sys.exit()
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch)
 

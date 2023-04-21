@@ -108,6 +108,9 @@ class CompareException(Exception):
         self.code = code
         self.error_info = error_info
 
+    def __str__(self):
+        return self.error_info
+
 
 def _print_log(level, msg):
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))

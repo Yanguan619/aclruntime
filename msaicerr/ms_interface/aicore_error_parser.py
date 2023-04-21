@@ -474,18 +474,32 @@ class AicoreErrorParser:
                 return True
             self._read_loc_json_file(loc_json_file, cce_code_num, info)
         return True
-    
+
+    @staticmethod
+    def __generate_case(config_file):
+        dir_name = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        case_content=f"from tools.msaicerr.ms_interface.single_op_case import SingleOpCase\nSingleOpCase.run(\"{config_file}\")"
+        case_file = os.path.join(dir_name, "test_single_op.py")
+        utils.print_info_log(f"Generate case file {case_file}")
+        with open(case_file, 'w') as f:
+            f.write(case_content)
+        return case_file
+             
     @staticmethod
     def _test_single_op(collection):
         single_op_case = SingleOpCase(collection)
-        single_op_ret = single_op_case.run()
-
-        if not single_op_ret:
-            split_line="#" * 50
-            utils.print_info_log(split_line)
-            utils.print_info_log("single op test failed! Please Check OP or input data!")
-            utils.print_info_log(split_line)
-        return single_op_ret
+        config_list = single_op_case.generate_config()
+        for config in config_list:
+            single_op_ret = single_op_case.run(config)
+            if not single_op_ret:
+                case_file = AicoreErrorParser.__generate_case(config)
+                split_line="#" * 50
+                utils.print_info_log(split_line)
+                utils.print_info_log("single op test failed! Please Check OP or input data!")
+                utils.print_info_log(f"Run 'python3 {case_file}' can test op!")
+                utils.print_info_log(split_line)
+                return False
+        return True
 
     @staticmethod
     def _get_occur_before_mark(decompile_file: str, diff_str: str, info: any) -> bool:
@@ -606,6 +620,7 @@ class AicoreErrorParser:
                 dumpParser = DumpDataParser(self.collection.collect_dump_path, info.node_name, info.kernel_name)
                 info.dump_info = dumpParser.parse()
                 self.collection.input_list = dumpParser.get_input_data()
+                self.collection.output_list = dumpParser.get_output_data()
             info.single_op_test_result = self._test_single_op(self.collection)
             # write info file
             self._write_errorinfo_file(err_i_folder, info, i)

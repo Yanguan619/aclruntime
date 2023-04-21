@@ -29,6 +29,7 @@ class Collection:
         self.kernel_name_list = []
         self.node_name_list = []
         self.input_list = []
+        self.output_list = []
         self.tiling_list = []
 
     def check_argument_valid(self: any) -> None:

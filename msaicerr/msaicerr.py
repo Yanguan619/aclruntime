@@ -16,7 +16,6 @@ from ms_interface import utils
 from ms_interface.collection import Collection
 from ms_interface.constant import Constant
 from ms_interface.aicore_error_parser import AicoreErrorParser
-from ms_interface.single_op_case import SingleOpCase
 
 
 def extract_tar(tar_file, path):

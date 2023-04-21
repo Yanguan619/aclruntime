@@ -76,9 +76,13 @@ class DumpDataParser:
         self.node_name = node_name
         self.kernel_name = kernel_name
         self.input_data_list = []
+        self.output_data_list = []
 
     def get_input_data(self):
         return self.input_data_list
+
+    def get_output_data(self):
+        return self.output_data_list
 
     def _parse_dump_file(self, dump_file):
         """
@@ -151,7 +155,7 @@ class DumpDataParser:
         if len(dump_data.input) > 0:
             for (index, _) in enumerate(dump_data.input):
                 dump_data.input[index].data = dump_file.read(dump_data.input[index].size)
-            self.input_data_list = dump_data.input
+            
         if len(dump_data.output) > 0:
             for (index, _) in enumerate(dump_data.output):
                 dump_data.output[index].data = dump_file.read(dump_data.output[index].size)
@@ -202,12 +206,15 @@ class DumpDataParser:
                 np.save(os.path.join(dump_file_path, npy_file_name), array)
                 result_info += f'{npy_file_name}\n'
                 result_info += self._check_tensor_data(index, array, data_dtype)
+                if "input" == tensor_type:
+                    self.input_data_list.append(os.path.join(dump_file_path, npy_file_name))
+                elif "output" == tensor_type:
+                    self.output_data_list.append(os.path.join(dump_file_path, npy_file_name))
             except (ValueError, IOError, OSError, MemoryError) as error:
                 utils.print_error_log(f'Failed to parse the data of {tensor_type}:{index} of "{dump_file}". {error}')
                 raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
             finally:
                 pass
-
         return result_info
 
     def parse_dump_data(self, dump_file):
@@ -218,6 +225,7 @@ class DumpDataParser:
         dump_data = self._parse_dump_file(dump_file)
         # 2. parse dump data
         result_info = self._save_tensor_to_file(dump_data.input, 'input', dump_file)
+        result_info += self._save_tensor_to_file(dump_data.output, "output", dump_file)
         return result_info
 
     def parse(self):

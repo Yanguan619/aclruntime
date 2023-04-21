@@ -63,6 +63,7 @@ class Const:
     ACL = "acl"
     API_LIST = "api_list"
     API_STACK = "api_stack"
+    DUMP_MODE = [ALL, LIST, RANGE, STACK, ACL, API_LIST, API_STACK]
 
 
 class VersionCheck:
@@ -100,11 +101,15 @@ class CompareException(Exception):
     INVALID_DUMP_RATIO = 12
     INVALID_DUMP_FILE = 13
     UNKNOWN_ERROR = 14
+    INVALID_DUMP_MODE = 15
 
     def __init__(self, code, error_info: str = ""):
         super(CompareException, self).__init__()
         self.code = code
         self.error_info = error_info
+
+    def __str__(self):
+        return self.error_info
 
 
 def _print_log(level, msg):
@@ -142,6 +147,13 @@ def print_warn_log(warn_msg):
         warn_msg: the warning message.
     """
     _print_log("WARNING", warn_msg)
+
+
+def check_mode_valid(mode):
+    if mode not in Const.DUMP_MODE:
+        msg = "Current mode '%s' is not supported. Please use the field in %s" % \
+              (mode, Const.DUMP_MODE)
+        raise CompareException(CompareException.INVALID_DUMP_MODE, msg)
 
 
 def check_file_or_directory_path(path, isdir=False):

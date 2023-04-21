@@ -153,7 +153,6 @@ def check_mode_valid(mode):
     if mode not in Const.DUMP_MODE:
         msg = "Current mode '%s' is not supported. Please use the field in %s" % \
               (mode, Const.DUMP_MODE)
-        print_error_log(msg)
         raise CompareException(CompareException.INVALID_DUMP_MODE, msg)
 
 

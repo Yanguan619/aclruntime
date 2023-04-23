@@ -272,8 +272,6 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
             saved_tensor = x.contiguous().cpu().detach().numpy()
             summery_data.extend([tensor_max, tensor_min, tensor_mean])
 
-            output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-            np.save(output_path, saved_tensor)
             import threading
             cur_threading_id=threading.current_thread().ident
             global backward_threading_id
@@ -282,6 +280,8 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
             if ('backward' in prefix and cur_threading_id == backward_threading_id) or 'forward' in prefix:
                 json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
                 f.write('\n')
+                output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
+                np.save(output_path, saved_tensor)
 
     elif DumpUtil.dump_filter_switch == Const.OFF:
         dump_scalar_para(x, prefix, dump_step, dump_file_name)

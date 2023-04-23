@@ -42,6 +42,7 @@ forward_init_status = False
 backward_init_status = False
 range_begin_flag, range_end_flag = False, False
 
+backward_threading_id=0
 
 class DumpUtil(object):
     dump_data_dir = None
@@ -273,9 +274,15 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
 
             output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
             np.save(output_path, saved_tensor)
-            json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
+            import threading
+            cur_threading_id=threading.current_thread().ident
+            global backward_threading_id
+            if not backward_threading_id and 'backward' in prefix:
+                backward_threading_id=cur_threading_id
+            if ('backward' in prefix and cur_threading_id == backward_threading_id) or 'forward' in prefix:
+                json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
+                f.write('\n')
 
-            f.write('\n')
     elif DumpUtil.dump_filter_switch == Const.OFF:
         dump_scalar_para(x, prefix, dump_step, dump_file_name)
 

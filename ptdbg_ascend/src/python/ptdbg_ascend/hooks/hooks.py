@@ -30,9 +30,9 @@ import threading
 try:
     import torch_npu
 except ImportError:
-    is_gpu=True
+    is_gpu = True
 else:
-    is_gpu=False
+    is_gpu = False
 
 from ..common.utils import check_file_or_directory_path, print_error_log, __version__, \
     print_warn_log, CompareException, Const, get_time, print_info_log, modify_dump_path, \
@@ -43,7 +43,7 @@ forward_init_status = False
 backward_init_status = False
 range_begin_flag, range_end_flag = False, False
 
-backward_threading_id=0
+backward_threading_id = 0
 
 class DumpUtil(object):
     dump_data_dir = None
@@ -273,10 +273,10 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
             saved_tensor = x.contiguous().cpu().detach().numpy()
             summery_data.extend([tensor_max, tensor_min, tensor_mean])
 
-            cur_threading_id=threading.current_thread().ident
+            cur_threading_id = threading.current_thread().ident
             global backward_threading_id
             if not backward_threading_id and 'backward' in prefix:
-                backward_threading_id=cur_threading_id
+                backward_threading_id = cur_threading_id
             if ('backward' in prefix and cur_threading_id == backward_threading_id) or 'forward' in prefix:
                 json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
                 f.write('\n')

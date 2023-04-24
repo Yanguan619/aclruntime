@@ -83,9 +83,9 @@ class Collection:
         """
         original_files = []
         if key == Constant.DIR_PLOG:
-            find_path_cmd = ['grep', 'there is an aicore error|there is an .*aivec.* error exception', '-inrE',
+            find_path_cmd = ['grep', 'there is an fftsplus aicore error|there is an aicore error|there is an .*aivec.* error exception', '-inrE',
                              self.report_path]
-            find_path_regexp = r"([_\-/0-9a-zA-Z]{1,}.log):"
+            find_path_regexp = r"([_\-/0-9a-zA-Z.]{1,}.log):"
             plog_path_ret = utils.get_inquire_result(find_path_cmd, find_path_regexp)
             if plog_path_ret and Constant.DIR_PLOG in plog_path_ret[0]:
                 original_path = plog_path_ret[0].split(Constant.DIR_PLOG)[0]

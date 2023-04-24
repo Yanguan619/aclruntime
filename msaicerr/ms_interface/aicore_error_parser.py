@@ -17,7 +17,7 @@ from ms_interface import utils
 from ms_interface.constant import Constant
 from ms_interface.aic_error_info import AicErrorInfo
 from ms_interface.dump_data_parser import DumpDataParser
-from tools.msaicerr.ms_interface.single_op_case import SingleOpCase
+from ms_interface.single_op_case import SingleOpCase
 
 
 class OpInputOutput:
@@ -478,7 +478,7 @@ class AicoreErrorParser:
     @staticmethod
     def __generate_case(config_file):
         dir_name = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        case_content=f"from tools.msaicerr.ms_interface.single_op_case import SingleOpCase\nSingleOpCase.run(\"{config_file}\")"
+        case_content=f"from ms_interface.single_op_case import SingleOpCase\nSingleOpCase.run(\"{config_file}\")"
         case_file = os.path.join(dir_name, "test_single_op.py")
         utils.print_info_log(f"Generate case file {case_file}")
         with open(case_file, 'w') as f:

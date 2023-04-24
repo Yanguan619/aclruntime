@@ -25,6 +25,7 @@ from pathlib import Path
 import numpy as np
 import torch
 import shutil
+import threading
 
 try:
     import torch_npu
@@ -272,7 +273,6 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
             saved_tensor = x.contiguous().cpu().detach().numpy()
             summery_data.extend([tensor_max, tensor_min, tensor_mean])
 
-            import threading
             cur_threading_id=threading.current_thread().ident
             global backward_threading_id
             if not backward_threading_id and 'backward' in prefix:

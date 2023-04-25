@@ -67,6 +67,7 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 1) seed_all和set_dump_path在训练主函数main一开始就调用，避免随机数固定不全；
 2) register_hook须在set_dump_path之后调用，避免dump数据路径设置错误
 3) set_dump_switch提供多种dump模式，可以根据不同场景选择dump方式
+4) 进行CPU数据dump时，请安装torch包而非torch_npu包，避免工具无法识别使用场景，导致失败
 ```
 # 多种dump模式介绍
 
@@ -265,7 +266,7 @@ from ptdbg_ascend import *
 parse("./npu_dump.pkl", "Torch_batch_normal_1_forward")
 ```
 
-### 场景3：溢出检测分析（NPU场景,GPU和CPU不支持）
+### 场景3：溢出检测分析（NPU场景识别aicore浮点溢出,GPU和CPU不支持）
 #### 1. api溢出检测，溢出api，api级数据dump
 ```
 from ptdbg_ascend import *
@@ -302,6 +303,7 @@ seed_all()
 # 第四个参数为dump_mode,控制针对溢出api的dump模式，默认api，如需进一步定位acl数据，可配置为dump_mode="acl"
 # 第五个参数为dump_config，acl dump的配置文件，dump_mode="acl"时，此配置项为必须的。例如：dump_config='/home/xxx/dump.json'
 
+# 针对正向溢出场景，可以直接通过上述配置，将溢出api进行acl粒度的数据dump
 # 示例，检测到1次溢出后退出，并针对溢出api，进行对应acl粒度的数据dump
 register_hook(model, overflow_check, dump_mode='acl', dump_config='/home/xxx/dump.json')
 
@@ -323,7 +325,7 @@ set_overflow_check_switch("OFF")
 # 使用acl模式，配置上梯度输入文件，再进行一次dump
 register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='dump.json')
 set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
-set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
+set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])    # 该输入文件为首次运行得到的反向输入
 ```
 #### dump.json配置示例
 ```

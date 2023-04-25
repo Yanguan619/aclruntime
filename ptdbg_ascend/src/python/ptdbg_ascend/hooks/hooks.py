@@ -35,7 +35,7 @@ else:
 
 from ..common.utils import check_file_or_directory_path, print_error_log, __version__, \
     print_warn_log, CompareException, Const, get_time, print_info_log, modify_dump_path, \
-    check_mode_valid
+    check_mode_valid, get_api_name_from_matcher
 
 DumpCount = 0
 forward_init_status = False
@@ -365,7 +365,7 @@ def make_dump_data_dir(dump_file_name):
 
 def _set_dump_switch4api_list(name):
     if DumpUtil.dump_api_list:
-        api_name = name.rsplit("_", 2)[0].split("_", 1)[1].lower()
+        api_name = get_api_name_from_matcher(name)
         DumpUtil.dump_switch = "ON" if api_name in DumpUtil.dump_api_list else "OFF"
 
 

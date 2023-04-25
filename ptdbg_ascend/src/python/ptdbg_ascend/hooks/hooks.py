@@ -290,7 +290,15 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
 def _dump_tensor_completely(x, prefix, dump_file_name):
     if "stack_info" in prefix:
         with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-            json.dump([prefix, x], f)
+            if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
+                cur_threading_id = threading.current_thread().ident
+                global backward_threading_id
+                if not backward_threading_id and 'backward' in prefix:
+                    backward_threading_id = cur_threading_id
+                if ('backward' in prefix and cur_threading_id == backward_threading_id) or 'forward' in prefix:
+                    json.dump([prefix, x], f)
+            else:
+                json.dump([prefix, x], f)
             f.write('\n')
         return
 

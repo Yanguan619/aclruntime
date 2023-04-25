@@ -35,8 +35,7 @@ for f in dir(torch.nn.functional):
 def get_functional_ops():
     global WrapFunctionalOps
     _all_functional_ops = dir(torch.nn.functional)
-    assert set(WrapFunctionalOps) <= set(_all_functional_ops)
-    return WrapFunctionalOps
+    return set(WrapFunctionalOps) & set(_all_functional_ops)
 
 
 class HOOKFunctionalOP(object):

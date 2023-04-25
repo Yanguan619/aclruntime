@@ -32,8 +32,7 @@ with open(yaml_path, 'r') as f:
 def get_tensor_ops():
     global WrapTensorOps
     _tensor_ops = dir(torch._C._TensorBase)
-    assert set(WrapTensorOps) <= set(_tensor_ops)
-    return WrapTensorOps
+    return set(WrapTensorOps) & set(_tensor_ops)
 
 
 class HOOKTensor(object):

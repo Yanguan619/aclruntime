@@ -297,9 +297,10 @@ def _dump_tensor_completely(x, prefix, dump_file_name):
             if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
                 if json_dump_condition(prefix):
                     json.dump([prefix, x], f)
+                    f.write('\n')
             else:
                 json.dump([prefix, x], f)
-            f.write('\n')
+                f.write('\n')
         return
 
     dump_flag = Const.DUMP_RATIO_MAX + 1

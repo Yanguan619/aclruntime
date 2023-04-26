@@ -250,6 +250,12 @@ def dump_scalar_para(x, prefix, dump_step, dump_file_name):
             json.dump([prefix, dump_step, [], str(type(x)), str([]), summery_data], f)
             f.write('\n')
 
+def get_threading_info(prefix):
+    cur_threading_id = threading.current_thread().ident
+    global backward_threading_id
+    if not backward_threading_id and 'backward' in prefix:
+        backward_threading_id = cur_threading_id
+    return backward_threading_id == cur_threading_id
 
 def dump_tensor(x, prefix, dump_step, dump_file_name):
     if isinstance(x, (tuple, list)) and x:
@@ -273,12 +279,8 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
             saved_tensor = x.contiguous().cpu().detach().numpy()
             summery_data.extend([tensor_max, tensor_min, tensor_mean])
 
-            cur_threading_id = threading.current_thread().ident
-            global backward_threading_id
-            if not backward_threading_id and 'backward' in prefix:
-                backward_threading_id = cur_threading_id
-            if ('backward' in prefix and cur_threading_id == backward_threading_id) or 'forward' in prefix:
-                json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
+            if ('backward' in prefix and get_threading_info(prefix)) or 'forward' in prefix:
+                json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data,backward_threading_id], f)
                 f.write('\n')
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
                 np.save(output_path, saved_tensor)
@@ -291,11 +293,7 @@ def _dump_tensor_completely(x, prefix, dump_file_name):
     if "stack_info" in prefix:
         with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
             if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
-                cur_threading_id = threading.current_thread().ident
-                global backward_threading_id
-                if not backward_threading_id and 'backward' in prefix:
-                    backward_threading_id = cur_threading_id
-                if ('backward' in prefix and cur_threading_id == backward_threading_id) or 'forward' in prefix:
+                if ('backward' in prefix and get_threading_info(prefix)) or 'forward' in prefix:
                     json.dump([prefix, x], f)
             else:
                 json.dump([prefix, x], f)

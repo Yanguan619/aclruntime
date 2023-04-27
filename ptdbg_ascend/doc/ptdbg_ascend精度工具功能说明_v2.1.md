@@ -75,7 +75,7 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 set_dump_switch("ON", mode="list", scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward", "Torch_relu_3_backward"])
 
 # 示例2： dump指定范围. 会dump Tensor_abs_1_forward 到 Tensor_transpose_3_forward之间的所有api
-set_dump_switch("ON", mode="range", scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward之间的所有api"])
+set_dump_switch("ON", mode="range", scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward"])
 
 # 示例3： STACK模式，只dump堆栈信息， 示例中dump "Tensor_abs_1_forward" 到 "Tensor_transpose_3_forward" 之间所有api的STACK信息
 set_dump_switch("ON", mode="stack", scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward"])
@@ -244,7 +244,7 @@ register_hook(model, acc_cmp_dump, dump_step=1)
 # 示例1： dump指定api/api列表.
 set_dump_switch("ON", mode="list", scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward", "Torch_relu_3_forward"])
 # 示例2： dump指定范围. 会dump Tensor_abs_1_forward 到 Tensor_transpose_2_forward之间的所有api
-set_dump_switch("ON", mode="range", scope=["Tensor_abs_1_forward", "Tensor_transpose_2_forward之间的所有api"])
+set_dump_switch("ON", mode="range", scope=["Tensor_abs_1_forward", "Tensor_transpose_2_forward"])
 # 示例3： dump指定前向api的ACL级别数据.
 register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='dump.json')
 set_dump_switch("ON", mode="acl", scope=["Tensor_permute_1_forward"])
@@ -465,7 +465,7 @@ dump数据之后的比对建议使用`compare_distributed`接口。调用该接�
    就可以把这个路径作为`bench_dump_dir`传入。如：
 ```python
 compare_distributed(npu_dump_dir='dump_path/dump_conv2d_v1.0', bench_dump_dir='dump_gpu/dump_conv2d_v1.0', './output')
-```   
+```
 另外，原本`compare`比对函数支持的参数如`shape_flag`、`stack_mode`等，`compare_distributed`函数也支持。
 
 **注意：两次运行须用相同数量的卡，传入`compare_distributed`的两个文件夹下须有相同个数的rank文件夹，且不包含其他无关文件，否则将无法比对。**

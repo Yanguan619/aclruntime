@@ -68,6 +68,7 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 2) register_hook须在set_dump_path之后调用，避免dump数据路径设置错误
 3) set_dump_switch提供多种dump模式，可以根据不同场景选择dump方式
 4) 进行CPU数据dump时，请安装torch包而非torch_npu包，避免工具无法识别使用场景，导致失败
+5) TASK_QUEUE_ENABLE环境变量会导致算子下发和执行异步进行，因此在ALC dump前需要将TASK_QUEUE_ENABLE关闭，需要在执行运行命令前先export TASK_QUEUE_ENABLE=0
 ```
 # 多种dump模式介绍
 
@@ -75,7 +76,7 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 set_dump_switch("ON", mode="list", scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward", "Torch_relu_3_backward"])
 
 # 示例2： dump指定范围. 会dump Tensor_abs_1_forward 到 Tensor_transpose_3_forward之间的所有api
-set_dump_switch("ON", mode="range", scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward之间的所有api"])
+set_dump_switch("ON", mode="range", scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward"])
 
 # 示例3： STACK模式，只dump堆栈信息， 示例中dump "Tensor_abs_1_forward" 到 "Tensor_transpose_3_forward" 之间所有api的STACK信息
 set_dump_switch("ON", mode="stack", scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward"])
@@ -218,7 +219,7 @@ dump_result_param={
 "bench_dump_data_dir": "./api_stack_gpu_dump_20230104_132544",
 "is_print_compare_log": True
 }
-compare(dump_result_param, "./output", True，stack_mode=True)
+compare(dump_result_param, "./output", True, stack_mode=True)
 # 比对结果中将展示堆栈信息
 ```
 
@@ -242,7 +243,7 @@ register_hook(model, acc_cmp_dump, dump_step=1)
 # 示例1： dump指定api/api列表.
 set_dump_switch("ON", mode="list", scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward", "Torch_relu_3_forward"])
 # 示例2： dump指定范围. 会dump Tensor_abs_1_forward 到 Tensor_transpose_2_forward之间的所有api
-set_dump_switch("ON", mode="range", scope=["Tensor_abs_1_forward", "Tensor_transpose_2_forward之间的所有api"])
+set_dump_switch("ON", mode="range", scope=["Tensor_abs_1_forward", "Tensor_transpose_2_forward"])
 # 示例3： dump指定前向api的ACL级别数据.
 register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='dump.json')
 set_dump_switch("ON", mode="acl", scope=["Tensor_permute_1_forward"])
@@ -460,7 +461,7 @@ dump数据之后的比对建议使用`compare_distributed`接口。调用该接�
    就可以把这个路径作为`bench_dump_dir`传入。如：
 ```python
 compare_distributed(npu_dump_dir='dump_path/dump_conv2d_v1.0', bench_dump_dir='dump_gpu/dump_conv2d_v1.0', './output')
-```   
+```
 另外，原本`compare`比对函数支持的参数如`shape_flag`、`stack_mode`等，`compare_distributed`函数也支持。
 
 **注意：两次运行须用相同数量的卡，传入`compare_distributed`的两个文件夹下须有相同个数的rank文件夹，且不包含其他无关文件，否则将无法比对。**

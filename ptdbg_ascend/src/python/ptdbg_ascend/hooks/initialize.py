@@ -79,20 +79,18 @@ def register_hook(model, hook, **kwargs):
     if "overflow_check" in hook_name and not is_gpu:
         if hasattr(torch_npu._C, "_enable_overflow_npu"):
             torch_npu._C._enable_overflow_npu()
-            print_info_log("Enable overflow function success.")
+            print_info_log("Enable overflow function success.")            
         else:
             print_warn_log("Api '_enable_overflow_npu' is not exist, "
                            "the overflow detection function on milan platform maybe not work! "
                            "please check the version of software torch_npu.")
+        # In NPU scene, clear the overflow flag before overflow detection
+        torch_npu._C._clear_overflow_npu()
 
     print_info_log("Start mounting the {} hook function to the model.".format(hook_name))
     hook = functools.partial(hook, dump_step=dump_step, overflow_nums=overflow_nums, pid=pid,
                              dump_mode=dump_mode, dump_config=dump_config_file)
     print_info_log("The {} hook function is successfully mounted to the model.".format(hook_name))
-
-    # In NPU scene, clear the overflow flag before overflow detection
-    if not is_gpu:
-        torch_npu._C._clear_overflow_npu()
 
     initialize_hook(hook)
     for _, module in model.named_modules():

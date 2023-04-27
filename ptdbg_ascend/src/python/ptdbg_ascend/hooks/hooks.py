@@ -25,13 +25,14 @@ from pathlib import Path
 import numpy as np
 import torch
 import shutil
+import threading
 
 try:
     import torch_npu
 except ImportError:
-    is_gpu=True
+    is_gpu = True
 else:
-    is_gpu=False
+    is_gpu = False
 
 from ..common.utils import check_file_or_directory_path, print_error_log, __version__, \
     print_warn_log, CompareException, Const, get_time, print_info_log, modify_dump_path, \
@@ -42,6 +43,7 @@ forward_init_status = False
 backward_init_status = False
 range_begin_flag, range_end_flag = False, False
 
+backward_threading_id = 0
 
 class DumpUtil(object):
     dump_data_dir = None
@@ -215,6 +217,13 @@ def set_overflow_check_switch(switch, filter_switch=Const.ON):
     assert filter_switch in ["ON", "OFF"], "Please set overflow filter_switch with 'ON' or 'OFF'."
     OverFlowUtil.set_overflow_check_switch(switch, filter_switch)
 
+def json_dump_condition(prefix):
+    cur_threading_id = threading.current_thread().ident
+    global backward_threading_id
+    if not backward_threading_id and 'backward' in prefix:
+        backward_threading_id = cur_threading_id
+    return ('backward' in prefix and backward_threading_id == cur_threading_id) or 'forward' in prefix
+
 def dump_not_float_tensor(x, prefix, dump_step, dump_file_name):
     with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                    "a") as f:
@@ -233,21 +242,22 @@ def dump_not_float_tensor(x, prefix, dump_step, dump_file_name):
             tensor_mean = torch._C._VariableFunctionsClass.mean(x.float()).cpu().detach().float().numpy().tolist()
         saved_tensor = x.contiguous().cpu().detach().numpy()
         summery_data.extend([tensor_max, tensor_min, tensor_mean])
-        output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-        np.save(output_path, saved_tensor)
-        json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
-        f.write('\n')
+        if json_dump_condition(prefix):
+            output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
+            np.save(output_path, saved_tensor)
+            json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
+            f.write('\n')
 
 def dump_scalar_para(x, prefix, dump_step, dump_file_name):
     if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
         with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
             summery_data = []
             summery_data.extend([x, x, x])
-            output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-            np.save(output_path, x)
-            json.dump([prefix, dump_step, [], str(type(x)), str([]), summery_data], f)
-            f.write('\n')
-
+            if json_dump_condition(prefix):
+                output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
+                np.save(output_path, x)
+                json.dump([prefix, dump_step, [], str(type(x)), str([]), summery_data], f)
+                f.write('\n')
 
 def dump_tensor(x, prefix, dump_step, dump_file_name):
     if isinstance(x, (tuple, list)) and x:
@@ -271,11 +281,12 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
             saved_tensor = x.contiguous().cpu().detach().numpy()
             summery_data.extend([tensor_max, tensor_min, tensor_mean])
 
-            output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-            np.save(output_path, saved_tensor)
-            json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
+            if json_dump_condition(prefix):
+                output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
+                np.save(output_path, saved_tensor)
+                json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
+                f.write('\n')
 
-            f.write('\n')
     elif DumpUtil.dump_filter_switch == Const.OFF:
         dump_scalar_para(x, prefix, dump_step, dump_file_name)
 
@@ -283,8 +294,13 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
 def _dump_tensor_completely(x, prefix, dump_file_name):
     if "stack_info" in prefix:
         with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-            json.dump([prefix, x], f)
-            f.write('\n')
+            if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
+                if json_dump_condition(prefix):
+                    json.dump([prefix, x], f)
+                    f.write('\n')
+            else:
+                json.dump([prefix, x], f)
+                f.write('\n')
         return
 
     dump_flag = Const.DUMP_RATIO_MAX + 1
@@ -293,7 +309,7 @@ def _dump_tensor_completely(x, prefix, dump_file_name):
             _dump_tensor_completely(item, "{}.{}".format(prefix, i), dump_file_name)
     elif isinstance(x, torch.Tensor):
         with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-            if x.numel() != 0:
+            if x.numel() != 0:                
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
                 save_tensor = x.contiguous().cpu().detach().numpy()
                 np.save(output_path, save_tensor)

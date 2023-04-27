@@ -99,7 +99,7 @@ def check_path_valid(path: str, isdir: bool = False, output: bool = False) -> No
         except OSError as ex:
             print_error_log(f'Failed to create {path}. '
                             f'Please check that the path is accessible or the disk space is enough. {str(ex)}')
-            raise AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
+            raise AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR) from ex
         finally:
             pass
     if not os.path.exists(path):
@@ -148,7 +148,7 @@ def execute_command(cmd: list, file_out: str = None) -> tuple:
         return status, data
     except FileNotFoundError as error:
         print_error_log('Failed to execute cmd %s. %s' % (cmd, error))
-        raise AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR)
+        raise AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR) from error
     finally:
         pass
 
@@ -180,7 +180,7 @@ def copy_src_to_dest(src_file_list: list, dest_path: str):
                 __copy_file(file, dest_file)
             except (OSError, IOError) as error:
                 print_error_log(f"Failed to copy {file} to {dest_file}. {error}.")
-                raise AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
+                raise AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR) from error
 
 
 def write_file(output_path: str, file_content: str, write_mode="w") -> None:
@@ -198,7 +198,7 @@ def write_file(output_path: str, file_content: str, write_mode="w") -> None:
     except IOError as io_error:
         print_error_log(
             'Failed to write file %s. %s' % (output_path, io_error))
-        raise AicErrException(Constant.MS_AICERR_OPEN_FILE_ERROR)
+        raise AicErrException(Constant.MS_AICERR_OPEN_FILE_ERROR) from io_error
     finally:
         pass
 

@@ -100,7 +100,7 @@ class Collection:
         elif key == "kernel":
             for kernel_name in self.kernel_name_list:
                 find_path_cmd = ['find', self.report_path, '-name', f"{kernel_name}*"]
-                regexp = r"([_\-/0-9a-zA-Z]{1,}\.json|[_\-/0-9a-zA-Z]{1,}\.o|[_\-/0-9a-zA-Z]{1,}\.cce)"
+                regexp = r"([_\-/0-9a-zA-Z.]{1,}\.json|[_\-/0-9a-zA-Z.]{1,}\.o|[_\-/0-9a-zA-Z.]{1,}\.cce)"
                 kernel_file_list = utils.get_inquire_result(find_path_cmd, regexp)
                 if not kernel_file_list:
                     utils.print_warn_log(f"The {kernel_name} file path cannot be found in {self.report_path}.")
@@ -117,7 +117,7 @@ class Collection:
             self.collect_kernel_path = dest_path
         elif key == "proto":
             find_path_cmd = ['find', self.report_path, '-name', "ge_proto_*_Build.txt"]
-            regexp = r"([_\-/0-9a-zA-Z]{1,}_Build.txt)"
+            regexp = r"([_\-/0-9a-zA-Z.]{1,}_Build.txt)"
             graph_file_list = utils.get_inquire_result(find_path_cmd, regexp)
             if not graph_file_list:
                 utils.print_error_log(

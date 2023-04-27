@@ -68,6 +68,7 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 2) register_hook须在set_dump_path之后调用，避免dump数据路径设置错误
 3) set_dump_switch提供多种dump模式，可以根据不同场景选择dump方式
 4) 进行CPU数据dump时，请安装torch包而非torch_npu包，避免工具无法识别使用场景，导致失败
+5) TASK_QUEUE_ENABLE环境变量会导致算子下发和执行异步进行，因此在ALC dump前需要将TASK_QUEUE_ENABLE关闭，需要在执行运行命令前先export TASK_QUEUE_ENABLE=0
 ```
 # 多种dump模式介绍
 
@@ -370,8 +371,6 @@ set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])    # 该输
 ```
 #### 注意事项
 此功能原理是，针对溢出阶段，开启acl dump模式，重新对溢出阶段执行，落盘数据。
-* TASK_QUEUE_ENABLE环境变量会导致算子下发和执行异步进行，因此在ALC dump前需要将TASK_QUEUE_ENABLE关闭，需要在执行运行命令前先export TASK_QUEUE_ENABLE=0。
-
 * dump_mode="acl"场景下，会增加npu的内存消耗，请用户谨慎开启。
 
 * 针对前向溢出api，可以通过以上原理，重新精准执行到溢出前向api，因此可以得到前向溢出api的全部acl数据。
@@ -381,7 +380,7 @@ set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])    # 该输
 * 针对前向溢出api，可以通过overflow_nums，配置允许的溢出次数，并将每次溢出api的全部acl数据dump下来，到达指定溢出次数后停止，停止后会看到堆栈打印包含如下字段。
   ValueError: [overflow xxx times]: dump file is saved in 'xxxxx.pkl'.
   其中xxx times为用户设置的次数，xxxxx.pkl为文件生成路径
-  
+
 * 对于反向溢出场景获取acl级别数据，第一轮获取反向算子的输入数据，准备好后配置dump.json，并配置好输入数据路径，相关配置如下：
 
   register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='dump.json')

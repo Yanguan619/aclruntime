@@ -81,8 +81,7 @@ def register_hook(model, hook, **kwargs):
             torch_npu._C._enable_overflow_npu()
             print_info_log("Enable overflow function success.")
             # In NPU scene, clear the overflow flag before overflow detection
-            if not is_gpu:
-                torch_npu._C._clear_overflow_npu()
+            torch_npu._C._clear_overflow_npu()
         else:
             print_warn_log("Api '_enable_overflow_npu' is not exist, "
                            "the overflow detection function on milan platform maybe not work! "

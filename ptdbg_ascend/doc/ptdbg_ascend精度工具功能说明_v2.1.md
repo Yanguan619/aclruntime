@@ -221,7 +221,7 @@ dump_result_param={
 "bench_dump_data_dir": "./api_stack_gpu_dump_20230104_132544",
 "is_print_compare_log": True
 }
-compare(dump_result_param, "./output", True，stack_mode=True)
+compare(dump_result_param, "./output", True, stack_mode=True)
 # 比对结果中将展示堆栈信息
 ```
 

@@ -370,6 +370,8 @@ set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])    # 该输
 ```
 #### 注意事项
 此功能原理是，针对溢出阶段，开启acl dump模式，重新对溢出阶段执行，落盘数据。
+* TASK_QUEUE_ENABLE环境变量会导致算子下发和执行异步进行，因此在ALC dump前需要将TASK_QUEUE_ENABLE关闭，需要在执行运行命令前先export TASK_QUEUE_ENABLE=0。
+
 * dump_mode="acl"场景下，会增加npu的内存消耗，请用户谨慎开启。
 
 * 针对前向溢出api，可以通过以上原理，重新精准执行到溢出前向api，因此可以得到前向溢出api的全部acl数据。

@@ -33,7 +33,7 @@ def generate_ptdbg_ascend_version():
             f.write("__version__ = '{version}'\n".format(version = VERSION))
 
 setuptools.setup(name='ptdbg_ascend',
-      version='0.1',
+      version=VERSION,
       description='This is a pytorch precision comparison tools',
       long_description='This is a pytorch precision comparison tools, include overflow detect tool',
       packages=setuptools.find_packages(),

@@ -117,7 +117,7 @@ make -j8
 编译结束后，安装包会生成在
 
 ```
-./ptdbg_ascend/dist/ptdbg_ascend-0.1-py3-none-any.whl
+./ptdbg_ascend/dist/ptdbg_ascend-{version}-py3-none-any.whl
 ```
 
 #### 安装
@@ -131,7 +131,7 @@ make install
 将ptdbg_ascend安装到配置时指定的 python 解释器包目录下，或者使用 pip3 安装 ptdbg_ascend 到您期望的位置。
 
 ```
-pip3 install ./ptdbg_ascend/dist/ptdbg_ascend-0.1-py3-none-any.whl --upgrade --force-reinstall
+pip3 install ./ptdbg_ascend/dist/ptdbg_ascend-{version}-py3-none-any.whl --upgrade --force-reinstall
 ```
 
 

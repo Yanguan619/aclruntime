@@ -34,9 +34,11 @@ except ImportError:
 else:
     is_gpu = False
 
-from ..common.utils import check_file_or_directory_path, print_error_log, __version__, \
+from ..common.utils import check_file_or_directory_path, print_error_log, \
     print_warn_log, CompareException, Const, get_time, print_info_log, modify_dump_path, \
     check_mode_valid
+
+from ..common.version import __version__
 
 DumpCount = 0
 forward_init_status = False
@@ -356,7 +358,7 @@ def make_dump_dirs(rank, pid):
         dump_file_name_body, _ = os.path.splitext(dump_file_name)
     else:
         dump_root_dir, dump_file_name, dump_file_name_body = './', 'anonymous.pkl', 'anonymous'
-    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_{__version__}')
+    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_v{__version__}')
     Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
     rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
     if not os.path.exists(rank_dir):

@@ -16,6 +16,21 @@
 """
 
 import setuptools
+from pathlib import Path
+import stat
+import os
+
+VERSION = '2.1'
+
+def generate_ptdbg_ascend_version():
+      ptdbg_ascend_root = Path(__file__).parent
+      version_path = ptdbg_ascend_root / "ptdbg_ascend" / "common" / "version.py"
+      if version_path.exists():
+            version_path.unlink()
+      flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+      modes = stat.S_IWUSR | stat.S_IRUSR
+      with os.fdopen(os.open(version_path, flags, modes), 'w') as f:
+            f.write("__version__ = '{version}'\n".format(version = VERSION))
 
 setuptools.setup(name='ptdbg_ascend',
       version='0.1',

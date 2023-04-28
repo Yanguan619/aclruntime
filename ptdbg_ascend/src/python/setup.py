@@ -32,6 +32,8 @@ def generate_ptdbg_ascend_version():
       with os.fdopen(os.open(version_path, flags, modes), 'w') as f:
             f.write("__version__ = '{version}'\n".format(version = VERSION))
 
+generate_ptdbg_ascend_version()
+
 setuptools.setup(name='ptdbg_ascend',
       version=VERSION,
       description='This is a pytorch precision comparison tools',

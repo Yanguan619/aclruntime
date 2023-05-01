@@ -284,9 +284,9 @@ def main(args, index=0, msgq=None):
         timestr = time.strftime("%Y_%m_%d-%H_%M_%S")
         output_prefix = os.path.join(args.output, timestr)
         if args.output_dirname is None:
-            output_prefix = os.path.join(output_prefix, "dev".format(args.device))
+            output_prefix = os.path.join(output_prefix, "dev{}".format(args.device))
         else:
-            output_prefix = os.path.join(output_prefix, args.output_dirname, "dev".format(args.device))
+            output_prefix = os.path.join(output_prefix, args.output_dirname, "dev{}".format(args.device))
         if not os.path.exists(output_prefix):
             os.makedirs(output_prefix, 0o755)
         logger.info("output path:{}".format(output_prefix))

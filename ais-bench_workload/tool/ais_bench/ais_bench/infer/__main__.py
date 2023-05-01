@@ -359,8 +359,10 @@ def multidevice_run(args):
     for i in range(len(device_list)):
         cur_args = copy.deepcopy(args)
         cur_args.device = int(device_list[i])
-        if args.output != None:
+        if args.output != None and args.output_dirname != None:
             cur_args.output_dirname = args.output_dirname + "dev{}".format(cur_args.device)
+        else:
+            cur_args.output_dirname = "dev{}".format(cur_args.device)
         p.apply_async(main, args=(cur_args, i, msgq), error_callback=print_subproces_run_error)
 
     p.close()

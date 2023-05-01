@@ -281,12 +281,11 @@ def main(args, index=0, msgq=None):
     intensors_desc = session.get_inputs()
 
     if args.output != None:
-        timestr = time.strftime("%Y_%m_%d-%H_%M_%S")
-        output_prefix = os.path.join(args.output, timestr)
         if args.output_dirname is None:
-            output_prefix = os.path.join(output_prefix, "dev{}".format(args.device))
+            timestr = time.strftime("%Y_%m_%d-%H_%M_%S")
+            output_prefix = os.path.join(args.output, timestr)
         else:
-            output_prefix = os.path.join(output_prefix, args.output_dirname, "dev{}".format(args.device))
+            output_prefix = os.path.join(args.output, args.output_dirname)
         if not os.path.exists(output_prefix):
             os.makedirs(output_prefix, 0o755)
         logger.info("output path:{}".format(output_prefix))
@@ -360,6 +359,8 @@ def multidevice_run(args):
     for i in range(len(device_list)):
         cur_args = copy.deepcopy(args)
         cur_args.device = int(device_list[i])
+        if args.output != None:
+            cur_args.output_dirname = args.output_dirname + "dev{}".format(cur_args.device)
         p.apply_async(main, args=(cur_args, i, msgq), error_callback=print_subproces_run_error)
 
     p.close()

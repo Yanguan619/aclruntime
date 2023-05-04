@@ -447,6 +447,7 @@ def forward_acl_dump(module, module_name):
 def dump_mode_backward_acl_dump(module, module_name, grad_path):
     global forward_init_status
     global backward_init_status
+    module_name = module_name.replace("forward", "backward")
     if not forward_init_status and not backward_init_status:
         forward_init_status = True
         module.input_args = list(module.input_args)
@@ -455,7 +456,7 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
                 module.input_args[i] = data.detach().requires_grad_()
         output = module.forward(*module.input_args, **module.input_kwargs)
         if not isinstance(output, torch.Tensor):
-            print_warn_log("The output of {} if not of Tensor type and cannot be automatically derived. "
+            print_warn_log("The output of {} is not of tensor type and cannot be automatically derived. "
                             "you can manually construct a single API backward case for ACL dump.".format(module_name))
             return
         grad = torch.tensor(np.load(grad_path)).to("npu").requires_grad_()
@@ -468,7 +469,7 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
     del module.input_args
     del module.input_kwargs
     forward_init_status = False
-    print_info_log("Dump %s op file." % module_name.replace("forward", "backward"))
+    print_info_log("Dump %s op file." % module_name)
 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):

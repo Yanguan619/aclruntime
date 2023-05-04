@@ -381,13 +381,14 @@ set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])    # 该输
   ValueError: [overflow xxx times]: dump file is saved in 'xxxxx.pkl'.
   其中xxx times为用户设置的次数，xxxxx.pkl为文件生成路径
 
-* 对于反向溢出场景获取acl级别数据，第一轮获取反向算子的输入数据，准备好后配置dump.json，并配置好输入数据路径，相关配置如下：
+  * 对于反向溢出场景获取acl级别数据，第一轮获取反向算子的输入数据，准备好后配置dump.json，并配置好输入数据路径，相关配置如下：
 
-  register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='dump.json')
-  set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
-  set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
+    register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='dump.json')
+    set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
+    set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
 
-  需要注意的是，某些torch api的输出不是Tensor类型的数据，如torch.sort。对于这种类型的API，不能直接对输出进行backward，因此需要自己手动构建单API用例用于ACL dump。
+    需要注意的是，某些torch api的输出不是Tensor类型的数据，如torch.sort。对于这种类型API的反向过程进行ACL dump，工具会在运行日志中给出对应的Warning提示。如若想要进行ACL dump，
+    可以通过手动构建单API用例的方式进行ACL dump，具体用例可参考[反向ACL dump用例说明](./反向ACL%20dump用例说明.md)。
 
 ### 场景四 单机多卡场景使用精度比对工具
 精度工具单机多卡功能继承了单机单卡时工具的所有功能，如果你想了解工具的基本功能，请参阅上面的场景一到场景三。

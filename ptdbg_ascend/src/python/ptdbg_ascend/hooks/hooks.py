@@ -326,6 +326,7 @@ def seed_all(seed=1234):
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    torch.use_deterministic_algorithms(True)
     if is_gpu:
         torch.cuda.manual_seed_all(seed)
         torch.cuda.manual_seed(seed)

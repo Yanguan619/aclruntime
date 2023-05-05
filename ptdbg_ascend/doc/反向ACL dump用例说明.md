@@ -22,6 +22,8 @@ input_path是该API前向运算的输入，可以通过ACL dump的API名称获�
 
 grad_path是该API反向运算的输入，同理可以通过想要dump的API名称获得。
 
+b, c是torch.sort的输出，分别表示排序后的tensor和排序后tensor中的各元素在原始tensor中的位置。对torch.sort进行反向时，需要对b进行backward。
+
 dump.json配置方法如下：
 
 ```json

@@ -4,6 +4,9 @@ import os
 import sys
 import time
 import shutil
+import copy
+from multiprocessing import Pool
+from multiprocessing import Manager
 
 from tqdm import tqdm
 from ais_bench.infer.interface import InferSession, MemorySummary
@@ -86,7 +89,7 @@ def warmup(session, args, intensors_desc, infiles):
     session.set_loop_count(1)
     # warmup
     for i in range(args.warmup_count):
-        outputs = run_inference(session, infeeds, out_array=True)
+        outputs = run_inference(session, args, infeeds, out_array=True)
 
     session.set_loop_count(args.loop)
 
@@ -96,7 +99,7 @@ def warmup(session, args, intensors_desc, infiles):
     MemorySummary.reset()
     logger.info("warm up {} done".format(args.warmup_count))
 
-def run_inference(session, inputs, out_array=False):
+def run_inference(session, args, inputs, out_array=False):
     if args.auto_set_dymshape_mode == True:
         set_dymshape_shape(session, inputs)
     elif args.auto_set_dymdims_mode == True:
@@ -111,7 +114,7 @@ def infer_loop_tensor_run(session, args, intensors_desc, infileslist, output_pre
         for j, files in enumerate(infiles):
             tensor = get_tensor_from_files_list(files, session, intensors_desc[j].realsize, args.pure_data_type, args.no_combine_tensor_mode)
             intensors.append(tensor)
-        outputs = run_inference(session, intensors)
+        outputs = run_inference(session, args, intensors)
         session.convert_tensors_to_host(outputs)
         if output_prefix != None:
             save_tensors_to_file(outputs, output_prefix, infiles, args.outfmt, i, args.output_batchsize_axis)
@@ -124,7 +127,7 @@ def infer_loop_files_run(session, args, intensors_desc, infileslist, output_pref
             real_files = convert_real_files(files)
             tensor = session.create_tensor_from_fileslist(intensors_desc[j], real_files)
             intensors.append(tensor)
-        outputs = run_inference(session, intensors)
+        outputs = run_inference(session, args, intensors)
         session.convert_tensors_to_host(outputs)
         if output_prefix != None:
             save_tensors_to_file(outputs, output_prefix, infiles, args.outfmt, i, args.output_batchsize_axis)
@@ -136,7 +139,7 @@ def infer_fulltensors_run(session, args, intensors_desc, infileslist, output_pre
 
     #for inputs in intensorslist:
     for inputs in tqdm(intensorslist, file=sys.stdout, desc='Inference Processing full'):
-        outputs = run_inference(session, inputs)
+        outputs = run_inference(session, args, inputs)
         outtensors.append(outputs)
 
     for i, outputs in enumerate(outtensors):
@@ -151,7 +154,7 @@ def infer_loop_array_run(session, args, intensors_desc, infileslist, output_pref
         for j, files in enumerate(infiles):
             narray = get_narray_from_files_list(files, intensors_desc[j].realsize, args.pure_data_type)
             innarrays.append(narray)
-        outputs = run_inference(session, innarrays)
+        outputs = run_inference(session, args, innarrays)
         session.convert_tensors_to_host(outputs)
         if args.output != None:
             save_tensors_to_file(outputs, output_prefix, infiles, args.outfmt, i, args.output_batchsize_axis)
@@ -187,10 +190,23 @@ def check_nonnegative_integer(value):
     return ivalue
 
 def check_device_range_valid(value):
-    ivalue = int(value)
-    if ivalue < 0 and ivalue > 255:
-        raise argparse.ArgumentTypeError("%s is invalid. valid value range is [0, 255]" % value)
-    return ivalue
+    # if contain , split to int list
+    min_value = 0
+    max_value = 255
+    if ',' in value:
+        ilist = [ int(v) for v in value.split(',') ]
+        for ivalue in ilist:
+            if ivalue < min_value or ivalue > max_value:
+                raise argparse.ArgumentTypeError("{} of device:{} is invalid. valid value range is [{}, {}]".format(
+                    ivalue, value, min_value, max_value))
+        return ilist
+    else:
+		# default as single int value
+        ivalue = int(value)
+        if ivalue < min_value or ivalue > max_value:
+            raise argparse.ArgumentTypeError("device:{} is invalid. valid value range is [{}, {}]".format(
+                ivalue, min_value, max_value))
+        return ivalue
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -199,7 +215,7 @@ def get_args():
     parser.add_argument("--output", "-o", default=None, help="Inference data output path. The inference results are output to the subdirectory named current date under given output path")
     parser.add_argument("--output_dirname", type=str, default=None, help="actual output directory name. Used with parameter output, cannot be used alone. The inference result is output to  subdirectory named by output_dirname under  output path. such as --output_dirname 'tmp', the final inference results are output to the folder of  {$output}/tmp")
     parser.add_argument("--outfmt", default="BIN", choices=["NPY", "BIN", "TXT"], help="Output file format (NPY or BIN or TXT)")
-    parser.add_argument("--loop", "-l", type=check_positive_integer, default=1, help="the round of the PrueInfer.")
+    parser.add_argument("--loop", "-l", type=check_positive_integer, default=1, help="the round of the PureInfer.")
     parser.add_argument("--debug", type=str2bool, default=False, help="Debug switch,print model information")
     parser.add_argument("--device", "-d", type=check_device_range_valid, default=0, help="the NPU device ID to use.valid value range is [0, 255]")
     parser.add_argument("--dymBatch", type=int, default=0, help="dynamic batch size param，such as --dymBatch 2")
@@ -252,7 +268,11 @@ def msprof_run_profiling(args):
     ret = os.system(msprof_cmd)
     logger.info("msprof cmd:{} end run ret:{}".format(msprof_cmd, ret))
 
-def main(args):
+def main(args, index=0, msgq=None):
+    # if msgq is not None,as subproces run
+    if msgq != None:
+        logger.info("subprocess_{} main run".format(index))
+
     if args.debug == True:
         logger.setLevel(logging.DEBUG)
 
@@ -283,6 +303,23 @@ def main(args):
 
     warmup(session, args, intensors_desc, infileslist[0])
 
+    if msgq != None:
+		# wait subprocess init ready, if time eplapsed,force ready run
+        logger.info("subprocess_{} qsize:{} now waiting".format(index, msgq.qsize()))
+        msgq.put(index)
+        time_sec = 0
+        while True:
+            if msgq.qsize() >= args.subprocess_count:
+                break
+            time_sec = time_sec + 1
+            if time_sec > 10:
+                logger.warning("subprocess_{} qsize:{} time:{} s elapsed".format(index, msgq.qsize(), time_sec))
+                break
+            time.sleep(1)
+        logger.info("subprocess_{} qsize:{} ready to infer run".format(index, msgq.qsize()))
+
+    start_time = time.time()
+
     if args.run_mode == "array":
         infer_loop_array_run(session, args, intensors_desc, infileslist, output_prefix)
     elif args.run_mode == "files":
@@ -294,6 +331,8 @@ def main(args):
     else:
         raise RuntimeError('wrong run_mode:{}'.format(args.run_mode))
 
+    end_time = time.time()
+
     summary.add_args(sys.argv)
     s = session.sumary()
     summary.npu_compute_time_list = s.exec_time_list
@@ -301,7 +340,44 @@ def main(args):
     summary.d2h_latency_list = MemorySummary.get_D2H_time_list()
     summary.report(args.batchsize, output_prefix, args.display_all_summary)
 
+    if msgq != None:
+		# put result to msgq
+        msgq.put([index, summary.infodict['throughput'], start_time, end_time])
+
     session.finalize()
+
+def print_subproces_run_error(value):
+    logger.error("subprocess run failed error_callback:{}".format(value))
+
+def multidevice_run(args):
+    logger.info("multidevice:{} run begin".format(args.device))
+    device_list = args.device
+    p = Pool(len(device_list))
+    msgq = Manager().Queue()
+
+    args.subprocess_count = len(device_list)
+    for i in range(len(device_list)):
+        cur_args = copy.deepcopy(args)
+        cur_args.device = int(device_list[i])
+        if args.output_dirname != None:
+            cur_args.output_dirname = os.path.join(args.output_dirname, "device{}".format(cur_args.device))
+        else:
+            cur_args.output_dirname = os.path.join(time.strftime("%Y_%m_%d-%H_%M_%S"), "device{}".format(cur_args.device))
+        p.apply_async(main, args=(cur_args, i, msgq), error_callback=print_subproces_run_error)
+
+    p.close()
+    p.join()
+    result  = 0 if 2 * len(device_list) == msgq.qsize() else 1
+    logger.info("multidevice run end qsize:{} result:{}".format(msgq.qsize(), result))
+    tlist = []
+    while msgq.qsize() != 0:
+        ret = msgq.get()
+        if type(ret) == list:
+            print("i:{} device_{} throughput:{} start_time:{} end_time:{}".format(
+                ret[0], device_list[ret[0]], ret[1], ret[2], ret[3]))
+            tlist.append(ret[1])
+    logger.info('summary throughput:{}'.format(sum(tlist)))
+    return result
 
 if __name__ == "__main__":
     args = get_args()
@@ -311,7 +387,7 @@ if __name__ == "__main__":
     if args.profiler == True:
         # try use msprof to run
         msprof_bin = shutil.which('msprof')
-        if msprof_bin is None:
+        if msprof_bin is None or os.getenv('GE_PROFILIGN_TO_STD_OUT') == '1':
             logger.info("find no msprof continue use acl.json mode")
         else:
             msprof_run_profiling(args)
@@ -321,5 +397,10 @@ if __name__ == "__main__":
         # dymshape range run,according range to run each shape infer get best shape
         dymshape_range_run(args)
         exit(0)
+
+    if type(args.device) == list:
+        # args has multiple device, run single process for each device
+        ret = multidevice_run(args)
+        exit(ret)
 
     main(args)

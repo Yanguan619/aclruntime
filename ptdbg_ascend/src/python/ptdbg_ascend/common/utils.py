@@ -16,6 +16,7 @@
 """
 import collections
 import os
+import re
 import subprocess
 import sys
 import time
@@ -23,9 +24,15 @@ from datetime import datetime, timezone
 
 import numpy as np
 import torch
-if not torch.cuda.is_available():
+try:
     import torch_npu
+except ImportError:
+    is_gpu=True
+else:
+    is_gpu=False
 
+if not is_gpu:
+    from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
 
 device = collections.namedtuple('device', ['type', 'index'])
 
@@ -42,11 +49,24 @@ class Const:
     COMMA = ","
     DOT = "."
     DUMP_RATIO_MAX = 100
-    DUMP_SCOPE = {"ALL": 1, "LIST": 2, "RANGE": 3, "STACK": 4}
     SUMMERY_DATA_NUMS = 256
     FLOAT_EPSILON = np.finfo(float).eps
-    NAN = 'NaN'
+    NAN = 'Nan'
     SUPPORT_DUMP_MODE = ['api', 'acl']
+    ON = 'ON'
+    OFF = 'OFF'
+
+    # dump mode
+    ALL = "all"
+    LIST = "list"
+    RANGE = "range"
+    STACK = "stack"
+    ACL = "acl"
+    API_LIST = "api_list"
+    API_STACK = "api_stack"
+    DUMP_MODE = [ALL, LIST, RANGE, STACK, ACL, API_LIST, API_STACK]
+
+    API_PATTERN = r"^[A-Za-z0-9]+[_]+([A-Za-z0-9]+[_]*[A-Za-z0-9]+)[_]+[0-9]+[_]+[A-Za-z0-9]+"
 
 
 class VersionCheck:
@@ -84,11 +104,15 @@ class CompareException(Exception):
     INVALID_DUMP_RATIO = 12
     INVALID_DUMP_FILE = 13
     UNKNOWN_ERROR = 14
+    INVALID_DUMP_MODE = 15
 
     def __init__(self, code, error_info: str = ""):
         super(CompareException, self).__init__()
         self.code = code
         self.error_info = error_info
+
+    def __str__(self):
+        return self.error_info
 
 
 def _print_log(level, msg):
@@ -128,6 +152,13 @@ def print_warn_log(warn_msg):
     _print_log("WARNING", warn_msg)
 
 
+def check_mode_valid(mode):
+    if mode not in Const.DUMP_MODE:
+        msg = "Current mode '%s' is not supported. Please use the field in %s" % \
+              (mode, Const.DUMP_MODE)
+        raise CompareException(CompareException.INVALID_DUMP_MODE, msg)
+
+
 def check_file_or_directory_path(path, isdir=False):
     """
     Function Description:
@@ -140,25 +171,25 @@ def check_file_or_directory_path(path, isdir=False):
     """
     if isdir:
         if not os.path.exists(path):
-            print_error_log('The path {} is not exist. Please check the path'.format(path))
+            print_error_log('The path {} is not exist.'.format(path))
             raise CompareException(CompareException.INVALID_PATH_ERROR)
 
         if not os.path.isdir(path):
-            print_error_log('The path {} is not a directory. Please check the path'.format(path))
+            print_error_log('The path {} is not a directory.'.format(path))
             raise CompareException(CompareException.INVALID_PATH_ERROR)
 
         if not os.access(path, os.W_OK):
             print_error_log(
-                'The path{} does not have permission to write. Please check the path permission'.format(path))
+                'The path {} does not have permission to write. Please check the path permission'.format(path))
             raise CompareException(CompareException.INVALID_PATH_ERROR)
     else:
         if not os.path.isfile(path):
-            print_error_log('The path {} is not a file. Please check the path'.format(path))
+            print_error_log('{} is an invalid file or non-exist.'.format(path))
             raise CompareException(CompareException.INVALID_PATH_ERROR)
 
     if not os.access(path, os.R_OK):
         print_error_log(
-            'The path{} does not have permission to read. Please check the path permission'.format(path))
+            'The path {} does not have permission to read. Please check the path permission'.format(path))
         raise CompareException(CompareException.INVALID_PATH_ERROR)
 
 
@@ -182,6 +213,18 @@ def get_dump_data_path(dump_dir):
             break
         dump_data_path = dir_path
     return dump_data_path, file_is_exist
+
+
+def get_api_name_from_matcher(name):
+    api_matcher = re.compile(Const.API_PATTERN)
+    match = api_matcher.match(name)
+    return match.group(1) if match else ""
+
+
+def modify_dump_path(dump_path):
+    file_name = os.path.split(dump_path)
+    stack_file_name = "api_stack_" + file_name[-1]
+    return os.path.join(file_name[0], stack_file_name)
 
 
 def create_directory(dir_path):
@@ -281,18 +324,11 @@ def format_value(value):
 
 
 def torch_device_guard(func):
-    # Parse args/kwargs from namedtuple(torch.device) to matched torch.device objects
+    if is_gpu:
+        return func
+    # Parse args/kwargs matched torch.device objects
+
+    @torch_npu_device_guard
     def wrapper(*args, **kwargs):
-        if args:
-            args_list = list(args)
-            for index, arg in enumerate(args_list):
-                if isinstance(arg, tuple) and hasattr(arg, 'type') and getattr(arg, 'type') == 'npu':
-                    args_list[index] = torch_npu.new_device(type=torch_npu.npu.native_device, index=arg.index)
-                    break
-            args = tuple(args_list)
-        if kwargs and isinstance(kwargs.get("device"), tuple):
-            dev = kwargs.get("device")
-            if hasattr(dev, 'type') and getattr(dev, 'type') == 'npu':
-                kwargs['device'] = torch_npu.new_device(type=torch_npu.npu.native_device, index=dev.index)
         return func(*args, **kwargs)
     return wrapper

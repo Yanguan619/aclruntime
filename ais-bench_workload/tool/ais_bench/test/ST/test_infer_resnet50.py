@@ -4,6 +4,7 @@ import math
 import os
 import shutil
 import torch
+import acl
 import aclruntime
 import numpy as np
 import pytest
@@ -1160,6 +1161,182 @@ class TestClass():
 
         os.remove(tensor_infer_result1_path)
         os.remove(tensor_infer_result2_path)
+
+    def test_pure_inference_session_interface_init(self):
+        loop = 100
+        device_id = 0
+        exception_num = 0
+        batch_size = 1
+        model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+        for i in range(loop):
+            try:
+                session = InferSession(device_id, model_path)
+                del session
+            except Exception as e:
+                print("session finalize {} time, exception: {}".format(i + 1, e))
+                exception_num += 1
+
+        assert exception_num == 0
+
+    def test_general_inference_interface_normal_multi_device(self):
+        device_count, ret = acl.rt.get_device_count()
+        if device_count <= 1:
+            return
+        device_list = [str(i) for i in range(device_count)]
+        devices = ','.join(device_list)
+
+        batch_size = 1
+        static_model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+        input_size = TestCommonClass.get_model_inputs_size(static_model_path)[0]
+        input_path = TestCommonClass.get_inputs_path(input_size, os.path.join(self.model_base_path, "input"),
+                                                     self.output_file_num)
+        output_path = os.path.join(self.model_base_path, "output")
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+        log_path = os.path.join(output_path, "multi_device_infer.log")
+
+        model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+        cmd = "{} --model {} --device {} --input {} --debug=1 > {}".format(TestCommonClass.cmd_prefix, model_path,
+                                                            devices, input_path, log_path)
+        print("run cmd:{}".format(cmd))
+        ret = os.system(cmd)
+        assert ret == 0
+        assert os.path.exists(log_path)
+
+        device_throughputs = []
+        total_throughtout = 0
+        summary_throughput = 0
+        open_device_list = []
+        with open(log_path) as f:
+            for line in f:
+                if "device_"  in line:
+                    temp_strs = line.split(' ')
+                    throughtout = float(temp_strs[2].split(':')[1])
+                    device_throughputs.append(throughtout)
+                    total_throughtout += throughtout
+                elif "summary throughput" in line:
+                    temp_strs = line.split(' ')
+                    temp_str = temp_strs[2].split(':')[1]
+                    temp_str = temp_str.replace('\n','')
+                    summary_throughput = float(temp_str)
+                elif "open device" in line:
+                    temp_strs = line.split(' ')
+                    open_device_list.append(int(temp_strs[3]))
+                else:
+                    continue
+
+        open_device_list = list(set(open_device_list))
+        assert device_count == len(open_device_list)
+        assert device_count == len(device_throughputs)
+        assert abs(total_throughtout - summary_throughput) <= TestCommonClass.EPSILON
+        os.remove(log_path)
+
+    def test_general_inference_interface_same_multi_device_0(self):
+        """"device 0,0
+        """
+        devices = "0,0"
+        batch_size = 1
+        static_model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+        input_size = TestCommonClass.get_model_inputs_size(static_model_path)[0]
+        input_path = TestCommonClass.get_inputs_path(input_size, os.path.join(self.model_base_path, "input"),
+                                                     self.output_file_num)
+        model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+        cmd = "{} --model {} --device {} --input {} ".format(TestCommonClass.cmd_prefix, model_path,
+                                                            devices, input_path)
+        print("run cmd:{}".format(cmd))
+        ret = os.system(cmd)
+        assert ret == 0
+
+    def test_general_inference_interface_abnormal_invalid_device(self):
+        """"类似device 1,2,200. 2个device ID正确,1个不正确,但在可能的取值范围[0,255]内
+        """
+        device_count, ret = acl.rt.get_device_count()
+        assert device_count > 0
+        devices = "1,2," + str(255)
+        batch_size = 1
+        static_model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+        input_size = TestCommonClass.get_model_inputs_size(static_model_path)[0]
+        input_path = TestCommonClass.get_inputs_path(input_size, os.path.join(self.model_base_path, "input"),
+                                                     self.output_file_num)
+        model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+        cmd = "{} --model {} --device {} --input {} ".format(TestCommonClass.cmd_prefix, model_path,
+                                                            devices, input_path)
+        print("run cmd:{}".format(cmd))
+        ret = os.system(cmd)
+        # assert  exception_num == 1
+        assert ret != 0
+
+    def test_general_inference_interface_abnormal_invalid_device_2(self):
+        """"device 500.不在可能的取值范围[0,255]
+        """
+        devices = "500"
+        batch_size = 1
+        static_model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+        input_size = TestCommonClass.get_model_inputs_size(static_model_path)[0]
+        input_path = TestCommonClass.get_inputs_path(input_size, os.path.join(self.model_base_path, "input"),
+                                                     self.output_file_num)
+        model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+        cmd = "{} --model {} --device {} --input {} ".format(TestCommonClass.cmd_prefix, model_path,
+                                                            devices, input_path)
+        print("run cmd:{}".format(cmd))
+        ret = os.system(cmd)
+        assert ret != 0
+
+    def test_pure_inference_profiler_normal(self):
+        batch_size = 1
+        output_path = os.path.join(self.model_base_path, "output", "tmp")
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+        log_path = os.path.join(output_path, "profiler.log")
+        model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+
+        # GE_PROFILIGN_TO_STD_OUT=0
+        env_label = os.getenv('GE_PROFILIGN_TO_STD_OUT', 'null')
+        if env_label is not 'null':
+            del os.environ['GE_PROFILIGN_TO_STD_OUT']
+        cmd = "{} --model {} --device {} --profiler True --output {} > {}".format(TestCommonClass.cmd_prefix, model_path,
+            TestCommonClass.default_device_id, output_path, log_path)
+        print("run cmd:{}".format(cmd))
+        ret = os.system(cmd)
+        assert ret == 0
+
+        label_is_exist = False
+        with open(log_path) as f:
+            for line in f:
+                if "find no msprof continue use acl.json mode" in line:
+                    label_is_exist = True
+                    break
+
+        msprof_bin = shutil.which('msprof')
+        if msprof_bin is None:
+            assert label_is_exist == True
+        else:
+            assert label_is_exist == False
+
+        # GE_PROFILIGN_TO_STD_OUT=1
+        os.environ['GE_PROFILIGN_TO_STD_OUT']="1"
+        label_is_exist = False
+        os.remove(log_path)
+        shutil.rmtree(output_path)
+        os.makedirs(output_path)
+
+        cmd = "{} --model {} --device {} --profiler True --output {} > {}".format(TestCommonClass.cmd_prefix, model_path,
+            TestCommonClass.default_device_id, output_path, log_path)
+        print("run cmd:{}".format(cmd))
+        ret = os.system(cmd)
+        assert ret == 0
+
+        with open(log_path) as f:
+            for line in f:
+                if "find no msprof continue use acl.json mode" in line:
+                    label_is_exist = True
+                    break
+
+        assert label_is_exist == True
+
+        shutil.rmtree(output_path)
+        del os.environ['GE_PROFILIGN_TO_STD_OUT']
+
 
 if __name__ == '__main__':
     pytest.main(['test_infer_resnet50.py', '-vs'])

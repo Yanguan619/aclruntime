@@ -835,7 +835,7 @@ class OpUT:  # 'pylint: disable=too-many-instance-attributes
                                   simulator_dump_path=simulator_dump_path) as runner:
             if self.imply_type.value == OpImplyType.DYNAMIC.value or  self.imply_type.value == OpImplyType.STATIC.value:                
                 output_data_list = runner.run(op_kernel, inputs=input_data_list,
-                                              tiling=case_info.tiling_data, block_dim=case_info.block_dim)
+                                              tiling_data=case_info.tiling_data, block_dim=case_info.block_dim)
             else:
                 output_data_list = runner.run(op_kernel, inputs=input_data_list)
 

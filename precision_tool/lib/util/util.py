@@ -188,6 +188,8 @@ class Util(object):
                 file_desc = self._gen_dump_file_info(item[0], match, dir_path)
                 dst_file_name = '.'.join([file_desc.op_type, file_desc.file_name, str(file_desc.task_id),
                                           str(file_desc.stream_id), str(file_desc.timestamp)])
+                if item[1].endswith(Constant.Suffix.CSV):
+                    dst_file_name += '.csv'
                 dst_file = os.path.abspath(os.path.join(dir_path, dst_file_name))
                 if not os.path.islink(src_file):
                     os.rename(src_file, dst_file)

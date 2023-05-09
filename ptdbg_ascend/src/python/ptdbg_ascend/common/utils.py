@@ -22,11 +22,9 @@ import subprocess
 import sys
 import time
 from datetime import datetime, timezone
-from pathlib import Path
 
 import numpy as np
 import torch
-from ..dump.utils import DumpUtil
 
 try:
     import torch_npu
@@ -375,19 +373,3 @@ def get_process_rank(model):
         return device.index
 
 
-def make_dump_dirs(rank, pid):
-    if DumpUtil.dump_path is not None:
-        dump_root_dir, dump_file_name = os.path.split(DumpUtil.dump_path)
-        dump_file_name_body, _ = os.path.splitext(dump_file_name)
-    else:
-        dump_root_dir, dump_file_name, dump_file_name_body = './', 'anonymous.pkl', 'anonymous'
-    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_{__version__}')
-    Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
-    rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
-    if not os.path.exists(rank_dir):
-        os.mkdir(rank_dir, mode=0o750)
-    DumpUtil.dump_dir = rank_dir
-    dump_file_path = os.path.join(rank_dir, dump_file_name)
-    if os.path.exists(dump_file_path) and not os.path.isdir(dump_file_path):
-        os.remove(dump_file_path)
-    DumpUtil.set_dump_path(dump_file_path)

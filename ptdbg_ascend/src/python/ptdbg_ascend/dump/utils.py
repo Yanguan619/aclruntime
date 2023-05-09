@@ -1,9 +1,13 @@
 import os
 import shutil
 import sys
+from pathlib import Path
 
 from ..common.utils import print_error_log, CompareException, Const, get_time, print_info_log, \
-    check_mode_valid, get_api_name_from_matcher
+    check_mode_valid, get_api_name_from_matcher, __version__
+
+DumpCount = 0
+range_begin_flag, range_end_flag = False, False
 
 
 class DumpUtil(object):
@@ -38,6 +42,7 @@ class DumpUtil(object):
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
+    @staticmethod
     def check_list_or_acl_mode(name_prefix):
         global DumpCount
         for item in DumpUtil.dump_switch_scope:
@@ -45,6 +50,7 @@ class DumpUtil(object):
                 DumpCount = DumpCount + 1
                 return True
 
+    @staticmethod
     def check_range_mode(name_prefix):
         global range_begin_flag
         global range_end_flag
@@ -58,6 +64,7 @@ class DumpUtil(object):
             return True
         return False
 
+    @staticmethod
     def check_stack_mode(name_prefix):
         if len(DumpUtil.dump_switch_scope) == 0:
             return True
@@ -166,3 +173,21 @@ def make_dump_data_dir(dump_file_name):
         shutil.rmtree(output_dir, ignore_errors=True)
         os.mkdir(output_dir, mode=0o750)
     return output_dir
+
+
+def make_dump_dirs(rank, pid):
+    if DumpUtil.dump_path is not None:
+        dump_root_dir, dump_file_name = os.path.split(DumpUtil.dump_path)
+        dump_file_name_body, _ = os.path.splitext(dump_file_name)
+    else:
+        dump_root_dir, dump_file_name, dump_file_name_body = './', 'anonymous.pkl', 'anonymous'
+    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_{__version__}')
+    Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
+    rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
+    if not os.path.exists(rank_dir):
+        os.mkdir(rank_dir, mode=0o750)
+    DumpUtil.dump_dir = rank_dir
+    dump_file_path = os.path.join(rank_dir, dump_file_name)
+    if os.path.exists(dump_file_path) and not os.path.isdir(dump_file_path):
+        os.remove(dump_file_path)
+    DumpUtil.set_dump_path(dump_file_path)

@@ -28,10 +28,8 @@ from .utils import DumpUtil, _set_dump_switch4api_list, make_dump_data_dir
 
 from ..common.utils import print_warn_log, Const, print_info_log, modify_dump_path
 
-DumpCount = 0
 forward_init_status = False
 backward_init_status = False
-range_begin_flag, range_end_flag = False, False
 
 backward_threading_id = 0
 

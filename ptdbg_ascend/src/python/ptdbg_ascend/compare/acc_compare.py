@@ -306,8 +306,8 @@ def check_accuracy(cos, max_abs_err):
     if cos == Const.NAN:
         return "Yes"
     if float(cos) < Const.COS_THRESHOLD and float(max_abs_err) > Const.MAX_ABS_ERR_THRESHOLD:
-        return "Yes"
-    return "NO"
+        return "No"
+    return "Yes"
 
 
 def compare_by_op(op_name, op_name_mapping_dict, input_parma):

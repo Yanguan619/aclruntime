@@ -22,6 +22,7 @@ import os
 import time
 import math
 import ctypes
+import secrets
 from typing import Union
 
 from ms_interface.single_op_test_frame.utils import file_util
@@ -475,13 +476,18 @@ class AscendRTSApi:
         if not isinstance(data, bytes):
             raise TypeError("Copy binary to hbm supports bytes only, reveviced %s" % str(type(data)))
 
+        real_mem_len = int(math.ceil(len(data) / 32) * 32 + 32)
+        pad_len = real_mem_len - len(data)
+        # dirty data
+        random_bytes = secrets.token_bytes(pad_len)
+        data = data + random_bytes
         try:
-            c_memory_p = self.malloc(int(math.ceil(len(data) / 32) * 32 + 32), "RT_MEMORY_HBM")
+            c_memory_p = self.malloc(real_mem_len, "RT_MEMORY_HBM")
         except BaseException as e:
-            logger.log_err("rtMalloc on HBM failed, HBM memory info:  %s"
-                           % str(self.get_memory_info_ex("RT_MEMORYINFO_HBM")))
+            logger.log_err("rtMalloc on HBM failed, HBM memory info:  %s" %
+                           str(self.get_memory_info_ex("RT_MEMORYINFO_HBM")))
             raise
-        self.memcpy(c_memory_p, int(math.ceil(len(data) / 32) * 32 + 32), data, len(data), "RT_MEMCPY_HOST_TO_DEVICE")
+        self.memcpy(c_memory_p, real_mem_len, data, len(data), "RT_MEMCPY_HOST_TO_DEVICE")
         return c_memory_p
 
     def get_data_from_hbm(self,
@@ -622,6 +628,8 @@ class AscendRTSApi:
                                         rts_info.RT_MEMORY_TYPE[memory_type]
                                         | rts_info.RT_MEMORY_POLICY[memory_policy])
         self.parse_error(rt_error, "rtMalloc", ", trying to allocate %d bytes" % memory_size)
+        # dirty data
+        self.memcpy(c_memory_p, memory_size, secrets.token_bytes(memory_size), memory_size, "RT_MEMCPY_HOST_TO_DEVICE")
         return c_memory_p
 
     def host_malloc(self, memory_size: int) -> ctypes.c_void_p:

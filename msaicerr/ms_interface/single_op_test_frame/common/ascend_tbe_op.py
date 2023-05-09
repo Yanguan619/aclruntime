@@ -62,7 +62,7 @@ class AscendOpKernel:
         self.output_infos = []
         self.compile_info = None
         self.parameters = []
-        
+
 
     def is_registered_to_device(self):
         """
@@ -121,148 +121,6 @@ class AscendOpKernel:
         self.compile_info = compile_info
         self.need_do_tiling = True
 
-
-def calc_op_param_size(shape_size, dtype):
-    """
-    calculate operator parameter size
-    """
-    if not isinstance(dtype, str) and dtype not in dtype_trans.get_all_str_dtypes():
-        raise TypeError("dtype must be str and in [%s]" % ",".join(dtype_trans.get_all_str_dtypes()))
-    dtype_size = dtype_trans.get_dtype_byte(dtype)
-    return shape_size * dtype_size
-
-
-class AscendOp:
-    """
-    Class AscendOp
-    """
-    def __init__(self, op_type, op_module_name, op_intf_name):
-        if op_type is None or not isinstance(op_type, str):
-            raise TypeError("op_type must be a str")
-        if op_module_name is None or not isinstance(op_module_name, str):
-            raise TypeError("op_module_name must be a str")
-        if op_intf_name is None or not isinstance(op_intf_name, str):
-            raise TypeError("op_intf_name must be a str")
-        self.op_type = op_type
-        self.op_module_name = op_module_name
-        self.op_intf_name = op_intf_name
-
-    def _load_op_func(self):
-        try:
-            __import__(self.op_module_name)
-        except ImportError as import_err:
-            raise RuntimeError(
-                "can't import op module, op module name: %s, please check you python path and "
-                % self.op_module_name) from import_err
-
-        op_module = sys.modules[self.op_module_name]
-        op_func = getattr(op_module, self.op_intf_name)
-        if not op_func:
-            raise RuntimeError("can't get op function in op module, op module name: %s, op function name: %s"
-                               % (self.op_module_name, self.op_intf_name))
-        return op_func
-
-    @staticmethod
-    def _get_param_type(one_param):
-        if not one_param:
-            return None
-        if isinstance(one_param, (tuple, list)):
-            if not one_param or not isinstance(one_param[0], dict):
-                return None
-            return one_param[0].get("param_type", None)
-        if isinstance(one_param, dict):
-            return one_param.get("param_type")
-        return None
-
-    @staticmethod
-    def _get_input_outputs(param_list: List):
-        def _add_to_params(params: List, one_param):
-            if isinstance(one_param, list):
-                for sub_param in one_param:
-                    params.append(sub_param)
-            else:
-                params.append(one_param)
-
-        input_list = []
-        output_list = []
-        for arg in param_list:
-            param_type = AscendOp._get_param_type(arg)
-            if param_type == "input":
-                _add_to_params(input_list, arg)
-            if param_type == "output":
-                _add_to_params(output_list, arg)
-        return input_list, output_list
-
-    @staticmethod
-    def _pick_kernel_args(args):
-        input_list, output_list = AscendOp._get_input_outputs(args)
-        kernel_input_list = []
-        for input_info in input_list:
-            shape = input_info.get("shape")
-            shape_size = shape_utils.calc_shape_size(shape)
-            dtype = input_info.get("dtype")
-            size = -1 if shape_size < 0 else calc_op_param_size(shape_size, dtype)
-            info = {
-                "shape": shape,
-                "dtype": dtype,
-                "format": input_info.get("format"),
-                "size": size
-            }
-            kernel_input_list.append(info)
-
-        kernel_output_list = []
-        for output_info in output_list:
-            shape = output_info.get("shape")
-            shape_size = shape_utils.calc_shape_size(shape)
-            dtype = output_info.get("dtype")
-            size = -1 if shape_size < 0 else calc_op_param_size(shape_size, dtype)
-            info = {
-                "shape": shape,
-                "dtype": dtype,
-                "format": output_info.get("format"),
-                "size": size
-            }
-            kernel_output_list.append(info)
-        return kernel_input_list, kernel_output_list
-
-    @staticmethod
-    def find(name, path):
-        for root, _, files in os.walk(path):
-            if name in files:
-                return os.path.join(root, name)
-        return None
-
-    def compile(self, *args, **kwargs) -> AscendOpKernel:
-        """
-        compile
-        """
-        import tbe  # 'pylint: disable=import-outside-toplevel
-        import tbe.common.context.op_info as operator_info  # 'pylint: disable=import-outside-toplevel
-        op_func = self._load_op_func()
-        try:
-            with tbe.common.context.op_context.OpContext("dynamic"):
-                op_info = operator_info.OpInfo(self.op_type, self.op_type)
-                tbe.common.context.op_context.get_context().add_op_info(op_info)
-                op_func(*args, **kwargs)
-                compile_info = tbe.common.context.get_context().get_compile_info()
-        except BaseException as compile_err:
-            raise RuntimeError("Compile op failed.") from compile_err
-
-        kernel_name = kwargs.get("kernel_name")
-        bin_path = AscendOp.find(kernel_name + ".o", os.path.realpath("./"))
-        json_path =  AscendOp.find( kernel_name + ".json", os.path.realpath("./"))
-        if not bin_path or not json_path:
-            raise RuntimeError("Compile op failed, .o or .json is not generate successful.")
-
-        kernel = AscendOpKernel(bin_path, json_path)
-        kernel.set_compile_info(compile_info)
-
-        kernel_inputs, kernel_outputs = self._pick_kernel_args(args)
-        kernel.set_input_info(kernel_inputs)
-        kernel.set_output_info(kernel_outputs)
-        return kernel
-
-
 class AscendOpKernelParam:
     """
     Class AscendOpKernelParam
@@ -284,7 +142,7 @@ class AscendOpKernelParam:
         shape_size = shape_utils.calc_shape_size(self.shape)
         if shape_size < 0:
             raise RuntimeError("Shape size < 0.")
-        self.size = calc_op_param_size(shape_size, self.dtype)
+        self.size = shape_utils.calc_op_param_size(shape_size, self.dtype)
         self.shape_size = shape_size
         self._hbm_pointer = hbm_pointer
         self._ascend_device = ascend_device
@@ -315,16 +173,6 @@ class AscendOpKernelParam:
         np_data = np_data[:shape_size].reshape(shape)
         return AscendOpKernelParam(np_data=np_data)
 
-    def sync_from_device(self):
-        """
-        sync from device
-        """
-        if self._ascend_device and self._hbm_pointer:
-            byte_data, _ = self._ascend_device.get_data_from_hbm(self._hbm_pointer, self.size)
-            np_data = np.frombuffer(byte_data, dtype=dtype_trans.str_to_np_dtype(self.dtype))
-            np_data = np_data[:self.shape_size]
-            self._np_data = np.reshape(np_data, self.shape)
-
     def sync_to_device(self, ascend_device: AscendRTSApi):
         """
         sync_to_device
@@ -354,13 +202,6 @@ class AscendOpKernelParam:
         concat into kernel args
         """
         kernel_args.append(self._hbm_pointer)
-
-    def get_data(self):
-        """
-        get data
-        """
-        self.sync_from_device()
-        return self._np_data
 
     def create_ref(self):
         """
@@ -484,66 +325,50 @@ class AscendOpKernelRunner:
 
     def _fill_workspace(self, kernel: AscendOpKernel, wksp_hbm_pointers: List, kernel_args: List):
         for index, workspace_size in enumerate(kernel.workspace):
-            workspace_size_align = math.ceil(workspace_size, 32) * 32
-            wksp_hbm_p = self.ascend_device.malloc(workspace_size_align)
-            if len(kernel_args) <= len(kernel.parameters):
-                gm_need_atomic_clean = bool(kernel.parameters[len(kernel_args)])
+            param_index = len(kernel_args)
+            if param_index > len(kernel.parameters) or not kernel.parameters[param_index]:
+                workspace_size = int(math.ceil(workspace_size / 32) * 32 + 32)
+                wksp_hbm_p = self.ascend_device.malloc(workspace_size)
+                wksp_hbm_pointers.append(wksp_hbm_p)
+                kernel_args.append(wksp_hbm_p)
             else:
-                gm_need_atomic_clean = False
-                logger.log_warn(f"Len of parameters[{kernel.parameters}]  less than kernel_args [{kernel_args}] ")
-            if gm_need_atomic_clean:
-                logger.log_info(f"Init workspace[{index}] with 0")
-                self.ascend_device.memset(wksp_hbm_p, workspace_size_align, 0, workspace_size_align)
-            else:
-                logger.log_info(f"Init workspace[{index}] with random")
-                random_data = randint(-2147483648, 2147483647)
-                self.ascend_device.memset(wksp_hbm_p, workspace_size_align, random_data, workspace_size_align) 
-            wksp_hbm_pointers.append(wksp_hbm_p)
-            kernel_args.append(wksp_hbm_p)
-
-    def output_param_comfir(self, ascend_op_kernel_param, output_idx_in, output_input_ref_map_in, output_info_in):
-        if output_idx_in in output_input_ref_map_in.keys():
-            output_param_inner = input_params[output_input_ref_map[output_idx]].create_ref()
-        else:
-            out_size = output_info_in.get("size")
-            shape = output_info_in.get("run_shape")
-            if shape is None:
-                shape = output_info_in.get("shape")
-            dtype = output_info_in.get("dtype")
-            if not out_size:
-                shape_size = shape_utils.calc_shape_size(shape)
-                out_size = -1 if shape_size < 0 else calc_op_param_size(shape_size, dtype)
-            out_hbm_pointer = self.ascend_device.malloc(out_size)
-            self.ascend_device.memset(out_hbm_pointer, out_size, 0, out_size)
-            output_param_inner = ascend_op_kernel_param(shape=shape,
-                                                        dtype=dtype,
-                                                        ascend_device=self.ascend_device,
-                                                        hbm_pointer=out_hbm_pointer)
-        return output_param_inner
+                data_dtype = kernel.parameters[param_index].get("dtype")
+                init_value = kernel.parameters[param_index].get("init_value")
+                dtype_size = dtype_trans.get_dtype_byte(data_dtype)
+                shape = (math.ceil(workspace_size / dtype_size),)
+                data = (np.ones(shape) *
+                        init_value if init_value else np.zeros(shape)).astype(data_dtype)
+                kernel_param = AscendOpKernelParam.build_op_param_by_np_data(np_data=data)
+                kernel_param.sync_to_device(self.ascend_device)
+                wksp_hbm_pointers.append(kernel_param._hbm_pointer)
+                kernel_args.append(kernel_param._hbm_pointer)
+                logger.log_info(f"Fill init_value[{init_value}] to parameters[{param_index}]")
 
     def _create_output_param(self, output_info, kernel_args, kernel, shape):
         out_size = output_info.get("size")
         dtype = output_info.get("dtype")
         if not out_size:
             shape_size = shape_utils.calc_shape_size(shape)
-            out_size = -1 if shape_size < 0 else calc_op_param_size(shape_size, dtype)
-        out_hbm_pointer = self.ascend_device.malloc(out_size)
-        if len(kernel_args) <= len(kernel.parameters):
-            gm_need_atomic_clean = bool(kernel.parameters[len(kernel_args)])
+            out_size = -1 if shape_size < 0 else shape_utils.calc_op_param_size(shape_size, dtype)
+
+        out_size = int(math.ceil(out_size / 32) * 32 + 32)
+        param_index = len(kernel_args)
+        if param_index > len(kernel.parameters) or not kernel.parameters[param_index]:
+            logger.log_info(f"Fill random data to parameters[{param_index}]")
+            out_hbm_pointer = self.ascend_device.malloc(out_size)
+            return AscendOpKernelParam(shape=shape,
+                                       dtype=dtype,
+                                       ascend_device=self.ascend_device,
+                                       hbm_pointer=out_hbm_pointer)
         else:
-            gm_need_atomic_clean = False
-            logger.log_warn(f"Len of parameters[{kernel.parameters}] less than kernel_args [{kernel_args}]")
-        if gm_need_atomic_clean:
-            logger.log_info(f"Init output with 0")
-            self.ascend_device.memset(out_hbm_pointer, out_size, 0, out_size)
-        else:
-            logger.log_info(f"Init output with random")
-            random_data = randint(-2147483648, 2147483647)
-            self.ascend_device.memset(out_hbm_pointer, out_size, random_data, out_size)
-        return AscendOpKernelParam(shape=shape,
-                                    dtype=dtype,
-                                    ascend_device=self.ascend_device,
-                                    hbm_pointer=out_hbm_pointer)
+            data_dtype = kernel.parameters[param_index].get("dtype")
+            init_value = kernel.parameters[param_index].get("init_value")
+            data = (np.ones(shape) * init_value if init_value else np.zeros(shape)).astype(data_dtype)
+            kernel_param = AscendOpKernelParam.build_op_param_by_np_data(np_data=data)
+            kernel_param.sync_to_device(self.ascend_device)
+
+            logger.log_info(f"Fill init_value[{init_value}] to parameters[{param_index}]")
+            return kernel_param
 
     def _fill_outputs(self, kernel: AscendOpKernel,
                       output_input_ref: List[List[int]],
@@ -583,10 +408,10 @@ class AscendOpKernelRunner:
                 if kernel.stub_func_name.endswith("kernel0"):
                     stub_func_p = self.ascend_device.register_function(registered_binary, f"{kernel.stub_func_name}", 0)
                 else:
-                    stub_func_p = self.ascend_device.register_function(registered_binary, 
+                    stub_func_p = self.ascend_device.register_function(registered_binary,
                         f"{kernel.stub_func_name}_{tiling_key}", 0)
             except RuntimeError:
-                stub_func_p = self.ascend_device.register_function(registered_binary, 
+                stub_func_p = self.ascend_device.register_function(registered_binary,
                     f"{kernel.stub_func_name}__kernel0", 0)
             kernel.set_stub_func_p(stub_func_p)
 

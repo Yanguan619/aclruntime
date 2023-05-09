@@ -248,7 +248,7 @@ def get_inquire_result(grep_cmd, regexp):
     status, data = execute_command(grep_cmd)
     if status != 0:
         print_error_log(f"Failed to execute command:{grep_cmd}.")
-        raise AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR)
+        return None
     ret = re.findall(regexp, data, re.M | re.S)
     if len(ret) == 0:
         print_error_log(f"Log info does not macth:{regexp} in command result.")

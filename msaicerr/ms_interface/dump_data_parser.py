@@ -170,7 +170,8 @@ class DumpDataParser:
             raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
         return self.DATA_TYPE_TO_DTYPE_MAP.get(data_type).get(Constant.DTYPE)
 
-    def _check_tensor_data(self, index, array, data_dtype):
+    @staticmethod
+    def _check_tensor_data(index, array, data_dtype):
         result_info = ""
         if (np.isinf(array).any() or np.isnan(array).any()):
             result_info = f'input[{index}] NaN/INF. Input data invalid. Please check!\n'
@@ -185,7 +186,8 @@ class DumpDataParser:
             else:
                 return ""
             if (np.max(array) > 0.9 * dtype_max) or (np.min(array) < 0.9 * dtype_min):
-                result_info = f'input[{index}] max {np.max(array)} or min {np.min(array)}. Maybe nput data invalid. Please check!\n'
+                result_info = f'input[{index}] max {np.max(array)} or min {np.min(array)}. \
+                    Maybe nput data invalid. Please check!\n'
                 utils.print_error_log(result_info)
 
         return result_info

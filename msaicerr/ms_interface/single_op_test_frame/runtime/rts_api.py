@@ -561,7 +561,7 @@ class AscendRTSApi:
                 time.sleep(1)
                 self.memcpy(c_memory_p, memory_size, data, data_size, memcpy_kind, retry_count)
             else:
-                raise RuntimeError("After three retrys,memcpy still fails")
+                raise RuntimeError("After three retrys,memcpy still fails") from err
 
     def memset(self,
                c_memory_p: ctypes.c_void_p, memory_size: int,
@@ -735,9 +735,11 @@ class AscendRTSApi:
         if self.camodel:
             if error_code == 3:
                 return "CAMODEL_NULL_CONTEXT"
+            else:
+                return INVALID_VALUE
         if error_code >= len(rts_info.RT_ERROR_CODE_DICT[error_type]):
             logger.log_err("Received invalid runtime error code: " + hex(0x07000000 + error_type + error_code))
-            return
+            return INVALID_VALUE
         return rts_info.RT_ERROR_CODE_DICT[error_type][error_code]
 
     def parse_error(self, rt_error: ctypes.c_uint64, rt_api_name: str, extra_info: str = "") -> None:

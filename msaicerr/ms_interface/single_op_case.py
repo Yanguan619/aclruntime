@@ -24,30 +24,47 @@ class SingleOpCase:
         self.collection = collection
 
     @staticmethod
+    def _check_file_content(content):
+        error_strings = [
+            "there is an aivec error exception",
+            "there is an aicore error exception",
+            "aicore exception"
+        ]
+        for s in error_strings:
+            if s in content:
+                return True
+        return False
+ 
+    @staticmethod
+    def _wait_for_log_stabilization(log_path):
+        log_size = os.path.getsize(log_path)
+        while True:
+            sleep(0.2)
+            current_log_size = os.path.getsize(log_path)
+            if current_log_size == log_size:
+                break
+            log_size = current_log_size
+
+    @staticmethod
     def search_aicerr_log(path):
         for root, _, files in os.walk(path):
             for file in files:
-                if file.endswith(".log"):
-                    utils.print_info_log(f"The find single op log  {file}")
-                    log_size = os.path.getsize(os.path.join(root, file))
-                    while True:
-                        sleep(0.2)
-                        current_log_size = os.path.getsize(os.path.join(root, file))
-                        if current_log_size == log_size:
-                            break
-                        else:
-                            log_size = current_log_size
-                    with open(os.path.join(root, file), "r") as f:
-                        content = f.read()
-                        if "there is an aivec error exception" in content or "there is an aicore error exception" in content or "aicore exception" in content:
-                            return True
+                if not file.endswith(".log"):
+                    continue
+                utils.print_info_log(f"The find single op log {file}")
+                log_path = os.path.join(root, file)
+                SingleOpCase._wait_for_log_stabilization(log_path)
+                with open(log_path, "r") as f:
+                    content = f.read()
+                if SingleOpCase._check_file_content(content):
+                    return True
         return False
 
     def generate_config(self):
         config_file_list = []
         kernel_path = self.collection.collect_kernel_path
         for kernel_name in self.collection.kernel_name_list:
-            config_file =  os.path.join(self.collection.output_path, f"config_{kernel_name}.json")
+            config_file = os.path.join(self.collection.output_path, f"config_{kernel_name}.json")
             data = {
                 "bin_path": os.path.join(kernel_path, f"{kernel_name}.o"),
                 "json_path": os.path.join(kernel_path, f"{kernel_name}.json"),
@@ -61,7 +78,7 @@ class SingleOpCase:
                 json.dump(data, json_file, indent=4)
             config_file_list.append(config_file)
         return config_file_list
-    
+
     @staticmethod
     def run(config_file):
         # set single op log path

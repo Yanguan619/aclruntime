@@ -27,7 +27,7 @@ def extract_tar(tar_file, path):
 def get_select_dir(path):
     subdir = os.listdir(path)
     if len(subdir) != 1:
-        sys.exit("[ERROR] found more than one subdir in collect tar")
+        raise ValueError("[ERROR] found more than one subdir in collect tar")
     report_path = os.path.join(path, subdir[0])
     return report_path
 

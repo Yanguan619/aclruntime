@@ -102,7 +102,6 @@ class AicoreErrorParser:
         return False
 
     def _get_alloc_addr(self: any) -> list:
-        #  DevMalloc: Succ, size=512, type=2, ptr=0x108040014000
         cmd = ['grep', 'DevMalloc: Succ,', '-nr', self.collection.collect_plog_path]
         regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?size\s*=\s*([\d]+).+?ptr\s*=\s*([\da-zA-Z]+)"
         ret = utils.get_inquire_result(cmd, regexp)
@@ -111,7 +110,8 @@ class AicoreErrorParser:
             alloc_addr.append((addr, int(size)))
         return alloc_addr
 
-    def _remove_first_found_addr(self, addr, addr_list):
+    @staticmethod
+    def _remove_first_found_addr(addr, addr_list):
         for i, ava_addr_item in enumerate(addr_list):
             if addr == ava_addr_item[0]:
                 addr_list.pop(i)
@@ -238,14 +238,16 @@ class AicoreErrorParser:
         result["tiling"] = [tiling_key, tiling_data, block_dim]
         return result
 
-    def _cal_shape_size(self, shape_str):
+    @staticmethod
+    def _cal_shape_size(shape_str):
         utils.print_info_log("shape_str is {}".format(shape_str))
         if shape_str == "[]":
             return 1
         shape_str_list = shape_str.replace("[", "").replace("]", "").split(",")
         return reduce(lambda x, y: int(x) * int(y), shape_str_list)
-
-    def _check_addr_in_range(self, addr, ranges):
+    
+    @staticmethod
+    def _check_addr_in_range(addr, ranges):
         if not isinstance(addr, int):
             addr = int(addr)
 
@@ -264,7 +266,10 @@ class AicoreErrorParser:
             raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
 
         for input_param in input_params:
-            start_addr = int(input_param.get("addr"), 16) if input_param.get("addr").startswith("0x") else int(input_param.get("addr"))
+            if input_param.get("addr").startswith("0x"):
+                start_addr = int(input_param.get("addr"), 16)
+            else:
+                start_addr = int(input_param.get("addr"))
             shape_size = self._cal_shape_size(input_param.get("shape"))
             size_of_dtype = Constant.SIZE_OF_DTYPE.get(input_param.get("dtype"))
             end_addr = int(start_addr) + int(shape_size) * int(size_of_dtype)
@@ -272,7 +277,10 @@ class AicoreErrorParser:
             input_param["size"] = int(shape_size) * int(size_of_dtype)
 
         for output_param in output_params:
-            start_addr = int(output_param.get("addr"), 16) if output_param.get("addr").startswith("0x") else int(output_param.get("addr"))
+            if output_param.get("addr").startswith("0x"):
+                start_addr = int(output_param.get("addr"), 16)
+            else:
+                start_addr = int(output_param.get("addr"))
             shape_size = self._cal_shape_size(output_param.get("shape"))
             size_of_dtype = Constant.SIZE_OF_DTYPE.get(output_param.get("dtype"))
             end_addr = int(start_addr) + int(shape_size) * int(size_of_dtype)
@@ -309,8 +317,7 @@ class AicoreErrorParser:
         alloc_addr_range = []
         for alloc in alloc_addr:
             begin_alloc = int(alloc[0], 16)
-            end_alloc = begin_alloc + alloc[1] - 1 \
-                if alloc[1] > 0 else begin_alloc
+            end_alloc = begin_alloc + alloc[1] - 1 if alloc[1] > 0 else begin_alloc
             alloc_addr_range.append((begin_alloc, end_alloc))
         return alloc_addr_range
 
@@ -469,7 +476,7 @@ class AicoreErrorParser:
         if err_pc != "":
             cce_code_num = self._read_decompile_file(decompile_file, err_pc, info)
             # cce to tbe code number
-            if not os.path.exists(loc_json_file) or os.stat(loc_json_file).st_size is 0:
+            if not os.path.exists(loc_json_file) or os.stat(loc_json_file).st_size == 0:
                 utils.print_warn_log(f"The file {loc_json_file} is not exist or file is empty.")
                 return True
             self._read_loc_json_file(loc_json_file, cce_code_num, info)
@@ -478,7 +485,7 @@ class AicoreErrorParser:
     @staticmethod
     def __generate_case(config_file):
         dir_name = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        case_content=f"from ms_interface.single_op_case import SingleOpCase\nSingleOpCase.run(\"{config_file}\")"
+        case_content = f"from ms_interface.single_op_case import SingleOpCase\nSingleOpCase.run(\"{config_file}\")"
         case_file = os.path.join(dir_name, "test_single_op.py")
         utils.print_info_log(f"Generate case file {case_file}")
         with open(case_file, 'w') as f:
@@ -493,7 +500,7 @@ class AicoreErrorParser:
             single_op_ret = single_op_case.run(config)
             if not single_op_ret:
                 case_file = AicoreErrorParser.__generate_case(config)
-                split_line="#" * 50
+                split_line = "#" * 50
                 utils.print_info_log(split_line)
                 utils.print_info_log("single op test failed! Please Check OP or input data!")
                 utils.print_info_log(f"Run 'python3 {case_file}' can test op!")
@@ -603,24 +610,25 @@ class AicoreErrorParser:
                 self.collection.tiling_list = info.necessary_addr["tiling"]
                 # 校验地址
                 self._check_addr(info.aval_addrs, info.necessary_addr)
-            except Exception:
+            except Exception as e:
                 utils.print_error_log("Check addr error failed.")
-                raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
+                raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR) from e
 
             kernel_meta_path = self.collection.collect_kernel_path
             # 反编译  出错指令
             result = self._decompile(kernel_meta_path, err_i_folder, info)
             if not result:
-                utils.print_warn_log(f"decompile kernel_meta file {os.path.join(kernel_meta_path, info.kernel_name)}.o failed.")
+                utils.print_warn_log(f"decompile kernel_meta file \
+                    {os.path.join(kernel_meta_path, info.kernel_name)}.o failed.")
 
             info.input_output_addrs = self._get_input_output_addrs(info, aicore_error_data_list[Constant.ALLOC_ADDR])
 
             # parse dump
             if self.collection.collect_dump_path:
-                dumpParser = DumpDataParser(self.collection.collect_dump_path, info.node_name, info.kernel_name)
-                info.dump_info = dumpParser.parse()
-                self.collection.input_list = dumpParser.get_input_data()
-                self.collection.output_list = dumpParser.get_output_data()
+                dump_parser = DumpDataParser(self.collection.collect_dump_path, info.node_name, info.kernel_name)
+                info.dump_info = dump_parser.parse()
+                self.collection.input_list = dump_parser.get_input_data()
+                self.collection.output_list = dump_parser.get_output_data()
             info.single_op_test_result = self._test_single_op(self.collection)
             # write info file
             self._write_errorinfo_file(err_i_folder, info, i)

@@ -23,7 +23,8 @@ import torch
 from . import wrap_torch, wrap_npu_custom, wrap_functional, wrap_tensor, wrap_vf
 from .hook_module import HOOKModule
 from ..common.utils import check_file_or_directory_path, print_error_log, CompareException, Const, \
-    print_info_log, print_warn_log, make_dump_dirs, get_process_rank
+    print_info_log, print_warn_log, get_process_rank
+from ..dump.utils import make_dump_dirs
 
 try:
     import torch_npu

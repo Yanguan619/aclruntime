@@ -243,9 +243,9 @@ ais_bench推理工具可以通过配置不同的参数，来应对各种测试�
 | --outputSize             | 指定模型的输出数据所占内存大小，多个输出时，需要为每个输出设置一个值，多个值之间用“,”隔开。<br>动态Shape场景下，获取模型的输出size通常为0（即输出数据占内存大小未知），需要根据输入的Shape，预估一个较合适的大小，配置输出数据占内存大小。<br>例如：--dymShape "input1:8,3,5,10;input2:5,3,10,10" --outputSize "10000,10000" | 否       |
 | --auto_set_dymdims_mode  | 自动设置动态Dims模式。1或true（开启）、0或false（关闭），默认关闭。<br/>针对动态档位Dims模型，根据输入的文件的信息，自动设置Shape参数，注意输入数据只能为npy文件，因为bin文件不能读取Shape信息。<br/>配合input参数使用，单独使用无效。<br/>例如：--input 1.npy --auto_set_dymdims_mode 1 | 否       |
 | --auto_set_dymshape_mode | 自动设置动态Shape模式。取值为：1或true（开启）、0或false（关闭），默认关闭。<br>针对动态Shape模型，根据输入的文件的信息，自动设置Shape参数，注意输入数据只能为npy文件，因为bin文件不能读取Shape信息。<br>配合input参数使用，单独使用无效。<br/>例如：--input 1.npy --auto_set_dymshape_mode 1 | 否       |
-| --profiler               | profiler开关。1或true（开启）、0或false（关闭），默认关闭。<br>profiler数据在--output参数指定的目录下的profiler文件夹内。配合--output参数使用，单独使用无效。不能与--dump同时开启。<br/>若环境配置了GE_PROFILING_TO_STD_OUT=1，则使用--profiler参数采集性能数据时调用的是acl.json文件。 | 否       |
+| --profiler               | profiler开关。1或true（开启）、0或false（关闭），默认关闭。<br>profiler数据在--output参数指定的目录下的profiler文件夹内。配合--output参数使用，单独使用无效。不能与--dump同时开启。<br/>若环境配置了GE_PROFILING_TO_STD_OUT=1，则--profiler参数采集性能数据时使用的是acl.json配置文件方式。 | 否       |
 | --dump                   | dump开关。1或true（开启）、0或false（关闭），默认关闭。<br>dump数据在--output参数指定的目录下的dump文件夹内。配合--output参数使用，单独使用无效。不能与--profiler同时开启。 | 否       |
-| --acl_json_path          | acl.json文件路径，须指定一个有效的json文件。该文件内可配置profiler或者dump。当配置该参数时，--dump和--profiler参数无效。 | 否       |
+| --acl_json_path          | acl.json配置文件路径，须指定一个有效的json文件。该文件内可配置profiler或者dump。当配置该参数时，--dump和--profiler参数无效。 | 否       |
 | --batchsize              | 模型batchsize。不输入该值将自动推导。当前推理模块根据模型输入和文件输出自动进行组Batch。参数传递的batchszie有且只用于结果吞吐率计算。自动推导逻辑为尝试获取模型的batchsize时，首先获取第一个参数的最高维作为batchsize； 如果是动态Batch的话，更新为动态Batch的值；如果是动态dims和动态Shape更新为设置的第一个参数的最高维。如果自动推导逻辑不满足要求，请务必传入准确的batchsize值，以计算出正确的吞吐率。 | 否       |
 | --output_batchsize_axis  | 输出tensor的batchsize轴，默认值为0。输出结果保存文件时，根据哪个轴进行切割推理结果，比如batchsize为2，表示2个输入文件组batch进行推理，那输出结果的batch维度是在哪个轴。默认为0轴，按照0轴进行切割为2份，但是部分模型的输出batch为1轴，所以要设置该值为1。 | 否       |
 
@@ -438,7 +438,7 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
 #### profiler或dump场景
 
 支持以--acl_json_path、--profiler、--dump参数形式实现：
-+ acl_json_path参数指定acl.json文件，可以在该文件中对应的profiler或dump参数。示例代码如下：
++ acl_json_path参数指定acl.json配置文件，可以在该文件中对应的profiler或dump参数。示例代码如下：
 
   + profiler
 
@@ -485,8 +485,8 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
   该方式进行性能数据采集时，首先检查是否存在msprof命令：
 
   - 若命令存在，则使用该命令进行性能数据采集、解析并导出为可视化的timeline和summary文件。
-  - 若命令不存在，则调用acl.json文件进行性能数据采集。采集的性能数据文件未自动解析，需要参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>数据解析与导出”章节，将性能数据解析并导出为可视化的timeline和summary文件。
-  - 若环境配置了GE_PROFILING_TO_STD_OUT=1，则使用--profiler参数采集性能数据时调用的是acl.json文件。采集的性能数据文件未自动解析，需要参见《[解析profiling文件](https://gitee.com/ascend/tools/blob/master/ada/doc/ada_pa.md)》对性能数据进行解析。
+  - 若命令不存在，则调用acl.json配置文件进行性能数据采集。采集的性能数据文件未自动解析，需要参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>数据解析与导出”章节，将性能数据解析并导出为可视化的timeline和summary文件。
+  - 若环境配置了GE_PROFILING_TO_STD_OUT=1，则--profiler参数采集性能数据时使用的是acl.json配置文件方式。采集的性能数据文件未自动解析，需要参见《[解析profiling文件](https://gitee.com/ascend/tools/blob/master/ada/doc/ada_pa.md)》对性能数据进行解析。
 
   更多性能数据采集参数介绍请参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>性能数据采集（msprof命令行方式）”章节。
 

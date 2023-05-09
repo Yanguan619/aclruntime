@@ -1,5 +1,3 @@
-
-
 # ais_bench推理工具使用指南
 
 ## 简介
@@ -246,10 +244,14 @@ ais_bench推理工具可以通过配置不同的参数，来应对各种测试�
 | --profiler               | profiler开关。1或true（开启）、0或false（关闭），默认关闭。<br>profiler数据在--output参数指定的目录下的profiler文件夹内。配合--output参数使用，单独使用无效。不能与--dump同时开启。<br/>若环境配置了GE_PROFILING_TO_STD_OUT=1，则--profiler参数采集性能数据时使用的是acl.json配置文件方式。 | 否       |
 | --dump                   | dump开关。1或true（开启）、0或false（关闭），默认关闭。<br>dump数据在--output参数指定的目录下的dump文件夹内。配合--output参数使用，单独使用无效。不能与--profiler同时开启。 | 否       |
 | --acl_json_path          | acl.json配置文件路径，须指定一个有效的json文件。该文件内可配置profiler或者dump。当配置该参数时，--dump和--profiler参数无效。 | 否       |
-| --batchsize              | 模型batchsize。不输入该值将自动推导。当前推理模块根据模型输入和文件输出自动进行组Batch。参数传递的batchszie有且只用于结果吞吐率计算。自动推导逻辑为尝试获取模型的batchsize时，首先获取第一个参数的最高维作为batchsize； 如果是动态Batch的话，更新为动态Batch的值；如果是动态dims和动态Shape更新为设置的第一个参数的最高维。如果自动推导逻辑不满足要求，请务必传入准确的batchsize值，以计算出正确的吞吐率。 | 否       |
-| --output_batchsize_axis  | 输出tensor的batchsize轴，默认值为0。输出结果保存文件时，根据哪个轴进行切割推理结果，比如batchsize为2，表示2个输入文件组batch进行推理，那输出结果的batch维度是在哪个轴。默认为0轴，按照0轴进行切割为2份，但是部分模型的输出batch为1轴，所以要设置该值为1。 | 否       |
+| --batchsize              | 模型batchsize。不输入该值将自动推导。参数传递的batchszie有且只用于结果吞吐率计算。自动推导逻辑为尝试获取模型的batchsize时，首先获取第一个参数的最高维作为batchsize； 如果是动态Batch的话，更新为动态Batch的值；如果是动态dims和动态Shape更新为设置的第一个参数的最高维。如果自动推导逻辑不满足要求，请务必传入准确的batchsize值，以计算出正确的吞吐率。 | 否       |
+| --output_batchsize_axis  | 输出tensor的batchsize轴。输出结果保存文件时，根据哪个轴进行切割推理结果，那输出结果的batch维度就在哪个轴。默认按照0轴进行切割，但是部分模型的输出batch为1轴，所以要设置该值为1。 | 否       |
+
+
 
 ### 使用场景
+
+**说明**：对于ais_bench推理工具的输入输出，工具会根据模型的实际输入size对输入文件进行组合，输入文件不足则自动补全，输入文件过多则分批次；完成推理测试后根据模型实际输出size对输出文件进行切割。
 
  #### 纯推理场景
 
@@ -293,8 +295,6 @@ python3 -m ais_bench --model /home/model/resnet50_v1.om --output ./ --debug 1
 
 使用--input参数指定模型输入文件，多个文件之间通过“,”进行分隔。
 
-本场景会根据文件输入size和模型实际输入size进行对比，若缺少数据则会自动构造数据补全，称为组Batch。
-
 示例命令如下：
 
 ```bash
@@ -305,13 +305,11 @@ python3 -m ais_bench --model ./resnet50_v1_bs1_fp32.om --input "./1.bin,./2.bin,
 
 使用input参数指定模型输入文件所在目录，多个目录之间通过“,”进行分隔。
 
-本场景会根据文件输入size和模型实际输入size进行组Batch。
-
 ```bash
 python3 -m ais_bench --model ./resnet50_v1_bs1_fp32.om --input "./"
 ```
 
-模型输入需要与传入文件夹的个数一致。
+传入文件夹的个数需要与模型实际输入一致。
 
 例如，bert模型有三个输入，则必须传入3个文件夹，且三个文件夹分别对应模型的三个输入，顺序要对应。
 模型输入参数的信息可以通过开启调试模式查看，bert模型的三个输入依次为input_ids、 input_mask、 segment_ids，所以依次传入三个文件夹：
@@ -369,7 +367,7 @@ i:1 device_2 throughput:276.54867008654026 start_time:1676875630.8043878 end_tim
 
 ##### 动态Batch
 
-以档位1 2 4 8档为例，设置档位为2，本程序将获取实际模型输入组Batch，每2个输入为一组，进行组Batch。
+以档位1 2 4 8档为例，设置档位为2。
 
 ```bash
 python3 -m ais_bench --model ./resnet50_v1_dynamicbatchsize_fp32.om --input=./data/ --dymBatch 2
@@ -377,7 +375,7 @@ python3 -m ais_bench --model ./resnet50_v1_dynamicbatchsize_fp32.om --input=./da
 
 ##### 动态HW宽高
 
-以档位224,224;448,448档为例，设置档位为224,224，本程序将获取实际模型输入组Batch。
+以档位224,224;448,448档为例，设置档位为224,224。
 
 ```bash
 python3 -m ais_bench --model ./resnet50_v1_dynamichw_fp32.om --input=./data/ --dymHW 224,224
@@ -385,7 +383,7 @@ python3 -m ais_bench --model ./resnet50_v1_dynamichw_fp32.om --input=./data/ --d
 
 ##### 动态Dims
 
-以设置档位1,3,224,224为例，本程序将获取实际模型输入组Batch。
+以设置档位1,3,224,224为例。
 
 ```bash
 python3 -m ais_bench --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --dymDims actual_input_1:1,3,224,224
@@ -405,7 +403,7 @@ python3 -m ais_bench --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --
 
 ##### 动态Shape
 
-以ATC设置[1\~8,3,200\~300,200\~300]，设置档位1,3,224,224为例，本程序将获取实际模型输入组Batch。
+以ATC设置[1\~8,3,200\~300,200\~300]，设置档位1,3,224,224为例。
 
 动态Shape的输出大小通常为0，建议通过outputSize参数设置对应输出的内存大小。
 

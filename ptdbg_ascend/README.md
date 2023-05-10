@@ -140,11 +140,7 @@ make install
 ```
 pip3 install ./ptdbg_ascend/dist/ptdbg_ascend-{version}-py3-none-any.whl --upgrade --force-reinstall
 ```
-### 源码引用模式
-当需要使用export PYTHONPATH的方法导入ptdbg_ascend的时候，需要在tools/ptdbg_ascend/src/python/ptdbg_ascend/common的目录下，手动添加一个version.py，并加上以下版本号信息，其中‘2.1’为当前ptdbg_ascend的版本
-```
-__version__ = '2.1'
-```
+
 
 ## 贡献
 

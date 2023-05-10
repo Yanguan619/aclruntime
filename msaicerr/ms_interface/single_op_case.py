@@ -7,7 +7,7 @@ Copyright Information:
 Huawei Technologies Co., Ltd. All Rights Reserved © 2020
 """
 
-import json
+import re
 import os
 from time import sleep
 import time
@@ -23,15 +23,15 @@ class SingleOpCase:
     def __init__(self, collection) -> None:
         self.collection = collection
 
-    @staticmethod
-    def _check_file_content(content):
+    def _check_file_content(self, content):
         error_strings = [
             "there is an aivec error exception",
             "there is an aicore error exception",
             "aicore exception"
         ]
+        kernel_name = self.collection.kernel_name_list[0]
         for s in error_strings:
-            if s in content:
+            if s in content and kernel_name in content:
                 return True
         return False
  
@@ -45,18 +45,17 @@ class SingleOpCase:
                 break
             log_size = current_log_size
 
-    @staticmethod
-    def search_aicerr_log(path):
+    def search_aicerr_log(self, path):
         for root, _, files in os.walk(path):
             for file in files:
                 if not file.endswith(".log"):
                     continue
-                utils.print_info_log(f"The find single op log {file}")
-                log_path = os.path.join(root, file)
+                log_path = os.path.abspath(os.path.join(root, file))
+                utils.print_info_log(f"The find single op log {log_path}")
                 SingleOpCase._wait_for_log_stabilization(log_path)
                 with open(log_path, "r") as f:
                     content = f.read()
-                if SingleOpCase._check_file_content(content):
+                if self._check_file_content(content):
                     return True
         return False
 
@@ -64,7 +63,6 @@ class SingleOpCase:
         config_file_list = []
         kernel_path = self.collection.collect_kernel_path
         for kernel_name in self.collection.kernel_name_list:
-            config_file = os.path.join(self.collection.output_path, f"config_{kernel_name}.json")
             data = {
                 "bin_path": os.path.join(kernel_path, f"{kernel_name}.o"),
                 "json_path": os.path.join(kernel_path, f"{kernel_name}.json"),
@@ -74,22 +72,86 @@ class SingleOpCase:
                 "input_file_list": self.collection.input_list,
                 "output_file_list": self.collection.output_list
             }
-            with open(config_file, "w") as json_file:
-                json.dump(data, json_file, indent=4)
-            config_file_list.append(config_file)
+            config_file_list.append(data)
         return config_file_list
+    @staticmethod
+    def get_soc_version_from_cce(cce_file):
+        with open(cce_file, 'r') as f:
+            content = f.read()
+        soc_version_ret = re.findall(r'//.*?(Ascend.*?)"', content)
+        if soc_version_ret:
+            utils.print_info_log(f"get soc_version {soc_version_ret[0]} from cce file {cce_file}")
+            return soc_version_ret[0]
+        else:
+            utils.print_warn_log('Can not get soc_version from cce file {cce_file}')
+            return "Ascend310"
+
+    def get_soc_version(self):
+        kernel_path = self.collection.collect_kernel_path
+        kernel_name = self.collection.kernel_name_list[0]
+        tiling_key = self.collection.tiling_list[0]
+        cce_file = os.path.join(kernel_path, kernel_name + ".cce")
+        if not os.path.exists(cce_file):
+            cce_file = os.path.join(kernel_path, f"{kernel_name}_{tiling_key}.cce")
+            if not os.path.exists(cce_file):
+                utils.print_warn_log(f"The cce file:{cce_file} does not exist. Set soc version Ascend310")
+                return "Ascend310"
+        return self.get_soc_version_from_cce(cce_file)
+
+    def run_dirty_ub(self):
+        soc_version = self.get_soc_version()
+        try:
+            self.dirty_ub(soc_version, kernel_name=f"dirty_ub_{soc_version}")
+        except Exception as e:
+            utils.print_warn_log("compile diry_ub op failed, skip dirty ub")
+            return
+        find_path_cmd = ["find", "./", "-name", f"dirty_ub_{soc_version}*"]
+        regexp = r"([_\-/0-9a-zA-Z.]{1,}\.json|[_\-/0-9a-zA-Z.]{1,}\.o|[_\-/0-9a-zA-Z.]{1,}\.cce)"
+        kernel_file_list = utils.get_inquire_result(find_path_cmd, regexp)
+        if not kernel_file_list:
+            utils.print_warn_log(f"The dirty_ub_{soc_version} file path cannot be found.")
+        for file in kernel_file_list:
+            if file.endswith(".o"):
+              bin_path = file
+            elif file.endswith(".json"):
+              json_path = file
+            else:
+              continue
+        if not os.path.exists(bin_path) or not os.path.exists(json_path):
+            utils.print_info_log(f"Can not find bin_file  and json_file ")
+            
+            return 
+        utils.print_info_log(f"Find bin_file {bin_path} and json_file {json_path}")
+        op_kernel = AscendOpKernel(bin_path, json_path)
+        runner = AscendOpKernelRunner()
+        runner.run(op_kernel, inputs=[])
+        
+
+    def dirty_ub(self, soc_version, kernel_name="dirty_ub"):
+        try:
+            import sys
+            from te import tik
+            from tbe.common import platform as cce
+            from tbe.common.platform import set_current_compile_soc_info as te_set_version
+        except ImportError as e:
+            utils.print_warn_log("failed to import te or tbe to compile op dirty_ub, skipped it")
+            return 
+        te_set_version(soc_version)
+        ub_size = cce.get_soc_spec("UB_SIZE")
+        
+        tik_instance = tik.Tik()
+        
+        all_ub = tik_instance.Tensor("float32", (ub_size // 4,), name="all_ub", scope=tik.scope_ubuf)
+        with tik_instance.for_range(0, ub_size // 256)  as loop_idx:
+            tik_instance.vec_dup(64, all_ub[loop_idx * 64], 1.7976931348623157e+30, 1, 8)
+        tik_instance.BuildCCE(kernel_name=kernel_name, inputs=[], outputs=[])
+
+        return tik_instance
 
     @staticmethod
-    def run(config_file):
-        # set single op log path
-        date_string = time.strftime("%Y%m%d%H%M%S", time.localtime(int(time.time())))
-        single_op_log_path = os.path.join(os.path.dirname(config_file), f"single_op_log_{date_string}")
-        os.environ['ASCEND_PROCESS_LOG_PATH'] = single_op_log_path
-        utils.print_info_log(f"The single_op_log_path is {single_op_log_path}")
-
-        with open(config_file) as f:
-            data = json.load(f)
+    def run_kernel(data):
         runner = AscendOpKernelRunner()
+        
         bin_path = data["bin_path"]
         json_path = data["json_path"]
         tiling_data = data["tiling_data"].encode("utf-8")
@@ -99,14 +161,14 @@ class SingleOpCase:
         output_file_list = data["output_file_list"]
 
         input_data_list = []
-        for data in input_file_list:
-            input_data = np.load(data)
+        for file in input_file_list:
+            input_data = np.load(file)
             input_data_list.append(input_data)
 
         output_info_list = []
-        for data in output_file_list:
+        for file in output_file_list:
             output_info = {}
-            np_data = np.load(data)
+            np_data = np.load(file)
             output_info["size"] = np_data.nbytes
             output_info["dtype"] = str(np_data.dtype)
             output_info["shape"] = np_data.shape
@@ -120,4 +182,13 @@ class SingleOpCase:
                    tiling_key=tiling_key,
                    actual_output_info=output_info_list)
 
-        return not SingleOpCase.search_aicerr_log(os.path.join(single_op_log_path, "debug"))
+    def run(self: any, configs: dict):
+        # set single op log path
+        date_string = time.strftime("%Y%m%d%H%M%S", time.localtime(int(time.time())))
+        single_op_log_path =  f"single_op_log_{date_string}"
+        os.environ['ASCEND_PROCESS_LOG_PATH'] = single_op_log_path
+        utils.print_info_log(f"The single_op_log_path is {single_op_log_path}")
+        self.run_dirty_ub()
+        SingleOpCase.run_kernel(configs)
+
+        return not self.search_aicerr_log(os.path.join(single_op_log_path, "debug"))

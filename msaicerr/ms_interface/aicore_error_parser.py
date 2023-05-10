@@ -499,15 +499,21 @@ class AicoreErrorParser:
         return True
 
     @staticmethod
-    def __generate_case(config_file):
+    def __generate_case(config):
         dir_name = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        case_content = f"from ms_interface.single_op_case import SingleOpCase\nSingleOpCase.run(\"{config_file}\")"
+        config_str = json.dumps(config, indent=4)
+
+        case_content = f"""
+from ms_interface.single_op_case import SingleOpCase
+config={config_str}
+SingleOpCase.run(config)"""
+
         case_file = os.path.join(dir_name, "test_single_op.py")
         utils.print_info_log(f"Generate case file {case_file}")
         with open(case_file, 'w') as f:
             f.write(case_content)
         return case_file
-             
+    
     @staticmethod
     def _test_single_op(collection):
         single_op_case = SingleOpCase(collection)

@@ -141,7 +141,6 @@ make install
 pip3 install ./ptdbg_ascend/dist/ptdbg_ascend-{version}-py3-none-any.whl --upgrade --force-reinstall
 ```
 
-
 ## 贡献
 
 push代码前，请务必保证已经完成了基础功能测试和网络测试！

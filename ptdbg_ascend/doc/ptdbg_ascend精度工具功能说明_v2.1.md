@@ -55,7 +55,7 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 | ------------------- |---------------------------------------------------------------------------------------------------|
 | set_dump_path       | 用于设置dump文件的路径(包含文件名)，参数示例：“/var/log/dump/npu_dump.pkl”                                            |
 | set_dump_switch     | 设置dump范围，不设置则默认处于关闭状态。第一个参数为：“ON” 或者 "OFF",若需要控制dump的算子范围，则需要第二、三个参数，默认不配置                        |
-| seed_all            | 固定随机数，参数为随机数种子和确定性计算模式，默认种子为：1234，默认确定性计算模式为False.                                                                        |
+| seed_all            | 固定随机数，参数为随机数种子，默认种子为：1234.                                                                        |
  | set_backward_input | 设置反向ACL级别dump时需要的反向输入的路径,参数示例："acl_dump_xxx/Functional_conv2d_1_backward_input.0.npy"             
 | register_hook       | 用于注册dump回调函数，例如：注册精度比对hook：register_hook(model, acc_cmp_dump).                                    |
 | compare             | 比对接口，将GPU/CPU/NPU的dump文件进行比对，第三个参数为存放比对结果的目录；<br/>文件名称基于时间戳自动生成，格式为：compare_result_timestamp.csv. |
@@ -65,11 +65,10 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 ### 数据dump
 #### 使用说明
 1) seed_all和set_dump_path在训练主函数main一开始就调用，避免随机数固定不全；
-2) seed_all(mode=True)开启cann确定性计算,NPU场景下需配置环境CANN6.4，以及下载torch_npu的分支master/v2.0.0/v1.11.0
-3) register_hook须在set_dump_path之后调用，避免dump数据路径设置错误
-4) set_dump_switch提供多种dump模式，可以根据不同场景选择dump方式
-5) 进行CPU数据dump时，请安装torch包而非torch_npu包，避免工具无法识别使用场景，导致失败
-6) TASK_QUEUE_ENABLE环境变量会导致算子下发和执行异步进行，因此在ALC dump前需要将TASK_QUEUE_ENABLE关闭，需要在执行运行命令前先export TASK_QUEUE_ENABLE=0
+2) register_hook须在set_dump_path之后调用，避免dump数据路径设置错误
+3) set_dump_switch提供多种dump模式，可以根据不同场景选择dump方式
+4) 进行CPU数据dump时，请安装torch包而非torch_npu包，避免工具无法识别使用场景，导致失败
+5) TASK_QUEUE_ENABLE环境变量会导致算子下发和执行异步进行，因此在ALC dump前需要将TASK_QUEUE_ENABLE关闭，需要在执行运行命令前先export TASK_QUEUE_ENABLE=0
 ```
 # 多种dump模式介绍
 
@@ -161,9 +160,6 @@ from ptdbg_ascend import *
 
 # 在main函数开始前固定随机数
 seed_all()
-# 默认不开启cann确定性计算，当需要使能确定性计算时需要使用以下模式
-seed_all(mode=True)
-#NPU场景下开启cann确定性计算需配置环境CANN6.4，以及下载安装torch_npu的分支master/v2.0.0/v1.11.0
 
 # 设置dump路径（含文件名）和dump_tag。dump_tag会体现在数据文件夹的文件名上
 # 多卡使用时最好也在main函数开始前设置
@@ -279,9 +275,6 @@ from ptdbg_ascend import *
 
 # 在main函数起始位置固定随机数
 seed_all()
-# 默认不开启cann确定性计算，当需要使能确定性计算时需要使用以下模式
-seed_all(mode=True)
-#NPU场景下开启cann确定性计算需配置环境CANN6.4，以及下载安装torch_npu的分支master/v2.0.0/v1.11.0
 
 ...
 
@@ -303,9 +296,6 @@ from ptdbg_ascend import *
 
 # 在main函数起始位置固定随机数
 seed_all()
-# 默认不开启cann确定性计算，当需要使能确定性计算时需要使用以下模式
-seed_all(mode=True)
-#NPU场景下开启cann确定性计算需配置环境CANN6.4，以及下载安装torch_npu的分支master/v2.0.0/v1.11.0
 
 ...
 

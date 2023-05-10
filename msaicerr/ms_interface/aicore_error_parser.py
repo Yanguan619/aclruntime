@@ -382,23 +382,35 @@ class AicoreErrorParser:
 
     @staticmethod
     def _get_decompile_status(o_file: str, decompile_file: str) -> int:
-        cmd = [Constant.OBJ_DUMP_FILE, '-d', '--mcpu=dav-m100', '--line-numbers', o_file]
+        cmd = [Constant.OBJ_DUMP_FILE, '-d', '--line-numbers', o_file]
         status, _ = utils.execute_command(cmd, file_out=decompile_file)
         return status
 
+    def _update_err_pc(self: any, err_pc: str, decompile_file: str, kernel_name: str) -> None:
+        # 模板类算子是多个.o合成需找到对应的行号
+        utils.print_info_log(f"Start to update err pc: {err_pc}.")
+        update_pc_cmd = ['grep', f'{kernel_name}$local', decompile_file]
+        update_pc_regexp = r"([0-9A-Za-z]*?)\s+<{}\$local>".format(kernel_name)
+        update_pc_ret = utils.get_inquire_result(update_pc_cmd, update_pc_regexp)
+        if not update_pc_ret:
+            utils.print_info_log("No need to update err pc.")
+            return  err_pc
+        else:
+            err_pc = hex(int(err_pc, 16) + int(update_pc_ret[0], 16))[2:]
+            utils.print_info_log(f"find base pc is 0x{update_pc_ret[0]}, err pc after update is  0x{err_pc}.")
+            return err_pc
+
     def _decompile(self: any, kernel_meta_path: str, dir_path: str, info: any) -> bool:
         kernel_name = info.kernel_name
-        diff_str, err_pc = self._get_info_for_decompile(info)
+        
         tiling_key = info.necessary_addr["tiling"][0]
 
         # decompile .o file
         cce_file = os.path.join(kernel_meta_path, kernel_name + ".cce")
         if not os.path.exists(cce_file):
-            utils.print_warn_log(f"The cce file:{cce_file} does not exist.")
             cce_file = os.path.join(kernel_meta_path, f"{kernel_name}_{tiling_key}.cce")
             if not os.path.exists(cce_file):
-                utils.print_error_log(f"The cce file:{cce_file} does not exist.")
-                return False
+                utils.print_warn_log(f"The cce file:{cce_file} does not exist.")
         o_file = os.path.join(kernel_meta_path, kernel_name + ".o")
         json_file = os.path.join(kernel_meta_path, kernel_name + ".json")
         if not os.path.exists(o_file) and not os.path.exists(json_file):
@@ -411,10 +423,12 @@ class AicoreErrorParser:
         if status != 0:
             utils.print_error_log(f"Failed to decompile {o_file}, you can fix problem according to the message above, "
                                   f"or copy {Constant.OBJ_DUMP_FILE} and {o_file} to another host and execute : "
-                                  f"{Constant.OBJ_DUMP_FILE} -d -mcpu=dav-m100 {kernel_name}.o > {kernel_name}.o.txt")
+                                  f"{Constant.OBJ_DUMP_FILE} -d {kernel_name}.o > {kernel_name}.o.txt")
             return False
         utils.copy_src_to_dest([cce_file, o_file, json_file], dir_path)
         loc_json_file = os.path.join(kernel_meta_path, kernel_name + "_loc.json")
+        diff_str, err_pc = self._get_info_for_decompile(info)
+        err_pc = self._update_err_pc(err_pc, decompile_file, f"{kernel_name}_{tiling_key}")
         cce_tbe_result = self._get_cce_tbe_code_number(decompile_file, loc_json_file, err_pc, info)
         occur_result = self._get_occur_before_mark(decompile_file, diff_str, info)
 
@@ -455,7 +469,9 @@ class AicoreErrorParser:
                 elif err_pc + ':' in line:
                     info.instr += "%s:%s\n" % (fo_file.name, err_pc)
                     break
-            info.instr += "%s" % cce_code.split(os.sep)[-1]
+            cce_line_number = cce_code.split(os.sep)[-1]
+            utils.print_info_log(f"Maybe find cce code line number is {cce_line_number}")
+            info.instr += "%s" % cce_line_number
         return cce_code_num
 
     @staticmethod

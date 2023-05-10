@@ -94,8 +94,8 @@ def get_max_relative_err(n_value, b_value):
 
 
 def check_op(npu_dict, bench_dict, shape_flag):
-    a_op_name = [_.split('_', 1)[1] for _ in npu_dict["op_name"]]
-    b_op_name = [_.split('_', 1)[1] for _ in bench_dict["op_name"]]
+    a_op_name = npu_dict["op_name"]
+    b_op_name = bench_dict["op_name"]
     if shape_flag:
         return a_op_name == b_op_name and npu_dict["input_struct"] == bench_dict["input_struct"] \
             and npu_dict["output_struct"] == bench_dict["output_struct"]
@@ -304,10 +304,20 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     try:
         n_value = np.load(os.path.join(input_parma.get("npu_dump_data_dir"), npu_bench_name_list[0] + ".npy"))
         b_value = np.load(os.path.join(input_parma.get("bench_dump_data_dir"), npu_bench_name_list[1] + ".npy"))
-        n_value = n_value.reshape(-1).astype(float)
-        b_value = b_value.reshape(-1).astype(float)
     except IOError as error:
         return " ", "", "Dump file:{} not found".format(error.filename)
+    if len(n_value.shape) == 0:
+        scalar_cos_sim = 1
+        if n_value.dtype == bool:
+            scalar_cos_sim = 1 - n_value ^ b_value
+            n_value = n_value.astype(float)
+            b_value = b_value.astype(float)
+        max_abs_err, _ = get_max_abs_err(n_value, b_value)
+        return scalar_cos_sim, max_abs_err, "This is type of scalar data, can not compare."
+    if n_value.size == 0:
+        return 1, 0, "This is empty data, can not compare."
+    n_value = n_value.reshape(-1).astype(float)
+    b_value = b_value.reshape(-1).astype(float)
     err_msg = ""
     cos_sim, message = cosine_similarity(n_value, b_value)
     err_msg += message
@@ -325,7 +335,7 @@ def check_file_mode(npu_pkl, bench_pkl, stack_mode):
         if npu_pkl_name.startswith("api_stack") or bench_pkl_name.startswith("api_stack"):
             raise Exception("The current file contains stack information, please turn on the stack_mode")
 
-def compare_distributed(npu_dump_dir, bench_dump_dir, **kwargs):
+def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
     def check_and_return_dir_contents(dump_dir, prefix):
         contents = os.listdir(dump_dir)
         pattern = re.compile(f'^{prefix}[0-9]+$')
@@ -339,15 +349,6 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, **kwargs):
         return contents 
 
     def extract_pkl_and_data_dir(dirname):
-        pids = check_and_return_dir_contents(dirname, 'pid')
-        if len(pids) != 1:
-            msg = ("Multiple pids are detected in one rank. "
-            "This case is not supported by compare_distributed() because "
-            "we do not know the matching of the pids. "
-            "You may manually match the pids and use compare() to compare them. ")
-            raise NotImplementedError(msg)
-        pid = pids[0] 
-        dirname = os.path.join(dirname, pid)
         pkl_path, dump_data_dir, pkl_name, dump_data_dirname = '', '', '', ''
         for fname in os.listdir(dirname):
             full_path = os.path.join(dirname, fname)
@@ -365,7 +366,7 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, **kwargs):
             print_error_log(f'No directory is found in dump dir {dirname}. ')
             raise CompareException(CompareException.NO_DUMP_FILE_ERROR)
         name_body, ext = os.path.splitext(pkl_name)
-        pattern = re.compile(f'{name_body}[_0-9]+$')
+        pattern = re.compile(f'{name_body}$')
         match = pattern.match(dump_data_dirname)
         if match is None:
             print_error_log('The names of pkl and directory do not match! '
@@ -394,10 +395,20 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, **kwargs):
             'bench_dump_data_dir': bench_dump_data_dir,
             'is_print_compare_log':True
         }
-        compare(dump_result_param, './output', True, suffix=f'_{nr}-{br}', **kwargs)
+        compare(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)
+
+
+def check_compare_param(input_parma, output_path, shape_flag, stack_mode, suffix):
+    if not (isinstance(input_parma, dict) and isinstance(output_path, str) and
+            isinstance(shape_flag, bool) and isinstance(stack_mode, bool) and
+            isinstance(suffix, str)):
+        print_error_log("Invalid input parameters")
+        raise CompareException(CompareException.INVALID_PARAM_ERROR)
+
 
 def compare(input_parma, output_path, shape_flag=True, stack_mode=False, suffix=''):
     try:
+        check_compare_param(input_parma, output_path, shape_flag, stack_mode, suffix)
         check_file_or_directory_path(input_parma.get("npu_pkl_path"), False)
         check_file_or_directory_path(input_parma.get("bench_pkl_path"), False)
         check_file_or_directory_path(input_parma.get("npu_dump_data_dir"), True)

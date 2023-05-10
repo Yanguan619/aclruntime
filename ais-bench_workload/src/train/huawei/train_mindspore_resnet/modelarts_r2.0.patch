@@ -1,6 +1,6 @@
 diff -Nur origin/src/model_utils/config.py code/src/model_utils/config.py
---- origin/src/model_utils/config.py	2022-10-17 21:17:23.696000000 +0800
-+++ code/src/model_utils/config.py	2022-10-17 21:17:23.716000000 +0800
+--- origin/src/model_utils/config.py	2023-04-07 20:52:22.470000000 +0800
++++ code/src/model_utils/config.py	2023-04-07 20:52:22.490000000 +0800
 @@ -120,6 +120,8 @@
      parser.add_argument("--config_path", type=str, default=os.path.join(current_dir, \
          "../../config/resnet50_cifar10_config.yaml"), help="Config file path")
@@ -11,11 +11,11 @@ diff -Nur origin/src/model_utils/config.py code/src/model_utils/config.py
      args = parse_cli_to_yaml(parser=parser, cfg=default, helper=helper, choices=choices, cfg_path=path_args.config_path)
      final_config = merge(args, default)
 diff -Nur origin/src/model_utils/moxing_adapter.py code/src/model_utils/moxing_adapter.py
---- origin/src/model_utils/moxing_adapter.py	2022-10-17 21:17:23.696000000 +0800
-+++ code/src/model_utils/moxing_adapter.py	2022-10-17 21:17:23.716000000 +0800
-@@ -98,6 +98,13 @@
-                 if not os.path.exists(config.output_path):
-                     os.makedirs(config.output_path)
+--- origin/src/model_utils/moxing_adapter.py	2023-04-07 20:52:22.470000000 +0800
++++ code/src/model_utils/moxing_adapter.py	2023-04-07 20:52:22.490000000 +0800
+@@ -101,6 +101,13 @@
+                 if pre_process:
+                     pre_process()
 
 +                base_path = config.data_path
 +                if os.path.exists(os.path.join(base_path, "train")):
@@ -24,23 +24,24 @@ diff -Nur origin/src/model_utils/moxing_adapter.py code/src/model_utils/moxing_a
 +                    config.eval_dataset_path = os.path.join(os.path.join(base_path, "val"))
 +
 +
-                 if pre_process:
-                     pre_process()
+             run_func(*args, **kwargs)
 
+             # Upload data to train_url
 diff -Nur origin/train.py code/train.py
---- origin/train.py	2022-10-17 21:17:23.684000000 +0800
-+++ code/train.py	2022-10-17 21:17:23.700000000 +0800
-@@ -17,6 +17,7 @@
- import glob
+--- origin/train.py	2023-04-07 20:52:22.480000000 +0800
++++ code/train.py	2023-04-07 20:52:22.500000000 +0800
+@@ -14,7 +14,7 @@
+ # ============================================================================
+ """train resnet."""
  import os
- import numpy as np
+-
 +import time
-
  import mindspore as ms
  import mindspore.nn as nn
-@@ -286,6 +287,18 @@
-         cb += [eval_cb]
-
+ from mindspore.train.train_thor import ConvertModelUtils
+@@ -132,6 +132,17 @@
+         loss = nn.SoftmaxCrossEntropyWithLogits(sparse=True, reduction='mean')
+     return loss
 
 +def run_eval_ckpt(target, model):
 +    eval_dataset = create_dataset(dataset_path=config.eval_dataset_path, do_train=False,
@@ -53,26 +54,25 @@ diff -Nur origin/train.py code/train.py
 +    res = apply_eval(eval_param_dict)
 +    print("eval ckpt result:{}".format(res))
 +    return res
-+
- def set_save_ckpt_dir():
-     """set save ckpt dir"""
-     ckpt_save_dir = os.path.join(config.output_path, config.checkpoint_path)
-@@ -348,6 +361,7 @@
-         config.run_eval = False
-         logger.warning("Thor optimizer not support evaluation while training.")
 
-+    model.build(dataset, None, sink_size=dataset.get_dataset_size(), epoch=config.epoch_size - config.pretrain_epoch_size)
+ @moxing_wrapper()
+ def train_net():
+@@ -197,6 +208,8 @@
+         ms.load_param_into_net(opt, resume_param)
+         config.logger.info('resume train from epoch: %s', config.start_epoch)
+
++    model.build(dataset, None, sink_size=dataset.get_dataset_size(), epoch=config.epoch_size)
++
      # define callbacks
-     time_cb = TimeMonitor(data_size=step_size)
-     loss_cb = LossCallBack(config.has_trained_epoch)
-@@ -366,12 +380,95 @@
+     loss_cb = LossCallBack(config.epoch_size, config.logger, lr, per_print_time=10)
+     resume_cb = ResumeCallback(config.start_epoch)
+@@ -223,11 +236,95 @@
          config.epoch_size = config.train_epoch_size
      dataset_sink_mode = (not config.parameter_server) and target != "CPU"
-     config.pretrain_epoch_size = config.has_trained_epoch
+     config.logger.save_args(config)
 +    start_time = time.time()
-     model.train(config.epoch_size - config.pretrain_epoch_size, dataset, callbacks=cb,
+     model.train(config.epoch_size - config.start_epoch, dataset, callbacks=cb,
                  sink_size=dataset.get_dataset_size(), dataset_sink_mode=dataset_sink_mode)
-
 +    end_time = time.time()
 +    all_data_sum = step_size * config.batch_size * config.epoch_size
 +    throughput_rate = all_data_sum / (int)(end_time - start_time)
@@ -99,13 +99,13 @@ diff -Nur origin/train.py code/train.py
 +        if mox.file.exists(ranksize_file) == False:
 +            mox.file.write(ranksize_file, str(get_device_num()))
 +
-     if config.run_eval and config.enable_cache:
-         print("Remember to shut down the cache server via \"cache_admin --stop\"")
+
+     config.logger.info("If run eval and enable_cache Remember to shut down the cache server via \"cache_admin --stop\"")
 
 +import json
 +import time
 +import os
-
++
 +class FileOperator:
 +    @staticmethod
 +    def create_empty_file(file_path):
@@ -154,6 +154,7 @@ diff -Nur origin/train.py code/train.py
 +        FileOperator.create_empty_file(empty_file_path)
 +    return new_rank_id
 +
+
  if __name__ == '__main__':
 +    if os.getenv("SINGLESERVER_MODE", "") == "True":
 +        set_singleserver_mode()

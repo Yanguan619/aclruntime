@@ -219,7 +219,7 @@ def get_args():
     parser.add_argument("--output", "-o", default=None, help="Inference data output path. The inference results are output to the subdirectory named current date under given output path")
     parser.add_argument("--output_dirname", type=str, default=None, help="actual output directory name. Used with parameter output, cannot be used alone. The inference result is output to  subdirectory named by output_dirname under  output path. such as --output_dirname 'tmp', the final inference results are output to the folder of  {$output}/tmp")
     parser.add_argument("--outfmt", default="BIN", choices=["NPY", "BIN", "TXT"], help="Output file format (NPY or BIN or TXT)")
-    parser.add_argument("--loop", "-l", type=check_positive_integer, default=1, help="the round of the PrueInfer.")
+    parser.add_argument("--loop", "-l", type=check_positive_integer, default=1, help="the round of the PureInfer.")
     parser.add_argument("--debug", type=str2bool, default=False, help="Debug switch,print model information")
     parser.add_argument("--device", "-d", type=check_device_range_valid, default=0, help="the NPU device ID to use.valid value range is [0, 255]")
     parser.add_argument("--dymBatch", type=int, default=0, help="dynamic batch size param，such as --dymBatch 2")
@@ -395,7 +395,10 @@ def multidevice_run(args):
     for i in range(len(device_list)):
         cur_args = copy.deepcopy(args)
         cur_args.device = int(device_list[i])
-        cur_args.input = None if splits == None else list(splits)[i]
+        if args.output_dirname != None:
+            cur_args.output_dirname = os.path.join(args.output_dirname, "device{}".format(cur_args.device))
+        else:
+            cur_args.output_dirname = os.path.join(time.strftime("%Y_%m_%d-%H_%M_%S"), "device{}".format(cur_args.device))
         p.apply_async(main, args=(cur_args, i, msgq), error_callback=print_subproces_run_error)
 
     p.close()
@@ -420,7 +423,7 @@ if __name__ == "__main__":
     if args.profiler == True:
         # try use msprof to run
         msprof_bin = shutil.which('msprof')
-        if msprof_bin is None:
+        if msprof_bin is None or os.getenv('GE_PROFILIGN_TO_STD_OUT') == '1':
             logger.info("find no msprof continue use acl.json mode")
         else:
             msprof_run_profiling(args)

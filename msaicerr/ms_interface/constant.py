@@ -37,16 +37,6 @@ class Constant:
     MAX_READ_FILE_BYTES = 1024 * 1024  # 1M
     MAX_TAR_SIZE = 1 * 1024 * 1024 * 1024   # 1G
 
-    SCRIPT = "script"
-
-    TYPE_COMPILE = 'compile'
-    TYPE_DUMP = 'dump'
-    TYPE_BBOX = 'bbox'
-
-    DIR_ASCEND = 'ascend'
-    DIR_LOG = 'log'
-    DIR_SLOG = 'slog'
-    DIR_BBOX = 'hisi_logs'
     DIR_PLOG = 'plog'
 
     AIC_ERROR_TUPLE_LEN = 9
@@ -67,10 +57,8 @@ class Constant:
                      "DT_DUAL": 5}
     #aicore_error_parser
     OBJ_DUMP_FILE = "cce-objdump"
-    ADDR_OVERFLOW = 0
-    ALLOC_ADDR = 1
-    ACTUAL_ADDR = 2
-    GRAPH_FILE = 3
+    ALLOC_ADDR = 0
+    GRAPH_FILE = 1
 
     # collection
     EXCEPTION_PATTERN = r"<exception_print>TIME:(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+)[ \S]+?" \
@@ -229,6 +217,13 @@ class Constant:
     AIPP_ERR_INFO_DICT = {"000": "aipp_mte_ex_round : 表示访问外部存储绕回",
                           "001": "aipp_mte_l1_round : 表示访问L1 buffer绕回",
                           "010": "aipp_mte_inerr : 表示配置AIPP SPR相关的fp16为INF或者NAN"}
+    
+    IFU_KEY = "IFU_ERR_INFO"
+    CCU_KEY = "CCU_ERR_INFO"
+    BIU_KEY = "BIU_ERR_INFO"
+    CUBE_KEY = "CUBE_ERR_INFO"
+    MTE_KEY = "MTE_ERR_INFO"
+    VEC_KEY = "VEC_ERR_INFO"
 
     @property
     def max_top_n(self: any) -> int:

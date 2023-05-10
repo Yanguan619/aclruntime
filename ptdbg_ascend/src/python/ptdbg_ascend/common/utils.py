@@ -16,6 +16,7 @@
 """
 import collections
 import os
+import re
 import subprocess
 import sys
 import time
@@ -23,9 +24,15 @@ from datetime import datetime, timezone
 
 import numpy as np
 import torch
-if not torch.cuda.is_available():
-    from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
+try:
+    import torch_npu
+except ImportError:
+    is_gpu=True
+else:
+    is_gpu=False
 
+if not is_gpu:
+    from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
 
 device = collections.namedtuple('device', ['type', 'index'])
 
@@ -44,8 +51,10 @@ class Const:
     DUMP_RATIO_MAX = 100
     SUMMERY_DATA_NUMS = 256
     FLOAT_EPSILON = np.finfo(float).eps
-    NAN = 'NaN'
+    NAN = 'Nan'
     SUPPORT_DUMP_MODE = ['api', 'acl']
+    ON = 'ON'
+    OFF = 'OFF'
 
     # dump mode
     ALL = "all"
@@ -55,6 +64,9 @@ class Const:
     ACL = "acl"
     API_LIST = "api_list"
     API_STACK = "api_stack"
+    DUMP_MODE = [ALL, LIST, RANGE, STACK, ACL, API_LIST, API_STACK]
+
+    API_PATTERN = r"^[A-Za-z0-9]+[_]+([A-Za-z0-9]+[_]*[A-Za-z0-9]+)[_]+[0-9]+[_]+[A-Za-z0-9]+"
 
 
 class VersionCheck:
@@ -92,11 +104,15 @@ class CompareException(Exception):
     INVALID_DUMP_RATIO = 12
     INVALID_DUMP_FILE = 13
     UNKNOWN_ERROR = 14
+    INVALID_DUMP_MODE = 15
 
     def __init__(self, code, error_info: str = ""):
         super(CompareException, self).__init__()
         self.code = code
         self.error_info = error_info
+
+    def __str__(self):
+        return self.error_info
 
 
 def _print_log(level, msg):
@@ -134,6 +150,13 @@ def print_warn_log(warn_msg):
         warn_msg: the warning message.
     """
     _print_log("WARNING", warn_msg)
+
+
+def check_mode_valid(mode):
+    if mode not in Const.DUMP_MODE:
+        msg = "Current mode '%s' is not supported. Please use the field in %s" % \
+              (mode, Const.DUMP_MODE)
+        raise CompareException(CompareException.INVALID_DUMP_MODE, msg)
 
 
 def check_file_or_directory_path(path, isdir=False):
@@ -190,6 +213,12 @@ def get_dump_data_path(dump_dir):
             break
         dump_data_path = dir_path
     return dump_data_path, file_is_exist
+
+
+def get_api_name_from_matcher(name):
+    api_matcher = re.compile(Const.API_PATTERN)
+    match = api_matcher.match(name)
+    return match.group(1) if match else ""
 
 
 def modify_dump_path(dump_path):
@@ -295,7 +324,7 @@ def format_value(value):
 
 
 def torch_device_guard(func):
-    if torch.cuda.is_available():
+    if is_gpu:
         return func
     # Parse args/kwargs matched torch.device objects
 

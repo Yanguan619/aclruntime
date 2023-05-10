@@ -71,8 +71,26 @@ python3 saved_model2om.py --input_path=/xxx/xxx/saved_model --output_path=/xxx/o
 | --method_name | 用于配置TF Serving运行时用于推理的方法，不配置则会从原始saved_model中获取 |
 | --new_input_nodes | 重新选择输入节点，格式为"算子:类型:算子名;算子:类型:算子名"<br />例如"embedding:DT_FLOAT:bert/embedding/word_embeddings:0;add:DT_INT:bert/embedding/add:0" |
 | --new_output_nodes | 重新选择输出节点，格式为"算子:算子名"<br />例如"loss:loss/Softmax:0" |
+| --output_type | ATC/AOE参数，指定网络输出数据类型或指定某个输出节点的输出类型，使用方法请参考对应使用文档。可选参数。 |
+| --input_fp16_nodes | ATC/AOE参数，指定输入数据类型为FP16的输入节点名称，使用方法请参考对应使用文档。可选参数。 |
 
+### 4.ATC/AOE参数透传
 
-该工具同时支持对atc/aoe的参数进行透传，如果需要使用其余的参数，当--profiling未被指定时请参考ATC使用文档，当指定--profiling参数时请参考Aoe使用文档。
+该工具同时支持对ATC/AOE的参数进行透传。
+
+如果需要使用其余的参数，当`--profiling`未被指定时请参考ATC使用文档，当指定`--profiling`参数时请参考AOE使用文档。
+
+当您使用参数透传时，若您使用了如下参数，请参考如下参数的支持情况（以下参数在ATC/AOE中一致）：
+
+- --out_nodes
+  - 功能：用于指定输出节点。
+  - 该功能工具已支持，详见本工具参数`--new_output_nodes`。
+  - **本工具暂不支持使用参数透传`--out_nodes`**
+- --is_input_adjust_hw_layout
+  - 功能：用于指定网络输入数据类型是否为FP16，数据格式是否为NC1HWC0。
+  - **本工具暂不支持使用参数透传该参数**
+- --is_output_adjust_hw_layout
+  - 功能：用于指定网络输出数据类型是否为FP16，数据格式是否为NC1HWC0。
+  - **本工具暂不支持使用参数透传该参数**
 
 

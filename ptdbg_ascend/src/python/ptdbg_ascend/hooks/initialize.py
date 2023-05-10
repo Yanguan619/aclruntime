@@ -26,9 +26,13 @@ from ..common.utils import check_file_or_directory_path, add_time_as_suffix, \
     print_error_log, CompareException, Const, format_value, print_info_log, print_warn_log
 from .hooks import make_dump_dirs, get_process_rank 
 
-if not torch.cuda.is_available():
+try:
     import torch_npu
     from . import wrap_npu_custom
+except ImportError:
+    is_gpu=True
+else:
+    is_gpu=False
 
 def initialize_hook(hook):
     wrap_tensor.wrap_tensor_ops_and_bind(hook)
@@ -50,8 +54,8 @@ def initialize_hook(hook):
     for attr_name in dir(wrap_vf.HOOKVfOP):
         if attr_name.startswith("wrap_"):
             setattr(torch._VF, attr_name[5:], getattr(wrap_vf.HOOKVfOP, attr_name))
-
-    if not torch.cuda.is_available():
+    
+    if not is_gpu:
         wrap_npu_custom.wrap_npu_ops_and_bind(hook)
         for attr_name in dir(wrap_npu_custom.HOOKNpuOP):
             if attr_name.startswith("wrap_"):
@@ -72,23 +76,21 @@ def register_hook(model, hook, **kwargs):
     make_dump_dirs(rank, pid)
     hook_name = hook.__name__
 
-    if "overflow_check" in hook_name and not torch.cuda.is_available():
+    if "overflow_check" in hook_name and not is_gpu:
         if hasattr(torch_npu._C, "_enable_overflow_npu"):
             torch_npu._C._enable_overflow_npu()
-            print_info_log("Enable overflow function success.")
+            print_info_log("Enable overflow function success.")            
         else:
             print_warn_log("Api '_enable_overflow_npu' is not exist, "
                            "the overflow detection function on milan platform maybe not work! "
                            "please check the version of software torch_npu.")
+        # In NPU scene, clear the overflow flag before overflow detection
+        torch_npu._C._clear_overflow_npu()
 
     print_info_log("Start mounting the {} hook function to the model.".format(hook_name))
     hook = functools.partial(hook, dump_step=dump_step, overflow_nums=overflow_nums, pid=pid,
                              dump_mode=dump_mode, dump_config=dump_config_file)
     print_info_log("The {} hook function is successfully mounted to the model.".format(hook_name))
-
-    # In NPU scene, clear the overflow flag before overflow detection
-    if not torch.cuda.is_available():
-        torch_npu._C._clear_overflow_npu()
 
     initialize_hook(hook)
     for _, module in model.named_modules():

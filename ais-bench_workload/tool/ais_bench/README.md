@@ -1,5 +1,3 @@
-
-
 # ais_bench推理工具使用指南
 
 ## 简介
@@ -238,18 +236,22 @@ ais_bench推理工具可以通过配置不同的参数，来应对各种测试�
 | --dymBatch               | 动态Batch参数，指定模型输入的实际Batch。 <br>如ATC模型转换时，设置--input_shape="data:-1,600,600,3;img_info:-1,3" --dynamic_batch_size="1,2,4,8"，dymBatch参数可设置为：--dymBatch 2。 | 否       |
 | --dymHW                  | 动态分辨率参数，指定模型输入的实际H、W。 <br>如ATC模型转换时，设置--input_shape="data:8,3,-1,-1;img_info:8,4,-1,-1" --dynamic_image_size="300,500;600,800"，dymHW参数可设置为：--dymHW 300,500。 | 否       |
 | --dymDims                | 动态维度参数，指定模型输入的实际Shape。 <br>如ATC模型转换时，设置 --input_shape="data:1,-1;img_info:1,-1" --dynamic_dims="224,224;600,600"，dymDims参数可设置为：--dymDims "data:1,600;img_info:1,600"。 | 否       |
-| --dymShape               | 动态Shape参数，指定模型输入的实际Shape。 <br>如ATC模型转换时，设置--input_shape_range="input1:\[8\~20,3,5,-1\];input2:\[5,3\~9,10,-1\]"，dymShape参数可设置为：--dymShape "input1:8,3,5,10;input2:5,3,10,10"。<br>动态Shape场景下，获取模型的输出size通常为0（即输出数据占内存大小未知），建议设置--outputSize参数。<br/>例如：--dymShape "input1:8,3,5,10;input2:5,3,10,10" --outputSize "10000,10000" | 否       |
-| --dymShape_range         | 动态Shape的阈值范围。如果设置该参数，那么将根据参数中所有的Shape列表进行依次推理，得到汇总推理信息。<br/>配置格式为：name1:1:3:200\~224:224-230;name2:1,300。其中，name为模型输入名，“\~”表示范围，“-”表示某一位的取值。<br/>也可以指定动态Shape的阈值范围配置文件*.info，该文件中记录动态Shape的阈值范围。 | 否       |
+| --dymShape               | 动态Shape参数，指定模型输入的实际Shape。 <br>如ATC模型转换时，设置--input_shape_range="input1:\[8\~20,3,5,-1\];input2:\[5,3\~9,10,-1\]"，dymShape参数可设置为：--dymShape "input1:8,3,5,10;input2:5,3,10,10"。<br>动态Shape场景下，获取模型的输出size通常为0（即输出数据占内存大小未知），建议设置--outputSize参数。<br/>例如：--dymShape "input1:8,3,5,10;input2:5,3,10,10" --outputSize "10000,10000"。 | 否       |
+| --dymShape_range         | 动态Shape的阈值范围。如果设置该参数，那么将根据参数中所有的Shape列表进行依次推理，得到汇总推理信息。<br/>配置格式为：name1:1,3,200\~224,224-230;name2:1,300。其中，name为模型输入名，“\~”表示范围，“-”表示某一位的取值。<br/>也可以指定动态Shape的阈值范围配置文件*.info，该文件中记录动态Shape的阈值范围，文件中可同时设置多组Shape，一组Shape占用一行。 | 否       |
 | --outputSize             | 指定模型的输出数据所占内存大小，多个输出时，需要为每个输出设置一个值，多个值之间用“,”隔开。<br>动态Shape场景下，获取模型的输出size通常为0（即输出数据占内存大小未知），需要根据输入的Shape，预估一个较合适的大小，配置输出数据占内存大小。<br>例如：--dymShape "input1:8,3,5,10;input2:5,3,10,10" --outputSize "10000,10000" | 否       |
 | --auto_set_dymdims_mode  | 自动设置动态Dims模式。1或true（开启）、0或false（关闭），默认关闭。<br/>针对动态档位Dims模型，根据输入的文件的信息，自动设置Shape参数，注意输入数据只能为npy文件，因为bin文件不能读取Shape信息。<br/>配合input参数使用，单独使用无效。<br/>例如：--input 1.npy --auto_set_dymdims_mode 1 | 否       |
 | --auto_set_dymshape_mode | 自动设置动态Shape模式。取值为：1或true（开启）、0或false（关闭），默认关闭。<br>针对动态Shape模型，根据输入的文件的信息，自动设置Shape参数，注意输入数据只能为npy文件，因为bin文件不能读取Shape信息。<br>配合input参数使用，单独使用无效。<br/>例如：--input 1.npy --auto_set_dymshape_mode 1 | 否       |
-| --profiler               | profiler开关。1或true（开启）、0或false（关闭），默认关闭。<br>profiler数据在--output参数指定的目录下的profiler文件夹内。配合--output参数使用，单独使用无效。不能与--dump同时开启。 | 否       |
+| --profiler               | profiler开关。1或true（开启）、0或false（关闭），默认关闭。<br>profiler数据在--output参数指定的目录下的profiler文件夹内。配合--output参数使用，单独使用无效。不能与--dump同时开启。<br/>若环境配置了GE_PROFILING_TO_STD_OUT=1，则--profiler参数采集性能数据时使用的是acl.json配置文件方式。 | 否       |
 | --dump                   | dump开关。1或true（开启）、0或false（关闭），默认关闭。<br>dump数据在--output参数指定的目录下的dump文件夹内。配合--output参数使用，单独使用无效。不能与--profiler同时开启。 | 否       |
-| --acl_json_path          | acl.json文件路径，须指定一个有效的json文件。该文件内可配置profiler或者dump。当配置该参数时，--dump和--profiler参数无效。 | 否       |
-| --batchsize              | 模型batchsize。不输入该值将自动推导。当前推理模块根据模型输入和文件输出自动进行组Batch。参数传递的batchszie有且只用于结果吞吐率计算。自动推导逻辑为尝试获取模型的batchsize时，首先获取第一个参数的最高维作为batchsize； 如果是动态Batch的话，更新为动态Batch的值；如果是动态dims和动态Shape更新为设置的第一个参数的最高维。如果自动推导逻辑不满足要求，请务必传入准确的batchsize值，以计算出正确的吞吐率。 | 否       |
-| --output_batchsize_axis  | 输出tensor的batchsize轴，默认值为0。输出结果保存文件时，根据哪个轴进行切割推理结果，比如batchsize为2，表示2个输入文件组batch进行推理，那输出结果的batch维度是在哪个轴。默认为0轴，按照0轴进行切割为2份，但是部分模型的输出batch为1轴，所以要设置该值为1。 | 否       |
+| --acl_json_path          | acl.json配置文件路径，须指定一个有效的json文件。该文件内可配置profiler或者dump。当配置该参数时，--dump和--profiler参数无效。 | 否       |
+| --batchsize              | 模型batchsize。不输入该值将自动推导。参数传递的batchszie有且只用于结果吞吐率计算。自动推导逻辑为尝试获取模型的batchsize时，首先获取第一个参数的最高维作为batchsize； 如果是动态Batch的话，更新为动态Batch的值；如果是动态dims和动态Shape更新为设置的第一个参数的最高维。如果自动推导逻辑不满足要求，请务必传入准确的batchsize值，以计算出正确的吞吐率。 | 否       |
+| --output_batchsize_axis  | 输出tensor的batchsize轴。输出结果保存文件时，根据哪个轴进行切割推理结果，那输出结果的batch维度就在哪个轴。默认按照0轴进行切割，但是部分模型的输出batch为1轴，所以要设置该值为1。 | 否       |
+
+
 
 ### 使用场景
+
+**说明**：对于ais_bench推理工具的输入输出，工具会根据模型的实际输入size对输入文件进行组合，输入文件不足则自动补全，输入文件过多则分批次；完成推理测试后根据模型batchsize对输出文件进行切割。
 
  #### 纯推理场景
 
@@ -293,8 +295,6 @@ python3 -m ais_bench --model /home/model/resnet50_v1.om --output ./ --debug 1
 
 使用--input参数指定模型输入文件，多个文件之间通过“,”进行分隔。
 
-本场景会根据文件输入size和模型实际输入size进行对比，若缺少数据则会自动构造数据补全，称为组Batch。
-
 示例命令如下：
 
 ```bash
@@ -305,13 +305,11 @@ python3 -m ais_bench --model ./resnet50_v1_bs1_fp32.om --input "./1.bin,./2.bin,
 
 使用input参数指定模型输入文件所在目录，多个目录之间通过“,”进行分隔。
 
-本场景会根据文件输入size和模型实际输入size进行组Batch。
-
 ```bash
 python3 -m ais_bench --model ./resnet50_v1_bs1_fp32.om --input "./"
 ```
 
-模型输入需要与传入文件夹的个数一致。
+传入文件夹的个数需要与模型实际输入一致。
 
 例如，bert模型有三个输入，则必须传入3个文件夹，且三个文件夹分别对应模型的三个输入，顺序要对应。
 模型输入参数的信息可以通过开启调试模式查看，bert模型的三个输入依次为input_ids、 input_mask、 segment_ids，所以依次传入三个文件夹：
@@ -369,7 +367,7 @@ i:1 device_2 throughput:276.54867008654026 start_time:1676875630.8043878 end_tim
 
 ##### 动态Batch
 
-以档位1 2 4 8档为例，设置档位为2，本程序将获取实际模型输入组Batch，每2个输入为一组，进行组Batch。
+以档位1 2 4 8档为例，设置档位为2。
 
 ```bash
 python3 -m ais_bench --model ./resnet50_v1_dynamicbatchsize_fp32.om --input=./data/ --dymBatch 2
@@ -377,7 +375,7 @@ python3 -m ais_bench --model ./resnet50_v1_dynamicbatchsize_fp32.om --input=./da
 
 ##### 动态HW宽高
 
-以档位224,224;448,448档为例，设置档位为224,224，本程序将获取实际模型输入组Batch。
+以档位224,224;448,448档为例，设置档位为224,224。
 
 ```bash
 python3 -m ais_bench --model ./resnet50_v1_dynamichw_fp32.om --input=./data/ --dymHW 224,224
@@ -385,7 +383,7 @@ python3 -m ais_bench --model ./resnet50_v1_dynamichw_fp32.om --input=./data/ --d
 
 ##### 动态Dims
 
-以设置档位1,3,224,224为例，本程序将获取实际模型输入组Batch。
+以设置档位1,3,224,224为例。
 
 ```bash
 python3 -m ais_bench --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --dymDims actual_input_1:1,3,224,224
@@ -405,7 +403,7 @@ python3 -m ais_bench --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --
 
 ##### 动态Shape
 
-以ATC设置[1\~8,3,200\~300,200\~300]，设置档位1,3,224,224为例，本程序将获取实际模型输入组Batch。
+以ATC设置[1\~8,3,200\~300,200\~300]，设置档位1,3,224,224为例。
 
 动态Shape的输出大小通常为0，建议通过outputSize参数设置对应输出的内存大小。
 
@@ -438,7 +436,7 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
 #### profiler或dump场景
 
 支持以--acl_json_path、--profiler、--dump参数形式实现：
-+ acl_json_path参数指定acl.json文件，可以在该文件中对应的profiler或dump参数。示例代码如下：
++ acl_json_path参数指定acl.json配置文件，可以在该文件中对应的profiler或dump参数。示例代码如下：
 
   + profiler
 
@@ -482,7 +480,11 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
           msprof_bin, args.output, cmd)
   ```
 
-  该方式进行性能数据采集时，首先检查是否存在msprof命令，若命令存在，则使用该命令进行性能数据采集、解析并导出为可视化的timeline和summary文件；若命令不存在，则调用acl.json文件进行性能数据采集，这种情况下采集的性能数据文件未自动解析，需要参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>数据解析与导出”章节，将性能数据解析并导出为可视化的timeline和summary文件。
+  该方式进行性能数据采集时，首先检查是否存在msprof命令：
+
+  - 若命令存在，则使用该命令进行性能数据采集、解析并导出为可视化的timeline和summary文件。
+  - 若命令不存在，则调用acl.json配置文件进行性能数据采集。采集的性能数据文件未自动解析，需要参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>数据解析与导出”章节，将性能数据解析并导出为可视化的timeline和summary文件。
+  - 若环境配置了GE_PROFILING_TO_STD_OUT=1，则--profiler参数采集性能数据时使用的是acl.json配置文件方式。采集的性能数据文件未自动解析，需要参见《[解析profiling文件](https://gitee.com/ascend/tools/blob/master/ada/doc/ada_pa.md)》对性能数据进行解析。
 
   更多性能数据采集参数介绍请参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>性能数据采集（msprof命令行方式）”章节。
 

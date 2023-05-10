@@ -20,21 +20,32 @@ import json
 import os
 import random
 import stat
-
+import sys
+from pathlib import Path
 import numpy as np
 import torch
+import shutil
+import threading
 
-if not torch.cuda.is_available():
+try:
     import torch_npu
+except ImportError:
+    is_gpu = True
+else:
+    is_gpu = False
 
 from ..common.utils import check_file_or_directory_path, print_error_log, \
-    print_warn_log, CompareException, Const, get_time, print_info_log, modify_dump_path
-from .backward import Backward
+    print_warn_log, CompareException, Const, get_time, print_info_log, modify_dump_path, \
+    check_mode_valid, get_api_name_from_matcher
+
+from ..common.version import __version__
 
 DumpCount = 0
 forward_init_status = False
 backward_init_status = False
+range_begin_flag, range_end_flag = False, False
 
+backward_threading_id = 0
 
 class DumpUtil(object):
     dump_data_dir = None
@@ -44,6 +55,9 @@ class DumpUtil(object):
     dump_switch_scope = []
     dump_init_enable = False
     dump_api_list = []
+    dump_filter_switch = None
+    backward_input = {}
+    dump_dir_tag = 'ptdbg_dump'
 
     @staticmethod
     def set_dump_path(save_path):
@@ -51,12 +65,15 @@ class DumpUtil(object):
         DumpUtil.dump_init_enable = True
 
     @staticmethod
-    def set_dump_switch(switch, mode, scope, api_list):
+    def set_dump_switch(switch, mode, scope, api_list, filter_switch):
         DumpUtil.dump_switch = switch
         DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_init_enable = True
         DumpUtil.dump_switch_scope = scope
         DumpUtil.dump_api_list = [api.lower() for api in api_list]
+        DumpUtil.dump_filter_switch = filter_switch
+        if mode == Const.ACL:
+            DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
     def check_list_or_acl_mode(name_prefix):
         global DumpCount
@@ -66,10 +83,17 @@ class DumpUtil(object):
                 return True
 
     def check_range_mode(name_prefix):
-        start = int(DumpUtil.dump_switch_scope[0].split('_', 1)[0])
-        end = int(DumpUtil.dump_switch_scope[1].split('_', 1)[0])
-        curr = int(name_prefix.split('_', 1)[0])
-        return start <= curr <= end
+        global range_begin_flag
+        global range_end_flag
+        if name_prefix.startswith(DumpUtil.dump_switch_scope[0]):
+            range_begin_flag = True
+            return True
+        if name_prefix.startswith(DumpUtil.dump_switch_scope[1]):
+            range_end_flag = True
+            return True
+        if range_begin_flag and not range_end_flag:
+            return True
+        return False
 
     def check_stack_mode(name_prefix):
         if len(DumpUtil.dump_switch_scope) == 0:
@@ -121,11 +145,13 @@ class DumpUtil(object):
 
 class OverFlowUtil(object):
     overflow_check_switch = None
+    overflow_filter_switch = None
     real_overflow_dump_times = 0
 
     @staticmethod
-    def set_overflow_check_switch(switch):
+    def set_overflow_check_switch(switch, filter_switch):
         OverFlowUtil.overflow_check_switch = switch
+        OverFlowUtil.overflow_filter_switch = filter_switch
 
     @staticmethod
     def get_overflow_check_switch():
@@ -142,7 +168,7 @@ class OverFlowUtil(object):
         return OverFlowUtil.real_overflow_dump_times < need_dump_times
 
 
-def set_dump_path(fpath=None):
+def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
     if fpath is None:
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
         return
@@ -150,39 +176,100 @@ def set_dump_path(fpath=None):
     if os.path.isdir(real_path):
         print_error_log("set_dump_path '{}' error, please set a valid filename.".format(real_path))
         raise CompareException(CompareException.INVALID_PATH_ERROR)
-    check_file_or_directory_path(os.path.dirname(real_path), True)
     if os.path.exists(real_path):
         os.remove(real_path)
     DumpUtil.set_dump_path(real_path)
+    DumpUtil.dump_dir_tag = dump_tag
 
 
-def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[]):
+def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON):
     global DumpCount
-    assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
     if mode == Const.LIST and switch == "ON":
         DumpCount = 0
     if mode == Const.LIST and switch == "OFF":
         print_info_log("The number of matched dump is {}".format(DumpCount))
-    if mode == Const.RANGE:
-        assert len(scope) == 2, "set_dump_switch, scope param set invalid, it's must be [start, end]."
-    if mode == Const.LIST:
-        assert len(scope) != 0, "set_dump_switch, scope param set invalid, it's should not be an empty list."
-    if mode == Const.STACK:
-        assert len(scope) <= 2, "set_dump_switch, scope param set invalid, it's must be [start, end] or []."
-    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list)
+    try:
+        check_mode_valid(mode)
+        assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
+        assert filter_switch in ["ON", "OFF"], "Please set filter_switch with 'ON' or 'OFF'."
+        if mode == Const.RANGE:
+            assert len(scope) == 2, "set_dump_switch, scope param set invalid, it's must be [start, end]."
+        if mode == Const.LIST:
+            assert len(scope) != 0, "set_dump_switch, scope param set invalid, it's should not be an empty list."
+        if mode == Const.STACK:
+            assert len(scope) <= 2, "set_dump_switch, scope param set invalid, it's must be [start, end] or []."
+        if mode == Const.ACL:
+            assert len(scope) == 1, "set_dump_switch, scope param set invalid, only one api name is supported in acl mode."
+        if mode == Const.API_LIST:
+            assert isinstance(api_list, list) and len(api_list) >= 1, \
+                "Current dump mode is 'api_list', but the content of api_list parameter is empty or valid."
+    except (CompareException, AssertionError) as err:
+        print_error_log(str(err))
+        sys.exit()
+    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch)
 
 
-def set_overflow_check_switch(switch):
+def set_backward_input(backward_input):
+    for index, api_name in enumerate(DumpUtil.dump_switch_scope):
+        DumpUtil.backward_input[api_name] = backward_input[index]
+
+
+def set_overflow_check_switch(switch, filter_switch=Const.ON):
     assert switch in ["ON", "OFF"], "Please set overflow switch with 'ON' or 'OFF'."
-    OverFlowUtil.set_overflow_check_switch(switch)
+    assert filter_switch in ["ON", "OFF"], "Please set overflow filter_switch with 'ON' or 'OFF'."
+    OverFlowUtil.set_overflow_check_switch(switch, filter_switch)
 
+def json_dump_condition(prefix):
+    cur_threading_id = threading.current_thread().ident
+    global backward_threading_id
+    if not backward_threading_id and 'backward' in prefix:
+        backward_threading_id = cur_threading_id
+    return ('backward' in prefix and backward_threading_id == cur_threading_id) or 'forward' in prefix
+
+def dump_not_float_tensor(x, prefix, dump_step, dump_file_name):
+    with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
+                   "a") as f:
+        summery_data = []
+        if x.numel() == 0 or x.dtype == torch.bool:
+            tensor_max = []
+            tensor_min = []
+            tensor_mean = []
+        elif len(x.shape) == 0:
+            tensor_max = x.cpu().detach().float().numpy().tolist()
+            tensor_min = x.cpu().detach().float().numpy().tolist()
+            tensor_mean = x.cpu().detach().float().numpy().tolist()
+        else:
+            tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
+            tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()
+            tensor_mean = torch._C._VariableFunctionsClass.mean(x.float()).cpu().detach().float().numpy().tolist()
+        saved_tensor = x.contiguous().cpu().detach().numpy()
+        summery_data.extend([tensor_max, tensor_min, tensor_mean])
+        if json_dump_condition(prefix):
+            output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
+            np.save(output_path, saved_tensor)
+            json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
+            f.write('\n')
+
+def dump_scalar_para(x, prefix, dump_step, dump_file_name):
+    if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
+        with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
+            summery_data = []
+            summery_data.extend([x, x, x])
+            if json_dump_condition(prefix):
+                output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
+                np.save(output_path, x)
+                json.dump([prefix, dump_step, [], str(type(x)), str([]), summery_data], f)
+                f.write('\n')
 
 def dump_tensor(x, prefix, dump_step, dump_file_name):
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
             dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
+        return
     elif isinstance(x, torch.Tensor):
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
+            if DumpUtil.dump_filter_switch == Const.OFF:
+                dump_not_float_tensor(x, prefix, dump_step, dump_file_name)
             return
 
         with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
@@ -196,52 +283,72 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
             saved_tensor = x.contiguous().cpu().detach().numpy()
             summery_data.extend([tensor_max, tensor_min, tensor_mean])
 
-            output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-            np.save(output_path, saved_tensor)
-            json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
+            if json_dump_condition(prefix):
+                output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
+                np.save(output_path, saved_tensor)
+                json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
+                f.write('\n')
 
-            f.write('\n')
+    elif DumpUtil.dump_filter_switch == Const.OFF:
+        dump_scalar_para(x, prefix, dump_step, dump_file_name)
 
 
 def _dump_tensor_completely(x, prefix, dump_file_name):
     if "stack_info" in prefix:
         with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-            json.dump([prefix, x], f)
-            f.write('\n')
+            if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
+                if json_dump_condition(prefix):
+                    json.dump([prefix, x], f)
+                    f.write('\n')
+            else:
+                json.dump([prefix, x], f)
+                f.write('\n')
         return
 
     dump_flag = Const.DUMP_RATIO_MAX + 1
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
             _dump_tensor_completely(item, "{}.{}".format(prefix, i), dump_file_name)
-    else:
+    elif isinstance(x, torch.Tensor):
         with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-            if isinstance(x, torch.Tensor) and x.numel() != 0:
+            if x.numel() != 0:                
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
                 save_tensor = x.contiguous().cpu().detach().numpy()
                 np.save(output_path, save_tensor)
                 json.dump([prefix, dump_flag, [], str(x.dtype), tuple(x.shape)], f)
             f.write('\n')
+    elif OverFlowUtil.overflow_filter_switch == Const.OFF:
+        dump_scalar_para(x, prefix, dump_flag, dump_file_name)
 
 
-def seed_all(seed=1234):
+def seed_all(seed=1234, mode=False):
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    torch.use_deterministic_algorithms(mode)
+    if is_gpu:
+        torch.cuda.manual_seed_all(seed)
+        torch.cuda.manual_seed(seed)
+        torch.backends.cudnn.deterministic=True
+        torch.backends.cudnn.enable=False
+        torch.backends.cudnn.benchmark=False
+    else:
+        torch_npu.npu.manual_seed_all(seed)
+        torch_npu.npu.manual_seed(seed)
 
 def get_process_rank(model):
-    print("Rank id is not provided. Trying to get the rank id of the model.")
+    print_info_log("Rank id is not provided. Trying to get the rank id of the model.")
     try:
         device = next(model.parameters()).device 
     except StopIteration:
-        print('There is no parameter in the model. Fail to get rank id.')
+        print_warn_log('There is no parameter in the model. Fail to get rank id.')
         return 0
     if device.type == 'cpu':
-        print("Warning: the debugger is unable to get the rank id. "
+        print_warn_log("Warning: the debugger is unable to get the rank id. "
             "This may cause the dumpped data to be corrupted in the "
-            "case of DDP. Transfer the model to npu or gpu before "
-            "register_hook() to avoid this warning.")
+            "case of distributed training. (You may ignore this if you are using only one card.) "
+            "Transfer the model to npu or gpu before register_hook() to avoid this warning.")
         return 0
     else:
         return device.index
@@ -251,42 +358,40 @@ def make_dump_dirs(rank, pid):
         dump_root_dir, dump_file_name = os.path.split(DumpUtil.dump_path)
         dump_file_name_body, _ = os.path.splitext(dump_file_name)
     else:
-        dump_root_dir, dump_file_name, dump_file_name_body = './', 'dummy.pkl', ''
-    time = get_time()
-    time_dir = os.path.join(dump_root_dir, dump_file_name_body + '_' + str(time))
-    if rank == 0 and not os.path.exists(time_dir): # add rank==0 to prevent repeated mkdir
-        os.mkdir(time_dir)
-    while not os.path.exists(time_dir): # wait for rank 0 process to create timedir
-        pass 
-    rank_dir = os.path.join(time_dir, 'rank' + str(rank))
+        dump_root_dir, dump_file_name, dump_file_name_body = './', 'anonymous.pkl', 'anonymous'
+    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_v{__version__}')
+    Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
+    rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
     if not os.path.exists(rank_dir):
-        os.mkdir(rank_dir)
-    pid_dir = os.path.join(rank_dir, 'pid' + str(pid))
-    if not os.path.exists(pid_dir):
-        os.mkdir(pid_dir)
-    DumpUtil.dump_dir = pid_dir 
-    DumpUtil.set_dump_path(os.path.join(pid_dir, dump_file_name))
+        os.mkdir(rank_dir, mode=0o750)
+    DumpUtil.dump_dir = rank_dir
+    dump_file_path = os.path.join(rank_dir, dump_file_name)
+    if os.path.exists(dump_file_path) and not os.path.isdir(dump_file_path):
+        os.remove(dump_file_path)
+    DumpUtil.set_dump_path(dump_file_path)
 
 def make_dump_data_dir(dump_file_name):
     dump_path, file_name = os.path.split(os.path.realpath(dump_file_name))
     name_body, name_extension = os.path.splitext(file_name)
-    output_dir = os.path.join(dump_path, f"{name_body}_{get_time()}")
+    output_dir = os.path.join(dump_path, f"{name_body}")
     if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
+        os.mkdir(output_dir, mode=0o750)
+    else:
+        shutil.rmtree(output_dir, ignore_errors=True)
+        os.mkdir(output_dir, mode=0o750)
     return output_dir
 
 
 def _set_dump_switch4api_list(name):
     if DumpUtil.dump_api_list:
-        api_name = name.split("_")[1].lower()
-        if api_name in DumpUtil.dump_api_list and DumpUtil.dump_switch == "ON":
-            DumpUtil.dump_switch = "OFF"
+        api_name = get_api_name_from_matcher(name)
+        DumpUtil.dump_switch = "ON" if api_name in DumpUtil.dump_api_list else "OFF"
 
 
 def dump_stack_info(name_template, dump_file):
     stack_str = []
     for (_, path, line, func, code, _) in inspect.stack()[3:]:
-        stack_line = [path, str(line), func, code[0].strip()]
+        stack_line = [path, str(line), func, code[0].strip() if code else code]
         stack_str.append(stack_line)
     _dump_tensor_completely(stack_str, name_template.format("stack_info"), dump_file)
 
@@ -299,14 +404,11 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, moudle):
 
     if DumpUtil.get_dump_switch():
         if DumpUtil.dump_init_enable:
-            dump_acc_cmp.call_number = 0
             DumpUtil.dump_init_enable = False
             DumpUtil.dump_data_dir = make_dump_data_dir(dump_file) \
-                if DumpUtil.dump_switch_mode != Const.STACK else ""
-        else:
-            dump_acc_cmp.call_number = dump_acc_cmp.call_number + 1
+                if DumpUtil.dump_switch_mode not in [Const.STACK, Const.ACL] else ""
 
-        name_prefix = f"{dump_acc_cmp.call_number}_{name}"
+        name_prefix = name
         name_template = f"{name_prefix}" + "_{}"
         if DumpUtil.dump_switch_mode in [Const.ALL, Const.API_LIST]:
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
@@ -316,13 +418,15 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, moudle):
         elif DumpUtil.check_switch_scope(name_prefix):
             dump_stack_info(name_template, dump_file)
             if DumpUtil.dump_switch_mode == Const.ACL:
-                acl_dump(moudle, name)
+                acl_dump(moudle, name, name_prefix)
             elif DumpUtil.dump_switch_mode != Const.STACK:
                 dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
 
 
-def acl_dump(module, module_name):
-    if "forward" in module_name:
+def acl_dump(module, module_name, name_prefix):
+    if name_prefix in DumpUtil.backward_input:
+        dump_mode_backward_acl_dump(module, module_name, DumpUtil.backward_input.get(name_prefix))
+    else:
         forward_acl_dump(module, module_name)
 
 
@@ -335,6 +439,34 @@ def forward_acl_dump(module, module_name):
         torch_npu.npu.set_dump(DumpUtil.dump_config)
         torch_npu.npu.synchronize()
         module.forward(*module.input_args, **module.input_kwargs)
+        torch_npu.npu.synchronize()
+        torch_npu.npu.finalize_dump()
+    del module.input_args
+    del module.input_kwargs
+    forward_init_status = False
+    print_info_log("Dump %s op file." % module_name)
+
+
+def dump_mode_backward_acl_dump(module, module_name, grad_path):
+    global forward_init_status
+    global backward_init_status
+    module_name = module_name.replace("forward", "backward")
+    if not forward_init_status and not backward_init_status:
+        forward_init_status = True
+        module.input_args = list(module.input_args)
+        for i, data in enumerate(module.input_args):
+            if isinstance(data, torch.Tensor) and data.grad_fn:
+                module.input_args[i] = data.detach().requires_grad_()
+        output = module.forward(*module.input_args, **module.input_kwargs)
+        if not isinstance(output, torch.Tensor):
+            print_warn_log("The output of {} is not of tensor type and cannot be automatically derived. "
+                            "you can manually construct a single API backward case for ACL dump.".format(module_name))
+            return
+        grad = torch.tensor(np.load(grad_path)).to("npu").requires_grad_()
+        torch_npu.npu.init_dump()
+        torch_npu.npu.set_dump(DumpUtil.dump_config)
+        torch_npu.npu.synchronize()
+        output.backward(grad, retain_graph=True)
         torch_npu.npu.synchronize()
         torch_npu.npu.finalize_dump()
     del module.input_args
@@ -374,8 +506,12 @@ def dump_overflow(module_name, stack_str, in_feat, out_feat, dump_file):
     name_template = f"{module_name}" + "_{}"
     DumpUtil.dump_data_dir = make_dump_data_dir(dump_file)
     _dump_tensor_completely(stack_str, name_template.format("stack_info"), dump_file)
-    _dump_tensor_completely(in_feat, name_template.format("input"), dump_file)
-    _dump_tensor_completely(out_feat, name_template.format("output"), dump_file)
+    if "forward" in name_template:
+        _dump_tensor_completely(in_feat, name_template.format("input"), dump_file)
+        _dump_tensor_completely(out_feat, name_template.format("output"), dump_file)
+    else:
+        _dump_tensor_completely(in_feat, name_template.format("output"), dump_file)
+        _dump_tensor_completely(out_feat, name_template.format("input"), dump_file)
 
 
 def overflow_check(name, **kwargs):
@@ -387,10 +523,6 @@ def overflow_check(name, **kwargs):
     pid = kwargs.get('pid')
     dump_mode = kwargs.get('dump_mode', "api")
     DumpUtil.dump_config = kwargs.get('dump_config')
-    dump_config = kwargs.get('dump_config')
-    if dump_mode == "acl":
-        backward_obj = Backward()
-        torch.autograd.backward = backward_obj.backward
     if not pid:
         return RuntimeError("Not get the specified process pid.")
 
@@ -399,7 +531,7 @@ def overflow_check(name, **kwargs):
             return
         if pid != os.getpid():
             return
-        if torch.cuda.is_available():
+        if is_gpu:
             print_warn_log("Overflow detection is not supported in the GPU environment.")
             return
         global backward_init_status
@@ -407,7 +539,6 @@ def overflow_check(name, **kwargs):
             return
         module_name = name
         module.has_overflow = torch_npu._C._check_overflow_npu()
-
         if not module.has_overflow:
             if hasattr(module, 'input_args'):
                 del module.input_args
@@ -420,7 +551,7 @@ def overflow_check(name, **kwargs):
             stack_str = []
             for (_, path, line, func, code, _) in inspect.stack()[3:]:
                 if code:
-                    stack_line = [path, str(line), func, code[0].strip()]
+                    stack_line = [path, str(line), func, code[0].strip() if code else code]
                 else:
                     stack_line = [path, str(line), func, code]
                 stack_str.append(stack_line)
@@ -430,7 +561,6 @@ def overflow_check(name, **kwargs):
                            .format(OverFlowUtil.real_overflow_dump_times, module_name, os.path.realpath(dump_file_name)))
             if dump_mode == "acl":
                 acl_dump(module, module_name)
-           
 
             # clear overflow flag for the next check
             torch_npu._C._clear_overflow_npu()
@@ -443,21 +573,7 @@ def overflow_check(name, **kwargs):
         if "forward" in module_name:
             forward_acl_dump(module, module_name)
         if "backward" in module_name:
-            backward_acl_dump()
-
-    def backward_acl_dump():
-        global forward_init_status
-        global backward_init_status
-        if not forward_init_status and not backward_init_status:
-            backward_init_status = True
-            torch_npu.npu.init_dump()
-            torch_npu.npu.set_dump(dump_config)
-            torch_npu.npu.synchronize()
-            torch.autograd.backward(backward_obj.tensors, backward_obj.gradient, backward_obj.retain_graph,
-                                    backward_obj.create_graph, inputs=backward_obj.inputs)
-            torch_npu.npu.synchronize()
-            torch_npu.npu.finalize_dump()
-            print_info_log("Dump backward op file.")
-            raise ValueError("[Acl backward only support one time, will stop when detecct backward overflow]")
+            print_info_log("The overflow is caused by backward operator {}. "
+                           "You can use reverse acl dump(mode='acl') to get operator dump data.".format(module_name))
 
     return overflowcheck_hook

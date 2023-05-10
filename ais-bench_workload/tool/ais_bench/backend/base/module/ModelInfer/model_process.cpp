@@ -190,7 +190,7 @@ Result ModelProcess::SetDynamicShape(std::map<std::string, std::vector<int64_t>>
 {
     aclError ret;
     const char *name;
-    size_t  input_num = dym_shape_map.size();
+    size_t input_num = dym_shape_map.size();
     aclTensorDesc * inputDesc;
     for (size_t i = 0; i < input_num; i++) {
         name = aclmdlGetInputNameByIndex(modelDesc_, i);
@@ -198,6 +198,8 @@ Result ModelProcess::SetDynamicShape(std::map<std::string, std::vector<int64_t>>
         std::copy(dym_shape_map[name].begin(), dym_shape_map[name].end(), arr);
 	    inputDesc = aclCreateTensorDesc(ACL_FLOAT, dims_num[i], arr, ACL_FORMAT_NCHW);
         ret = aclmdlSetDatasetTensorDesc(input_, inputDesc, i);
+        aclDestroyTensorDesc(inputDesc);
+        inputDesc = nullptr;
         if (ret != ACL_SUCCESS) {
             cout << aclGetRecentErrMsg() << endl;
             ERROR_LOG("aclmdlSetDatasetTensorDesc failed %d", ret);

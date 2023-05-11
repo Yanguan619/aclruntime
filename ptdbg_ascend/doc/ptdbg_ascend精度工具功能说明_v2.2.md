@@ -241,8 +241,8 @@ set_dump_path("./npu_dump_scope.pkl")
 
 ...
 
-# 注册精度比对dump的hook函数，调整dump_step为1，此时为全量dump
-register_hook(model, acc_cmp_dump, dump_step=1)
+# 注册精度比对dump的hook函数
+register_hook(model, acc_cmp_dump)
 
 ...
 

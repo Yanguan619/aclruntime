@@ -68,6 +68,10 @@ class Const:
 
     API_PATTERN = r"^[A-Za-z0-9]+[_]+([A-Za-z0-9]+[_]*[A-Za-z0-9]+)[_]+[0-9]+[_]+[A-Za-z0-9]+"
 
+    # accuracy standards
+    COS_THRESHOLD = 0.99
+    MAX_ABS_ERR_THRESHOLD = 0.001
+
 
 class VersionCheck:
     """

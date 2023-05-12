@@ -340,11 +340,12 @@ def torch_device_guard(func):
     return wrapper
 
 
-def seed_all(seed=1234):
+def seed_all(seed=1234, mode=False):
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    torch.use_deterministic_algorithms(mode)
     if is_gpu:
         torch.cuda.manual_seed_all(seed)
         torch.cuda.manual_seed(seed)

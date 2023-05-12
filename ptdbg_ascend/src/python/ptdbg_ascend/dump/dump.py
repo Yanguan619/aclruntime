@@ -34,49 +34,56 @@ backward_init_status = False
 backward_threading_id = 0
 
 
+class DataInfo(object):
+    def __init__(self, data, save_data, summary_data, dtype, shape):
+        self.data = data
+        self.save_data = save_data
+        self.summary_data = summary_data
+        self.dtype = dtype
+        self.shape = shape
+
+
+def get_not_float_tensor_info(data):
+    summary_data = []
+    if data.numel() == 0 or data.dtype == torch.bool:
+        tensor_max = []
+        tensor_min = []
+        tensor_mean = []
+    elif len(data.shape) == 0:
+        tensor_max = data.cpu().detach().float().numpy().tolist()
+        tensor_min = data.cpu().detach().float().numpy().tolist()
+        tensor_mean = data.cpu().detach().float().numpy().tolist()
+    else:
+        tensor_max = torch._C._VariableFunctionsClass.max(data).cpu().detach().float().numpy().tolist()
+        tensor_min = torch._C._VariableFunctionsClass.min(data).cpu().detach().float().numpy().tolist()
+        tensor_mean = torch._C._VariableFunctionsClass.mean(data.float()).cpu().detach().float().numpy().tolist()
+    saved_tensor = data.contiguous().cpu().detach().numpy()
+    summary_data.extend([tensor_max, tensor_min, tensor_mean])
+    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
+
+
+def get_scalar_data_info(data):
+    summary_data = []
+    summary_data.extend([data, data, data])
+    return DataInfo(data, data, summary_data, str(type(data)), str([]))
+
+
+def get_float_tensor_info(data):
+    summary_data = []
+    tensor_max = torch._C._VariableFunctionsClass.max(data).cpu().detach().float().numpy().tolist()
+    tensor_min = torch._C._VariableFunctionsClass.min(data).cpu().detach().float().numpy().tolist()
+    tensor_mean = torch._C._VariableFunctionsClass.mean(data).cpu().detach().float().numpy().tolist()
+    saved_tensor = data.contiguous().cpu().detach().numpy()
+    summary_data.extend([tensor_max, tensor_min, tensor_mean])
+    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
+
+
 def json_dump_condition(prefix):
     cur_threading_id = threading.current_thread().ident
     global backward_threading_id
     if not backward_threading_id and 'backward' in prefix:
         backward_threading_id = cur_threading_id
     return ('backward' in prefix and backward_threading_id == cur_threading_id) or 'forward' in prefix
-
-
-def dump_not_float_tensor(x, prefix, dump_step, dump_file_name):
-    with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
-                   "a") as f:
-        summery_data = []
-        if x.numel() == 0 or x.dtype == torch.bool:
-            tensor_max = []
-            tensor_min = []
-            tensor_mean = []
-        elif len(x.shape) == 0:
-            tensor_max = x.cpu().detach().float().numpy().tolist()
-            tensor_min = x.cpu().detach().float().numpy().tolist()
-            tensor_mean = x.cpu().detach().float().numpy().tolist()
-        else:
-            tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
-            tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()
-            tensor_mean = torch._C._VariableFunctionsClass.mean(x.float()).cpu().detach().float().numpy().tolist()
-        saved_tensor = x.contiguous().cpu().detach().numpy()
-        summery_data.extend([tensor_max, tensor_min, tensor_mean])
-        if json_dump_condition(prefix):
-            output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-            np.save(output_path, saved_tensor)
-            json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
-            f.write('\n')
-
-
-def dump_scalar_para(x, prefix, dump_step, dump_file_name):
-    if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
-        with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-            summery_data = []
-            summery_data.extend([x, x, x])
-            if json_dump_condition(prefix):
-                output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-                np.save(output_path, x)
-                json.dump([prefix, dump_step, [], str(type(x)), str([]), summery_data], f)
-                f.write('\n')
 
 
 def dump_tensor(x, prefix, dump_step, dump_file_name):
@@ -87,28 +94,25 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
     elif isinstance(x, torch.Tensor):
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
             if DumpUtil.dump_filter_switch == Const.OFF:
-                dump_not_float_tensor(x, prefix, dump_step, dump_file_name)
+                data_info = get_not_float_tensor_info(x)
+                dump_data(dump_file_name, dump_step, prefix, data_info)
             return
-
-        with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
-                       "a") as f:
-            summery_data = []
-
-            tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
-            tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()
-            tensor_mean = torch._C._VariableFunctionsClass.mean(x).cpu().detach().float().numpy().tolist()
-            dump_flag = Const.DUMP_RATIO_MAX + 1
-            saved_tensor = x.contiguous().cpu().detach().numpy()
-            summery_data.extend([tensor_max, tensor_min, tensor_mean])
-
-            if json_dump_condition(prefix):
-                output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-                np.save(output_path, saved_tensor)
-                json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
-                f.write('\n')
+        data_info = get_float_tensor_info(x)
+        dump_data(dump_file_name, dump_step, prefix, data_info)
 
     elif DumpUtil.dump_filter_switch == Const.OFF:
-        dump_scalar_para(x, prefix, dump_step, dump_file_name)
+        data_info = get_scalar_data_info(x)
+        dump_data(dump_file_name, dump_step, prefix, data_info)
+
+
+def dump_data(dump_file_name, dump_step, prefix, data_info):
+    with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
+                   "a") as f:
+        if json_dump_condition(prefix):
+            output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
+            np.save(output_path, data_info.save_data)
+            json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
+            f.write('\n')
 
 
 def dump_stack_info(name_template, dump_file):
@@ -204,7 +208,7 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
         output = module.forward(*module.input_args, **module.input_kwargs)
         if not isinstance(output, torch.Tensor):
             print_warn_log("The output of {} is not of tensor type and cannot be automatically derived. "
-                            "you can manually construct a single API backward case for ACL dump.".format(module_name))
+                           "you can manually construct a single API backward case for ACL dump.".format(module_name))
             return
         grad = torch.tensor(np.load(grad_path)).to("npu").requires_grad_()
         torch_npu.npu.init_dump()
@@ -235,5 +239,3 @@ def acc_cmp_dump(name, **kwargs):
             del module.input_kwargs
 
     return acc_cmp_hook
-
-

@@ -6,7 +6,7 @@ import torch
 import numpy as np
 
 from ..common.utils import Const
-from ..dump.dump import dump_stack_info, dump_scalar_para
+from ..dump.dump import dump_stack_info, get_scalar_data_info, dump_data
 from ..dump.utils import DumpUtil, make_dump_data_dir
 
 
@@ -67,4 +67,5 @@ def _dump_tensor_completely(x, prefix, dump_file_name):
                 json.dump([prefix, dump_flag, [], str(x.dtype), tuple(x.shape)], f)
             f.write('\n')
     elif OverFlowUtil.overflow_filter_switch == Const.OFF:
-        dump_scalar_para(x, prefix, dump_flag, dump_file_name)
+        data_info = get_scalar_data_info(x)
+        dump_data(dump_file_name, dump_flag, prefix, data_info)

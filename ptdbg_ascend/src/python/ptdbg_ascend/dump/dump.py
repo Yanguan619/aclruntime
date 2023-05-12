@@ -95,14 +95,14 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
             if DumpUtil.dump_filter_switch == Const.OFF:
                 data_info = get_not_float_tensor_info(x)
-            else:
-                return
-        else:
-            data_info = get_float_tensor_info(x)
+                dump_data(dump_file_name, dump_step, prefix, data_info)
+            return
+        data_info = get_float_tensor_info(x)
+        dump_data(dump_file_name, dump_step, prefix, data_info)
 
     elif DumpUtil.dump_filter_switch == Const.OFF:
         data_info = get_scalar_data_info(x)
-    dump_data(dump_file_name, dump_step, prefix, data_info)
+        dump_data(dump_file_name, dump_step, prefix, data_info)
 
 
 def dump_data(dump_file_name, dump_step, prefix, data_info):

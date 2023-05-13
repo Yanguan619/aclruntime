@@ -153,7 +153,7 @@ class AicoreErrorParser:
         :return: 需要的空间
         '''
         result = {}
-        aic_info_cmd = ['grep', '-r', '-C', '7', "\[AIC_INFO\] dev_func:{}".format(kernel_name),
+        aic_info_cmd = ['grep', '-r', '-C', '21', "\[AIC_INFO\] dev_func:{}".format(kernel_name),
                         self.collection.collect_plog_path]
         _, aic_info = utils.execute_command(aic_info_cmd)
         utils.print_info_log(f"===============================\n{aic_info}\n==================================")
@@ -163,7 +163,6 @@ class AicoreErrorParser:
         aic_info_input_ret = re.findall(aic_info_input_regexp, aic_info, re.M)
         if len(aic_info_input_ret) == 0:
             utils.print_warn_log(f"Failed to get {aic_info_input_regexp}")
-            return result
         input_params = []
 
         for input_info in aic_info_input_ret:
@@ -606,6 +605,7 @@ SingleOpCase.run(config)"""
                 else:
                     utils.print_error_log("Cannot find cce-objdump! please add cce-objdump path in env PATH.")
                     raise utils.AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR)
+            os.environ["PATH"] = os.path.dirname(cce_dump) + ":" + os.environ["PATH"]
         for i, current_pc in enumerate(self.collection.ai_core_error_list):
             # parser aic error by slog
             info = AicErrorInfo()

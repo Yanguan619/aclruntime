@@ -23,13 +23,13 @@ class SingleOpCase:
     def __init__(self, collection) -> None:
         self.collection = collection
 
-    def _check_file_content(self, content):
+    @staticmethod
+    def _check_file_content(kernel_name, content):
         error_strings = [
             "there is an aivec error exception",
             "there is an aicore error exception",
             "aicore exception"
         ]
-        kernel_name = self.collection.kernel_name_list[0]
         for s in error_strings:
             if s in content and kernel_name in content:
                 return True
@@ -45,7 +45,8 @@ class SingleOpCase:
                 break
             log_size = current_log_size
 
-    def search_aicerr_log(self, path):
+    @staticmethod
+    def search_aicerr_log(kernel_name, path):
         for root, _, files in os.walk(path):
             for file in files:
                 if not file.endswith(".log"):
@@ -55,7 +56,7 @@ class SingleOpCase:
                 SingleOpCase._wait_for_log_stabilization(log_path)
                 with open(log_path, "r") as f:
                     content = f.read()
-                if self._check_file_content(content):
+                if SingleOpCase._check_file_content(kernel_name, content):
                     return True
         return False
 
@@ -64,16 +65,19 @@ class SingleOpCase:
         kernel_path = self.collection.collect_kernel_path
         for kernel_name in self.collection.kernel_name_list:
             data = {
+                "cce_file": self.get_cce_file(),
                 "bin_path": os.path.join(kernel_path, f"{kernel_name}.o"),
                 "json_path": os.path.join(kernel_path, f"{kernel_name}.json"),
                 "tiling_data": self.collection.tiling_list[1].decode("utf-8"),
                 "tiling_key": self.collection.tiling_list[0],
                 "block_dim": self.collection.tiling_list[2],
                 "input_file_list": self.collection.input_list,
-                "output_file_list": self.collection.output_list
+                "output_file_list": self.collection.output_list,
+                "kernel_name": kernel_name
             }
             config_file_list.append(data)
         return config_file_list
+
     @staticmethod
     def get_soc_version_from_cce(cce_file):
         with open(cce_file, 'r') as f:
@@ -86,7 +90,7 @@ class SingleOpCase:
             utils.print_warn_log('Can not get soc_version from cce file {cce_file}')
             return "Ascend310"
 
-    def get_soc_version(self):
+    def get_cce_file(self):
         kernel_path = self.collection.collect_kernel_path
         kernel_name = self.collection.kernel_name_list[0]
         tiling_key = self.collection.tiling_list[0]
@@ -96,12 +100,12 @@ class SingleOpCase:
             if not os.path.exists(cce_file):
                 utils.print_warn_log(f"The cce file:{cce_file} does not exist. Set soc version Ascend310")
                 return "Ascend310"
-        return self.get_soc_version_from_cce(cce_file)
+        return cce_file
 
-    def run_dirty_ub(self):
-        soc_version = self.get_soc_version()
+    @staticmethod
+    def run_dirty_ub(soc_version):
         try:
-            self.dirty_ub(soc_version, kernel_name=f"dirty_ub_{soc_version}")
+            SingleOpCase.dirty_ub(soc_version, kernel_name=f"dirty_ub_{soc_version}")
         except Exception as e:
             utils.print_warn_log("compile diry_ub op failed, skip dirty ub")
             return
@@ -124,27 +128,31 @@ class SingleOpCase:
         utils.print_info_log(f"Find bin_file {bin_path} and json_file {json_path}")
         op_kernel = AscendOpKernel(bin_path, json_path)
         runner = AscendOpKernelRunner()
-        runner.run(op_kernel, inputs=[])
+        output_info = {}
+        output_info["size"] = 4
+        output_info["dtype"] = "float32"
+        output_info["shape"] = (1,)
+        runner.run(op_kernel, inputs=[], actual_output_info=(output_info,))
         
-
-    def dirty_ub(self, soc_version, kernel_name="dirty_ub"):
+    @staticmethod
+    def dirty_ub(soc_version, kernel_name="dirty_ub"):
         try:
-            import sys
             from te import tik
             from tbe.common import platform as cce
             from tbe.common.platform import set_current_compile_soc_info as te_set_version
         except ImportError as e:
-            utils.print_warn_log("failed to import te or tbe to compile op dirty_ub, skipped it")
+            utils.print_warn_log("failed to import te or tbe to compile op dirty_ub, skipped it. error:", e)
             return 
         te_set_version(soc_version)
         ub_size = cce.get_soc_spec("UB_SIZE")
         
         tik_instance = tik.Tik()
         
+        output_gm = tik_instance.Tensor("float32", (1,), name="output_gm", scope=tik.scope_gm)
         all_ub = tik_instance.Tensor("float32", (ub_size // 4,), name="all_ub", scope=tik.scope_ubuf)
         with tik_instance.for_range(0, ub_size // 256)  as loop_idx:
             tik_instance.vec_dup(64, all_ub[loop_idx * 64], 1.7976931348623157e+30, 1, 8)
-        tik_instance.BuildCCE(kernel_name=kernel_name, inputs=[], outputs=[])
+        tik_instance.BuildCCE(kernel_name=kernel_name, inputs=[], outputs=[output_gm])
 
         return tik_instance
 
@@ -182,13 +190,15 @@ class SingleOpCase:
                    tiling_key=tiling_key,
                    actual_output_info=output_info_list)
 
-    def run(self: any, configs: dict):
+    @staticmethod
+    def run(configs: dict):
         # set single op log path
         date_string = time.strftime("%Y%m%d%H%M%S", time.localtime(int(time.time())))
         single_op_log_path =  f"single_op_log_{date_string}"
         os.environ['ASCEND_PROCESS_LOG_PATH'] = single_op_log_path
         utils.print_info_log(f"The single_op_log_path is {single_op_log_path}")
-        self.run_dirty_ub()
+        soc_version = SingleOpCase.get_soc_version_from_cce(configs.get("cce_file"))
+        SingleOpCase.run_dirty_ub(soc_version)
         SingleOpCase.run_kernel(configs)
 
-        return not self.search_aicerr_log(os.path.join(single_op_log_path, "debug"))
+        return not SingleOpCase.search_aicerr_log(configs.get("kernel_name"), os.path.join(single_op_log_path, "debug"))

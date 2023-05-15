@@ -51,7 +51,6 @@ class Const:
     DUMP_RATIO_MAX = 100
     SUMMERY_DATA_NUMS = 256
     FLOAT_EPSILON = np.finfo(float).eps
-    NAN = 'Nan'
     SUPPORT_DUMP_MODE = ['api', 'acl']
     ON = 'ON'
     OFF = 'OFF'
@@ -67,6 +66,33 @@ class Const:
     DUMP_MODE = [ALL, LIST, RANGE, STACK, ACL, API_LIST, API_STACK]
 
     API_PATTERN = r"^[A-Za-z0-9]+[_]+([A-Za-z0-9]+[_]*[A-Za-z0-9]+)[_]+[0-9]+[_]+[A-Za-z0-9]+"
+
+
+class CompareConst:
+    """
+    Class for compare module const
+    """
+    # compare result column name
+    NPU_NAME = "NPU Name"
+    BENCH_NAME = "Bench Name"
+    NPU_DTYPE = "NPU Tensor Dtype"
+    BENCH_DTYPE = "Bench Tensor Dtype"
+    NPU_SHAPE = "NPU Tensor Shape"
+    BENCH_SHAPE = "Bench Tensor Shape"
+    NPU_MAX = "NPU max"
+    NPU_MIN = "NPU min"
+    NPU_MEAN = "NPU mean"
+    BENCH_MAX = "Bench max"
+    BENCH_MIN = "Bench min"
+    BENCH_MEAN = "Bench mean"
+    COSINE = "Cosine"
+    MAX_ABS_ERR = "MaxAbsErr"
+    ACCURACY = "Accuracy Reached or Not"
+    STACK = "NPU_Stack_Info"
+    ERROR_MESSAGE = "Err_message"
+
+    # compare result data
+    NAN = 'Nan'
 
     # accuracy standards
     COS_THRESHOLD = 0.99

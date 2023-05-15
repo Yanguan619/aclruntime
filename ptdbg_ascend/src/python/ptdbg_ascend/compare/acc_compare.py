@@ -26,11 +26,11 @@ import numpy as np
 import pandas as pd
 
 from ..common.utils import check_file_or_directory_path, add_time_as_suffix, \
-    print_error_log, CompareException, Const, format_value
+    print_error_log, CompareException, Const, CompareConst, format_value
 
 
 def correct_data(result):
-    if result == Const.NAN:
+    if result == CompareConst.NAN:
         return result
     if float(result) > 0.99999:
         return '1.0'
@@ -49,15 +49,15 @@ def cosine_similarity(n_value, b_value):
         result = '1.0'
     elif a_norm <= Const.FLOAT_EPSILON:
         message = 'Cannot compare by Cosine Similarity, All the data is Zero in npu dump data.'
-        result = Const.NAN
+        result = CompareConst.NAN
     elif b_norm <= Const.FLOAT_EPSILON:
         message = 'Cannot compare by Cosine Similarity, All the data is Zero in Bench dump data.'
-        result = Const.NAN
+        result = CompareConst.NAN
     else:
         cos = num / (a_norm * b_norm)
         if np.isnan(cos):
             message = 'Cannot compare by Cosine Similarity, the dump data has NaN.'
-            result = Const.NAN
+            result = CompareConst.NAN
         else:
             result = format_value(cos)
     result = correct_data(result)
@@ -67,13 +67,13 @@ def cosine_similarity(n_value, b_value):
 def get_rmse(n_value, b_value):
     rmse = np.linalg.norm(n_value - b_value) / np.sqrt(len(n_value))
     if np.isnan(rmse):
-        rmse = Const.NAN
+        rmse = CompareConst.NAN
     return rmse, ""
 
 
 def get_mape(n_value, b_value):
     mape_val = np.sum(np.abs((n_value - b_value) / b_value)) / len(b_value) * 100
-    mape = Const.NAN if np.isnan(mape_val) else str(round(mape_val, 4)) + '%'
+    mape = CompareConst.NAN if np.isnan(mape_val) else str(round(mape_val, 4)) + '%'
     return mape, ""
 
 
@@ -89,7 +89,7 @@ def get_max_relative_err(n_value, b_value):
     max_relative_err = np.max(np.abs(relative_err))
     if np.isnan(max_relative_err):
         message = 'cannot compare by MaxRelativeError, The data contains 0 or nan in dump data.'
-        return Const.NAN, message
+        return CompareConst.NAN, message
     return format_value(max_relative_err), ""
 
 
@@ -287,10 +287,10 @@ def _save_cmp_result(idx, cos_result, max_err_result, err_msg, result_path, lock
         process_idx = idx[1]
         for i, _ in enumerate(cos_result):
             process_index = i * process_num + process_idx
-            csv_pd.loc[process_index, "Cosine"] = cos_result[i]
-            csv_pd.loc[process_index, "MaxAbsErr"] = max_err_result[i]
-            csv_pd.loc[process_index, "Err_message"] = err_msg[i]
-            csv_pd.loc[process_index, "Accuracy Reached or Not"] = check_accuracy(cos_result[i], max_err_result[i])
+            csv_pd.loc[process_index, CompareConst.COSINE] = cos_result[i]
+            csv_pd.loc[process_index, CompareConst.MAX_ABS_ERR] = max_err_result[i]
+            csv_pd.loc[process_index, CompareConst.ERROR_MESSAGE] = err_msg[i]
+            csv_pd.loc[process_index, CompareConst.ACCURACY] = check_accuracy(cos_result[i], max_err_result[i])
         csv_pd.to_csv(result_path, index=False)
     except FileNotFoundError as error:
         print(error)
@@ -303,9 +303,9 @@ def _save_cmp_result(idx, cos_result, max_err_result, err_msg, result_path, lock
 
 
 def check_accuracy(cos, max_abs_err):
-    if cos == Const.NAN:
+    if cos == CompareConst.NAN:
         return "Yes"
-    if float(cos) < Const.COS_THRESHOLD and float(max_abs_err) > Const.MAX_ABS_ERR_THRESHOLD:
+    if float(cos) < CompareConst.COS_THRESHOLD and float(max_abs_err) > CompareConst.MAX_ABS_ERR_THRESHOLD:
         return "No"
     return "Yes"
 
@@ -345,6 +345,7 @@ def check_file_mode(npu_pkl, bench_pkl, stack_mode):
     else:
         if npu_pkl_name.startswith("api_stack") or bench_pkl_name.startswith("api_stack"):
             raise Exception("The current file contains stack information, please turn on the stack_mode")
+
 
 def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
     def check_and_return_dir_contents(dump_dir, prefix):
@@ -404,7 +405,7 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
             'bench_pkl_path': bench_pkl_path,
             'npu_dump_data_dir': npu_dump_data_dir,
             'bench_dump_data_dir': bench_dump_data_dir,
-            'is_print_compare_log':True
+            'is_print_compare_log': True
         }
         compare(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)
 
@@ -434,15 +435,15 @@ def compare(input_parma, output_path, shape_flag=True, stack_mode=False, suffix=
         npu_pkl.close()
         bench_pkl.close()
 
-        columns = ["NPU Name", "Bench Name", "NPU Tensor Dtype", "Bench Tensor Dtype",
-                   "NPU Tensor Shape", "Bench Tensor Shape", "Cosine", "MaxAbsErr"]
+        columns = [CompareConst.NPU_NAME, CompareConst.BENCH_NAME, CompareConst.NPU_DTYPE, CompareConst.BENCH_DTYPE,
+                   CompareConst.NPU_SHAPE, CompareConst.BENCH_SHAPE, CompareConst.COSINE, CompareConst.MAX_ABS_ERR]
         if npu_summary:
-            columns.extend(["NPU max", "NPU min", "NPU mean"])
+            columns.extend([CompareConst.NPU_MAX, CompareConst.NPU_MIN, CompareConst.NPU_MEAN])
         if bench_summary:
-            columns.extend(["Bench max", "Bench min", "Bench mean"])
-        columns.extend(["Accuracy Reached or Not", "Err_message"])
+            columns.extend([CompareConst.BENCH_MAX, CompareConst.BENCH_MIN, CompareConst.BENCH_MEAN])
+        columns.extend([CompareConst.ACCURACY, CompareConst.ERROR_MESSAGE])
         if stack_mode:
-            columns.extend(["NPU_Stack_Info"])
+            columns.extend([CompareConst.STACK])
         result_df = pd.DataFrame(result, columns=columns)
 
         file_name = add_time_as_suffix("compare_result" + suffix)

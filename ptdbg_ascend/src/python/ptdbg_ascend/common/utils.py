@@ -101,7 +101,7 @@ class CompareConst:
     # accuracy standards
     COS_THRESHOLD = 0.99
     MAX_ABS_ERR_THRESHOLD = 0.001
-    ACCURACY_CHECK_RES = "Yes"
+    ACCURACY_CHECK_YES = "Yes"
     ACCURACY_CHECK_NO = "No"
 
 

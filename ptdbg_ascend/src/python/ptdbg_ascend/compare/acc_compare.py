@@ -340,12 +340,19 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
 def check_file_mode(npu_pkl, bench_pkl, stack_mode):
     npu_pkl_name = os.path.split(npu_pkl)[-1]
     bench_pkl_name = os.path.split(bench_pkl)[-1]
-    if stack_mode:
-        if not (npu_pkl_name.startswith("api_stack") and bench_pkl_name.startswith("api_stack")):
-            raise Exception("The current file does not contain stack information, please turn off the stack_mode")
+
+    if not npu_pkl_name.startswith("api_stack") and not bench_pkl_name.startswith("api_stack"):
+        if stack_mode:
+            print_error_log("The current file does not contain stack information, please turn off the stack_mode")
+            raise CompareException(CompareException.INVALID_COMPARE_MODE)
+    elif npu_pkl_name.startswith("api_stack") and bench_pkl_name.startswith("api_stack"):
+        if not stack_mode:
+            print_error_log("The current file contains stack information, please turn on the stack_mode")
+            raise CompareException(CompareException.INVALID_COMPARE_MODE)
     else:
-        if npu_pkl_name.startswith("api_stack") or bench_pkl_name.startswith("api_stack"):
-            raise Exception("The current file contains stack information, please turn on the stack_mode")
+        print_error_log("The dump mode of the two files is not same, please check the dump files")
+        raise CompareException(CompareException.INVALID_COMPARE_MODE)
+
 
 
 def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):

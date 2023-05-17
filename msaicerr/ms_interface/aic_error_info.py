@@ -329,14 +329,14 @@ instruction  : {self.instr}
 
         errinfo = ret[0]
         # vec_err_addr
-        code = utils.get_01_from_hexstr(errinfo, 28, 16)
+        code = utils.get_01_from_hexstr(ret[0], 28, 16)
         info = "VEC Error Address [17:5]"
         # 补5位0，猜测值
         approximate = hex(int(code + "00000", 2))
         errinfo += f"\nvec_err_addr bit[28:16]={code}  meaning:{info}  approximate:{approximate}"
 
         # vec_err_rcnt
-        code = utils.get_01_from_hexstr(errinfo, 15, 8)
+        code = utils.get_01_from_hexstr(ret[0], 15, 8)
         info = "VEC Error repeat count [7:0]"
         repeats = str(int(code, 2))
         errinfo += f"\nvec_err_rcnt bit[15:8]={code}  meaning:{info}  repeats:{repeats}"

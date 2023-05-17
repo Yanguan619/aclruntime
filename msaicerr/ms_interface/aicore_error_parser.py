@@ -153,7 +153,7 @@ class AicoreErrorParser:
         :return: 需要的空间
         '''
         result = {}
-        aic_info_cmd = ['grep', '-r', '-C', '7', "\[AIC_INFO\] dev_func:{}".format(kernel_name),
+        aic_info_cmd = ['grep', '-r', '-C', '21', "\[AIC_INFO\] dev_func:{}".format(kernel_name),
                         self.collection.collect_plog_path]
         _, aic_info = utils.execute_command(aic_info_cmd)
         utils.print_info_log(f"===============================\n{aic_info}\n==================================")
@@ -163,7 +163,6 @@ class AicoreErrorParser:
         aic_info_input_ret = re.findall(aic_info_input_regexp, aic_info, re.M)
         if len(aic_info_input_ret) == 0:
             utils.print_warn_log(f"Failed to get {aic_info_input_regexp}")
-            return result
         input_params = []
 
         for input_info in aic_info_input_ret:
@@ -499,15 +498,21 @@ class AicoreErrorParser:
         return True
 
     @staticmethod
-    def __generate_case(config_file):
+    def __generate_case(config):
         dir_name = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        case_content = f"from ms_interface.single_op_case import SingleOpCase\nSingleOpCase.run(\"{config_file}\")"
+        config_str = json.dumps(config, indent=4)
+
+        case_content = f"""
+from ms_interface.single_op_case import SingleOpCase
+config={config_str}
+SingleOpCase.run(config)"""
+
         case_file = os.path.join(dir_name, "test_single_op.py")
         utils.print_info_log(f"Generate case file {case_file}")
         with open(case_file, 'w') as f:
             f.write(case_content)
         return case_file
-             
+    
     @staticmethod
     def _test_single_op(collection):
         single_op_case = SingleOpCase(collection)
@@ -600,6 +605,7 @@ class AicoreErrorParser:
                 else:
                     utils.print_error_log("Cannot find cce-objdump! please add cce-objdump path in env PATH.")
                     raise utils.AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR)
+            os.environ["PATH"] = os.path.dirname(cce_dump) + ":" + os.environ["PATH"]
         for i, current_pc in enumerate(self.collection.ai_core_error_list):
             # parser aic error by slog
             info = AicErrorInfo()

@@ -9,6 +9,7 @@ Huawei Technologies Co., Ltd. All Rights Reserved © 2020
 
 import os
 import struct
+from typing import BinaryIO
 from google.protobuf.message import DecodeError
 import numpy as np
 from ms_interface import utils
@@ -16,10 +17,10 @@ from ms_interface.constant import Constant
 import ms_interface.dump_data_pb2 as DD
 
 
-class DumpDataParser:
-    """
-    The class for dump data parser
-    """
+class ConstManager:
+    UINT64_SIZE = 8
+    UINT64_FMT = 'Q'
+    ONE_GB = 1 * 1024 * 1024 * 1024
     DATA_TYPE_TO_DTYPE_MAP = {
         DD.DT_FLOAT: {
             Constant.DTYPE: np.float32,
@@ -71,6 +72,12 @@ class DumpDataParser:
         },
     }
 
+class DumpDataParser:
+    """
+    The class for dump data parser
+    """
+
+
     def __init__(self, dump_path, node_name, kernel_name):
         self.dump_path = dump_path
         self.node_name = node_name
@@ -84,91 +91,11 @@ class DumpDataParser:
     def get_output_data(self):
         return self.output_data_list
 
-    def _parse_dump_file(self, dump_file):
-        """
-        Parse the dump file path by big dump data format
-        :param: dump_file the dump file
-        :return: DumpData
-        :exception when read or parse file error
-        """
-        utils.check_path_valid(dump_file)
-        try:
-            # get file size
-            file_size = os.path.getsize(dump_file)
-            # check file size > 8
-            if file_size <= Constant.UINT64_SIZE:
-                utils.print_error_log(f'The size of {dump_file} is at least greater then {Constant.UINT64_SIZE}, '
-                                      f'but the file size is %d. Please check the dump file.')
-                raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
-            with open(dump_file, 'rb') as dump_data_file:
-                # read header length
-                header_length = dump_data_file.read(Constant.UINT64_SIZE)
-                header_length = struct.unpack(Constant.UINT64_FMT, header_length)[0]
-                # check header_length <= file_size - 8
-                if header_length > file_size - Constant.UINT64_SIZE:
-                    utils.print_error_log(f'The header content size({header_length}) of {dump_file} must be less then '
-                                          f'or equal to {file_size}(file size) - {Constant.UINT64_SIZE}(header length).'
-                                          f' Please check the dump file.')
-                    raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
-                # read header content
-                return self._get_dump_data(dump_data_file, header_length, file_size)
-        except IOError as io_error:
-            utils.print_error_log(f'Failed to read the dump file {dump_file}. {str(io_error)}')
-            raise utils.AicErrException(Constant.MS_AICERR_OPEN_FILE_ERROR)
-        finally:
-            pass
-
-    @staticmethod
-    def _check_dump_data_vaild(dump_data, dump_file, header_length, file_size):
-        input_data_size = 0
-        for item in dump_data.input:
-            input_data_size += item.size
-        output_data_size = 0
-        for item in dump_data.output:
-            output_data_size += item.size
-        buffer_data_size = 0
-        for item in dump_data.buffer:
-            buffer_data_size += item.size
-        # check 8 + content size + sum(input.data) + sum(output.data) + sum(buffer.data) equal to file size
-        if header_length + Constant.UINT64_SIZE + input_data_size \
-                + output_data_size + buffer_data_size != file_size:
-            utils.print_error_log(
-                f'The file size({file_size}) of {dump_file} is not equal to {Constant.UINT64_SIZE}(header '
-                f'length) + {header_length}(the size of header content) + {input_data_size}(the sum'
-                f' of input data) + {output_data_size}(the sum of output data) + {buffer_data_size}(the'
-                f' sum of buffer data). Please check the dump file.')
-            raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
-
-    def _get_dump_data(self, dump_file, header_length, file_size):
-        # read header content
-        content = dump_file.read(header_length)
-        dump_data = DD.DumpData()
-        try:
-            dump_data.ParseFromString(content)
-        except DecodeError as de_error:
-            utils.print_error_log(f'Failed to parse the serialized header content of {dump_file}. '
-                                  f'Please check the dump file. {str(de_error)} ')
-            raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
-        finally:
-            pass
-        self._check_dump_data_vaild(dump_data, dump_file, header_length, file_size)
-        if len(dump_data.input) > 0:
-            for (index, _) in enumerate(dump_data.input):
-                dump_data.input[index].data = dump_file.read(dump_data.input[index].size)
-            
-        if len(dump_data.output) > 0:
-            for (index, _) in enumerate(dump_data.output):
-                dump_data.output[index].data = dump_file.read(dump_data.output[index].size)
-        if len(dump_data.buffer) > 0:
-            for (index, _) in enumerate(dump_data.buffer):
-                dump_data.buffer[index].data = dump_file.read(dump_data.buffer[index].size)
-        return dump_data
-
     def _get_dtype_by_data_type(self, data_type):
-        if data_type not in self.DATA_TYPE_TO_DTYPE_MAP:
+        if data_type not in ConstManager.DATA_TYPE_TO_DTYPE_MAP:
             utils.print_error_log(f"The output data type({data_type}) does not support.")
             raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
-        return self.DATA_TYPE_TO_DTYPE_MAP.get(data_type).get(Constant.DTYPE)
+        return ConstManager.DATA_TYPE_TO_DTYPE_MAP.get(data_type).get(Constant.DTYPE)
 
     @staticmethod
     def _check_tensor_data(index, array, data_dtype):
@@ -224,7 +151,7 @@ class DumpDataParser:
         Function Description: convert dump data to numpy and bin file
         @param dump_file: the dump file
         """
-        dump_data = self._parse_dump_file(dump_file)
+        dump_data = BigDumpDataParser(dump_file).parse()
         # 2. parse dump data
         result_info = self._save_tensor_to_file(dump_data.input, 'input', dump_file)
         result_info += self._save_tensor_to_file(dump_data.output, "output", dump_file)
@@ -242,9 +169,150 @@ class DumpDataParser:
                     match_dump_list.append(os.path.join(top, name))
         result_info_list = []
         for dump_file in match_dump_list:
+            if isinstance(dump_file, str) and dump_file.endswith(".npy"):
+                continue
             result_info_list.extend([f'{dump_file}\n', self.parse_dump_data(dump_file)])
         result_info = "".join(result_info_list)
         if len(match_dump_list) == 0:
             utils.print_warn_log(f'There is no dump file for "{self.node_name}". Please check the dump path.')
         utils.print_info_log(f"Parse dump file finished,result_info:{result_info}")
         return result_info
+
+
+class BigDumpDataParser:
+    """
+    The class for big dump data parser
+    """
+
+    def __init__(self: any, dump_file_path: str) -> None:
+        self.dump_file_path = dump_file_path
+        self.file_size = 0
+        self.header_length = 0
+        self.dump_data = None
+
+    def parse(self: any) -> DD.DumpData:
+        """
+        Parse the dump file path by big dump data format
+        :return: DumpData
+        :exception when read or parse file error
+        """
+        self.check_argument_valid()
+        try:
+            with open(self.dump_file_path, 'rb') as dump_file:
+                # read header length
+                self._read_header_length(dump_file)
+                # read dump data proto
+                self._read_dump_data(dump_file)
+                self._check_size_match()
+                # read tensor data
+                self._read_input_data(dump_file)
+                self._read_output_data(dump_file)
+                self._read_buffer_data(dump_file)
+                self._read_space_data(dump_file)
+                return self.dump_data
+        except (OSError, IOError) as io_error:
+            utils.print_error_log('Failed to read the dump file %s. %s'
+                                % (self.dump_file_path, str(io_error)))
+            raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR) from io_error
+        finally:
+            pass
+
+    def check_argument_valid(self: any) -> None:
+        """
+        check argument valid
+        :exception when invalid
+        """
+        utils.check_path_valid(self.dump_file_path, False)
+        # get file size
+        try:
+            self.file_size = os.path.getsize(self.dump_file_path)
+        except (OSError, IOError) as error:
+            utils.print_error_log('get the size of dump file %s failed. %s'
+                                % (self.dump_file_path, str(error)))
+            raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR) from error
+        finally:
+            pass
+
+        if self.file_size <= ConstManager.UINT64_SIZE:
+            utils.print_warn_log(
+                'The size of %s must be greater than %d, but the file size'
+                ' is %d. Please check the dump file.'
+                % (self.dump_file_path, ConstManager.UINT64_SIZE, self.file_size))
+            raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
+        if self.file_size > ConstManager.ONE_GB:
+            utils.print_warn_log(
+                'The size (%d) of %s exceeds 1GB, it may task more time to run, please wait.'
+                % (self.file_size, self.dump_file_path))
+
+    def _check_size_match(self: any) -> None:
+        input_data_size = 0
+        for item in self.dump_data.input:
+            input_data_size += item.size
+        output_data_size = 0
+        for item in self.dump_data.output:
+            output_data_size += item.size
+        buffer_data_size = 0
+        for item in self.dump_data.buffer:
+            buffer_data_size += item.size
+        space_data_size = 0
+        for item in self.dump_data.space:
+            space_data_size += item.size
+        # check 8 + content size + sum(input.data) + sum(output.data)
+        # + sum(buffer.data) equal to file size
+        if self.header_length + ConstManager.UINT64_SIZE + input_data_size \
+                + output_data_size + buffer_data_size + space_data_size != self.file_size:
+            log.print_warn_log(
+                'The file size (%d) of %s is not equal to %d (header length)'
+                ' + %d(the size of header content) '
+                '+ %d(the sum of input data) + %d(the sum of output data) '
+                '+ %d(the sum of buffer data) + %d(the sum of space data). Please check the dump file.'
+                % (self.file_size, self.dump_file_path, ConstManager.UINT64_SIZE, self.header_length,
+                   input_data_size, output_data_size, buffer_data_size, space_data_size))
+            raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
+
+    def _read_header_length(self: any, dump_file: BinaryIO) -> None:
+        # read header length
+        header_length = dump_file.read(ConstManager.UINT64_SIZE)
+        self.header_length = struct.unpack(ConstManager.UINT64_FMT, header_length)[0]
+        # check header_length <= file_size - 8
+        if self.header_length > self.file_size - ConstManager.UINT64_SIZE:
+            utils.print_warn_log(
+                'The header content size (%d) of %s must be less than or'
+                ' equal to %d (file size) - %d (header length).'
+                ' Please check the dump file.'
+                % (self.header_length, self.dump_file_path, self.file_size, ConstManager.UINT64_SIZE))
+            raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
+
+    def _read_dump_data(self: any, dump_file: BinaryIO) -> None:
+        content = dump_file.read(self.header_length)
+        self.dump_data = DD.DumpData()
+        try:
+            self.dump_data.ParseFromString(content)
+        except DecodeError as de_error:
+            utils.print_warn_log(
+                'Failed to parse the serialized header content of %s. '
+                'Please check the dump file. %s '
+                % (self.dump_file_path, str(de_error)))
+            raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR) from de_error
+        finally:
+            pass
+
+    def _read_input_data(self: any, dump_file: BinaryIO) -> None:
+        if len(self.dump_data.input) > 0:
+            for (index, _) in enumerate(self.dump_data.input):
+                self.dump_data.input[index].data = dump_file.read(self.dump_data.input[index].size)
+
+    def _read_output_data(self: any, dump_file: BinaryIO) -> None:
+        if len(self.dump_data.output) > 0:
+            for (index, _) in enumerate(self.dump_data.output):
+                self.dump_data.output[index].data = dump_file.read(self.dump_data.output[index].size)
+
+    def _read_buffer_data(self: any, dump_file: BinaryIO) -> None:
+        if len(self.dump_data.buffer) > 0:
+            for (index, _) in enumerate(self.dump_data.buffer):
+                self.dump_data.buffer[index].data = dump_file.read(self.dump_data.buffer[index].size)
+
+    def _read_space_data(self: any, dump_file: BinaryIO) -> None:
+        if len(self.dump_data.space) > 0:
+            for (index, _) in enumerate(self.dump_data.space):
+                self.dump_data.space[index].data = dump_file.read(self.dump_data.space[index].size)

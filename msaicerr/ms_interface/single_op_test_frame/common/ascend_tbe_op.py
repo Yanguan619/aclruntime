@@ -56,12 +56,12 @@ class AscendOpKernel:
         self.bin_path = bin_path
         self.json_path = json_path
         self.need_do_tiling = False
-        self._parse_json_file(json_path)
+        self.parameters = []
         self.stub_func_p = None
         self.input_infos = []
         self.output_infos = []
         self.compile_info = None
-        self.parameters = []
+        self._parse_json_file(json_path)
 
 
     def is_registered_to_device(self):

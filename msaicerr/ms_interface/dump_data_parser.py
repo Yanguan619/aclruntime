@@ -169,6 +169,8 @@ class DumpDataParser:
                     match_dump_list.append(os.path.join(top, name))
         result_info_list = []
         for dump_file in match_dump_list:
+            if isinstance(dump_file, str) and dump_file.endswith(".npy"):
+                continue
             result_info_list.extend([f'{dump_file}\n', self.parse_dump_data(dump_file)])
         result_info = "".join(result_info_list)
         if len(match_dump_list) == 0:

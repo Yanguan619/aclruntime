@@ -48,7 +48,7 @@ class AdvisorResult:
 
     def print_advisor_log(self):
         print_info_log("The summary of the expert advice is as follows: ")
-        message_list = [AdvisorConst.LINE + AdvisorConst.COLON + self.line,
+        message_list = [AdvisorConst.LINE + AdvisorConst.COLON + str(self.line),
                         AdvisorConst.SUSPECT_NODES + AdvisorConst.COLON + self.suspect_node,
                         AdvisorConst.ADVISOR_SUGGEST + AdvisorConst.COLON + self.advisor_message]
         for message in message_list:

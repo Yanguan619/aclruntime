@@ -64,7 +64,9 @@ def initialize_hook(hook):
 
 def register_hook(model, hook, **kwargs):
     assert hasattr(model, "named_modules"), "Please register hooks to nn.Module."
-
+    print_info_log("Please disable the shuffle function of the dataset "
+                   "and the dropout function of the model "
+                   "before running the program.")
     dump_step = kwargs.get('dump_step', 1)
     overflow_nums = kwargs.get('overflow_nums', 1)
     dump_mode, dump_config_file = init_dump_config(kwargs)

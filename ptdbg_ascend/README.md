@@ -59,10 +59,11 @@
 ### 发布包安装
 您可以从以下链接获取到精度工具的发布包
 
-| ptdbg_ascend版本 | 发布日期      | 支持PyTorch版本 | 下载链接                                                                                                                                | 参考文档                                       |
-|----------------|-----------|------|-------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------|
-| 1.0            | 2023-3-30 |1.8.1/1.11.0| [ptdbg_ascend-1.0-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/1.0/ptdbg_ascend-1.0-py3-none-any.whl) | [工具使用指南](doc/ptdbg_ascend精度工具功能说明_v1.0.md) |
-| 2.1            | 2023-4-21 |1.8.1/1.11.0| [ptdbg_ascend-2.1-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/2.0/ptdbg_ascend-2.1-py3-none-any.whl) | [工具使用指南](doc/ptdbg_ascend精度工具功能说明_v2.1.md) |
+| ptdbg_ascend版本 | 发布日期      | 支持PyTorch版本      | 下载链接                                                                                                                                | 参考文档                                       |
+|----------------|-----------|------------------|-------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------|
+| 1.0            | 2023-3-30 | 1.8.1/1.11.0     | [ptdbg_ascend-1.0-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/1.0/ptdbg_ascend-1.0-py3-none-any.whl) | [工具使用指南](doc/ptdbg_ascend精度工具功能说明_v1.0.md) |
+| 2.1            | 2023-4-21 | 1.8.1/1.11.0     | [ptdbg_ascend-2.1-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/2.0/ptdbg_ascend-2.1-py3-none-any.whl) | [工具使用指南](doc/ptdbg_ascend精度工具功能说明_v2.1.md) |
+| 2.2            | 2023-5-12 | 1.8.1/1.11.0/2.0 | [ptdbg_ascend-2.2-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/2.0/ptdbg_ascend-2.2-py3-none-any.whl) | [工具使用指南](doc/ptdbg_ascend精度工具功能说明_v2.2.md) |
 ### 从源码安装
 
 您可以从源代码构建 ptdbg_ascend 软件包并将其安装在带NPU或者GPU的AI计算环境上。
@@ -140,8 +141,6 @@ make install
 ```
 pip3 install ./ptdbg_ascend/dist/ptdbg_ascend-{version}-py3-none-any.whl --upgrade --force-reinstall
 ```
-
-
 
 ## 贡献
 

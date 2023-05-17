@@ -158,8 +158,12 @@ from ptdbg_ascend import *
 
 # 在main函数开始前固定随机数
 seed_all()
+<<<<<<< HEAD
 # 默认不开启cann确定性计算，当需要使能确定性计算时需要使用以下模式
 seed_all(mode=True)
+=======
+
+>>>>>>> 904e8678cfc07405be4a291b4527e365b77b09c4
 # 设置dump路径（含文件名）和dump_tag。dump_tag会体现在数据文件夹的文件名上
 # 多卡使用时最好也在main函数开始前设置
 set_dump_path("./npu_dump.pkl", dump_tag="dump_conv2d")
@@ -236,8 +240,8 @@ set_dump_path("./npu_dump_scope.pkl")
 
 ...
 
-# 注册精度比对dump的hook函数，调整dump_step为1，此时为全量dump
-register_hook(model, acc_cmp_dump, dump_step=1)
+# 注册精度比对dump的hook函数
+register_hook(model, acc_cmp_dump)
 
 ...
 

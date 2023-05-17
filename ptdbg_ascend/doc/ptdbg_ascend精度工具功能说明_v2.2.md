@@ -22,7 +22,7 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 
 1. 下载ptdbg_ascend精度工具的whl包。
 
-   - [ptdbg_ascend-2.1-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/2.0/ptdbg_ascend-2.1-py3-none-any.whl)
+   - [ptdbg_ascend-2.2-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/2.0/ptdbg_ascend-2.2-py3-none-any.whl)
 
 2. 执行如下命令，进行安装。
 
@@ -55,7 +55,7 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 | ------------------- |---------------------------------------------------------------------------------------------------|
 | set_dump_path       | 用于设置dump文件的路径(包含文件名)，参数示例：“/var/log/dump/npu_dump.pkl”                                            |
 | set_dump_switch     | 设置dump范围，不设置则默认处于关闭状态。第一个参数为：“ON” 或者 "OFF",若需要控制dump的算子范围，则需要第二、三个参数，默认不配置                        |
-| seed_all            | 固定随机数，参数为随机数种子，默认种子为：1234.                                                                        |
+| seed_all            | 固定随机数，参数为随机数种子和确定性计算模式，默认种子为：1234，默认确定性计算模式为False.                                                                        |
  | set_backward_input | 设置反向ACL级别dump时需要的反向输入的路径,参数示例："acl_dump_xxx/Functional_conv2d_1_backward_input.0.npy"             
 | register_hook       | 用于注册dump回调函数，例如：注册精度比对hook：register_hook(model, acc_cmp_dump).                                    |
 | compare             | 比对接口，将GPU/CPU/NPU的dump文件进行比对，第三个参数为存放比对结果的目录；<br/>文件名称基于时间戳自动生成，格式为：compare_result_timestamp.csv. |
@@ -65,10 +65,11 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 ### 数据dump
 #### 使用说明
 1) seed_all和set_dump_path在训练主函数main一开始就调用，避免随机数固定不全；
-2) register_hook须在set_dump_path之后调用，避免dump数据路径设置错误
-3) set_dump_switch提供多种dump模式，可以根据不同场景选择dump方式
-4) 进行CPU数据dump时，请安装torch包而非torch_npu包，避免工具无法识别使用场景，导致失败
-5) TASK_QUEUE_ENABLE环境变量会导致算子下发和执行异步进行，因此在ALC dump前需要将TASK_QUEUE_ENABLE关闭，需要在执行运行命令前先export TASK_QUEUE_ENABLE=0
+2) seed_all(mode=True)开启cann确定性计算,NPU场景下需配置环境CANN6.4，以及下载torch_npu的分支master/v2.0.0/v1.11.0/v1.8.1
+3) register_hook须在set_dump_path之后调用，避免dump数据路径设置错误
+4) set_dump_switch提供多种dump模式，可以根据不同场景选择dump方式
+5) 进行CPU数据dump时，请安装torch包而非torch_npu包，避免工具无法识别使用场景，导致失败
+6) TASK_QUEUE_ENABLE环境变量会导致算子下发和执行异步进行，因此在ALC dump前需要将TASK_QUEUE_ENABLE关闭，需要在执行运行命令前先export TASK_QUEUE_ENABLE=0
 ```
 # 多种dump模式介绍
 
@@ -160,12 +161,10 @@ from ptdbg_ascend import *
 
 # 在main函数开始前固定随机数
 seed_all()
-<<<<<<< HEAD
 # 默认不开启cann确定性计算，当需要使能确定性计算时需要使用以下模式
 seed_all(mode=True)
-=======
+#NPU场景下开启cann确定性计算需配置环境CANN6.4，以及下载安装torch_npu的分支master/v2.0.0/v1.11.0/v1.8.1
 
->>>>>>> 904e8678cfc07405be4a291b4527e365b77b09c4
 # 设置dump路径（含文件名）和dump_tag。dump_tag会体现在数据文件夹的文件名上
 # 多卡使用时最好也在main函数开始前设置
 set_dump_path("./npu_dump.pkl", dump_tag="dump_conv2d")
@@ -280,6 +279,9 @@ from ptdbg_ascend import *
 
 # 在main函数起始位置固定随机数
 seed_all()
+# 默认不开启cann确定性计算，当需要使能确定性计算时需要使用以下模式
+seed_all(mode=True)
+#NPU场景下开启cann确定性计算需配置环境CANN6.4，以及下载安装torch_npu的分支master/v2.0.0/v1.11.0/v1.8.1
 
 ...
 
@@ -301,6 +303,9 @@ from ptdbg_ascend import *
 
 # 在main函数起始位置固定随机数
 seed_all()
+# 默认不开启cann确定性计算，当需要使能确定性计算时需要使用以下模式
+seed_all(mode=True)
+#NPU场景下开启cann确定性计算需配置环境CANN6.4，以及下载安装torch_npu的分支master/v2.0.0/v1.11.0/v1.8.1
 
 ...
 
@@ -535,8 +540,8 @@ compare_distributed(npu_dump_dir='dump_path/dump_conv2d_v1.0', bench_dump_dir='d
 
 在进行计算精度匹配时，基本共识为默认CPU或GPU的算子计算结果是准确的，最终比对生成的csv文件中主要包括以下的几个属性：
 
-| NPU Name | Bench Name | Npu Tensor Dtype | Bench Tensor Dtype  | Npu Tensor Shape  | Bench Tensor Shape  | Cosine  |  MaxAbsError  |  ...  |
-|:--------:|:----------:|:----------------:|:-------------------:|:-----------------:|:-------------------:|:-------:|:-------------:|:-----:| 
+| NPU Name | Bench Name | Npu Tensor Dtype | Bench Tensor Dtype  | Npu Tensor Shape  | Bench Tensor Shape  | Cosine  |  MaxAbsError  |  ...  | Accuracy Reached or Not  |
+|:--------:|:----------:|:----------------:|:-------------------:|:-----------------:|:-------------------:|:-------:|:-------------:|:-----:|:------------------------:| 
 
 其中主要使用算子Name、Dtype、Shape用于描述算子的基本特征，Cosine(余弦相似)、MaxAbsError(最大绝对误差)作为评价计算精度的主要评估指标：
 
@@ -547,4 +552,20 @@ compare_distributed(npu_dump_dir='dump_path/dump_conv2d_v1.0', bench_dump_dir='d
 
 2. MaxAbsError(最大绝对误差)：
 
-当最大绝对误差越接近0表示其计算的误差越小
+当最大绝对误差越接近0表示其计算的误差越小。
+
+
+“Accuracy Reached or Not”列表示某一行的结果是否达到精度标准，精度标准如下：
+- 当Cosine(余弦相似) < 0.99 且 MaxAbsError(最大绝对误差) > 0.001时，记为精度不达标，标记为“No”。
+- 其余情况下记为精度达标，标记为“Yes”。
+
+### **Dump和比对性能基线**
+环境约束：独占环境,CPU核心数192,固态硬盘(IO速度参考：固态硬盘一般>500MB/s，机械硬盘60-170MB/s）
+
+Dump数据量较小时,（参考值小于5G）,参考Dump速度0.1GB/s；Dump数据量较大时, 参考Dump速度0.2GB/s。
+
+比对数据量较小时, (参考值单份文件小于10GB),参考比对速度 0.1GB/s；比对数据量较大时, 参考比对速度0.3GB/s。
+
+用户环境性能弱于标准约束或非独占使用的比对速度酌情向下浮动
+Dump速度的计算方式：Dump数据量/(单个step添加Dump耗时-原始单个step耗时）
+比对速度的计算方式：两份比对文件大小/比对耗时

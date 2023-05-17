@@ -99,7 +99,8 @@ instruction  : {self.instr}
         if self.current_pc == "0x0":
             conclusion = "Memory of operator code has been over write falsely\n"
         elif self.atomic_add_err:
-            conclusion = "Atomic accumulation exception, please check the input data. According to the precision problem. Check the network accuracy.\n"
+            conclusion = "Atomic accumulation exception, please check the input data.\
+                          According to the precision problem. Check the network accuracy.\n"
         elif "data invalid" in self.dump_info:
             conclusion = "Input data is abnormal. Check the network accuracy.\n"
         elif not self.single_op_test_result:
@@ -131,14 +132,20 @@ instruction  : {self.instr}
         for input_param in input_params:
             index = int(input_param.get("index"))
             size = int(input_param.get("size"))
-            addr = int(input_param.get("addr"), 16) if input_param.get("addr").startswith("0x") else int(input_param.get("addr"))
+            if input_param.get("addr").startswith("0x"):
+                addr = int(input_param.get("addr"), 16)
+            else:
+                addr = int(input_param.get("addr"))
             end_addr = addr + size
             result_str += f"input[{index}] addr: {hex(addr)} end_addr:{hex(end_addr)} size: {hex(size)}\n"
 
         for output_param in output_params:
             index = int(output_param.get("index"))
             size = int(output_param.get("size"))
-            addr = int(output_param.get("addr"), 16) if output_param.get("addr").startswith("0x") else int(output_param.get("addr"))
+            if output_param.get("addr").startswith("0x"):
+                addr = int(output_param.get("addr"), 16)
+            else:
+                addr = int(output_param.get("addr"))
             end_addr = addr + size
             result_str += f"output[{index}] addr: {hex(addr)} end_addr:{hex(end_addr)} size: {hex(size)}\n"
 

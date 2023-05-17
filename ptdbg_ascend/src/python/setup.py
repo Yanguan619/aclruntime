@@ -20,7 +20,7 @@ from pathlib import Path
 import stat
 import os
 
-VERSION = '2.1'
+VERSION = '2.2'
 
 def generate_ptdbg_ascend_version():
       ptdbg_ascend_root = Path(__file__).parent

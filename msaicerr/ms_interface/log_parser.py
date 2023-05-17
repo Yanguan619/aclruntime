@@ -35,7 +35,7 @@ class HostLogParser:
         if not result:
             utils.print_error_log("Failed to get node name, stream id and task id.")
             raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
-        result_list = [''] *4
+        result_list = [''] * 4
         result_list[0] = result[0][1]
         result_list[1] = result[0][2]
         result_list[2] = result[0][0]
@@ -62,15 +62,18 @@ class HostLogParser:
     def get_op_info(self: any) -> tuple:
         aicore_err_cmd = ['grep', 'there is an aicore error|there is an .*aivec.* error exception', '-inrE', 
                           self.collect_plog_path]
-        aicore_err_regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?device\((.*)\),.*?core id is (\d+)," \
-                            r"\s+error code = (\S+),.*?pc start:\s(\S+),\scurrent:\s(\S+),\svec error info:\s(\S+)," \
-                            r"\smte error info:\s(\S+),\sifu error info:\s(\S+),\sccu error info:\s(\S+)," \
-                            r"\scube error info:\s(\S+),\sbiu error info:\s(\S+),\saic error mask:\s(\S+)," \
-                            r"\spara base:\s(\S+)."
+        aicore_err_regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?device\(([a-zA-Z0-9\s,:]{1,})\),\s" \
+                            r"[a-zA-Z0-9\s,]{1,},\score id is (\d+),\s+error code = (\S+),.*?pc start:\s(\S+)," \
+                            r"\scurrent:\s(\S+),\svec error info:\s(\S+),\smte error info:\s(\S+)," \
+                            r"\sifu error info:\s(\S+),\sccu error info:\s(\S+),\scube error info:\s(\S+)," \
+                            r"\sbiu error info:\s(\S+),\saic error mask:\s(\S+),\spara base:\s(\S+)."
         aic_err_ret = utils.get_inquire_result(aicore_err_cmd, aicore_err_regexp)
         if not aic_err_ret:
             utils.print_error_log("aic error info does not match in plog \"aicore error exception\"")
             raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
+        if len(aic_err_ret) > 1:
+            utils.print_error_log("Find more than one aicore error, choose first one to analysis")
+            aic_err_ret = (aic_err_ret[0],)
         for aic_err in aic_err_ret:
             stream_id, task_id, node_name, kernel_name = self._get_node_and_kernel_name()
             extra_info = self._get_extra_info(aic_err)

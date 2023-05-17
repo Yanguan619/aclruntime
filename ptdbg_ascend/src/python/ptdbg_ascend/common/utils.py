@@ -68,6 +68,10 @@ class Const:
 
     API_PATTERN = r"^[A-Za-z0-9]+[_]+([A-Za-z0-9]+[_]*[A-Za-z0-9]+)[_]+[0-9]+[_]+[A-Za-z0-9]+"
 
+    # accuracy standards
+    COS_THRESHOLD = 0.99
+    MAX_ABS_ERR_THRESHOLD = 0.001
+
 
 class VersionCheck:
     """
@@ -105,6 +109,7 @@ class CompareException(Exception):
     INVALID_DUMP_FILE = 13
     UNKNOWN_ERROR = 14
     INVALID_DUMP_MODE = 15
+    INVALID_COMPARE_MODE = 16
 
     def __init__(self, code, error_info: str = ""):
         super(CompareException, self).__init__()

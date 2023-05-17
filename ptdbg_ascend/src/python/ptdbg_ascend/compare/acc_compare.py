@@ -20,7 +20,7 @@ import json
 import multiprocessing
 import os.path
 import sys
-import re 
+import re
 
 import numpy as np
 import pandas as pd
@@ -184,6 +184,7 @@ def get_accuracy(result, n_dict, b_dict, summery_flag):
             b_struct = b_dict["output_struct"][index_out]
             index_out += 1
         err_msg = ""
+        accuracy_check_res = "Yes"
 
         result_item = [n_name, b_name, n_struct[0], b_struct[0], n_struct[1], b_struct[1], " ", " "]
         if summery_flag[0]:
@@ -192,6 +193,7 @@ def get_accuracy(result, n_dict, b_dict, summery_flag):
         if summery_flag[1]:
             summery_data = b_dict.get("summery")[index]
             result_item.extend(summery_data)
+        result_item.append(accuracy_check_res)
         result_item.append(err_msg)
         if npu_stack_info and bench_stack_info and index == 0:
             result_item.extend(npu_stack_info)
@@ -288,6 +290,7 @@ def _save_cmp_result(idx, cos_result, max_err_result, err_msg, result_path, lock
             csv_pd.loc[process_index, "Cosine"] = cos_result[i]
             csv_pd.loc[process_index, "MaxAbsErr"] = max_err_result[i]
             csv_pd.loc[process_index, "Err_message"] = err_msg[i]
+            csv_pd.loc[process_index, "Accuracy Reached or Not"] = check_accuracy(cos_result[i], max_err_result[i])
         csv_pd.to_csv(result_path, index=False)
     except FileNotFoundError as error:
         print(error)
@@ -297,6 +300,14 @@ def _save_cmp_result(idx, cos_result, max_err_result, err_msg, result_path, lock
         raise IOError(error)
     finally:
         lock.release()
+
+
+def check_accuracy(cos, max_abs_err):
+    if cos == Const.NAN:
+        return "Yes"
+    if float(cos) < Const.COS_THRESHOLD and float(max_abs_err) > Const.MAX_ABS_ERR_THRESHOLD:
+        return "No"
+    return "Yes"
 
 
 def compare_by_op(op_name, op_name_mapping_dict, input_parma):
@@ -328,12 +339,19 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
 def check_file_mode(npu_pkl, bench_pkl, stack_mode):
     npu_pkl_name = os.path.split(npu_pkl)[-1]
     bench_pkl_name = os.path.split(bench_pkl)[-1]
-    if stack_mode:
-        if not (npu_pkl_name.startswith("api_stack") and bench_pkl_name.startswith("api_stack")):
-            raise Exception("The current file does not contain stack information, please turn off the stack_mode")
+
+    if not npu_pkl_name.startswith("api_stack") and not bench_pkl_name.startswith("api_stack"):
+        if stack_mode:
+            print_error_log("The current file does not contain stack information, please turn off the stack_mode")
+            raise CompareException(CompareException.INVALID_COMPARE_MODE)
+    elif npu_pkl_name.startswith("api_stack") and bench_pkl_name.startswith("api_stack"):
+        if not stack_mode:
+            print_error_log("The current file contains stack information, please turn on the stack_mode")
+            raise CompareException(CompareException.INVALID_COMPARE_MODE)
     else:
-        if npu_pkl_name.startswith("api_stack") or bench_pkl_name.startswith("api_stack"):
-            raise Exception("The current file contains stack information, please turn on the stack_mode")
+        print_error_log("The dump mode of the two files is not same, please check the dump files")
+        raise CompareException(CompareException.INVALID_COMPARE_MODE)
+
 
 def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
     def check_and_return_dir_contents(dump_dir, prefix):
@@ -346,18 +364,18 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
                         f"Please check and delete irrelevant files in {dump_dir} and try again.")
                 print_error_log(msg)
                 raise CompareException(CompareException.INVALID_PATH_ERROR)
-        return contents 
+        return contents
 
     def extract_pkl_and_data_dir(dirname):
         pkl_path, dump_data_dir, pkl_name, dump_data_dirname = '', '', '', ''
         for fname in os.listdir(dirname):
             full_path = os.path.join(dirname, fname)
             if os.path.isdir(full_path):
-                dump_data_dir = full_path 
+                dump_data_dir = full_path
                 dump_data_dirname = fname
             else:
-                pkl_path = full_path 
-                pkl_name = fname 
+                pkl_path = full_path
+                pkl_name = fname
         # Provide robustness on invalid directory inputs
         if pkl_path == '':
             print_error_log(f'No file is found in dump dir {dirname}. ')
@@ -372,7 +390,7 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
             print_error_log('The names of pkl and directory do not match! '
                 f'Please check the names and remove irrelevant files in {dirname}. ')
             raise CompareException(CompareException.INVALID_FILE_ERROR)
-        return pkl_path, dump_data_dir 
+        return pkl_path, dump_data_dir
 
 
     # get the ranks and match by order
@@ -383,7 +401,7 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
             'Unable to match the ranks. Please use another folder to compare '
             'or use compare() api and manually match the ranks.')
         raise CompareException(CompareException.INVALID_PATH_ERROR)
-    for nr, br in zip(npu_ranks, bench_ranks):  
+    for nr, br in zip(npu_ranks, bench_ranks):
         n_dir = os.path.join(npu_dump_dir, nr)
         b_dir = os.path.join(bench_dump_dir, br)
         npu_pkl_path, npu_dump_data_dir = extract_pkl_and_data_dir(n_dir)
@@ -429,7 +447,7 @@ def compare(input_parma, output_path, shape_flag=True, stack_mode=False, suffix=
             columns.extend(["NPU max", "NPU min", "NPU mean"])
         if bench_summary:
             columns.extend(["Bench max", "Bench min", "Bench mean"])
-        columns.extend(["Err_message"])
+        columns.extend(["Accuracy Reached or Not", "Err_message"])
         if stack_mode:
             columns.extend(["NPU_Stack_Info"])
         result_df = pd.DataFrame(result, columns=columns)

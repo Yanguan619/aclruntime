@@ -25,6 +25,7 @@ import re
 import numpy as np
 import pandas as pd
 
+from ..advisor.advisor import Advisor
 from ..common.utils import check_file_or_directory_path, add_time_as_suffix, \
     print_error_log, CompareException, Const, CompareConst, format_value
 
@@ -184,7 +185,7 @@ def get_accuracy(result, n_dict, b_dict, summery_flag):
             b_struct = b_dict["output_struct"][index_out]
             index_out += 1
         err_msg = ""
-        accuracy_check_res = "Yes"
+        accuracy_check_res = CompareConst.ACCURACY_CHECK_YES
 
         result_item = [n_name, b_name, n_struct[0], b_struct[0], n_struct[1], b_struct[1], " ", " "]
         if summery_flag[0]:
@@ -304,10 +305,10 @@ def _save_cmp_result(idx, cos_result, max_err_result, err_msg, result_path, lock
 
 def check_accuracy(cos, max_abs_err):
     if cos == CompareConst.NAN:
-        return "Yes"
+        return CompareConst.ACCURACY_CHECK_YES
     if float(cos) < CompareConst.COS_THRESHOLD and float(max_abs_err) > CompareConst.MAX_ABS_ERR_THRESHOLD:
-        return "No"
-    return "Yes"
+        return CompareConst.ACCURACY_CHECK_NO
+    return CompareConst.ACCURACY_CHECK_YES
 
 
 def compare_by_op(op_name, op_name_mapping_dict, input_parma):
@@ -418,7 +419,7 @@ def check_compare_param(input_parma, output_path, shape_flag, stack_mode, suffix
         raise CompareException(CompareException.INVALID_PARAM_ERROR)
 
 
-def compare(input_parma, output_path, shape_flag=True, stack_mode=False, suffix=''):
+def compare(input_parma, output_path, shape_flag=True, stack_mode=False, auto_analyze=True, suffix=''):
     try:
         check_compare_param(input_parma, output_path, shape_flag, stack_mode, suffix)
         check_file_or_directory_path(input_parma.get("npu_pkl_path"), False)
@@ -453,6 +454,9 @@ def compare(input_parma, output_path, shape_flag=True, stack_mode=False, suffix=
         print_error_log('Compare failed, Please check it and do it again!')
         sys.exit(error.code)
     _do_multi_process(input_parma, file_path)
+    if auto_analyze:
+        advisor = Advisor(file_path, output_path)
+        advisor.analysis()
 
 
 def parse(pkl_file, module_name_prefix):

@@ -11,7 +11,7 @@
 - 可执行pytorch训练任务的训练环境(安装了Pytorch 1.8 或者 Pytorch 1.11版本)
 
 #### 工具依赖
-- 通过pip安装环境依赖numpy、pandas、pyyaml
+- 通过pip安装环境依赖wheel、pyyaml、numpy、pandas（版本1.3.5及以上）
 
 ### 工具安装方式
 
@@ -558,6 +558,14 @@ compare_distributed(npu_dump_dir='dump_path/dump_conv2d_v1.0', bench_dump_dir='d
 “Accuracy Reached or Not”列表示某一行的结果是否达到精度标准，精度标准如下：
 - 当Cosine(余弦相似) < 0.99 且 MaxAbsError(最大绝对误差) > 0.001时，记为精度不达标，标记为“No”。
 - 其余情况下记为精度达标，标记为“Yes”。
+
+### **比对结果自动分析**
+compare方法支持自动对比对结果进行分析，配置参数为auto_analyze=True，默认开启。
+
+在比对过程中，会自动进行结果分析，识别到第一个“Accuracy Reached or Not”列为“No”的节点，即首个精度不达标节点。会将该信息进行日志打屏。
+![图1：自动分析打屏日志](../figures/auto_analyze_log.png)
+关键信息记录在"advisor_+{timestamp}.txt"
+![图2：自动分析结果落盘](../figures/advisor_summary.png)
 
 ### **Dump和比对性能基线**
 环境约束：独占环境,CPU核心数192,固态硬盘(IO速度参考：固态硬盘一般>500MB/s，机械硬盘60-170MB/s）

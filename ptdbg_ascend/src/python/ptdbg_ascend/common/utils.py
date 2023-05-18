@@ -17,6 +17,7 @@
 import collections
 import os
 import re
+import stat
 import subprocess
 import sys
 import time
@@ -50,8 +51,8 @@ class Const:
     DOT = "."
     DUMP_RATIO_MAX = 100
     SUMMERY_DATA_NUMS = 256
+    ONE_HUNDRED_MB = 100*1024*1024
     FLOAT_EPSILON = np.finfo(float).eps
-    NAN = 'Nan'
     SUPPORT_DUMP_MODE = ['api', 'acl']
     ON = 'ON'
     OFF = 'OFF'
@@ -67,10 +68,41 @@ class Const:
     DUMP_MODE = [ALL, LIST, RANGE, STACK, ACL, API_LIST, API_STACK]
 
     API_PATTERN = r"^[A-Za-z0-9]+[_]+([A-Za-z0-9]+[_]*[A-Za-z0-9]+)[_]+[0-9]+[_]+[A-Za-z0-9]+"
+    WRITE_FLAGS = os.O_WRONLY | os.O_CREAT
+    WRITE_MODES = stat.S_IWUSR | stat.S_IRUSR
+
+
+class CompareConst:
+    """
+    Class for compare module const
+    """
+    # compare result column name
+    NPU_NAME = "NPU Name"
+    BENCH_NAME = "Bench Name"
+    NPU_DTYPE = "NPU Tensor Dtype"
+    BENCH_DTYPE = "Bench Tensor Dtype"
+    NPU_SHAPE = "NPU Tensor Shape"
+    BENCH_SHAPE = "Bench Tensor Shape"
+    NPU_MAX = "NPU max"
+    NPU_MIN = "NPU min"
+    NPU_MEAN = "NPU mean"
+    BENCH_MAX = "Bench max"
+    BENCH_MIN = "Bench min"
+    BENCH_MEAN = "Bench mean"
+    COSINE = "Cosine"
+    MAX_ABS_ERR = "MaxAbsErr"
+    ACCURACY = "Accuracy Reached or Not"
+    STACK = "NPU_Stack_Info"
+    ERROR_MESSAGE = "Err_message"
+
+    # compare result data
+    NAN = 'Nan'
 
     # accuracy standards
     COS_THRESHOLD = 0.99
     MAX_ABS_ERR_THRESHOLD = 0.001
+    ACCURACY_CHECK_YES = "Yes"
+    ACCURACY_CHECK_NO = "No"
 
 
 class VersionCheck:
@@ -109,7 +141,8 @@ class CompareException(Exception):
     INVALID_DUMP_FILE = 13
     UNKNOWN_ERROR = 14
     INVALID_DUMP_MODE = 15
-    INVALID_COMPARE_MODE = 16
+    PARSE_FILE_ERROR = 16
+    INVALID_COMPARE_MODE = 17
 
     def __init__(self, code, error_info: str = ""):
         super(CompareException, self).__init__()
@@ -196,6 +229,18 @@ def check_file_or_directory_path(path, isdir=False):
         print_error_log(
             'The path {} does not have permission to read. Please check the path permission'.format(path))
         raise CompareException(CompareException.INVALID_PATH_ERROR)
+
+
+def check_file_size(input_file, max_size):
+    try:
+        file_size = os.path.getsize(input_file)
+    except OSError as os_error:
+        print_error_log('Failed to open "%s". %s' % (input_file, str(os_error)))
+        raise CompareException(CompareException.INVALID_FILE_ERROR)
+    if file_size > max_size:
+        print_error_log('The size (%d) of %s exceeds (%d) bytes, tools not support.'
+                        % (file_size, input_file, max_size))
+        raise CompareException(CompareException.INVALID_FILE_ERROR)
 
 
 def get_dump_data_path(dump_dir):

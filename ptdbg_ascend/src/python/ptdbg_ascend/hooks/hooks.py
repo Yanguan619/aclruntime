@@ -356,6 +356,10 @@ def get_process_rank(model):
 
 def check_path_remove(file_path):
     if os.path.exists(file_path) and not os.path.isdir(file_path):
+        if not os.access(file_path, os.W_OK):
+            print_error_log(
+                'The path {} does not have permission to write. Please check the path permission'.format(file_path))
+            raise CompareException(CompareException.INVALID_PATH_ERROR)
         os.remove(file_path)
 
 

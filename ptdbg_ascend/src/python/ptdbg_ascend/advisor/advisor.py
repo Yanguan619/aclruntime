@@ -85,7 +85,7 @@ class Advisor:
         node_name = first_failing_data[CompareConst.NPU_NAME]
         index = first_failing_data['index']
         message = self.gen_advisor_message(node_name)
-        print_warn_log("Find %s accuracy reached, the line is %s" % (node_name, index))
+        print_warn_log("Find %s accuracy not reached, the line is %s" % (node_name, index))
         result = AdvisorResult(node_name, index, message)
         return result
 

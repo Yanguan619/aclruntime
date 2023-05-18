@@ -22,7 +22,7 @@ from .advisor_result import AdvisorResult
 from .advisor_const import AdvisorConst
 from ..common import utils
 from ..common.utils import CompareException, CompareConst, Const
-from ..common.utils import print_info_log, print_error_log
+from ..common.utils import print_info_log, print_warn_log, print_error_log
 
 
 class Advisor:
@@ -45,8 +45,9 @@ class Advisor:
                             % (self.input_file, str(os_err)))
             raise CompareException(CompareException.PARSE_FILE_ERROR) from os_err
         data_columns = df.columns.values
-        if CompareConst.ACCURACY not in data_columns:
-            print_error_log('Compare result file does not contain %s columns.' % CompareConst.ACCURACY)
+        if not {CompareConst.ACCURACY, CompareConst.NPU_NAME}.issubset(data_columns):
+            print_error_log('Compare result file does not contain %s, %s columns.' % (CompareConst.ACCURACY,
+                                                                                      CompareConst.NPU_NAME))
             raise CompareException(CompareException.INVALID_FILE_ERROR)
         df.reset_index(inplace=True)
         # The value of index is consistent with the line number of csv, csv file first line is 2
@@ -84,6 +85,7 @@ class Advisor:
         node_name = first_failing_data[CompareConst.NPU_NAME]
         index = first_failing_data['index']
         message = self.gen_advisor_message(node_name)
+        print_warn_log("Find %s accuracy not reached, the line is %s" % (node_name, index))
         result = AdvisorResult(node_name, index, message)
         return result
 
@@ -94,7 +96,8 @@ class Advisor:
         accuracy_not_reached = analyze_data[analyze_data[CompareConst.ACCURACY] == CompareConst.ACCURACY_CHECK_NO]
         failing_data = self.filter_data(accuracy_not_reached)
         if failing_data.empty:
-            result = AdvisorResult(Const.NO_ERROR_API, Const.NO_ERROR_API, AdvisorConst.NO_ERR_SUGGEST)
+            print_info_log("All data from api input/output accuracy reached")
+            result = AdvisorResult(AdvisorConst.NO_ERROR_API, AdvisorConst.NO_ERROR_API, AdvisorConst.NO_ERR_SUGGEST)
         else:
             result = self.gen_advisor_result(failing_data)
         message_list = result.print_advisor_log()

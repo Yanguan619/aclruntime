@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-# Copyright (C) 2019-2020. Huawei Technologies Co., Ltd. All rights reserved.
+# Copyright (C) 2022-2023. Huawei Technologies Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -35,24 +35,23 @@ class Advisor:
         self.out_path = os.path.realpath(out_path)
 
     def _parse_input_file(self):
-        if self.input_file.endswith(".csv"):
-            try:
-                df = pd.read_csv(self.input_file, on_bad_lines='skip')
-            except OSError as os_err:
-                print_error_log('Failed to parse the input file %s. %s'
-                                % (self.input_file, str(os_err)))
-                raise CompareException(CompareException.PARSE_FILE_ERROR) from os_err
-            data_columns = df.columns.values
-            if CompareConst.ACCURACY not in data_columns:
-                print_error_log('Compare result file does not contain %s columns.' % CompareConst.ACCURACY)
-                raise CompareException(CompareException.INVALID_FILE_ERROR)
-            df.reset_index(inplace=True)
-            # The value of index is consistent with the line number of csv, csv file first line is 2
-            df.iloc[:, 0] += 2
-            return df
-        else:
+        if not self.input_file.endswith(".csv"):
             print_error_log("Advisor only support csv file from ptdbg_ascend result.")
             raise CompareException(CompareException.INVALID_FILE_ERROR)
+        try:
+            df = pd.read_csv(self.input_file, on_bad_lines='skip')
+        except OSError as os_err:
+            print_error_log('Failed to parse the input file %s. %s'
+                            % (self.input_file, str(os_err)))
+            raise CompareException(CompareException.PARSE_FILE_ERROR) from os_err
+        data_columns = df.columns.values
+        if CompareConst.ACCURACY not in data_columns:
+            print_error_log('Compare result file does not contain %s columns.' % CompareConst.ACCURACY)
+            raise CompareException(CompareException.INVALID_FILE_ERROR)
+        df.reset_index(inplace=True)
+        # The value of index is consistent with the line number of csv, csv file first line is 2
+        df.iloc[:, 0] += 2
+        return df
 
     def _check_result_file(self):
         utils.check_file_or_directory_path(self.input_file)

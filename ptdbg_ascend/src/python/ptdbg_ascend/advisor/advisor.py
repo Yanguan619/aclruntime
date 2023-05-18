@@ -45,8 +45,9 @@ class Advisor:
                             % (self.input_file, str(os_err)))
             raise CompareException(CompareException.PARSE_FILE_ERROR) from os_err
         data_columns = df.columns.values
-        if CompareConst.ACCURACY not in data_columns:
-            print_error_log('Compare result file does not contain %s columns.' % CompareConst.ACCURACY)
+        if not {CompareConst.ACCURACY, CompareConst.NPU_NAME}.issubset(data_columns):
+            print_error_log('Compare result file does not contain %s, %s columns.' % (CompareConst.ACCURACY,
+                                                                                      CompareConst.NPU_NAME))
             raise CompareException(CompareException.INVALID_FILE_ERROR)
         df.reset_index(inplace=True)
         # The value of index is consistent with the line number of csv, csv file first line is 2

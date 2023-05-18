@@ -65,7 +65,7 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 ### 数据dump
 #### 使用说明
 1) seed_all和set_dump_path在训练主函数main一开始就调用，避免随机数固定不全；
-2) seed_all(mode=True)开启cann确定性计算,NPU场景下需配置环境CANN6.4，以及下载torch_npu的分支master/v2.0.0/v1.11.0/v1.8.1
+2) seed_all(mode=True)开启确定性计算。NPU场景下需配置环境CANN6.4，以及下载安装torch_npu的分支master/v2.0.0/v1.11.0/v1.8.1
 3) register_hook须在set_dump_path之后调用，避免dump数据路径设置错误
 4) set_dump_switch提供多种dump模式，可以根据不同场景选择dump方式
 5) 进行CPU数据dump时，请安装torch包而非torch_npu包，避免工具无法识别使用场景，导致失败
@@ -161,9 +161,9 @@ from ptdbg_ascend import *
 
 # 在main函数开始前固定随机数
 seed_all()
-# 默认不开启cann确定性计算，当需要使能确定性计算时需要使用以下模式
+# 默认不开启确定性计算，当需要使能确定性计算时需要使用以下模式
 seed_all(mode=True)
-#NPU场景下开启cann确定性计算需配置环境CANN6.4，以及下载安装torch_npu的分支master/v2.0.0/v1.11.0/v1.8.1
+#NPU场景下开启确定性计算需配置环境CANN6.4，以及下载安装torch_npu的分支master/v2.0.0/v1.11.0/v1.8.1
 
 # 设置dump路径（含文件名）和dump_tag。dump_tag会体现在数据文件夹的文件名上
 # 多卡使用时最好也在main函数开始前设置
@@ -279,9 +279,9 @@ from ptdbg_ascend import *
 
 # 在main函数起始位置固定随机数
 seed_all()
-# 默认不开启cann确定性计算，当需要使能确定性计算时需要使用以下模式
+# 默认不开启确定性计算，当需要使能确定性计算时需要使用以下模式
 seed_all(mode=True)
-#NPU场景下开启cann确定性计算需配置环境CANN6.4，以及下载安装torch_npu的分支master/v2.0.0/v1.11.0/v1.8.1
+#NPU场景下开启确定性计算需配置环境CANN6.4，以及下载安装torch_npu的分支master/v2.0.0/v1.11.0/v1.8.1
 
 ...
 
@@ -303,9 +303,9 @@ from ptdbg_ascend import *
 
 # 在main函数起始位置固定随机数
 seed_all()
-# 默认不开启cann确定性计算，当需要使能确定性计算时需要使用以下模式
+# 默认不开启确定性计算，当需要使能确定性计算时需要使用以下模式
 seed_all(mode=True)
-#NPU场景下开启cann确定性计算需配置环境CANN6.4，以及下载安装torch_npu的分支master/v2.0.0/v1.11.0/v1.8.1
+#NPU场景下开启确定性计算需配置环境CANN6.4，以及下载安装torch_npu的分支master/v2.0.0/v1.11.0/v1.8.1
 
 ...
 

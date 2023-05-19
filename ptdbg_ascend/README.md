@@ -71,6 +71,10 @@
 
 #### 环境和依赖
 编译前需要安装wheel包
+通过pip安装环境依赖wheel、pyyaml、numpy、pandas（版本1.3.5及以上）
+
+pip安装依赖命令示例：
+
 ```
    pip install wheel
 ```

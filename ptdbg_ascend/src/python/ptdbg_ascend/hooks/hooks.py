@@ -353,6 +353,16 @@ def get_process_rank(model):
     else:
         return device.index
 
+
+def check_path_remove(file_path):
+    if os.path.exists(file_path) and not os.path.isdir(file_path):
+        if not os.access(file_path, os.W_OK):
+            print_error_log(
+                'The path {} does not have permission to write. Please check the path permission'.format(file_path))
+            raise CompareException(CompareException.INVALID_PATH_ERROR)
+        os.remove(file_path)
+
+
 def make_dump_dirs(rank, pid):
     if DumpUtil.dump_path is not None:
         dump_root_dir, dump_file_name = os.path.split(DumpUtil.dump_path)
@@ -366,9 +376,12 @@ def make_dump_dirs(rank, pid):
         os.mkdir(rank_dir, mode=0o750)
     DumpUtil.dump_dir = rank_dir
     dump_file_path = os.path.join(rank_dir, dump_file_name)
-    if os.path.exists(dump_file_path) and not os.path.isdir(dump_file_path):
-        os.remove(dump_file_path)
+    stack_mode_path = modify_dump_path(dump_file_path)
+    check_path_remove(dump_file_path)
+    check_path_remove(stack_mode_path)
+
     DumpUtil.set_dump_path(dump_file_path)
+
 
 def make_dump_data_dir(dump_file_name):
     dump_path, file_name = os.path.split(os.path.realpath(dump_file_name))

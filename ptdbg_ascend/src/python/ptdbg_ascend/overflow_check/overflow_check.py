@@ -12,6 +12,8 @@ except ImportError:
 else:
     is_gpu = False
 
+backward_init_status = False
+
 
 def overflow_check(name, **kwargs):
     if DumpUtil.dump_path:

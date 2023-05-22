@@ -15,6 +15,20 @@ else:
 backward_init_status = False
 
 
+def check_overflow_environment(pid):
+    if not OverFlowUtil.get_overflow_check_switch():
+        return False
+    if pid != os.getpid():
+        return False
+    if is_gpu:
+        print_warn_log("Overflow detection is not supported in the GPU environment.")
+        return False
+    global backward_init_status
+    if backward_init_status or forward_init_status:
+        return False
+    return True
+
+
 def overflow_check(name, **kwargs):
     if DumpUtil.dump_path:
         DumpUtil.dump_dir = os.path.dirname(DumpUtil.dump_path)
@@ -28,15 +42,7 @@ def overflow_check(name, **kwargs):
         return RuntimeError("Not get the specified process pid.")
 
     def overflowcheck_hook(module, in_feat, out_feat):
-        if not OverFlowUtil.get_overflow_check_switch():
-            return
-        if pid != os.getpid():
-            return
-        if is_gpu:
-            print_warn_log("Overflow detection is not supported in the GPU environment.")
-            return
-        global backward_init_status
-        if backward_init_status or forward_init_status:
+        if not check_overflow_environment(pid):
             return
         module_name = name
         module.has_overflow = torch_npu._C._check_overflow_npu()

@@ -64,8 +64,8 @@ def _dump_tensor_completely(x, prefix, dump_file_name):
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
                 save_tensor = x.contiguous().cpu().detach().numpy()
                 np.save(output_path, save_tensor)
-                json.dump([prefix, [], str(x.dtype), tuple(x.shape)], f)
+                json.dump([prefix, dump_flag, [], str(x.dtype), tuple(x.shape)], f)
             f.write('\n')
     elif OverFlowUtil.overflow_filter_switch == Const.OFF:
         data_info = get_scalar_data_info(x)
-        dump_data(dump_file_name, prefix, data_info)
+        dump_data(dump_file_name, dump_flag, prefix, data_info)

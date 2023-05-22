@@ -86,32 +86,35 @@ def json_dump_condition(prefix):
     return ('backward' in prefix and backward_threading_id == cur_threading_id) or 'forward' in prefix
 
 
-def dump_tensor(x, prefix, dump_step, dump_file_name):
+def dump_tensor(x, prefix, dump_file_name):
+    global data_info
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
-            dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
+            dump_tensor(item, "{}.{}".format(prefix, i), dump_file_name)
         return
     elif isinstance(x, torch.Tensor):
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
             if DumpUtil.dump_filter_switch == Const.OFF:
                 data_info = get_not_float_tensor_info(x)
+                dump_data(dump_file_name, prefix, data_info)
             else:
                 return
         else:
             data_info = get_float_tensor_info(x)
+            dump_data(dump_file_name, prefix, data_info)
 
     elif DumpUtil.dump_filter_switch == Const.OFF:
         data_info = get_scalar_data_info(x)
-    dump_data(dump_file_name, dump_step, prefix, data_info)
+        dump_data(dump_file_name, prefix, data_info)
 
 
-def dump_data(dump_file_name, dump_step, prefix, data_info):
+def dump_data(dump_file_name, prefix, data_info):
     with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                    "a") as f:
         if json_dump_condition(prefix):
             output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
             np.save(output_path, data_info.save_data)
-            json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
+            json.dump([prefix, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
             f.write('\n')
 
 
@@ -135,16 +138,16 @@ def dump_stack_info(name_template, dump_file):
             f.write('\n')
 
 
-def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
-    if "backward" in name_template:
-        dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
-        dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file)
+def dump_api_tensor(in_feat, name_template, out_feat, dump_file):
+    if Const.BACKWARD in name_template:
+        dump_tensor(out_feat, name_template.format("input"), dump_file)
+        dump_tensor(in_feat, name_template.format("output"), dump_file)
     else:
-        dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
-        dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
+        dump_tensor(in_feat, name_template.format("input"), dump_file)
+        dump_tensor(out_feat, name_template.format("output"), dump_file)
 
 
-def dump_acc_cmp(name, in_feat, out_feat, dump_step, moudle):
+def dump_acc_cmp(name, in_feat, out_feat, module):
     dump_file = DumpUtil.get_dump_path()
     _set_dump_switch4api_list(name)
     if DumpUtil.dump_switch_mode == Const.API_STACK:
@@ -159,16 +162,16 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, moudle):
         name_prefix = name
         name_template = f"{name_prefix}" + "_{}"
         if DumpUtil.dump_switch_mode in [Const.ALL, Const.API_LIST]:
-            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
+            dump_api_tensor(in_feat, name_template, out_feat, dump_file)
         elif DumpUtil.dump_switch_mode == Const.API_STACK:
-            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
+            dump_api_tensor(in_feat, name_template, out_feat, dump_file)
             dump_stack_info(name_template, dump_file)
         elif DumpUtil.check_switch_scope(name_prefix):
             dump_stack_info(name_template, dump_file)
             if DumpUtil.dump_switch_mode == Const.ACL:
-                acl_dump(moudle, name, name_prefix)
+                acl_dump(module, name, name_prefix)
             elif DumpUtil.dump_switch_mode != Const.STACK:
-                dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
+                dump_api_tensor(in_feat, name_template, out_feat, dump_file)
 
 
 def acl_dump(module, module_name, name_prefix):
@@ -198,7 +201,7 @@ def forward_acl_dump(module, module_name):
 def dump_mode_backward_acl_dump(module, module_name, grad_path):
     global forward_init_status
     global backward_init_status
-    module_name = module_name.replace("forward", "backward")
+    module_name = module_name.replace(Const.FORWARD, Const.BACKWARD)
     if not forward_init_status and not backward_init_status:
         forward_init_status = True
         module.input_args = list(module.input_args)
@@ -224,7 +227,6 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
 
 
 def acc_cmp_dump(name, **kwargs):
-    dump_step = kwargs.get('dump_step', 1)
     pid = kwargs.get('pid')
     DumpUtil.set_dump_config(kwargs.get('dump_config'))
     if not pid:
@@ -232,7 +234,7 @@ def acc_cmp_dump(name, **kwargs):
 
     def acc_cmp_hook(module, in_feat, out_feat):
         if pid == os.getpid():
-            dump_acc_cmp(name, in_feat, out_feat, dump_step, module)
+            dump_acc_cmp(name, in_feat, out_feat, module)
         if hasattr(module, "input_args"):
             del module.input_args
         if hasattr(module, "input_kwargs"):

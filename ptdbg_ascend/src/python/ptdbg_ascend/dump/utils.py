@@ -4,9 +4,11 @@ import sys
 from pathlib import Path
 
 from ..common.utils import print_error_log, CompareException, Const, get_time, print_info_log, \
-    check_mode_valid, get_api_name_from_matcher, __version__
+    check_mode_valid, get_api_name_from_matcher
 
-DumpCount = 0
+from ..common.version import __version__
+
+dump_count = 0
 range_begin_flag, range_end_flag = False, False
 
 
@@ -42,15 +44,13 @@ class DumpUtil(object):
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
-    @staticmethod
     def check_list_or_acl_mode(name_prefix):
-        global DumpCount
+        global dump_count
         for item in DumpUtil.dump_switch_scope:
             if name_prefix.startswith(item):
-                DumpCount = DumpCount + 1
+                dump_count = dump_count + 1
                 return True
 
-    @staticmethod
     def check_range_mode(name_prefix):
         global range_begin_flag
         global range_end_flag
@@ -64,7 +64,6 @@ class DumpUtil(object):
             return True
         return False
 
-    @staticmethod
     def check_stack_mode(name_prefix):
         if len(DumpUtil.dump_switch_scope) == 0:
             return True
@@ -119,18 +118,16 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
     if os.path.isdir(real_path):
         print_error_log("set_dump_path '{}' error, please set a valid filename.".format(real_path))
         raise CompareException(CompareException.INVALID_PATH_ERROR)
-    if os.path.exists(real_path):
-        os.remove(real_path)
     DumpUtil.set_dump_path(real_path)
     DumpUtil.dump_dir_tag = dump_tag
 
 
 def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON):
-    global DumpCount
+    global dump_count
     if mode == Const.LIST and switch == "ON":
-        DumpCount = 0
+        dump_count = 0
     if mode == Const.LIST and switch == "OFF":
-        print_info_log("The number of matched dump is {}".format(DumpCount))
+        print_info_log("The number of matched dump is {}".format(dump_count))
     try:
         check_mode_valid(mode)
         assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
@@ -175,7 +172,7 @@ def make_dump_data_dir(dump_file_name):
     return output_dir
 
 
-def make_dump_dirs(rank, pid):
+def make_dump_dirs(rank):
     if DumpUtil.dump_path is not None:
         dump_root_dir, dump_file_name = os.path.split(DumpUtil.dump_path)
         dump_file_name_body, _ = os.path.splitext(dump_file_name)

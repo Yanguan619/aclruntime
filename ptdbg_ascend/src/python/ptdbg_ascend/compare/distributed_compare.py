@@ -44,7 +44,7 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
                 pkl_path = full_path
                 pkl_name = fname
         # Provide robustness on invalid directory inputs
-        if pkl_path == '':
+        if not pkl_path:
             print_error_log(f'No file is found in dump dir {dirname}. ')
             raise CompareException(CompareException.NO_DUMP_FILE_ERROR)
         if dump_data_dir == '':

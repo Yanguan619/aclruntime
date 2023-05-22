@@ -74,7 +74,7 @@ def register_hook(model, hook, **kwargs):
     rank = kwargs.get('rank')
     if rank is None:
         rank = get_process_rank(model)
-    make_dump_dirs(rank, pid)
+    make_dump_dirs(rank)
     hook_name = hook.__name__
 
     if "overflow_check" in hook_name and not is_gpu:

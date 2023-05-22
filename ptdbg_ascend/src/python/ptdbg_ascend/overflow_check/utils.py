@@ -60,7 +60,7 @@ def _dump_tensor_completely(x, prefix, dump_file_name):
             _dump_tensor_completely(item, "{}.{}".format(prefix, i), dump_file_name)
     elif isinstance(x, torch.Tensor):
         with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-            if x.numel() != 0:
+            if x.numel():
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
                 save_tensor = x.contiguous().cpu().detach().numpy()
                 np.save(output_path, save_tensor)

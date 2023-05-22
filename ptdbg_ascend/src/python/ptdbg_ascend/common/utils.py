@@ -30,9 +30,9 @@ import torch
 try:
     import torch_npu
 except ImportError:
-    is_gpu=True
+    is_gpu = True
 else:
-    is_gpu=False
+    is_gpu = False
 
 if not is_gpu:
     from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
@@ -58,6 +58,8 @@ class Const:
     SUPPORT_DUMP_MODE = ['api', 'acl']
     ON = 'ON'
     OFF = 'OFF'
+    BACKWARD = 'backward'
+    FORWARD = 'forward'
 
     # dump mode
     ALL = "all"
@@ -395,9 +397,9 @@ def seed_all(seed=1234, mode=False):
     if is_gpu:
         torch.cuda.manual_seed_all(seed)
         torch.cuda.manual_seed(seed)
-        torch.backends.cudnn.deterministic=True
-        torch.backends.cudnn.enable=False
-        torch.backends.cudnn.benchmark=False
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.enable = False
+        torch.backends.cudnn.benchmark = False
     else:
         torch_npu.npu.manual_seed_all(seed)
         torch_npu.npu.manual_seed(seed)

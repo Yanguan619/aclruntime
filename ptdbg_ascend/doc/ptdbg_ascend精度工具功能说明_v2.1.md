@@ -466,8 +466,9 @@ dump数据之后的比对建议使用`compare_distributed`接口。调用该接�
 
    假设我们要比对的标杆数据在`dump_gpu/dump_conv2d_v1.0`文件夹（文件夹下应有对应数量的rank文件夹），要比对以上两次运行所产生的数据差异，
    就可以把这个路径作为`bench_dump_dir`传入。如：
+
 ```python
-compare_distributed(npu_dump_dir='dump_path/dump_conv2d_v1.0', bench_dump_dir='dump_gpu/dump_conv2d_v1.0', './output')
+compare_distributed('dump_path/dump_conv2d_v1.0', 'dump_gpu/dump_conv2d_v1.0', './output')
 ```
 另外，原本`compare`比对函数支持的参数如`shape_flag`、`stack_mode`等，`compare_distributed`函数也支持。
 

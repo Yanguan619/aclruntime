@@ -398,7 +398,7 @@ set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])    # 该输
   set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
   set_backward_input(["xxx/Functional_conv2d_1_backward_input.0.npy"])
 
-  需要注意的是，某些torch api的输出不是Tensor类型的数据，如torch.sort。对于这种类型API的反向过程进行ACL dump，工具会在运行日志中给出对应的Warning提示。如若想要进行ACL dump，
+  需要注意的是，某些torch api的输出不是Tensor类型的数据。对于这种类型API的反向过程进行ACL dump，工具会在运行日志中给出对应的Warning(is not of tensor type and cannot be automatically derived)提示。如若想要进行ACL dump，
   可以通过手动构建单API用例的方式进行ACL dump，具体用例可参考[反向ACL dump用例说明](./反向ACL%20dump用例说明.md)。
 
 ### 场景四 单机多卡场景使用精度比对工具

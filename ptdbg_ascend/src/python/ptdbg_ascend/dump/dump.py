@@ -81,9 +81,9 @@ def get_float_tensor_info(data):
 def json_dump_condition(prefix):
     cur_threading_id = threading.current_thread().ident
     global backward_threading_id
-    if not backward_threading_id and 'backward' in prefix:
+    if not backward_threading_id and Const.BACKWARD in prefix:
         backward_threading_id = cur_threading_id
-    return ('backward' in prefix and backward_threading_id == cur_threading_id) or 'forward' in prefix
+    return (Const.BACKWARD in prefix and backward_threading_id == cur_threading_id) or 'forward' in prefix
 
 
 def dump_tensor(x, prefix, dump_step, dump_file_name):
@@ -198,6 +198,17 @@ def forward_acl_dump(module, module_name):
     print_info_log("Dump %s op file." % module_name)
 
 
+def acl_backward_dump_status(output, grad, module_name):
+    if isinstance(output, torch.Tensor):
+        output.backward(grad, retain_graph=True)
+        return True
+
+    if "_sort_" in module_name :
+        output[0].backward(grad, retain_graph=True)
+        return True
+    return False
+
+
 def dump_mode_backward_acl_dump(module, module_name, grad_path):
     global forward_init_status
     global backward_init_status
@@ -209,15 +220,13 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
             if isinstance(data, torch.Tensor) and data.grad_fn:
                 module.input_args[i] = data.detach().requires_grad_()
         output = module.forward(*module.input_args, **module.input_kwargs)
-        if not isinstance(output, torch.Tensor):
-            print_warn_log("The output of {} is not of tensor type and cannot be automatically derived. "
-                           "you can manually construct a single API backward case for ACL dump.".format(module_name))
-            return
         grad = torch.tensor(np.load(grad_path)).to("npu").requires_grad_()
         torch_npu.npu.init_dump()
         torch_npu.npu.set_dump(DumpUtil.dump_config)
         torch_npu.npu.synchronize()
-        output.backward(grad, retain_graph=True)
+        if not acl_backward_dump_status(output, grad, module_name):
+            print_warn_log("The output of {} is not of tensor type and cannot be automatically derived. "
+                            "you can manually construct a single API backward case for ACL dump.".format(module_name))
         torch_npu.npu.synchronize()
         torch_npu.npu.finalize_dump()
     del module.input_args

@@ -20,19 +20,18 @@ import os
 
 import torch
 
-from . import wrap_tensor, wrap_torch, wrap_functional, wrap_vf
-from .module import HOOKModule
-from ..common.utils import check_file_or_directory_path, add_time_as_suffix, \
-    print_error_log, CompareException, Const, format_value, print_info_log, print_warn_log
-from .hooks import make_dump_dirs, get_process_rank 
+from . import wrap_torch, wrap_npu_custom, wrap_functional, wrap_tensor, wrap_vf
+from .hook_module import HOOKModule
+from ..common.utils import check_file_or_directory_path, print_error_log, CompareException, Const, \
+    print_info_log, print_warn_log, get_process_rank
+from ..dump.utils import make_dump_dirs
 
 try:
     import torch_npu
-    from . import wrap_npu_custom
 except ImportError:
-    is_gpu=True
+    is_gpu = True
 else:
-    is_gpu=False
+    is_gpu = False
 
 def initialize_hook(hook):
     wrap_tensor.wrap_tensor_ops_and_bind(hook)
@@ -75,7 +74,7 @@ def register_hook(model, hook, **kwargs):
     rank = kwargs.get('rank')
     if rank is None:
         rank = get_process_rank(model)
-    make_dump_dirs(rank, pid)
+    make_dump_dirs(rank)
     hook_name = hook.__name__
 
     if "overflow_check" in hook_name and not is_gpu:

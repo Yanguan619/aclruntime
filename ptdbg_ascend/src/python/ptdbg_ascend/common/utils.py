@@ -16,6 +16,7 @@
 """
 import collections
 import os
+import random
 import re
 import stat
 import subprocess
@@ -25,12 +26,13 @@ from datetime import datetime, timezone
 
 import numpy as np
 import torch
+
 try:
     import torch_npu
 except ImportError:
-    is_gpu=True
+    is_gpu = True
 else:
-    is_gpu=False
+    is_gpu = False
 
 if not is_gpu:
     from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
@@ -56,6 +58,8 @@ class Const:
     SUPPORT_DUMP_MODE = ['api', 'acl']
     ON = 'ON'
     OFF = 'OFF'
+    BACKWARD = 'backward'
+    FORWARD = 'forward'
 
     # dump mode
     ALL = "all"
@@ -382,3 +386,39 @@ def torch_device_guard(func):
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return wrapper
+
+
+def seed_all(seed=1234, mode=False):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.use_deterministic_algorithms(mode)
+    if is_gpu:
+        torch.cuda.manual_seed_all(seed)
+        torch.cuda.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.enable = False
+        torch.backends.cudnn.benchmark = False
+    else:
+        torch_npu.npu.manual_seed_all(seed)
+        torch_npu.npu.manual_seed(seed)
+
+
+def get_process_rank(model):
+    print_info_log("Rank id is not provided. Trying to get the rank id of the model.")
+    try:
+        device = next(model.parameters()).device
+    except StopIteration:
+        print_warn_log('There is no parameter in the model. Fail to get rank id.')
+        return 0
+    if device.type == 'cpu':
+        print_warn_log("Warning: the debugger is unable to get the rank id. "
+            "This may cause the dumpped data to be corrupted in the "
+            "case of distributed training. (You may ignore this if you are using only one card.) "
+            "Transfer the model to npu or gpu before register_hook() to avoid this warning.")
+        return 0
+    else:
+        return device.index
+
+

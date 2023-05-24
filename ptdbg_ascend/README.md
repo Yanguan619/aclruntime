@@ -33,7 +33,7 @@ ptdbg_ascend为PyTorch精度工具，用来进行PyTorch整网API粒度的数据
 
    图1：精度比对逻辑图
 
-   ![op_compare](img/op_compare.png)
+   ![op_compare](figures/module_compare.png)
 
 **API匹配条件**
 

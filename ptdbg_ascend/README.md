@@ -4,11 +4,7 @@
 
 ### 概述
 
-**背景**
-
 在PyTorch训练网络，对同一模型或API调试过程中，遇到API相关的计算精度问题，定位时费时费力。
-
-**定义**
 
 ptdbg_ascend为PyTorch精度工具，用来进行PyTorch整网API粒度的数据dump、精度比对和溢出检测，从而定位PyTorch训练场景下的精度问题。
 
@@ -25,11 +21,11 @@ ptdbg_ascend为PyTorch精度工具，用来进行PyTorch整网API粒度的数据
 
 **精度比对流程**
 
-1. 当模型在CPU或GPU上进行正向和反向传播时，分别跟踪并dump每一层的数值输入与输出。
+1. 当模型在CPU或GPU上进行正向和反向传播时，分别dump每一层的数值输入与输出。
 
 2. 当模型在NPU中进行计算时，采用相同的方式dump下相应的数据。
 
-3. 通过对比dump出的数值，计算余弦相似度和均方根误差的方式，定位和排查NPU API存在的计算精度问题。如图1所示。
+3. 通过对比dump出的数值，计算余弦相似度和最大绝对误差的方式，定位和排查NPU API存在的计算精度问题。如图1所示。
 
    图1：精度比对逻辑图
 
@@ -48,7 +44,7 @@ ptdbg_ascend为PyTorch精度工具，用来进行PyTorch整网API粒度的数据
 
 ### 环境准备
 
-- 通过pip安装环境依赖numpy、pandas和pyyaml（1.3.5及以上版本）。
+- 通过pip安装环境依赖wheel、numpy、pandas（1.3.5及以上版本）和pyyaml。
 - ptdbg_ascend与PyTorch有严格的版本配套关系，使用工具前，您需要确保已经正确安装了PyTorch v1.8.1、PyTorch v1.11.0或PyTorch v2.0.0版本：
   - CPU或GPU环境：请至[PyTorch官网](https://www.pytorch.org)下载并安装。
   - NPU环境：请参见《[CANN软件安装指南](https://www.hiascend.com/document/detail/zh/canncommercial/63RC1/envdeployment/instg/instg_000002.html)》“安装开发环境 > 在昇腾设备上安装 > 安装深度学习框架 > 安装PyTorch”章节进行安装。
@@ -65,11 +61,11 @@ ptdbg_ascend精度工具的安装方式包括：**下载whl包安装**和**源�
 
    请通过下表链接下载ptdbg_ascend精度工具whl包，推荐下载最新版本。
 
-   | ptdbg_ascend版本 | 发布日期  | 支持PyTorch版本  | 下载链接                                                     |
-   | ---------------- | --------- | ---------------- | ------------------------------------------------------------ |
-   | 2.2              | 2023-5-12 | 1.8.1/1.11.0/2.0 | [ptdbg_ascend-2.2-py3-none-any.whl](https://gitee.com/link?target=https%3A%2F%2Fptdbg.obs.myhuaweicloud.com%2Fpackage%2Fptdbg_ascend%2F2.0%2Fptdbg_ascend-2.2-py3-none-any.whl) |
-   | 2.1              | 2023-4-21 | 1.8.1/1.11.0     | [ptdbg_ascend-2.1-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/2.0/ptdbg_ascend-2.1-py3-none-any.whl) |
-   | 1.0              | 2023-3-30 | 1.8.1/1.11.0     | [ptdbg_ascend-1.0-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/1.0/ptdbg_ascend-1.0-py3-none-any.whl) |
+   | ptdbg_ascend版本 | 发布日期  | 支持PyTorch版本  | 下载链接                                                     | 参考指南                                                     |
+   | ---------------- | --------- | ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+   | 2.2              | 2023-5-12 | 1.8.1/1.11.0/2.0 | [ptdbg_ascend-2.2-py3-none-any.whl](https://gitee.com/link?target=https%3A%2F%2Fptdbg.obs.myhuaweicloud.com%2Fpackage%2Fptdbg_ascend%2F2.0%2Fptdbg_ascend-2.2-py3-none-any.whl) | [ptdbg_ascend精度工具功能说明_v2.2](https://gitee.com/ascend/tools/blob/master/ptdbg_ascend/doc/ptdbg_ascend%E7%B2%BE%E5%BA%A6%E5%B7%A5%E5%85%B7%E5%8A%9F%E8%83%BD%E8%AF%B4%E6%98%8E_v2.2.md) |
+   | 2.1              | 2023-4-21 | 1.8.1/1.11.0     | [ptdbg_ascend-2.1-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/2.0/ptdbg_ascend-2.1-py3-none-any.whl) | [ptdbg_ascend精度工具功能说明_v2.1](https://gitee.com/ascend/tools/blob/master/ptdbg_ascend/doc/ptdbg_ascend%E7%B2%BE%E5%BA%A6%E5%B7%A5%E5%85%B7%E5%8A%9F%E8%83%BD%E8%AF%B4%E6%98%8E_v2.1.md) |
+   | 1.0              | 2023-3-30 | 1.8.1/1.11.0     | [ptdbg_ascend-1.0-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/1.0/ptdbg_ascend-1.0-py3-none-any.whl) | [ptdbg_ascend精度工具功能说明_v1.0](https://gitee.com/ascend/tools/blob/master/ptdbg_ascend/doc/ptdbg_ascend%E7%B2%BE%E5%BA%A6%E5%B7%A5%E5%85%B7%E5%8A%9F%E8%83%BD%E8%AF%B4%E6%98%8E_v1.0.md) |
 
    
 
@@ -78,19 +74,19 @@ ptdbg_ascend精度工具的安装方式包括：**下载whl包安装**和**源�
    执行如下命令进行安装。
 
    ```bash
-   pip3 install ./ptdbg_ascend-2.1-py3-none-any.whl
+   pip3 install ./ptdbg_ascend-{version}-py3-none-any.whl
    ```
 
    若为覆盖安装，请在命令行末尾增加“--force-reinstall”参数强制安装，例如：
 
    ```bash
-   pip3 install ./ptdbg_ascend-2.1-py3-none-any.whl --force-reinstall
+   pip3 install ./ptdbg_ascend-{version}-py3-none-any.whl --force-reinstall
    ```
 
    提示如下信息则表示安装成功。
 
    ```bash
-   Successfully installed ptdbg_ascend-2.1
+   Successfully installed ptdbg_ascend-{version}
    ```
 
 #### 源代码编译安装
@@ -159,17 +155,13 @@ ptdbg_ascend精度工具的安装方式包括：**下载whl包安装**和**源�
 
 6. 安装。
 
-   ```bash
-   make install
-   ```
-
    执行如下命令进行ptdbg_ascend安装。
-
+   
    ```bash
    pip3 install ./ptdbg_ascend/dist/ptdbg_ascend-{version}-py3-none-any.whl --upgrade --force-reinstall
    ```
 
-完成ptdbg_ascend安装后，可以进行PyTorch精度数据的dump和、比对和一处检测等操作，详细介绍请参见《[PyTorch精度工具使用指南](https://gitee.com/ascend/tools/tree/master/ptdbg_ascend/doc)》。
+完成ptdbg_ascend安装后，可以进行PyTorch精度数据的dump和、比对和溢出检测等操作，详细介绍请参见《[PyTorch精度工具使用指南](https://gitee.com/ascend/tools/tree/master/ptdbg_ascend/doc)》。
 
 ## 贡献
 

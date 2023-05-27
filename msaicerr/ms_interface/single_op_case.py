@@ -11,6 +11,7 @@ import re
 import os
 from time import sleep
 import time
+import chardet
 import numpy as np
 from ms_interface import utils
 from ms_interface.constant import Constant
@@ -63,12 +64,15 @@ class SingleOpCase:
     def generate_config(self):
         config_file_list = []
         kernel_path = self.collection.collect_kernel_path
+        encoding = chardet.detect(self.collection.tiling_list[1])["encoding"]
+        tiling_data = self.collection.tiling_list[1].decode(encoding)
+        
         for kernel_name in self.collection.kernel_name_list:
             data = {
                 "cce_file": self.get_cce_file(),
                 "bin_path": os.path.join(kernel_path, f"{kernel_name}.o"),
                 "json_path": os.path.join(kernel_path, f"{kernel_name}.json"),
-                "tiling_data": self.collection.tiling_list[1].decode("utf-8"),
+                "tiling_data": tiling_data,
                 "tiling_key": self.collection.tiling_list[0],
                 "block_dim": self.collection.tiling_list[2],
                 "input_file_list": self.collection.input_list,

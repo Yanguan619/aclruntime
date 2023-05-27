@@ -64,9 +64,13 @@ class SingleOpCase:
     def generate_config(self):
         config_file_list = []
         kernel_path = self.collection.collect_kernel_path
+
         encoding = chardet.detect(self.collection.tiling_list[1])["encoding"]
-        tiling_data = self.collection.tiling_list[1].decode(encoding)
-        
+        if encoding:
+          tiling_data = self.collection.tiling_list[1].decode(encoding)
+        else:
+          tiling_data = ""
+
         for kernel_name in self.collection.kernel_name_list:
             data = {
                 "cce_file": self.get_cce_file(),

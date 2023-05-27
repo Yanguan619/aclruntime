@@ -394,7 +394,8 @@ class AscendOpKernelRunner:
         if not kernel.need_do_tiling:
             return
         if not tiling_data:
-            raise RuntimeError("Tiling data is None")
+            logger.log_warn("Tiling data is None")
+            return
         hbm_pointer = self.ascend_device.copy_bin_to_hbm(tiling_data)
         tiling_hbm.append(hbm_pointer)
         kernel_args.append(hbm_pointer)

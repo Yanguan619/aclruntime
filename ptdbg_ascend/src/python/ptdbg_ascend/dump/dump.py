@@ -188,7 +188,6 @@ def acl_dump(module, module_name, name_prefix):
 
 
 def forward_acl_dump(module, module_name):
-    import torch_npu
     global forward_init_status
     global backward_init_status
     if not forward_init_status and not backward_init_status:

@@ -5,8 +5,6 @@ from ptdbg_ascend.dump import utils as hooks
 
 class TestUtilsMethods(unittest.TestCase):
 
-
-    # @mock.patch("torch_npu", torch_npu, create=True)
     def test_set_dump_switch_only_set_switch_as_on(self):
         dump_count = hooks.dump_count
         dump_util = hooks.DumpUtil

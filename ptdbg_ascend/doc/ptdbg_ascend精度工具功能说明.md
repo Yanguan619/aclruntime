@@ -103,10 +103,29 @@ seed_all函数可固定随机数的范围如下表。
 
 需要保证CPU或GPU以及NPU的模型输入完全一致，dump数据的比对才有意义，seed_all并不能保证模型输入完全一致，如下表所示场景需要用户自行保证输入的一致性。
 
-| 场景            | 固定方法           |
-| --------------- | ------------------ |
-| 数据集的shuffle | 将shuffle设置为off |
-| dropout         | 将dropout设置为off |
+| 场景            | 固定方法      |
+| --------------- | ------------- |
+| 数据集的shuffle | 关闭shuffle。 |
+| dropout         | 关闭dropout。 |
+
+关闭shuffle示例：
+
+```python
+train_loader = torch.utils.data.DataLoader(
+	train_dataset,
+	batch_size = batch_size,
+	shuffle = False,
+	num_workers = num_workers
+)
+```
+
+关闭dropout示例：
+
+```python
+toech.nn.functional.dropout(input, p = 0)
+```
+
+将所有包含dropout的代码设置p = 0，或者可以将所有包含dropout的代码注释。
 
 ### set_dump_path
 

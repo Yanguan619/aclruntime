@@ -20,7 +20,7 @@ import os
 
 import torch
 
-from . import wrap_torch, wrap_npu_custom, wrap_functional, wrap_tensor, wrap_vf
+from . import wrap_torch, wrap_functional, wrap_tensor, wrap_vf
 from .hook_module import HOOKModule
 from ..common.utils import check_file_or_directory_path, print_error_log, CompareException, Const, \
     print_info_log, print_warn_log, get_process_rank
@@ -32,6 +32,7 @@ except ImportError:
     is_gpu = True
 else:
     is_gpu = False
+    from . import wrap_npu_custom
 
 def initialize_hook(hook):
     wrap_tensor.wrap_tensor_ops_and_bind(hook)

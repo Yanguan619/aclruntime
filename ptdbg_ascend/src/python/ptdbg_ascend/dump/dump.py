@@ -22,7 +22,13 @@ import stat
 import numpy as np
 import torch
 import threading
-import torch_npu
+
+try:
+    import torch_npu
+except ImportError:
+    is_gpu = True
+else:
+    is_gpu = False
 
 from .utils import DumpUtil, _set_dump_switch4api_list, make_dump_data_dir
 

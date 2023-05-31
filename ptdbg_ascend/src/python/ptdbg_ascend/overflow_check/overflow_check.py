@@ -44,7 +44,7 @@ def check_data_overflow(x):
                     return True
                 else:
                     return False
-            elif isinstance(x, torch.Tensor) or isinstance(x, torch.Tensor) or isinstance(x, torch.Tensor):
+            elif isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
                 if x == float('inf') or x == float('-inf') or x != x :
                     return True
                 else:

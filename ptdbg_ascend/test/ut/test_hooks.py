@@ -55,3 +55,8 @@ class TestUtilsMethods(unittest.TestCase):
         hooks.set_dump_switch("ON", mode="acl", scope=scope_list)
         self.assertEqual(dump_util.dump_switch_mode, "acl")
         self.assertEqual(dump_util.dump_switch_scope, replace_scope)
+
+    def test_set_dump_filter_switch_off(self):
+        dump_util = hooks.DumpUtil
+        hooks.set_dump_switch("ON", filter_switch="OFF")
+        self.assertEqual(dump_util.dump_filter_switch, "OFF")

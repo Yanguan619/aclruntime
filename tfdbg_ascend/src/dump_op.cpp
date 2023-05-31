@@ -99,7 +99,7 @@ void WriteTensor2Npy(tensorflow::Tensor tensor, std::string fname) {
   std::string realFileName = absl::StrCat(g_dumpConfig.dumpPath, fname);
   fp = fopen(realFileName.c_str(), "wb");
   if (fp <= 0) {
-        if (errno == ENAMETOOLONG) {
+    if (errno == ENAMETOOLONG) {
         std::string hashValue = std::to_string(std::hash<std::string>{}(fname));
 
         std::string mapItem = hashValue + ',' + fname + '\n';

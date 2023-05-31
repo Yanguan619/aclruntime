@@ -80,7 +80,7 @@ class Advisor:
                 message = AdvisorConst.BACKWARD_OUTPUT_SUGGEST
         return message
 
-    def gen_advisor_result_acc(self, pd_data):
+    def gen_advisor_result(self, pd_data):
         first_failing_data = pd_data.iloc[0]
         node_name = first_failing_data[CompareConst.NPU_NAME]
         index = first_failing_data['index']

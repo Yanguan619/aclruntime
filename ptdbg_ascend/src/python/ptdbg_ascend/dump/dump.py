@@ -70,7 +70,10 @@ def get_not_float_tensor_info(data):
 
 def get_scalar_data_info(data):
     summary_data = []
-    summary_data.extend([data, data, data])
+    if isinstance(data, slice):
+        summary_data = [[], [], []]
+    else:
+        summary_data.extend([data, data, data])
     return DataInfo(data, data, summary_data, str(type(data)), str([]))
 
 
@@ -111,7 +114,7 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
 
     elif DumpUtil.dump_filter_switch == Const.OFF:
         data_info = get_scalar_data_info(x)
-        dump_data(dump_file_name, prefix, data_info)
+        dump_data(dump_file_name, dump_step, prefix, data_info)
 
 
 def dump_data(dump_file_name, dump_step, prefix, data_info):

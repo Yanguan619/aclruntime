@@ -80,7 +80,7 @@ class Advisor:
                 message = AdvisorConst.BACKWARD_OUTPUT_SUGGEST
         return message
 
-    def gen_advisor_result(self, pd_data):
+    def gen_advisor_result_acc(self, pd_data):
         first_failing_data = pd_data.iloc[0]
         node_name = first_failing_data[CompareConst.NPU_NAME]
         index = first_failing_data['index']
@@ -88,11 +88,21 @@ class Advisor:
         print_warn_log("Find %s accuracy not reached, the line is %s" % (node_name, index))
         result = AdvisorResult(node_name, index, message)
         return result
+    
+    def analyze_unmatched(self, analyze_data):
+        accuracy_unmatched = analyze_data[analyze_data[CompareConst.ACCURACY] == CompareConst.ACCURACY_CHECK_UNMATCH]
+        num_unmatch = len(accuracy_unmatched)
+        if num_unmatch != 0:
+            for i in range(num_unmatch):
+                item = analyze_data.iloc[i]
+                print_warn_log("The tensor name matches but the shape or dtype does not match: {}"\
+                        .format(item[CompareConst.NPU_NAME]))
 
     def analysis(self):
         self._check_result_file()
         analyze_data = self._parse_input_file()
         print_info_log("Start analyzing the comparison result: %s" % self.input_file)
+        self.analyze_unmatched(analyze_data)
         accuracy_not_reached = analyze_data[analyze_data[CompareConst.ACCURACY] == CompareConst.ACCURACY_CHECK_NO]
         failing_data = self.filter_data(accuracy_not_reached)
         if failing_data.empty:

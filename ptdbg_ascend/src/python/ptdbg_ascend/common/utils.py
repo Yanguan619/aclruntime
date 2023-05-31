@@ -101,12 +101,15 @@ class CompareConst:
 
     # compare result data
     NAN = 'Nan'
+    SHAPE_UNMATCH = 'shape unmatched'
+    DTYPE_UNMATCH = 'dtype unmatched'
 
     # accuracy standards
     COS_THRESHOLD = 0.99
     MAX_ABS_ERR_THRESHOLD = 0.001
     ACCURACY_CHECK_YES = "Yes"
     ACCURACY_CHECK_NO = "No"
+    ACCURACY_CHECK_UNMATCH = "Unmatched"
 
 
 class VersionCheck:
@@ -358,7 +361,7 @@ def parse_value_by_comma(value):
 def get_data_len_by_shape(shape):
     data_len = 1
     for item in shape:
-        if item == -1:
+        if item is -1:
             print_error_log("please check your input shape, one dim in shape is -1.")
             return -1
         data_len = data_len * item

@@ -579,6 +579,19 @@ SingleOpCase.run(config)"""
         aicore_error_data_list.extend([alloc_addr, graph_file])
         return aicore_error_data_list
 
+    def _get_data_dump_result(self:any):
+        try:
+            data_dump_failed_cmd = ['grep', 'exception_dumper.cc.*Dump exception.*failed', '-nr', 
+                                    self.collection.collect_plog_path]
+            data_dump_ret, _ = utils.execute_command(data_dump_failed_cmd)
+            if data_dump_ret == 0:
+              utils.print_warn_log("Data dump failed in exception dump. Please contact GE to resolve it!")
+              return False
+        except utils.AicErrException as e:
+            utils.print_info_log("Failed to dump data!")
+        return True
+
+
     def parse(self: any) -> None:
         """
         parse by collection info
@@ -644,14 +657,18 @@ SingleOpCase.run(config)"""
                     {os.path.join(kernel_meta_path, info.kernel_name)}.o failed.")
 
             info.input_output_addrs = self._get_input_output_addrs(info, aicore_error_data_list[Constant.ALLOC_ADDR])
-
+            info.data_dump_result = self._get_data_dump_result()
             # parse dump
-            if self.collection.collect_dump_path:
+            if self.collection.collect_dump_path and info.data_dump_result:
                 dump_parser = DumpDataParser(self.collection.collect_dump_path, info.node_name, info.kernel_name)
                 info.dump_info = dump_parser.parse()
                 self.collection.input_list = dump_parser.get_input_data()
                 self.collection.output_list = dump_parser.get_output_data()
-            info.single_op_test_result = self._test_single_op(self.collection)
+            else:
+                info.dump_info = "Failed to get dump data of error op!"
+
+            if info.data_dump_result:
+                info.single_op_test_result = self._test_single_op(self.collection)
             # write info file
             self._write_errorinfo_file(err_i_folder, info, i)
 

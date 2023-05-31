@@ -41,6 +41,7 @@ class AicErrorInfo:
         self.necessary_addr = {}
         self.atomic_add_err = False
         self.single_op_test_result = True
+        self.data_dump_result = True
 
     def analyse(self: any) -> str:
         """
@@ -96,7 +97,9 @@ instruction  : {self.instr}
 
     def _get_conclusion(self: any) -> str:
         conclusion = ""
-        if self.current_pc == "0x0":
+        if not self.data_dump_result:
+            conclusion = "Dump data failed in exception dump! Address of input or output is error!"
+        elif self.current_pc == "0x0":
             conclusion = "Memory of operator code has been over write falsely\n"
         elif self.atomic_add_err:
             conclusion = "Atomic accumulation exception, please check the input data.\

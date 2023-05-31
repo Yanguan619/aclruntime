@@ -261,7 +261,7 @@ class BigDumpDataParser:
         # + sum(buffer.data) equal to file size
         if self.header_length + ConstManager.UINT64_SIZE + input_data_size \
                 + output_data_size + buffer_data_size + space_data_size != self.file_size:
-            log.print_warn_log(
+            utils.print_warn_log(
                 'The file size (%d) of %s is not equal to %d (header length)'
                 ' + %d(the size of header content) '
                 '+ %d(the sum of input data) + %d(the sum of output data) '

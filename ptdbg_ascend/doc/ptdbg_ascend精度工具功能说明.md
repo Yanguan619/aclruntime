@@ -214,7 +214,7 @@ register_hook(model, hook, overflow_nums=overflow_nums, dump_mode=dump_mode, dum
   register_hook(model, overflow_check, overflow_nums=3)
   ```
 
-  该场景set_dump_path不生效，dump执行时会在当前目录自动生成ptdbg_dump_{version}目录，保存溢出数据。
+  dump执行时会在set_dump_path的fpath参数指定的目录下生成ptdbg_dump_{version}目录，保存溢出数据。
 
   单机多卡场景时，需要检测到至少有一张卡溢出次数达到overflow_nums时，训练结束。
 
@@ -417,7 +417,7 @@ set_backward_input(["acl_dump_xxx//Functional_conv2d_1_backward_input.0.npy"])
 | -------------- | ------------------------------------------------------------ |
 | dump_list      | 待dump数据的API模型。为空，无需配置。                        |
 | dump_path      | dump数据文件存储到运行环境的目录，主要用于指定ACL dump数据路径。支持配置绝对路径或相对路径。 |
-| dump_mode      | dump数据模式，配置如下： * output：dump API的输出数据。默认值。 * input：dump API的输入数据。 *  all：dump API的输入、输出数据。 |
+| dump_mode      | dump数据模式，配置如下：<br/>- output：dump API的输出数据。默认值。<br/>- input：dump API的输入数据。<br/>-  all：dump API的输入、输出数据。 |
 | dump_op_switch | 单API模型dump数据开关，配置如下： * off：关闭单API模型dump，默认值。 * on：开启单API模型dump。 |
 
 **dump目录说明**
@@ -497,7 +497,7 @@ api_stack为堆栈信息。
 
 **溢出检测dump场景**
 
-register_hook设置了overflow_check时，检测API溢出，此时不需要配置set_dump_path，dump执行时会在当前目录自动生成ptdbg_dump_{version}目录，dump结果如下：
+register_hook设置了overflow_check时，检测API溢出，dump结果的文件名固定为Overflow_info_{timestamp}，dump结果如下：
 
 * Overflow_info_{timestamp}.pkl
 * Overflow_info_{timestamp}目录
@@ -567,7 +567,7 @@ compare(input_param, output_path, stack_mode=False, auto_analyze=True, suffix=''
 
 | 参数名       | 说明                                                         | 是否必选 |
 | ------------ | ------------------------------------------------------------ | -------- |
-| input_param  | 配置dump数据文件及目录。配置参数包括：<br/>* "npu_pkl_path"：指定NPU dump目录下的.pkl文件。参数示例："npu_pkl_path": "./api_stack_npu_dump.pkl"。必选。<br/>* "bench_pkl_path"：指定CPU、GPU或NPU dump目录下的.pkl文件。参数示例："bench_pkl_path": "./api_stack_gpu_dump.pkl"。必选。<br/>* "npu_dump_data_dir"："指定NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./api_stack_npu_dump_20230104_13434"。必选。<br/>* "bench_dump_data_dir"："指定CPU、GPU或NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./api_stack_npu_dump_20230104_13434"。必选。<br/>* "is_print_compare_log"：配置是否开启日志打屏。可取值True或False。可选。 | 是       |
+| input_param  | 配置dump数据文件及目录。配置参数包括：<br/>- "npu_pkl_path"：指定NPU dump目录下的.pkl文件。参数示例："npu_pkl_path": "./api_stack_npu_dump.pkl"。必选。<br/>- "bench_pkl_path"：指定CPU、GPU或NPU dump目录下的.pkl文件。参数示例："bench_pkl_path": "./api_stack_gpu_dump.pkl"。必选。<br/>- "npu_dump_data_dir"："指定NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./api_stack_npu_dump_20230104_13434"。必选。<br/>- "bench_dump_data_dir"："指定CPU、GPU或NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./api_stack_npu_dump_20230104_13434"。必选。<br/>- "is_print_compare_log"：配置是否开启日志打屏。可取值True或False。可选。 | 是       |
 | output_path  | 配置比对结果csv文件存盘目录。参数示例：'./output'。文件名称基于时间戳自动生成，格式为：`compare_result_{timestamp}.csv`。 | 是       |
 | stack_mode   | 配置stack_mode的开关。仅当dump数据时配置set_dump_switch的mode="api_stack"时需要开启。参数示例：stack_mode=True，默认为False。 | 否       |
 | auto_analyze | 自动精度分析，开启后工具自动针对比对结果进行分析，识别到第一个精度不达标节点（在比对结果文件中的“Accuracy Reached or Not”列显示为No），并给出问题可能产生的原因。参数示例：auto_analyze=False，默认为True。 | 否       |

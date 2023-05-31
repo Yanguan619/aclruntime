@@ -59,6 +59,23 @@ class HostLogParser:
         result += "VEC_ERR_INFO={}\n".format(aic_error[6])
         return result
 
+    
+    def _get_v300_error_code(self: any) -> list:
+        cmd = ['grep', 'The extend info: errcode:', '-nr', self.collect_plog_path]
+        regexp = r"\(([0-9xa-eA-E]+),\s*([0-9xa-eA-E]+),\s*([0-9xa-eA-E]+)\)"
+        ret = utils.get_inquire_result(cmd, regexp)
+        new_codes = []
+        for _, (code0, code1, code2) in enumerate(ret):
+            code0_int = utils.get_hexstr_value(code0)
+            code1_int = utils.get_hexstr_value(code1)
+            code1_int = code1_int << 64
+            code2_int = utils.get_hexstr_value(code2) 
+            code2_int = (((code2_int >> 32) << 17) & (code2_int & 0x1FFFF)) << 128
+            new_code = code0_int | code1_int | code2_int
+            new_codes.append(hex(new_code))
+        return new_codes
+
+
     def get_op_info(self: any) -> tuple:
         aicore_err_cmd = ['grep', 'there is an aicore error|there is an .*aivec.* error exception', '-inrE', 
                           self.collect_plog_path]
@@ -74,6 +91,9 @@ class HostLogParser:
         if len(aic_err_ret) > 1:
             utils.print_error_log("Find more than one aicore error, choose first one to analysis")
             aic_err_ret = (aic_err_ret[0],)
+        new_codes = []
+        if aic_err_ret[0][3] == "0" or aic_err_ret[0][3] == "0x0":
+            new_codes = self._get_v300_error_code()
         for aic_err in aic_err_ret:
             stream_id, task_id, node_name, kernel_name = self._get_node_and_kernel_name()
             extra_info = self._get_extra_info(aic_err)
@@ -87,7 +107,10 @@ class HostLogParser:
             device_aic_err[2] = stream_id  # stream id
             device_aic_err[3] = task_id  # task id
             device_aic_err[4] = aic_err[2]  # core id
-            device_aic_err[5] = aic_err[3]  # aic error code
+            if len(new_codes) > 0:
+                device_aic_err[5] = new_codes[0]  # aic error code
+            else:
+                device_aic_err[5] = aic_err[3]  # aic error code
             device_aic_err[6] = aic_err[4]  # start pc
             device_aic_err[7] = extra_info  # extra_info
             device_aic_err[8] = aic_err[5]  # current pc

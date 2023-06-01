@@ -27,8 +27,8 @@ import pandas as pd
 
 from ..advisor.advisor import Advisor
 from ..common.utils import check_file_or_directory_path, add_time_as_suffix, \
-    print_error_log, CompareException, Const, CompareConst, format_value, \
-    print_warn_log
+    print_warn_log, print_error_log, CompareException, Const, CompareConst, format_value
+
 
 def correct_data(result):
     if result == CompareConst.NAN:

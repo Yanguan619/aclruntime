@@ -28,6 +28,27 @@ def check_overflow_environment(pid):
         return False
     return True
 
+def check_data_overflow(x):
+    if isinstance(x, (tuple, list)) and x:
+        for i, item in enumerate(x):
+            check_data_overflow(item)
+    else:
+            if isinstance(x, torch.Tensor) and x.numel() != 0:
+                tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
+                tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()
+                # inf
+                if tensor_max == float('inf') or tensor_min == float('-inf'):
+                    return True
+                # nan
+                elif tensor_max != tensor_max or tensor_min != tensor_min:
+                    return True
+                else:
+                    return False
+            elif isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
+                if x == float('inf') or x == float('-inf') or x != x :
+                    return True
+                else:
+                    return False
 
 def overflow_check(name, **kwargs):
     if DumpUtil.dump_path:
@@ -45,7 +66,10 @@ def overflow_check(name, **kwargs):
         if not check_overflow_environment(pid):
             return
         module_name = name
-        module.has_overflow = torch_npu._C._check_overflow_npu()
+        if hasattr(torch_npu._C, '_npu_is_support_inf_nan') and torch_npu._C._npu_is_support_inf_nan():
+            module.has_overflow = check_data_overflow(out_feat)
+        else:
+            module.has_overflow = torch_npu._C._check_overflow_npu()
         if not module.has_overflow:
             if hasattr(module, 'input_args'):
                 del module.input_args

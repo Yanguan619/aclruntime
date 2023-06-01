@@ -37,13 +37,12 @@ ptdbg_ascend工具的原理及安装请参见《[PyTorch精度工具](https://gi
 - 本节主要介绍CPU或GPU及NPU精度数据dump所需要的函数以及示例。
 - ptdbg_ascend工具默认情况下仅dump PyTorch模型的API输入输出数据进行精度比对，若在比对结果中发现某个API下可能存在ACL的精度问题，那么可以选择dump该API的ACL级别数据进行精度分析。
 - 某些torch api的输出不是Tensor类型的数据。对于此类API的反向过程进行ACL dump，工具会在运行日志中给出对应的Warning（is not of tensor type and cannot be automatically derived）提示。如若想要进行该类API反向ACL dump，可以通过手动构建单API用例的方式进行ACL dump，具体用例可参考“**[反向ACL dump用例说明](https://gitee.com/ascend/tools/blob/master/ptdbg_ascend/doc/%E5%8F%8D%E5%90%91ACL%20dump%E7%94%A8%E4%BE%8B%E8%AF%B4%E6%98%8E.md)**”。
-
-### 约束
 - 工具性能：dump数据量较小时（小于5G），参考dump速度0.1GB/s；dump数据量较大时，参考dump速度0.2GB/s。
   推荐环境配置：独占环境，CPU核心数192，固态硬盘（IO速度参考：固态硬盘 > 500MB/s，机械硬盘60 ~ 170MB/s）。
 
+### 约束
 - 进行CPU或GPU数据dump时，请安装torch包而非torch_npu包，避免工具无法识别使用场景，导致失败。
-
+  
 - TASK_QUEUE_ENABLE环境变量会导致API下发和执行异步进行，因此在ACL dump前需要将TASK_QUEUE_ENABLE关闭，即export TASK_QUEUE_ENABLE=0。
 
 ### seed_all
@@ -131,7 +130,7 @@ toech.nn.functional.dropout(input, p = 0)
 
 **功能说明**
 
-设置dump数据目录。单机多卡时须保证每个进程都能调用该函数。
+设置dump数据目录。建议在seed_all函数之后调用且需要保证训练进程能够调用该函数；单机多卡时须保证每个进程都能调用该函数。
 
 dump操作必选。
 
@@ -234,7 +233,7 @@ register_hook(model, hook, overflow_nums=overflow_nums, dump_mode=dump_mode, dum
 
 **功能说明**
 
-设置dump范围。
+设置dump范围。建议在register_hook函数之后的脚本内任意位置插入，但进行精度问题排查建议参照“场景化示例 > 单机单卡场景精度比对”章节的顺序，先从第一个迭代开始的位置调用并dump整网数据。
 
 dump操作必选。
 
@@ -256,6 +255,8 @@ set_dump_switch(switch, mode='all', scope=[], api_list=[], filter_switch='ON')
 **函数示例**
 
 set_dump_switch可配置多中dump模式，示例如下：
+
+说明：以下均以dump部分API数据为例，API名可以从首次dump整网数据的结果csv文件中的NPU Name或Bench Name列获取。
 
 - 示例1：dump指定API列表
 
@@ -383,9 +384,9 @@ set_backward_input(backward_input)
 
 **参数说明**
 
-| 参数名         | 说明                                                    | 是否必选 |
-| -------------- | ------------------------------------------------------- | -------- |
-| backward_input | 该输入文件为首次运行训练dump得到反向API输入的.npy文件。 | 是       |
+| 参数名         | 说明                                                         | 是否必选 |
+| -------------- | ------------------------------------------------------------ | -------- |
+| backward_input | 该输入文件为首次运行训练dump得到反向API输入的.npy文件。例如若需要dump Functional_conv2d_1 API的反向过程的输入输出，则需要在dump目录下查找命名包含Functional_conv2d_1、backward和input字段的.npy文件。 | 是       |
 
 **函数示例**
 
@@ -474,7 +475,7 @@ dump结果目录结构示例如下：
 
 * npu_dump.pkl文件：包含dump数据的API名称、dtype、 shape以及各数据的max、min、mean统计信息。
 
-* npu_dump_timestamp目录：目录下为npy格式的dump数据。
+* npu_dump目录：目录下为npy格式的dump数据。
 
    npy文件保存的前缀和PyTorch对应关系如下
 
@@ -491,7 +492,7 @@ dump结果目录结构示例如下：
 当set_dump_switch配置mode="api_stack" 时，dump结果的文件名会添加api_stack前缀，dump结果如下：
 
 * api_stack_npu_dump.pkl
-* api_stack_npu_dump_timestamp目录
+* api_stack_npu_dump目录
 
 api_stack为堆栈信息。
 
@@ -506,17 +507,16 @@ register_hook设置了overflow_check时，检测API溢出，dump结果的文件�
 
 ### 总体说明
 
-本节主要介绍CPU或GPU与NPU精度数据比对的函数以及示例。
+- 本节主要介绍CPU或GPU与NPU精度数据比对的函数以及示例。
 
-比对函数均通过单独创建精度比对脚本执行，可支持单机单卡和单机多卡场景的精度数据比对。
+- 比对函数均通过单独创建精度比对脚本执行，可支持单机单卡和单机多卡场景的精度数据比对。
+- 工具性能：dump数据量较小时（小于5G），参考dump速度0.1GB/s；dump数据量较大时，参考dump速度0.2GB/s。
+  推荐环境配置：独占环境，CPU核心数192，固态硬盘（IO速度参考：固态硬盘 > 500MB/s，机械硬盘60 ~ 170MB/s）。
 
 ### 约束
 
-- 工具性能：dump数据量较小时（小于5G），参考dump速度0.1GB/s；dump数据量较大时，参考dump速度0.2GB/s。
-  推荐环境配置：独占环境，CPU核心数192，固态硬盘（IO速度参考：固态硬盘 > 500MB/s，机械硬盘60 ~ 170MB/s）。
-  
 - NPU自研API，在CPU或GPU若没有对应的API，该API的dump数据不比对。
-
+  
 - NPU与CPU或GPU的计算结果误差可能会随着模型的执行不断累积，最终会出现同一个API因为输入的数据差异较大而无法比对的情况。
 
 - CPU或GPU与NPU中两个相同的API会因为调用次数不同导致无法比对或比对到错误的API，不影响整体运行，该API忽略。
@@ -567,7 +567,7 @@ compare(input_param, output_path, stack_mode=False, auto_analyze=True, suffix=''
 
 | 参数名       | 说明                                                         | 是否必选 |
 | ------------ | ------------------------------------------------------------ | -------- |
-| input_param  | 配置dump数据文件及目录。配置参数包括：<br/>- "npu_pkl_path"：指定NPU dump目录下的.pkl文件。参数示例："npu_pkl_path": "./api_stack_npu_dump.pkl"。必选。<br/>- "bench_pkl_path"：指定CPU、GPU或NPU dump目录下的.pkl文件。参数示例："bench_pkl_path": "./api_stack_gpu_dump.pkl"。必选。<br/>- "npu_dump_data_dir"："指定NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./api_stack_npu_dump_20230104_13434"。必选。<br/>- "bench_dump_data_dir"："指定CPU、GPU或NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./api_stack_npu_dump_20230104_13434"。必选。<br/>- "is_print_compare_log"：配置是否开启日志打屏。可取值True或False。可选。 | 是       |
+| input_param  | 配置dump数据文件及目录。配置参数包括：<br/>- "npu_pkl_path"：指定NPU dump目录下的.pkl文件。参数示例："npu_pkl_path": "./api_stack_npu_dump.pkl"。必选。<br/>- "bench_pkl_path"：指定CPU、GPU或NPU dump目录下的.pkl文件。参数示例："bench_pkl_path": "./api_stack_gpu_dump.pkl"。必选。<br/>- "npu_dump_data_dir"："指定NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./api_stack_npu_dump"。必选。<br/>- "bench_dump_data_dir"："指定CPU、GPU或NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./api_stack_npu_dump"。必选。<br/>- "is_print_compare_log"：配置是否开启日志打屏。可取值True或False。可选。 | 是       |
 | output_path  | 配置比对结果csv文件存盘目录。参数示例：'./output'。文件名称基于时间戳自动生成，格式为：`compare_result_{timestamp}.csv`。 | 是       |
 | stack_mode   | 配置stack_mode的开关。仅当dump数据时配置set_dump_switch的mode="api_stack"时需要开启。参数示例：stack_mode=True，默认为False。 | 否       |
 | auto_analyze | 自动精度分析，开启后工具自动针对比对结果进行分析，识别到第一个精度不达标节点（在比对结果文件中的“Accuracy Reached or Not”列显示为No），并给出问题可能产生的原因。参数示例：auto_analyze=False，默认为True。 | 否       |
@@ -582,8 +582,8 @@ from ptdbg_ascend import *
 dump_result_param={
 "npu_pkl_path": "./api_stack_npu_dump.pkl",
 "bench_pkl_path": "./api_stack_gpu_dump.pkl",
-"npu_dump_data_dir": "./api_stack_npu_dump_20230104_13434",
-"bench_dump_data_dir": "./api_stack_gpu_dump_20230104_132544",
+"npu_dump_data_dir": "./api_stack_npu_dump",
+"bench_dump_data_dir": "./api_stack_gpu_dump",
 "is_print_compare_log": True
 }
 compare(dump_result_param, "./output", stack_mode=True)
@@ -673,20 +673,20 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
 
 2. 比对整网数据。
 
-   第1步中的NPU dump数据文件为npu_dump.pkl，假设NPU dump npy数据目录为npu_dump_20230104_13434，GPU dump数据文件为gpu_dump.pkl，GPU dump npy数据目录为gpu_dump_20230104_132544。
+   第1步中的NPU dump数据文件为npu_dump.pkl，假设NPU dump npy数据目录为npu_dump，GPU dump数据文件为gpu_dump.pkl，GPU dump npy数据目录为gpu_dump。
 
    创建并配置精度比对脚本，以创建compare.py为例，示例代码如下：
 
    ```python
    from ptdbg_ascend import *
    dump_result_param={
-   "npu_pkl_path": "./api_stack_npu_dump.pkl",
-   "bench_pkl_path": "./api_stack_gpu_dump.pkl",
-   "npu_dump_data_dir": "./api_stack_npu_dump_20230104_13434",
-   "bench_dump_data_dir": "./api_stack_gpu_dump_20230104_132544",
+   "npu_pkl_path": ".api_stack_/npu_dump.pkl",
+   "bench_pkl_path": ".api_stack_/gpu_dump.pkl",
+   "npu_dump_data_dir": ".api_stack_/npu_dump",
+   "bench_dump_data_dir": ".api_stack_/gpu_dump",
    "is_print_compare_log": True
    }
-   compare(dump_result_param, "./output", True, stack_mode=True)
+   compare(dump_result_param, "./output")
    ```
 
    执行比对：

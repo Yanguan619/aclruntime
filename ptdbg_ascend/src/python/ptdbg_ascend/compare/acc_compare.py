@@ -38,6 +38,7 @@ def correct_data(result):
     return result
 
 
+
 def cosine_similarity(n_value, b_value):
     np.seterr(divide='ignore', invalid='ignore')
     if len(n_value) == 1:
@@ -94,14 +95,10 @@ def get_max_relative_err(n_value, b_value):
     return format_value(max_relative_err), ""
 
 
-def check_op(npu_dict, bench_dict, shape_flag):
+def check_op(npu_dict, bench_dict):
     a_op_name = npu_dict["op_name"]
     b_op_name = bench_dict["op_name"]
-    if shape_flag:
-        return a_op_name == b_op_name and npu_dict["input_struct"] == bench_dict["input_struct"] \
-            and npu_dict["output_struct"] == bench_dict["output_struct"]
-    else:
-        return a_op_name == b_op_name
+    return a_op_name == b_op_name
 
 
 def merge_tensor(tensor_list):
@@ -158,14 +155,14 @@ def read_op(ops_queue, pkl_file_handle, stack_mode):
     return not read_err
 
 
-def match_op(npu_queue, bench_queue, shape_flag):
-    if check_op(npu_queue[-1], bench_queue[-1], shape_flag):
+def match_op(npu_queue, bench_queue):
+    if check_op(npu_queue[-1], bench_queue[-1]):
         return len(npu_queue) - 1, len(bench_queue) - 1
     for b_index, b_op in enumerate(bench_queue[0: -1]):
-        if check_op(npu_queue[-1], b_op, shape_flag):
+        if check_op(npu_queue[-1], b_op):
             return len(npu_queue) - 1, b_index
     for n_index, n_op in enumerate(npu_queue[0: -1]):
-        if check_op(n_op, bench_queue[-1], shape_flag):
+        if check_op(n_op, bench_queue[-1]):
             return n_index, len(bench_queue) - 1
     return -1, -1
 
@@ -304,6 +301,8 @@ def _save_cmp_result(idx, cos_result, max_err_result, err_msg, result_path, lock
 
 
 def check_accuracy(cos, max_abs_err):
+    if cos == CompareConst.SHAPE_UNMATCH:
+        return CompareConst.ACCURACY_CHECK_UNMATCH
     try:
         cos, max_abs_err = float(cos), float(max_abs_err)
     except ValueError:
@@ -331,6 +330,13 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
         return scalar_cos_sim, max_abs_err, "This is type of scalar data, can not compare."
     if n_value.size == 0:
         return 1, 0, "This is empty data, can not compare."
+    if n_value.shape != b_value.shape:
+        return CompareConst.SHAPE_UNMATCH, CompareConst.SHAPE_UNMATCH, "Shape of NPU and bench Tensor do not match. Skipped."
+    if n_value.dtype != b_value.dtype:
+        print_warn_log("Dtype of NPU and bench Tensor do not match:{}".format(op_name))
+        err_msg = " Dtype of NPU and bench Tensor do not match."
+    else:
+        err_msg = ""
     n_value = n_value.reshape(-1).astype(float)
     b_value = b_value.reshape(-1).astype(float)
     err_msg = ""
@@ -359,10 +365,9 @@ def check_file_mode(npu_pkl, bench_pkl, stack_mode):
 
 
 
-def check_compare_param(input_parma, output_path, shape_flag, stack_mode, auto_analyze, suffix):
-    if not (isinstance(input_parma, dict) and isinstance(output_path, str) and
-            isinstance(shape_flag, bool) and isinstance(stack_mode, bool) and
-            isinstance(suffix, str)):
+def check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suffix):
+    if not (isinstance(input_parma, dict) and isinstance(output_path, str) \
+        and isinstance(stack_mode, bool) and isinstance(suffix, str)):
         print_error_log("Invalid input parameters")
         raise CompareException(CompareException.INVALID_PARAM_ERROR)
     if not isinstance(auto_analyze, bool):
@@ -370,9 +375,9 @@ def check_compare_param(input_parma, output_path, shape_flag, stack_mode, auto_a
         raise CompareException(CompareException.INVALID_PARAM_ERROR)
 
 
-def compare(input_parma, output_path, shape_flag=True, stack_mode=False, auto_analyze=True, suffix=''):
+def compare(input_parma, output_path, stack_mode=False, auto_analyze=True, suffix=''):
     try:
-        check_compare_param(input_parma, output_path, shape_flag, stack_mode, auto_analyze, suffix)
+        check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suffix)
         check_file_or_directory_path(input_parma.get("npu_pkl_path"), False)
         check_file_or_directory_path(input_parma.get("bench_pkl_path"), False)
         check_file_or_directory_path(input_parma.get("npu_dump_data_dir"), True)
@@ -383,7 +388,7 @@ def compare(input_parma, output_path, shape_flag=True, stack_mode=False, auto_an
         check_file_mode(npu_pkl.name, bench_pkl.name, stack_mode)
         npu_summary = _get_summery_mode(npu_pkl, input_parma.get("npu_pkl_path"))
         bench_summary = _get_summery_mode(bench_pkl, input_parma.get("bench_pkl_path"))
-        result = compare_process(npu_pkl, bench_pkl, [npu_summary, bench_summary], shape_flag, stack_mode)
+        result = compare_process(npu_pkl, bench_pkl, [npu_summary, bench_summary], stack_mode)
         npu_pkl.close()
         bench_pkl.close()
 
@@ -443,7 +448,7 @@ def parse(pkl_file, module_name_prefix):
     pkl_handle.close()
 
 
-def compare_process(npu_pkl_handle, bench_pkl_handle, summary_flag, shape_flag, stack_mode):
+def compare_process(npu_pkl_handle, bench_pkl_handle, summary_flag, stack_mode):
     npu_ops_queue = []
     bench_ops_queue = []
     result = []
@@ -453,7 +458,7 @@ def compare_process(npu_pkl_handle, bench_pkl_handle, summary_flag, shape_flag, 
         if (not npu_file_flag and not bench_file_flag) \
                 or (len(npu_ops_queue) == 0 or len(bench_ops_queue) == 0):
             break
-        n_match_point, b_match_point = match_op(npu_ops_queue, bench_ops_queue, shape_flag)
+        n_match_point, b_match_point = match_op(npu_ops_queue, bench_ops_queue)
         if n_match_point == -1 and b_match_point == -1:
             continue
         n_match_data = npu_ops_queue[n_match_point]

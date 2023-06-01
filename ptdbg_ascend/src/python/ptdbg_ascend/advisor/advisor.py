@@ -93,7 +93,7 @@ class Advisor:
         accuracy_unmatched = analyze_data[analyze_data[CompareConst.ACCURACY] == CompareConst.ACCURACY_CHECK_UNMATCH]
         num_unmatch = len(accuracy_unmatched)
         if num_unmatch != 0:
-            for i in range(num_unmatch):
+            for i in range(len(accuracy_unmatched)):
                 item = analyze_data.iloc[i]
                 print_warn_log("The tensor name matches but the shape or dtype does not match: {}"\
                         .format(item[CompareConst.NPU_NAME]))

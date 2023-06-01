@@ -27,7 +27,7 @@ import pandas as pd
 
 from ..advisor.advisor import Advisor
 from ..common.utils import check_file_or_directory_path, add_time_as_suffix, \
-    print_error_log, CompareException, Const, CompareConst, format_value
+    print_warn_log, print_error_log, CompareException, Const, CompareConst, format_value
 
 
 def correct_data(result):
@@ -304,9 +304,12 @@ def _save_cmp_result(idx, cos_result, max_err_result, err_msg, result_path, lock
 
 
 def check_accuracy(cos, max_abs_err):
-    if cos == CompareConst.NAN:
-        return CompareConst.ACCURACY_CHECK_YES
-    if float(cos) < CompareConst.COS_THRESHOLD and float(max_abs_err) > CompareConst.MAX_ABS_ERR_THRESHOLD:
+    try:
+        cos, max_abs_err = float(cos), float(max_abs_err)
+    except ValueError:
+        print_warn_log("Cosine or MaxAbsErr can not get float value.")
+        return CompareConst.NAN
+    if cos < CompareConst.COS_THRESHOLD and max_abs_err > CompareConst.MAX_ABS_ERR_THRESHOLD:
         return CompareConst.ACCURACY_CHECK_NO
     return CompareConst.ACCURACY_CHECK_YES
 

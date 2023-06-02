@@ -36,7 +36,7 @@ ptdbg_ascend工具的原理及安装请参见《[PyTorch精度工具](https://gi
 
 - 本节主要介绍CPU或GPU及NPU精度数据dump所需要的函数以及示例。
 - ptdbg_ascend工具默认情况下仅dump PyTorch模型的API输入输出数据进行精度比对，若在比对结果中发现某个API下可能存在ACL的精度问题，那么可以选择dump该API的ACL级别数据进行精度分析。
-- 某些torch api的输出不是Tensor类型的数据。对于此类API的反向过程进行ACL dump，工具会在运行日志中给出对应的Warning（is not of tensor type and cannot be automatically derived）提示。如若想要进行该类API反向ACL dump，可以通过手动构建单API用例的方式进行ACL dump，具体用例可参考“**[反向ACL dump用例说明](https://gitee.com/ascend/tools/blob/master/ptdbg_ascend/doc/%E5%8F%8D%E5%90%91ACL%20dump%E7%94%A8%E4%BE%8B%E8%AF%B4%E6%98%8E.md)**”。
+- 某些torch api的输出不是Tensor类型的数据。对于此类API的反向过程进行ACL dump，工具会在运行日志中给出对应的Warning（is not of tensor type and cannot be automatically derived）提示。如若想要进行该类API反向ACL dump，可以通过手动构建单API用例的方式进行ACL dump，具体用例可参见“**[反向ACL dump用例说明](https://gitee.com/ascend/tools/blob/master/ptdbg_ascend/doc/%E5%8F%8D%E5%90%91ACL%20dump%E7%94%A8%E4%BE%8B%E8%AF%B4%E6%98%8E.md)**”。
 - 工具性能：dump数据量较小时（小于5G），参考dump速度0.1GB/s；dump数据量较大时，参考dump速度0.2GB/s。
   推荐环境配置：独占环境，CPU核心数192，固态硬盘（IO速度参考：固态硬盘 > 500MB/s，机械硬盘60 ~ 170MB/s）。
 
@@ -187,7 +187,7 @@ register_hook(model, hook, overflow_nums=overflow_nums, dump_mode=dump_mode, dum
 | overflow_nums | 控制溢出次数，表示第N次溢出时，停止训练，过程中检测到溢出API对应ACL数据均dump。参数示例：overflow_nums=3。配置overflow_check时可配置，默认不配置，即检测到1次溢出，训练停止。 | 否       |
 | dump_mode     | 控制针对溢出API的dump模式。可取值"api"或"acl"，配置acl时表示dump ACL级别的溢出数据，此时set_dump_path参数不生效，dump数据目录由dump_config的.json文件配置，参数示例：dump_mode="acl"。默认不配置，即dump API级别的溢出数据。 | 否       |
 | dump_config   | acl dump的配置文件。dump_mode="acl"时，该参数必选；dump_mode="api"时，该参数不选。参数示例：dump_config='./dump.json'。 | 否       |
-| rank          | 控制dump数据保存的rank目录名称。参数示例：rank=1。默认不配置，即自动读取dump数据所属的卡并保存在该卡对应的rank目录下。目录结构参见“dump数据存盘说明”。<br/>多卡情况下，可能出现工具识别rank出错，导致dump数据保存到错误的rank目录下，此时需要根据“**[rank_id获取方法](https://gitee.com/ascend/tools/tree/master/ptdbg_ascend/doc/rank_id获取方法.md)**”配置该参数，以获取正确的rank_id；工具可正确识别rank_id时无须配置该参数。 | 否       |
+| rank          | 控制dump数据保存的rank目录名称。参数示例：rank=1。默认不配置，即自动读取dump数据所属的卡并保存在该卡对应的rank目录下。目录结构参见“**dump数据存盘说明**”。<br/>多卡情况下，可能出现工具识别rank出错，导致dump数据保存到错误的rank目录下，此时需要根据“**[rank_id获取方法](https://gitee.com/ascend/tools/tree/master/ptdbg_ascend/doc/rank_id获取方法.md)**”配置该参数，以获取正确的rank_id；工具可正确识别rank_id时无须配置该参数。 | 否       |
 
 **函数示例**
 
@@ -813,7 +813,7 @@ register_hook需要在set_dump_path之后调用，也需要在每个进程上被
 ### NPU vs NPU精度比对
 对于NPU vs NPU场景，是针对同一模型，进行迭代（模型、API版本升级或设备硬件升级）时存在的精度下降问题，对比相同模型在迭代前后版本的API计算数值，进行问题定位。
 
-一般情况下迭代涉及NPU自定义算子，因此，可以仅dump NPU自定义算子进行比对。比对精度问题分析请参见“PyTorch训练场景的精度问题分析”章节。
+一般情况下迭代涉及NPU自定义算子，因此，可以仅dump NPU自定义算子进行比对。比对精度问题分析请参见“**单机单卡场景精度比对**”章节。
 
 工具当前支持dump NPU自定义算子如下：
 

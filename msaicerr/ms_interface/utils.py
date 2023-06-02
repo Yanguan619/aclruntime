@@ -207,6 +207,9 @@ def get_hexstr_value(hexstr: str) -> int:
     """
     get hex by string
     """
+    hexstr = hexstr.strip()
+    if hexstr == "0":
+        return 0
     return int(hexstr, 16)
 
 

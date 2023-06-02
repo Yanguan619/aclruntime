@@ -1,8 +1,8 @@
-# ACL dump方法
-当前昇腾AI处理器上的PyTorch框架通过torch_npu.npu中的init_dump(),set_dump()和finalize_dump()接口来进行算子级别的数据采集。首先init_dump()会进行初始化dump配置。然后通过set_dump()接口传入配置文件来配置dump参数，最后通过finalize_dump来结束dump。
-下面将以torch.sort运算的反向过程为例，介绍算子数据dump的方法。
+### 反向ACL dump用例说明
 
-```python
+当前昇腾AI处理器上的PyTorch框架通过torch_npu.npu中的init_dump(),set_dump()和finalize_dump()接口来进行ACL级别的数据采集。首先init_dump()会进行初始化dump配置，然后通过set_dump()接口传入配置文件来配置dump参数，最后通过finalize_dump来结束dump。 下面将以torch.sort运算的反向过程为例，介绍反向ACL数据dump的方法。
+
+```bash
 import numpy as np
 import torch
 import torch_npu
@@ -18,15 +18,14 @@ torch_npu.npu.synchronize()
 torch_npu.npu.finalize_dump()
 ```
 
-input_path是该API前向运算的输入，可以通过ACL dump的API名称获得。如想要对Torch_sort_0_backward进行ACL dump，则该反向API对应的前向过程输入为Torch_sort_0_forward_input.0.npy
+- input_path是该API前向运算的输入，可以通过ACL dump的API名称获得。如想要对Torch_sort_0_backward进行ACL dump，则该反向API对应的前向过程输入为Torch_sort_0_forward_input.0.npy。
+- grad_path是该API反向运算的输入，同理可以通过期望dump的API名称获得。
 
-grad_path是该API反向运算的输入，同理可以通过想要dump的API名称获得。
+- b, c是torch.sort的输出，分别表示排序后的tensor和排序后tensor中的各元素在原始tensor中的位置。对torch.sort进行反向时，需要对b进行backward。
 
-b, c是torch.sort的输出，分别表示排序后的tensor和排序后tensor中的各元素在原始tensor中的位置。对torch.sort进行反向时，需要对b进行backward。
+**dump.json配置**
 
-dump.json配置方法如下：
-
-```json
+```bash
 {
   "dump":
   {

@@ -111,6 +111,9 @@ class CompareConst:
     ACCURACY_CHECK_NO = "No"
     ACCURACY_CHECK_UNMATCH = "Unmatched"
 
+    # error message
+    NO_BENCH = "No bench data matched."
+
 
 class VersionCheck:
     """

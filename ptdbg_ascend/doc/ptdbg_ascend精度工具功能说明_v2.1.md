@@ -68,7 +68,7 @@ ptdbg_ascend精度工具的安装方式包括：下载whl包安装和源代码�
 2) register_hook须在set_dump_path之后调用，避免dump数据路径设置错误
 3) set_dump_switch提供多种dump模式，可以根据不同场景选择dump方式
 4) 进行CPU数据dump时，请安装torch包而非torch_npu包，避免工具无法识别使用场景，导致失败
-5) TASK_QUEUE_ENABLE环境变量会导致算子下发和执行异步进行，因此在ALC dump前需要将TASK_QUEUE_ENABLE关闭，需要在执行运行命令前先export TASK_QUEUE_ENABLE=0
+5) TASK_QUEUE_ENABLE环境变量会导致算子下发和执行异步进行，因此在ACL dump前需要将TASK_QUEUE_ENABLE关闭，需要在执行运行命令前先export TASK_QUEUE_ENABLE=0
 ```
 # 多种dump模式介绍
 

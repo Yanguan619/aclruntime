@@ -303,6 +303,8 @@ def _save_cmp_result(idx, cos_result, max_err_result, err_msg, result_path, lock
 def check_accuracy(cos, max_abs_err):
     if cos == CompareConst.SHAPE_UNMATCH:
         return CompareConst.ACCURACY_CHECK_UNMATCH
+    if cos == CompareConst.NAN or max_abs_err == CompareConst.NAN:
+        return CompareConst.NAN
     try:
         cos, max_abs_err = float(cos), float(max_abs_err)
     except ValueError:
@@ -315,11 +317,13 @@ def check_accuracy(cos, max_abs_err):
 
 def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     npu_bench_name_list = op_name_mapping_dict[op_name]
+    if npu_bench_name_list[1] == CompareConst.NAN:
+        return CompareConst.NAN, CompareConst.NAN, CompareConst.NO_BENCH
     try:
         n_value = np.load(os.path.join(input_parma.get("npu_dump_data_dir"), npu_bench_name_list[0] + ".npy"))
         b_value = np.load(os.path.join(input_parma.get("bench_dump_data_dir"), npu_bench_name_list[1] + ".npy"))
     except IOError as error:
-        return " ", "", "Dump file:{} not found".format(error.filename)
+        return CompareConst.NAN, CompareConst.NAN, "Dump file:{} not found".format(error.filename)
     if len(n_value.shape) == 0:
         scalar_cos_sim = 1
         if n_value.dtype == bool:
@@ -463,10 +467,43 @@ def compare_process(npu_pkl_handle, bench_pkl_handle, summary_flag, stack_mode):
             continue
         n_match_data = npu_ops_queue[n_match_point]
         b_match_data = bench_ops_queue[b_match_point]
+        un_match_data = npu_ops_queue[0: n_match_point]
+        for npu_data in un_match_data:
+            get_un_match_accuracy(result, npu_data, summary_flag)
         get_accuracy(result, n_match_data, b_match_data, summary_flag)
         del npu_ops_queue[0: n_match_point + 1]
         del bench_ops_queue[0: b_match_point + 1]
+    if npu_ops_queue:
+        for npu_data in npu_ops_queue:
+            get_un_match_accuracy(result, npu_data, summary_flag)
     return result
+
+
+def get_un_match_accuracy(result, n_dict, summery_flag):
+    index_out = 0
+    npu_stack_info = n_dict.get("stack_info", None)
+    bench_name, bench_type, bench_shape = CompareConst.NAN
+    for index, n_name in enumerate(n_dict["op_name"]):
+        if n_name.find("input") != -1:
+            n_struct = n_dict["input_struct"][index]
+        else:
+            n_struct = n_dict["output_struct"][index_out]
+            index_out += 1
+        err_msg = CompareConst.NO_BENCH
+        accuracy_check_res = CompareConst.NAN
+
+        result_item = [n_name, bench_name, n_struct[0], bench_type, n_struct[1], bench_shape, " ", " "]
+        if summery_flag[0]:
+            summery_data = n_dict.get("summery")[index]
+            result_item.extend(summery_data)
+        if summery_flag[1]:
+            summery_data = [CompareConst.NAN]*3
+            result_item.extend(summery_data)
+        result_item.append(accuracy_check_res)
+        result_item.append(err_msg)
+        if npu_stack_info and index == 0:
+            result_item.extend(npu_stack_info)
+        result.append(result_item)
 
 
 def _get_summery_mode(pkl_file_handle, file_name):

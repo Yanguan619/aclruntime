@@ -208,8 +208,12 @@ class AicoreErrorParser:
             tiling_data = None
         else:
             if tiling_data_ret[0].startswith("0x"):
-                temp_tiling_data = tiling_data_ret[0].replace(" 0x", "")[2:-1]
-                tiling_data = bytes.fromhex(temp_tiling_data)
+                temp_tiling_data = tiling_data_ret[0].replace(" 0x", "").replace("0x", "").strip()
+                try:
+                    tiling_data = bytes.fromhex(temp_tiling_data)
+                except Exception as e:
+                    utils.print_warn_log(f"Failed to decode tiling_data {temp_tiling_data}")
+                    tiling_data = bytes.fromhex("0000")
             else:
                 tiling_data = bytes(tiling_data_ret[0], 'utf-8')
 

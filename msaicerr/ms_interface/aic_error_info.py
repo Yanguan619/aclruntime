@@ -9,6 +9,7 @@ Huawei Technologies Co., Ltd. All Rights Reserved © 2020
 
 import re
 from ms_interface import utils
+import struct
 from ms_interface.constant import Constant
 
 
@@ -51,6 +52,7 @@ class AicErrorInfo:
         aicerror_info = self._get_aicerror_info()
 
         addr_check_str = self._get_addr_check_str()
+        tiling_str = self._get_tiling_str()
         single_op_test_result = "No Error" if self.single_op_test_result else "Aicore Error"
 
         analysis_result = "Analysis result: success."
@@ -84,6 +86,7 @@ instruction  : {self.instr}
 {addr_check_str}
 
 ***********************5. Dump info*************************
+{tiling_str}
 {self.dump_info}
 
 ********************6. Single Op Test***********************
@@ -102,8 +105,8 @@ instruction  : {self.instr}
         elif self.current_pc == "0x0":
             conclusion = "Memory of operator code has been over write falsely\n"
         elif self.atomic_add_err:
-            conclusion = "Atomic accumulation exception, please check the input data.\
-                          According to the precision problem. Check the network accuracy.\n"
+            conclusion = "Atomic accumulation exception, please check the input data. "\
+                          "According to the precision problem. Check the network accuracy.\n"
         elif "data invalid" in self.dump_info:
             conclusion = "Input data is abnormal. Check the network accuracy.\n"
         elif not self.single_op_test_result:
@@ -111,6 +114,46 @@ instruction  : {self.instr}
         else :
             conclusion = "There's no obvious known error, so I can't determine what the error is.\n"
         return conclusion
+
+    def _get_tiling_str(self: any) -> str:
+        result_str=""
+        tiling_datas =  self.necessary_addr["tiling"]
+        if len(tiling_datas) < 3:
+            utils.print_info_log("Tiling data incomplete!")
+            return ""
+        tiling_data = tiling_datas[1]
+        result_str += f"tiling data: {tiling_data}\n"
+        result_str += "tiling data in int32: "
+        
+        return result_str + "\n"
+    
+    def _get_tiling_str(self: any) -> str:
+        result_str = ""
+        tiling_datas = self.necessary_addr["tiling"][1]
+        int32_size = struct.calcsize('i')
+        int64_size = struct.calcsize('q')
+        float16_size = struct.calcsize('e')
+        
+        def parse_data(data, size, format):
+            try:
+                result = [struct.unpack(format, data[i:i+size])[0] for i in range(0, len(data), size)]
+            except Exception as e:
+                result = "Cannot decode in this dtype"
+            return result
+
+        int32_values = parse_data(tiling_datas, int32_size, 'i')
+        result_str += "tiling data in int32: " 
+        result_str += f"tiling data: {int32_values}\n"  
+        
+        int64_values = parse_data(tiling_datas, int64_size, 'q')
+        result_str += "tiling data in int64: "
+        result_str += f"tiling data: {int64_values}\n"
+        
+        float16_values = parse_data(tiling_datas, float16_size, 'e')
+        result_str += "tiling data in float16: "
+        result_str += f"tiling data: {float16_values}\n"
+        
+        return result_str + "\n"
 
     def _get_addr_check_str(self: any) -> str:
         result_str = ""

@@ -106,6 +106,18 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
             if DumpUtil.dump_filter_switch == Const.OFF:
                 data_info = get_not_float_tensor_info(x)
                 dump_data(dump_file_name, dump_step, prefix, data_info)
+            elif DumpUtil.dump_filter_switch == Const.FORWARD:
+                if Const.BACKWARD in prefix:
+                    return
+                else:
+                    data_info = get_not_float_tensor_info(x)
+                    dump_data(dump_file_name, dump_step, prefix, data_info)
+            elif DumpUtil.dump_filter_switch == Const.BACKWARD:
+                if Const.BACKWARD in prefix:
+                    data_info = get_not_float_tensor_info(x)
+                    dump_data(dump_file_name, dump_step, prefix, data_info)
+                else:
+                    return
             else:
                 return
         else:
@@ -115,6 +127,18 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
     elif DumpUtil.dump_filter_switch == Const.OFF:
         data_info = get_scalar_data_info(x)
         dump_data(dump_file_name, dump_step, prefix, data_info)
+    elif DumpUtil.dump_filter_switch == Const.FORWARD:
+        if Const.BACKWARD in prefix:
+            return
+        else:
+            data_info = get_scalar_data_info(x)
+            dump_data(dump_file_name, dump_step, prefix, data_info)
+    elif DumpUtil.dump_filter_switch == Const.BACKWARD:
+        if Const.BACKWARD in prefix:
+            data_info = get_scalar_data_info(x)
+            dump_data(dump_file_name, dump_step, prefix, data_info)
+        else:
+            return
 
 
 def dump_data(dump_file_name, dump_step, prefix, data_info):

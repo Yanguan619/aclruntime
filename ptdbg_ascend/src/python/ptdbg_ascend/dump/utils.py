@@ -131,7 +131,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     try:
         check_mode_valid(mode)
         assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
-        assert filter_switch in ["ON", "OFF"], "Please set filter_switch with 'ON' or 'OFF'."
+        assert filter_switch in ["ON", "OFF","FORWARD","BACKWARD"], "Please set filter_switch with 'ON' or 'OFF' or 'FORWARD' or 'BACKWARD'."
         if mode == Const.RANGE:
             assert len(scope) == 2, "set_dump_switch, scope param set invalid, it's must be [start, end]."
         if mode == Const.LIST:

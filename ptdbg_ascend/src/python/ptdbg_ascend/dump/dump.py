@@ -107,13 +107,13 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
                 data_info = get_not_float_tensor_info(x)
                 dump_data(dump_file_name, dump_step, prefix, data_info)
             elif DumpUtil.dump_filter_switch == Const.FORWARD:
-                if Const.BACKWARD in prefix:
+                if Const.BACKWARD in dump_file_name:
                     return
                 else:
                     data_info = get_not_float_tensor_info(x)
                     dump_data(dump_file_name, dump_step, prefix, data_info)
             elif DumpUtil.dump_filter_switch == Const.BACKWARD:
-                if Const.BACKWARD in prefix:
+                if Const.BACKWARD in dump_file_name:
                     data_info = get_not_float_tensor_info(x)
                     dump_data(dump_file_name, dump_step, prefix, data_info)
                 else:

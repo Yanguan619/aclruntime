@@ -594,7 +594,35 @@ SingleOpCase.run(config)"""
         except utils.AicErrException as e:
             utils.print_info_log("Failed to dump data!")
         return True
-
+    
+    def _need_atomic_clean(self: any, kernel_meta_path: str, info: any) -> bool:
+        kernel_name = info.kernel_name
+        json_file = os.path.join(kernel_meta_path, kernel_name + ".json")
+        if not os.path.exists(json_file):
+            utils.print_warn_log(f"Can not find {json_file}!")
+            return False
+        with open(json_file, "r") as f:
+            json_obj = json.load(f)
+            # compileInfo in json file means the kernel is dynamic
+            if json_obj.get("compileInfo") is None and json_obj.get("compile_info") is None:
+                utils.print_info_log(f"No compile_info found in json file, no need to check atomic clean!")
+                return False
+            self.parameters = json_obj.get("parameters")
+            for param in self.parameters:
+                if not param:
+                  return True
+        return False
+          
+    def _check_atomic_clean(self: any, kernel_meta_path: str, info: AicErrorInfo) -> bool:
+        need_atomic_clean = self._need_atomic_clean(kernel_meta_path, info)
+        if need_atomic_clean:
+            cmd = ['grep', f'AtomicLaunchKernelWithFlag_{info.node_name}', '-nr', self.collection.collect_plog_path]
+            status, _ = utils.execute_command(cmd)
+            if status == 0:
+                return True
+            utils.print_warn_log(f"Can not find AtomicLaunchKernelWithFlag_{info.node_name} in plog!")
+            return False
+        return True
 
     def parse(self: any) -> None:
         """
@@ -659,6 +687,9 @@ SingleOpCase.run(config)"""
             if not result:
                 utils.print_warn_log(f"decompile kernel_meta file \
                     {os.path.join(kernel_meta_path, info.kernel_name)}.o failed.")
+            
+            # 判断是否是动态op, 动态op且需要atomic add的情况下，需要检查框架是否正确插入memset
+            info.atomic_clean_check = self._check_atomic_clean(kernel_meta_path, info)
 
             info.input_output_addrs = self._get_input_output_addrs(info, aicore_error_data_list[Constant.ALLOC_ADDR])
             info.data_dump_result = self._get_data_dump_result()

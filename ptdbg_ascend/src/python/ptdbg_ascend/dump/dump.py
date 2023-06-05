@@ -100,12 +100,12 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
             if DumpUtil.dump_filter_switch == Const.FORWARD:
-                if Const.BACKWARD in dump_file_name:
+                if Const.backward in dump_file_name:
                     return
                 else:
                     dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
             elif DumpUtil.dump_filter_switch == Const.BACKWARD:
-                if Const.BACKWARD in dump_file_name:
+                if Const.backward in dump_file_name:
                     dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
                 else:
                     return
@@ -116,13 +116,13 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
                 data_info = get_not_float_tensor_info(x)
                 dump_data(dump_file_name, dump_step, prefix, data_info)
             elif DumpUtil.dump_filter_switch == Const.FORWARD:
-                if Const.BACKWARD in dump_file_name:
+                if Const.backward in dump_file_name:
                     return
                 else:
                     data_info = get_not_float_tensor_info(x)
                     dump_data(dump_file_name, dump_step, prefix, data_info)
             elif DumpUtil.dump_filter_switch == Const.BACKWARD:
-                if Const.BACKWARD in dump_file_name:
+                if Const.backward in dump_file_name:
                     data_info = get_not_float_tensor_info(x)
                     dump_data(dump_file_name, dump_step, prefix, data_info)
                 else:
@@ -137,13 +137,13 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
         data_info = get_scalar_data_info(x)
         dump_data(dump_file_name, dump_step, prefix, data_info)
     elif DumpUtil.dump_filter_switch == Const.FORWARD:
-        if Const.BACKWARD in prefix:
+        if Const.backward in dump_file_name:
             return
         else:
             data_info = get_scalar_data_info(x)
             dump_data(dump_file_name, dump_step, prefix, data_info)
     elif DumpUtil.dump_filter_switch == Const.BACKWARD:
-        if Const.BACKWARD in prefix:
+        if Const.backward in dump_file_name:
             data_info = get_scalar_data_info(x)
             dump_data(dump_file_name, dump_step, prefix, data_info)
         else:

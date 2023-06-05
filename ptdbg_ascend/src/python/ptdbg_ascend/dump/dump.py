@@ -99,7 +99,16 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
     global data_info
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
-            dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
+            if DumpUtil.dump_filter_switch == Const.FORWARD:
+                if Const.BACKWARD in dump_file_name:
+                    return
+                else:
+                    dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
+            elif DumpUtil.dump_filter_switch == Const.BACKWARD:
+                if Const.BACKWARD in dump_file_name:
+                    dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
+                else:
+                    return
         return
     elif isinstance(x, torch.Tensor):
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():

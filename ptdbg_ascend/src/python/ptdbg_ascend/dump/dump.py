@@ -94,6 +94,7 @@ def json_dump_condition(prefix):
         backward_threading_id = cur_threading_id
     return (Const.BACKWARD in prefix and backward_threading_id == cur_threading_id) or 'forward' in prefix
 
+
 def dump_tensor(x, prefix, dump_step, dump_file_name):
     global data_info
     if isinstance(x, (tuple, list)) and x:

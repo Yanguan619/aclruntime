@@ -34,7 +34,7 @@ def check_data_overflow(x):
         for i, item in enumerate(x):
             check_data_overflow(item)
     else:
-            if isinstance(x, torch.Tensor) and x.numel() != 0:
+            if isinstance(x, torch.Tensor) and x.numel() != 0 and len(x.shape) != 0 and x.is_floating_point():
                 tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
                 tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()
                 # inf
@@ -50,6 +50,8 @@ def check_data_overflow(x):
                     return True
                 else:
                     return False
+            else:
+                return False
 
 def overflow_check(name, **kwargs):
     if DumpUtil.dump_path:

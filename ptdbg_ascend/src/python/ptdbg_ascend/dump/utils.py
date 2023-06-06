@@ -21,6 +21,7 @@ class DumpUtil(object):
     dump_init_enable = False
     dump_api_list = []
     dump_filter_switch = None
+    dump_mode=Const.ALL
     backward_input = {}
     dump_dir_tag = 'ptdbg_dump'
 
@@ -34,13 +35,14 @@ class DumpUtil(object):
         DumpUtil.dump_config = dump_config
 
     @staticmethod
-    def set_dump_switch(switch, mode, scope, api_list, filter_switch):
+    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode):
         DumpUtil.dump_switch = switch
         DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_init_enable = True
         DumpUtil.dump_switch_scope = scope
         DumpUtil.dump_api_list = [api.lower() for api in api_list]
         DumpUtil.dump_filter_switch = filter_switch
+        DumpUtil.dump_mode = dump_mode
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 

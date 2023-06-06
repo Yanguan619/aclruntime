@@ -94,39 +94,17 @@ def json_dump_condition(prefix):
         backward_threading_id = cur_threading_id
     return (Const.BACKWARD in prefix and backward_threading_id == cur_threading_id) or 'forward' in prefix
 
-
 def dump_tensor(x, prefix, dump_step, dump_file_name):
     global data_info
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
-            if DumpUtil.dump_filter_switch == Const.FORWARD:
-                if Const.backward in prefix :
-                    return
-                else:
-                    dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
-            elif DumpUtil.dump_filter_switch == Const.BACKWARD:
-                if Const.backward in prefix:
-                    dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
-                else:
-                    return
+            dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
         return
     elif isinstance(x, torch.Tensor):
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
             if DumpUtil.dump_filter_switch == Const.OFF:
                 data_info = get_not_float_tensor_info(x)
                 dump_data(dump_file_name, dump_step, prefix, data_info)
-            elif DumpUtil.dump_filter_switch == Const.FORWARD:
-                if Const.backward in prefix:
-                    return
-                else:
-                    data_info = get_not_float_tensor_info(x)
-                    dump_data(dump_file_name, dump_step, prefix, data_info)
-            elif DumpUtil.dump_filter_switch == Const.BACKWARD:
-                if Const.backward in prefix:
-                    data_info = get_not_float_tensor_info(x)
-                    dump_data(dump_file_name, dump_step, prefix, data_info)
-                else:
-                    return
             else:
                 return
         else:
@@ -136,18 +114,6 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
     elif DumpUtil.dump_filter_switch == Const.OFF:
         data_info = get_scalar_data_info(x)
         dump_data(dump_file_name, dump_step, prefix, data_info)
-    elif DumpUtil.dump_filter_switch == Const.FORWARD:
-        if Const.backward in prefix:
-            return
-        else:
-            data_info = get_scalar_data_info(x)
-            dump_data(dump_file_name, dump_step, prefix, data_info)
-    elif DumpUtil.dump_filter_switch == Const.BACKWARD:
-        if Const.backward in prefix:
-            data_info = get_scalar_data_info(x)
-            dump_data(dump_file_name, dump_step, prefix, data_info)
-        else:
-            return
 
 
 def dump_data(dump_file_name, dump_step, prefix, data_info):
@@ -181,10 +147,10 @@ def dump_stack_info(name_template, dump_file):
 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
-    if Const.BACKWARD in name_template:
+    if Const.BACKWARD in name_template and DumpUtil.dump_mode != Const.forward:
         dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
         dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file)
-    else:
+    elif Const.BACKWARD not in name_template and DumpUtil.dump_mode != Const.backward:
         dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
         dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
 

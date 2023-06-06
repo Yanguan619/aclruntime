@@ -124,7 +124,7 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
     DumpUtil.dump_dir_tag = dump_tag
 
 
-def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON):
+def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=Const.ALL):
     global dump_count
     if mode == Const.LIST and switch == "ON":
         dump_count = 0
@@ -134,6 +134,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
         check_mode_valid(mode)
         assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
         assert filter_switch in ["ON", "OFF","FORWARD","BACKWARD"], "Please set filter_switch with 'ON' or 'OFF' or 'FORWARD' or 'BACKWARD'."
+        assert dump_mode in ["all", "forward", "backward"], "Please set dump_mode with 'all' or 'forward' or 'backward'."
         if mode == Const.RANGE:
             assert len(scope) == 2, "set_dump_switch, scope param set invalid, it's must be [start, end]."
         if mode == Const.LIST:
@@ -148,7 +149,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()
-    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch)
+    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
 
 
 def _set_dump_switch4api_list(name):

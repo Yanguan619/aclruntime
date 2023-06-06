@@ -609,7 +609,7 @@ SingleOpCase.run(config)"""
                 return False
             self.parameters = json_obj.get("parameters")
             for param in self.parameters:
-                if not param:
+                if param is not None:
                   return True
         return False
           

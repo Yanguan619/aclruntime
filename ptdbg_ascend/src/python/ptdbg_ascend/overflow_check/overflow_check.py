@@ -7,6 +7,7 @@ from ..dump.utils import DumpUtil
 
 try:
     import torch_npu
+    import torch
 except ImportError:
     is_gpu = True
 else:

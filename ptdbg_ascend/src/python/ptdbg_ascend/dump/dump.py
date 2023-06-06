@@ -147,10 +147,10 @@ def dump_stack_info(name_template, dump_file):
 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
-    if Const.BACKWARD in name_template and DumpUtil.dump_mode != Const.forward:
+    if Const.BACKWARD in name_template and DumpUtil.dump_mode != Const.FORWARD:
         dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
         dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file)
-    elif Const.BACKWARD not in name_template and DumpUtil.dump_mode != Const.backward:
+    elif Const.BACKWARD not in name_template and DumpUtil.dump_mode != Const.BACKWARD:
         dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
         dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
 

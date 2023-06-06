@@ -43,6 +43,7 @@ class AicErrorInfo:
         self.atomic_add_err = False
         self.single_op_test_result = True
         self.data_dump_result = True
+        self.atomic_clean_check = True
 
     def analyse(self: any) -> str:
         """
@@ -100,13 +101,17 @@ instruction  : {self.instr}
 
     def _get_conclusion(self: any) -> str:
         conclusion = ""
-        if not self.data_dump_result:
+        if not self.atomic_clean_check:
+            conclusion = "Op need atomic clean. However, no memset or atomic_clean op launched.\n"
+        elif not self.data_dump_result:
             conclusion = "Dump data failed in exception dump! Address of input or output is error!"
         elif self.current_pc == "0x0":
             conclusion = "Memory of operator code has been over write falsely\n"
         elif self.atomic_add_err:
-            conclusion = "Atomic accumulation exception, please check the input data. "\
-                          "According to the precision problem. Check the network accuracy.\n"
+            conclusion = "\"dha status 1\" found in log. It means Atomic accumulation exception, "\
+                          "please check the input data and network accuracy.\n"\
+                          "Attention please,  if multiple tasks are running on the same device at the same time, "\
+                          "false positives may be generated. You are advised to pull up only one task and collect it ."
         elif "data invalid" in self.dump_info:
             conclusion = "Input data is abnormal. Check the network accuracy.\n"
         elif not self.single_op_test_result:

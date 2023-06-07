@@ -34,9 +34,13 @@ def check_data_overflow(x):
         for i, item in enumerate(x):
             check_data_overflow(item)
     else:
-            if isinstance(x, torch.Tensor) and x.numel() != 0 and len(x.shape) != 0 and x.is_floating_point():
-                tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
-                tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()
+            if isinstance(x, torch.Tensor) and x.numel() != 0 and x.dtype != torch.bool:
+                if len(x.shape) == 0:
+                    tensor_max = x.cpu().detach().float().numpy().tolist()
+                    tensor_min = tensor_max
+                else:
+                    tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
+                    tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()
                 # inf
                 if tensor_max == float('inf') or tensor_min == float('-inf'):
                     return True

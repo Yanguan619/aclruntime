@@ -204,6 +204,7 @@ class SingleOpCase:
         date_string = time.strftime("%Y%m%d%H%M%S", time.localtime(int(time.time())))
         single_op_log_path =  f"single_op_log_{date_string}"
         os.environ['ASCEND_PROCESS_LOG_PATH'] = single_op_log_path
+        os.environ['ASCEND_SLOG_PRINT_TO_STDOUT'] = "0"
         utils.print_info_log(f"The single_op_log_path is {single_op_log_path}")
         soc_version = SingleOpCase.get_soc_version_from_cce(configs.get("cce_file"))
         SingleOpCase.run_dirty_ub(soc_version)

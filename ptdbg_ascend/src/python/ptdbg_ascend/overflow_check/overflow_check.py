@@ -1,4 +1,5 @@
 import os
+import torch
 
 from ..common.utils import print_warn_log, get_time, print_info_log
 from ..dump.dump import forward_init_status, forward_acl_dump
@@ -33,9 +34,13 @@ def check_data_overflow(x):
         for i, item in enumerate(x):
             check_data_overflow(item)
     else:
-            if isinstance(x, torch.Tensor) and x.numel() != 0:
-                tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
-                tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()
+            if isinstance(x, torch.Tensor) and x.numel() != 0 and x.dtype != torch.bool:
+                if len(x.shape) == 0:
+                    tensor_max = x.cpu().detach().float().numpy().tolist()
+                    tensor_min = tensor_max
+                else:
+                    tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
+                    tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()
                 # inf
                 if tensor_max == float('inf') or tensor_min == float('-inf'):
                     return True
@@ -49,6 +54,8 @@ def check_data_overflow(x):
                     return True
                 else:
                     return False
+            else:
+                return False
 
 def overflow_check(name, **kwargs):
     if DumpUtil.dump_path:

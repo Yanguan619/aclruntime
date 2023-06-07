@@ -145,7 +145,7 @@ def dump_stack_info(name_template, dump_file):
         else:
             json.dump([prefix, stack_str], f)
             f.write('\n')
-
+ 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
     if Const.BACKWARD in name_template and DumpUtil.dump_mode != Const.FORWARD:

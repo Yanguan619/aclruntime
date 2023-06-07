@@ -1,10 +1,10 @@
 import os
+import torch
 
 from ..common.utils import print_warn_log, get_time, print_info_log
 from ..dump.dump import forward_init_status, forward_acl_dump
 from .utils import OverFlowUtil, dump_overflow
 from ..dump.utils import DumpUtil
-import torch
 
 try:
     import torch_npu

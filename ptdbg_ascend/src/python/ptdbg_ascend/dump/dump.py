@@ -113,8 +113,9 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
             dump_data(dump_file_name, dump_step, prefix, data_info)
 
     elif DumpUtil.dump_filter_switch == Const.OFF:
-        data_info = get_scalar_data_info(x)
-        dump_data(dump_file_name, dump_step, prefix, data_info)
+        if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
+            data_info = get_scalar_data_info(x)
+            dump_data(dump_file_name, dump_step, prefix, data_info)
 
 
 def dump_data(dump_file_name, dump_step, prefix, data_info):

@@ -21,7 +21,7 @@ class DumpUtil(object):
     dump_init_enable = False
     dump_api_list = []
     dump_filter_switch = None
-    dump_mode=Const.ALL
+    dump_mode = Const.ALL
     backward_input = {}
     dump_dir_tag = 'ptdbg_dump'
 

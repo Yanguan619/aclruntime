@@ -32,7 +32,10 @@ def check_overflow_environment(pid):
 def check_data_overflow(x):
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
-            check_data_overflow(item)
+            res = check_data_overflow(item)
+            if res == False:
+                return False
+        return True
     else:
             if isinstance(x, torch.Tensor) and x.numel() != 0 and x.dtype != torch.bool:
                 if len(x.shape) == 0:

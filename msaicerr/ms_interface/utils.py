@@ -202,6 +202,17 @@ def write_file(output_path: str, file_content: str, write_mode="w") -> None:
     finally:
         pass
 
+def get_str_value(value_str: str) -> int:
+    """
+    get value by string
+    """
+    if not value_str:
+        return -1
+    value_str = value_str.strip()
+    if value_str.startswith("0x"):
+        return int(value_str, 16)
+    else:
+        return int(value_str)
 
 def get_hexstr_value(hexstr: str) -> int:
     """

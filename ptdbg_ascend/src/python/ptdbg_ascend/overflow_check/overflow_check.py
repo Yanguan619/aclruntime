@@ -33,9 +33,9 @@ def check_data_overflow(x):
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
             res = check_data_overflow(item)
-            if res == False:
-                return False
-        return True
+            if res == True:
+                return True
+        return False
     else:
             if isinstance(x, torch.Tensor) and x.numel() != 0 and x.dtype != torch.bool:
                 if len(x.shape) == 0:

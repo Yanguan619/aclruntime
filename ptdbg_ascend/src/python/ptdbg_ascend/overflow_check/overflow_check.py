@@ -32,8 +32,7 @@ def check_overflow_environment(pid):
 def check_data_overflow(x):
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
-            res = check_data_overflow(item)
-            if res == True:
+            if True == check_data_overflow(item):
                 return True
         return False
     else:

@@ -76,7 +76,8 @@ def overflow_check(name, **kwargs):
             return
         module_name = name
         if hasattr(torch_npu._C, '_npu_is_support_inf_nan') and torch_npu._C._npu_is_support_inf_nan():
-            if Const.BACKWARD in module_name:
+            # backward API endwith backward
+            if module_name.endswith(Const.BACKWARD):
                 check_feat = in_feat
             else:
                 check_feat = out_feat

@@ -139,15 +139,16 @@ def dump_stack_info(name_template, dump_file):
     prefix = name_template.format("stack_info")
     with os.fdopen(os.open(dump_file, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
         if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
-            if DumpUtil.dump_mode == Const.FORWARD and "forward" in prefix:
-                json.dump([prefix, stack_str], f)
-                f.write('\n')
-            elif DumpUtil.dump_mode == Const.BACKWARD and "backward" in prefix:
-                json.dump([prefix, stack_str], f)
-                f.write('\n')
-            elif DumpUtil.dump_mode == Const.ALL:
-                json.dump([prefix, stack_str], f)
-                f.write('\n')
+            if json_dump_condition(prefix):
+                if DumpUtil.dump_mode == Const.FORWARD and "forward" in prefix:
+                    json.dump([prefix, stack_str], f)
+                    f.write('\n')
+                elif DumpUtil.dump_mode == Const.BACKWARD and "backward" in prefix:
+                    json.dump([prefix, stack_str], f)
+                    f.write('\n')
+                elif DumpUtil.dump_mode == Const.ALL:
+                    json.dump([prefix, stack_str], f)
+                    f.write('\n')
         else:
             json.dump([prefix, stack_str], f)
             f.write('\n')

@@ -4,7 +4,7 @@ import torch
 from ..common.utils import print_warn_log, get_time, print_info_log
 from ..dump.dump import forward_init_status, forward_acl_dump
 from .utils import OverFlowUtil, dump_overflow
-from ..dump.utils import DumpUtil
+from ..dump.utils import DumpUtil, Const
 
 try:
     import torch_npu
@@ -77,7 +77,11 @@ def overflow_check(name, **kwargs):
             return
         module_name = name
         if hasattr(torch_npu._C, '_npu_is_support_inf_nan') and torch_npu._C._npu_is_support_inf_nan():
-            module.has_overflow = check_data_overflow(out_feat)
+            if Const.BACKWARD in module_name:
+                check_feat = in_feat
+            else:
+                check_feat = out_feat
+            module.has_overflow = check_data_overflow(check_feat)
         else:
             module.has_overflow = torch_npu._C._check_overflow_npu()
         if not module.has_overflow:

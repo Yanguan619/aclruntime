@@ -29,7 +29,6 @@ class AicErrorInfo:
         self.kernel_name = ""
         self.start_pc = ""
         self.current_pc = ""
-        self.input_output_addrs = []  # [OpInputOutput]
         self.instr = ""
         self.operator = ""
         self.extra_info = ""
@@ -47,6 +46,7 @@ class AicErrorInfo:
         self.atomic_clean_check = True
         self.args_before_list = []
         self.args_after_list = []
+        self.addr_valid = True
 
     def analyse(self: any) -> str:
         """
@@ -124,6 +124,9 @@ args after  excute: {self._get_args_str(self.args_after_list)}
         elif not self._check_args():
             conclusion = "The args of op is diffrerent before and after excute, args may be overwrited by other op."\
                          "Please use oom to continue debug.\n"
+        elif not self.addr_valid:
+            conclusion = "Please check addrs. The addr of input/output is used but not alloc, "\
+                         "details in \"4. Input and output of node\"\n"
         else:
             conclusion = "There's no obvious known error, so I can't determine what the error is.\n"
         return conclusion
@@ -185,22 +188,24 @@ args after  excute: {self._get_args_str(self.args_after_list)}
     def _get_addr_check_str(self: any) -> str:
         result_str = ""
         used_addrs = self.necessary_addr
-        ava_addr = self.aval_addrs
+
         if not used_addrs:
             input_params, output_params = [], []
         else:
             input_params = used_addrs.get("input_addr")
             output_params = used_addrs.get("output_addr")
-        workspace = used_addrs.get("workspace")
+
         for input_param in input_params:
             index = input_param.get("index")
-            if input_param.get("invalid"):
+            if not input_param.get("in_range"):
                 result_str += f"*[ERROR]input[{index}] is out of range\n"
+                self.addr_valid = False
 
         for output_param in output_params:
             index = output_param.get("index")
-            if output_param.get("invalid"):
+            if not output_param.get("in_range"):
                 result_str += f"*[ERROR]output[{index}] is out of range\n"
+                self.addr_valid = False
         result_str += "\n"
         for input_param in input_params:
             index = int(input_param.get("index"))
@@ -221,11 +226,16 @@ args after  excute: {self._get_args_str(self.args_after_list)}
                 addr = int(output_param.get("addr"))
             end_addr = addr + size
             result_str += f"output[{index}] addr: {hex(addr)} end_addr:{hex(end_addr)} size: {hex(size)}\n"
+        
+        fault_arg_indexes = used_addrs.get("fault_arg_index")
+        need_check_args = used_addrs.get("need_check_args")
+        if fault_arg_indexes:
+            for arg_index in fault_arg_indexes:
+              result_str += f"arg[{arg_index}][0x{need_check_args[arg_index]:X}] need be checked \n"
 
+        workspace = used_addrs.get("workspace")
         if workspace:
             result_str += f"workspace_bytes:{workspace}\n"
-
-        result_str += "\n\nDue to security issues, DevMalloc address information cannot be obtained."
 
         return result_str
 

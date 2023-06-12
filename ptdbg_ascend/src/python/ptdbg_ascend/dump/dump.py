@@ -163,8 +163,6 @@ def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = DumpUtil.get_dump_path()
     _set_dump_switch4api_list(name)
-    if DumpUtil.dump_switch_mode == Const.API_STACK:
-        dump_file = modify_dump_path(dump_file)
 
     if DumpUtil.get_dump_switch():
         if DumpUtil.dump_init_enable:

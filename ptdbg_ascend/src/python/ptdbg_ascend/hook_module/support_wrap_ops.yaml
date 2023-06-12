@@ -143,6 +143,7 @@ tensor:
   - __and__
   - __bool__
   - __div__
+  - __eq__
   - __ge__
   - __gt__
   - __getitem__

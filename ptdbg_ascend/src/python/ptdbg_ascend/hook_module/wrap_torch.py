@@ -89,7 +89,7 @@ class TorchOPTemplate(HOOKModule):
         if self.input_param_need_adapt():
             return getattr(torch._C._VariableFunctionsClass, str(self.op_name_))(args, **kwargs)
         else:
-            if self.op_name == 'einsum':
+            if self.op_name_ == 'einsum':
                 args = self.einsum_adapt(*args)
             return getattr(torch._C._VariableFunctionsClass, str(self.op_name_))(*args, **kwargs)
 

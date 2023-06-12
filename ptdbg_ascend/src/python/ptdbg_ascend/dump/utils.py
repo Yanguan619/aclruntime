@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from ..common.utils import print_error_log, CompareException, Const, get_time, print_info_log, \
-    check_mode_valid, get_api_name_from_matcher
+    check_mode_valid, get_api_name_from_matcher, modify_dump_path
 
 from ..common.version import __version__
 
@@ -45,6 +45,12 @@ class DumpUtil(object):
         DumpUtil.dump_mode = dump_mode
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
+
+        if switch == "ON":
+            if DumpUtil.dump_switch_mode == Const.API_STACK:
+                DumpUtil.dump_path = modify_dump_path(DumpUtil.dump_path)
+            if os.path.exists(DumpUtil.dump_path) and not os.path.isdir(DumpUtil.dump_path):
+                os.remove(DumpUtil.dump_path)
 
     def check_list_or_acl_mode(name_prefix):
         global dump_count
@@ -188,6 +194,4 @@ def make_dump_dirs(rank):
         os.mkdir(rank_dir, mode=0o750)
     DumpUtil.dump_dir = rank_dir
     dump_file_path = os.path.join(rank_dir, dump_file_name)
-    if os.path.exists(dump_file_path) and not os.path.isdir(dump_file_path):
-        os.remove(dump_file_path)
     DumpUtil.set_dump_path(dump_file_path)

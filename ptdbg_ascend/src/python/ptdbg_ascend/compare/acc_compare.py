@@ -384,6 +384,8 @@ def check_accuracy(cos, max_abs_err):
         return CompareConst.NAN
     if cos < CompareConst.COS_THRESHOLD and max_abs_err > CompareConst.MAX_ABS_ERR_THRESHOLD:
         return CompareConst.ACCURACY_CHECK_NO
+    if cos < CompareConst.COS_MAX_THRESHOLD or max_abs_err > CompareConst.MAX_ABS_ERR_MAX_THRESHOLD:
+        return CompareConst.ACCURACY_CHECK_NO
     return CompareConst.ACCURACY_CHECK_YES
 
 

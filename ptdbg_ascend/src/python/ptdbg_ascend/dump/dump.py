@@ -69,8 +69,7 @@ def get_not_float_tensor_info(data):
 
 
 def get_scalar_data_info(data):
-    summary_data = []
-    summary_data.extend([data, data, data])
+    summary_data = [data, data, data]
     return DataInfo(data, data, summary_data, str(type(data)), str([]))
 
 

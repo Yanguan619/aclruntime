@@ -57,7 +57,8 @@ class Constant:
                      "DT_DUAL": 5}
     #aicore_error_parser
     OBJ_DUMP_FILE = "cce-objdump"
-    GRAPH_FILE = 0
+    ALLOC_ADDR = 0
+    GRAPH_FILE = 1
 
     # collection
     EXCEPTION_PATTERN = r"<exception_print>TIME:(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+)[ \S]+?" \

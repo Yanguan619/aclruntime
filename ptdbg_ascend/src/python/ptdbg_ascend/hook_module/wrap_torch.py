@@ -52,12 +52,45 @@ class TorchOPTemplate(HOOKModule):
             if item in self.op_name_:
                 return True
         return False
+    
+    def einsum_adapt(self, *args):
+        if len(args) < 2:
+            raise ValueError('einsum(): must specify the equation string and at least one operand, '
+                             'or at least one operand and its subscripts list')
+        equation = None
+        operands = None
+        if isinstance(args[0], torch.Tensor):
+            def parse_subscript(n: int) -> str:
+                if n == Ellipsis:
+                    return '...'
+                if n >= 0 and n < 26:
+                    return chr(ord('A') + n)
+                if n >= 26 and n < 52:
+                    return chr(ord('a') + n - 26)
+                raise ValueError('einsum(): subscript in subscript list is not within the valid range [0, 52]')
+            equation = ','.join(''.join(parse_subscript(s) for s in l) for l in args[1::2])
+            
+            if len(args) % 2 == 1:
+                equation += '->' + ''.join(parse_subscript(s) for s in args[-1])
+                operands = args[:-1:2]
+            else:
+                operands = args[::2]
+        else:
+            equation = args[0]
+            operands = args[1:]
+
+        if len(operands) == 1 and isinstance(operands[0], (list, tuple)):
+            _operands = operands[0]
+            return self.einsum_adapt(equation, *_operands)
+        return equation, operands
 
     @torch_device_guard
     def forward(self, *args, **kwargs):
         if self.input_param_need_adapt():
             return getattr(torch._C._VariableFunctionsClass, str(self.op_name_))(args, **kwargs)
         else:
+            if self.op_name_ == 'einsum':
+                args = self.einsum_adapt(*args)
             return getattr(torch._C._VariableFunctionsClass, str(self.op_name_))(*args, **kwargs)
 
 

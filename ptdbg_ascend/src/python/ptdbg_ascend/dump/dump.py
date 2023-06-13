@@ -193,6 +193,10 @@ def acl_dump(module, module_name, name_prefix):
     else:
         forward_acl_dump(module, module_name)
 
+def Op_Need_Trigger(module_name):
+    if 'Tensor___getitem___' in module_name:
+        return True
+    return False
 
 def forward_acl_dump(module, module_name):
     global forward_init_status
@@ -202,7 +206,10 @@ def forward_acl_dump(module, module_name):
         torch_npu.npu.init_dump()
         torch_npu.npu.set_dump(DumpUtil.dump_config)
         torch_npu.npu.synchronize()
-        module.forward(*module.input_args, **module.input_kwargs)
+        if Op_Need_Trigger(module_name):
+            module.forward(*module.input_args, **module.input_kwargs).cpu()
+        else:
+            module.forward(*module.input_args, **module.input_kwargs)
         torch_npu.npu.synchronize()
         torch_npu.npu.finalize_dump()
     del module.input_args

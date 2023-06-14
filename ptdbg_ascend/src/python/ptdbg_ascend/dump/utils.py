@@ -50,6 +50,11 @@ class DumpUtil(object):
             if DumpUtil.dump_switch_mode == Const.API_STACK:
                 DumpUtil.dump_path = modify_dump_path(DumpUtil.dump_path)
             if os.path.exists(DumpUtil.dump_path) and not os.path.isdir(DumpUtil.dump_path):
+                if not os.access(DumpUtil.dump_path, os.W_OK):
+                    print_error_log(
+                        'The path {} does not have permission to write. Please check the path permission'.format(
+                            DumpUtil.dump_path))
+                    raise CompareException(CompareException.INVALID_PATH_ERROR)
                 os.remove(DumpUtil.dump_path)
 
     def check_list_or_acl_mode(name_prefix):

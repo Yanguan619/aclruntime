@@ -46,17 +46,6 @@ class DumpUtil(object):
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
-        if switch == "ON":
-            if DumpUtil.dump_switch_mode == Const.API_STACK:
-                DumpUtil.dump_path = modify_dump_path(DumpUtil.dump_path)
-            if os.path.exists(DumpUtil.dump_path) and not os.path.isdir(DumpUtil.dump_path):
-                if not os.access(DumpUtil.dump_path, os.W_OK):
-                    print_error_log(
-                        'The path {} does not have permission to write. Please check the path permission'.format(
-                            DumpUtil.dump_path))
-                    raise CompareException(CompareException.INVALID_PATH_ERROR)
-                os.remove(DumpUtil.dump_path)
-
     def check_list_or_acl_mode(name_prefix):
         global dump_count
         for item in DumpUtil.dump_switch_scope:
@@ -199,4 +188,16 @@ def make_dump_dirs(rank):
         os.mkdir(rank_dir, mode=0o750)
     DumpUtil.dump_dir = rank_dir
     dump_file_path = os.path.join(rank_dir, dump_file_name)
+    stack_mode_path = modify_dump_path(dump_file_path)
+    check_path_remove(dump_file_path)
+    check_path_remove(stack_mode_path)
     DumpUtil.set_dump_path(dump_file_path)
+
+
+def check_path_remove(file_path):
+    if os.path.exists(file_path) and not os.path.isdir(file_path):
+        if not os.access(file_path, os.W_OK):
+            print_error_log(
+                'The path {} does not have permission to write. Please check the path permission'.format(file_path))
+            raise CompareException(CompareException.INVALID_PATH_ERROR)
+        os.remove(file_path)

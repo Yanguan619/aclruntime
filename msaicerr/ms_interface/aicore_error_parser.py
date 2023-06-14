@@ -451,7 +451,7 @@ class AicoreErrorParser:
             else:
                 new_pc_bin = ori_pc[:-10] + extra_pc + ori_pc[-2:]
             new_pc_value = int(new_pc_bin, 2)
-            if new_pc_value > current_pc5_value:
+            if new_pc_value - 1024 > start_pc5_value and new_pc_value > current_pc5_value:
                 new_pc_value -= 1024
             err_pc = hex(new_pc_value - start_pc5_value)[2:]
             info.instr += "\nError occured most likely at line: %s\n\n" % err_pc

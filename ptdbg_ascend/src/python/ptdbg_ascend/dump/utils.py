@@ -125,18 +125,17 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
     DumpUtil.set_dump_path(real_path)
     DumpUtil.dump_dir_tag = dump_tag
 
+def generate_dump_path_str():
+    if DumpUtil.dump_switch_mode == 'acl':
+        if DumpUtil.dump_config == '':
+            print_error_log("Please provide dump config for register hook before turning on dump switch!")
+            raise DumpException(DumpException.NONE_ERROR)
+        dump_path = f"according to dump config {DumpUtil.dump_config}"
+    else:
+        dump_path = f"to {DumpUtil.dump_path}"
+    return dump_path 
 
 def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=Const.ALL):
-    def generate_dump_path_str():
-        if DumpUtil.dump_switch_mode == 'acl':
-            if DumpUtil.dump_config == '':
-                print_error_log("Please provide dump config for register hook before turning on dump switch!")
-                raise DumpException(DumpException.NONE_ERROR)
-            dump_path = f"according to dump config {DumpUtil.dump_config}"
-        else:
-            dump_path = f"to {DumpUtil.dump_path}"
-        return dump_path 
-
     try:
         check_mode_valid(mode)
         assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."

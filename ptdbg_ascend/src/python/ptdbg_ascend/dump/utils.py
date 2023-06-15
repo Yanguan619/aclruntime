@@ -149,6 +149,15 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()
+    global dump_count
+    if switch == "ON":
+        print_info_log(f"Dump switch is turned on. Dump data will be saved to {DumpUtil.dump_path}. ")
+        if mode == Const.List:
+            dump_count = 0
+    else:
+        print_info_log(f"Dump switch is turned off. Dump data has been saved to {DumpUtil.dump_path}. ")
+        if mode == Const.List:
+            print_info_log("The number of matched dump is {}".format(dump_count))
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
 
 

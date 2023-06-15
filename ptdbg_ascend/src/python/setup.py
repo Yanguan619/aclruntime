@@ -39,6 +39,12 @@ setuptools.setup(name='ptdbg_ascend',
       description='This is a pytorch precision comparison tools',
       long_description='This is a pytorch precision comparison tools, include overflow detect tool',
       packages=setuptools.find_packages(),
+      install_requires = [
+            "wheel",
+            "numpy",
+            "pandas >= 1.3.5",
+            "pyyaml"
+      ],
       include_package_data=True,
       ext_modules=[],
       zip_safe=False)

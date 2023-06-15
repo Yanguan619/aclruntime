@@ -173,11 +173,11 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     global dump_count
     if switch == "ON":
         print_info_log(f"Dump switch is turned on. Dump data will be saved {dump_path_str}. ")
-        if mode == Const.List:
+        if mode == Const.LIST:
             dump_count = 0
     else:
         print_info_log(f"Dump switch is turned off. Dump data has been saved {dump_path_str}. ")
-        if mode == Const.List:
+        if mode == Const.LIST:
             print_info_log("The number of matched dump is {}".format(dump_count))
 
 def _set_dump_switch4api_list(name):

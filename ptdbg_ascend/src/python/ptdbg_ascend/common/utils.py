@@ -164,6 +164,8 @@ class CompareException(Exception):
     def __str__(self):
         return self.error_info
 
+class DumpException(CompareException):
+    pass
 
 def _print_log(level, msg):
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))

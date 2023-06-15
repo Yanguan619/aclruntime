@@ -70,6 +70,7 @@ def np_dtype_to_str(dtype):
         np.float32.__name__: "float32",
         np.float64.__name__: "float64",
         np.bool.__name__: "bool",
+        np.bool_.__name__: "bool",
         np.int8.__name__: "int8",
         np.uint8.__name__: "uint8",
         np.int16.__name__: "int16",

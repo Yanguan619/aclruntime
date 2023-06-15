@@ -93,7 +93,7 @@ def register_hook(model, hook, **kwargs):
                            "the overflow detection function on milan platform maybe not work! "
                            "please check the version of software torch_npu.")
         # In NPU scene, clear the overflow flag before overflow detection
-        if rank != -1:
+        if rank != "None":
             torch_npu.npu.set_device(rank)
             torch_npu._C._clear_overflow_npu()
 

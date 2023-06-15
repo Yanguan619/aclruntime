@@ -167,6 +167,7 @@ class AicoreErrorParser:
         self.parameters = json_obj.get("parameters")
         len_of_args = len(self.parameters)
 
+        need_check_args = []
         for args in info.args_after_list:
             if first_input_addr == args[0]:
                 need_check_args = args[: len_of_args]

@@ -125,11 +125,6 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
 
 
 def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=Const.ALL):
-    global dump_count
-    if mode == Const.LIST and switch == "ON":
-        dump_count = 0
-    if mode == Const.LIST and switch == "OFF":
-        print_info_log("The number of matched dump is {}".format(dump_count))
     try:
         check_mode_valid(mode)
         assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."

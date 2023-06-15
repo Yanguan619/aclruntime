@@ -101,15 +101,6 @@ class AicoreErrorParser:
             return True
         return False
 
-    def _get_alloc_addr(self: any) -> list:
-        cmd = ['grep', 'DevMalloc: Succ,', '-nr', self.collection.collect_plog_path]
-        regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?size\s*=\s*([\d]+).+?ptr\s*=\s*([\da-zA-Z]+)"
-        ret = utils.get_inquire_result(cmd, regexp)
-        alloc_addr = []
-        for _, (_, size, addr) in enumerate(ret):
-            alloc_addr.append((addr, int(size)))
-        return alloc_addr
-
     @staticmethod
     def _remove_first_found_addr(addr, addr_list):
         for i, ava_addr_item in enumerate(addr_list):
@@ -132,13 +123,16 @@ class AicoreErrorParser:
         free_regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?mem\s*=\s*([\da-zA-Z]+)"
         free_ret = utils.get_inquire_result(free_cmd, free_regexp)
         avl_addr = []
+        if not alloc_ret:
+            return avl_addr
         occur_time_obj = utils.strplogtime(occur_time)
         for _, (alloc_time, size, addr) in enumerate(alloc_ret):
             alloc_time_obj = utils.strplogtime(alloc_time)
 
             if alloc_time_obj < occur_time_obj:
                 avl_addr.append((addr, int(size)))
-
+        if not free_ret:
+            return avl_addr
         for _, (free_time, addr) in enumerate(free_ret):
             free_time_obj = utils.strplogtime(free_time)
             if free_time_obj < occur_time_obj:
@@ -146,14 +140,14 @@ class AicoreErrorParser:
         utils.print_info_log(f"get available addr: {avl_addr}")
         return avl_addr
 
-    def _get_necessary_addrs(self: any, kernel_name: str) -> dict:
+    def _get_necessary_addrs(self: any, info: AicErrorInfo) -> dict:
         '''
         获取occur_time时刻可用的地址
         :param kernel_name: 发生aicore error的kernel_name
         :return: 需要的空间
         '''
         result = {}
-        aic_info_cmd = ['grep', '-r', '-C', '21', "\[AIC_INFO\] dev_func:{}".format(kernel_name),
+        aic_info_cmd = ['grep', '-r', '-C', '21', "\[AIC_INFO\] dev_func:{}".format(info.kernel_name),
                         self.collection.collect_plog_path]
         _, aic_info = utils.execute_command(aic_info_cmd)
         utils.print_info_log(f"===============================\n{aic_info}\n==================================")
@@ -163,8 +157,22 @@ class AicoreErrorParser:
         aic_info_input_ret = re.findall(aic_info_input_regexp, aic_info, re.M)
         if len(aic_info_input_ret) == 0:
             utils.print_warn_log(f"Failed to get {aic_info_input_regexp}")
+            return result
         input_params = []
 
+        first_input_addr = utils.get_str_value(aic_info_input_ret[0][4])
+        json_file = os.path.join(self.collection.collect_kernel_path, info.kernel_name + ".json") 
+        with open(json_file, "r") as f:
+            json_obj = json.load(f)
+        self.parameters = json_obj.get("parameters")
+        len_of_args = len(self.parameters)
+
+        for args in info.args_after_list:
+            if first_input_addr == args[0]:
+                need_check_args = args[: len_of_args]
+                break
+        
+        index_of_arg = 0
         for input_info in aic_info_input_ret:
             input_param = {}
             input_param["index"] = input_info[0]
@@ -172,6 +180,9 @@ class AicoreErrorParser:
             input_param["format"] = input_info[2]
             input_param["dtype"] = input_info[3]
             input_param["addr"] = input_info[4]
+            if len(need_check_args) > index_of_arg:
+                input_param["addr"] = str(need_check_args[index_of_arg])
+                index_of_arg += 1
             input_params.append(input_param)
 
         # 解析出输出结果
@@ -188,6 +199,9 @@ class AicoreErrorParser:
             output_param["format"] = output_info[2]
             output_param["dtype"] = output_info[3]
             output_param["addr"] = output_info[4]
+            if len(need_check_args) > index_of_arg:
+                output_param["addr"] = str(need_check_args[index_of_arg])
+                index_of_arg += 1
             output_params.append(output_param)
 
         aic_info_workspace_regex = r"\[AIC_INFO\]\sworkspace_bytes|workspace_size:(.*?)"
@@ -239,6 +253,7 @@ class AicoreErrorParser:
         result["output_addr"] = output_params
         result["workspace"] = workspace
         result["tiling"] = [tiling_key, tiling_data, block_dim]
+        result["need_check_args"] = need_check_args
         return result
 
     @staticmethod
@@ -250,20 +265,25 @@ class AicoreErrorParser:
         return reduce(lambda x, y: int(x) * int(y), shape_str_list)
     
     @staticmethod
-    def _check_addr_in_range(addr, ranges):
+    def _check_addr_in_range(addr, size, ranges):
         if not isinstance(addr, int):
             addr = int(addr)
 
         for addr_range in ranges:
-            range_left = utils.get_hexstr_value(addr_range[0])
-            range_right = utils.get_hexstr_value(addr_range[0]) + addr_range[1]
-            if range_left <= addr < range_right:
+            if "0x" in addr_range[0]:
+                range_left = utils.get_hexstr_value(addr_range[0])
+                range_right = utils.get_hexstr_value(addr_range[0]) + addr_range[1]
+            else:
+                range_left = int(addr_range[0])
+                range_right = int(addr_range[0]) + addr_range[1]
+            if range_left <= addr <= addr+size <= range_right:
                 return True
         return False
 
     def _check_addr(self, avaliable_addrs, used_addrs):
         input_params = used_addrs.get("input_addr")
         output_params = used_addrs.get("output_addr")
+        need_check_args = used_addrs.get("need_check_args")
         if not input_params and not output_params:
             utils.print_error_log("Unable to get input parameters and output parameters.")
             raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
@@ -275,9 +295,9 @@ class AicoreErrorParser:
                 start_addr = int(input_param.get("addr"))
             shape_size = self._cal_shape_size(input_param.get("shape"))
             size_of_dtype = Constant.SIZE_OF_DTYPE.get(input_param.get("dtype"))
-            end_addr = int(start_addr) + int(shape_size) * int(size_of_dtype)
-            utils.print_info_log(f"shape_size is {shape_size}, size_of_dtype is {size_of_dtype}")
             input_param["size"] = int(shape_size) * int(size_of_dtype)
+            utils.print_info_log(f"shape_size is {shape_size}, size_of_dtype is {size_of_dtype}")
+            input_param["in_range"] = self._check_addr_in_range(start_addr, input_param["size"], avaliable_addrs)
 
         for output_param in output_params:
             if output_param.get("addr").startswith("0x"):
@@ -286,81 +306,15 @@ class AicoreErrorParser:
                 start_addr = int(output_param.get("addr"))
             shape_size = self._cal_shape_size(output_param.get("shape"))
             size_of_dtype = Constant.SIZE_OF_DTYPE.get(output_param.get("dtype"))
-            end_addr = int(start_addr) + int(shape_size) * int(size_of_dtype)
             utils.print_info_log(f"shape_size is {shape_size}, size_of_dtype is {size_of_dtype}")
             output_param["size"] = int(shape_size) * int(size_of_dtype)
-
-    def _get_input_output_addrs(self: any, info: any, alloc_addr: str) -> list:
-        in_out_list = info.necessary_addr
-        input_output_addrs = []
-        for input in in_out_list.get("input_addr"):
-            op_io = OpInputOutput()
-            op_io.name = f"input[{input.get('index')}]"
-            op_io.addr = input.get('addr')
-            op_io.idx = int(input.get('index'))
-            op_io.dtype = input.get('dtype')
-            op_io.size = input.get('size')
-            input_output_addrs.append(op_io)
-        for output in in_out_list.get("output_addr"):
-            op_io = OpInputOutput()
-            op_io.name = f"output[{output.get('index')}]"
-            op_io.addr = output.get('addr')
-            op_io.idx = int(output.get('index'))
-            op_io.dtype = output.get('dtype')
-            op_io.size = output.get('size')
-            input_output_addrs.append(op_io)
-
-        # 检查地址是否越界
-        if len(alloc_addr) > 0:
-            self._analyse_alloc_addr_range(alloc_addr, input_output_addrs)
-        return input_output_addrs
-
-    @staticmethod
-    def _get_alloc_addr_range(alloc_addr: any) -> list:
-        alloc_addr_range = []
-        for alloc in alloc_addr:
-            begin_alloc = int(alloc[0], 16)
-            end_alloc = begin_alloc + alloc[1] - 1 if alloc[1] > 0 else begin_alloc
-            alloc_addr_range.append((begin_alloc, end_alloc))
-        return alloc_addr_range
-
-    def _analyse_alloc_addr_range(self: any, alloc_addr: any, input_output_addrs: list) -> None:
-        alloc_addr_range = self._get_alloc_addr_range(alloc_addr)
-        for i in input_output_addrs:
-            begin_addr = i.addr
-            end_addr = begin_addr + i.size - 1 if i.size > 0 else begin_addr
-            begin_in_range = self._check_addr_in_alloc(alloc_addr_range, begin_addr)
-            if begin_in_range is False:
-                i.overflow = True
-                continue
-            end_in_range = self._check_addr_in_alloc(alloc_addr_range, end_addr)
-            if end_in_range is False:
-                i.overflow = True
-            # check actual addr
-            self._check_actual_addr(i, alloc_addr_range)
-
-    @staticmethod
-    def _check_addr_in_alloc(alloc_addr_range: list, alloc_addr: int) -> bool:
-        alloc_in_range = False
-        for _, (begin_alloc, end_alloc) in enumerate(alloc_addr_range):
-            if begin_alloc <= alloc_addr <= end_alloc:
-                alloc_in_range = True
-                break
-        return alloc_in_range
-
-    @staticmethod
-    def _check_actual_addr(i: any, alloc_addr_range: list) -> None:
-        # check actual addr
-        if i.actual_addr != "":
-            actual_addr = int(i.actual_addr, 16)
-            actual_in_range = False
-            for _, (begin_alloc, end_alloc) in enumerate(
-                    alloc_addr_range):
-                if begin_alloc <= actual_addr <= end_alloc:
-                    actual_in_range = True
-                    break
-            if actual_in_range is False:
-                i.overflow = True
+            output_param["in_range"] = self._check_addr_in_range(start_addr, output_param["size"], avaliable_addrs)
+        
+        used_addrs["fault_arg_index"]=[]
+        if need_check_args:
+            for i, arg in enumerate(need_check_args):
+                if not self._check_addr_in_range(arg, 0, avaliable_addrs):
+                  used_addrs["fault_arg_index"].append(i)
 
     def _get_info_for_decompile(self: any, info: any) -> tuple:
         info.instr = ""
@@ -574,13 +528,9 @@ SingleOpCase.run(config)"""
         utils.print_info_log("Start to get DevMalloc address information.")
         aicore_error_data_list = []
 
-        # 获取分配的device地址
-        alloc_addr = []  # self._get_alloc_addr()
-        utils.print_warn_log("Due to security issues, DevMalloc address information cannot be obtained.")
-
         # get graph file
         graph_file = self._get_graph_file()
-        aicore_error_data_list.extend([alloc_addr, graph_file])
+        aicore_error_data_list.extend([graph_file])
         return aicore_error_data_list
 
     def _get_data_dump_result(self:any):
@@ -623,6 +573,44 @@ SingleOpCase.run(config)"""
             utils.print_warn_log(f"Can not find AtomicLaunchKernelWithFlag_{info.node_name} in plog!")
             return False
         return True
+
+    def _get_args_from_info(self: any, key_words: str) -> list:
+        args_exec_cmd = ['grep', key_words, '-nr', self.collection.collect_plog_path]
+        args_exec_regexp = r":([x0-9a-fA-F,\s]+)addr"
+        args_exec_rets = utils.get_inquire_result(args_exec_cmd, args_exec_regexp)
+
+        if not args_exec_rets:
+            args_exec_cmd = ['grep', key_words, '-nr', self.collection.collect_plog_path]
+            args_exec_regexp = r"args after execute:([x0-9a-fA-F,\s]+)"
+            args_exec_rets = utils.get_inquire_result(args_exec_cmd, args_exec_regexp)
+
+        if not args_exec_rets:
+            args_exec_rets = []
+
+        args_exec_result = []
+        for args_exec_ret in args_exec_rets:
+            args_array=re.split(",|\\s", args_exec_ret)
+            args_list = []
+            for arg in args_array:
+                if (not isinstance(arg, str)) or (not arg.strip()):
+                    continue
+                arg = arg.strip()
+                if arg.startswith("0x") or arg == "0":
+                  args_list.append(utils.get_hexstr_value(arg))
+                else:
+                  args_list.append(int(arg))
+            args_list = tuple(args_list)
+            if args_list not in args_exec_result:
+                args_exec_result.append(args_list)
+        return args_exec_result
+
+    def _get_args_after_exc(self: any) -> list:
+        after_key = '\[AIC_INFO\] args after execute'
+        return self._get_args_from_info(after_key)
+
+    def _get_args_before_exc(self: any) -> list:
+        before_key = '\[AIC_INFO\] args before execute'
+        return self._get_args_from_info(before_key)
 
     def parse(self: any) -> None:
         """
@@ -670,16 +658,14 @@ SingleOpCase.run(config)"""
             # get op info in build proto file
             self._get_op_by_graph(aicore_error_data_list[Constant.GRAPH_FILE], info)
 
-            try:
-                # input output address
-                info.aval_addrs = []  # self._get_available_addrs(info.err_time)
-                info.necessary_addr = self._get_necessary_addrs(info.kernel_name)
-                self.collection.tiling_list = info.necessary_addr["tiling"]
-                # 校验地址
-                self._check_addr(info.aval_addrs, info.necessary_addr)
-            except Exception as e:
-                utils.print_error_log("Check addr error failed.")
-                raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR) from e
+            info.args_after_list = self._get_args_after_exc()
+            info.args_before_list = self._get_args_before_exc()
+
+            info.aval_addrs = self._get_available_addrs(info.err_time)
+            info.necessary_addr = self._get_necessary_addrs(info)
+            self.collection.tiling_list = info.necessary_addr["tiling"]
+            # 校验地址
+            self._check_addr(info.aval_addrs, info.necessary_addr)
 
             kernel_meta_path = self.collection.collect_kernel_path
             # 反编译  出错指令
@@ -691,7 +677,6 @@ SingleOpCase.run(config)"""
             # 判断是否是动态op, 动态op且需要atomic add的情况下，需要检查框架是否正确插入memset
             info.atomic_clean_check = self._check_atomic_clean(kernel_meta_path, info)
 
-            info.input_output_addrs = self._get_input_output_addrs(info, aicore_error_data_list[Constant.ALLOC_ADDR])
             info.data_dump_result = self._get_data_dump_result()
             # parse dump
             if self.collection.collect_dump_path and info.data_dump_result:

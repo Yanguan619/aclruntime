@@ -28,7 +28,6 @@ class AicErrorInfo:
         self.kernel_name = ""
         self.start_pc = ""
         self.current_pc = ""
-        self.input_output_addrs = []  # [OpInputOutput]
         self.instr = ""
         self.operator = ""
         self.extra_info = ""
@@ -44,6 +43,9 @@ class AicErrorInfo:
         self.single_op_test_result = True
         self.data_dump_result = True
         self.atomic_clean_check = True
+        self.args_before_list = []
+        self.args_after_list = []
+        self.addr_valid = True
 
     def analyse(self: any) -> str:
         """
@@ -85,6 +87,8 @@ instruction  : {self.instr}
 
 ****************4. Input and output of node*******************
 {addr_check_str}
+args before excute: {self._get_args_str(self.args_before_list)}
+args after  excute: {self._get_args_str(self.args_after_list)}
 
 ***********************5. Dump info*************************
 {tiling_str}
@@ -116,69 +120,91 @@ instruction  : {self.instr}
             conclusion = "Input data is abnormal. Check the network accuracy.\n"
         elif not self.single_op_test_result:
             conclusion = "Single op test aicore error, please check op.\n"
-        else :
+        elif not self._check_args():
+            conclusion = "The args of op is diffrerent before and after excute, args may be overwrited by other op."\
+                         "Please use oom to continue debug.\n"
+        elif not self.addr_valid:
+            conclusion = "Please check addrs. The addr of input/output is used but not alloc, "\
+                         "details in \"4. Input and output of node\"\n"
+        else:
             conclusion = "There's no obvious known error, so I can't determine what the error is.\n"
         return conclusion
 
+    def _check_args(self: any) -> bool:
+        for args_after in self.args_after_list:
+            for args_before in self.args_before_list:
+                if args_after == args_before:
+                    return True
+            return False
+
+    def _get_args_str(self: any, input_list: list) -> str:
+        args_str = ""
+        for args in input_list:
+            hex_str = ", ".join([hex(i) for i in args])
+            args_str += f"[{hex_str}],"
+        return f"[{args_str[:-1]}]"
+
     def _get_tiling_str(self: any) -> str:
-        result_str=""
-        tiling_datas =  self.necessary_addr["tiling"]
+        result_str = ""
+        tiling_datas = self.necessary_addr["tiling"]
         if len(tiling_datas) < 3:
             utils.print_info_log("Tiling data incomplete!")
             return ""
         tiling_data = tiling_datas[1]
         result_str += f"tiling data: {tiling_data}\n"
         result_str += "tiling data in int32: "
-        
+
         return result_str + "\n"
-    
+
     def _get_tiling_str(self: any) -> str:
         result_str = ""
         tiling_datas = self.necessary_addr["tiling"][1]
         int32_size = struct.calcsize('i')
         int64_size = struct.calcsize('q')
         float16_size = struct.calcsize('e')
-        
+
         def parse_data(data, size, format):
             try:
-                result = [struct.unpack(format, data[i:i+size])[0] for i in range(0, len(data), size)]
+                result = [struct.unpack(format, data[i:i + size])[0] for i in range(0, len(data), size)]
             except Exception as e:
                 result = "Cannot decode in this dtype"
             return result
 
         int32_values = parse_data(tiling_datas, int32_size, 'i')
-        result_str += "tiling data in int32: " 
-        result_str += f"tiling data: {int32_values}\n"  
-        
+        result_str += "tiling data in int32: "
+        result_str += f"tiling data: {int32_values}\n"
+
         int64_values = parse_data(tiling_datas, int64_size, 'q')
         result_str += "tiling data in int64: "
         result_str += f"tiling data: {int64_values}\n"
-        
+
         float16_values = parse_data(tiling_datas, float16_size, 'e')
         result_str += "tiling data in float16: "
         result_str += f"tiling data: {float16_values}\n"
-        
+
         return result_str + "\n"
 
     def _get_addr_check_str(self: any) -> str:
         result_str = ""
         used_addrs = self.necessary_addr
-        ava_addr = self.aval_addrs
+
         if not used_addrs:
             input_params, output_params = [], []
         else:
             input_params = used_addrs.get("input_addr")
             output_params = used_addrs.get("output_addr")
-        workspace = used_addrs.get("workspace")
+
         for input_param in input_params:
             index = input_param.get("index")
-            if input_param.get("invalid"):
+            if not input_param.get("in_range"):
                 result_str += f"*[ERROR]input[{index}] is out of range\n"
+                self.addr_valid = False
 
         for output_param in output_params:
             index = output_param.get("index")
-            if output_param.get("invalid"):
+            if not output_param.get("in_range"):
                 result_str += f"*[ERROR]output[{index}] is out of range\n"
+                self.addr_valid = False
         result_str += "\n"
         for input_param in input_params:
             index = int(input_param.get("index"))
@@ -199,11 +225,17 @@ instruction  : {self.instr}
                 addr = int(output_param.get("addr"))
             end_addr = addr + size
             result_str += f"output[{index}] addr: {hex(addr)} end_addr:{hex(end_addr)} size: {hex(size)}\n"
+        
+        fault_arg_indexes = used_addrs.get("fault_arg_index")
+        need_check_args = used_addrs.get("need_check_args")
+        if fault_arg_indexes:
+            for arg_index in fault_arg_indexes:
+              result_str += f"arg[{arg_index}][0x{need_check_args[arg_index]:X}] cannot found alloc log, "\
+                              "if it is not tiling_gm, please check \n"
 
+        workspace = used_addrs.get("workspace")
         if workspace:
             result_str += f"workspace_bytes:{workspace}\n"
-
-        result_str += "\n\nDue to security issues, DevMalloc address information cannot be obtained."
 
         return result_str
 

@@ -202,6 +202,21 @@ def write_file(output_path: str, file_content: str, write_mode="w") -> None:
     finally:
         pass
 
+def get_str_value(value_str: str) -> int:
+    """
+    get value by string
+    """
+    if not value_str:
+        return -1
+    value_str = value_str.strip()
+    try:
+        if value_str.startswith("0x"):
+            return int(value_str, 16)
+        else:
+            return int(value_str)
+    except ValueError as value_error:
+        print_error_log(f"Failed to get value from {value_str}. {value_error}")
+        return -1
 
 def get_hexstr_value(hexstr: str) -> int:
     """
@@ -210,7 +225,11 @@ def get_hexstr_value(hexstr: str) -> int:
     hexstr = hexstr.strip()
     if hexstr == "0":
         return 0
-    return int(hexstr, 16)
+    try:
+        return int(hexstr, 16)
+    except ValueError as value_error:
+        print_error_log(f"Failed to get value from {hexstr}. {value_error}")
+        return -1
 
 
 def hexstr_to_list_bin(hexstr: str) -> list:

@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from ..common.utils import print_error_log, CompareException, Const, get_time, print_info_log, \
-    check_mode_valid, get_api_name_from_matcher
+    check_mode_valid, get_api_name_from_matcher, modify_dump_path
 
 from ..common.version import __version__
 
@@ -188,6 +188,16 @@ def make_dump_dirs(rank):
         os.mkdir(rank_dir, mode=0o750)
     DumpUtil.dump_dir = rank_dir
     dump_file_path = os.path.join(rank_dir, dump_file_name)
-    if os.path.exists(dump_file_path) and not os.path.isdir(dump_file_path):
-        os.remove(dump_file_path)
+    stack_mode_path = modify_dump_path(dump_file_path)
+    check_path_remove(dump_file_path)
+    check_path_remove(stack_mode_path)
     DumpUtil.set_dump_path(dump_file_path)
+
+
+def check_path_remove(file_path):
+    if os.path.exists(file_path) and not os.path.isdir(file_path):
+        if not os.access(file_path, os.W_OK):
+            print_error_log(
+                'The path {} does not have permission to write. Please check the path permission'.format(file_path))
+            raise CompareException(CompareException.INVALID_PATH_ERROR)
+        os.remove(file_path)

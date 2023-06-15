@@ -69,11 +69,7 @@ def get_not_float_tensor_info(data):
 
 
 def get_scalar_data_info(data):
-    summary_data = []
-    if isinstance(data, slice):
-        summary_data = [[], [], []]
-    else:
-        summary_data.extend([data, data, data])
+    summary_data = [data, data, data]
     return DataInfo(data, data, summary_data, str(type(data)), str([]))
 
 
@@ -140,15 +136,16 @@ def dump_stack_info(name_template, dump_file):
     prefix = name_template.format("stack_info")
     with os.fdopen(os.open(dump_file, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
         if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
-            if DumpUtil.dump_mode == Const.FORWARD and "forward" in prefix:
-                json.dump([prefix, stack_str], f)
-                f.write('\n')
-            elif DumpUtil.dump_mode == Const.BACKWARD and "backward" in prefix:
-                json.dump([prefix, stack_str], f)
-                f.write('\n')
-            elif DumpUtil.dump_mode == Const.ALL:
-                json.dump([prefix, stack_str], f)
-                f.write('\n')
+            if json_dump_condition(prefix):
+                if DumpUtil.dump_mode == Const.FORWARD and "forward" in prefix:
+                    json.dump([prefix, stack_str], f)
+                    f.write('\n')
+                elif DumpUtil.dump_mode == Const.BACKWARD and "backward" in prefix:
+                    json.dump([prefix, stack_str], f)
+                    f.write('\n')
+                elif DumpUtil.dump_mode == Const.ALL:
+                    json.dump([prefix, stack_str], f)
+                    f.write('\n')
         else:
             json.dump([prefix, stack_str], f)
             f.write('\n')
@@ -196,6 +193,10 @@ def acl_dump(module, module_name, name_prefix):
     else:
         forward_acl_dump(module, module_name)
 
+def Op_Need_Trigger(module_name):
+    if 'Tensor___getitem___' in module_name:
+        return True
+    return False
 
 def forward_acl_dump(module, module_name):
     global forward_init_status
@@ -205,7 +206,10 @@ def forward_acl_dump(module, module_name):
         torch_npu.npu.init_dump()
         torch_npu.npu.set_dump(DumpUtil.dump_config)
         torch_npu.npu.synchronize()
-        module.forward(*module.input_args, **module.input_kwargs)
+        if Op_Need_Trigger(module_name):
+            module.forward(*module.input_args, **module.input_kwargs).cpu()
+        else:
+            module.forward(*module.input_args, **module.input_kwargs)
         torch_npu.npu.synchronize()
         torch_npu.npu.finalize_dump()
     del module.input_args

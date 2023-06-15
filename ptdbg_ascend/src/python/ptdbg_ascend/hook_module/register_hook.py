@@ -34,6 +34,9 @@ else:
     is_gpu = False
     from . import wrap_npu_custom
 
+make_dir_flag = True
+
+
 def initialize_hook(hook):
     wrap_tensor.wrap_tensor_ops_and_bind(hook)
     for attr_name in dir(wrap_tensor.HOOKTensor):
@@ -63,6 +66,7 @@ def initialize_hook(hook):
 
 
 def register_hook(model, hook, **kwargs):
+    global make_dir_flag
     assert hasattr(model, "named_modules"), "Please register hooks to nn.Module."
     print_info_log("Please disable the shuffle function of the dataset "
                    "and the dropout function of the model "
@@ -75,7 +79,9 @@ def register_hook(model, hook, **kwargs):
     rank = kwargs.get('rank')
     if rank is None:
         rank = get_process_rank(model)
-    make_dump_dirs(rank)
+    if make_dir_flag:
+        make_dump_dirs(rank)
+        make_dir_flag = False
     hook_name = hook.__name__
 
     if "overflow_check" in hook_name and not is_gpu:

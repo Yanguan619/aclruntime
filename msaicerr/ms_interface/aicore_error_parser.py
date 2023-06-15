@@ -451,7 +451,7 @@ class AicoreErrorParser:
             else:
                 new_pc_bin = ori_pc[:-10] + extra_pc + ori_pc[-2:]
             new_pc_value = int(new_pc_bin, 2)
-            if new_pc_value > current_pc5_value:
+            if new_pc_value - 1024 > start_pc5_value and new_pc_value > current_pc5_value:
                 new_pc_value -= 1024
             err_pc = hex(new_pc_value - start_pc5_value)[2:]
             info.instr += "\nError occured most likely at line: %s\n\n" % err_pc
@@ -624,44 +624,6 @@ SingleOpCase.run(config)"""
             return False
         return True
 
-    def _get_args_from_info(self: any, key_words: str) -> list:
-        args_exec_cmd = ['grep', key_words, '-nr', self.collection.collect_plog_path]
-        args_exec_regexp = r":([x0-9a-eA-e,\s]+)addr"
-        args_exec_rets = utils.get_inquire_result(args_exec_cmd, args_exec_regexp)
-
-        if not args_exec_rets:
-            args_exec_cmd = ['grep', key_words, '-nr', self.collection.collect_plog_path]
-            args_exec_regexp = r"args after execute:([x0-9a-fA-F,\s]+)"
-            args_exec_rets = utils.get_inquire_result(args_exec_cmd, args_exec_regexp)
-
-        if not args_exec_rets:
-            args_exec_rets = []
-
-        args_exec_result = []
-        for args_exec_ret in args_exec_rets:
-            args_array=args_exec_ret.split(",")
-            args_list = []
-            for arg in args_array:
-                if (not isinstance(arg, str)) or (not arg.strip()):
-                    continue
-                arg = arg.strip()
-                if arg.startswith("0x") or arg == "0":
-                  args_list.append(utils.get_hexstr_value(arg))
-                else:
-                  args_list.append(int(arg))
-            args_list = tuple(args_list)
-            if args_list not in args_exec_result:
-                args_exec_result.append(args_list)
-        return args_exec_result
-
-    def _get_args_after_exc(self: any) -> list:
-        after_key = '\[AIC_INFO\] args after execute'
-        return self._get_args_from_info(after_key)
-
-    def _get_args_before_exc(self: any) -> list:
-        before_key = '\[AIC_INFO\] args before execute'
-        return self._get_args_from_info(before_key)
-
     def parse(self: any) -> None:
         """
         parse by collection info
@@ -739,9 +701,6 @@ SingleOpCase.run(config)"""
                 self.collection.output_list = dump_parser.get_output_data()
             else:
                 info.dump_info = "Failed to get dump data of error op!"
-
-            info.args_after_list = self._get_args_after_exc()
-            info.args_before_list = self._get_args_before_exc()
 
             if info.data_dump_result:
                 info.single_op_test_result = self._test_single_op(self.collection)

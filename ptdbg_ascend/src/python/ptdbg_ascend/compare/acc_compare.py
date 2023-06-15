@@ -38,11 +38,10 @@ def correct_data(result):
     return result
 
 
-
 def cosine_similarity(n_value, b_value):
     np.seterr(divide='ignore', invalid='ignore')
     if len(n_value) == 1:
-        return format_value(1.0), "This tensor is scalar."
+        return "unsupported", "This tensor is scalar."
     num = n_value.dot(b_value)
     a_norm = np.linalg.norm(n_value)
     b_norm = np.linalg.norm(b_value)
@@ -95,10 +94,83 @@ def get_max_relative_err(n_value, b_value):
     return format_value(max_relative_err), ""
 
 
-def check_op(npu_dict, bench_dict):
+def check_op(npu_dict, bench_dict, fuzzy_match):
     a_op_name = npu_dict["op_name"]
     b_op_name = bench_dict["op_name"]
-    return a_op_name == b_op_name
+    struct_match = check_struct_match(npu_dict, bench_dict)
+    if not fuzzy_match:
+        return a_op_name == b_op_name and struct_match
+    is_match = True
+    try:
+        is_match = fuzzy_check_op(a_op_name, b_op_name)
+    except Exception as err:
+        print_warn_log("%s and %s can not fuzzy match." % (a_op_name, b_op_name))
+        is_match = False
+    finally:
+        return is_match and struct_match
+
+
+def check_struct_match(npu_dict, bench_dict):
+    npu_struct_in = npu_dict.get("input_struct")
+    bench_struct_in = bench_dict.get("input_struct")
+    npu_struct_out = npu_dict.get("output_struct")
+    bench_struct_out = bench_dict.get("output_struct")
+    is_match = npu_struct_in == bench_struct_in and npu_struct_out == bench_struct_out
+    if not is_match:
+        if len(npu_struct_in) == 0 or len(bench_struct_in) == 0 or len(npu_struct_in) != len(bench_struct_in):
+            return False
+        struct_in_is_match = check_type_shape_match(npu_struct_in, bench_struct_in)
+        struct_out_is_match = check_type_shape_match(npu_struct_out, bench_struct_out)
+        is_match = struct_in_is_match and struct_out_is_match
+    return is_match
+
+
+def check_type_shape_match(npu_struct, bench_struct):
+    for npu_type_shape, bench_type_shape in zip(npu_struct, bench_struct):
+        npu_type = npu_type_shape[0]
+        npu_shape = npu_type_shape[1]
+        bench_type = bench_type_shape[0]
+        bench_shape = bench_type_shape[1]
+        shape_match = npu_shape == bench_shape
+        type_match = npu_type == bench_type
+        if not type_match:
+            if [npu_type, bench_type] in [["torch.float16", "torch.float32"], ["torch.float32", "torch.float16"]]:
+                type_match = True
+            else:
+                type_match = False
+        shape_type_match = shape_match and type_match
+        if not shape_type_match:
+            return False
+    return shape_type_match
+
+
+def fuzzy_check_op(npu_name_list, bench_name_list):
+    if len(npu_name_list) == 0 or len(bench_name_list) == 0 or len(npu_name_list) != len(bench_name_list):
+        return False
+    is_match = True
+    for npu_name, bench_name in zip(npu_name_list, bench_name_list):
+        is_match = fuzzy_check_name(npu_name, bench_name)
+        if not is_match:
+            break
+    return is_match
+
+
+def fuzzy_check_name(npu_name, bench_name):
+    if "forward" in npu_name and "forward" in bench_name:
+        is_match = rename_api(npu_name, "forward") == rename_api(bench_name, "forward")
+    elif "backward" in npu_name and "backward" in bench_name:
+        is_match = rename_api(npu_name, "backward") == rename_api(bench_name, "backward")
+    else:
+        is_match = npu_name == bench_name
+    return is_match
+
+
+def rename_api(npu_name, process):
+    npu_split = npu_name.split(process)
+    torch_func_index, in_out = npu_split[0], npu_split[1]
+    torch_func_split = torch_func_index.rsplit("_", 2)
+    torch_func = str(torch_func_split[0]) + str(in_out)
+    return torch_func
 
 
 def merge_tensor(tensor_list):
@@ -155,14 +227,14 @@ def read_op(ops_queue, pkl_file_handle, stack_mode):
     return not read_err
 
 
-def match_op(npu_queue, bench_queue):
-    if check_op(npu_queue[-1], bench_queue[-1]):
+def match_op(npu_queue, bench_queue, fuzzy_match):
+    if check_op(npu_queue[-1], bench_queue[-1], fuzzy_match):
         return len(npu_queue) - 1, len(bench_queue) - 1
     for b_index, b_op in enumerate(bench_queue[0: -1]):
-        if check_op(npu_queue[-1], b_op):
+        if check_op(npu_queue[-1], b_op, fuzzy_match):
             return len(npu_queue) - 1, b_index
     for n_index, n_op in enumerate(npu_queue[0: -1]):
-        if check_op(n_op, bench_queue[-1]):
+        if check_op(n_op, bench_queue[-1], fuzzy_match):
             return n_index, len(bench_queue) - 1
     return -1, -1
 
@@ -312,6 +384,8 @@ def check_accuracy(cos, max_abs_err):
         return CompareConst.NAN
     if cos < CompareConst.COS_THRESHOLD and max_abs_err > CompareConst.MAX_ABS_ERR_THRESHOLD:
         return CompareConst.ACCURACY_CHECK_NO
+    if cos < CompareConst.COS_MAX_THRESHOLD or max_abs_err > CompareConst.MAX_ABS_ERR_MAX_THRESHOLD:
+        return CompareConst.ACCURACY_CHECK_NO
     return CompareConst.ACCURACY_CHECK_YES
 
 
@@ -323,7 +397,7 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
         n_value = np.load(os.path.join(input_parma.get("npu_dump_data_dir"), npu_bench_name_list[0] + ".npy"))
         b_value = np.load(os.path.join(input_parma.get("bench_dump_data_dir"), npu_bench_name_list[1] + ".npy"))
     except IOError as error:
-        return CompareConst.NAN, CompareConst.NAN, "Dump file:{} not found".format(error.filename)
+        return CompareConst.NAN, CompareConst.NAN, "Dump file:{} not found.".format(error.filename)
     if len(n_value.shape) == 0:
         scalar_cos_sim = 1
         if n_value.dtype == bool:
@@ -347,6 +421,8 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     cos_sim, message = cosine_similarity(n_value, b_value)
     err_msg += message
     max_abs_err, _ = get_max_abs_err(n_value, b_value)
+    if npu_bench_name_list[0] != npu_bench_name_list[1]:
+        err_msg += " Fuzzy matching data, the comparison accuracy may be affected."
     return cos_sim, max_abs_err, err_msg
 
 
@@ -379,7 +455,7 @@ def check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suff
         raise CompareException(CompareException.INVALID_PARAM_ERROR)
 
 
-def compare(input_parma, output_path, stack_mode=False, auto_analyze=True, suffix=''):
+def compare(input_parma, output_path, stack_mode=False, auto_analyze=True, suffix='', fuzzy_match=False):
     try:
         check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suffix)
         check_file_or_directory_path(input_parma.get("npu_pkl_path"), False)
@@ -392,7 +468,7 @@ def compare(input_parma, output_path, stack_mode=False, auto_analyze=True, suffi
         check_file_mode(npu_pkl.name, bench_pkl.name, stack_mode)
         npu_summary = _get_summery_mode(npu_pkl, input_parma.get("npu_pkl_path"))
         bench_summary = _get_summery_mode(bench_pkl, input_parma.get("bench_pkl_path"))
-        result = compare_process(npu_pkl, bench_pkl, [npu_summary, bench_summary], stack_mode)
+        result = compare_process(npu_pkl, bench_pkl, [npu_summary, bench_summary], stack_mode, fuzzy_match)
         npu_pkl.close()
         bench_pkl.close()
 
@@ -452,7 +528,9 @@ def parse(pkl_file, module_name_prefix):
     pkl_handle.close()
 
 
-def compare_process(npu_pkl_handle, bench_pkl_handle, summary_flag, stack_mode):
+def compare_process(npu_pkl_handle, bench_pkl_handle, summary_flag, stack_mode, fuzzy_match):
+    if fuzzy_match:
+        print_warn_log("This task uses fuzzy matching, which may affect the accuracy of the comparison.")
     npu_ops_queue = []
     bench_ops_queue = []
     result = []
@@ -462,7 +540,7 @@ def compare_process(npu_pkl_handle, bench_pkl_handle, summary_flag, stack_mode):
         if (not npu_file_flag and not bench_file_flag) \
                 or (len(npu_ops_queue) == 0 or len(bench_ops_queue) == 0):
             break
-        n_match_point, b_match_point = match_op(npu_ops_queue, bench_ops_queue)
+        n_match_point, b_match_point = match_op(npu_ops_queue, bench_ops_queue, fuzzy_match)
         if n_match_point == -1 and b_match_point == -1:
             continue
         n_match_data = npu_ops_queue[n_match_point]
@@ -482,7 +560,7 @@ def compare_process(npu_pkl_handle, bench_pkl_handle, summary_flag, stack_mode):
 def get_un_match_accuracy(result, n_dict, summery_flag):
     index_out = 0
     npu_stack_info = n_dict.get("stack_info", None)
-    bench_name, bench_type, bench_shape = CompareConst.NAN
+    bench_name, bench_type, bench_shape = CompareConst.NAN, CompareConst.NAN, CompareConst.NAN
     for index, n_name in enumerate(n_dict["op_name"]):
         if n_name.find("input") != -1:
             n_struct = n_dict["input_struct"][index]

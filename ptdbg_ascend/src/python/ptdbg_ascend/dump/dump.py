@@ -163,14 +163,16 @@ def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = DumpUtil.get_dump_path()
     _set_dump_switch4api_list(name)
-    if DumpUtil.dump_switch_mode == Const.API_STACK:
-        dump_file = modify_dump_path(dump_file)
+
+    dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
 
     if DumpUtil.get_dump_switch():
         if DumpUtil.dump_init_enable:
             DumpUtil.dump_init_enable = False
             DumpUtil.dump_data_dir = make_dump_data_dir(dump_file) \
                 if DumpUtil.dump_switch_mode not in [Const.STACK, Const.ACL] else ""
+            if os.path.exists(dump_file) and not os.path.isdir(dump_file):
+                os.remove(dump_file)
 
         name_prefix = name
         name_template = f"{name_prefix}" + "_{}"

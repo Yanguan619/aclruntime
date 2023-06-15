@@ -23,7 +23,6 @@ class DumpUtil(object):
     dump_filter_switch = None
     dump_mode = Const.ALL
     backward_input = {}
-    dump_dir_tag = 'ptdbg_dump'
 
     @staticmethod
     def set_dump_path(save_path):
@@ -117,8 +116,10 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
         return
     real_path = os.path.realpath(fpath)
-    if os.path.isdir(real_path):
-        print_error_log("set_dump_path '{}' error, please set a valid filename.".format(real_path))
+    Path(real_path).mkdir(mode=0o750, parents=True, exist_ok=True)
+    if not os.path.isdir(real_path):
+        print_error_log(
+            "set_dump_path '{}' error, the path is not a directory please set a valid directory.".format(real_path))
         raise CompareException(CompareException.INVALID_PATH_ERROR)
     DumpUtil.set_dump_path(real_path)
     DumpUtil.dump_dir_tag = dump_tag
@@ -176,21 +177,13 @@ def make_dump_data_dir(dump_file_name):
 
 
 def make_dump_dirs(rank):
-    if DumpUtil.dump_path is not None:
-        dump_root_dir, dump_file_name = os.path.split(DumpUtil.dump_path)
-        dump_file_name_body, _ = os.path.splitext(dump_file_name)
-    else:
-        dump_root_dir, dump_file_name, dump_file_name_body = './', 'anonymous.pkl', 'anonymous'
-    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_v{__version__}')
-    Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
-    rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
+    dump_file_name, dump_file_name_body = "dump.pkl", "dump"
+    dump_root_dir = DumpUtil.dump_path if DumpUtil.dump_path else "./"
+    rank_dir = os.path.join(dump_root_dir, 'rank' + str(rank))
     if not os.path.exists(rank_dir):
         os.mkdir(rank_dir, mode=0o750)
     DumpUtil.dump_dir = rank_dir
     dump_file_path = os.path.join(rank_dir, dump_file_name)
-    stack_mode_path = modify_dump_path(dump_file_path)
-    check_path_remove(dump_file_path)
-    check_path_remove(stack_mode_path)
     DumpUtil.set_dump_path(dump_file_path)
 
 

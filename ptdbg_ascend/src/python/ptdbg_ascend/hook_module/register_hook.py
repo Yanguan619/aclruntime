@@ -77,8 +77,9 @@ def register_hook(model, hook, **kwargs):
 
     pid = os.getpid()
     rank = kwargs.get('rank')
+    need_clear = True
     if rank is None:
-        rank = get_process_rank(model)
+        rank, need_clear = get_process_rank(model)
     if make_dir_flag:
         make_dump_dirs(rank)
         make_dir_flag = False
@@ -93,7 +94,7 @@ def register_hook(model, hook, **kwargs):
                            "the overflow detection function on milan platform maybe not work! "
                            "please check the version of software torch_npu.")
         # In NPU scene, clear the overflow flag before overflow detection
-        if rank != "None":
+        if need_clear:
             torch_npu.npu.set_device(rank)
             torch_npu._C._clear_overflow_npu()
 

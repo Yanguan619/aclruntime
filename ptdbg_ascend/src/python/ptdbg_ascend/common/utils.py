@@ -419,14 +419,14 @@ def get_process_rank(model):
         device = next(model.parameters()).device
     except StopIteration:
         print_warn_log('There is no parameter in the model. Fail to get rank id.')
-        return "None"
+        return 0, False
     if device.type == 'cpu':
         print_warn_log("Warning: the debugger is unable to get the rank id. "
             "This may cause the dumpped data to be corrupted in the "
             "case of distributed training. (You may ignore this if you are using only one card.) "
             "Transfer the model to npu or gpu before register_hook() to avoid this warning.")
-        return "None"
+        return 0, False
     else:
-        return device.index
+        return device.index, True
 
 

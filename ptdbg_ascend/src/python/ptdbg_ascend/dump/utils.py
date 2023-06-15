@@ -127,7 +127,7 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
 
 
 def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=Const.ALL):
-    def generate_dump_path_str(switch_mode):
+    def generate_dump_path_str():
         if DumpUtil.dump_switch_mode == 'acl':
             if DumpUtil.dump_config == '':
                 print_error_log("Please provide dump config for register hook before turning on dump switch!")

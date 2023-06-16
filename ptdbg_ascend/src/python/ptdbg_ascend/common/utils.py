@@ -287,8 +287,8 @@ def modify_dump_path(dump_path, mode):
     if mode == Const.ALL:
         return dump_path
     file_name = os.path.split(dump_path)
-    stack_file_name = mode + "_" + file_name[-1]
-    return os.path.join(file_name[0], stack_file_name)
+    mode_file_name = mode + "_" + file_name[-1]
+    return os.path.join(file_name[0], mode_file_name)
 
 
 def create_directory(dir_path):

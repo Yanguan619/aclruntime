@@ -180,7 +180,7 @@ def make_dump_dirs(rank):
     dump_file_name, dump_file_name_body = "dump.pkl", "dump"
     dump_root_dir = DumpUtil.dump_path if DumpUtil.dump_path else "./"
     tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_v{__version__}')
-    Path(tag_dir).mkdir(0o750, parents=True, exist_ok=True)
+    Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
     rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
     if not os.path.exists(rank_dir):
         os.mkdir(rank_dir, mode=0o750)

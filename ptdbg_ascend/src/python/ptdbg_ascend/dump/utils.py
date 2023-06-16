@@ -155,13 +155,6 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()
-    if mode == 'acl':
-        if DumpUtil.dump_config == '':
-            print_error_log("Please provide dump config for register hook before turning on dump switch!")
-            raise DumpException(DumpException.NONE_ERROR)
-        dump_path = f"according to dump config {DumpUtil.dump_config}"
-    else:
-        dump_path = f"to {DumpUtil.dump_path}"
     
     if switch == "OFF":
         dump_path_str = generate_dump_path_str()

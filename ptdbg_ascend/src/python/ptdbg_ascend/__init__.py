@@ -16,11 +16,15 @@
 # ==============================================================================
 """
 
-from .compare.acc_compare import compare, parse, compare_distributed
-from .hooks.hooks import set_dump_path, set_dump_switch, set_overflow_check_switch, seed_all, acc_cmp_dump, \
-    overflow_check, set_backward_input
-from .hooks.initialize import register_hook
-from .common.utils import __version__
+from .compare.acc_compare import compare, parse
+from .compare.distributed_compare import compare_distributed
+from .dump.dump import acc_cmp_dump
+from .overflow_check.overflow_check import overflow_check
+from .overflow_check.utils import set_overflow_check_switch
+from .dump.utils import set_dump_path, set_dump_switch, set_backward_input
+from .hook_module.register_hook import register_hook
+from .common.utils import seed_all
+from .common.version import __version__
 seed_all()
 
 __all__ = ["register_hook", "set_dump_path", "set_dump_switch", "set_overflow_check_switch", "seed_all",

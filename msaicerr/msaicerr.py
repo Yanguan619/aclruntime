@@ -16,7 +16,6 @@ from ms_interface import utils
 from ms_interface.collection import Collection
 from ms_interface.constant import Constant
 from ms_interface.aicore_error_parser import AicoreErrorParser
-from ms_interface.single_op_case import SingleOpCase
 
 
 def extract_tar(tar_file, path):
@@ -28,7 +27,7 @@ def extract_tar(tar_file, path):
 def get_select_dir(path):
     subdir = os.listdir(path)
     if len(subdir) != 1:
-        sys.exit("[ERROR] found more than one subdir in collect tar")
+        raise ValueError("[ERROR] found more than one subdir in collect tar")
     report_path = os.path.join(path, subdir[0])
     return report_path
 
@@ -82,9 +81,6 @@ def main() -> int:
         # parse ai core error
         parser = AicoreErrorParser(collection, output_path, collect_time)
         parser.parse()
-
-        single_op_case = SingleOpCase(collection)
-        single_op_case.run()
 
         return Constant.MS_AICERR_NONE_ERROR
 

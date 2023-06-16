@@ -16,4 +16,4 @@ add_custom_target(ptdbg_ascend ALL
         VERBATIM
 	)
 
-install(CODE "execute_process(COMMAND ${PYTHON_BIN_PATH} -m pip install ${CMAKE_BINARY_DIR}/ptdbg_ascend/dist/ptdbg_ascend-0.1-py3-none-any.whl --upgrade)")
+install(CODE "execute_process(COMMAND ${PYTHON_BIN_PATH} -m pip install ${CMAKE_BINARY_DIR}/ptdbg_ascend/dist/ptdbg_ascend-2.3-py3-none-any.whl --upgrade)")

@@ -17,6 +17,7 @@ from ms_interface import utils
 from ms_interface.constant import Constant
 from ms_interface.aic_error_info import AicErrorInfo
 from ms_interface.dump_data_parser import DumpDataParser
+from ms_interface.single_op_case import SingleOpCase
 
 
 class OpInputOutput:
@@ -81,9 +82,6 @@ class AicoreErrorParser:
 ***************************************************************************************************
 建议选择最近发生的AICERROR，查看其中的info.txt
 
-注意：
-1、只有在device挂起后收集到的算子输入才是正确的，所以请忽略非device挂起情况下info.txt提示的“NaN/INF”
-
 """ % (time.strftime("%Y-%m-%d %H:%M:%S", self.collect_time),
        len(self.collection.ai_core_error_list), "\n".join(summary_info_list))
         summary_file = os.path.join(self.output_path, "README.txt")
@@ -93,17 +91,18 @@ class AicoreErrorParser:
         utils.print_info_log('Analysis finished, please check %s, you can '
                              'view README.txt first.' % self.output_path)
 
-    def _get_alloc_addr(self: any) -> list:
-        #  DevMalloc: Succ, size=512, type=2, ptr=0x108040014000
-        cmd = ['grep', 'DevMalloc: Succ,', '-nr', self.collection.collect_plog_path]
-        regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?size\s*=\s*([\d]+).+?ptr\s*=\s*([\da-zA-Z]+)"
-        ret = utils.get_inquire_result(cmd, regexp)
-        alloc_addr = []
-        for _, (_, size, addr) in enumerate(ret):
-            alloc_addr.append((addr, int(size)))
-        return alloc_addr
+    def _get_atomic_err_log(self: any) -> list:
+        cmd = ['grep', 'dha status 1', '-nr', self.collection.collect_plog_path]
+        status, _ = utils.execute_command(cmd)
+        if status == 0:
+            utils.print_info_log("#" * 70)
+            utils.print_info_log("Find \"dha status 1\" in plogs. Maybe atomic add error happened!")
+            utils.print_info_log("#" * 70)
+            return True
+        return False
 
-    def _remove_first_found_addr(self, addr, addr_list):
+    @staticmethod
+    def _remove_first_found_addr(addr, addr_list):
         for i, ava_addr_item in enumerate(addr_list):
             if addr == ava_addr_item[0]:
                 addr_list.pop(i)
@@ -124,13 +123,16 @@ class AicoreErrorParser:
         free_regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?mem\s*=\s*([\da-zA-Z]+)"
         free_ret = utils.get_inquire_result(free_cmd, free_regexp)
         avl_addr = []
+        if not alloc_ret:
+            return avl_addr
         occur_time_obj = utils.strplogtime(occur_time)
         for _, (alloc_time, size, addr) in enumerate(alloc_ret):
             alloc_time_obj = utils.strplogtime(alloc_time)
 
             if alloc_time_obj < occur_time_obj:
                 avl_addr.append((addr, int(size)))
-
+        if not free_ret:
+            return avl_addr
         for _, (free_time, addr) in enumerate(free_ret):
             free_time_obj = utils.strplogtime(free_time)
             if free_time_obj < occur_time_obj:
@@ -138,14 +140,14 @@ class AicoreErrorParser:
         utils.print_info_log(f"get available addr: {avl_addr}")
         return avl_addr
 
-    def _get_necessary_addrs(self: any, kernel_name: str) -> dict:
+    def _get_necessary_addrs(self: any, info: AicErrorInfo) -> dict:
         '''
         获取occur_time时刻可用的地址
         :param kernel_name: 发生aicore error的kernel_name
         :return: 需要的空间
         '''
         result = {}
-        aic_info_cmd = ['grep', '-r', '-C', '7', "\[AIC_INFO\] dev_func:{}".format(kernel_name),
+        aic_info_cmd = ['grep', '-r', '-C', '21', "\[AIC_INFO\] dev_func:{}".format(info.kernel_name),
                         self.collection.collect_plog_path]
         _, aic_info = utils.execute_command(aic_info_cmd)
         utils.print_info_log(f"===============================\n{aic_info}\n==================================")
@@ -158,6 +160,20 @@ class AicoreErrorParser:
             return result
         input_params = []
 
+        first_input_addr = utils.get_str_value(aic_info_input_ret[0][4])
+        json_file = os.path.join(self.collection.collect_kernel_path, info.kernel_name + ".json") 
+        with open(json_file, "r") as f:
+            json_obj = json.load(f)
+        self.parameters = json_obj.get("parameters")
+        len_of_args = len(self.parameters)
+
+        need_check_args = []
+        for args in info.args_after_list:
+            if first_input_addr == args[0]:
+                need_check_args = args[: len_of_args]
+                break
+        
+        index_of_arg = 0
         for input_info in aic_info_input_ret:
             input_param = {}
             input_param["index"] = input_info[0]
@@ -165,6 +181,9 @@ class AicoreErrorParser:
             input_param["format"] = input_info[2]
             input_param["dtype"] = input_info[3]
             input_param["addr"] = input_info[4]
+            if len(need_check_args) > index_of_arg:
+                input_param["addr"] = str(need_check_args[index_of_arg])
+                index_of_arg += 1
             input_params.append(input_param)
 
         # 解析出输出结果
@@ -181,6 +200,9 @@ class AicoreErrorParser:
             output_param["format"] = output_info[2]
             output_param["dtype"] = output_info[3]
             output_param["addr"] = output_info[4]
+            if len(need_check_args) > index_of_arg:
+                output_param["addr"] = str(need_check_args[index_of_arg])
+                index_of_arg += 1
             output_params.append(output_param)
 
         aic_info_workspace_regex = r"\[AIC_INFO\]\sworkspace_bytes|workspace_size:(.*?)"
@@ -201,8 +223,12 @@ class AicoreErrorParser:
             tiling_data = None
         else:
             if tiling_data_ret[0].startswith("0x"):
-                temp_tiling_data = tiling_data_ret[0].replace(" 0x", "")[2:-1]
-                tiling_data = bytes.fromhex(temp_tiling_data)
+                temp_tiling_data = tiling_data_ret[0].replace(" 0x", "").replace("0x", "").strip()
+                try:
+                    tiling_data = bytes.fromhex(temp_tiling_data)
+                except Exception as e:
+                    utils.print_warn_log(f"Failed to decode tiling_data {temp_tiling_data}")
+                    tiling_data = bytes.fromhex("0000")
             else:
                 tiling_data = bytes(tiling_data_ret[0], 'utf-8')
 
@@ -228,121 +254,68 @@ class AicoreErrorParser:
         result["output_addr"] = output_params
         result["workspace"] = workspace
         result["tiling"] = [tiling_key, tiling_data, block_dim]
+        result["need_check_args"] = need_check_args
         return result
 
-    def _cal_shape_size(self, shape_str):
+    @staticmethod
+    def _cal_shape_size(shape_str):
         utils.print_info_log("shape_str is {}".format(shape_str))
         if shape_str == "[]":
             return 1
         shape_str_list = shape_str.replace("[", "").replace("]", "").split(",")
         return reduce(lambda x, y: int(x) * int(y), shape_str_list)
-
-    def _check_addr_in_range(self, addr, ranges):
+    
+    @staticmethod
+    def _check_addr_in_range(addr, size, ranges):
         if not isinstance(addr, int):
             addr = int(addr)
 
         for addr_range in ranges:
-            range_left = utils.get_hexstr_value(addr_range[0])
-            range_right = utils.get_hexstr_value(addr_range[0]) + addr_range[1]
-            if range_left <= addr < range_right:
+            if "0x" in addr_range[0]:
+                range_left = utils.get_hexstr_value(addr_range[0])
+                range_right = utils.get_hexstr_value(addr_range[0]) + addr_range[1]
+            else:
+                range_left = int(addr_range[0])
+                range_right = int(addr_range[0]) + addr_range[1]
+            if range_left <= addr <= addr+size <= range_right:
                 return True
         return False
 
     def _check_addr(self, avaliable_addrs, used_addrs):
         input_params = used_addrs.get("input_addr")
         output_params = used_addrs.get("output_addr")
+        need_check_args = used_addrs.get("need_check_args")
         if not input_params and not output_params:
             utils.print_error_log("Unable to get input parameters and output parameters.")
             raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
 
         for input_param in input_params:
-            start_addr = int(input_param.get("addr"), 16) if input_param.get("addr").startswith("0x") else int(input_param.get("addr"))
+            if input_param.get("addr").startswith("0x"):
+                start_addr = int(input_param.get("addr"), 16)
+            else:
+                start_addr = int(input_param.get("addr"))
             shape_size = self._cal_shape_size(input_param.get("shape"))
             size_of_dtype = Constant.SIZE_OF_DTYPE.get(input_param.get("dtype"))
-            end_addr = int(start_addr) + int(shape_size) * int(size_of_dtype)
-            utils.print_info_log(f"shape_size is {shape_size}, size_of_dtype is {size_of_dtype}")
             input_param["size"] = int(shape_size) * int(size_of_dtype)
+            utils.print_info_log(f"shape_size is {shape_size}, size_of_dtype is {size_of_dtype}")
+            input_param["in_range"] = self._check_addr_in_range(start_addr, input_param["size"], avaliable_addrs)
 
         for output_param in output_params:
-            start_addr = int(output_param.get("addr"), 16) if output_param.get("addr").startswith("0x") else int(output_param.get("addr"))
+            if output_param.get("addr").startswith("0x"):
+                start_addr = int(output_param.get("addr"), 16)
+            else:
+                start_addr = int(output_param.get("addr"))
             shape_size = self._cal_shape_size(output_param.get("shape"))
             size_of_dtype = Constant.SIZE_OF_DTYPE.get(output_param.get("dtype"))
-            end_addr = int(start_addr) + int(shape_size) * int(size_of_dtype)
             utils.print_info_log(f"shape_size is {shape_size}, size_of_dtype is {size_of_dtype}")
             output_param["size"] = int(shape_size) * int(size_of_dtype)
-
-    def _get_input_output_addrs(self: any, info: any, alloc_addr: str) -> list:
-        in_out_list = info.necessary_addr
-        input_output_addrs = []
-        for input in in_out_list.get("input_addr"):
-            op_io = OpInputOutput()
-            op_io.name = f"input[{input.get('index')}]"
-            op_io.addr = input.get('addr')
-            op_io.idx = int(input.get('index'))
-            op_io.dtype = input.get('dtype')
-            op_io.size = input.get('size')
-            input_output_addrs.append(op_io)
-        for output in in_out_list.get("output_addr"):
-            op_io = OpInputOutput()
-            op_io.name = f"output[{output.get('index')}]"
-            op_io.addr = output.get('addr')
-            op_io.idx = int(output.get('index'))
-            op_io.dtype = output.get('dtype')
-            op_io.size = output.get('size')
-            input_output_addrs.append(op_io)
-
-        # 检查地址是否越界
-        if len(alloc_addr) > 0:
-            self._analyse_alloc_addr_range(alloc_addr, input_output_addrs)
-        return input_output_addrs
-
-    @staticmethod
-    def _get_alloc_addr_range(alloc_addr: any) -> list:
-        alloc_addr_range = []
-        for alloc in alloc_addr:
-            begin_alloc = int(alloc[0], 16)
-            end_alloc = begin_alloc + alloc[1] - 1 \
-                if alloc[1] > 0 else begin_alloc
-            alloc_addr_range.append((begin_alloc, end_alloc))
-        return alloc_addr_range
-
-    def _analyse_alloc_addr_range(self: any, alloc_addr: any, input_output_addrs: list) -> None:
-        alloc_addr_range = self._get_alloc_addr_range(alloc_addr)
-        for i in input_output_addrs:
-            begin_addr = i.addr
-            end_addr = begin_addr + i.size - 1 if i.size > 0 else begin_addr
-            begin_in_range = self._check_addr_in_alloc(alloc_addr_range, begin_addr)
-            if begin_in_range is False:
-                i.overflow = True
-                continue
-            end_in_range = self._check_addr_in_alloc(alloc_addr_range, end_addr)
-            if end_in_range is False:
-                i.overflow = True
-            # check actual addr
-            self._check_actual_addr(i, alloc_addr_range)
-
-    @staticmethod
-    def _check_addr_in_alloc(alloc_addr_range: list, alloc_addr: int) -> bool:
-        alloc_in_range = False
-        for _, (begin_alloc, end_alloc) in enumerate(alloc_addr_range):
-            if begin_alloc <= alloc_addr <= end_alloc:
-                alloc_in_range = True
-                break
-        return alloc_in_range
-
-    @staticmethod
-    def _check_actual_addr(i: any, alloc_addr_range: list) -> None:
-        # check actual addr
-        if i.actual_addr != "":
-            actual_addr = int(i.actual_addr, 16)
-            actual_in_range = False
-            for _, (begin_alloc, end_alloc) in enumerate(
-                    alloc_addr_range):
-                if begin_alloc <= actual_addr <= end_alloc:
-                    actual_in_range = True
-                    break
-            if actual_in_range is False:
-                i.overflow = True
+            output_param["in_range"] = self._check_addr_in_range(start_addr, output_param["size"], avaliable_addrs)
+        
+        used_addrs["fault_arg_index"]=[]
+        if need_check_args:
+            for i, arg in enumerate(need_check_args):
+                if not self._check_addr_in_range(arg, 0, avaliable_addrs):
+                  used_addrs["fault_arg_index"].append(i)
 
     def _get_info_for_decompile(self: any, info: any) -> tuple:
         info.instr = ""
@@ -367,23 +340,35 @@ class AicoreErrorParser:
 
     @staticmethod
     def _get_decompile_status(o_file: str, decompile_file: str) -> int:
-        cmd = [Constant.OBJ_DUMP_FILE, '-d', '--mcpu=dav-m100', '--line-numbers', o_file]
+        cmd = [Constant.OBJ_DUMP_FILE, '-d', '--line-numbers', o_file]
         status, _ = utils.execute_command(cmd, file_out=decompile_file)
         return status
 
+    def _update_err_pc(self: any, err_pc: str, decompile_file: str, kernel_name: str) -> None:
+        # 模板类算子是多个.o合成需找到对应的行号
+        utils.print_info_log(f"Start to update err pc: {err_pc}.")
+        update_pc_cmd = ['grep', f'{kernel_name}$local', decompile_file]
+        update_pc_regexp = r"([0-9A-Za-z]*?)\s+<{}\$local>".format(kernel_name)
+        update_pc_ret = utils.get_inquire_result(update_pc_cmd, update_pc_regexp)
+        if not update_pc_ret:
+            utils.print_info_log("No need to update err pc.")
+            return  err_pc
+        else:
+            err_pc = hex(int(err_pc, 16) + int(update_pc_ret[0], 16))[2:]
+            utils.print_info_log(f"find base pc is 0x{update_pc_ret[0]}, err pc after update is  0x{err_pc}.")
+            return err_pc
+
     def _decompile(self: any, kernel_meta_path: str, dir_path: str, info: any) -> bool:
         kernel_name = info.kernel_name
-        diff_str, err_pc = self._get_info_for_decompile(info)
+        
         tiling_key = info.necessary_addr["tiling"][0]
 
         # decompile .o file
         cce_file = os.path.join(kernel_meta_path, kernel_name + ".cce")
         if not os.path.exists(cce_file):
-            utils.print_warn_log(f"The cce file:{cce_file} does not exist.")
             cce_file = os.path.join(kernel_meta_path, f"{kernel_name}_{tiling_key}.cce")
             if not os.path.exists(cce_file):
-                utils.print_error_log(f"The cce file:{cce_file} does not exist.")
-                return False
+                utils.print_warn_log(f"The cce file:{cce_file} does not exist.")
         o_file = os.path.join(kernel_meta_path, kernel_name + ".o")
         json_file = os.path.join(kernel_meta_path, kernel_name + ".json")
         if not os.path.exists(o_file) and not os.path.exists(json_file):
@@ -396,10 +381,12 @@ class AicoreErrorParser:
         if status != 0:
             utils.print_error_log(f"Failed to decompile {o_file}, you can fix problem according to the message above, "
                                   f"or copy {Constant.OBJ_DUMP_FILE} and {o_file} to another host and execute : "
-                                  f"{Constant.OBJ_DUMP_FILE} -d -mcpu=dav-m100 {kernel_name}.o > {kernel_name}.o.txt")
+                                  f"{Constant.OBJ_DUMP_FILE} -d {kernel_name}.o > {kernel_name}.o.txt")
             return False
         utils.copy_src_to_dest([cce_file, o_file, json_file], dir_path)
         loc_json_file = os.path.join(kernel_meta_path, kernel_name + "_loc.json")
+        diff_str, err_pc = self._get_info_for_decompile(info)
+        err_pc = self._update_err_pc(err_pc, decompile_file, f"{kernel_name}_{tiling_key}")
         cce_tbe_result = self._get_cce_tbe_code_number(decompile_file, loc_json_file, err_pc, info)
         occur_result = self._get_occur_before_mark(decompile_file, diff_str, info)
 
@@ -419,7 +406,7 @@ class AicoreErrorParser:
             else:
                 new_pc_bin = ori_pc[:-10] + extra_pc + ori_pc[-2:]
             new_pc_value = int(new_pc_bin, 2)
-            if new_pc_value > current_pc5_value:
+            if new_pc_value - 1024 > start_pc5_value and new_pc_value > current_pc5_value:
                 new_pc_value -= 1024
             err_pc = hex(new_pc_value - start_pc5_value)[2:]
             info.instr += "\nError occured most likely at line: %s\n\n" % err_pc
@@ -440,7 +427,9 @@ class AicoreErrorParser:
                 elif err_pc + ':' in line:
                     info.instr += "%s:%s\n" % (fo_file.name, err_pc)
                     break
-            info.instr += "%s" % cce_code.split(os.sep)[-1]
+            cce_line_number = cce_code.split(os.sep)[-1]
+            utils.print_info_log(f"Maybe find cce code line number is {cce_line_number}")
+            info.instr += "%s" % cce_line_number
         return cce_code_num
 
     @staticmethod
@@ -461,10 +450,42 @@ class AicoreErrorParser:
         if err_pc != "":
             cce_code_num = self._read_decompile_file(decompile_file, err_pc, info)
             # cce to tbe code number
-            if not os.path.exists(loc_json_file) or os.stat(loc_json_file).st_size is 0:
+            if not os.path.exists(loc_json_file) or os.stat(loc_json_file).st_size == 0:
                 utils.print_warn_log(f"The file {loc_json_file} is not exist or file is empty.")
                 return True
             self._read_loc_json_file(loc_json_file, cce_code_num, info)
+        return True
+
+    @staticmethod
+    def __generate_case(config):
+        dir_name = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        config_str = json.dumps(config, indent=4)
+
+        case_content = f"""
+from ms_interface.single_op_case import SingleOpCase
+config={config_str}
+SingleOpCase.run(config)"""
+
+        case_file = os.path.join(dir_name, "test_single_op.py")
+        utils.print_info_log(f"Generate case file {case_file}")
+        with open(case_file, 'w') as f:
+            f.write(case_content)
+        return case_file
+    
+    @staticmethod
+    def _test_single_op(collection):
+        single_op_case = SingleOpCase(collection)
+        config_list = single_op_case.generate_config()
+        for config in config_list:
+            single_op_ret = single_op_case.run(config)
+            if not single_op_ret:
+                case_file = AicoreErrorParser.__generate_case(config)
+                split_line = "#" * 50
+                utils.print_info_log(split_line)
+                utils.print_info_log("single op test failed! Please Check OP or input data!")
+                utils.print_info_log(f"Run 'python3 {case_file}' can test op!")
+                utils.print_info_log(split_line)
+                return False
         return True
 
     @staticmethod
@@ -499,23 +520,98 @@ class AicoreErrorParser:
         return True
 
     @staticmethod
-    def _write_errorinfo_file(err_i_folder: str, info: any, index: int) -> None:
+    def _write_errorinfo_file(err_i_folder: str, info: AicErrorInfo, index: int) -> None:
         info_file = os.path.join(err_i_folder, "info.txt")
         utils.write_file(info_file, info.analyse())
-        utils.print_info_log(f'The ai core error info for No.{index} is saved in {info_file}.')
+        utils.print_info_log(f'The ai core error info for No.{index} is saved in {info_file}')
 
     def _aicore_error_data(self: any) -> list:
         utils.print_info_log("Start to get DevMalloc address information.")
         aicore_error_data_list = []
 
-        # 获取分配的device地址
-        alloc_addr = []  # self._get_alloc_addr()
-        utils.print_warn_log("Due to security issues, DevMalloc address information cannot be obtained.")
-
         # get graph file
         graph_file = self._get_graph_file()
-        aicore_error_data_list.extend([alloc_addr, graph_file])
+        aicore_error_data_list.extend([graph_file])
         return aicore_error_data_list
+
+    def _get_data_dump_result(self:any):
+        try:
+            data_dump_failed_cmd = ['grep', 'exception_dumper.cc.*Dump exception.*failed', '-nr', 
+                                    self.collection.collect_plog_path]
+            data_dump_ret, _ = utils.execute_command(data_dump_failed_cmd)
+            if data_dump_ret == 0:
+              utils.print_warn_log("Data dump failed in exception dump. Please contact GE to resolve it!")
+              return False
+        except utils.AicErrException as e:
+            utils.print_info_log("Failed to dump data!")
+        return True
+    
+    def _need_atomic_clean(self: any, kernel_meta_path: str, info: any) -> bool:
+        kernel_name = info.kernel_name
+        json_file = os.path.join(kernel_meta_path, kernel_name + ".json")
+        if not os.path.exists(json_file):
+            utils.print_warn_log(f"Can not find {json_file}!")
+            return False
+        with open(json_file, "r") as f:
+            json_obj = json.load(f)
+            # compileInfo in json file means the kernel is dynamic
+            if json_obj.get("compileInfo") is None and json_obj.get("compile_info") is None:
+                utils.print_info_log(f"No compile_info found in json file, no need to check atomic clean!")
+                return False
+            self.parameters = json_obj.get("parameters")
+            for param in self.parameters:
+                if param is not None:
+                  return True
+        return False
+          
+    def _check_atomic_clean(self: any, kernel_meta_path: str, info: AicErrorInfo) -> bool:
+        need_atomic_clean = self._need_atomic_clean(kernel_meta_path, info)
+        if need_atomic_clean:
+            cmd = ['grep', f'AtomicLaunchKernelWithFlag_{info.node_name}', '-nr', self.collection.collect_plog_path]
+            status, _ = utils.execute_command(cmd)
+            if status == 0:
+                return True
+            utils.print_warn_log(f"Can not find AtomicLaunchKernelWithFlag_{info.node_name} in plog!")
+            return False
+        return True
+
+    def _get_args_from_info(self: any, key_words: str) -> list:
+        args_exec_cmd = ['grep', key_words, '-nr', self.collection.collect_plog_path]
+        args_exec_regexp = r":([x0-9a-fA-F,\s]+)addr"
+        args_exec_rets = utils.get_inquire_result(args_exec_cmd, args_exec_regexp)
+
+        if not args_exec_rets:
+            args_exec_cmd = ['grep', key_words, '-nr', self.collection.collect_plog_path]
+            args_exec_regexp = r"args after execute:([x0-9a-fA-F,\s]+)"
+            args_exec_rets = utils.get_inquire_result(args_exec_cmd, args_exec_regexp)
+
+        if not args_exec_rets:
+            args_exec_rets = []
+
+        args_exec_result = []
+        for args_exec_ret in args_exec_rets:
+            args_array=re.split(",|\\s", args_exec_ret)
+            args_list = []
+            for arg in args_array:
+                if (not isinstance(arg, str)) or (not arg.strip()):
+                    continue
+                arg = arg.strip()
+                if arg.startswith("0x") or arg == "0":
+                  args_list.append(utils.get_hexstr_value(arg))
+                else:
+                  args_list.append(int(arg))
+            args_list = tuple(args_list)
+            if args_list not in args_exec_result:
+                args_exec_result.append(args_list)
+        return args_exec_result
+
+    def _get_args_after_exc(self: any) -> list:
+        after_key = '\[AIC_INFO\] args after execute'
+        return self._get_args_from_info(after_key)
+
+    def _get_args_before_exc(self: any) -> list:
+        before_key = '\[AIC_INFO\] args before execute'
+        return self._get_args_from_info(before_key)
 
     def parse(self: any) -> None:
         """
@@ -543,6 +639,7 @@ class AicoreErrorParser:
                 else:
                     utils.print_error_log("Cannot find cce-objdump! please add cce-objdump path in env PATH.")
                     raise utils.AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR)
+            os.environ["PATH"] = os.path.dirname(cce_dump) + ":" + os.environ["PATH"]
         for i, current_pc in enumerate(self.collection.ai_core_error_list):
             # parser aic error by slog
             info = AicErrorInfo()
@@ -550,6 +647,9 @@ class AicoreErrorParser:
                 info.extra_info, info.current_pc = current_pc
             info.node_name = self.collection.node_name_list[i]
             info.kernel_name = self.collection.kernel_name_list[i]
+            
+            if "0x800000" == info.aic_error:
+                info.atomic_add_err = self._get_atomic_err_log()
 
             utils.print_info_log(f"******************No.{i} {info.err_time}******************")
             info.err_time_obj = utils.strplogtime(info.err_time)
@@ -559,31 +659,37 @@ class AicoreErrorParser:
             # get op info in build proto file
             self._get_op_by_graph(aicore_error_data_list[Constant.GRAPH_FILE], info)
 
-            try:
-                # input output address
-                info.aval_addrs = []  # self._get_available_addrs(info.err_time)
-                info.necessary_addr = self._get_necessary_addrs(info.kernel_name)
-                self.collection.tiling_list = info.necessary_addr["tiling"]
-                # 校验地址
-                self._check_addr(info.aval_addrs, info.necessary_addr)
-            except Exception:
-                utils.print_error_log("Check addr error failed.")
-                raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
+            info.args_after_list = self._get_args_after_exc()
+            info.args_before_list = self._get_args_before_exc()
+
+            info.aval_addrs = self._get_available_addrs(info.err_time)
+            info.necessary_addr = self._get_necessary_addrs(info)
+            self.collection.tiling_list = info.necessary_addr["tiling"]
+            # 校验地址
+            self._check_addr(info.aval_addrs, info.necessary_addr)
 
             kernel_meta_path = self.collection.collect_kernel_path
             # 反编译  出错指令
             result = self._decompile(kernel_meta_path, err_i_folder, info)
             if not result:
-                utils.print_warn_log(f"decompile kernel_meta file {os.path.join(kernel_meta_path, info.kernel_name)}.o failed.")
+                utils.print_warn_log(f"decompile kernel_meta file \
+                    {os.path.join(kernel_meta_path, info.kernel_name)}.o failed.")
+            
+            # 判断是否是动态op, 动态op且需要atomic add的情况下，需要检查框架是否正确插入memset
+            info.atomic_clean_check = self._check_atomic_clean(kernel_meta_path, info)
 
-            info.input_output_addrs = self._get_input_output_addrs(info, aicore_error_data_list[Constant.ALLOC_ADDR])
-
+            info.data_dump_result = self._get_data_dump_result()
             # parse dump
-            if self.collection.collect_dump_path:
-                dumpParser = DumpDataParser(self.collection.collect_dump_path, info.node_name, info.kernel_name)
-                info.dump_info = dumpParser.parse()
-                self.collection.input_list = dumpParser.get_input_data()
+            if self.collection.collect_dump_path and info.data_dump_result:
+                dump_parser = DumpDataParser(self.collection.collect_dump_path, info.node_name, info.kernel_name)
+                info.dump_info = dump_parser.parse()
+                self.collection.input_list = dump_parser.get_input_data()
+                self.collection.output_list = dump_parser.get_output_data()
+            else:
+                info.dump_info = "Failed to get dump data of error op!"
 
+            if info.data_dump_result:
+                info.single_op_test_result = self._test_single_op(self.collection)
             # write info file
             self._write_errorinfo_file(err_i_folder, info, i)
 

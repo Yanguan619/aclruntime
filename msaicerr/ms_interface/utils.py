@@ -99,7 +99,7 @@ def check_path_valid(path: str, isdir: bool = False, output: bool = False) -> No
         except OSError as ex:
             print_error_log(f'Failed to create {path}. '
                             f'Please check that the path is accessible or the disk space is enough. {str(ex)}')
-            raise AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
+            raise AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR) from ex
         finally:
             pass
     if not os.path.exists(path):
@@ -148,7 +148,7 @@ def execute_command(cmd: list, file_out: str = None) -> tuple:
         return status, data
     except FileNotFoundError as error:
         print_error_log('Failed to execute cmd %s. %s' % (cmd, error))
-        raise AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR)
+        raise AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR) from error
     finally:
         pass
 
@@ -180,7 +180,7 @@ def copy_src_to_dest(src_file_list: list, dest_path: str):
                 __copy_file(file, dest_file)
             except (OSError, IOError) as error:
                 print_error_log(f"Failed to copy {file} to {dest_file}. {error}.")
-                raise AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
+                raise AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR) from error
 
 
 def write_file(output_path: str, file_content: str, write_mode="w") -> None:
@@ -198,16 +198,38 @@ def write_file(output_path: str, file_content: str, write_mode="w") -> None:
     except IOError as io_error:
         print_error_log(
             'Failed to write file %s. %s' % (output_path, io_error))
-        raise AicErrException(Constant.MS_AICERR_OPEN_FILE_ERROR)
+        raise AicErrException(Constant.MS_AICERR_OPEN_FILE_ERROR) from io_error
     finally:
         pass
 
+def get_str_value(value_str: str) -> int:
+    """
+    get value by string
+    """
+    if not value_str:
+        return -1
+    value_str = value_str.strip()
+    try:
+        if value_str.startswith("0x"):
+            return int(value_str, 16)
+        else:
+            return int(value_str)
+    except ValueError as value_error:
+        print_error_log(f"Failed to get value from {value_str}. {value_error}")
+        return -1
 
 def get_hexstr_value(hexstr: str) -> int:
     """
     get hex by string
     """
-    return int(hexstr, 16)
+    hexstr = hexstr.strip()
+    if hexstr == "0":
+        return 0
+    try:
+        return int(hexstr, 16)
+    except ValueError as value_error:
+        print_error_log(f"Failed to get value from {hexstr}. {value_error}")
+        return -1
 
 
 def hexstr_to_list_bin(hexstr: str) -> list:
@@ -247,10 +269,10 @@ def strplogtime(str_time: str):
 def get_inquire_result(grep_cmd, regexp):
     status, data = execute_command(grep_cmd)
     if status != 0:
-        print_error_log(f"Failed to execute command:{grep_cmd}.")
-        raise AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR)
+        print_warn_log(f"Failed to execute command:{grep_cmd}.")
+        return None
     ret = re.findall(regexp, data, re.M | re.S)
     if len(ret) == 0:
-        print_error_log(f"Log info does not macth:{regexp} in command result.")
+        print_warn_log(f"Log info does not macth:{regexp} in command result.")
         return None
     return ret

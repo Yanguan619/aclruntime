@@ -1,4 +1,5 @@
 #!/bin/bash
+#add aoe mode (demo)
 CUR_PATH=$(dirname $(readlink -f "$0"))
 
 # 返回码
@@ -10,8 +11,8 @@ AOE_ON="1"
 
 echo_help()
 {
-    echo "./find_best_batch.sh --model_path /home/BERT_Base_SQuAD1_1_BatchSize_None.pb --input_shape_str \"input_ids:batchsize,384;input_mask:batchsize,384;segment_ids:batchsize,384\" --soc_version \"Ascend310\" --max_batch_num 4"
-    echo "./find_best_batch.sh --model_path /home/resnet50_official.onnx --input_shape_str \"actual_input_1:batchsize,3,224,224\" --soc_version \"Ascend310\" --max_batch_num 120"
+    echo "./find_best_batch.sh --model_path /home/BERT_Base_SQuAD1_1_BatchSize_None.pb --input_shape_str \"input_ids:batchsize,384;input_mask:batchsize,384;segment_ids:batchsize,384\" --soc_version \"Ascend310\" --max_batch_num 4 --aoe_mode 0"
+    echo "./find_best_batch.sh --model_path /home/resnet50_official.onnx --input_shape_str \"actual_input_1:batchsize,3,224,224\" --soc_version \"Ascend310\" --max_batch_num 64 --aoe_mode 1 --job_type 1"
 }
 
 function check_command_exist()
@@ -55,8 +56,7 @@ check_args_valid()
     [[ $MAX_BATCH_NUM -gt 0 && $MAX_BATCH_NUM -le 100 ]] || { echo "max_batch_num:$MAX_BATCH_NUM not valid"; }
     [ "$INPUT_SHAPE_STR" != "" ] || { echo "input_shape_str:$INPUT_SHAPE_STR not valid"; return 1; }
     [[ "$SOC_VERSION" != "" ]] || { echo "soc_version:$SOC_VERSION not valid"; return 1; }
-    [[ $AOE_MODE -eq 1 && "$JOB_TYPE" == "" ]] && { echo "aoe job_type:$JOB_TYPE not valid"; return 1; }
-    [[ "$JOB_TYPE" != "1" && "$JOB_TYPE" == "2" ]] && { echo "aoe job_type:$JOB_TYPE not valid"; return 1; }
+    [[ "$JOB_TYPE" != "1" && "$JOB_TYPE" != "2" ]] && { echo "aoe job_type:$JOB_TYPE not valid"; return 1; }
     return 0
 }
 
@@ -68,7 +68,7 @@ check_env_valid()
 }
 
 convert_and_run_model_atc()
-{   
+{
     echo "using atc mode"
     for batchsize in `seq $MAX_BATCH_NUM`; do
         input_shape=${INPUT_SHAPE_STR//batchsize/$batchsize}
@@ -87,7 +87,7 @@ convert_and_run_model_atc()
 }
 
 convert_and_run_model_aoe()
-{   
+{
     echo "using aoe mode"
     batchsize=1
     while [ $batchsize -le $MAX_BATCH_NUM ]; do
@@ -118,8 +118,8 @@ calc_throughput_atc()
     best_batchsize=0
     best_throughput=0
     for batchsize in `seq $MAX_BATCH_NUM`; do
-        sumary_file=`find $CACHE_PATH/$batchsize -name sumary.json`
-        local _throughput=$(get_sumary_throughput ${*_summary_file} )
+        sumary_file=`find $CACHE_PATH/$batchsize -name *_summary.json`
+        local _throughput=$(get_sumary_throughput ${sumary_file} )
         echo "batchsize:$batchsize throughput:$_throughput"
         [[ `echo "$_throughput > $best_throughput" |bc` == 0 ]] || { best_throughput=$_throughput;best_batchsize=$batchsize; }
      done
@@ -132,8 +132,8 @@ calc_throughput_aoe()
     best_throughput=0
     batchsize=1
     while [ $batchsize -le $MAX_BATCH_NUM ]; do
-        sumary_file=`find $CACHE_PATH/$batchsize -name sumary.json`
-        local _throughput=$(get_sumary_throughput ${*_summary_file} )
+        sumary_file=`find $CACHE_PATH/$batchsize -name *_summary.json`
+        local _throughput=$(get_sumary_throughput ${sumary_file} )
         echo "batchsize:$batchsize throughput:$_throughput"
         [[ `echo "$_throughput > $best_throughput" |bc` == 0 ]] || { best_throughput=$_throughput;best_batchsize=$batchsize; }
         batchsize=`expr $batchsize \* 2`
@@ -183,7 +183,7 @@ do
         AOE_MODE=$2
         shift
         ;;
-    -j|--job_typr)
+    -j|--job_type)
         JOB_TYPE=$2
         shift
         ;;
@@ -209,7 +209,7 @@ done
     CACHE_PATH=$CUR_PATH/cache
     [ ! -d $CACHE_PATH ] || rm -rf $CACHE_PATH
     mkdir -p $CACHE_PATH
-    
+
     check_args_valid || { echo "check args not valid return"; return $ret_run_failed; }
     check_env_valid || { echo "check env not valid return"; return $ret_run_failed; }
 
@@ -220,7 +220,7 @@ done
         convert_and_run_model_aoe
         calc_throughput_aoe
     else
-        echo "aoe_mode $AOE_MODE is illegal, please check" #maybe not necessary
+        echo "aoe_mode $AOE_MODE is illegal, please check"
         return $ret_run_failed
     fi
 

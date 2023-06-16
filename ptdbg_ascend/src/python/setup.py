@@ -16,12 +16,35 @@
 """
 
 import setuptools
+from pathlib import Path
+import stat
+import os
+
+VERSION = '2.3'
+
+def generate_ptdbg_ascend_version():
+      ptdbg_ascend_root = Path(__file__).parent
+      version_path = ptdbg_ascend_root / "ptdbg_ascend" / "common" / "version.py"
+      if version_path.exists():
+            version_path.unlink()
+      flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+      modes = stat.S_IWUSR | stat.S_IRUSR
+      with os.fdopen(os.open(version_path, flags, modes), 'w') as f:
+            f.write("__version__ = '{version}'\n".format(version = VERSION))
+
+generate_ptdbg_ascend_version()
 
 setuptools.setup(name='ptdbg_ascend',
-      version='0.1',
+      version=VERSION,
       description='This is a pytorch precision comparison tools',
       long_description='This is a pytorch precision comparison tools, include overflow detect tool',
       packages=setuptools.find_packages(),
+      install_requires = [
+            "wheel",
+            "numpy",
+            "pandas >= 1.3.5",
+            "pyyaml"
+      ],
       include_package_data=True,
       ext_modules=[],
       zip_safe=False)

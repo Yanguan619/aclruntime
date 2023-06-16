@@ -157,10 +157,12 @@ class AicoreErrorParser:
         aic_info_input_ret = re.findall(aic_info_input_regexp, aic_info, re.M)
         if len(aic_info_input_ret) == 0:
             utils.print_warn_log(f"Failed to get {aic_info_input_regexp}")
-            return result
+            first_input_addr = -1
+        else:
+            first_input_addr = utils.get_str_value(aic_info_input_ret[0][4])
         input_params = []
 
-        first_input_addr = utils.get_str_value(aic_info_input_ret[0][4])
+        
         json_file = os.path.join(self.collection.collect_kernel_path, info.kernel_name + ".json") 
         with open(json_file, "r") as f:
             json_obj = json.load(f)

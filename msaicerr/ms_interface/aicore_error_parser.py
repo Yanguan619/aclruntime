@@ -151,6 +151,11 @@ class AicoreErrorParser:
                         self.collection.collect_plog_path]
         _, aic_info = utils.execute_command(aic_info_cmd)
         utils.print_info_log(f"===============================\n{aic_info}\n==================================")
+        
+        if not aic_info:
+          utils.print_error_log(f"Failed to get \"[AIC_INFO] dev_func:\" {info.kernel_name} in plog, "
+                                ".Please check exception_dump of Gragh Engine!")
+          raise utils.AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR)
 
         # 解析出输入参数
         aic_info_input_regexp = r"\[AIC_INFO\]\sinput:(.*?);shape:(.*?);format:(.*?);dtype:(.*?);addr:(.*?)$"
@@ -164,10 +169,15 @@ class AicoreErrorParser:
 
         
         json_file = os.path.join(self.collection.collect_kernel_path, info.kernel_name + ".json") 
-        with open(json_file, "r") as f:
-            json_obj = json.load(f)
-        self.parameters = json_obj.get("parameters")
-        len_of_args = len(self.parameters)
+        try:
+            with open(json_file, "r") as f:
+                json_obj = json.load(f)
+            self.parameters = json_obj.get("parameters")
+            len_of_args = len(self.parameters)
+        except Exception as e:
+            utils.print_error_log(f"There is no json file {json_file}!")
+            utils.global_result = False
+            len_of_args = 0
 
         need_check_args = []
         for args in info.args_after_list:

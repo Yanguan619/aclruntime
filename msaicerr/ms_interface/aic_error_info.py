@@ -58,7 +58,10 @@ class AicErrorInfo:
         tiling_str = self._get_tiling_str()
         single_op_test_result = "No Error" if self.single_op_test_result else "Aicore Error"
 
-        analysis_result = "Analysis result: success."
+        if utils.global_result:
+            analysis_result = "Analysis result: success."
+        else:
+            analysis_result = "Analysis result: failed. Conclusion is unreliable due to incomplete collection, the following content is for reference only. "
         conclusion = self._get_conclusion()
 
         msg = f"""{analysis_result}

@@ -3,8 +3,9 @@ import shutil
 import sys
 from pathlib import Path
 
-from ..common.utils import print_error_log, CompareException, Const, get_time, print_info_log, \
-    check_mode_valid, get_api_name_from_matcher, modify_dump_path
+from ..common.utils import print_error_log, CompareException, DumpException, \
+    Const, get_time, print_info_log, check_mode_valid, get_api_name_from_matcher, \
+    modify_dump_path
 
 from ..common.version import __version__
 
@@ -24,6 +25,7 @@ class DumpUtil(object):
     dump_mode = Const.ALL
     backward_input = {}
     dump_dir_tag = 'ptdbg_dump'
+    dump_config = None
 
     @staticmethod
     def set_dump_path(save_path):
@@ -123,13 +125,17 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
     DumpUtil.set_dump_path(real_path)
     DumpUtil.dump_dir_tag = dump_tag
 
+def generate_dump_path_str():
+    if DumpUtil.dump_switch_mode == 'acl':
+        if DumpUtil.dump_config == '':
+            print_error_log("Please provide dump config for register hook before turning on dump switch!")
+            raise DumpException(DumpException.NONE_ERROR)
+        dump_path = f"according to dump config {DumpUtil.dump_config}"
+    else:
+        dump_path = f"to {DumpUtil.dump_path}"
+    return dump_path 
 
 def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=Const.ALL):
-    global dump_count
-    if mode == Const.LIST and switch == "ON":
-        dump_count = 0
-    if mode == Const.LIST and switch == "OFF":
-        print_info_log("The number of matched dump is {}".format(dump_count))
     try:
         check_mode_valid(mode)
         assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
@@ -149,8 +155,22 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()
+    
+    if switch == "OFF":
+        dump_path_str = generate_dump_path_str()
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
-
+    if switch == "ON":
+        dump_path_str = generate_dump_path_str()
+    
+    global dump_count
+    if switch == "ON":
+        print_info_log(f"Dump switch is turned on. Dump data will be saved {dump_path_str}. ")
+        if mode == Const.LIST:
+            dump_count = 0
+    else:
+        print_info_log(f"Dump switch is turned off. Dump data has been saved {dump_path_str}. ")
+        if mode == Const.LIST:
+            print_info_log("The number of matched dump is {}".format(dump_count))
 
 def _set_dump_switch4api_list(name):
     if DumpUtil.dump_api_list:

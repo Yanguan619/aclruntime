@@ -3,9 +3,8 @@ import shutil
 import sys
 from pathlib import Path
 
-from ..common.utils import print_error_log, CompareException, DumpException, \
-    Const, get_time, print_info_log, check_mode_valid, get_api_name_from_matcher, \
-    modify_dump_path
+from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_info_log, \
+    check_mode_valid, get_api_name_from_matcher
 
 from ..common.version import __version__
 
@@ -119,11 +118,13 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
         return
     real_path = os.path.realpath(fpath)
-    if os.path.isdir(real_path):
-        print_error_log("set_dump_path '{}' error, please set a valid filename.".format(real_path))
-        raise CompareException(CompareException.INVALID_PATH_ERROR)
+    if not os.path.isdir(real_path):
+        print_error_log(
+            "set_dump_path '{}' error, the path is not a directory please set a valid directory.".format(real_path))
+        raise DumpException(DumpException.INVALID_PATH_ERROR)
     DumpUtil.set_dump_path(real_path)
     DumpUtil.dump_dir_tag = dump_tag
+
 
 def generate_dump_path_str():
     if DumpUtil.dump_switch_mode == 'acl':
@@ -133,7 +134,8 @@ def generate_dump_path_str():
         dump_path = f"according to dump config {DumpUtil.dump_config}"
     else:
         dump_path = f"to {DumpUtil.dump_path}"
-    return dump_path 
+    return dump_path
+
 
 def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=Const.ALL):
     try:
@@ -155,13 +157,13 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()
-    
+
     if switch == "OFF":
         dump_path_str = generate_dump_path_str()
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
     if switch == "ON":
         dump_path_str = generate_dump_path_str()
-    
+
     global dump_count
     if switch == "ON":
         print_info_log(f"Dump switch is turned on. Dump data will be saved {dump_path_str}. ")
@@ -196,11 +198,8 @@ def make_dump_data_dir(dump_file_name):
 
 
 def make_dump_dirs(rank):
-    if DumpUtil.dump_path is not None:
-        dump_root_dir, dump_file_name = os.path.split(DumpUtil.dump_path)
-        dump_file_name_body, _ = os.path.splitext(dump_file_name)
-    else:
-        dump_root_dir, dump_file_name, dump_file_name_body = './', 'anonymous.pkl', 'anonymous'
+    dump_file_name, dump_file_name_body = "dump.pkl", "dump"
+    dump_root_dir = DumpUtil.dump_path if DumpUtil.dump_path else "./"
     tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_v{__version__}')
     Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
     rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
@@ -208,16 +207,13 @@ def make_dump_dirs(rank):
         os.mkdir(rank_dir, mode=0o750)
     DumpUtil.dump_dir = rank_dir
     dump_file_path = os.path.join(rank_dir, dump_file_name)
-    stack_mode_path = modify_dump_path(dump_file_path)
-    check_path_remove(dump_file_path)
-    check_path_remove(stack_mode_path)
     DumpUtil.set_dump_path(dump_file_path)
 
 
-def check_path_remove(file_path):
-    if os.path.exists(file_path) and not os.path.isdir(file_path):
-        if not os.access(file_path, os.W_OK):
-            print_error_log(
-                'The path {} does not have permission to write. Please check the path permission'.format(file_path))
-            raise CompareException(CompareException.INVALID_PATH_ERROR)
-        os.remove(file_path)
+def check_writable(dump_file):
+    if not os.access(dump_file, os.W_OK):
+        print_error_log(
+            'The path {} does not have permission to write. Please check the path permission'.format(
+                dump_file))
+        raise DumpException(DumpException.INVALID_PATH_ERROR)
+

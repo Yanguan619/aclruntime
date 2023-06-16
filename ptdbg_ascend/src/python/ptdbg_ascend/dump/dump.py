@@ -33,6 +33,7 @@ else:
 from .utils import DumpUtil, _set_dump_switch4api_list, make_dump_data_dir
 
 from ..common.utils import print_warn_log, Const, print_info_log, modify_dump_path
+from ..dump.utils import check_writable
 
 forward_init_status = False
 backward_init_status = False
@@ -163,14 +164,17 @@ def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = DumpUtil.get_dump_path()
     _set_dump_switch4api_list(name)
-    if DumpUtil.dump_switch_mode == Const.API_STACK:
-        dump_file = modify_dump_path(dump_file)
+
+    dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
 
     if DumpUtil.get_dump_switch():
         if DumpUtil.dump_init_enable:
             DumpUtil.dump_init_enable = False
             DumpUtil.dump_data_dir = make_dump_data_dir(dump_file) \
                 if DumpUtil.dump_switch_mode not in [Const.STACK, Const.ACL] else ""
+            if os.path.exists(dump_file) and not os.path.isdir(dump_file):
+                check_writable(dump_file)
+                os.remove(dump_file)
 
         name_prefix = name
         name_template = f"{name_prefix}" + "_{}"
@@ -193,10 +197,12 @@ def acl_dump(module, module_name, name_prefix):
     else:
         forward_acl_dump(module, module_name)
 
+
 def Op_Need_Trigger(module_name):
     if 'Tensor___getitem___' in module_name:
         return True
     return False
+
 
 def forward_acl_dump(module, module_name):
     global forward_init_status

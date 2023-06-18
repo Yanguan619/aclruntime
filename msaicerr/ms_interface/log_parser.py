@@ -23,7 +23,8 @@ class HostLogParser:
         kernel_name_regexp = r".+?dev_func:([a-zA-Z0-9_]{0,})"
         kernel_name_ret = utils.get_inquire_result(kernel_name_cmd, kernel_name_regexp)
         if not kernel_name_ret:
-            utils.print_error_log("Failed to get kernel name.")
+            utils.print_error_log(f"Failed to get \"[AIC_INFO] dev_func:\" in plog "
+                                ".Please check exception_dump of Gragh Engine!")
             raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
         kernel_name_list = kernel_name_ret[0].split('__')
         kernel_name = kernel_name_list[0]

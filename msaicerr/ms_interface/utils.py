@@ -181,7 +181,6 @@ def copy_src_to_dest(src_file_list: list, dest_path: str):
                 __copy_file(file, dest_file)
             except (OSError, IOError) as error:
                 print_error_log(f"Failed to copy {file} to {dest_file}. {error}.")
-                raise AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR) from error
 
 
 def write_file(output_path: str, file_content: str, write_mode="w") -> None:

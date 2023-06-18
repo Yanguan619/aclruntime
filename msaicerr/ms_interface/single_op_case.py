@@ -88,14 +88,23 @@ class SingleOpCase:
 
     @staticmethod
     def get_soc_version_from_cce(cce_file):
-        with open(cce_file, 'r') as f:
-            content = f.read()
-        soc_version_ret = re.findall(r'//.*?(Ascend.*?)"', content)
-        if soc_version_ret:
-            utils.print_info_log(f"get soc_version {soc_version_ret[0]} from cce file {cce_file}")
-            return soc_version_ret[0]
-        else:
+        try:
+            with open(cce_file, 'r') as f:
+                content = f.read()
+            soc_version_ret = re.findall(r'//.*?(Ascend.*?)"', content)
+            if soc_version_ret:
+                utils.print_info_log(f"get soc_version {soc_version_ret[0]} from cce file {cce_file}")
+                if soc_version_ret[0] == "Ascend910B":
+                    return "Ascend910B2"
+                elif  soc_version_ret[0] == "Ascend310B":
+                    return "Ascend310B1"
+                return soc_version_ret[0]
+            else:
+                utils.print_warn_log('Can not get soc_version from cce file {cce_file}')
+                return "Ascend310"
+        except Exception as e:
             utils.print_warn_log('Can not get soc_version from cce file {cce_file}')
+            utils.global_result = False
             return "Ascend310"
 
     def get_cce_file(self):

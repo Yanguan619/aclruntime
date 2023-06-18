@@ -21,6 +21,7 @@ from datetime import datetime
 
 from ms_interface.constant import Constant
 
+global_result = True
 
 class AicErrException(Exception):
     """

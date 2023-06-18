@@ -84,21 +84,26 @@ class Collection:
         original_files = []
         if key == Constant.DIR_PLOG:
             find_path_cmd = ['grep', \
-                'there is an fftsplus aicore error|there is an aicore error|there is an .*aivec.* error exception', \
+                'there is an .*aicore.* error|there is an .*aivec.* error', \
                 '-inrE', self.report_path]
             find_path_regexp = r"([_\-/0-9a-zA-Z.]{1,}.log):"
             plog_path_ret = utils.get_inquire_result(find_path_cmd, find_path_regexp)
             if plog_path_ret and Constant.DIR_PLOG in plog_path_ret[0]:
                 original_path = plog_path_ret[0].split(Constant.DIR_PLOG)[0]
+                original_files = [os.path.join(original_path, name) for name in os.listdir(original_path)]
             else:
-                utils.print_error_log(
-                    f"Plog file cannot be collected, \
-                        the {Constant.DIR_PLOG} log path cannot be found in {self.report_path}.")
+                find_path_cmd = ['grep', \
+                    'there is an .*aicore.* error|there is an .*aivec.* error', \
+                    '-inrE', self.report_path]
+                find_path_regexp = r"([_\-/0-9a-zA-Z.]{1,}screen.txt):"
+                plog_path_ret = utils.get_inquire_result(find_path_cmd, find_path_regexp)
+                if plog_path_ret:
+                    original_files = [plog_path_ret[0]]
+                utils.print_error_log(f"Aicore error log 'there is an' cannot be found in {self.report_path}.")
                 raise utils.AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
             dest_path = os.path.join(collect_target_path, original_path.split(self.report_path)[1][1:])
             utils.check_path_valid(dest_path, isdir=True, output=True)
             self.collect_plog_path = dest_path
-            original_files = [os.path.join(original_path, name) for name in os.listdir(original_path)]
         elif key == "kernel":
             for kernel_name in self.kernel_name_list:
                 find_path_cmd = ['find', self.report_path, '-name', f"{kernel_name}*"]
@@ -111,7 +116,6 @@ class Collection:
             if not original_files:
                 utils.print_error_log(
                     f"Kernel file cannot be collected, the kernel file cannot be found in {self.report_path}.")
-                raise utils.AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
             collect_compile_path = os.path.join(collect_target_path, "compile")
             utils.check_path_valid(collect_compile_path, isdir=True, output=True)
             dest_path = os.path.join(collect_compile_path, "kernel_meta")

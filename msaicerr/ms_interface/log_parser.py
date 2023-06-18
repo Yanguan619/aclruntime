@@ -77,7 +77,7 @@ class HostLogParser:
 
 
     def get_op_info(self: any) -> tuple:
-        aicore_err_cmd = ['grep', 'there is an aicore error|there is an .*aivec.* error exception', '-inrE', 
+        aicore_err_cmd = ['grep', 'there is an .*aicore.* error|there is an .*aivec.* error', '-inrE', 
                           self.collect_plog_path]
         aicore_err_regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?device\(([a-zA-Z0-9\s,:]{1,})\),\s" \
                             r"[a-zA-Z0-9\s,]{1,},\score id is (\d+),\s+error code = (\S+),.*?pc start:\s(\S+)," \

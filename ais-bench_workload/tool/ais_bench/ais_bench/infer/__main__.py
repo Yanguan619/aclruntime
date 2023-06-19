@@ -265,7 +265,7 @@ def get_args():
         raise RuntimeError('error bad parameters --output_dirname')
 
     if args.divide_input and type(args.device) != list:
-        logger.warning("only one device, set --input_divide False forcibly")
+        logger.warning("only one device, set --divide_input False forcibly")
         args.divide_input = False
     return args
 

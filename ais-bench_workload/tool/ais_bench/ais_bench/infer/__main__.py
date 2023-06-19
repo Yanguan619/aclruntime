@@ -404,7 +404,10 @@ def multidevice_run(args):
     for i in range(len(device_list)):
         cur_args = copy.deepcopy(args)
         cur_args.device = int(device_list[i])
-        cur_args.input = None if splits == None else list(splits)[i]
+        if args.divide_input:
+            cur_args.input = None if splits == None else list(splits)[i]
+        else:
+            cur_args.input = splits[i]
         if args.output_dirname != None:
             cur_args.output_dirname = os.path.join(args.output_dirname, "device{}".format(cur_args.device))
         else:

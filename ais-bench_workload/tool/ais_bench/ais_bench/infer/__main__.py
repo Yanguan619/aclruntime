@@ -222,6 +222,7 @@ def get_args():
     parser.add_argument("--loop", "-l", type=check_positive_integer, default=1, help="the round of the PureInfer.")
     parser.add_argument("--debug", type=str2bool, default=False, help="Debug switch,print model information")
     parser.add_argument("--device", "-d", type=check_device_range_valid, default=0, help="the NPU device ID to use.valid value range is [0, 255]")
+    parser.add_argument("--divide_input", type=str2bool, default=False, help="Input datas need to be divided to match multi devices or not, --device should be list")
     parser.add_argument("--dymBatch", type=int, default=0, help="dynamic batch size param，such as --dymBatch 2")
     parser.add_argument("--dymHW", type=str, default=None, help="dynamic image size param, such as --dymHW \"300,500\"")
     parser.add_argument("--dymDims", type=str, default=None, help="dynamic dims param, such as --dymDims \"data:1,600;img_info:1,600\"")
@@ -262,6 +263,10 @@ def get_args():
     if args.output is None and args.output_dirname is not None:
         logger.error("parameter --output_dirname cann't be used alone. Please use it together with the parameter --output!\n")
         raise RuntimeError('error bad parameters --output_dirname')
+
+    if args.divide_input and type(args.device) != list:
+        logger.warning("only one device, set --input_divide False forcibly")
+        args.divide_input = False
     return args
 
 def msprof_run_profiling(args):
@@ -392,8 +397,10 @@ def multidevice_run(args):
     args.subprocess_count = len(device_list)
     jobs = args.subprocess_count
     splits = None
-    if (args.input != None):
+    if (args.input != None and args.divide_input):
         splits = split_inputs_new(args, args.input, jobs)
+    elif (args.input != None and not args.divide_input):
+        splits = [args.input] * args.subprocess_count
     for i in range(len(device_list)):
         cur_args = copy.deepcopy(args)
         cur_args.device = int(device_list[i])

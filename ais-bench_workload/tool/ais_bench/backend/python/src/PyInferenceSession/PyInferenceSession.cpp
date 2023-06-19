@@ -103,7 +103,6 @@ std::vector<TensorBase> PyInferenceSession::InferMap(std::vector<std::string>& o
     if (ret != APP_ERR_OK) {
         throw std::runtime_error(GetError(ret));
     }
-
     return outputs;
 }
 

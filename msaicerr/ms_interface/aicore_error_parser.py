@@ -8,6 +8,7 @@ Huawei Technologies Co., Ltd. All Rights Reserved © 2020
 """
 import re
 import os
+import subprocess
 import time
 import json
 import platform
@@ -17,6 +18,7 @@ from ms_interface import utils
 from ms_interface.constant import Constant
 from ms_interface.aic_error_info import AicErrorInfo
 from ms_interface.dump_data_parser import DumpDataParser
+from ms_interface.golden_op import GoldenOp
 from ms_interface.single_op_case import SingleOpCase
 
 
@@ -625,6 +627,97 @@ SingleOpCase.run(config)"""
         before_key = '\[AIC_INFO\] args before execute'
         return self._get_args_from_info(before_key)
 
+    @staticmethod
+    def _check_file_content(kernel_name, content):
+        error_strings = [
+            "there is an aivec error exception",
+            "there is an aicore error exception",
+            "aicore exception"
+        ]
+        for s in error_strings:
+            if s in content and kernel_name in content:
+                return True
+        return False
+ 
+    @staticmethod
+    def _wait_for_log_stabilization(log_path):
+        log_size = os.path.getsize(log_path)
+        while True:
+            time.sleep(0.2)
+            current_log_size = os.path.getsize(log_path)
+            if current_log_size == log_size:
+                break
+            log_size = current_log_size
+
+    @staticmethod
+    def search_aicerr_log(kernel_name, path):
+        for root, _, files in os.walk(path):
+            for file in files:
+                if not file.endswith(".log"):
+                    continue
+                log_path = os.path.abspath(os.path.join(root, file))
+                utils.print_info_log(f"The find op log {log_path}")
+                AicoreErrorParser._wait_for_log_stabilization(log_path)
+                with open(log_path, "r") as f:
+                    content = f.read()
+                if AicoreErrorParser._check_file_content(kernel_name, content):
+                    return True
+        return False
+
+    def get_cce_file(self):
+        kernel_path = self.collection.collect_kernel_path
+        kernel_name = self.collection.kernel_name_list[0]
+        tiling_key = self.collection.tiling_list[0]
+        cce_file = os.path.join(kernel_path, kernel_name + ".cce")
+        if not os.path.exists(cce_file):
+            cce_file = os.path.join(kernel_path, f"{kernel_name}_{tiling_key}.cce")
+            if not os.path.exists(cce_file):
+                utils.print_warn_log(f"The cce file:{cce_file} does not exist. Set soc version Ascend310")
+                return "Ascend310"
+        return cce_file
+
+    @staticmethod
+    def get_soc_version_from_cce(cce_file):
+        try:
+            with open(cce_file, 'r') as f:
+                content = f.read()
+            soc_version_ret = re.findall(r'//.*?(Ascend.*?)"', content)
+            if soc_version_ret:
+                utils.print_info_log(f"get soc_version {soc_version_ret[0]} from cce file {cce_file}")
+                if soc_version_ret[0] == "Ascend910B":
+                    return "Ascend910B2"
+                elif  soc_version_ret[0] == "Ascend310B":
+                    return "Ascend310B1"
+                return soc_version_ret[0]
+            else:
+                utils.print_warn_log('Can not get soc_version from cce file {cce_file}')
+                return "Ascend310"
+        except Exception as e:
+            utils.print_warn_log('Can not get soc_version from cce file {cce_file}')
+            utils.global_result = False
+            return "Ascend310"
+
+    @staticmethod
+    def run_test_env(soc_version):
+        date_string = time.strftime("%Y%m%d%H%M%S", time.localtime(int(time.time())))
+        kernel_name = f"golden_op_{soc_version}_{date_string}"
+        golden_op_path =  os.path.abspath(f"golden_op_{date_string}")
+        new_env = os.environ.copy()
+        new_env['ASCEND_PROCESS_LOG_PATH'] = golden_op_path
+        print(f"The golden_op_path is {golden_op_path}")
+        
+        GoldenOp.run_golden_op(soc_version, kernel_name)
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        subprocess.run(['python3', f'{current_path}/golden_op.py', soc_version, kernel_name],  env=new_env)
+        result = not AicoreErrorParser.search_aicerr_log(kernel_name, os.path.join(golden_op_path, "debug"))
+        print(f"result is {result}")
+        if os.path.exists(golden_op_path):
+            shutil.rmtree(golden_op_path)
+        if os.path.exists("kernel_meta"):
+            shutil.rmtree("kernel_meta")
+        
+        return result
+
     def parse(self: any) -> None:
         """
         parse by collection info
@@ -702,6 +795,13 @@ SingleOpCase.run(config)"""
 
             if info.data_dump_result:
                 info.single_op_test_result = self._test_single_op(self.collection)
+
+            cce_file = self.get_cce_file()
+            soc_version = AicoreErrorParser.get_soc_version_from_cce(cce_file)
+            try:
+                info.env_available = AicoreErrorParser.run_test_env(soc_version)
+            except Exception as e:
+                utils.print_error_log("run golden op failed.Test env skip!")
             # write info file
             self._write_errorinfo_file(err_i_folder, info, i)
 

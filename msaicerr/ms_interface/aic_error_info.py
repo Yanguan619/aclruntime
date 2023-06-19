@@ -46,6 +46,7 @@ class AicErrorInfo:
         self.args_before_list = []
         self.args_after_list = []
         self.addr_valid = True
+        self.env_available = True
 
     def analyse(self: any) -> str:
         """
@@ -129,6 +130,8 @@ args after  excute: {self._get_args_str(self.args_after_list)}
         elif not self.addr_valid:
             conclusion = "Please check addrs. The addr of input/output is used but not alloc, "\
                          "details in \"4. Input and output of node\"\n"
+        elif not self.env_available:
+            conclusion = "Golden Op run error on your environment. Please check your environment!\n"
         else:
             conclusion = "There's no obvious known error, so I can't determine what the error is.\n"
         return conclusion

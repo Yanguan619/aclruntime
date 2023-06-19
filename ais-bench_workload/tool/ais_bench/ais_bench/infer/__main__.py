@@ -395,19 +395,15 @@ def multidevice_run(args):
     p = Pool(len(device_list))
     msgq = Manager().Queue()
     args.subprocess_count = len(device_list)
-    jobs = args.subprocess_count
-    splits = None
     if (args.input != None and args.divide_input):
+        jobs = args.subprocess_count
+        splits = None
         splits = split_inputs_new(args, args.input, jobs)
-    elif (args.input != None and not args.divide_input):
-        splits = [args.input] * args.subprocess_count
     for i in range(len(device_list)):
         cur_args = copy.deepcopy(args)
         cur_args.device = int(device_list[i])
         if args.divide_input:
             cur_args.input = None if splits == None else list(splits)[i]
-        else:
-            cur_args.input = splits[i]
         if args.output_dirname != None:
             cur_args.output_dirname = os.path.join(args.output_dirname, "device{}".format(cur_args.device))
         else:

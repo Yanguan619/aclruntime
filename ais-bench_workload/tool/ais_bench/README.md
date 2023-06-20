@@ -246,7 +246,7 @@ ais_bench推理工具可以通过配置不同的参数，来应对各种测试�
 | --acl_json_path          | acl.json配置文件路径，须指定一个有效的json文件。该文件内可配置profiler或者dump。当配置该参数时，--dump和--profiler参数无效。 | 否       |
 | --batchsize              | 模型batchsize。不输入该值将自动推导。参数传递的batchszie有且只用于结果吞吐率计算。自动推导逻辑为尝试获取模型的batchsize时，首先获取第一个参数的最高维作为batchsize； 如果是动态Batch的话，更新为动态Batch的值；如果是动态dims和动态Shape更新为设置的第一个参数的最高维。如果自动推导逻辑不满足要求，请务必传入准确的batchsize值，以计算出正确的吞吐率。 | 否       |
 | --output_batchsize_axis  | 输出tensor的batchsize轴。输出结果保存文件时，根据哪个轴进行切割推理结果，那输出结果的batch维度就在哪个轴。默认按照0轴进行切割，但是部分模型的输出batch为1轴，所以要设置该值为1。 | 否       |
-
+| --divide_input  | 多Device场景下，可以同时指定多个Device进行推理测试，输入数据均等切分到指定多个Device进行推理测试。1或true（开启）、0或false（关闭），默认开启。 | 否       |
 
 
 ### 使用场景

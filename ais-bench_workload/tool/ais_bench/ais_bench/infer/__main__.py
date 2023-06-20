@@ -395,9 +395,9 @@ def multidevice_run(args):
     p = Pool(len(device_list))
     msgq = Manager().Queue()
     args.subprocess_count = len(device_list)
+    splits = None
     if (args.input != None and args.divide_input):
         jobs = args.subprocess_count
-        splits = None
         splits = split_inputs_new(args, args.input, jobs)
     for i in range(len(device_list)):
         cur_args = copy.deepcopy(args)

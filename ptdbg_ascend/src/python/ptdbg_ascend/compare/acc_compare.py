@@ -239,7 +239,7 @@ def match_op(npu_queue, bench_queue, fuzzy_match):
     return -1, -1
 
 
-def get_accuracy(result, n_dict, b_dict, summery_flag):
+def get_accuracy(result, n_dict, b_dict):
     index_out = 0
     npu_stack_info = n_dict.get("stack_info", None)
     bench_stack_info = b_dict.get("stack_info", None)
@@ -257,12 +257,12 @@ def get_accuracy(result, n_dict, b_dict, summery_flag):
         accuracy_check_res = CompareConst.ACCURACY_CHECK_YES
 
         result_item = [n_name, b_name, n_struct[0], b_struct[0], n_struct[1], b_struct[1], " ", " "]
-        if summery_flag[0]:
-            summery_data = n_dict.get("summery")[index]
-            result_item.extend(summery_data)
-        if summery_flag[1]:
-            summery_data = b_dict.get("summery")[index]
-            result_item.extend(summery_data)
+
+        summery_data = n_dict.get("summery")[index]
+        result_item.extend(summery_data)
+
+        summery_data = b_dict.get("summery")[index]
+        result_item.extend(summery_data)
         result_item.append(accuracy_check_res)
         result_item.append(err_msg)
         if npu_stack_info and bench_stack_info and index == 0:
@@ -466,18 +466,16 @@ def compare(input_parma, output_path, stack_mode=False, auto_analyze=True, suffi
         npu_pkl = open(input_parma.get("npu_pkl_path"), "r")
         bench_pkl = open(input_parma.get("bench_pkl_path"), "r")
         check_file_mode(npu_pkl.name, bench_pkl.name, stack_mode)
-        npu_summary = _get_summery_mode(npu_pkl, input_parma.get("npu_pkl_path"))
-        bench_summary = _get_summery_mode(bench_pkl, input_parma.get("bench_pkl_path"))
-        result = compare_process(npu_pkl, bench_pkl, [npu_summary, bench_summary], stack_mode, fuzzy_match)
+        _check_pkl(npu_pkl, input_parma.get("npu_pkl_path"))
+        _check_pkl(bench_pkl, input_parma.get("bench_pkl_path"))
+        result = compare_process(npu_pkl, bench_pkl, stack_mode, fuzzy_match)
         npu_pkl.close()
         bench_pkl.close()
 
         columns = [CompareConst.NPU_NAME, CompareConst.BENCH_NAME, CompareConst.NPU_DTYPE, CompareConst.BENCH_DTYPE,
                    CompareConst.NPU_SHAPE, CompareConst.BENCH_SHAPE, CompareConst.COSINE, CompareConst.MAX_ABS_ERR]
-        if npu_summary:
-            columns.extend([CompareConst.NPU_MAX, CompareConst.NPU_MIN, CompareConst.NPU_MEAN])
-        if bench_summary:
-            columns.extend([CompareConst.BENCH_MAX, CompareConst.BENCH_MIN, CompareConst.BENCH_MEAN])
+        columns.extend([CompareConst.NPU_MAX, CompareConst.NPU_MIN, CompareConst.NPU_MEAN])
+        columns.extend([CompareConst.BENCH_MAX, CompareConst.BENCH_MIN, CompareConst.BENCH_MEAN])
         columns.extend([CompareConst.ACCURACY, CompareConst.ERROR_MESSAGE])
         if stack_mode:
             columns.extend([CompareConst.STACK])
@@ -528,7 +526,7 @@ def parse(pkl_file, module_name_prefix):
     pkl_handle.close()
 
 
-def compare_process(npu_pkl_handle, bench_pkl_handle, summary_flag, stack_mode, fuzzy_match):
+def compare_process(npu_pkl_handle, bench_pkl_handle, stack_mode, fuzzy_match):
     if fuzzy_match:
         print_warn_log("This task uses fuzzy matching, which may affect the accuracy of the comparison.")
     npu_ops_queue = []
@@ -547,17 +545,17 @@ def compare_process(npu_pkl_handle, bench_pkl_handle, summary_flag, stack_mode, 
         b_match_data = bench_ops_queue[b_match_point]
         un_match_data = npu_ops_queue[0: n_match_point]
         for npu_data in un_match_data:
-            get_un_match_accuracy(result, npu_data, summary_flag)
-        get_accuracy(result, n_match_data, b_match_data, summary_flag)
+            get_un_match_accuracy(result, npu_data)
+        get_accuracy(result, n_match_data, b_match_data)
         del npu_ops_queue[0: n_match_point + 1]
         del bench_ops_queue[0: b_match_point + 1]
     if npu_ops_queue:
         for npu_data in npu_ops_queue:
-            get_un_match_accuracy(result, npu_data, summary_flag)
+            get_un_match_accuracy(result, npu_data)
     return result
 
 
-def get_un_match_accuracy(result, n_dict, summery_flag):
+def get_un_match_accuracy(result, n_dict):
     index_out = 0
     npu_stack_info = n_dict.get("stack_info", None)
     bench_name, bench_type, bench_shape = CompareConst.NAN, CompareConst.NAN, CompareConst.NAN
@@ -571,12 +569,10 @@ def get_un_match_accuracy(result, n_dict, summery_flag):
         accuracy_check_res = CompareConst.NAN
 
         result_item = [n_name, bench_name, n_struct[0], bench_type, n_struct[1], bench_shape, " ", " "]
-        if summery_flag[0]:
-            summery_data = n_dict.get("summery")[index]
-            result_item.extend(summery_data)
-        if summery_flag[1]:
-            summery_data = [CompareConst.NAN]*3
-            result_item.extend(summery_data)
+        summery_data = n_dict.get("summery")[index]
+        result_item.extend(summery_data)
+        summery_data = [CompareConst.NAN]*3
+        result_item.extend(summery_data)
         result_item.append(accuracy_check_res)
         result_item.append(err_msg)
         if npu_stack_info and index == 0:
@@ -584,14 +580,12 @@ def get_un_match_accuracy(result, n_dict, summery_flag):
         result.append(result_item)
 
 
-def _get_summery_mode(pkl_file_handle, file_name):
+def _check_pkl(pkl_file_handle, file_name):
     tensor_line = pkl_file_handle.readline()
     if len(tensor_line) == 0:
         print_error_log("dump file {} have empty line!".format(file_name))
         raise CompareException(CompareException.INVALID_DUMP_FILE)
-    tensor_data = json.loads(tensor_line)
     pkl_file_handle.seek(0, 0)
-    return isinstance(tensor_data[1], int) and tensor_data[1] <= Const.DUMP_RATIO_MAX
 
 
 if __name__ == "__main__":

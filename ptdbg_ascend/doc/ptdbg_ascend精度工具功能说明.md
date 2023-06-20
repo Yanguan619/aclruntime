@@ -144,7 +144,7 @@ set_dump_path(fpath=None, dump_tag='ptdbg_dump')
 
 | 参数名   | 说明                                                         | 是否必选 |
 | -------- | ------------------------------------------------------------ | -------- |
-| fpath    | 设置dump数据的.pkl文件名和路径。参数示例：'./dump_path/npu_dump.pkl'。<br/>.pkl文件名需要用户自定义命名，默认在指定的dump_path路径下生成`ptdbg_dump_{version}`目录，pkl文件以及dump数据均保存在该目录下。 | 是       |
+| fpath    | 设置dump数据目录路径。参数示例：'./dump_path'。dump_path须为已存在目录。<br/>默认在指定的dump_path路径下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当set_dump_switch函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。 | 是       |
 | dump_tag | 设置dump数据目录名称。参数示例：dump_tag='dump_conv2d'。默认dump数据目录命名为ptdbg_dump_{version}。<br/>{version}为当前安装ptdbg_ascend工具版本。目录结构参见“**dump数据存盘说明**”。<br/>配置该参数会将生成的`ptdbg_dump_{version}`目录名称变更为dump_tag配置的值，如`dump_conv2d_{version}`。 | 否       |
 
 **函数示例**
@@ -152,17 +152,17 @@ set_dump_path(fpath=None, dump_tag='ptdbg_dump')
 - 示例1：设置dump数据的.pkl文件名和路径
 
   ```python
-  set_dump_path('./dump_path/npu_dump.pkl')
+  set_dump_path('./dump_path')
   ```
 
 - 示例2：设置dump数据目录名称
 
   ```python
-  set_dump_path('./dump_path/myDump.pkl', dump_tag='dump_conv2d')
+  set_dump_path('./dump_path', dump_tag='dump_conv2d')
   ```
 
 
-若以相同的.pkl文件名和dump_tag运行两次，则会因同名导致覆盖。
+若以相同的.pkl文件名和dump_tag多次dump，则会因同名导致覆盖；多次dump建议配置不同的dump_tag。
 
 ### register_hook
 
@@ -248,7 +248,7 @@ set_dump_switch(switch, mode='all', scope=[], api_list=[], filter_switch='ON', d
 | 参数名          | 说明                                                         | 是否必选 |
 | --------------- | ------------------------------------------------------------ | -------- |
 | switch          | dump开关。可取值"ON"或"OFF"。须在选定dump开始的位置配置set_dump_switch("ON")；dump结束的位置设置set_dump_switch("OFF")，不设置OFF则表示dump从set_dump_switch("ON")开始的所有数据。 | 是       |
-| mode            | dump模式。可取值"list"、"range"、"stack"、"acl"、"api_list"、"api_stack"，各参数含义请参见本节的“**函数示例**”。参数示例：mode="list"。默认为空。 | 否       |
+| mode            | dump模式。可取值"list"、"range"、"stack"、"acl"、"api_list"、"api_stack"，各参数含义请参见本节的“**函数示例**”。参数示例：mode="list"。默认为空。该参数配置值将作为dump数据文件名的前缀，详情请参见“**dump数据存盘说明**”。 | 否       |
 | scope或api_list | dump范围。根据model配置的模式选择dump的API范围。参数示例：scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward"])、api_list=["relu"]。默认为空。 | 否       |
 | filter_switch   | 开启dump bool和整型的tensor以及浮点、bool和整型的标量。可取值"ON"或"OFF"。参数示例：filter_switch="OFF"。默认不配置，即filter_switch="ON"，表示不dump上述数据。 | 否       |
 | dump_mode       | dump数据过滤。可取值“all”、“forward”和“backward”，表示仅保存dump的数据中文件名包含“forward”或“backward”的前向或反向.npy文件。参数示例dump_mode='backward'。默认为all，即保存所有dump的数据。 |          |
@@ -291,7 +291,7 @@ set_dump_switch可配置多中dump模式，示例如下：
   ```python
   register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='./dump.json')
   set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
-  set_backward_input(["acl_dump_xxx//Functional_conv2d_1_backward_input.0.npy"])
+  set_backward_input(["./npu_dump/dump_conv2d_v2.0/rank0/dump/Functional_conv2d_1_backward_input.0.npy"])
   ```
 
   需要配置register_hook的dump_mode='acl'和dump_config配置文件，并通过set_backward_input设置反向API输入的.npy文件。
@@ -394,7 +394,7 @@ set_backward_input(backward_input)
 ```python
 register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='./dump.json')
 set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
-set_backward_input(["acl_dump_xxx//Functional_conv2d_1_backward_input.0.npy"])
+set_backward_input(["./npu_dump/dump_conv2d_v2.0/rank0/dump/Functional_conv2d_1_backward_input.0.npy"])
 ```
 
 ### dump.json配置文件说明
@@ -454,29 +454,29 @@ dump结果目录结构示例如下：
 ├── dump_path
 │   └── ptdbg_dump_{version}
 │       ├── rank0
-│       │   ├── myDump
+│       │   ├── dump
 |       |   |    ├── Tensor_permute_1_forward.npy
 |       |   |    ...
 |       |   |    └── Fcuntion_linear_5_backward_output.npy
-│       │   └── myDump.pkl
+│       │   └── dump.pkl
 │       ├── rank1
-|       |   ├── myDump
+|       |   ├── dump
 |       |   |   └── ...
-|       |   └── myDump.pkl 
+|       |   └── dump.pkl 
 │       ├── ...
 │       |
 |       └── rank7
 ```
 
-其中ptdbg_dump_{version}为未设置set_dump_path的dump_tag参数时的默认命名；rank为设备上各卡的ID，每张卡上dump的数据会生成对应dump目录，可由register_hook函数的rank参数控制目录名称。
+其中ptdbg_dump_{version}为未设置set_dump_path的dump_tag参数时的默认命名；rank为设备上各卡的ID，每张卡上dump的数据会生成对应dump目录，可由register_hook函数的rank参数控制rank目录名称。
 
 **精度比对dump场景**
 
-假设set_dump_path配置的dump文件名为npu_dump.pkl，此时dump的结果为两部分：
+精度比对dump场景的结果如下：
 
-* npu_dump.pkl文件：包含dump数据的API名称、dtype、 shape以及各数据的max、min、mean统计信息。
+* dump.pkl文件：包含dump数据的API名称、dtype、 shape以及各数据的max、min、mean统计信息。
 
-* npu_dump目录：目录下为npy格式的dump数据。
+* dump目录：目录下为npy格式的dump数据。
 
    npy文件保存的前缀和PyTorch对应关系如下
 
@@ -488,14 +488,10 @@ dump结果目录结构示例如下：
    | NPU        | NPU亲和算子         |
    | VF         | torch._VF           |
 
-**api_stack dump场景**
+当set_dump_switch配置mode参数（例如：mode="api_stack" ）时，dump结果的文件名会添加api_stack前缀，dump结果如下：
 
-当set_dump_switch配置mode="api_stack" 时，dump结果的文件名会添加api_stack前缀，dump结果如下：
-
-* api_stack_npu_dump.pkl
-* api_stack_npu_dump目录
-
-api_stack为堆栈信息。
+* api_stack_dump.pkl
+* api_stack_dump目录
 
 **溢出检测dump场景**
 
@@ -538,8 +534,8 @@ compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs)
 
 | 参数名         | 说明                                                         | 是否必选 |
 | -------------- | ------------------------------------------------------------ | -------- |
-| npu_dump_dir   | 配置NPU环境下的dump目录，即set_dump_path函数的dump_tag参数对应的目录名称。参数示例：'npu_dump/dump_conv2d_v1.0'。 | 是       |
-| bench_dump_dir | 配置CPU、GPU或NPU环境下的dump目录，即set_dump_path函数的dump_tag参数对应的目录名称。参数示例：'gpu_dump/dump_conv2d_v1.0'。 | 是       |
+| npu_dump_dir   | 配置NPU环境下的dump目录，即set_dump_path函数的dump_tag参数对应的目录名称。参数示例：'./npu_dump/dump_conv2d_v2.0'。 | 是       |
+| bench_dump_dir | 配置CPU、GPU或NPU环境下的dump目录，即set_dump_path函数的dump_tag参数对应的目录名称。参数示例：'./gpu_dump/dump_conv2d_v2.0'。 | 是       |
 | output_path    | 配置比对结果csv文件存盘目录。需要预先创建output_path目录。参数示例：'./output'。文件名称基于时间戳自动生成，格式为：`compare_result_rank{npu_ID}-rank{cpu/gpu/npu_ID}_{timestamp}.csv`。 | 是       |
 | **kwargs       | 支持compare的所有可选参数。                                  | 否       |
 
@@ -549,7 +545,7 @@ compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs)
 
 ```python
 from ptdbg_ascend import *
-compare_distributed('npu_dump/dump_conv2d_v1.0', 'gpu_dump/dump_conv2d_v1.0', './output')
+compare_distributed('./npu_dump/ptdbg_dump_v2.0', './gpu_dump/ptdbg_dump_v2.0', './output')
 ```
 
 ### compare
@@ -568,7 +564,7 @@ compare(input_param, output_path, stack_mode=False, auto_analyze=True, suffix=''
 
 | 参数名       | 说明                                                         | 是否必选 |
 | ------------ | ------------------------------------------------------------ | -------- |
-| input_param  | 配置dump数据文件及目录。配置参数包括：<br/>- "npu_pkl_path"：指定NPU dump目录下的.pkl文件。参数示例："npu_pkl_path": "./api_stack_npu_dump.pkl"。必选。<br/>- "bench_pkl_path"：指定CPU、GPU或NPU dump目录下的.pkl文件。参数示例："bench_pkl_path": "./api_stack_gpu_dump.pkl"。必选。<br/>- "npu_dump_data_dir"："指定NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./api_stack_npu_dump"。必选。<br/>- "bench_dump_data_dir"："指定CPU、GPU或NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./api_stack_npu_dump"。必选。<br/>- "is_print_compare_log"：配置是否开启日志打屏。可取值True或False。可选。 | 是       |
+| input_param  | 配置dump数据文件及目录。配置参数包括：<br/>- "npu_pkl_path"：指定NPU dump目录下的.pkl文件。参数示例："npu_pkl_path": "./npu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump.pkl"。必选。<br/>- "bench_pkl_path"：指定CPU、GPU或NPU dump目录下的.pkl文件。参数示例："bench_pkl_path": "./gpu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump.pkl"。必选。<br/>- "npu_dump_data_dir"："指定NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./npu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump"。必选。<br/>- "bench_dump_data_dir"："指定CPU、GPU或NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./gpu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump"。必选。<br/>- "is_print_compare_log"：配置是否开启日志打屏。可取值True或False。可选。 | 是       |
 | output_path  | 配置比对结果csv文件存盘目录。参数示例：'./output'。文件名称基于时间戳自动生成，格式为：`compare_result_{timestamp}.csv`。 | 是       |
 | stack_mode   | 配置stack_mode的开关。仅当dump数据时配置set_dump_switch的mode="api_stack"时需要开启。参数示例：stack_mode=True，默认为False。 | 否       |
 | auto_analyze | 自动精度分析，开启后工具自动针对比对结果进行分析，识别到第一个精度不达标节点（在比对结果文件中的“Accuracy Reached or Not”列显示为No），并给出问题可能产生的原因。可取值True或False，参数示例：auto_analyze=False，默认为True。 | 否       |
@@ -582,10 +578,10 @@ compare(input_param, output_path, stack_mode=False, auto_analyze=True, suffix=''
 ```python
 from ptdbg_ascend import *
 dump_result_param={
-"npu_pkl_path": "./api_stack_npu_dump.pkl",
-"bench_pkl_path": "./api_stack_gpu_dump.pkl",
-"npu_dump_data_dir": "./api_stack_npu_dump",
-"bench_dump_data_dir": "./api_stack_gpu_dump",
+"npu_pkl_path": "./npu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump.pkl",
+"bench_pkl_path": "./gpu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump.pkl",
+"npu_dump_data_dir": "./npu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump",
+"bench_dump_data_dir": "./gpu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump",
 "is_print_compare_log": True
 }
 compare(dump_result_param, "./output", stack_mode=True)
@@ -593,7 +589,7 @@ compare(dump_result_param, "./output", stack_mode=True)
 
 ### parse
 
-parse  。取值为：<br/>* 第一个参数指定dump数据文件中的pkl文件名。参数示例："./npu_dump.pkl"。必选。<br/>* 第二个参数指定待提取的API接口前缀。参数示例："Torch_norm_1_forward"。必选。<br/>仅NPU环境支持。
+parse  。取值为：<br/>* 第一个参数指定dump数据文件中的pkl文件名。参数示例："./npu_dump/ptdbg_dump_v2.0/rank0/dump.pkl"。必选。<br/>* 第二个参数指定待提取的API接口前缀。参数示例："Torch_norm_1_forward"。必选。<br/>仅NPU环境支持。
 
 **功能说明**
 
@@ -607,10 +603,10 @@ parse(pkl_file, moudule_name_prefix)
 
 **参数说明**
 
-| 参数名              | 说明                                                        | 是否必选 |
-| ------------------- | ----------------------------------------------------------- | -------- |
-| pkl_file            | 指定dump数据文件中的pkl文件名。参数示例："./npu_dump.pkl"。 | 是       |
-| moudule_name_prefix | 指定待提取的API接口前缀。参数示例："Torch_norm_1_forward"。 | 是       |
+| 参数名              | 说明                                                         | 是否必选 |
+| ------------------- | ------------------------------------------------------------ | -------- |
+| pkl_file            | 指定dump数据文件中的pkl文件名。参数示例："./npu_dump/ptdbg_dump_v2.0/rank0/dump.pkl"。 | 是       |
+| moudule_name_prefix | 指定待提取的API接口前缀。参数示例："Torch_norm_1_forward"。  | 是       |
 
 **函数示例**
 
@@ -618,7 +614,7 @@ parse(pkl_file, moudule_name_prefix)
 
 ```python
 from ptdbg_ascend import *
-parse("./npu_dump.pkl", "Torch_batch_normal_1_forward")
+parse("./npu_dump/ptdbg_dump_v2.0/rank0/dump.pkl", "Torch_batch_normal_1_forward")
 ```
 
 ### 计算精度评价指标
@@ -664,7 +660,7 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
    seed_all()
    
    # 配置dump数据的.pkl文件名和路径
-   set_dump_path("./npu_dump.pkl", dump_tag='all')
+   set_dump_path("./npu_dump", dump_tag='all')
    
    # 注册dump回调函数
    register_hook(model, acc_cmp_dump)
@@ -684,10 +680,10 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
    ```python
    from ptdbg_ascend import *
    dump_result_param={
-   "npu_pkl_path": ".api_stack_/npu_dump.pkl",
-   "bench_pkl_path": ".api_stack_/gpu_dump.pkl",
-   "npu_dump_data_dir": ".api_stack_/npu_dump",
-   "bench_dump_data_dir": ".api_stack_/gpu_dump",
+   "npu_pkl_path": "./npu_dump/all_v2.0/rank0/api_stack_dump.pkl",
+   "bench_pkl_path": "./gpu_dump/all_v2.0/rank0/api_stack_dump.pkl",
+   "npu_dump_data_dir": "./npu_dump/all_v2.0/rank0/api_stack_dump",
+   "bench_dump_data_dir": "./gpu_dump/all_v2.0/rank0/api_stack_dump",
    "is_print_compare_log": True
    }
    compare(dump_result_param, "./output")
@@ -715,7 +711,7 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
    from ptdbg_ascend import *
    
    # 提取dump信息中第1次调用的API：Torch_batch_normal的堆栈信息及数据统计信息
-   parse("./npu_dump.pkl", "Torch_batch_normal_1_forward")
+   parse("./npu_dump/all_v2.0/rank0/api_stack_dump.pkl", "Torch_batch_normal_1_forward")
    ```
 
    执行提取：
@@ -735,7 +731,7 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
      
      # 固定随机数，开启确定性计算
      seed_all(mode=True)
-     set_dump_path("./npu_dump1.pkl", dump_tag='forward')
+     set_dump_path("./dump_path", dump_tag='forward')
      register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='./dump.json')
      
      # dump指定前向API的ACL级别数据、bool和整型的tensor以及浮点、bool和整型的标量
@@ -753,12 +749,12 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
      
      # 固定随机数，开启确定性计算
      seed_all(mode=True)
-     set_dump_path("./npu_dump1.pkl", dump_tag='backward')
+     set_dump_path("./dump_path", dump_tag='backward')
      register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='./dump.json')
      
      # dump指定反向API的ACL级别数据、bool和整型的tensor以及浮点、bool和整型的标量
      set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"], filter_switch="OFF")
-     set_backward_input(["acl_dump_xxx//Functional_conv2d_1_backward_input.0.npy"])
+     set_backward_input(["./npu_dump/all_v2.0/rank0/api_stack_dump/Functional_conv2d_1_backward_input.0.npy"])
      
      ...
      
@@ -783,7 +779,7 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
 
    ```python
    from ptdbg_ascend import *
-   compare_distributed('npu_dump/dump_conv2d_v1.0', 'gpu_dump/dump_conv2d_v1.0', './output')
+   compare_distributed('./npu_dump/ptdbg_dump_v2.0', './gpu_dump/ptdbg_dump_v2.0', './output')
    ```
 
 2. 执行比对：
@@ -801,7 +797,7 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
 ```python
 from ptdbg_ascend import *
 seed_all()
-set_dump_path('./dump_resnet/myDump.pkl')
+set_dump_path('./dump_resnet')
 ```
 
 如此可保证set_dump_path在每个进程都被调用。
@@ -940,7 +936,7 @@ register_hook需要在set_dump_path之后调用，也需要在每个进程上被
         # dump指定反向API的ACL级别溢出数据
         register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='./dump.json')
         set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
-        set_backward_input(["acl_dump_xxx//Functional_conv2d_1_backward_input.0.npy"])
+        set_backward_input(["./npu_dump/ptdbg_dump_v2.0/rank0/dump/Functional_conv2d_1_backward_input.0.npy"])
         ```
 
    针对前向溢出API，可以通过overflow_nums，配置允许的溢出次数，并将每次溢出API的全部ACL数据dump下来，到达指定溢出次数后停止，停止后会看到堆栈打印包含如下字段。

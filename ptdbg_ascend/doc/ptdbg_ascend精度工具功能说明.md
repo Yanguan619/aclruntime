@@ -149,7 +149,7 @@ set_dump_path(fpath=None, dump_tag='ptdbg_dump')
 
 **函数示例**
 
-- 示例1：设置dump数据的.pkl文件名和路径
+- 示例1：设置dump数据目录路径
 
   ```python
   set_dump_path('./dump_path')
@@ -162,7 +162,7 @@ set_dump_path(fpath=None, dump_tag='ptdbg_dump')
   ```
 
 
-若以相同的.pkl文件名和dump_tag多次dump，则会因同名导致覆盖；多次dump建议配置不同的dump_tag。
+若以相同的dump数据目录多次dump，则会因同名导致覆盖；多次dump建议配置不同的dump_tag。
 
 ### register_hook
 

@@ -585,6 +585,7 @@ def _check_pkl(pkl_file_handle, file_name):
     if len(tensor_line) == 0:
         print_error_log("dump file {} have empty line!".format(file_name))
         raise CompareException(CompareException.INVALID_DUMP_FILE)
+    pkl_file_handle.seek(0, 0)
 
 
 if __name__ == "__main__":

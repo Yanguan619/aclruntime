@@ -121,7 +121,7 @@ train_loader = torch.utils.data.DataLoader(
 关闭dropout示例：
 
 ```python
-toech.nn.functional.dropout(input, p = 0)
+torch.nn.functional.dropout(input, p = 0)
 ```
 
 将所有包含dropout的代码设置p = 0，或者可以将所有包含dropout的代码注释。

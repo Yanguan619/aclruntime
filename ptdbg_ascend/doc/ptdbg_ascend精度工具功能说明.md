@@ -253,6 +253,14 @@ set_dump_switch(switch, mode='all', scope=[], api_list=[], filter_switch='ON', d
 | filter_switch   | 开启dump bool和整型的tensor以及浮点、bool和整型的标量。可取值"ON"或"OFF"。参数示例：filter_switch="OFF"。默认不配置，即filter_switch="ON"，表示不dump上述数据。 | 否       |
 | dump_mode       | dump数据过滤。可取值“all”、“forward”和“backward”，表示仅保存dump的数据中文件名包含“forward”或“backward”的前向或反向.npy文件。参数示例dump_mode='backward'。默认为all，即保存所有dump的数据。 |          |
 
+**推荐配置**
+
+```python
+set_dump_switch("ON", mode="api_stack", filter_switch="OFF")
+```
+
+开启dump数据和堆栈模式，同时为保证数据完整性开启dump bool和整型的tensor以及浮点、bool和整型的标量。
+
 **函数示例**
 
 set_dump_switch可配置多中dump模式，示例如下：
@@ -667,8 +675,8 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
    
    ...
    
-   # 在第一个迭代开始的位置开启dump
-   set_dump_switch("ON", mode="api_stack")
+   # 在第一个迭代开始的位置开启dump和堆栈模式，同时为保证数据完整性开启dump bool和整型的tensor以及浮点、bool和整型的标量。
+   set_dump_switch("ON", mode="api_stack", filter_switch="OFF")
    
    ...
    

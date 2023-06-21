@@ -126,6 +126,7 @@ def check_struct_match(npu_dict, bench_dict):
 
 
 def check_type_shape_match(npu_struct, bench_struct):
+    shape_type_match = False
     for npu_type_shape, bench_type_shape in zip(npu_struct, bench_struct):
         npu_type = npu_type_shape[0]
         npu_shape = npu_type_shape[1]

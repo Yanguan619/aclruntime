@@ -659,7 +659,7 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
    # 在main函数开始前固定随机数
    seed_all()
    
-   # 配置dump数据的.pkl文件名和路径
+   # 配置dump数据目录路径和名称
    set_dump_path("./npu_dump", dump_tag='all')
    
    # 注册dump回调函数
@@ -667,8 +667,13 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
    
    ...
    
-   # 在第一个迭代开始的位置开启dump且不配置dump关闭，即dump整网数据，另外dump堆栈信息
+   # 在第一个迭代开始的位置开启dump
    set_dump_switch("ON", mode="api_stack")
+   
+   ...
+   
+   # 在第一个迭代结束的位置关闭dump
+   set_dump_switch("OFF")
    ```
 
 2. 比对整网数据。

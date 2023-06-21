@@ -264,9 +264,6 @@ def get_args():
         logger.error("parameter --output_dirname cann't be used alone. Please use it together with the parameter --output!\n")
         raise RuntimeError('error bad parameters --output_dirname')
 
-    if args.divide_input and type(args.device) != list:
-        logger.warning("only one device, set --divide_input False forcibly")
-        args.divide_input = False
     return args
 
 def msprof_run_profiling(args):

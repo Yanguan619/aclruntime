@@ -702,12 +702,15 @@ SingleOpCase.run(config)"""
         date_string = time.strftime("%Y%m%d%H%M%S", time.localtime(int(time.time())))
         kernel_name = f"golden_op_{soc_version}_{date_string}"
         golden_op_path =  os.path.abspath(f"golden_op_{date_string}")
+
+        print(f"The golden_op_path is {golden_op_path}")
+
+        current_path = os.path.dirname(os.path.abspath(__file__))
+
         new_env = os.environ.copy()
         new_env['ASCEND_PROCESS_LOG_PATH'] = golden_op_path
-        print(f"The golden_op_path is {golden_op_path}")
-        
-        GoldenOp.run_golden_op(soc_version, kernel_name)
-        current_path = os.path.dirname(os.path.abspath(__file__))
+        new_env['PYTHONPATH'] = new_env['PYTHONPATH'] + ":" + os.path.dirname(current_path)
+
         subprocess.run(['python3', f'{current_path}/golden_op.py', soc_version, kernel_name],  env=new_env)
         result = not AicoreErrorParser.search_aicerr_log(kernel_name, os.path.join(golden_op_path, "debug"))
         print(f"result is {result}")
@@ -715,7 +718,7 @@ SingleOpCase.run(config)"""
             shutil.rmtree(golden_op_path)
         if os.path.exists("kernel_meta"):
             shutil.rmtree("kernel_meta")
-        
+
         return result
 
     def parse(self: any) -> None:

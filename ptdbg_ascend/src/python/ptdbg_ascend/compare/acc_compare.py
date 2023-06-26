@@ -455,8 +455,13 @@ def check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suff
         print_error_log("Params auto_analyze only support True or False.")
         raise CompareException(CompareException.INVALID_PARAM_ERROR)
 
+def compare(input_parma, output_path, **kwargs):
+    if kwargs.get('suffix'):
+        print_error_log("Argument 'suffix' is not supported for compare.")
+        raise CompareException(CompareException.INVALID_PARAM_ERROR)
+    compare_core(input_parma, output_path, **kwargs)
 
-def compare(input_parma, output_path, stack_mode=False, auto_analyze=True, suffix='', fuzzy_match=False):
+def compare_core(input_parma, output_path, stack_mode=False, auto_analyze=True, suffix='', fuzzy_match=False):
     try:
         check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suffix)
         check_file_or_directory_path(input_parma.get("npu_pkl_path"), False)

@@ -211,6 +211,20 @@ def check_mode_valid(mode):
         raise CompareException(CompareException.INVALID_DUMP_MODE, msg)
 
 
+def check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suffix):
+    if not (isinstance(input_parma, dict) and isinstance(output_path, str) \
+        and isinstance(stack_mode, bool) and isinstance(suffix, str)):
+        print_error_log("Invalid input parameters")
+        raise CompareException(CompareException.INVALID_PARAM_ERROR)
+    if not isinstance(auto_analyze, bool):
+        print_error_log("Params auto_analyze only support True or False.")
+        raise CompareException(CompareException.INVALID_PARAM_ERROR)
+    check_file_or_directory_path(input_parma.get("npu_pkl_path"), False)
+    check_file_or_directory_path(input_parma.get("bench_pkl_path"), False)
+    check_file_or_directory_path(input_parma.get("npu_dump_data_dir"), True)
+    check_file_or_directory_path(input_parma.get("bench_dump_data_dir"), True)
+    check_file_or_directory_path(output_path, True)
+
 def check_file_or_directory_path(path, isdir=False):
     """
     Function Description:

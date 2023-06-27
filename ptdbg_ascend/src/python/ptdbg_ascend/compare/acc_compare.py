@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 
 from ..advisor.advisor import Advisor
-from ..common.utils import check_file_or_directory_path, add_time_as_suffix, \
+from ..common.utils import check_compare_param, add_time_as_suffix, \
     print_warn_log, print_error_log, CompareException, Const, CompareConst, format_value
 
 
@@ -446,14 +446,6 @@ def check_file_mode(npu_pkl, bench_pkl, stack_mode):
 
 
 
-def check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suffix):
-    if not (isinstance(input_parma, dict) and isinstance(output_path, str) \
-        and isinstance(stack_mode, bool) and isinstance(suffix, str)):
-        print_error_log("Invalid input parameters")
-        raise CompareException(CompareException.INVALID_PARAM_ERROR)
-    if not isinstance(auto_analyze, bool):
-        print_error_log("Params auto_analyze only support True or False.")
-        raise CompareException(CompareException.INVALID_PARAM_ERROR)
 
 def compare(input_parma, output_path, **kwargs):
     if kwargs.get('suffix'):
@@ -464,11 +456,6 @@ def compare(input_parma, output_path, **kwargs):
 def compare_core(input_parma, output_path, stack_mode=False, auto_analyze=True, suffix='', fuzzy_match=False):
     try:
         check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suffix)
-        check_file_or_directory_path(input_parma.get("npu_pkl_path"), False)
-        check_file_or_directory_path(input_parma.get("bench_pkl_path"), False)
-        check_file_or_directory_path(input_parma.get("npu_dump_data_dir"), True)
-        check_file_or_directory_path(input_parma.get("bench_dump_data_dir"), True)
-        check_file_or_directory_path(output_path, True)
         npu_pkl = open(input_parma.get("npu_pkl_path"), "r")
         bench_pkl = open(input_parma.get("bench_pkl_path"), "r")
         check_file_mode(npu_pkl.name, bench_pkl.name, stack_mode)
@@ -491,7 +478,7 @@ def compare_core(input_parma, output_path, stack_mode=False, auto_analyze=True, 
         file_path = os.path.join(os.path.realpath(output_path), file_name)
         result_df.to_csv(file_path, index=False)
     except CompareException as error:
-        print_error_log('Compare failed, Please check it and do it again!')
+        print_error_log('Compare failed. Please check the arguments and do it again!')
         sys.exit(error.code)
     _do_multi_process(input_parma, file_path)
     if auto_analyze:

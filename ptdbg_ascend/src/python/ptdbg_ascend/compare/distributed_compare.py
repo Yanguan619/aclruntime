@@ -16,7 +16,7 @@
 """
 import os
 import re
-from ..common.utils import print_error_log, CompareException
+from ..common.utils import print_error_log, CompareException, check_compare_param
 from .acc_compare import compare_core
 
 
@@ -83,4 +83,9 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
             'bench_dump_data_dir': bench_dump_data_dir,
             'is_print_compare_log':True
         }
+        try:
+            check_compare_param(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)
+        except CompareException as error:
+            print_error_log('Compare failed. Please check the arguments and do it again!')
+            sys.exit(error.code)
         compare_core(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)

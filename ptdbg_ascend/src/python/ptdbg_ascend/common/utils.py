@@ -224,6 +224,13 @@ def check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suff
     check_file_or_directory_path(input_parma.get("npu_dump_data_dir"), True)
     check_file_or_directory_path(input_parma.get("bench_dump_data_dir"), True)
     check_file_or_directory_path(output_path, True)
+    npu_pkl = open(input_parma.get("npu_pkl_path"), "r")
+    bench_pkl = open(input_parma.get("bench_pkl_path"), "r")
+    check_file_mode(npu_pkl.name, bench_pkl.name, stack_mode)
+    _check_pkl(npu_pkl, input_parma.get("npu_pkl_path"))
+    _check_pkl(bench_pkl, input_parma.get("bench_pkl_path"))
+    return npu_pkl, bench_pkl 
+
 
 def check_file_or_directory_path(path, isdir=False):
     """
@@ -257,6 +264,30 @@ def check_file_or_directory_path(path, isdir=False):
         print_error_log(
             'The path {} does not have permission to read. Please check the path permission'.format(path))
         raise CompareException(CompareException.INVALID_PATH_ERROR)
+
+def _check_pkl(pkl_file_handle, file_name):
+    tensor_line = pkl_file_handle.readline()
+    if len(tensor_line) == 0:
+        print_error_log("dump file {} have empty line!".format(file_name))
+        raise CompareException(CompareException.INVALID_DUMP_FILE)
+    pkl_file_handle.seek(0, 0)
+
+
+def check_file_mode(npu_pkl, bench_pkl, stack_mode):
+    npu_pkl_name = os.path.split(npu_pkl)[-1]
+    bench_pkl_name = os.path.split(bench_pkl)[-1]
+
+    if not npu_pkl_name.startswith("api_stack") and not bench_pkl_name.startswith("api_stack"):
+        if stack_mode:
+            print_error_log("The current file does not contain stack information, please turn off the stack_mode")
+            raise CompareException(CompareException.INVALID_COMPARE_MODE)
+    elif npu_pkl_name.startswith("api_stack") and bench_pkl_name.startswith("api_stack"):
+        if not stack_mode:
+            print_error_log("The current file contains stack information, please turn on the stack_mode")
+            raise CompareException(CompareException.INVALID_COMPARE_MODE)
+    else:
+        print_error_log("The dump mode of the two files is not same, please check the dump files")
+        raise CompareException(CompareException.INVALID_COMPARE_MODE)
 
 
 def check_file_size(input_file, max_size):

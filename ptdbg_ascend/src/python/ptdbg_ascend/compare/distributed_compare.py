@@ -84,8 +84,8 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
             'is_print_compare_log':True
         }
         try:
-            check_compare_param(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)
+            npu_pkl, bench_pkl = check_compare_param(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)
         except CompareException as error:
             print_error_log('Compare failed. Please check the arguments and do it again!')
             sys.exit(error.code)
-        compare_core(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)
+        compare_core(dump_result_param, output_path, npu_pkl, bench_pkl, suffix=f'_{nr}-{br}', **kwargs)

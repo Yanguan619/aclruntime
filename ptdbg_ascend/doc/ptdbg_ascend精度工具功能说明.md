@@ -565,7 +565,7 @@ compare_distributed('./npu_dump/ptdbg_dump_v2.0', './gpu_dump/ptdbg_dump_v2.0', 
 **函数原型**
 
 ```python
-compare(input_param, output_path, stack_mode=False, auto_analyze=True, suffix='', fuzzy_match=False)
+compare(input_param, output_path, stack_mode=False, auto_analyze=True, fuzzy_match=False)
 ```
 
 **参数说明**
@@ -576,7 +576,6 @@ compare(input_param, output_path, stack_mode=False, auto_analyze=True, suffix=''
 | output_path  | 配置比对结果csv文件存盘目录。参数示例：'./output'。文件名称基于时间戳自动生成，格式为：`compare_result_{timestamp}.csv`。 | 是       |
 | stack_mode   | 配置stack_mode的开关。仅当dump数据时配置set_dump_switch的mode="api_stack"时需要开启。参数示例：stack_mode=True，默认为False。 | 否       |
 | auto_analyze | 自动精度分析，开启后工具自动针对比对结果进行分析，识别到第一个精度不达标节点（在比对结果文件中的“Accuracy Reached or Not”列显示为No），并给出问题可能产生的原因。可取值True或False，参数示例：auto_analyze=False，默认为True。 | 否       |
-| suffix       | 标识比对结果的文件名。配置的suffix值在比对结果文件名的compare_result和{timestamp}中间插入，例如：`compare_result_{suffix}_{timestamp}`。默认为空。 | 否       |
 | fuzzy_match  | 模糊匹配。开启后，对于网络中同一层级且命名仅调用次数不同的API，可匹配并进行比对。可取值True或False，参数示例：fuzzy_match=True，默认为False。 | 否       |
 
 **函数示例**

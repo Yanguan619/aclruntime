@@ -211,7 +211,8 @@ def check_mode_valid(mode):
         raise CompareException(CompareException.INVALID_DUMP_MODE, msg)
 
 
-def check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suffix):
+def check_compare_param(input_parma, output_path, stack_mode=False, auto_analyze=True,
+        suffix=''): # 添加默认值来让不传参时能通过参数检查
     if not (isinstance(input_parma, dict) and isinstance(output_path, str) \
         and isinstance(stack_mode, bool) and isinstance(suffix, str)):
         print_error_log("Invalid input parameters")

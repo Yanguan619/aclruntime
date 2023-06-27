@@ -431,7 +431,7 @@ def compare(input_parma, output_path, **kwargs):
         print_error_log("Argument 'suffix' is not supported for compare.")
         raise CompareException(CompareException.INVALID_PARAM_ERROR)
     try:
-        npu_pkl, bench_pkl = check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suffix='')
+        npu_pkl, bench_pkl = check_compare_param(input_parma, output_path, **kwargs)
     except CompareException as error:
         print_error_log('Compare failed. Please check the arguments and do it again!')
         sys.exit(error.code)

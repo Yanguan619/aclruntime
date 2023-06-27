@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-import os
+import os, sys
 import re
 from ..common.utils import print_error_log, CompareException, check_compare_param
 from .acc_compare import compare_core

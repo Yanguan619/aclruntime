@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 
 from ..advisor.advisor import Advisor
-from ..common.utils import check_file_or_directory_path, add_time_as_suffix, \
+from ..common.utils import check_compare_param, add_time_as_suffix, \
     print_warn_log, print_error_log, CompareException, Const, CompareConst, format_value
 
 
@@ -426,68 +426,35 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
         err_msg += " Fuzzy matching data, the comparison accuracy may be affected."
     return cos_sim, max_abs_err, err_msg
 
-
-def check_file_mode(npu_pkl, bench_pkl, stack_mode):
-    npu_pkl_name = os.path.split(npu_pkl)[-1]
-    bench_pkl_name = os.path.split(bench_pkl)[-1]
-
-    if not npu_pkl_name.startswith("api_stack") and not bench_pkl_name.startswith("api_stack"):
-        if stack_mode:
-            print_error_log("The current file does not contain stack information, please turn off the stack_mode")
-            raise CompareException(CompareException.INVALID_COMPARE_MODE)
-    elif npu_pkl_name.startswith("api_stack") and bench_pkl_name.startswith("api_stack"):
-        if not stack_mode:
-            print_error_log("The current file contains stack information, please turn on the stack_mode")
-            raise CompareException(CompareException.INVALID_COMPARE_MODE)
-    else:
-        print_error_log("The dump mode of the two files is not same, please check the dump files")
-        raise CompareException(CompareException.INVALID_COMPARE_MODE)
-
-
-
-
-def check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suffix):
-    if not (isinstance(input_parma, dict) and isinstance(output_path, str) \
-        and isinstance(stack_mode, bool) and isinstance(suffix, str)):
-        print_error_log("Invalid input parameters")
+def compare(input_parma, output_path, **kwargs):
+    if kwargs.get('suffix'):
+        print_error_log("Argument 'suffix' is not supported for compare.")
         raise CompareException(CompareException.INVALID_PARAM_ERROR)
-    if not isinstance(auto_analyze, bool):
-        print_error_log("Params auto_analyze only support True or False.")
-        raise CompareException(CompareException.INVALID_PARAM_ERROR)
-
-
-def compare(input_parma, output_path, stack_mode=False, auto_analyze=True, suffix='', fuzzy_match=False):
     try:
-        check_compare_param(input_parma, output_path, stack_mode, auto_analyze, suffix)
-        check_file_or_directory_path(input_parma.get("npu_pkl_path"), False)
-        check_file_or_directory_path(input_parma.get("bench_pkl_path"), False)
-        check_file_or_directory_path(input_parma.get("npu_dump_data_dir"), True)
-        check_file_or_directory_path(input_parma.get("bench_dump_data_dir"), True)
-        check_file_or_directory_path(output_path, True)
-        npu_pkl = open(input_parma.get("npu_pkl_path"), "r")
-        bench_pkl = open(input_parma.get("bench_pkl_path"), "r")
-        check_file_mode(npu_pkl.name, bench_pkl.name, stack_mode)
-        _check_pkl(npu_pkl, input_parma.get("npu_pkl_path"))
-        _check_pkl(bench_pkl, input_parma.get("bench_pkl_path"))
-        result = compare_process(npu_pkl, bench_pkl, stack_mode, fuzzy_match)
-        npu_pkl.close()
-        bench_pkl.close()
-
-        columns = [CompareConst.NPU_NAME, CompareConst.BENCH_NAME, CompareConst.NPU_DTYPE, CompareConst.BENCH_DTYPE,
-                   CompareConst.NPU_SHAPE, CompareConst.BENCH_SHAPE, CompareConst.COSINE, CompareConst.MAX_ABS_ERR]
-        columns.extend([CompareConst.NPU_MAX, CompareConst.NPU_MIN, CompareConst.NPU_MEAN])
-        columns.extend([CompareConst.BENCH_MAX, CompareConst.BENCH_MIN, CompareConst.BENCH_MEAN])
-        columns.extend([CompareConst.ACCURACY, CompareConst.ERROR_MESSAGE])
-        if stack_mode:
-            columns.extend([CompareConst.STACK])
-        result_df = pd.DataFrame(result, columns=columns)
-
-        file_name = add_time_as_suffix("compare_result" + suffix)
-        file_path = os.path.join(os.path.realpath(output_path), file_name)
-        result_df.to_csv(file_path, index=False)
+        npu_pkl, bench_pkl = check_compare_param(input_parma, output_path, **kwargs)
     except CompareException as error:
-        print_error_log('Compare failed, Please check it and do it again!')
+        print_error_log('Compare failed. Please check the arguments and do it again!')
         sys.exit(error.code)
+    compare_core(input_parma, output_path, npu_pkl, bench_pkl, **kwargs)
+
+def compare_core(input_parma, output_path, npu_pkl, bench_pkl, stack_mode=False, auto_analyze=True, suffix='', fuzzy_match=False):
+    result = compare_process(npu_pkl, bench_pkl, stack_mode, fuzzy_match)
+    npu_pkl.close()
+    bench_pkl.close()
+
+    columns = [CompareConst.NPU_NAME, CompareConst.BENCH_NAME, CompareConst.NPU_DTYPE, CompareConst.BENCH_DTYPE,
+                CompareConst.NPU_SHAPE, CompareConst.BENCH_SHAPE, CompareConst.COSINE, CompareConst.MAX_ABS_ERR]
+    columns.extend([CompareConst.NPU_MAX, CompareConst.NPU_MIN, CompareConst.NPU_MEAN])
+    columns.extend([CompareConst.BENCH_MAX, CompareConst.BENCH_MIN, CompareConst.BENCH_MEAN])
+    columns.extend([CompareConst.ACCURACY, CompareConst.ERROR_MESSAGE])
+    if stack_mode:
+        columns.extend([CompareConst.STACK])
+    result_df = pd.DataFrame(result, columns=columns)
+
+    file_name = add_time_as_suffix("compare_result" + suffix)
+    file_path = os.path.join(os.path.realpath(output_path), file_name)
+    result_df.to_csv(file_path, index=False)
+
     _do_multi_process(input_parma, file_path)
     if auto_analyze:
         advisor = Advisor(file_path, output_path)
@@ -580,13 +547,6 @@ def get_un_match_accuracy(result, n_dict):
             result_item.extend(npu_stack_info)
         result.append(result_item)
 
-
-def _check_pkl(pkl_file_handle, file_name):
-    tensor_line = pkl_file_handle.readline()
-    if len(tensor_line) == 0:
-        print_error_log("dump file {} have empty line!".format(file_name))
-        raise CompareException(CompareException.INVALID_DUMP_FILE)
-    pkl_file_handle.seek(0, 0)
 
 
 if __name__ == "__main__":

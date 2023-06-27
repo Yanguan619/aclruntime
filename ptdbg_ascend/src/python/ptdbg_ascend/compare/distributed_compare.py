@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-import os
+import os, sys
 import re
-from ..common.utils import print_error_log, CompareException
-from .acc_compare import compare
+from ..common.utils import print_error_log, CompareException, check_compare_param
+from .acc_compare import compare_core
 
 
 def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
@@ -59,7 +59,10 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
             raise CompareException(CompareException.INVALID_FILE_ERROR)
         return pkl_path, dump_data_dir
 
-
+    
+    if kwargs.get('suffix'):
+        print_error_log("Argument 'suffix' is not supported for compare_distributed.")
+        raise CompareException(CompareException.INVALID_PARAM_ERROR)
     # get the ranks and match by order
     npu_ranks = sorted(check_and_return_dir_contents(npu_dump_dir, 'rank'))
     bench_ranks = sorted(check_and_return_dir_contents(bench_dump_dir, 'rank'))
@@ -80,4 +83,9 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
             'bench_dump_data_dir': bench_dump_data_dir,
             'is_print_compare_log':True
         }
-        compare(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)
+        try:
+            npu_pkl, bench_pkl = check_compare_param(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)
+        except CompareException as error:
+            print_error_log('Compare failed. Please check the arguments and do it again!')
+            sys.exit(error.code)
+        compare_core(dump_result_param, output_path, npu_pkl, bench_pkl, suffix=f'_{nr}-{br}', **kwargs)

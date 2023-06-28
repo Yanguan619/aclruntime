@@ -32,7 +32,7 @@ class TfAdapter(object):
         self._init()
         return tf_debug.DumpingDebugHook(cfg.TF_DEBUG_DUMP_DIR)
 
-    def session_dump_config(self, session_config=None, action=None):
+    def session_dump_config(self, session_config=None, action=None, dump_layer=None):
         """
         In TF session mode. set dump_config in session_config.
         exp. config = session_dump_config()
@@ -57,7 +57,7 @@ class TfAdapter(object):
             custom_op = session_config.graph_options.rewrite_options.custom_optimizers.add()
         custom_op.name = 'NpuOptimizer'
         custom_op.parameter_map['use_off_line'].b = True
-        self.update_custom_op(custom_op, action)
+        self.update_custom_op(custom_op, action, dump_layer)
         session_config.graph_options.rewrite_options.remapping = RewriterConfig.OFF
         return session_config
 
@@ -96,6 +96,8 @@ class TfAdapter(object):
             npu_device.global_options().dump_config.dump_debug_mode = "all"
             npu_device.global_options().op_debug_level = cfg.OP_DEBUG_LEVEL
             npu_device.global_options().dump_config.dump_step = cfg.TF_DUMP_STEP
+            if self._is_dump_stats(action):
+                npu_device.global_options().dump_config.dump_data = "stats"
         if self._is_fusion_off(action):
             npu_device.global_options().fusion_switch_file = FUSION_OFF_FILE
             print("[PrecisionTool] Set fusion switch file: ", FUSION_OFF_FILE)
@@ -104,7 +106,7 @@ class TfAdapter(object):
             print("[PrecisionTool] Set fusion switch file: ", FUSION_SWITCH_FILE)
         return npu_device
 
-    def update_custom_op(self, custom_op, action=None):
+    def update_custom_op(self, custom_op, action=None, dump_layer=None):
         """Update custom_op
         :param custom_op: origin custom op
         :param action: dump | overflow | fusion_off | fusion_switch
@@ -124,6 +126,10 @@ class TfAdapter(object):
             custom_op.parameter_map['dump_path'].s = tf.compat.as_bytes(cfg.DEFAULT_NPU_DUMP_DIR)
             custom_op.parameter_map['op_debug_level'].i = cfg.OP_DEBUG_LEVEL
             custom_op.parameter_map['dump_step'].s = tf.compat.as_bytes(cfg.TF_DUMP_STEP)
+            if self._is_dump_stats(action):
+                custom_op.parameter_map['dump_data'].s = tf.compat.as_bytes("stats")
+            if dump_layer is not None:
+                custom_op.parameter_map['dump_layer'].s = tf.compat.as_bytes(dump_layer)
         if self._is_fusion_off(action):
             custom_op.parameter_map['fusion_switch_file'].s = tf.compat.as_bytes(FUSION_OFF_FILE)
             print("[PrecisionTool] Set fusion switch file: ", FUSION_OFF_FILE)
@@ -157,6 +163,15 @@ class TfAdapter(object):
     def _is_dump(action):
         if action is not None:
             return 'dump' in action
+        if cfg.PRECISION_TOOL_DUMP_FLAG in os.environ and os.environ[cfg.PRECISION_TOOL_DUMP_FLAG] == 'True':
+            print("[PrecisionTool] enable npu dump >======")
+            return True
+        return False
+    
+    @staticmethod
+    def _is_dump_stats(action):
+        if action is not None:
+            return 'dump_stats' in action
         if cfg.PRECISION_TOOL_DUMP_FLAG in os.environ and os.environ[cfg.PRECISION_TOOL_DUMP_FLAG] == 'True':
             print("[PrecisionTool] enable npu dump >======")
             return True

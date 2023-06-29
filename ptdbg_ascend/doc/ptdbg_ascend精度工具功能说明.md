@@ -426,7 +426,7 @@ set_backward_input(["./npu_dump/dump_conv2d_v2.0/rank0/dump/Functional_conv2d_1_
 | 字段名         | 说明                                                         |
 | -------------- | ------------------------------------------------------------ |
 | dump_list      | 待dump数据的API模型。为空，无需配置。                        |
-| dump_path      | dump数据文件存储到运行环境的目录，主要用于指定ACL dump数据路径。支持配置绝对路径或相对路径。 |
+| dump_path      | dump数据文件存储到运行环境的目录，主要用于指定ACL dump数据路径。支持配置绝对路径或相对路径。dump_path须为已存在目录。 |
 | dump_mode      | dump数据模式，配置如下：<br/>- output：dump API的输出数据。默认值。<br/>- input：dump API的输入数据。<br/>-  all：dump API的输入、输出数据。 |
 | dump_op_switch | 单API模型dump数据开关，配置如下： * off：关闭单API模型dump，默认值。 * on：开启单API模型dump。 |
 
@@ -675,7 +675,7 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
    
    ...
    
-   # 在第一个迭代开始的位置开启dump和堆栈模式，同时为保证数据完整性开启dump bool和整型的tensor以及浮点、bool和整型的标量。
+   # 在第一个迭代开始的位置开启dump和堆栈模式，同时为保证数据完整性开启dump bool和整型的tensor以及浮点、bool和整型的标量
    set_dump_switch("ON", mode="api_stack", filter_switch="OFF")
    
    ...

@@ -109,7 +109,9 @@ args after  excute: {self._get_args_str(self.args_after_list)}
 
     def _get_conclusion(self: any) -> str:
         conclusion = ""
-        if not self.atomic_clean_check:
+        if 60 in self.aicerror_bit:
+            conclusion = "ecc error. This is a hardware issue. Please contact hardware developer to resolve it.\n"
+        elif not self.atomic_clean_check:
             conclusion = "Op need atomic clean. However, no memset or atomic_clean op launched.\n"
         elif not self.data_dump_result:
             conclusion = "Dump data failed in exception dump! Address of input or output is error!"

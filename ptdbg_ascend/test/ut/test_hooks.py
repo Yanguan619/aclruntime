@@ -1,4 +1,5 @@
 # coding=utf-8
+import os
 import unittest
 from ptdbg_ascend.dump import utils as hooks
 
@@ -60,3 +61,10 @@ class TestUtilsMethods(unittest.TestCase):
         dump_util = hooks.DumpUtil
         hooks.set_dump_switch("ON", filter_switch="OFF")
         self.assertEqual(dump_util.dump_filter_switch, "OFF")
+
+    def test_set_dump_path(self):
+        dump_util = hooks.DumpUtil
+        hooks.set_dump_path("output", dump_tag="dump_data")
+        output_path = os.path.abspath("output")
+        self.assertEqual(dump_util.dump_path, output_path)
+        self.assertEqual(dump_util.dump_dir_tag, "dump_data")

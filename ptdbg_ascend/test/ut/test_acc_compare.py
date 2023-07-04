@@ -1,9 +1,10 @@
 # coding=utf-8
 import unittest
 import numpy as np
+import os
 from ptdbg_ascend.compare import acc_compare as compare
 from ptdbg_ascend.common.utils import CompareConst
-import os
+
 
 npu_dict = {'op_name': ['Functional_conv2d_0_forward_input.0', 'Functional_conv2d_0_forward_input.1', 'Functional_conv2d_0_forward_input.2', 'Functional_conv2d_0_forward_output'], 'input_struct': [('torch.float32', [1, 1, 28, 28]), ('torch.float32', [16, 1, 5, 5]), ('torch.float32', [16])], 'output_struct': [('torch.float32', [1, 16, 28, 28])], 'summery': [[3.029174327850342, -2.926689624786377, -0.06619918346405029], [0.19919930398464203, -0.19974489510059357, 0.006269412115216255], [0.19734230637550354, -0.18177609145641327, 0.007903944700956345], [2.1166646480560303, -2.190781354904175, -0.003579073818400502]], 'stack_info': []}
 bench_dict = {'op_name': ['Functional_conv2d_0_forward_input.0', 'Functional_conv2d_0_forward_input.1', 'Functional_conv2d_0_forward_input.2', 'Functional_conv2d_0_forward_output'], 'input_struct': [('torch.float32', [1, 1, 28, 28]), ('torch.float32', [16, 1, 5, 5]), ('torch.float32', [16])], 'output_struct': [('torch.float32', [1, 16, 28, 28])], 'summery': [[3.029174327850342, -2.926689624786377, -0.06619918346405029], [0.19919930398464203, -0.19974489510059357, 0.006269412115216255], [0.19734230637550354, -0.18177609145641327, 0.007903944700956345], [2.1166646480560303, -2.190781354904175, -0.003579073818400502]], 'stack_info': []}

@@ -23,6 +23,7 @@ import subprocess
 import sys
 import time
 from datetime import datetime, timezone
+from functools import wraps
 
 import numpy as np
 import torch
@@ -480,3 +481,24 @@ def get_process_rank(model):
         return device.index, True
 
 
+def parameter_adapter(func):
+    @wraps(func)
+    def inner(self, *args, **kwargs):
+        if self.op_name_ == "__getitem__" and len(args) > 1:
+            input = args[0]
+            indices = args[1]
+            if isinstance(indices, torch.Tensor) and indices.dtype == torch.uint8:
+                indices = indices.bool()
+            if isinstance(indices, torch.Tensor) and indices.dtype == torch.bool:
+                if indices.shape == input.shape:
+                    return getattr(torch._C._VariableFunctionsClass, str("masked_select"))(input, indices)
+                else:
+                    return func(self, input, indices.tolist())
+            elif isinstance(indices, torch.Tensor) and indices.dtype != torch.bool:
+                if len(indices.shape) > 1:
+                    result = [func(self, input, index) for index in indices.tolist()]
+                    return getattr(torch._C._VariableFunctionsClass, str("stack"))(result, 0)
+                else:
+                    return func(self, *args, **kwargs)
+        return func(self, *args, **kwargs)
+    return inner

@@ -229,11 +229,11 @@ def read_op(ops_queue, pkl_file_handle, stack_mode):
 
 
 def match_op(npu_queue, bench_queue, fuzzy_match):
-    if check_op(npu_queue[-1], bench_queue[-1], fuzzy_match):
-        return len(npu_queue) - 1, len(bench_queue) - 1
     for b_index, b_op in enumerate(bench_queue[0: -1]):
         if check_op(npu_queue[-1], b_op, fuzzy_match):
             return len(npu_queue) - 1, b_index
+    if check_op(npu_queue[-1], bench_queue[-1], fuzzy_match):
+        return len(npu_queue) - 1, len(bench_queue) - 1
     for n_index, n_op in enumerate(npu_queue[0: -1]):
         if check_op(n_op, bench_queue[-1], fuzzy_match):
             return n_index, len(bench_queue) - 1
@@ -437,7 +437,9 @@ def compare(input_parma, output_path, **kwargs):
         sys.exit(error.code)
     compare_core(input_parma, output_path, npu_pkl, bench_pkl, **kwargs)
 
-def compare_core(input_parma, output_path, npu_pkl, bench_pkl, stack_mode=False, auto_analyze=True, suffix='', fuzzy_match=False):
+
+def compare_core(input_parma, output_path, npu_pkl, bench_pkl, stack_mode=False, auto_analyze=True,
+                 suffix='', fuzzy_match=False):
     result = compare_process(npu_pkl, bench_pkl, stack_mode, fuzzy_match)
     npu_pkl.close()
     bench_pkl.close()

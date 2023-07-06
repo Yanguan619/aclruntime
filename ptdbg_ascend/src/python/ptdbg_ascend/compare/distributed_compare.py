@@ -59,7 +59,7 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
             raise CompareException(CompareException.INVALID_FILE_ERROR)
         return pkl_path, dump_data_dir
 
-    
+
     if kwargs.get('suffix'):
         print_error_log("Argument 'suffix' is not supported for compare_distributed.")
         raise CompareException(CompareException.INVALID_PARAM_ERROR)
@@ -84,7 +84,7 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
             'is_print_compare_log':True
         }
         try:
-            npu_pkl, bench_pkl = check_compare_param(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)
+            npu_pkl, bench_pkl = check_compare_param(dump_result_param, output_path, **kwargs)
         except CompareException as error:
             print_error_log('Compare failed. Please check the arguments and do it again!')
             sys.exit(error.code)

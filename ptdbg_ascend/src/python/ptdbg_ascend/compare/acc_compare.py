@@ -437,7 +437,9 @@ def compare(input_parma, output_path, **kwargs):
         sys.exit(error.code)
     compare_core(input_parma, output_path, npu_pkl, bench_pkl, **kwargs)
 
-def compare_core(input_parma, output_path, npu_pkl, bench_pkl, stack_mode=False, auto_analyze=True, suffix='', fuzzy_match=False):
+
+def compare_core(input_parma, output_path, npu_pkl, bench_pkl, stack_mode=False, auto_analyze=True,
+                 suffix='', fuzzy_match=False):
     result = compare_process(npu_pkl, bench_pkl, stack_mode, fuzzy_match)
     npu_pkl.close()
     bench_pkl.close()

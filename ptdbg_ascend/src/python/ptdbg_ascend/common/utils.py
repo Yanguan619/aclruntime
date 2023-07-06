@@ -482,19 +482,23 @@ def get_process_rank(model):
 
 
 def parameter_adapter(func):
+    torch_version = torch.__version__
+    if not torch_version.startswith(VersionCheck.V1_8):
+        return func
+
     @wraps(func)
     def inner(self, *args, **kwargs):
-        if self.op_name_ == "__getitem__" and len(args) > 1:
+        if self.op_name_ == "__getitem__" and len(args) > 1 and isinstance(args[1], torch.Tensor):
             input = args[0]
             indices = args[1]
-            if isinstance(indices, torch.Tensor) and indices.dtype == torch.uint8:
+            if indices.dtype == torch.uint8:
                 indices = indices.bool()
-            if isinstance(indices, torch.Tensor) and indices.dtype == torch.bool:
+            if indices.dtype == torch.bool:
                 if indices.shape == input.shape:
                     return getattr(torch._C._VariableFunctionsClass, str("masked_select"))(input, indices)
                 else:
                     return func(self, input, indices.tolist())
-            elif isinstance(indices, torch.Tensor) and indices.dtype != torch.bool:
+            elif indices.dtype != torch.bool:
                 if len(indices.shape) == 1:
                     return func(self, input, indices.tolist())
                 elif len(indices.shape) == 2:

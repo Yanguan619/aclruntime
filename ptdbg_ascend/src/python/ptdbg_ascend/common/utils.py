@@ -495,10 +495,13 @@ def parameter_adapter(func):
                 else:
                     return func(self, input, indices.tolist())
             elif isinstance(indices, torch.Tensor) and indices.dtype != torch.bool:
-                if len(indices.shape) > 1:
+                if len(indices.shape) == 1:
+                    return func(self, input, indices.tolist())
+                elif len(indices.shape) == 2:
                     result = [func(self, input, index) for index in indices.tolist()]
                     return getattr(torch._C._VariableFunctionsClass, str("stack"))(result, 0)
                 else:
-                    return func(self, *args, **kwargs)
+                    res = [input[tensor_index] for tensor_index in indices]
+                    return getattr(torch._C._VariableFunctionsClass, str("stack"))(res, 0)
         return func(self, *args, **kwargs)
     return inner

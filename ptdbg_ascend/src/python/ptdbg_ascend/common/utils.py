@@ -492,18 +492,18 @@ def parameter_adapter(func):
                 indices = indices.bool()
             if indices.dtype == torch.bool:
                 if indices.shape == input.shape:
-                    return getattr(torch._C._VariableFunctionsClass, str("masked_select"))(input, indices)
+                    return getattr(torch._C._VariableFunctionsClass, "masked_select")(input, indices)
                 else:
-                    indices = getattr(torch._C._VariableFunctionsClass, str("nonzero"))(indices, as_tuple=True)
-                    return getattr(torch._C._TensorBase, str("__getitem__"))(input, indices)
+                    indices = getattr(torch._C._VariableFunctionsClass, "nonzero")(indices, as_tuple=True)
+                    return getattr(torch._C._TensorBase, "__getitem__")(input, indices)
             elif indices.dtype != torch.bool:
                 if len(indices.shape) == 1:
                     return func(self, input, indices.tolist())
                 elif len(indices.shape) == 2:
                     result = [func(self, input, index) for index in indices.tolist()]
-                    return getattr(torch._C._VariableFunctionsClass, str("stack"))(result, 0)
+                    return getattr(torch._C._VariableFunctionsClass, "stack")(result, 0)
                 else:
                     res = [input[tensor_index] for tensor_index in indices]
-                    return getattr(torch._C._VariableFunctionsClass, str("stack"))(res, 0)
+                    return getattr(torch._C._VariableFunctionsClass, "stack")(res, 0)
         return func(self, *args, **kwargs)
     return inner

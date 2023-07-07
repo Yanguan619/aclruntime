@@ -498,7 +498,7 @@ def parameter_adapter(func):
                     return getattr(torch._C._VariableFunctionsClass, str("masked_select"))(input, indices)
                 else:
                     indices = getattr(torch._C._VariableFunctionsClass, str("nonzero"))(indices, as_tuple=True)
-                    return getattr(torch._C._VariableFunctionsClass, str("__getitem__"))(input, indices)
+                    return getattr(torch._C._TensorBase, str("__getitem__"))(input, indices)
             elif indices.dtype != torch.bool:
                 if len(indices.shape) == 1:
                     return func(self, input, indices.tolist())

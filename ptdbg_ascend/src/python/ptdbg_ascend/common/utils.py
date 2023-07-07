@@ -482,9 +482,6 @@ def get_process_rank(model):
 
 
 def parameter_adapter(func):
-    torch_version = torch.__version__
-    if not torch_version.startswith(VersionCheck.V1_8):
-        return func
 
     @wraps(func)
     def inner(self, *args, **kwargs):

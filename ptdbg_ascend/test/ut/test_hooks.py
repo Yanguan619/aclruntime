@@ -64,7 +64,7 @@ class TestUtilsMethods(unittest.TestCase):
 
     def test_set_dump_path(self):
         dump_util = hooks.DumpUtil
-        hooks.set_dump_path("output", dump_tag="dump_data")
-        output_path = os.path.abspath("output")
+        hooks.set_dump_path("resources", dump_tag="dump_data")
+        output_path = os.path.abspath("resources")
         self.assertEqual(dump_util.dump_path, output_path)
         self.assertEqual(dump_util.dump_dir_tag, "dump_data")

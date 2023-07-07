@@ -50,6 +50,8 @@ ptdbg_ascend工具的原理及安装请参见《[PyTorch精度工具](https://gi
   
 - TASK_QUEUE_ENABLE环境变量会导致API下发和执行异步进行，因此在ACL dump前需要将TASK_QUEUE_ENABLE关闭，即export TASK_QUEUE_ENABLE=0。
 
+- 不建议在PyTorch训练脚本中同时添加dump接口和性能数据采集（如Ascend PyThon Profiler）接口，二者可能相互影响导致数据不准确。
+
 ### seed_all
 
 **功能说明**
@@ -583,7 +585,7 @@ compare(input_param, output_path, stack_mode=False, auto_analyze=True, suffix=''
 | input_param  | 配置dump数据文件及目录。配置参数包括：<br/>- "npu_pkl_path"：指定NPU dump目录下的.pkl文件。参数示例："npu_pkl_path": "./npu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump.pkl"。必选。<br/>- "bench_pkl_path"：指定CPU、GPU或NPU dump目录下的.pkl文件。参数示例："bench_pkl_path": "./gpu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump.pkl"。必选。<br/>- "npu_dump_data_dir"："指定NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./npu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump"。必选。<br/>- "bench_dump_data_dir"："指定CPU、GPU或NPU dump目录下的dump数据目录。参数示例："npu_dump_data_dir": "./gpu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump"。必选。<br/>- "is_print_compare_log"：配置是否开启日志打屏。可取值True或False。可选。 | 是       |
 | output_path  | 配置比对结果csv文件存盘目录。参数示例：'./output'。文件名称基于时间戳自动生成，格式为：`compare_result_{timestamp}.csv`。 | 是       |
 | stack_mode   | 配置stack_mode的开关。仅当dump数据时配置set_dump_switch的mode="api_stack"时需要开启。参数示例：stack_mode=True，默认为False。 | 否       |
-| auto_analyze | 自动精度分析，开启后工具自动针对比对结果进行分析，识别到第一个精度不达标节点（在比对结果文件中的“Accuracy Reached or Not”列显示为No），并给出问题可能产生的原因。可取值True或False，参数示例：auto_analyze=False，默认为True。 | 否       |
+| auto_analyze | 自动精度分析，开启后工具自动针对比对结果进行分析，识别到第一个精度不达标节点（在比对结果文件中的“Accuracy Reached or Not”列显示为No），并给出问题可能产生的原因（打屏展示并生成advisor_{timestamp}.txt文件）。可取值True或False，参数示例：auto_analyze=False，默认为True。 | 否       |
 | suffix       | 标识比对结果的文件名。配置的suffix值在比对结果文件名的compare_result和{timestamp}中间插入，例如：`compare_result_{suffix}_{timestamp}`。默认为空。 | 否       |
 | fuzzy_match  | 模糊匹配。开启后，对于网络中同一层级且命名仅调用次数不同的API，可匹配并进行比对。可取值True或False，参数示例：fuzzy_match=True，默认为False。 | 否       |
 
@@ -716,11 +718,15 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
    python3 compare.py
    ```
 
-   
+   在output目录下生成结果文件，包括：`compare_result_{timestamp}.csv`和`advisor_{timestamp}.txt`
 
 3. 找出存在问题的API。
 
-   根据第2步结果文件，找出中的Accuracy Reached or No字段显示为NO的API，针对该API执行后续比对操作，分析该API存在的精度问题。
+   1. 根据`advisor_{timestamp}.txt`或打屏信息的提示，可找到存在精度问题的算子（Suspect Nodes）和专家建议（Expert Advice)
+
+      ![auto_analyze_log](img/auto_analyze_log.png)
+
+   2. 根据第2步结果文件`compare_result_{timestamp}.csv`中的Accuracy Reached or No字段显示为NO的API，针对该API执行后续比对操作，分析该API存在的精度问题。
 
 4. （可选）提取指定API的堆栈信息和dump数据统计信息。
 

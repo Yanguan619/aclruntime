@@ -35,10 +35,15 @@ ptdbg_ascend工具的原理及安装请参见《[PyTorch精度工具](https://gi
 ### 总体说明
 
 - 本节主要介绍CPU或GPU及NPU精度数据dump所需要的函数以及示例。
+
 - ptdbg_ascend工具默认情况下仅dump PyTorch模型的API输入输出数据进行精度比对，若在比对结果中发现某个API下可能存在ACL的精度问题，那么可以选择dump该API的ACL级别数据进行精度分析。
+
 - 某些torch api的输出不是Tensor类型的数据。对于此类API的反向过程进行ACL dump，工具会在运行日志中给出对应的Warning（is not of tensor type and cannot be automatically derived）提示。如若想要进行该类API反向ACL dump，可以通过手动构建单API用例的方式进行ACL dump，具体用例可参见“**[反向ACL dump用例说明](https://gitee.com/ascend/tools/blob/master/ptdbg_ascend/doc/%E5%8F%8D%E5%90%91ACL%20dump%E7%94%A8%E4%BE%8B%E8%AF%B4%E6%98%8E.md)**”。
+
 - 工具性能：dump数据量较小时（小于5G），参考dump速度0.1GB/s；dump数据量较大时，参考dump速度0.2GB/s。
   推荐环境配置：独占环境，CPU核心数192，固态硬盘（IO速度参考：固态硬盘 > 500MB/s，机械硬盘60 ~ 170MB/s）。
+  
+  用户环境性能弱于标准约束或非独占使用的比对速度酌情向下浮动。Dump速度的计算方式：Dump数据量/(单个step添加Dump耗时-原始单个step耗时）。
 
 ### 约束
 - 进行CPU或GPU数据dump时，请安装torch包而非torch_npu包，避免工具无法识别使用场景，导致失败。
@@ -64,7 +69,7 @@ seed_all(seed=1234, mode=False)
 | 参数名 | 说明                                                         | 是否必选 |
 | ------ | ------------------------------------------------------------ | -------- |
 | seed   | 随机数种子。参数示例：seed=1000。默认值为：1234。            | 否       |
-| mode   | 确定性计算模式。可配置True或False。参数示例：mode=True。默认为False。<br/>即使在相同的硬件和输入下，API多次执行的结果也可能不同，开启确定性计算是为了保证在相同的硬件和输入下，API多次执行的结果相同。<br/>确定性计算会导致API执行性能降低，建议在发现模型多次执行结果不同的情况下开启。 | 否       |
+| mode   | 确定性计算模式。可配置True或False。参数示例：mode=True。默认为False。<br/>即使在相同的硬件和输入下，API多次执行的结果也可能不同，开启确定性计算是为了保证在相同的硬件和输入下，API多次执行的结果相同。<br/>确定性计算会导致API执行性能降低，建议在发现模型多次执行结果不同的情况下开启。<br/>rnn类算子、ReduceSum、ReduceMean等算子可能与确定性计算存在冲突，若开启确定性计算后多次执行的结果不相同，则考虑存在这些算子。 | 否       |
 
 **函数示例**
 
@@ -426,7 +431,7 @@ set_backward_input(["./npu_dump/dump_conv2d_v2.0/rank0/dump/Functional_conv2d_1_
 | 字段名         | 说明                                                         |
 | -------------- | ------------------------------------------------------------ |
 | dump_list      | 待dump数据的API模型。为空，无需配置。                        |
-| dump_path      | dump数据文件存储到运行环境的目录，主要用于指定ACL dump数据路径。支持配置绝对路径或相对路径。 |
+| dump_path      | dump数据文件存储到运行环境的目录，主要用于指定ACL dump数据路径。支持配置绝对路径或相对路径。dump_path须为已存在目录。 |
 | dump_mode      | dump数据模式，配置如下：<br/>- output：dump API的输出数据。默认值。<br/>- input：dump API的输入数据。<br/>-  all：dump API的输入、输出数据。 |
 | dump_op_switch | 单API模型dump数据开关，配置如下： * off：关闭单API模型dump，默认值。 * on：开启单API模型dump。 |
 
@@ -515,8 +520,11 @@ register_hook设置了overflow_check时，检测API溢出，dump结果的文件�
 - 本节主要介绍CPU或GPU与NPU精度数据比对的函数以及示例。
 
 - 比对函数均通过单独创建精度比对脚本执行，可支持单机单卡和单机多卡场景的精度数据比对。
-- 工具性能：dump数据量较小时（小于5G），参考dump速度0.1GB/s；dump数据量较大时，参考dump速度0.2GB/s。
+
+- 工具性能：比对数据量较小时（参考值单份文件小于10GB），参考比对速度0.1GB/s；比对数据量较大时，参考比对速度0.3GB/s。
   推荐环境配置：独占环境，CPU核心数192，固态硬盘（IO速度参考：固态硬盘 > 500MB/s，机械硬盘60 ~ 170MB/s）。
+  
+  用户环境性能弱于标准约束或非独占使用的比对速度酌情向下浮动。比对速度的计算方式：两份比对文件大小/比对耗时。
 
 ### 约束
 
@@ -674,7 +682,7 @@ PyTorch训练场景的精度问题分析建议参考以下思路进行精度比�
    
    ...
    
-   # 在第一个迭代开始的位置开启dump和堆栈模式，同时为保证数据完整性开启dump bool和整型的tensor以及浮点、bool和整型的标量。
+   # 在第一个迭代开始的位置开启dump和堆栈模式，同时为保证数据完整性开启dump bool和整型的tensor以及浮点、bool和整型的标量
    set_dump_switch("ON", mode="api_stack", filter_switch="OFF")
    
    ...

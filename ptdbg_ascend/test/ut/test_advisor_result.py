@@ -10,20 +10,20 @@ from ptdbg_ascend.advisor.advisor import Advisor
 
 class TestAdvisor(unittest.TestCase):
     def setUp(self) -> None:
-        os.makedirs("../test_result/output", exist_ok=True)
-        self.output_path = os.path.abspath("../test_result/output")
+        os.makedirs("test_result/output", exist_ok=True)
+        self.output_path = os.path.abspath("test_result/output")
         self.has_error = False
 
     def tearDown(self) -> None:
-        shutil.rmtree("../test_result/", ignore_errors=True)
+        shutil.rmtree("test_result/", ignore_errors=True)
 
     def test_advisor_summary_file(self):
-        advisor = Advisor("../resources/compare/compare_result_20230703104808.csv", self.output_path)
+        advisor = Advisor("resources/compare/compare_result_20230703104808.csv", self.output_path)
         advisor.analysis()
         filenames = os.listdir(self.output_path)
         for filename in filenames:
             filename = os.path.join(self.output_path, filename)
-            self.result_check("../resources/compare/advisor.txt", filename)
+            self.result_check("resources/compare/advisor.txt", filename)
         self.assertFalse(self.has_error)
 
     def result_check(self, standard_file, output_file):

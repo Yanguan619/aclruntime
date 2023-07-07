@@ -10,26 +10,26 @@ from ptdbg_ascend.common.utils import CompareException
 
 class TestAdvisor(unittest.TestCase):
     def setUp(self) -> None:
-        os.makedirs("../test_result/output", exist_ok=True)
-        self.output_path = os.path.abspath("../test_result/output")
+        os.makedirs("test_result/output", exist_ok=True)
+        self.output_path = os.path.abspath("test_result/output")
 
     def tearDown(self) -> None:
-        shutil.rmtree("../test_result/", ignore_errors=True)
+        shutil.rmtree("test_result/", ignore_errors=True)
 
     def test_analysis_when_csv_path_is_not_exist(self):
-        advisor = Advisor("../resources/compare/test.pkl", self.output_path)
+        advisor = Advisor("resources/compare/test.pkl", self.output_path)
         self.assertRaises(CompareException, advisor.analysis)
 
     def test_analysis_when_csv_path_is_invalid(self):
-        advisor = Advisor("../resources/compare/npu_test_1.pkl", self.output_path)
+        advisor = Advisor("resources/compare/npu_test_1.pkl", self.output_path)
         self.assertRaises(CompareException, advisor.analysis)
 
     def test_analysis_when_csv_is_valid(self):
-        advisor = Advisor("../resources/compare/compare_result_20230703104808.csv", self.output_path)
+        advisor = Advisor("resources/compare/compare_result_20230703104808.csv", self.output_path)
         advisor.analysis()
         filenames = os.listdir(self.output_path)
         self.assertEqual(len(filenames), 1)
 
     def test_analysis_when_accuracy_and_npu_name_not_in_csv(self):
-        advisor = Advisor("../resources/compare/compare_result_without_accuracy.csv", self.output_path)
+        advisor = Advisor("resources/compare/compare_result_without_accuracy.csv", self.output_path)
         self.assertRaises(AttributeError, advisor.analysis)

@@ -26,10 +26,10 @@ function get_train_cmd()
         --save_checkpoint_epochs=${EPOCH_SIZE} \
         --config_path=$CONFIG_PATH
         "
-        # for mindspore1.5
-        export ENV_FUSION_CLEAR=1
-        export ENV_SINGLE_EVAL=1
-        export SKT_ENABLE=1
+        # # for mindspore1.5
+        # export ENV_FUSION_CLEAR=1
+        # export ENV_SINGLE_EVAL=1
+        # export SKT_ENABLE=1
 }
 
 function get_eval_cmd()

@@ -26,8 +26,8 @@ import numpy as np
 import pandas as pd
 
 from ..advisor.advisor import Advisor
-from ..common.utils import check_file_or_directory_path, add_time_as_suffix, \
-    print_error_log, CompareException, Const, CompareConst, format_value
+from ..common.utils import check_compare_param, add_time_as_suffix, \
+    print_warn_log, print_error_log, CompareException, Const, CompareConst, format_value
 
 
 def correct_data(result):
@@ -41,7 +41,7 @@ def correct_data(result):
 def cosine_similarity(n_value, b_value):
     np.seterr(divide='ignore', invalid='ignore')
     if len(n_value) == 1:
-        return format_value(1.0), "This tensor is scalar."
+        return "unsupported", "This tensor is scalar."
     num = n_value.dot(b_value)
     a_norm = np.linalg.norm(n_value)
     b_norm = np.linalg.norm(b_value)
@@ -94,14 +94,84 @@ def get_max_relative_err(n_value, b_value):
     return format_value(max_relative_err), ""
 
 
-def check_op(npu_dict, bench_dict, shape_flag):
+def check_op(npu_dict, bench_dict, fuzzy_match):
     a_op_name = npu_dict["op_name"]
     b_op_name = bench_dict["op_name"]
-    if shape_flag:
-        return a_op_name == b_op_name and npu_dict["input_struct"] == bench_dict["input_struct"] \
-            and npu_dict["output_struct"] == bench_dict["output_struct"]
+    struct_match = check_struct_match(npu_dict, bench_dict)
+    if not fuzzy_match:
+        return a_op_name == b_op_name and struct_match
+    is_match = True
+    try:
+        is_match = fuzzy_check_op(a_op_name, b_op_name)
+    except Exception as err:
+        print_warn_log("%s and %s can not fuzzy match." % (a_op_name, b_op_name))
+        is_match = False
+    finally:
+        return is_match and struct_match
+
+
+def check_struct_match(npu_dict, bench_dict):
+    npu_struct_in = npu_dict.get("input_struct")
+    bench_struct_in = bench_dict.get("input_struct")
+    npu_struct_out = npu_dict.get("output_struct")
+    bench_struct_out = bench_dict.get("output_struct")
+    is_match = npu_struct_in == bench_struct_in and npu_struct_out == bench_struct_out
+    if not is_match:
+        if len(npu_struct_in) == 0 or len(bench_struct_in) == 0 or len(npu_struct_in) != len(bench_struct_in):
+            return False
+        struct_in_is_match = check_type_shape_match(npu_struct_in, bench_struct_in)
+        struct_out_is_match = check_type_shape_match(npu_struct_out, bench_struct_out)
+        is_match = struct_in_is_match and struct_out_is_match
+    return is_match
+
+
+def check_type_shape_match(npu_struct, bench_struct):
+    shape_type_match = False
+    for npu_type_shape, bench_type_shape in zip(npu_struct, bench_struct):
+        npu_type = npu_type_shape[0]
+        npu_shape = npu_type_shape[1]
+        bench_type = bench_type_shape[0]
+        bench_shape = bench_type_shape[1]
+        shape_match = npu_shape == bench_shape
+        type_match = npu_type == bench_type
+        if not type_match:
+            if [npu_type, bench_type] in [["torch.float16", "torch.float32"], ["torch.float32", "torch.float16"]]:
+                type_match = True
+            else:
+                type_match = False
+        shape_type_match = shape_match and type_match
+        if not shape_type_match:
+            return False
+    return shape_type_match
+
+
+def fuzzy_check_op(npu_name_list, bench_name_list):
+    if len(npu_name_list) == 0 or len(bench_name_list) == 0 or len(npu_name_list) != len(bench_name_list):
+        return False
+    is_match = True
+    for npu_name, bench_name in zip(npu_name_list, bench_name_list):
+        is_match = fuzzy_check_name(npu_name, bench_name)
+        if not is_match:
+            break
+    return is_match
+
+
+def fuzzy_check_name(npu_name, bench_name):
+    if "forward" in npu_name and "forward" in bench_name:
+        is_match = rename_api(npu_name, "forward") == rename_api(bench_name, "forward")
+    elif "backward" in npu_name and "backward" in bench_name:
+        is_match = rename_api(npu_name, "backward") == rename_api(bench_name, "backward")
     else:
-        return a_op_name == b_op_name
+        is_match = npu_name == bench_name
+    return is_match
+
+
+def rename_api(npu_name, process):
+    npu_split = npu_name.split(process)
+    torch_func_index, in_out = npu_split[0], npu_split[1]
+    torch_func_split = torch_func_index.rsplit("_", 2)
+    torch_func = str(torch_func_split[0]) + str(in_out)
+    return torch_func
 
 
 def merge_tensor(tensor_list):
@@ -158,19 +228,19 @@ def read_op(ops_queue, pkl_file_handle, stack_mode):
     return not read_err
 
 
-def match_op(npu_queue, bench_queue, shape_flag):
-    if check_op(npu_queue[-1], bench_queue[-1], shape_flag):
-        return len(npu_queue) - 1, len(bench_queue) - 1
+def match_op(npu_queue, bench_queue, fuzzy_match):
     for b_index, b_op in enumerate(bench_queue[0: -1]):
-        if check_op(npu_queue[-1], b_op, shape_flag):
+        if check_op(npu_queue[-1], b_op, fuzzy_match):
             return len(npu_queue) - 1, b_index
+    if check_op(npu_queue[-1], bench_queue[-1], fuzzy_match):
+        return len(npu_queue) - 1, len(bench_queue) - 1
     for n_index, n_op in enumerate(npu_queue[0: -1]):
-        if check_op(n_op, bench_queue[-1], shape_flag):
+        if check_op(n_op, bench_queue[-1], fuzzy_match):
             return n_index, len(bench_queue) - 1
     return -1, -1
 
 
-def get_accuracy(result, n_dict, b_dict, summery_flag):
+def get_accuracy(result, n_dict, b_dict):
     index_out = 0
     npu_stack_info = n_dict.get("stack_info", None)
     bench_stack_info = b_dict.get("stack_info", None)
@@ -188,12 +258,12 @@ def get_accuracy(result, n_dict, b_dict, summery_flag):
         accuracy_check_res = CompareConst.ACCURACY_CHECK_YES
 
         result_item = [n_name, b_name, n_struct[0], b_struct[0], n_struct[1], b_struct[1], " ", " "]
-        if summery_flag[0]:
-            summery_data = n_dict.get("summery")[index]
-            result_item.extend(summery_data)
-        if summery_flag[1]:
-            summery_data = b_dict.get("summery")[index]
-            result_item.extend(summery_data)
+
+        summery_data = n_dict.get("summery")[index]
+        result_item.extend(summery_data)
+
+        summery_data = b_dict.get("summery")[index]
+        result_item.extend(summery_data)
         result_item.append(accuracy_check_res)
         result_item.append(err_msg)
         if npu_stack_info and bench_stack_info and index == 0:
@@ -304,20 +374,31 @@ def _save_cmp_result(idx, cos_result, max_err_result, err_msg, result_path, lock
 
 
 def check_accuracy(cos, max_abs_err):
-    if cos == CompareConst.NAN:
-        return CompareConst.ACCURACY_CHECK_YES
-    if float(cos) < CompareConst.COS_THRESHOLD and float(max_abs_err) > CompareConst.MAX_ABS_ERR_THRESHOLD:
+    if cos == CompareConst.SHAPE_UNMATCH:
+        return CompareConst.ACCURACY_CHECK_UNMATCH
+    if cos == CompareConst.NAN or max_abs_err == CompareConst.NAN:
+        return CompareConst.NAN
+    try:
+        cos, max_abs_err = float(cos), float(max_abs_err)
+    except ValueError:
+        print_warn_log("Cosine or MaxAbsErr can not get float value.")
+        return CompareConst.NAN
+    if cos < CompareConst.COS_THRESHOLD and max_abs_err > CompareConst.MAX_ABS_ERR_THRESHOLD:
+        return CompareConst.ACCURACY_CHECK_NO
+    if cos < CompareConst.COS_MAX_THRESHOLD or max_abs_err > CompareConst.MAX_ABS_ERR_MAX_THRESHOLD:
         return CompareConst.ACCURACY_CHECK_NO
     return CompareConst.ACCURACY_CHECK_YES
 
 
 def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     npu_bench_name_list = op_name_mapping_dict[op_name]
+    if npu_bench_name_list[1] == CompareConst.NAN:
+        return CompareConst.NAN, CompareConst.NAN, CompareConst.NO_BENCH
     try:
         n_value = np.load(os.path.join(input_parma.get("npu_dump_data_dir"), npu_bench_name_list[0] + ".npy"))
         b_value = np.load(os.path.join(input_parma.get("bench_dump_data_dir"), npu_bench_name_list[1] + ".npy"))
     except IOError as error:
-        return " ", "", "Dump file:{} not found".format(error.filename)
+        return CompareConst.NAN, CompareConst.NAN, "Dump file:{} not found.".format(error.filename)
     if len(n_value.shape) == 0:
         scalar_cos_sim = 1
         if n_value.dtype == bool:
@@ -328,141 +409,54 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
         return scalar_cos_sim, max_abs_err, "This is type of scalar data, can not compare."
     if n_value.size == 0:
         return 1, 0, "This is empty data, can not compare."
+    if n_value.shape != b_value.shape:
+        return CompareConst.SHAPE_UNMATCH, CompareConst.SHAPE_UNMATCH, "Shape of NPU and bench Tensor do not match. Skipped."
+    if n_value.dtype != b_value.dtype:
+        print_warn_log("Dtype of NPU and bench Tensor do not match:{}".format(op_name))
+        err_msg = " Dtype of NPU and bench Tensor do not match."
+    else:
+        err_msg = ""
     n_value = n_value.reshape(-1).astype(float)
     b_value = b_value.reshape(-1).astype(float)
     err_msg = ""
     cos_sim, message = cosine_similarity(n_value, b_value)
     err_msg += message
     max_abs_err, _ = get_max_abs_err(n_value, b_value)
+    if npu_bench_name_list[0] != npu_bench_name_list[1]:
+        err_msg += " Fuzzy matching data, the comparison accuracy may be affected."
     return cos_sim, max_abs_err, err_msg
 
-
-def check_file_mode(npu_pkl, bench_pkl, stack_mode):
-    npu_pkl_name = os.path.split(npu_pkl)[-1]
-    bench_pkl_name = os.path.split(bench_pkl)[-1]
-
-    if not npu_pkl_name.startswith("api_stack") and not bench_pkl_name.startswith("api_stack"):
-        if stack_mode:
-            print_error_log("The current file does not contain stack information, please turn off the stack_mode")
-            raise CompareException(CompareException.INVALID_COMPARE_MODE)
-    elif npu_pkl_name.startswith("api_stack") and bench_pkl_name.startswith("api_stack"):
-        if not stack_mode:
-            print_error_log("The current file contains stack information, please turn on the stack_mode")
-            raise CompareException(CompareException.INVALID_COMPARE_MODE)
-    else:
-        print_error_log("The dump mode of the two files is not same, please check the dump files")
-        raise CompareException(CompareException.INVALID_COMPARE_MODE)
-
-
-
-def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
-    def check_and_return_dir_contents(dump_dir, prefix):
-        contents = os.listdir(dump_dir)
-        pattern = re.compile(f'^{prefix}[0-9]+$')
-        for name in contents:
-            match = pattern.match(name)
-            if match is None:
-                msg = (f"dump_dir contains '{name}'. Expected '{prefix}'. This name is not in the format of dump output. "
-                        f"Please check and delete irrelevant files in {dump_dir} and try again.")
-                print_error_log(msg)
-                raise CompareException(CompareException.INVALID_PATH_ERROR)
-        return contents
-
-    def extract_pkl_and_data_dir(dirname):
-        pkl_path, dump_data_dir, pkl_name, dump_data_dirname = '', '', '', ''
-        for fname in os.listdir(dirname):
-            full_path = os.path.join(dirname, fname)
-            if os.path.isdir(full_path):
-                dump_data_dir = full_path
-                dump_data_dirname = fname
-            else:
-                pkl_path = full_path
-                pkl_name = fname
-        # Provide robustness on invalid directory inputs
-        if pkl_path == '':
-            print_error_log(f'No file is found in dump dir {dirname}. ')
-            raise CompareException(CompareException.NO_DUMP_FILE_ERROR)
-        if dump_data_dir == '':
-            print_error_log(f'No directory is found in dump dir {dirname}. ')
-            raise CompareException(CompareException.NO_DUMP_FILE_ERROR)
-        name_body, ext = os.path.splitext(pkl_name)
-        pattern = re.compile(f'{name_body}$')
-        match = pattern.match(dump_data_dirname)
-        if match is None:
-            print_error_log('The names of pkl and directory do not match! '
-                f'Please check the names and remove irrelevant files in {dirname}. ')
-            raise CompareException(CompareException.INVALID_FILE_ERROR)
-        return pkl_path, dump_data_dir
-
-
-    # get the ranks and match by order
-    npu_ranks = sorted(check_and_return_dir_contents(npu_dump_dir, 'rank'))
-    bench_ranks = sorted(check_and_return_dir_contents(bench_dump_dir, 'rank'))
-    if len(npu_ranks) != len(bench_ranks):
-        print_error_log('The number of ranks in the two runs are different. '
-            'Unable to match the ranks. Please use another folder to compare '
-            'or use compare() api and manually match the ranks.')
-        raise CompareException(CompareException.INVALID_PATH_ERROR)
-    for nr, br in zip(npu_ranks, bench_ranks):
-        n_dir = os.path.join(npu_dump_dir, nr)
-        b_dir = os.path.join(bench_dump_dir, br)
-        npu_pkl_path, npu_dump_data_dir = extract_pkl_and_data_dir(n_dir)
-        bench_pkl_path, bench_dump_data_dir = extract_pkl_and_data_dir(b_dir)
-        dump_result_param = {
-            'npu_pkl_path': npu_pkl_path,
-            'bench_pkl_path': bench_pkl_path,
-            'npu_dump_data_dir': npu_dump_data_dir,
-            'bench_dump_data_dir': bench_dump_data_dir,
-            'is_print_compare_log': True
-        }
-        compare(dump_result_param, output_path, suffix=f'_{nr}-{br}', **kwargs)
-
-
-def check_compare_param(input_parma, output_path, shape_flag, stack_mode, auto_analyze, suffix):
-    if not (isinstance(input_parma, dict) and isinstance(output_path, str) and
-            isinstance(shape_flag, bool) and isinstance(stack_mode, bool) and
-            isinstance(suffix, str)):
-        print_error_log("Invalid input parameters")
+def compare(input_parma, output_path, **kwargs):
+    if kwargs.get('suffix'):
+        print_error_log("Argument 'suffix' is not supported for compare.")
         raise CompareException(CompareException.INVALID_PARAM_ERROR)
-    if not isinstance(auto_analyze, bool):
-        print_error_log("Params auto_analyze only support True or False.")
-        raise CompareException(CompareException.INVALID_PARAM_ERROR)
-
-
-def compare(input_parma, output_path, shape_flag=True, stack_mode=False, auto_analyze=True, suffix=''):
     try:
-        check_compare_param(input_parma, output_path, shape_flag, stack_mode, auto_analyze, suffix)
-        check_file_or_directory_path(input_parma.get("npu_pkl_path"), False)
-        check_file_or_directory_path(input_parma.get("bench_pkl_path"), False)
-        check_file_or_directory_path(input_parma.get("npu_dump_data_dir"), True)
-        check_file_or_directory_path(input_parma.get("bench_dump_data_dir"), True)
-        check_file_or_directory_path(output_path, True)
-        npu_pkl = open(input_parma.get("npu_pkl_path"), "r")
-        bench_pkl = open(input_parma.get("bench_pkl_path"), "r")
-        check_file_mode(npu_pkl.name, bench_pkl.name, stack_mode)
-        npu_summary = _get_summery_mode(npu_pkl, input_parma.get("npu_pkl_path"))
-        bench_summary = _get_summery_mode(bench_pkl, input_parma.get("bench_pkl_path"))
-        result = compare_process(npu_pkl, bench_pkl, [npu_summary, bench_summary], shape_flag, stack_mode)
-        npu_pkl.close()
-        bench_pkl.close()
-
-        columns = [CompareConst.NPU_NAME, CompareConst.BENCH_NAME, CompareConst.NPU_DTYPE, CompareConst.BENCH_DTYPE,
-                   CompareConst.NPU_SHAPE, CompareConst.BENCH_SHAPE, CompareConst.COSINE, CompareConst.MAX_ABS_ERR]
-        if npu_summary:
-            columns.extend([CompareConst.NPU_MAX, CompareConst.NPU_MIN, CompareConst.NPU_MEAN])
-        if bench_summary:
-            columns.extend([CompareConst.BENCH_MAX, CompareConst.BENCH_MIN, CompareConst.BENCH_MEAN])
-        columns.extend([CompareConst.ACCURACY, CompareConst.ERROR_MESSAGE])
-        if stack_mode:
-            columns.extend([CompareConst.STACK])
-        result_df = pd.DataFrame(result, columns=columns)
-
-        file_name = add_time_as_suffix("compare_result" + suffix)
-        file_path = os.path.join(os.path.realpath(output_path), file_name)
-        result_df.to_csv(file_path, index=False)
+        npu_pkl, bench_pkl = check_compare_param(input_parma, output_path, **kwargs)
     except CompareException as error:
-        print_error_log('Compare failed, Please check it and do it again!')
+        print_error_log('Compare failed. Please check the arguments and do it again!')
         sys.exit(error.code)
+    compare_core(input_parma, output_path, npu_pkl, bench_pkl, **kwargs)
+
+
+def compare_core(input_parma, output_path, npu_pkl, bench_pkl, stack_mode=False, auto_analyze=True,
+                 suffix='', fuzzy_match=False):
+    result = compare_process(npu_pkl, bench_pkl, stack_mode, fuzzy_match)
+    npu_pkl.close()
+    bench_pkl.close()
+
+    columns = [CompareConst.NPU_NAME, CompareConst.BENCH_NAME, CompareConst.NPU_DTYPE, CompareConst.BENCH_DTYPE,
+                CompareConst.NPU_SHAPE, CompareConst.BENCH_SHAPE, CompareConst.COSINE, CompareConst.MAX_ABS_ERR]
+    columns.extend([CompareConst.NPU_MAX, CompareConst.NPU_MIN, CompareConst.NPU_MEAN])
+    columns.extend([CompareConst.BENCH_MAX, CompareConst.BENCH_MIN, CompareConst.BENCH_MEAN])
+    columns.extend([CompareConst.ACCURACY, CompareConst.ERROR_MESSAGE])
+    if stack_mode:
+        columns.extend([CompareConst.STACK])
+    result_df = pd.DataFrame(result, columns=columns)
+
+    file_name = add_time_as_suffix("compare_result" + suffix)
+    file_path = os.path.join(os.path.realpath(output_path), file_name)
+    result_df.to_csv(file_path, index=False)
+
     _do_multi_process(input_parma, file_path)
     if auto_analyze:
         advisor = Advisor(file_path, output_path)
@@ -502,7 +496,9 @@ def parse(pkl_file, module_name_prefix):
     pkl_handle.close()
 
 
-def compare_process(npu_pkl_handle, bench_pkl_handle, summary_flag, shape_flag, stack_mode):
+def compare_process(npu_pkl_handle, bench_pkl_handle, stack_mode, fuzzy_match):
+    if fuzzy_match:
+        print_warn_log("This task uses fuzzy matching, which may affect the accuracy of the comparison.")
     npu_ops_queue = []
     bench_ops_queue = []
     result = []
@@ -512,25 +508,47 @@ def compare_process(npu_pkl_handle, bench_pkl_handle, summary_flag, shape_flag, 
         if (not npu_file_flag and not bench_file_flag) \
                 or (len(npu_ops_queue) == 0 or len(bench_ops_queue) == 0):
             break
-        n_match_point, b_match_point = match_op(npu_ops_queue, bench_ops_queue, shape_flag)
+        n_match_point, b_match_point = match_op(npu_ops_queue, bench_ops_queue, fuzzy_match)
         if n_match_point == -1 and b_match_point == -1:
             continue
         n_match_data = npu_ops_queue[n_match_point]
         b_match_data = bench_ops_queue[b_match_point]
-        get_accuracy(result, n_match_data, b_match_data, summary_flag)
+        un_match_data = npu_ops_queue[0: n_match_point]
+        for npu_data in un_match_data:
+            get_un_match_accuracy(result, npu_data)
+        get_accuracy(result, n_match_data, b_match_data)
         del npu_ops_queue[0: n_match_point + 1]
         del bench_ops_queue[0: b_match_point + 1]
+    if npu_ops_queue:
+        for npu_data in npu_ops_queue:
+            get_un_match_accuracy(result, npu_data)
     return result
 
 
-def _get_summery_mode(pkl_file_handle, file_name):
-    tensor_line = pkl_file_handle.readline()
-    if len(tensor_line) == 0:
-        print_error_log("dump file {} have empty line!".format(file_name))
-        raise CompareException(CompareException.INVALID_DUMP_FILE)
-    tensor_data = json.loads(tensor_line)
-    pkl_file_handle.seek(0, 0)
-    return isinstance(tensor_data[1], int) and tensor_data[1] <= Const.DUMP_RATIO_MAX
+def get_un_match_accuracy(result, n_dict):
+    index_out = 0
+    npu_stack_info = n_dict.get("stack_info", None)
+    bench_name, bench_type, bench_shape = CompareConst.NAN, CompareConst.NAN, CompareConst.NAN
+    for index, n_name in enumerate(n_dict["op_name"]):
+        if n_name.find("input") != -1:
+            n_struct = n_dict["input_struct"][index]
+        else:
+            n_struct = n_dict["output_struct"][index_out]
+            index_out += 1
+        err_msg = CompareConst.NO_BENCH
+        accuracy_check_res = CompareConst.NAN
+
+        result_item = [n_name, bench_name, n_struct[0], bench_type, n_struct[1], bench_shape, " ", " "]
+        summery_data = n_dict.get("summery")[index]
+        result_item.extend(summery_data)
+        summery_data = [CompareConst.NAN]*3
+        result_item.extend(summery_data)
+        result_item.append(accuracy_check_res)
+        result_item.append(err_msg)
+        if npu_stack_info and index == 0:
+            result_item.extend(npu_stack_info)
+        result.append(result_item)
+
 
 
 if __name__ == "__main__":

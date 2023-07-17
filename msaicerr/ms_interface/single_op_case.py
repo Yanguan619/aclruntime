@@ -11,6 +11,7 @@ import re
 import os
 from time import sleep
 import time
+import chardet
 import numpy as np
 from ms_interface import utils
 from ms_interface.constant import Constant
@@ -63,12 +64,19 @@ class SingleOpCase:
     def generate_config(self):
         config_file_list = []
         kernel_path = self.collection.collect_kernel_path
+
+        encoding = chardet.detect(self.collection.tiling_list[1])["encoding"]
+        if encoding:
+          tiling_data = self.collection.tiling_list[1].decode(encoding)
+        else:
+          tiling_data = ""
+
         for kernel_name in self.collection.kernel_name_list:
             data = {
                 "cce_file": self.get_cce_file(),
                 "bin_path": os.path.join(kernel_path, f"{kernel_name}.o"),
                 "json_path": os.path.join(kernel_path, f"{kernel_name}.json"),
-                "tiling_data": self.collection.tiling_list[1].decode("utf-8"),
+                "tiling_data": tiling_data,
                 "tiling_key": self.collection.tiling_list[0],
                 "block_dim": self.collection.tiling_list[2],
                 "input_file_list": self.collection.input_list,
@@ -80,14 +88,23 @@ class SingleOpCase:
 
     @staticmethod
     def get_soc_version_from_cce(cce_file):
-        with open(cce_file, 'r') as f:
-            content = f.read()
-        soc_version_ret = re.findall(r'//.*?(Ascend.*?)"', content)
-        if soc_version_ret:
-            utils.print_info_log(f"get soc_version {soc_version_ret[0]} from cce file {cce_file}")
-            return soc_version_ret[0]
-        else:
+        try:
+            with open(cce_file, 'r') as f:
+                content = f.read()
+            soc_version_ret = re.findall(r'//.*?(Ascend.*?)"', content)
+            if soc_version_ret:
+                utils.print_info_log(f"get soc_version {soc_version_ret[0]} from cce file {cce_file}")
+                if soc_version_ret[0] == "Ascend910B":
+                    return "Ascend910B2"
+                elif  soc_version_ret[0] == "Ascend310B":
+                    return "Ascend310B1"
+                return soc_version_ret[0]
+            else:
+                utils.print_warn_log('Can not get soc_version from cce file {cce_file}')
+                return "Ascend310"
+        except Exception as e:
             utils.print_warn_log('Can not get soc_version from cce file {cce_file}')
+            utils.global_result = False
             return "Ascend310"
 
     def get_cce_file(self):
@@ -196,6 +213,7 @@ class SingleOpCase:
         date_string = time.strftime("%Y%m%d%H%M%S", time.localtime(int(time.time())))
         single_op_log_path =  f"single_op_log_{date_string}"
         os.environ['ASCEND_PROCESS_LOG_PATH'] = single_op_log_path
+        os.environ['ASCEND_SLOG_PRINT_TO_STDOUT'] = "0"
         utils.print_info_log(f"The single_op_log_path is {single_op_log_path}")
         soc_version = SingleOpCase.get_soc_version_from_cce(configs.get("cce_file"))
         SingleOpCase.run_dirty_ub(soc_version)

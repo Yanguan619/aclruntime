@@ -74,7 +74,7 @@ def estimator_dump_config(action=None):
     return adapter.estimator_dump_config(action)
 
 
-def session_dump_config(session_config=None, action=None):
+def session_dump_config(session_config=None, action=None, dump_layer=None):
     """
     In TF session mode. set dump_config in session_config.
     exp. config = session_dump_config()
@@ -86,16 +86,17 @@ def session_dump_config(session_config=None, action=None):
     :param action: if set action, no need to start app with cli wrapper
     :return: config_pb2.ConfigProto
     """
-    return adapter.session_dump_config(session_config, action)
+    return adapter.session_dump_config(session_config, action, dump_layer)
 
 
-def update_custom_op(custom_op, action=None):
+def update_custom_op(custom_op, action=None, dump_layer=None):
     """Update custom_op
     :param custom_op: origin custom op
     :param action: dump | overflow | fusion_off | fusion_switch
+    :param dump_layer: layers to dump, split by space
     :return:
     """
-    return adapter.update_custom_op(custom_op, action)
+    return adapter.update_custom_op(custom_op, action, dump_layer)
 
 
 class NpuPrintLossScaleCallBack(tf.keras.callbacks.Callback):

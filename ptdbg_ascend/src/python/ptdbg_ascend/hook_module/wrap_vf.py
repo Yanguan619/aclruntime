@@ -20,7 +20,7 @@ import os
 import torch
 import yaml
 
-from .module import HOOKModule
+from .hook_module import HOOKModule
 from ..common.utils import torch_device_guard
 
 cur_path = os.path.dirname(os.path.realpath(__file__))

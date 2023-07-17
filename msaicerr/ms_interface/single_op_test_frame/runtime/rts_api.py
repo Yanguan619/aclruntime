@@ -144,6 +144,8 @@ class AscendRTSApi:
                 runtime_so_path_tmp = os.path.join(ld_lib_path, "libruntime.so")
                 if os.path.exists(runtime_so_path_tmp):
                     return runtime_so_path_tmp
+                elif os.path.exists("/usr/local/Ascend/latest/runtime/lib64/libruntime.so"):
+                    return "/usr/local/Ascend/latest/runtime/lib64/libruntime.so"
             return None
 
         rts_so_path = _find_runtime_so()

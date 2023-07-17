@@ -28,6 +28,7 @@ class NpuDumpFileDesc(FileDesc):
         self.task_id = task_id
         stream_id = 0 if stream_id is None else int(stream_id)
         self.stream_id = stream_id
+        self.idx = dir_path.split(os.sep)[-1]
 
 
 class DumpDecodeFileDesc(NpuDumpFileDesc):

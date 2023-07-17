@@ -104,8 +104,8 @@ class NpuDump(object):
         for npu_dump_file in npu_dump_files:
             if str(npu_dump_file.file_name).endswith(Constant.Suffix.CSV):
                 detail = util.read_csv(npu_dump_file.path)
-                input_txt.append(' -[%s]%s' % (npu_dump_file.idx, npu_dump_file.file_name))
-                output_txt.append(' -[%s]%s' % (npu_dump_file.idx, npu_dump_file.file_name))
+                input_txt.append(' -[%d]%s' % (npu_dump_file.idx, npu_dump_file.file_name))
+                output_txt.append(' -[%d]%s' % (npu_dump_file.idx, npu_dump_file.file_name))
                 for item in detail:
                     item_txt = '[Shape: %s] [Dtype: %s] [Max: %s] [Min: %s] [Mean: %s]' % (item[5], item[3], item[6], item[7], item[8])
                     if item[0] == 'Input':

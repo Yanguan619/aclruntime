@@ -20,7 +20,7 @@ from pathlib import Path
 import stat
 import os
 
-VERSION = '2.2'
+VERSION = '2.0'
 
 def generate_ptdbg_ascend_version():
       ptdbg_ascend_root = Path(__file__).parent
@@ -39,6 +39,12 @@ setuptools.setup(name='ptdbg_ascend',
       description='This is a pytorch precision comparison tools',
       long_description='This is a pytorch precision comparison tools, include overflow detect tool',
       packages=setuptools.find_packages(),
+      install_requires = [
+            "wheel",
+            "numpy",
+            "pandas >= 1.3.5",
+            "pyyaml"
+      ],
       include_package_data=True,
       ext_modules=[],
       zip_safe=False)

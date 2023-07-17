@@ -16,21 +16,24 @@
 """
 import collections
 import os
+import random
 import re
 import stat
 import subprocess
 import sys
 import time
 from datetime import datetime, timezone
+from functools import wraps
 
 import numpy as np
 import torch
+
 try:
     import torch_npu
 except ImportError:
-    is_gpu=True
+    is_gpu = True
 else:
-    is_gpu=False
+    is_gpu = False
 
 if not is_gpu:
     from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
@@ -56,6 +59,8 @@ class Const:
     SUPPORT_DUMP_MODE = ['api', 'acl']
     ON = 'ON'
     OFF = 'OFF'
+    BACKWARD = 'backward'
+    FORWARD = 'forward'
 
     # dump mode
     ALL = "all"
@@ -97,12 +102,20 @@ class CompareConst:
 
     # compare result data
     NAN = 'Nan'
+    SHAPE_UNMATCH = 'shape unmatched'
+    DTYPE_UNMATCH = 'dtype unmatched'
 
     # accuracy standards
     COS_THRESHOLD = 0.99
     MAX_ABS_ERR_THRESHOLD = 0.001
+    COS_MAX_THRESHOLD = 0.9
+    MAX_ABS_ERR_MAX_THRESHOLD = 1
     ACCURACY_CHECK_YES = "Yes"
     ACCURACY_CHECK_NO = "No"
+    ACCURACY_CHECK_UNMATCH = "Unmatched"
+
+    # error message
+    NO_BENCH = "No bench data matched."
 
 
 class VersionCheck:
@@ -152,6 +165,8 @@ class CompareException(Exception):
     def __str__(self):
         return self.error_info
 
+class DumpException(CompareException):
+    pass
 
 def _print_log(level, msg):
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))
@@ -197,6 +212,28 @@ def check_mode_valid(mode):
         raise CompareException(CompareException.INVALID_DUMP_MODE, msg)
 
 
+def check_compare_param(input_parma, output_path, stack_mode=False, auto_analyze=True,
+                        fuzzy_match=False):  # 添加默认值来让不传参时能通过参数检查
+    if not (isinstance(input_parma, dict) and isinstance(output_path, str)
+            and isinstance(stack_mode, bool) and isinstance(fuzzy_match, bool)):
+        print_error_log("Invalid input parameters")
+        raise CompareException(CompareException.INVALID_PARAM_ERROR)
+    if not isinstance(auto_analyze, bool):
+        print_error_log("Params auto_analyze only support True or False.")
+        raise CompareException(CompareException.INVALID_PARAM_ERROR)
+    check_file_or_directory_path(input_parma.get("npu_pkl_path"), False)
+    check_file_or_directory_path(input_parma.get("bench_pkl_path"), False)
+    check_file_or_directory_path(input_parma.get("npu_dump_data_dir"), True)
+    check_file_or_directory_path(input_parma.get("bench_dump_data_dir"), True)
+    check_file_or_directory_path(output_path, True)
+    npu_pkl = open(input_parma.get("npu_pkl_path"), "r")
+    bench_pkl = open(input_parma.get("bench_pkl_path"), "r")
+    check_file_mode(npu_pkl.name, bench_pkl.name, stack_mode)
+    _check_pkl(npu_pkl, input_parma.get("npu_pkl_path"))
+    _check_pkl(bench_pkl, input_parma.get("bench_pkl_path"))
+    return npu_pkl, bench_pkl
+
+
 def check_file_or_directory_path(path, isdir=False):
     """
     Function Description:
@@ -229,6 +266,30 @@ def check_file_or_directory_path(path, isdir=False):
         print_error_log(
             'The path {} does not have permission to read. Please check the path permission'.format(path))
         raise CompareException(CompareException.INVALID_PATH_ERROR)
+
+def _check_pkl(pkl_file_handle, file_name):
+    tensor_line = pkl_file_handle.readline()
+    if len(tensor_line) == 0:
+        print_error_log("dump file {} have empty line!".format(file_name))
+        raise CompareException(CompareException.INVALID_DUMP_FILE)
+    pkl_file_handle.seek(0, 0)
+
+
+def check_file_mode(npu_pkl, bench_pkl, stack_mode):
+    npu_pkl_name = os.path.split(npu_pkl)[-1]
+    bench_pkl_name = os.path.split(bench_pkl)[-1]
+
+    if not npu_pkl_name.startswith("api_stack") and not bench_pkl_name.startswith("api_stack"):
+        if stack_mode:
+            print_error_log("The current file does not contain stack information, please turn off the stack_mode")
+            raise CompareException(CompareException.INVALID_COMPARE_MODE)
+    elif npu_pkl_name.startswith("api_stack") and bench_pkl_name.startswith("api_stack"):
+        if not stack_mode:
+            print_error_log("The current file contains stack information, please turn on the stack_mode")
+            raise CompareException(CompareException.INVALID_COMPARE_MODE)
+    else:
+        print_error_log("The dump mode of the two files is not same, please check the dump files")
+        raise CompareException(CompareException.INVALID_COMPARE_MODE)
 
 
 def check_file_size(input_file, max_size):
@@ -271,10 +332,12 @@ def get_api_name_from_matcher(name):
     return match.group(1) if match else ""
 
 
-def modify_dump_path(dump_path):
+def modify_dump_path(dump_path, mode):
+    if mode == Const.ALL:
+        return dump_path
     file_name = os.path.split(dump_path)
-    stack_file_name = "api_stack_" + file_name[-1]
-    return os.path.join(file_name[0], stack_file_name)
+    mode_file_name = mode + "_" + file_name[-1]
+    return os.path.join(file_name[0], mode_file_name)
 
 
 def create_directory(dir_path):
@@ -354,7 +417,7 @@ def parse_value_by_comma(value):
 def get_data_len_by_shape(shape):
     data_len = 1
     for item in shape:
-        if item is -1:
+        if item == -1:
             print_error_log("please check your input shape, one dim in shape is -1.")
             return -1
         data_len = data_len * item
@@ -382,3 +445,65 @@ def torch_device_guard(func):
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return wrapper
+
+
+def seed_all(seed=1234, mode=False):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.use_deterministic_algorithms(mode)
+    if is_gpu:
+        torch.cuda.manual_seed_all(seed)
+        torch.cuda.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.enable = False
+        torch.backends.cudnn.benchmark = False
+    else:
+        torch_npu.npu.manual_seed_all(seed)
+        torch_npu.npu.manual_seed(seed)
+
+
+def get_process_rank(model):
+    print_info_log("Rank id is not provided. Trying to get the rank id of the model.")
+    try:
+        device = next(model.parameters()).device
+    except StopIteration:
+        print_warn_log('There is no parameter in the model. Fail to get rank id.')
+        return 0, False
+    if device.type == 'cpu':
+        print_warn_log("Warning: the debugger is unable to get the rank id. "
+            "This may cause the dumpped data to be corrupted in the "
+            "case of distributed training. (You may ignore this if you are using only one card.) "
+            "Transfer the model to npu or gpu before register_hook() to avoid this warning.")
+        return 0, False
+    else:
+        return device.index, True
+
+
+def parameter_adapter(func):
+
+    @wraps(func)
+    def inner(self, *args, **kwargs):
+        if self.op_name_ == "__getitem__" and len(args) > 1 and isinstance(args[1], torch.Tensor):
+            input = args[0]
+            indices = args[1]
+            if indices.dtype == torch.uint8:
+                indices = indices.bool()
+            if indices.dtype == torch.bool:
+                if indices.shape == input.shape:
+                    return getattr(torch._C._VariableFunctionsClass, "masked_select")(input, indices)
+                else:
+                    indices = getattr(torch._C._VariableFunctionsClass, "nonzero")(indices, as_tuple=True)
+                    return getattr(torch._C._TensorBase, "__getitem__")(input, indices)
+            elif indices.dtype != torch.bool:
+                if len(indices.shape) == 1:
+                    return func(self, input, indices.tolist())
+                elif len(indices.shape) == 2:
+                    result = [func(self, input, index) for index in indices.tolist()]
+                    return getattr(torch._C._VariableFunctionsClass, "stack")(result, 0)
+                else:
+                    res = [input[tensor_index] for tensor_index in indices]
+                    return getattr(torch._C._VariableFunctionsClass, "stack")(res, 0)
+        return func(self, *args, **kwargs)
+    return inner

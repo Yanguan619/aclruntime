@@ -12,11 +12,22 @@ import os
 import time
 import argparse
 import tarfile
+import traceback
 from ms_interface import utils
 from ms_interface.collection import Collection
 from ms_interface.constant import Constant
 from ms_interface.aicore_error_parser import AicoreErrorParser
 
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    utils.global_result = False
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    print('Uncaught exception:')
+    traceback.print_exception(exc_type, exc_value, exc_traceback)
+
+sys.excepthook = handle_exception
 
 def extract_tar(tar_file, path):
     tar = tarfile.open(tar_file, "r")

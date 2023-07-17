@@ -20,19 +20,22 @@ import os
 
 import torch
 
-from . import wrap_tensor, wrap_torch, wrap_functional, wrap_vf
-from .module import HOOKModule
-from ..common.utils import check_file_or_directory_path, add_time_as_suffix, \
-    print_error_log, CompareException, Const, format_value, print_info_log, print_warn_log
-from .hooks import make_dump_dirs, get_process_rank 
+from . import wrap_torch, wrap_functional, wrap_tensor, wrap_vf
+from .hook_module import HOOKModule
+from ..common.utils import check_file_or_directory_path, print_error_log, CompareException, Const, \
+    print_info_log, print_warn_log, get_process_rank
+from ..dump.utils import make_dump_dirs
 
 try:
     import torch_npu
-    from . import wrap_npu_custom
 except ImportError:
-    is_gpu=True
+    is_gpu = True
 else:
-    is_gpu=False
+    is_gpu = False
+    from . import wrap_npu_custom
+
+make_dir_flag = True
+
 
 def initialize_hook(hook):
     wrap_tensor.wrap_tensor_ops_and_bind(hook)
@@ -63,6 +66,7 @@ def initialize_hook(hook):
 
 
 def register_hook(model, hook, **kwargs):
+    global make_dir_flag
     assert hasattr(model, "named_modules"), "Please register hooks to nn.Module."
     print_info_log("Please disable the shuffle function of the dataset "
                    "and the dropout function of the model "
@@ -73,9 +77,12 @@ def register_hook(model, hook, **kwargs):
 
     pid = os.getpid()
     rank = kwargs.get('rank')
+    need_clear = True
     if rank is None:
-        rank = get_process_rank(model)
-    make_dump_dirs(rank, pid)
+        rank, need_clear = get_process_rank(model)
+    if make_dir_flag:
+        make_dump_dirs(rank)
+        make_dir_flag = False
     hook_name = hook.__name__
 
     if "overflow_check" in hook_name and not is_gpu:
@@ -87,7 +94,9 @@ def register_hook(model, hook, **kwargs):
                            "the overflow detection function on milan platform maybe not work! "
                            "please check the version of software torch_npu.")
         # In NPU scene, clear the overflow flag before overflow detection
-        torch_npu._C._clear_overflow_npu()
+        if need_clear:
+            torch_npu.npu.set_device(rank)
+            torch_npu._C._clear_overflow_npu()
 
     print_info_log("Start mounting the {} hook function to the model.".format(hook_name))
     hook = functools.partial(hook, dump_step=dump_step, overflow_nums=overflow_nums, pid=pid,

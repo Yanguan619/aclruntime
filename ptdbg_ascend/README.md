@@ -1,5 +1,38 @@
 # **PyTorch精度工具**
 
+## 快速安装
+
+进行PyTorch精度比对需要将ptdbg_ascend精度工具分别安装在CPU或GPU环境以及NPU环境下。
+
+1. whl包获取。
+
+   请通过下表链接下载ptdbg_ascend精度工具whl包，推荐下载最新版本。
+
+   | ptdbg_ascend版本 | 发布日期  | 支持PyTorch版本  | 下载链接                                                     | 参考指南                                                     |
+   | ---------------- | --------- | ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+   | 2.0              | 2023-7-07 | 1.8.1/1.11.0/2.0 | [ptdbg_ascend-2.0-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/2.0/ptdbg_ascend-2.0-py3-none-any.whl) | [ptdbg_ascend精度工具功能说明_v2.0](doc/ptdbg_ascend精度工具功能说明_v2.0.md) |
+   | 1.0              | 2023-3-30 | 1.8.1/1.11.0     | [ptdbg_ascend-1.0-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/1.0/ptdbg_ascend-1.0-py3-none-any.whl) | [ptdbg_ascend精度工具功能说明_v1.0](https://gitee.com/ascend/tools/blob/master/ptdbg_ascend/doc/ptdbg_ascend%E7%B2%BE%E5%BA%A6%E5%B7%A5%E5%85%B7%E5%8A%9F%E8%83%BD%E8%AF%B4%E6%98%8E_v1.0.md) |
+
+2. whl包安装。
+
+   执行如下命令进行安装。
+
+   ```bash
+   pip3 install ./ptdbg_ascend-{version}-py3-none-any.whl
+   ```
+
+   若为覆盖安装，请在命令行末尾增加“--force-reinstall”参数强制安装，例如：
+
+   ```bash
+   pip3 install ./ptdbg_ascend-{version}-py3-none-any.whl --force-reinstall
+   ```
+
+   提示如下信息则表示安装成功。
+
+   ```bash
+   Successfully installed ptdbg_ascend-{version}
+   ```
+
 ## **PyTorch精度工具简介**
 
 ### 概述
@@ -63,7 +96,7 @@ ptdbg_ascend精度工具的安装方式包括：**下载whl包安装**和**源�
 
    | ptdbg_ascend版本 | 发布日期  | 支持PyTorch版本  | 下载链接                                                     | 参考指南                                                     |
    | ---------------- | --------- | ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-   | 2.0            | 2023-7-07 | 1.8.1/1.11.0/2.0 | [ptdbg_ascend-2.0-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/2.0/ptdbg_ascend-2.0-py3-none-any.whl) | [ptdbg_ascend精度工具功能说明](doc/ptdbg_ascend精度工具功能说明.md) |
+   | 2.0              | 2023-7-07 | 1.8.1/1.11.0/2.0 | [ptdbg_ascend-2.0-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/2.0/ptdbg_ascend-2.0-py3-none-any.whl) | [ptdbg_ascend精度工具功能说明_v2.0](doc/ptdbg_ascend精度工具功能说明_v2.0.md) |
    | 1.0              | 2023-3-30 | 1.8.1/1.11.0     | [ptdbg_ascend-1.0-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/1.0/ptdbg_ascend-1.0-py3-none-any.whl) | [ptdbg_ascend精度工具功能说明_v1.0](https://gitee.com/ascend/tools/blob/master/ptdbg_ascend/doc/ptdbg_ascend%E7%B2%BE%E5%BA%A6%E5%B7%A5%E5%85%B7%E5%8A%9F%E8%83%BD%E8%AF%B4%E6%98%8E_v1.0.md) |
 
    

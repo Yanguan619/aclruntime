@@ -595,8 +595,8 @@ SingleOpCase.run(config)"""
         args_exec_rets = utils.get_inquire_result(args_exec_cmd, args_exec_regexp)
 
         if not args_exec_rets:
-            args_exec_cmd = ['grep', key_words, '-nr', self.collection.collect_plog_path]
-            args_exec_regexp = r"args after execute:([x0-9a-fA-F,\s]+)"
+            args_exec_cmd = ['grep', key_words, '-Enr', self.collection.collect_plog_path]
+            args_exec_regexp = r"args.*?after execute:([x0-9a-fA-F,\s]+)"
             args_exec_rets = utils.get_inquire_result(args_exec_cmd, args_exec_regexp)
 
         if not args_exec_rets:
@@ -620,7 +620,7 @@ SingleOpCase.run(config)"""
         return args_exec_result
 
     def _get_args_after_exc(self: any) -> list:
-        after_key = '\[AIC_INFO\] args after execute'
+        after_key = '\[AIC_INFO\] args.*after execute'
         return self._get_args_from_info(after_key)
 
     def _get_args_before_exc(self: any) -> list:

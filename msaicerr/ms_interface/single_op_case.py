@@ -24,43 +24,6 @@ class SingleOpCase:
     def __init__(self, collection) -> None:
         self.collection = collection
 
-    @staticmethod
-    def _check_file_content(kernel_name, content):
-        error_strings = [
-            "there is an aivec error exception",
-            "there is an aicore error exception",
-            "aicore exception"
-        ]
-        for s in error_strings:
-            if s in content and kernel_name in content:
-                return True
-        return False
- 
-    @staticmethod
-    def _wait_for_log_stabilization(log_path):
-        log_size = os.path.getsize(log_path)
-        while True:
-            sleep(0.2)
-            current_log_size = os.path.getsize(log_path)
-            if current_log_size == log_size:
-                break
-            log_size = current_log_size
-
-    @staticmethod
-    def search_aicerr_log(kernel_name, path):
-        for root, _, files in os.walk(path):
-            for file in files:
-                if not file.endswith(".log"):
-                    continue
-                log_path = os.path.abspath(os.path.join(root, file))
-                utils.print_info_log(f"The find single op log {log_path}")
-                SingleOpCase._wait_for_log_stabilization(log_path)
-                with open(log_path, "r") as f:
-                    content = f.read()
-                if SingleOpCase._check_file_content(kernel_name, content):
-                    return True
-        return False
-
     def generate_config(self):
         config_file_list = []
         kernel_path = self.collection.collect_kernel_path
@@ -209,14 +172,6 @@ class SingleOpCase:
 
     @staticmethod
     def run(configs: dict):
-        # set single op log path
-        date_string = time.strftime("%Y%m%d%H%M%S", time.localtime(int(time.time())))
-        single_op_log_path =  f"single_op_log_{date_string}"
-        os.environ['ASCEND_PROCESS_LOG_PATH'] = single_op_log_path
-        os.environ['ASCEND_SLOG_PRINT_TO_STDOUT'] = "0"
-        utils.print_info_log(f"The single_op_log_path is {single_op_log_path}")
         soc_version = SingleOpCase.get_soc_version_from_cce(configs.get("cce_file"))
         SingleOpCase.run_dirty_ub(soc_version)
         SingleOpCase.run_kernel(configs)
-
-        return not SingleOpCase.search_aicerr_log(configs.get("kernel_name"), os.path.join(single_op_log_path, "debug"))

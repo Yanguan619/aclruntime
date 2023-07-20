@@ -400,15 +400,13 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     except IOError as error:
         return CompareConst.NAN, CompareConst.NAN, "Dump file:{} not found.".format(error.filename)
     if len(n_value.shape) == 0:
-        scalar_cos_sim = 1
         if n_value.dtype == bool:
-            scalar_cos_sim = 1 - n_value ^ b_value
             n_value = n_value.astype(float)
             b_value = b_value.astype(float)
         max_abs_err, _ = get_max_abs_err(n_value, b_value)
-        return scalar_cos_sim, max_abs_err, "This is type of scalar data, can not compare."
+        return "unsupported", max_abs_err, "This is type of scalar data, can not compare."
     if n_value.size == 0:
-        return 1, 0, "This is empty data, can not compare."
+        return "unsupported", 0, "This is empty data, can not compare."
     if n_value.shape != b_value.shape:
         return CompareConst.SHAPE_UNMATCH, CompareConst.SHAPE_UNMATCH, "Shape of NPU and bench Tensor do not match. Skipped."
     if n_value.dtype != b_value.dtype:
@@ -425,6 +423,7 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     if npu_bench_name_list[0] != npu_bench_name_list[1]:
         err_msg += " Fuzzy matching data, the comparison accuracy may be affected."
     return cos_sim, max_abs_err, err_msg
+
 
 def compare(input_parma, output_path, **kwargs):
     if kwargs.get('suffix'):

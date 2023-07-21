@@ -39,7 +39,6 @@ function get_train_cmd()
 
 function get_eval_cmd()
 {
-    #unset MS_ENABLE_GE
     unset MS_GE_TRAIN
     eval_run_cmd="${PYTHON_COMMAND} -u $WORK_PATH/code/eval.py \
          --data_path=${EVAL_DATA_PATH} \
@@ -81,8 +80,6 @@ function node_train()
 
 function node_eval()
 {
-    unset MS_ENABLE_GE
-    unset MS_GE_TRAIN
     CHECKPOINT_PATH=`find ${WORK_PATH}/train_parallel$RANK_ID/ -name "*.ckpt" | xargs ls -t | awk 'NR==1{print}'`
     [ -f $CHECKPOINT_PATH ] || { logger_Warn "CHECKPOINT_PATH:${CHECKPOINT_PATH} not valid path" ; return 1; }
     cp $CHECKPOINT_PATH  $RESULT_PATH/

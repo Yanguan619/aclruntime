@@ -39,7 +39,6 @@ function get_train_cmd()
 
 function get_eval_cmd()
 {
-    #unset MS_ENABLE_GE
     unset MS_GE_TRAIN
     CONFIG_FILE=$WORK_PATH/code/pretrain_config_Ascend_Boost.yaml
     sed -i "s|eval_data_dir:.*|eval_data_dir: '$EVAL_DATA_PATH'|g" "$CONFIG_FILE"

@@ -30,6 +30,11 @@ function get_train_cmd()
         # export ENV_FUSION_CLEAR=1
         # export ENV_SINGLE_EVAL=1
         # export SKT_ENABLE=1
+        chipname=`npu-smi info -t board  -i 0 -c 0 | grep 'Chip Name' | awk {'print $4'}`
+        if [[ "$chipname" == "910b1" || "$chipname" == "910b2" || "$chipname" == "910b3" || "$chipname" == "910b4" ]]; then
+            export MS_ENABLE_GE=1
+            export MS_GE_TRAIN=1
+        fi
 }
 
 function get_eval_cmd()
@@ -74,6 +79,8 @@ function node_train()
 
 function node_eval()
 {
+    unset MS_ENABLE_GE
+    unset MS_GE_TRAIN
     CHECKPOINT_PATH=`find ${WORK_PATH}/train_parallel$RANK_ID/ -name "*.ckpt" | xargs ls -t | awk 'NR==1{print}'`
     [ -f $CHECKPOINT_PATH ] || { logger_Warn "CHECKPOINT_PATH:${CHECKPOINT_PATH} not valid path" ; return 1; }
     cp $CHECKPOINT_PATH  $RESULT_PATH/

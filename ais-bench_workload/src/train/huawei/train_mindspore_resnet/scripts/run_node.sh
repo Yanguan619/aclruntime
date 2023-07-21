@@ -39,6 +39,8 @@ function get_train_cmd()
 
 function get_eval_cmd()
 {
+    #unset MS_ENABLE_GE
+    unset MS_GE_TRAIN
     eval_run_cmd="${PYTHON_COMMAND} -u $WORK_PATH/code/eval.py \
          --data_path=${EVAL_DATA_PATH} \
          --config_path=$WORK_PATH/code/config/resnet50_imagenet2012_Boost_config.yaml \

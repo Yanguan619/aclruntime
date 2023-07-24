@@ -89,7 +89,7 @@ def get_max_relative_err(n_value, b_value):
     relative_err = np.divide((n_value - b_value), b_value)
     max_relative_err = np.max(np.abs(relative_err))
     if np.isnan(max_relative_err):
-        message = 'cannot compare by MaxRelativeError, The data contains 0 or nan in dump data.'
+        message = 'Cannot compare by MaxRelativeError, the data contains 0 or nan in dump data.'
         return CompareConst.NAN, message
     return format_value(max_relative_err), ""
 
@@ -426,7 +426,10 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     max_abs_err, _ = get_max_abs_err(n_value, b_value)
     max_relative_err, message = get_max_relative_err(n_value, b_value)
 
-    err_msg += message
+    if not err_msg:
+        err_msg += message
+    else:
+        err_msg = err_msg + ' ' + message
 
     if npu_bench_name_list[0] != npu_bench_name_list[1]:
         err_msg += " Fuzzy matching data, the comparison accuracy may be affected."

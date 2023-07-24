@@ -96,6 +96,7 @@ class CompareConst:
     BENCH_MEAN = "Bench mean"
     COSINE = "Cosine"
     MAX_ABS_ERR = "MaxAbsErr"
+    MAX_RELATIVE_ERR = "MaxRelativeErr"
     ACCURACY = "Accuracy Reached or Not"
     STACK = "NPU_Stack_Info"
     ERROR_MESSAGE = "Err_message"

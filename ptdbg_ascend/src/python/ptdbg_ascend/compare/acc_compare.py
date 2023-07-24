@@ -545,7 +545,7 @@ def get_un_match_accuracy(result, n_dict):
         err_msg = CompareConst.NO_BENCH
         accuracy_check_res = CompareConst.NAN
 
-        result_item = [n_name, bench_name, n_struct[0], bench_type, n_struct[1], bench_shape, " ", " "]
+        result_item = [n_name, bench_name, n_struct[0], bench_type, n_struct[1], bench_shape, " ", " ", " "]
         summery_data = n_dict.get("summery")[index]
         result_item.extend(summery_data)
         summery_data = [CompareConst.NAN]*3

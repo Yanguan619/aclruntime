@@ -257,7 +257,7 @@ def get_accuracy(result, n_dict, b_dict):
         err_msg = ""
         accuracy_check_res = CompareConst.ACCURACY_CHECK_YES
 
-        result_item = [n_name, b_name, n_struct[0], b_struct[0], n_struct[1], b_struct[1], " ", " "]
+        result_item = [n_name, b_name, n_struct[0], b_struct[0], n_struct[1], b_struct[1], " ", " ", " "]
 
         summery_data = n_dict.get("summery")[index]
         result_item.extend(summery_data)
@@ -336,21 +336,23 @@ def _handle_multi_process(func, input_parma, result_path, lock):
 def compare_ops(idx, fusion_op_names, dump_path_dict, result_path, lock, input_parma):
     cos_result = []
     max_err_result = []
+    max_relative_err_result = []
     err_mess = []
     is_print_compare_log = input_parma.get("is_print_compare_log")
     for i, op_name in enumerate(fusion_op_names):
         if is_print_compare_log:
             print("start comapre: {}".format(op_name))
-        cos_sim, max_abs_err, err_msg = compare_by_op(op_name, dump_path_dict, input_parma)
+        cos_sim, max_abs_err, max_relative_err, err_msg = compare_by_op(op_name, dump_path_dict, input_parma)
         if is_print_compare_log:
-            print("[{}] Compare result: cosine {}, max_abs_err {}, {}".format(op_name, cos_sim, max_abs_err, err_msg))
+            print("[{}] Compare result: cosine {}, max_abs_err {}, max_relative_err {}, {}".format(op_name, cos_sim, max_abs_err, max_relative_err, err_msg))
         cos_result.append(cos_sim)
         max_err_result.append(max_abs_err)
+        max_relative_err_result.append(max_relative_err)
         err_mess.append(err_msg)
-    _save_cmp_result(idx, cos_result, max_err_result, err_mess, result_path, lock)
+    _save_cmp_result(idx, cos_result, max_err_result, max_relative_err_result, err_mess, result_path, lock)
 
 
-def _save_cmp_result(idx, cos_result, max_err_result, err_msg, result_path, lock):
+def _save_cmp_result(idx, cos_result, max_err_result, max_relative_err_result, err_msg, result_path, lock):
     lock.acquire()
     try:
         csv_pd = pd.read_csv(result_path, dtype=str)
@@ -360,6 +362,7 @@ def _save_cmp_result(idx, cos_result, max_err_result, err_msg, result_path, lock
             process_index = i * process_num + process_idx
             csv_pd.loc[process_index, CompareConst.COSINE] = cos_result[i]
             csv_pd.loc[process_index, CompareConst.MAX_ABS_ERR] = max_err_result[i]
+            csv_pd.loc[process_index, CompareConst.MAX_RELATIVE_ERR] = max_relative_err_result[i]
             csv_pd.loc[process_index, CompareConst.ERROR_MESSAGE] = err_msg[i]
             csv_pd.loc[process_index, CompareConst.ACCURACY] = check_accuracy(cos_result[i], max_err_result[i])
         csv_pd.to_csv(result_path, index=False)
@@ -393,22 +396,23 @@ def check_accuracy(cos, max_abs_err):
 def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     npu_bench_name_list = op_name_mapping_dict[op_name]
     if npu_bench_name_list[1] == CompareConst.NAN:
-        return CompareConst.NAN, CompareConst.NAN, CompareConst.NO_BENCH
+        return CompareConst.NAN, CompareConst.NAN, CompareConst.NAN, CompareConst.NO_BENCH
     try:
         n_value = np.load(os.path.join(input_parma.get("npu_dump_data_dir"), npu_bench_name_list[0] + ".npy"))
         b_value = np.load(os.path.join(input_parma.get("bench_dump_data_dir"), npu_bench_name_list[1] + ".npy"))
     except IOError as error:
-        return CompareConst.NAN, CompareConst.NAN, "Dump file:{} not found.".format(error.filename)
+        return CompareConst.NAN, CompareConst.NAN, CompareConst.NAN, "Dump file:{} not found.".format(error.filename)
     if len(n_value.shape) == 0:
         if n_value.dtype == bool:
             n_value = n_value.astype(float)
             b_value = b_value.astype(float)
         max_abs_err, _ = get_max_abs_err(n_value, b_value)
-        return "unsupported", max_abs_err, "This is type of scalar data, can not compare."
+        max_relative_err, _ = get_max_relative_err(n_value, b_value)
+        return scalar_cos_sim, max_abs_err, max_relative_err, "This is type of scalar data, can not compare."
     if n_value.size == 0:
-        return "unsupported", 0, "This is empty data, can not compare."
+        return "unsupported", 0, 0, "This is empty data, can not compare."
     if n_value.shape != b_value.shape:
-        return CompareConst.SHAPE_UNMATCH, CompareConst.SHAPE_UNMATCH, "Shape of NPU and bench Tensor do not match. Skipped."
+        return CompareConst.SHAPE_UNMATCH, CompareConst.SHAPE_UNMATCH, CompareConst.SHAPE_UNMATCH, "Shape of NPU and bench Tensor do not match. Skipped."
     if n_value.dtype != b_value.dtype:
         print_warn_log("Dtype of NPU and bench Tensor do not match:{}".format(op_name))
         err_msg = " Dtype of NPU and bench Tensor do not match."
@@ -418,12 +422,15 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     b_value = b_value.reshape(-1).astype(float)
     err_msg = ""
     cos_sim, message = cosine_similarity(n_value, b_value)
-    err_msg += message
+    
     max_abs_err, _ = get_max_abs_err(n_value, b_value)
+    max_relative_err, message = get_max_relative_err(n_value, b_value)
+
+    err_msg += message
+
     if npu_bench_name_list[0] != npu_bench_name_list[1]:
         err_msg += " Fuzzy matching data, the comparison accuracy may be affected."
-    return cos_sim, max_abs_err, err_msg
-
+    return cos_sim, max_abs_err, max_relative_err, err_msg
 
 def compare(input_parma, output_path, **kwargs):
     if kwargs.get('suffix'):
@@ -444,7 +451,8 @@ def compare_core(input_parma, output_path, npu_pkl, bench_pkl, stack_mode=False,
     bench_pkl.close()
 
     columns = [CompareConst.NPU_NAME, CompareConst.BENCH_NAME, CompareConst.NPU_DTYPE, CompareConst.BENCH_DTYPE,
-                CompareConst.NPU_SHAPE, CompareConst.BENCH_SHAPE, CompareConst.COSINE, CompareConst.MAX_ABS_ERR]
+                CompareConst.NPU_SHAPE, CompareConst.BENCH_SHAPE, CompareConst.COSINE, CompareConst.MAX_ABS_ERR,
+                   CompareConst.MAX_RELATIVE_ERR]
     columns.extend([CompareConst.NPU_MAX, CompareConst.NPU_MIN, CompareConst.NPU_MEAN])
     columns.extend([CompareConst.BENCH_MAX, CompareConst.BENCH_MIN, CompareConst.BENCH_MEAN])
     columns.extend([CompareConst.ACCURACY, CompareConst.ERROR_MESSAGE])

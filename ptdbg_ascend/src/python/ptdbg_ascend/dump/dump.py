@@ -99,6 +99,8 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
             dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
         return
     elif isinstance(x, torch.Tensor):
+        if x.is_meta:
+            return
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
             if DumpUtil.dump_filter_switch == Const.OFF:
                 data_info = get_not_float_tensor_info(x)

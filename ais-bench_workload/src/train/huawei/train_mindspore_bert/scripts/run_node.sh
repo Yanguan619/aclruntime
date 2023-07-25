@@ -30,7 +30,7 @@ function get_train_cmd()
         "
     
     chipname=`npu-smi info -t board  -i 0 -c 0 | grep 'Chip Name' | awk {'print $4'}`
-    if [[ "$chipname" == "910b1" || "$chipname" == "910b2" || "$chipname" == "910b3" || "$chipname" == "910b4" ]]; then
+    if [[ "$chipname" == "910B1" || "$chipname" == "910B2" || "$chipname" == "910B3" || "$chipname" == "910B4" ]]; then
         export MS_ENABLE_GE=1
         export MS_GE_TRAIN=1
     fi
@@ -39,7 +39,11 @@ function get_train_cmd()
 
 function get_eval_cmd()
 {
-    unset MS_GE_TRAIN
+    chipname=`npu-smi info -t board  -i 0 -c 0 | grep 'Chip Name' | awk {'print $4'}`
+    if [[ "$chipname" == "910B1" || "$chipname" == "910B2" || "$chipname" == "910B3" || "$chipname" == "910B4" ]]; then
+        export MS_ENABLE_GE=1
+        export MS_GE_TRAIN=0
+    fi
     CONFIG_FILE=$WORK_PATH/code/pretrain_config_Ascend_Boost.yaml
     sed -i "s|eval_data_dir:.*|eval_data_dir: '$EVAL_DATA_PATH'|g" "$CONFIG_FILE"
     sed -i "s|schema_file:.*|schema_file: null|g" "$CONFIG_FILE"

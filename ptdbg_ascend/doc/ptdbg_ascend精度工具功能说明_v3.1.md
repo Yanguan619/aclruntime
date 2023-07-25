@@ -379,13 +379,12 @@ register_hook需要在set_dump_path之后调用，也需要在每个进程上被
 
 - 工具性能：dump数据量较小时（小于5G），参考dump速度0.1GB/s；dump数据量较大时，参考dump速度0.2GB/s。
   推荐环境配置：独占环境，CPU核心数192，固态硬盘（IO速度参考：固态硬盘 > 500MB/s，机械硬盘60 ~ 170MB/s）。
-
+  
   用户环境性能弱于标准约束或非独占使用的比对速度酌情向下浮动。Dump速度的计算方式：Dump数据量/(单个step添加Dump耗时-原始单个step耗时）。
 
 ### 约束
-
 - 进行CPU或GPU数据dump时，请安装torch包而非torch_npu包，避免工具无法识别使用场景，导致失败。
-
+  
 - TASK_QUEUE_ENABLE环境变量会导致API下发和执行异步进行，因此在ACL dump前需要将TASK_QUEUE_ENABLE关闭，即export TASK_QUEUE_ENABLE=0。
 
 - 不建议在PyTorch训练脚本中同时添加dump接口和性能数据采集（如Ascend PyThon Profiler）接口，二者可能相互影响导致数据不准确。
@@ -672,7 +671,7 @@ set_dump_switch可配置多中dump模式，示例如下：
   ```
 
   配置filter_switch="OFF"同时也可以配置mode、scope和api_list，除dump ACL级别数据。
-
+  
 - 示例8：仅保存dump的数据文件名包含“backward”的反向.npy文件
 
   ```python
@@ -838,15 +837,15 @@ dump结果目录结构示例如下：
 
 * dump目录：目录下为npy格式的dump数据。
 
-  npy文件保存的前缀和PyTorch对应关系如下
+   npy文件保存的前缀和PyTorch对应关系如下
 
-  | 前缀       | Torch模块           |
-  | ---------- | ------------------- |
-  | Tensor     | torch.Tensor        |
-  | Torch      | torch               |
-  | Functional | torch.nn.functional |
-  | NPU        | NPU亲和算子         |
-  | VF         | torch._VF           |
+   | 前缀       | Torch模块           |
+   | ---------- | ------------------- |
+   | Tensor     | torch.Tensor        |
+   | Torch      | torch               |
+   | Functional | torch.nn.functional |
+   | NPU        | NPU亲和算子         |
+   | VF         | torch._VF           |
 
 当set_dump_switch配置mode参数（例如：mode="api_stack" ）时，dump结果的文件名会添加api_stack前缀，dump结果如下：
 
@@ -870,13 +869,13 @@ register_hook设置了overflow_check时，检测API溢出，dump结果的文件�
 
 - 工具性能：比对数据量较小时（参考值单份文件小于10GB），参考比对速度0.1GB/s；比对数据量较大时，参考比对速度0.3GB/s。
   推荐环境配置：独占环境，CPU核心数192，固态硬盘（IO速度参考：固态硬盘 > 500MB/s，机械硬盘60 ~ 170MB/s）。
-
+  
   用户环境性能弱于标准约束或非独占使用的比对速度酌情向下浮动。比对速度的计算方式：两份比对文件大小/比对耗时。
 
 ### 约束
 
 - NPU自研API，在CPU或GPU若没有对应的API，该API的dump数据不比对。
-
+  
 - NPU与CPU或GPU的计算结果误差可能会随着模型的执行不断累积，最终会出现同一个API因为输入的数据差异较大而无法比对的情况。
 
 - CPU或GPU与NPU中两个相同的API会因为调用次数不同导致无法比对或比对到错误的API，不影响整体运行，该API忽略。
@@ -982,12 +981,13 @@ parse("./npu_dump/ptdbg_dump_v2.0/rank0/dump.pkl", "Torch_batch_normal_1_forward
 
 ### 计算精度评价指标
 
-PyTorch精度比对是以CPU或GPU的计算结果为标杆，计算Cosine（余弦相似度）和MaxAbsErr（最大绝对误差），根据这两个结果判断API在运行时是否存在精度问题。
+PyTorch精度比对是以CPU或GPU的计算结果为标杆，计算Cosine（余弦相似度）、MaxAbsErr（最大绝对误差）和MaxRelativeErr（最大相对误差），根据这两个结果判断API在运行时是否存在精度问题。
 
 计算精度评价指标：
 
 1. Cosine：通过计算两个向量的余弦值来判断其相似度，数值越接近于1说明计算出的两个张量越相似，实际可接受阈值为大于0.99。在计算中可能会存在nan，主要由于可能会出现其中一个向量为0。
-2. MaxAbsError：当最大绝对误差越接近0表示其计算的误差越小，实际可接受阈值为小于0.001。
+2. MaxAbsErr：当最大绝对误差越接近0表示其计算的误差越小，实际可接受阈值为小于0.001。
+3. MaxRelativeErr：当最大相对误差越接近0表示其计算的误差越小。
 
 精度比对结果csv文件中只需要通过Accuracy Reached or Not来判断计算精度是否达标，判断标准如下：
 

@@ -492,14 +492,31 @@ SingleOpCase.run(config)"""
         config_list = single_op_case.generate_config()
         for config in config_list:
             single_op_ret = single_op_case.run(config)
+            case_file = AicoreErrorParser.__generate_case(config)
+
+            date_string = time.strftime("%Y%m%d%H%M%S", time.localtime(int(time.time())))
+            kernel_name = config.get("kernel_name")
+            single_op_log_path =  os.path.abspath(f"single_op_{date_string}")
+            print(f"The single_op_log_path is {single_op_log_path}")
+
+            current_path = os.path.dirname(os.path.abspath(__file__))
+            new_env = os.environ.copy()
+            new_env['ASCEND_PROCESS_LOG_PATH'] = single_op_log_path
+            new_env['PYTHONPATH'] = new_env['PYTHONPATH'] + ":" + os.path.dirname(current_path)
+            subprocess.run(['python3', case_file],  env=new_env)
+            single_op_ret = not AicoreErrorParser.search_aicerr_log(kernel_name, os.path.join(single_op_log_path, "debug"))
+
+            if os.path.exists(single_op_log_path):
+                shutil.rmtree(single_op_log_path)
+
             if not single_op_ret:
-                case_file = AicoreErrorParser.__generate_case(config)
                 split_line = "#" * 50
                 utils.print_info_log(split_line)
                 utils.print_info_log("single op test failed! Please Check OP or input data!")
                 utils.print_info_log(f"Run 'python3 {case_file}' can test op!")
                 utils.print_info_log(split_line)
                 return False
+
         return True
 
     @staticmethod

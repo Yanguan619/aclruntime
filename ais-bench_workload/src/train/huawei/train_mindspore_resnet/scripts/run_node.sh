@@ -30,10 +30,20 @@ function get_train_cmd()
         # export ENV_FUSION_CLEAR=1
         # export ENV_SINGLE_EVAL=1
         # export SKT_ENABLE=1
+        chipname=`npu-smi info -t board  -i 0 -c 0 | grep 'Chip Name' | awk {'print $4'}`
+        if [[ "$chipname" == "910B1" || "$chipname" == "910B2" || "$chipname" == "910B3" || "$chipname" == "910B4" ]]; then
+            export MS_ENABLE_GE=1
+            export MS_GE_TRAIN=1
+        fi
 }
 
 function get_eval_cmd()
 {
+    chipname=`npu-smi info -t board  -i 0 -c 0 | grep 'Chip Name' | awk {'print $4'}`
+    if [[ "$chipname" == "910B1" || "$chipname" == "910B2" || "$chipname" == "910B3" || "$chipname" == "910B4" ]]; then
+        export MS_ENABLE_GE=1
+        export MS_GE_TRAIN=0
+    fi
     eval_run_cmd="${PYTHON_COMMAND} -u $WORK_PATH/code/eval.py \
          --data_path=${EVAL_DATA_PATH} \
          --config_path=$WORK_PATH/code/config/resnet50_imagenet2012_Boost_config.yaml \

@@ -111,6 +111,8 @@ args after  excute: {self._get_args_str(self.args_after_list)}
         conclusion = ""
         if 60 in self.aicerror_bit:
             conclusion = "ecc error. This is a hardware issue. Please contact hardware developer to resolve it.\n"
+        elif not self.env_available:
+            conclusion = "Golden Op run error on your environment. Please check your environment!\n"
         elif not self.atomic_clean_check:
             conclusion = "Op need atomic clean. However, no memset or atomic_clean op launched.\n"
         elif not self.data_dump_result:
@@ -132,8 +134,6 @@ args after  excute: {self._get_args_str(self.args_after_list)}
         elif not self.addr_valid:
             conclusion = "Please check addrs. The addr of input/output is used but not alloc, "\
                          "details in \"4. Input and output of node\"\n"
-        elif not self.env_available:
-            conclusion = "Golden Op run error on your environment. Please check your environment!\n"
         else:
             conclusion = "There's no obvious known error, so I can't determine what the error is.\n"
         return conclusion

@@ -21,7 +21,7 @@ class DumpUtil(object):
     dump_init_enable = False
     dump_api_list = []
     dump_filter_switch = None
-    dump_mode = Const.ALL
+    dump_mode = []
     backward_input = {}
     dump_dir_tag = 'ptdbg_dump'
     dump_config = None
@@ -43,7 +43,8 @@ class DumpUtil(object):
         DumpUtil.dump_switch_scope = scope
         DumpUtil.dump_api_list = [api.lower() for api in api_list]
         DumpUtil.dump_filter_switch = filter_switch
-        DumpUtil.dump_mode = dump_mode
+        DumpUtil.dump_mode = dump_mode if isinstance(dump_mode, list) else [dump_mode]
+
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
@@ -137,12 +138,14 @@ def generate_dump_path_str():
     return dump_path
 
 
-def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=Const.ALL):
+def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL]):
     try:
         check_mode_valid(mode)
         assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
         assert filter_switch in ["ON", "OFF"], "Please set filter_switch with 'ON' or 'OFF'."
-        assert dump_mode in ["all", "forward", "backward"], "Please set dump_mode with 'all' or 'forward' or 'backward'."
+        assert isinstance(dump_mode, list), "Please set dump_mode as a list."
+        assert all(mode in ["all", "forward", "backward", "input", "output"] for mode in dump_mode), "Please set dump_mode as a list containing one or more of the following: 'all', 'forward', 'backward', 'input', 'output'."
+        assert not (len(dump_mode) > 1 and "all" in dump_mode), "If 'all' is in dump_mode, dump_mode should only contain 'all'."
         if mode == Const.RANGE:
             assert len(scope) == 2, "set_dump_switch, scope param set invalid, it's must be [start, end]."
         if mode == Const.LIST:

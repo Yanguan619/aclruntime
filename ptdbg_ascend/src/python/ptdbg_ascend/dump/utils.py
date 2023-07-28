@@ -143,7 +143,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
         check_mode_valid(mode)
         assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
         assert filter_switch in ["ON", "OFF"], "Please set filter_switch with 'ON' or 'OFF'."
-        # assert isinstance(dump_mode, list), "Please set dump_mode as a list."
+        assert isinstance(dump_mode, list), "Please set dump_mode as a list."
         assert all(mode in ["all", "forward", "backward", "input", "output"] for mode in dump_mode), "Please set dump_mode as a list containing one or more of the following: 'all', 'forward', 'backward', 'input', 'output'."
         assert not (len(dump_mode) > 1 and "all" in dump_mode), "If 'all' is in dump_mode, dump_mode should only contain 'all'."
         if mode == Const.RANGE:

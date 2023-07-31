@@ -6,7 +6,8 @@ import torch
 import numpy as np
 
 from ..common.utils import Const
-from ..dump.dump import dump_stack_info, get_scalar_data_info, dump_data
+from ..dump.dump import dump_stack_info, get_scalar_data_info, dump_data, \
+    get_not_float_tensor_info, get_float_tensor_info
 from ..dump.utils import DumpUtil, make_dump_data_dir
 
 
@@ -59,13 +60,15 @@ def _dump_tensor_completely(x, prefix, dump_file_name):
         for i, item in enumerate(x):
             _dump_tensor_completely(item, "{}.{}".format(prefix, i), dump_file_name)
     elif isinstance(x, torch.Tensor):
-        with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-            if x.numel():
-                output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-                save_tensor = x.contiguous().cpu().detach().numpy()
-                np.save(output_path, save_tensor)
-                json.dump([prefix, dump_flag, [], str(x.dtype), tuple(x.shape)], f)
-            f.write('\n')
+        if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
+            if OverFlowUtil.overflow_filter_switch == Const.OFF:
+                data_info = get_not_float_tensor_info(x)
+                dump_data(dump_file_name, dump_flag, prefix, data_info)
+        else:
+            data_info = get_float_tensor_info(x)
+            dump_data(dump_file_name, dump_flag, prefix, data_info)
+
     elif OverFlowUtil.overflow_filter_switch == Const.OFF:
-        data_info = get_scalar_data_info(x)
-        dump_data(dump_file_name, dump_flag, prefix, data_info)
+        if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
+            data_info = get_scalar_data_info(x)
+            dump_data(dump_file_name, dump_flag, prefix, data_info)

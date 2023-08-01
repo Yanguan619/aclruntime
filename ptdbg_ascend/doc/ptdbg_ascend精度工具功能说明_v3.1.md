@@ -444,7 +444,7 @@ seed_all函数可固定随机数的范围如下表。
 | torch.backends.cudnn.benchmark=False     | cuDNN确定性地选择算法       |
 | torch.backends.cudnn.deterministic=True  | cuDNN仅使用确定性的卷积算法 |
 
-需要保证CPU或GPU以及NPU的模型输入完全一致，dump数据的比对才有意义，seed_all并不能保证模型输入完全一致，如下表所示场景需要用户自行保证输入的一致性。
+需要保证CPU或GPU以及NPU的模型输入完全一致，dump数据的比对才有意义，seed_all并不能保证模型输入完全一致，如下表所示场景需要保证输入的一致性。
 
 | 场景            | 固定方法      |
 | --------------- | ------------- |
@@ -462,13 +462,9 @@ train_loader = torch.utils.data.DataLoader(
 )
 ```
 
-关闭dropout示例：
+关闭dropout：
 
-```python
-torch.nn.functional.dropout(input, p = 0)
-```
-
-将所有包含dropout的代码设置p = 0，或者可以将所有包含dropout的代码注释。
+在使用from ptdbg import *后，工具会自动将torch.nn.functional.dropout、torch.nn.functional.dropout2d、torch.nn.functional.dropout3d、torch.nn.Dropout、torch.nn.Dropout2d、torch.nn.Dropout3d的接口参数p置为0。
 
 ### set_dump_path
 

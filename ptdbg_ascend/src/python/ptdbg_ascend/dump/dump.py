@@ -141,27 +141,36 @@ def dump_stack_info(name_template, dump_file):
     with os.fdopen(os.open(dump_file, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
         if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
             if json_dump_condition(prefix):
-                if DumpUtil.dump_mode == Const.FORWARD and "forward" in prefix:
+                if Const.ALL in DumpUtil.dump_mode:
                     json.dump([prefix, stack_str], f)
                     f.write('\n')
-                elif DumpUtil.dump_mode == Const.BACKWARD and "backward" in prefix:
-                    json.dump([prefix, stack_str], f)
-                    f.write('\n')
-                elif DumpUtil.dump_mode == Const.ALL:
-                    json.dump([prefix, stack_str], f)
-                    f.write('\n')
+                else:
+                    for mode in DumpUtil.dump_mode:
+                        if mode in prefix:
+                            json.dump([prefix, stack_str], f)
+                            f.write('\n')
         else:
             json.dump([prefix, stack_str], f)
             f.write('\n')
 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
-    if Const.BACKWARD in name_template and DumpUtil.dump_mode != Const.FORWARD:
-        dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
-        dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file)
-    elif Const.BACKWARD not in name_template and DumpUtil.dump_mode != Const.BACKWARD:
-        dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
-        dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
+    if Const.BACKWARD in name_template and Const.FORWARD not in DumpUtil.dump_mode:
+        if 'input' in DumpUtil.dump_mode:
+            dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
+        if 'output' in DumpUtil.dump_mode:
+            dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file)
+        if Const.ALL in DumpUtil.dump_mode:
+            dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
+            dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file)
+    elif Const.BACKWARD not in name_template and Const.BACKWARD not in DumpUtil.dump_mode:
+        if 'input' in DumpUtil.dump_mode:
+            dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
+        if 'output' in DumpUtil.dump_mode:
+            dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
+        if Const.ALL in DumpUtil.dump_mode:
+            dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
+            dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
 
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):

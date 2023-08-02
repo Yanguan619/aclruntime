@@ -580,7 +580,7 @@ dump操作必选。
 **函数原型**
 
 ```python
-set_dump_switch(switch, mode='all', scope=[], api_list=[], filter_switch='ON', dump_mode='all')
+def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL]):
 ```
 
 **参数说明**

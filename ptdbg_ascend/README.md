@@ -10,6 +10,7 @@
 
    | ptdbg_ascend版本 | 发布日期  | 支持PyTorch版本  | 下载链接                                                     | 参考指南                                                     |
    | ---------------- | --------- | ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+   | 3.1              | 2023-8-02 | 1.8.1/1.11.0/2.0 | [ptdbg_ascend-3.1-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/3.0/ptdbg_ascend-3.1-py3-none-any.whl) | [ptdbg_ascend精度工具功能说明_v3.1](doc/ptdbg_ascend精度工具功能说明_v3.1.md) |
    | 2.0              | 2023-7-07 | 1.8.1/1.11.0/2.0 | [ptdbg_ascend-2.0-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/2.0/ptdbg_ascend-2.0-py3-none-any.whl) | [ptdbg_ascend精度工具功能说明_v2.0](doc/ptdbg_ascend精度工具功能说明_v2.0.md) |
    | 1.0              | 2023-3-30 | 1.8.1/1.11.0     | [ptdbg_ascend-1.0-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/1.0/ptdbg_ascend-1.0-py3-none-any.whl) | [ptdbg_ascend精度工具功能说明_v1.0](https://gitee.com/ascend/tools/blob/master/ptdbg_ascend/doc/ptdbg_ascend%E7%B2%BE%E5%BA%A6%E5%B7%A5%E5%85%B7%E5%8A%9F%E8%83%BD%E8%AF%B4%E6%98%8E_v1.0.md) |
 

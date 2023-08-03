@@ -37,8 +37,11 @@ class OverFlowUtil(object):
 
 
 def set_overflow_check_switch(switch, filter_switch=Const.ON):
-    assert switch in ["ON", "OFF"], "Please set overflow switch with 'ON' or 'OFF'."
-    assert filter_switch in ["ON", "OFF"], "Please set overflow filter_switch with 'ON' or 'OFF'."
+    if switch not in ["ON", "OFF"]:
+        raise ValueError("Please set overflow switch with 'ON' or 'OFF'.")
+    if filter_switch not in ["ON", "OFF"]:
+        raise ValueError("Please set overflow filter_switch with 'ON' or 'OFF'.")
+
     OverFlowUtil.set_overflow_check_switch(switch, filter_switch)
 
 

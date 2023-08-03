@@ -208,18 +208,21 @@ def print_warn_log(warn_msg):
 
 def check_mode_valid(mode, scope=[], api_list=[]):
     mode_check = {
-        Const.DUMP_MODE: lambda: None,
-        Const.RANGE: lambda: ValueError("set_dump_switch, scope param set invalid, it's must be [start, end].") if len(scope) != 2 else None,
-        Const.LIST: lambda: ValueError("set_dump_switch, scope param set invalid, it's should not be an empty list.") if len(scope) == 0 else None,
-        Const.STACK: lambda: ValueError("set_dump_switch, scope param set invalid, it's must be [start, end] or [].") if len(scope) > 2 else None,
-        Const.ACL: lambda: ValueError("set_dump_switch, scope param set invalid, only one api name is supported in acl mode.") if len(scope) != 1 else None,
-        Const.API_LIST: lambda: ValueError("Current dump mode is 'api_list', but the content of api_list parameter is empty or valid.") if not isinstance(api_list, list) or len(api_list) < 1 else None
+        Const.ALL: lambda: None,
+        Const.RANGE: lambda:  ValueError("set_dump_switch, scope param set invalid, it's must be [start, end].") if len(scope) != 2 else None,
+        Const.LIST: lambda:  ValueError("set_dump_switch, scope param set invalid, it's should not be an empty list.") if len(scope) == 0 else None,
+        Const.STACK: lambda:  ValueError("set_dump_switch, scope param set invalid, it's must be [start, end] or [].") if len(scope) > 2 else None,
+        Const.ACL: lambda:  ValueError("set_dump_switch, scope param set invalid, only one api name is supported in acl mode.") if len(scope) != 1 else None,
+        Const.API_LIST: lambda:  ValueError("Current dump mode is 'api_list', but the content of api_list parameter is empty or valid.") if not isinstance(api_list, list) or len(api_list) < 1 else None,
+        Const.API_STACK: lambda: None,
     }
-    if mode not in mode_check:
+    if mode not in Const.DUMP_MODE:
         msg = "Current mode '%s' is not supported. Please use the field in %s" % \
               (mode, Const.DUMP_MODE)
         raise CompareException(CompareException.INVALID_DUMP_MODE, msg)
-    mode_check[mode]()
+
+    if mode_check[mode]() is not None:
+        raise mode_check[mode]()
 
 def check_switch_valid(switch):
     if switch not in ["ON", "OFF"]:

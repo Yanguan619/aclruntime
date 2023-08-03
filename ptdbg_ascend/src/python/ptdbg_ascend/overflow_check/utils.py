@@ -5,7 +5,7 @@ import torch
 
 import numpy as np
 
-from ..common.utils import Const
+from ..common.utils import Const, check_switch_valid
 from ..dump.dump import dump_stack_info, get_scalar_data_info, dump_data, \
     get_not_float_tensor_info, get_float_tensor_info
 from ..dump.utils import DumpUtil, make_dump_data_dir
@@ -37,10 +37,8 @@ class OverFlowUtil(object):
 
 
 def set_overflow_check_switch(switch, filter_switch=Const.ON):
-    if switch not in ["ON", "OFF"]:
-        raise ValueError("Please set overflow switch with 'ON' or 'OFF'.")
-    if filter_switch not in ["ON", "OFF"]:
-        raise ValueError("Please set overflow filter_switch with 'ON' or 'OFF'.")
+    check_switch_valid(switch)
+    check_switch_valid(filter_switch)
 
     OverFlowUtil.set_overflow_check_switch(switch, filter_switch)
 

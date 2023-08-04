@@ -67,7 +67,9 @@ def initialize_hook(hook):
 
 def register_hook(model, hook, **kwargs):
     global make_dir_flag
-    assert hasattr(model, "named_modules"), "Please register hooks to nn.Module."
+    if not hasattr(model, "named_modules"):
+        raise AttributeError("Please register hooks to nn.Module.")
+
     print_info_log("Please disable the shuffle function of the dataset "
                    "and the dropout function of the model "
                    "before running the program.")

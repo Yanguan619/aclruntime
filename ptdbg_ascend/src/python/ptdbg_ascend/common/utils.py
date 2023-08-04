@@ -206,12 +206,35 @@ def print_warn_log(warn_msg):
     _print_log("WARNING", warn_msg)
 
 
-def check_mode_valid(mode):
+def check_mode_valid(mode, scope=[], api_list=[]):
+    mode_check = {
+        Const.ALL: lambda: None,
+        Const.RANGE: lambda:  ValueError("set_dump_switch, scope param set invalid, it's must be [start, end].") if len(scope) != 2 else None,
+        Const.LIST: lambda:  ValueError("set_dump_switch, scope param set invalid, it's should not be an empty list.") if len(scope) == 0 else None,
+        Const.STACK: lambda:  ValueError("set_dump_switch, scope param set invalid, it's must be [start, end] or [].") if len(scope) > 2 else None,
+        Const.ACL: lambda:  ValueError("set_dump_switch, scope param set invalid, only one api name is supported in acl mode.") if len(scope) != 1 else None,
+        Const.API_LIST: lambda:  ValueError("Current dump mode is 'api_list', but the content of api_list parameter is empty or valid.") if not isinstance(api_list, list) or len(api_list) < 1 else None,
+        Const.API_STACK: lambda: None,
+    }
     if mode not in Const.DUMP_MODE:
         msg = "Current mode '%s' is not supported. Please use the field in %s" % \
               (mode, Const.DUMP_MODE)
         raise CompareException(CompareException.INVALID_DUMP_MODE, msg)
 
+    if mode_check[mode]() is not None:
+        raise mode_check[mode]()
+
+def check_switch_valid(switch):
+    if switch not in ["ON", "OFF"]:
+        raise ValueError("Please set dump switch with 'ON' or 'OFF'.")
+
+def check_dump_mode_valid(dump_mode):
+    if not isinstance(dump_mode, list):
+            raise TypeError("Please set dump_mode as a list.")
+    if not all(mode in ["all", "forward", "backward", "input", "output"] for mode in dump_mode):
+        raise ValueError("Please set dump_mode as a list containing one or more of the following: 'all', 'forward', 'backward', 'input', 'output'.")
+    if len(dump_mode) > 1 and "all" in dump_mode:
+        raise ValueError("If 'all' is in dump_mode, dump_mode should only contain 'all'.")
 
 def check_compare_param(input_parma, output_path, stack_mode=False, auto_analyze=True,
                         fuzzy_match=False):  # 添加默认值来让不传参时能通过参数检查

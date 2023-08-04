@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_info_log, \
-    check_mode_valid, get_api_name_from_matcher
+    check_mode_valid, get_api_name_from_matcher, check_switch_valid, check_dump_mode_valid
 
 from ..common.version import __version__
 
@@ -140,23 +140,12 @@ def generate_dump_path_str():
 
 def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL]):
     try:
-        check_mode_valid(mode)
-        assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
-        assert filter_switch in ["ON", "OFF"], "Please set filter_switch with 'ON' or 'OFF'."
-        assert isinstance(dump_mode, list), "Please set dump_mode as a list."
-        assert all(mode in ["all", "forward", "backward", "input", "output"] for mode in dump_mode), "Please set dump_mode as a list containing one or more of the following: 'all', 'forward', 'backward', 'input', 'output'."
-        assert not (len(dump_mode) > 1 and "all" in dump_mode), "If 'all' is in dump_mode, dump_mode should only contain 'all'."
-        if mode == Const.RANGE:
-            assert len(scope) == 2, "set_dump_switch, scope param set invalid, it's must be [start, end]."
-        if mode == Const.LIST:
-            assert len(scope) != 0, "set_dump_switch, scope param set invalid, it's should not be an empty list."
-        if mode == Const.STACK:
-            assert len(scope) <= 2, "set_dump_switch, scope param set invalid, it's must be [start, end] or []."
-        if mode == Const.ACL:
-            assert len(scope) == 1, "set_dump_switch, scope param set invalid, only one api name is supported in acl mode."
-        if mode == Const.API_LIST:
-            assert isinstance(api_list, list) and len(api_list) >= 1, \
-                "Current dump mode is 'api_list', but the content of api_list parameter is empty or valid."
+        check_mode_valid(mode, scope, api_list)
+        check_switch_valid(switch)
+        check_switch_valid(filter_switch)
+        check_dump_mode_valid(dump_mode)
+
+
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()

@@ -196,11 +196,11 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
             dump_stack_info(name_template, dump_file)
         elif DumpUtil.check_switch_scope(name_prefix):
-            dump_stack_info(name_template, dump_file)
             if DumpUtil.dump_switch_mode == Const.ACL:
                 acl_dump(module, name, name_prefix)
             elif DumpUtil.dump_switch_mode != Const.STACK:
                 dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
+            dump_stack_info(name_template, dump_file)
 
 
 def acl_dump(module, module_name, name_prefix):

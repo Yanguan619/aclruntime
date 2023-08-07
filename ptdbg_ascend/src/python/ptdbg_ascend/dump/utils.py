@@ -143,7 +143,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
         check_mode_valid(mode, scope, api_list)
         check_switch_valid(switch)
         check_switch_valid(filter_switch)
-        check_dump_mode_valid(dump_mode)
+        dump_mode = check_dump_mode_valid(dump_mode)
 
 
     except (CompareException, AssertionError) as err:

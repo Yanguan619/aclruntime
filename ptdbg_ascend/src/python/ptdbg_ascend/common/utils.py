@@ -234,7 +234,7 @@ def check_dump_mode_valid(dump_mode):
         dump_mode = [dump_mode]
     if not all(mode in ["all", "forward", "backward", "input", "output"] for mode in dump_mode):
         raise ValueError("Please set dump_mode as a list containing one or more of the following: 'all', 'forward', 'backward', 'input', 'output'.")
-    if len(dump_mode) < 1 or len(dump_mode) >= 4 or 'all' in dump_mode:
+    if len(dump_mode) < 1 or set(["forward", "backward", "input", "output"]).issubset(set(dump_mode)) or 'all' in dump_mode:
         return ['all']
     return dump_mode
 

@@ -15,12 +15,10 @@
 # limitations under the License.
 """
 
-import argparse
 import json
 import multiprocessing
 import os.path
 import sys
-import re
 
 import numpy as np
 import pandas as pd
@@ -422,7 +420,7 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     b_value = b_value.reshape(-1).astype(float)
     err_msg = ""
     cos_sim, message = cosine_similarity(n_value, b_value)
-    
+
     max_abs_err, _ = get_max_abs_err(n_value, b_value)
     max_relative_err, message = get_max_relative_err(n_value, b_value)
 
@@ -558,17 +556,3 @@ def get_un_match_accuracy(result, n_dict):
         if npu_stack_info and index == 0:
             result_item.extend(npu_stack_info)
         result.append(result_item)
-
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--npu_pkl_path', type=str, required=True)
-    parser.add_argument('--bench_pkl_path', type=str, required=True)
-    parser.add_argument('--npu_dump_data_dir', type=str, required=True)
-    parser.add_argument('--bench_dump_data_dir', type=str, required=True)
-    parser.add_argument('--out_path', type=str, required=True)
-    parser.add_argument('--shape', action='store_true', default=False,
-                        help='Enforce tensor.shape is same when op matches')
-    args = parser.parse_args()
-    compare(args, args.out_path, args.shape)

@@ -339,7 +339,6 @@ def check_file_not_exists(file_path):
 def remove_path(path):
     if not os.path.exists(path):
         return
-    user_interactivate_confirm("The file/path {} will be deleted.".format(path))
     try:
         if os.path.islink(path) or os.path.isfile(path):
             os.remove(path)
@@ -348,17 +347,6 @@ def remove_path(path):
     except PermissionError:
         print_error_log("Failed to delete {}. Please check the permission.".format(path))
         raise CompareException(CompareException.INVALID_PATH_ERROR)
-
-
-def user_interactivate_confirm(message):
-    while True:
-        check_message = input(message + " Enter 'continue(c)' to continue or 'quit(q)' to quit:\n")
-        if check_message in ['c', 'continue']:
-            break
-        elif check_message in ['q', 'quit']:
-            raise CompareException("User canceled.")
-        else:
-            print("Input is error, please enter 'continue' or 'c' or 'quit' or 'q'.")
 
 
 def get_dump_data_path(dump_dir):

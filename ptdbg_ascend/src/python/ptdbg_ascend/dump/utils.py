@@ -3,6 +3,7 @@ import shutil
 import sys
 from pathlib import Path
 
+from ..dump import dump
 from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_info_log, \
     check_mode_valid, get_api_name_from_matcher, check_switch_valid, check_dump_mode_valid
 

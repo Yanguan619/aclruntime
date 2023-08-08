@@ -230,11 +230,13 @@ def check_switch_valid(switch):
 
 def check_dump_mode_valid(dump_mode):
     if not isinstance(dump_mode, list):
-            raise TypeError("Please set dump_mode as a list.")
+        print_warn_log("Please set dump_mode as a list.")
+        dump_mode = [dump_mode]
     if not all(mode in ["all", "forward", "backward", "input", "output"] for mode in dump_mode):
         raise ValueError("Please set dump_mode as a list containing one or more of the following: 'all', 'forward', 'backward', 'input', 'output'.")
-    if len(dump_mode) > 1 and "all" in dump_mode:
-        raise ValueError("If 'all' is in dump_mode, dump_mode should only contain 'all'.")
+    if len(dump_mode) < 1 or 'all' in dump_mode or set(["forward", "backward", "input", "output"]).issubset(set(dump_mode)) or (set(["forward", "backward"]).issubset(set(dump_mode)) and not set(["input", "output"]).intersection(set(dump_mode))) or (set(["input", "output"]).issubset(set(dump_mode)) and not set(["forward", "backward"]).intersection(set(dump_mode))):
+        return ['all']
+    return dump_mode
 
 def check_compare_param(input_parma, output_path, stack_mode=False, auto_analyze=True,
                         fuzzy_match=False):  # 添加默认值来让不传参时能通过参数检查

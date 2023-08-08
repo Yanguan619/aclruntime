@@ -28,7 +28,7 @@ import pandas as pd
 
 from ..advisor.advisor import Advisor
 from ..common.utils import check_compare_param, add_time_as_suffix, \
-    print_warn_log, print_error_log, CompareException, Const, CompareConst, format_value, remove_path
+    print_warn_log, print_error_log, CompareException, Const, CompareConst, format_value, remove_file_if_exist
 
 
 def correct_data(result):
@@ -466,8 +466,7 @@ def compare_core(input_parma, output_path, npu_pkl, bench_pkl, stack_mode=False,
 
     file_name = add_time_as_suffix("compare_result" + suffix)
     file_path = os.path.join(os.path.realpath(output_path), file_name)
-    if os.path.exists(file_path) or os.path.islink(file_path):
-        remove_path(file_path)
+    remove_file_if_exist(file_path)
     with os.fdopen(os.open(file_path, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR | stat.S_IRGRP), 'w+') as fout:
         result_df.to_csv(fout, index=False)
 

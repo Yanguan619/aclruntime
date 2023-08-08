@@ -18,6 +18,7 @@ import collections
 import os
 import random
 import re
+import shutil
 import stat
 import subprocess
 import sys
@@ -328,6 +329,19 @@ def check_file_size(input_file, max_size):
         print_error_log('The size (%d) of %s exceeds (%d) bytes, tools not support.'
                         % (file_size, input_file, max_size))
         raise CompareException(CompareException.INVALID_FILE_ERROR)
+
+
+def remove_path(path):
+    if not os.path.exists(path):
+        return
+    try:
+        if os.path.islink(path) or os.path.isfile(path):
+            os.remove(path)
+        else:
+            shutil.rmtree(path)
+    except PermissionError:
+        print_error_log("Failed to delete {}. Please check the permission.".format(path))
+        raise CompareException(CompareException.INVALID_PATH_ERROR)
 
 
 def get_dump_data_path(dump_dir):

@@ -39,7 +39,9 @@ forward_init_status = False
 backward_init_status = False
 
 backward_threading_id = 0
-
+api_list = []
+thread_lock = threading.Lock()
+pkl_name = ""
 
 class DataInfo(object):
     def __init__(self, data, save_data, summary_data, dtype, shape):
@@ -119,13 +121,17 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
 
 
 def dump_data(dump_file_name, dump_step, prefix, data_info):
-    with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
-                   "a") as f:
+    global api_list
+    thread_lock.acquire()
+    try:
         if json_dump_condition(prefix):
             output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
             np.save(output_path, data_info.save_data)
-            json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
-            f.write('\n')
+            api_list.append([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data])
+    except Exception as e:
+        print_warn_log("Dump data failed, error: {}".format(e))
+    finally:
+        thread_lock.release()
 
 
 def dump_stack_info(name_template, dump_file):
@@ -178,6 +184,8 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     _set_dump_switch4api_list(name)
 
     dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
+    global pkl_name
+    pkl_name = dump_file
 
     if DumpUtil.get_dump_switch():
         if DumpUtil.dump_init_enable:
@@ -282,6 +290,7 @@ def acc_cmp_dump(name, **kwargs):
 
     def acc_cmp_hook(module, in_feat, out_feat):
         if pid == os.getpid():
+            # if isinstance(in_feat[0], torch.Tensor) and in_feat[0].device != torch.device("cpu"):
             dump_acc_cmp(name, in_feat, out_feat, dump_step, module)
         if hasattr(module, "input_args"):
             del module.input_args
@@ -289,3 +298,10 @@ def acc_cmp_dump(name, **kwargs):
             del module.input_kwargs
 
     return acc_cmp_hook
+
+def write_to_disk():
+    with open(pkl_name, 'a') as f: 
+        try:
+            f.write('\n'.join(json.dumps(item) for item in api_list))
+        except:
+            raise Exception("write to disk failed")

@@ -18,6 +18,7 @@
 import json
 import multiprocessing
 import os.path
+import stat
 import sys
 
 import numpy as np
@@ -25,7 +26,7 @@ import pandas as pd
 
 from ..advisor.advisor import Advisor
 from ..common.utils import check_compare_param, add_time_as_suffix, \
-    print_warn_log, print_error_log, CompareException, Const, CompareConst, format_value
+    print_warn_log, print_error_log, CompareException, Const, CompareConst, format_value, check_file_not_exists
 
 
 def correct_data(result):
@@ -463,7 +464,9 @@ def compare_core(input_parma, output_path, npu_pkl, bench_pkl, stack_mode=False,
 
     file_name = add_time_as_suffix("compare_result" + suffix)
     file_path = os.path.join(os.path.realpath(output_path), file_name)
-    result_df.to_csv(file_path, index=False)
+    check_file_not_exists(file_path)
+    with os.fdopen(os.open(file_path, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR | stat.S_IRGRP), 'w+') as fout:
+        result_df.to_csv(fout, index=False)
 
     _do_multi_process(input_parma, file_path)
     if auto_analyze:

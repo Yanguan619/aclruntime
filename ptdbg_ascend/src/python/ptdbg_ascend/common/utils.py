@@ -331,14 +331,15 @@ def check_file_size(input_file, max_size):
         raise CompareException(CompareException.INVALID_FILE_ERROR)
 
 
-def remove_file_if_exist(file_path):
-    user_interactivate_confirm("The file/path {} will be deleted.".format(file_path))
-    remove_path(file_path)
+def check_file_not_exists(file_path):
+    if os.path.exists(file_path) or os.path.islink(file_path):
+        remove_path(file_path)
 
 
 def remove_path(path):
     if not os.path.exists(path):
         return
+    user_interactivate_confirm("The file/path {} will be deleted.".format(path))
     try:
         if os.path.islink(path) or os.path.isfile(path):
             os.remove(path)

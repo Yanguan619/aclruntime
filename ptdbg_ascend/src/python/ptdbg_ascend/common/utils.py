@@ -40,6 +40,7 @@ if not is_gpu:
     from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
 
 device = collections.namedtuple('device', ['type', 'index'])
+prefixes = ['api_stack', 'list', 'range', 'acl']
 
 
 class Const:
@@ -306,15 +307,19 @@ def _check_pkl(pkl_file_handle, file_name):
     pkl_file_handle.seek(0, 0)
 
 
+def is_starts_with(string, prefixes):
+    return any(string.startswith(prefix) for prefix in prefixes)
+
+
 def check_file_mode(npu_pkl, bench_pkl, stack_mode):
     npu_pkl_name = os.path.split(npu_pkl)[-1]
     bench_pkl_name = os.path.split(bench_pkl)[-1]
 
-    if not npu_pkl_name.startswith("api_stack") and not bench_pkl_name.startswith("api_stack"):
+    if not is_starts_with(npu_pkl_name, prefixes) and not is_starts_with(bench_pkl_name, prefixes):
         if stack_mode:
             print_error_log("The current file does not contain stack information, please turn off the stack_mode")
             raise CompareException(CompareException.INVALID_COMPARE_MODE)
-    elif npu_pkl_name.startswith("api_stack") and bench_pkl_name.startswith("api_stack"):
+    elif is_starts_with(npu_pkl_name, prefixes) and is_starts_with(bench_pkl_name, prefixes):
         if not stack_mode:
             print_error_log("The current file contains stack information, please turn on the stack_mode")
             raise CompareException(CompareException.INVALID_COMPARE_MODE)

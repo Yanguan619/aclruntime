@@ -291,7 +291,6 @@ def acc_cmp_dump(name, **kwargs):
 
     def acc_cmp_hook(module, in_feat, out_feat):
         if pid == os.getpid():
-            # if isinstance(in_feat[0], torch.Tensor) and in_feat[0].device != torch.device("cpu"):
             dump_acc_cmp(name, in_feat, out_feat, dump_step, module)
         if hasattr(module, "input_args"):
             del module.input_args

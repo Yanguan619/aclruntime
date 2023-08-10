@@ -78,12 +78,9 @@ def register_hook(model, hook, **kwargs):
     dump_mode, dump_config_file = init_dump_config(kwargs)
 
     pid = os.getpid()
-    rank = kwargs.get('rank')
     need_clear = True
-    if rank is None:
-        rank, need_clear = get_process_rank(model)
     if make_dir_flag:
-        make_dump_dirs(rank)
+        make_dump_dirs()
         make_dir_flag = False
     hook_name = hook.__name__
 

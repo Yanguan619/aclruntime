@@ -2,7 +2,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
-
+import torch
 from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_info_log, \
     check_mode_valid, get_api_name_from_matcher, check_switch_valid, check_dump_mode_valid
 
@@ -127,6 +127,35 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
     DumpUtil.dump_dir_tag = dump_tag
 
 
+def get_tensor_rank(in_feat, out_feat):
+    def get_tensor_rank_single(x):
+        if isinstance(x, (list, tuple)):
+            return get_tensor_rank_single(x[0])
+        elif isinstance(x, torch.Tensor):
+            device = x.device
+            if device.type == 'cpu':
+                return -1
+            else:
+                return device.index
+        return None
+    in_rank = get_tensor_rank_single(in_feat)
+    if in_rank is None:
+        out_rank = get_tensor_rank_single(out_feat)
+        if out_rank is None:
+            return -1
+        return out_rank
+    return in_rank
+
+
+def create_dirs_if_not_exist(rank, dump_file):
+    dump_path, file_name = os.path.split(dump_file)
+    rank_dir = os.path.join(dump_path, f"rank{rank}")
+    dump_file = os.path.join(rank_dir, file_name)
+    if not os.path.isdir(rank_dir):
+        os.mkdir(rank_dir, mode=0o750)
+    return dump_file
+
+
 def generate_dump_path_str():
     if DumpUtil.dump_switch_mode == 'acl':
         if DumpUtil.dump_config == '':
@@ -134,7 +163,10 @@ def generate_dump_path_str():
             raise DumpException(DumpException.NONE_ERROR)
         dump_path = f"according to dump config {DumpUtil.dump_config}"
     else:
-        dump_path = f"to {DumpUtil.dump_path}"
+        dump_dir, dump_file = os.path.split(DumpUtil.dump_path)
+        if not dump_file.endswith(".pkl"):
+            dump_dir = DumpUtil.dump_path
+        dump_path = f"to {dump_dir}"
     return dump_path
 
 
@@ -189,16 +221,13 @@ def make_dump_data_dir(dump_file_name):
     return output_dir
 
 
-def make_dump_dirs(rank):
+def make_dump_dirs():
     dump_file_name, dump_file_name_body = "dump.pkl", "dump"
     dump_root_dir = DumpUtil.dump_path if DumpUtil.dump_path else "./"
     tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_v{__version__}')
     Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
-    rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
-    if not os.path.exists(rank_dir):
-        os.mkdir(rank_dir, mode=0o750)
-    DumpUtil.dump_dir = rank_dir
-    dump_file_path = os.path.join(rank_dir, dump_file_name)
+    DumpUtil.dump_dir = tag_dir
+    dump_file_path = os.path.join(tag_dir, dump_file_name)
     DumpUtil.set_dump_path(dump_file_path)
 
 

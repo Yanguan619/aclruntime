@@ -15,6 +15,7 @@ class OverFlowUtil(object):
     overflow_check_switch = None
     overflow_filter_switch = None
     real_overflow_dump_times = 0
+    overflow_nums = 1
 
     @staticmethod
     def set_overflow_check_switch(switch, filter_switch):

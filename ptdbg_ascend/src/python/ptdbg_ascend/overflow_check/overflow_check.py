@@ -4,7 +4,7 @@ import torch
 from ..common.utils import print_warn_log, get_time, print_info_log
 from ..dump.dump import forward_init_status, forward_acl_dump
 from .utils import OverFlowUtil, dump_overflow
-from ..dump.utils import DumpUtil, Const
+from ..dump.utils import DumpUtil, Const, get_tensor_rank, create_dirs_if_not_exist
 
 try:
     import torch_npu
@@ -60,20 +60,18 @@ def check_data_overflow(x):
                 return False
 
 def overflow_check(name, **kwargs):
-    if DumpUtil.dump_path:
-        DumpUtil.dump_dir = os.path.dirname(DumpUtil.dump_path)
-    else:
-        DumpUtil.dump_dir = './'
-    overflow_nums = kwargs.get('overflow_nums', 1)
+    overflow_nums = OverFlowUtil.overflow_nums
     pid = kwargs.get('pid')
-    dump_mode = kwargs.get('dump_mode', "api")
-    DumpUtil.dump_config = kwargs.get('dump_config')
+    dump_mode = DumpUtil.dump_switch_mode
     if not pid:
         return RuntimeError("Not get the specified process pid.")
 
     def overflowcheck_hook(module, in_feat, out_feat):
         if not check_overflow_environment(pid):
             return
+        rank = get_tensor_rank(in_feat, out_feat)
+        dump_path = create_dirs_if_not_exist(rank, DumpUtil.dump_path)
+        dump_dir = os.path.split(dump_path)[0]
         module_name = name
         if hasattr(torch_npu._C, '_npu_is_support_inf_nan') and torch_npu._C._npu_is_support_inf_nan():
             # backward API endwith backward
@@ -91,7 +89,7 @@ def overflow_check(name, **kwargs):
                 del module.input_kwargs
         if module.has_overflow and OverFlowUtil.check_overflow_dump_times(overflow_nums):
             OverFlowUtil.inc_overflow_dump_times()
-            dump_file_name = os.path.join(DumpUtil.dump_dir,
+            dump_file_name = os.path.join(dump_dir,
                 "Overflow_info_{}_{}.pkl".format(get_time(), OverFlowUtil.real_overflow_dump_times))
             dump_overflow(module_name, in_feat, out_feat, dump_file_name)
 

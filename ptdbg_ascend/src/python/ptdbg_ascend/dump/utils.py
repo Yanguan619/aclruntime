@@ -134,7 +134,7 @@ def get_tensor_rank(in_feat, out_feat):
         elif isinstance(x, torch.Tensor):
             device = x.device
             if device.type == 'cpu':
-                return -1
+                return None
             else:
                 return device.index
         return None
@@ -142,7 +142,7 @@ def get_tensor_rank(in_feat, out_feat):
     if in_rank is None:
         out_rank = get_tensor_rank_single(out_feat)
         if out_rank is None:
-            return -1
+            return "cpu"
         return out_rank
     return in_rank
 

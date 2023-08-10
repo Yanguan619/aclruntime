@@ -277,7 +277,6 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
 def acc_cmp_dump(name, **kwargs):
     dump_step = kwargs.get('dump_step', 1)
     pid = kwargs.get('pid')
-    DumpUtil.set_dump_config(kwargs.get('dump_config'))
     if not pid:
         return RuntimeError("Not get the specified process pid.")
 

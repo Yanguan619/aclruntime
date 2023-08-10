@@ -79,9 +79,13 @@ def get_float_tensor_info(data):
     tensor_max = torch._C._VariableFunctionsClass.max(data).cpu().detach().float().numpy().tolist()
     tensor_min = torch._C._VariableFunctionsClass.min(data).cpu().detach().float().numpy().tolist()
     tensor_mean = torch._C._VariableFunctionsClass.mean(data).cpu().detach().float().numpy().tolist()
-    saved_tensor = data.contiguous().cpu().detach().numpy()
+    saved_tensor = data.contiguous().cpu().detach()
+    if data.dtype == torch.bfloat16:
+        saved_numpy = saved_tensor.to(torch.float32).numpy()
+    else:
+        saved_numpy = saved_tensor.numpy()
     summary_data.extend([tensor_max, tensor_min, tensor_mean])
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
+    return DataInfo(data, saved_numpy, summary_data, str(data.dtype), tuple(data.shape))
 
 
 def json_dump_condition(prefix):

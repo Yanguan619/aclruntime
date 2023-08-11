@@ -9,7 +9,7 @@ from ..common.utils import Const, check_switch_valid
 from ..dump.dump import dump_stack_info, get_scalar_data_info, dump_data, \
     get_not_float_tensor_info, get_float_tensor_info
 from ..dump.utils import DumpUtil, make_dump_data_dir
-from ..dump import dump
+
 
 class OverFlowUtil(object):
     overflow_check_switch = None
@@ -65,15 +65,11 @@ def _dump_tensor_completely(x, prefix, dump_file_name):
             if OverFlowUtil.overflow_filter_switch == Const.OFF:
                 data_info = get_not_float_tensor_info(x)
                 dump_data(dump_file_name, dump_flag, prefix, data_info)
-                dump.pkl_name=dump_file_name
-                dump.write_to_disk()
         else:
             data_info = get_float_tensor_info(x)
             dump_data(dump_file_name, dump_flag, prefix, data_info)
-            dump.write_to_disk()
 
     elif OverFlowUtil.overflow_filter_switch == Const.OFF:
         if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
             data_info = get_scalar_data_info(x)
             dump_data(dump_file_name, dump_flag, prefix, data_info)
-            dump.write_to_disk()

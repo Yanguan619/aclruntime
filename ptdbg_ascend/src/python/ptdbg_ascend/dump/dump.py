@@ -145,20 +145,16 @@ def dump_stack_info(name_template, dump_file):
         stack_str.append(stack_line)
 
     prefix = name_template.format("stack_info")
-    with os.fdopen(os.open(dump_file, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-        if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
-            if json_dump_condition(prefix):
-                if Const.ALL in DumpUtil.dump_mode:
-                    json.dump([prefix, stack_str], f)
-                    f.write('\n')
-                else:
-                    for mode in DumpUtil.dump_mode:
-                        if mode in prefix:
-                            json.dump([prefix, stack_str], f)
-                            f.write('\n')
-        else:
-            json.dump([prefix, stack_str], f)
-            f.write('\n')
+    if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
+        if json_dump_condition(prefix):
+            if Const.ALL in DumpUtil.dump_mode:
+                api_list.append([prefix, stack_str])
+            else:
+                for mode in DumpUtil.dump_mode:
+                    if mode in prefix:
+                        api_list.append([prefix, stack_str])
+    else:
+        api_list.append([prefix, stack_str])
 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):

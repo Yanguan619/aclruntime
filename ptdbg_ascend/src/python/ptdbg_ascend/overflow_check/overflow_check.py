@@ -19,7 +19,6 @@ backward_init_status = False
 
 def check_overflow_environment(pid):
     if not OverFlowUtil.get_overflow_check_switch():
-        dump.write_to_disk()
         return False
     if pid != os.getpid():
         return False
@@ -101,11 +100,12 @@ def overflow_check(name, **kwargs):
                            .format(OverFlowUtil.real_overflow_dump_times, module_name, os.path.realpath(dump_file_name)))
             if dump_mode == "acl":
                 acl_dump(module, module_name)
-
+            dump.write_to_disk()
+            dump.api_list.clear()
             # clear overflow flag for the next check
             torch_npu._C._clear_overflow_npu()
             if not OverFlowUtil.check_overflow_dump_times(overflow_nums):
-                dump.write_to_disk()
+                
                 raise ValueError("[overflow {} times]: dump file is saved in '{}'."
                                 .format(OverFlowUtil.real_overflow_dump_times, os.path.realpath(dump_file_name)))
                 return

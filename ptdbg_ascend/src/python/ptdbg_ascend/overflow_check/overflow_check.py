@@ -5,6 +5,7 @@ from ..common.utils import print_warn_log, get_time, print_info_log
 from ..dump.dump import forward_init_status, forward_acl_dump
 from .utils import OverFlowUtil, dump_overflow
 from ..dump.utils import DumpUtil, Const
+from ..dump import dump
 
 try:
     import torch_npu
@@ -18,6 +19,7 @@ backward_init_status = False
 
 def check_overflow_environment(pid):
     if not OverFlowUtil.get_overflow_check_switch():
+        dump.write_to_disk()
         return False
     if pid != os.getpid():
         return False
@@ -103,6 +105,7 @@ def overflow_check(name, **kwargs):
             # clear overflow flag for the next check
             torch_npu._C._clear_overflow_npu()
             if not OverFlowUtil.check_overflow_dump_times(overflow_nums):
+                dump.write_to_disk()
                 raise ValueError("[overflow {} times]: dump file is saved in '{}'."
                                 .format(OverFlowUtil.real_overflow_dump_times, os.path.realpath(dump_file_name)))
                 return

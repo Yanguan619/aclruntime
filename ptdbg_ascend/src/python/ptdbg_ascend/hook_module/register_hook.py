@@ -76,7 +76,7 @@ def register_hook(model, hook, **kwargs):
     register_hook_core(hook, **kwargs)
 
 
-def register_hook_core(model, hook, **kwargs):
+def register_hook_core(hook, **kwargs):
     global make_dir_flag
 
     pid = os.getpid()

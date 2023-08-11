@@ -70,10 +70,12 @@ def _dump_tensor_completely(x, prefix, dump_file_name):
         else:
             data_info = get_float_tensor_info(x)
             dump_data(dump_file_name, dump_flag, prefix, data_info)
+            dump.pkl_name=dump_file_name
             dump.write_to_disk()
 
     elif OverFlowUtil.overflow_filter_switch == Const.OFF:
         if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
             data_info = get_scalar_data_info(x)
             dump_data(dump_file_name, dump_flag, prefix, data_info)
+            dump.pkl_name=dump_file_name
             dump.write_to_disk()

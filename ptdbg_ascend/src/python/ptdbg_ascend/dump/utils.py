@@ -3,6 +3,7 @@ import shutil
 import sys
 from pathlib import Path
 
+from ..dump import dump
 from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_info_log, \
     check_mode_valid, get_api_name_from_matcher, check_switch_valid, check_dump_mode_valid
 
@@ -152,6 +153,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
 
     if switch == "OFF":
         dump_path_str = generate_dump_path_str()
+        dump.write_to_disk()
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
     if switch == "ON":
         dump_path_str = generate_dump_path_str()

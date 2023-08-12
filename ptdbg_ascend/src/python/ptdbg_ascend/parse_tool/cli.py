@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-from lib.interactive_cli import InteractiveCli
+from .lib.interactive_cli import InteractiveCli
 
 
 def _run_interactive_cli(cli=None):

@@ -91,21 +91,3 @@ class ParseTool:
             '-n', '--name', dest='api_name', default=None,  required=True, help='API name')
         args = parser.parse_args(argv)
         self.visual.parse_pkl(args.file_name, args.api_name)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

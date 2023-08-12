@@ -39,6 +39,7 @@ except ImportError as err:
     rich_print = None
     logging.warning("Failed to import rich.", err)
     logging.warning("Some features may not be available. Please run 'pip install rich' to fix it.")
+    raise ParseException(ParseException.PARSE_NO_MODULE_ERROR)
 
 
 class Util:

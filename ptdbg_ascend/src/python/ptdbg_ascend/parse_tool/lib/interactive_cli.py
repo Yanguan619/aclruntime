@@ -17,6 +17,7 @@
 import cmd
 from .parse_tool import ParseTool
 from .utils import Util
+from .parse_exception import catch_exception
 
 
 HEADER = r"""    ____                     
@@ -29,9 +30,11 @@ HEADER = r"""    ____
 
 
 class InteractiveCli(cmd.Cmd):
+
+    @catch_exception
     def __init__(self):
         cmd.Cmd.__init__(self)
-        self.prompt = "ParseTool >>> "
+        self.prompt = "Parse >>> "
         self.parse_tool = ParseTool()
         self.util = Util()
         self.util.print_panel(HEADER)

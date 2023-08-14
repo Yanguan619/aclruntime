@@ -22,7 +22,7 @@ class DumpUtil(object):
     dump_init_enable = False
     dump_api_list = []
     dump_filter_switch = None
-    dump_mode = []
+    dump_mode = ['all']
     backward_input = {}
     dump_dir_tag = 'ptdbg_dump'
     dump_config = None

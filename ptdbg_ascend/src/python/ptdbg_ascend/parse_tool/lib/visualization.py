@@ -70,7 +70,7 @@ class Visualization:
                     continue
                 if info_prefix.find("stack_info") != -1 and len(msg) == 2:
                     print("\nTrace back({}):".format(msg[0]))
-                    if msg[1] and len(msg[1] > 4):
+                    if msg[1] and len(msg[1]) > 4:
                         for item in reversed(msg[1]):
                             print("  File \"{}\", line {}, in {}".format(item[0], item[1], item[2]))
                             print("    {}".format(item[3]))

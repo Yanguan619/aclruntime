@@ -85,10 +85,19 @@ def get_max_abs_err(n_value, b_value):
 
 def get_max_relative_err(n_value, b_value):
     np.seterr(divide='ignore', invalid='ignore')
+    if b_value.dtype in CompareConst.FLOAT_TYPE:
+        zero_mask = (b_value == 0)
+        b_value[zero_mask] += np.finfo(b_value.dtype).eps 
+        n_value[zero_mask] += np.finfo(b_value.dtype).eps 
+    else:
+        n_value, b_value = n_value.astype(float), b_value.astype(float)
+        zero_mask = (b_value == 0)
+        b_value[zero_mask] += np.finfo(float).eps 
+        n_value[zero_mask] += np.finfo(float).eps 
     relative_err = np.divide((n_value - b_value), b_value)
     max_relative_err = np.max(np.abs(relative_err))
     if np.isnan(max_relative_err):
-        message = 'Cannot compare by MaxRelativeError, the data contains 0 or nan in dump data.'
+        message = 'Cannot compare by MaxRelativeError, the data contains nan in dump data.'
         return CompareConst.NAN, message
     return format_value(max_relative_err), ""
 

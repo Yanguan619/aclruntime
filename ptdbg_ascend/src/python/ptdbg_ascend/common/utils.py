@@ -19,7 +19,6 @@ import os
 import random
 import re
 import shutil
-import stat
 import subprocess
 import sys
 import time
@@ -578,8 +577,4 @@ def generate_compare_script(dump_path, pkl_file_path, dump_switch_mode):
 
 
 def check_is_npu():
-    try:
-        import torch_npu
-    except ImportError:
-        return False
-    return True
+    return not is_gpu

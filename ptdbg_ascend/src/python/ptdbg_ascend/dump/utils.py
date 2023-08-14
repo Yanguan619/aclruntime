@@ -3,8 +3,11 @@ import shutil
 import sys
 from pathlib import Path
 import torch
+
+from ..dump import dump
 from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_info_log, \
-    check_mode_valid, get_api_name_from_matcher, check_switch_valid, check_dump_mode_valid
+    check_mode_valid, get_api_name_from_matcher, check_switch_valid, check_dump_mode_valid, generate_compare_script, \
+    check_is_npu
 
 from ..common.version import __version__
 
@@ -21,7 +24,7 @@ class DumpUtil(object):
     dump_init_enable = False
     dump_api_list = []
     dump_filter_switch = None
-    dump_mode = [] # input output all
+    dump_mode = ['all']
     backward_input = {}
     dump_dir_tag = 'ptdbg_dump'
     dump_config = None

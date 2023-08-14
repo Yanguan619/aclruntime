@@ -92,7 +92,7 @@ class TestUtilsMethods(unittest.TestCase):
         b_value = np.array([1, 2, 3])
         max_relative_err, message = compare.get_max_relative_err(n_value, b_value)
         self.assertEqual(max_relative_err, CompareConst.NAN)
-        self.assertEqual(message, 'Cannot compare by MaxRelativeError, the data contains 0 or nan in dump data.')
+        self.assertEqual(message, 'Cannot compare by MaxRelativeError, the data contains nan in dump data.')
 
     def test_get_max_relative_err_when_max_relative_is_not_nan(self):
         n_value = np.array([1, 2, 3])

@@ -157,7 +157,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
         dump_path_str = generate_dump_path_str()
         dump.write_to_disk()
         if check_is_npu() and DumpUtil.dump_switch_mode in [Const.ALL, Const.API_STACK]:
-            generate_compare_script()
+            generate_compare_script(DumpUtil.dump_data_dir, dump.get_pkl_file_path(),DumpUtil.dump_switch_mode)
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
     if switch == "ON":
         dump_path_str = generate_dump_path_str()

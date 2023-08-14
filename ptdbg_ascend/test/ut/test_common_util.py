@@ -11,9 +11,10 @@ class TestCommonUtilsMethods(unittest.TestCase):
         V0_1 = "0.1"
         V1_8 = "1.8"
         V1_11 = "1.11"
+        V2_1 = "1.11"
         version_check = common.VersionCheck
         self.assertFalse(version_check.check_torch_version(V0_1))
-        self.assertTrue(version_check.check_torch_version(V1_8) or version_check.check_torch_version(V1_11))
+        self.assertTrue(version_check.check_torch_version(V1_8) or version_check.check_torch_version(V1_11) or version_check.check_torch_version(V2_1))
 
     def test_check_mode_valid(self):
         mode_check = common.check_mode_valid

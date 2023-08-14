@@ -144,7 +144,7 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
 def get_tensor_rank(in_feat, out_feat):
     def get_tensor_rank_single(x):
         if isinstance(x, (list, tuple)):
-            if len(x) > 0 :
+            if len(x) > 0:
                 return get_tensor_rank_single(x[0])
             return None
         elif isinstance(x, torch.Tensor):
@@ -195,7 +195,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     DumpUtil.set_dump_switch(switch)
     dump_path_str = generate_dump_path_str()
     set_dump_switch_print_info(switch, mode, dump_path_str)
-    set_dump_switch_configs(mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
+    set_dump_switch_config(mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
 
 
 def set_dump_switch_config(mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL]):

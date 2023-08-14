@@ -574,6 +574,8 @@ def generate_compare_script(dump_path, pkl_file_path, dump_switch_mode):
         code_temp = ftemp.read()
         fout.write(code_temp % (pkl_file_path, dump_path, is_api_stack))
 
+    print_info_log(f"Generate compare script successfully which is {compare_script_path}.")
+
 
 def check_is_npu():
     try:

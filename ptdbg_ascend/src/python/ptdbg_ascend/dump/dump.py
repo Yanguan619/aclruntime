@@ -123,6 +123,8 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
 
 def dump_data(dump_file_name, dump_step, prefix, data_info):
     global api_list
+    global pkl_name
+    pkl_name = dump_file_name.split('/')[-1]
     thread_lock.acquire()
     try:
         if json_dump_condition(prefix):
@@ -181,8 +183,6 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     _set_dump_switch4api_list(name)
 
     dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
-    global pkl_name
-    pkl_name = dump_file
 
     if DumpUtil.get_dump_switch():
         if DumpUtil.dump_init_enable:

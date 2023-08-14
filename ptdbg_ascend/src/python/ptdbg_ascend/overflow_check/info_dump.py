@@ -71,10 +71,14 @@ class APIInfo:
             api_args = self.api_name + '*' + str(self.args_num)
             if self.is_forward:
                 forward_real_data_path = os.path.join(dump_path, 'forward_real_data')
+                if not os.path.exists(forward_real_data_path):
+                    os.makedirs(forward_real_data_path, 0o755)
 
                 file_path = os.path.join(forward_real_data_path, f'{api_args}.npy')
             else:
                 backward_real_data_path = os.path.join(dump_path, 'backward_real_data')
+                if not os.path.exists(backward_real_data_path):
+                    os.makedirs(backward_real_data_path, 0o755)
                 file_path = os.path.join(backward_real_data_path, f'{api_args}.npy')
             self.args_num += 1
             npy_path = write_npy(file_path, arg.contiguous().cpu().detach().numpy())

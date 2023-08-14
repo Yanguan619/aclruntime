@@ -171,6 +171,17 @@ class CompareException(Exception):
 class DumpException(CompareException):
     pass
 
+
+def make_dump_path_if_not_exists(dump_path):
+    # 之前应该已经验证过dump_path的上层文件夹存在
+    dump_root, dump_dir = os.path.split(dump_path)
+    if not os.path.exists(dump_path):
+        os.mkdir(dump_path, mode=0o750)
+    else:
+        if not os.path.isdir(dump_path):
+            print_error_log((f"{dump_path} already exists and is not a directory."))
+
+
 def _print_log(level, msg):
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))
     pid = os.getgid()
@@ -228,7 +239,7 @@ def check_mode_valid(mode, scope=[], api_list=[]):
 
 def check_switch_valid(switch):
     if switch not in ["ON", "OFF"]:
-        raise ValueError("Please set dump switch with 'ON' or 'OFF'.")
+        raise ValueError("Please set switch with 'ON' or 'OFF'.")
 
 def check_dump_mode_valid(dump_mode):
     if not isinstance(dump_mode, list):

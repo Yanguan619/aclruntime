@@ -16,15 +16,29 @@ class DumpUtil(object):
     dump_data_dir = None
     dump_path = None
     dump_switch = None
-    dump_switch_mode = Const.ALL
+    dump_switch_mode = Const.ALL # all, api_stack, list, stack...
     dump_switch_scope = []
     dump_init_enable = False
     dump_api_list = []
     dump_filter_switch = None
-    dump_mode = []
+    dump_mode = [] # input output all
     backward_input = {}
     dump_dir_tag = 'ptdbg_dump'
     dump_config = None
+    dataloader_iter = 0
+    target_iter = None
+
+    @staticmethod
+    def incr_iter_num_maybe_exit():
+        if DumpUtil.target_iter is None:
+            return
+        if DumpUtil.dataloader_iter == DumpUtil.target_iter:
+            set_dump_switch("ON")
+        elif DumpUtil.dataloader_iter > DumpUtil.target_iter:
+            raise Exception("Ptdbg: exit after iteration {}".format(DumpUtil.target_iter))
+        else:
+            set_dump_switch("OFF")
+        DumpUtil.dataloader_iter += 1
 
     @staticmethod
     def set_dump_path(save_path):
@@ -130,7 +144,9 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
 def get_tensor_rank(in_feat, out_feat):
     def get_tensor_rank_single(x):
         if isinstance(x, (list, tuple)):
-            return get_tensor_rank_single(x[0])
+            if len(x) > 0 :
+                return get_tensor_rank_single(x[0])
+            return None
         elif isinstance(x, torch.Tensor):
             device = x.device
             if device.type == 'cpu':
@@ -172,22 +188,30 @@ def generate_dump_path_str():
 
 def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL]):
     try:
-        check_mode_valid(mode, scope, api_list)
         check_switch_valid(switch)
-        check_switch_valid(filter_switch)
-        dump_mode = check_dump_mode_valid(dump_mode)
-
-
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()
+    DumpUtil.set_dump_switch(switch)
+    dump_path_str = generate_dump_path_str()
+    set_dump_switch_print_info(switch, mode, dump_path_str)
+    set_dump_switch_configs(mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
 
-    if switch == "OFF":
-        dump_path_str = generate_dump_path_str()
-    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
-    if switch == "ON":
-        dump_path_str = generate_dump_path_str()
 
+def set_dump_switch_config(mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL]):
+    try:
+        check_mode_valid(mode, scope, api_list)
+        check_switch_valid(filter_switch)
+        dump_mode = check_dump_mode_valid(dump_mode)
+    except (CompareException, AssertionError) as err:
+        print_error_log(str(err))
+        sys.exit()
+    switch = DumpUtil.dump_switch
+    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch,
+                                dump_mode=dump_mode)
+
+
+def set_dump_switch_print_info(switch, mode, dump_path_str):
     global dump_count
     if switch == "ON":
         print_info_log(f"Dump switch is turned on. Dump data will be saved {dump_path_str}. ")
@@ -197,6 +221,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
         print_info_log(f"Dump switch is turned off. Dump data has been saved {dump_path_str}. ")
         if mode == Const.LIST:
             print_info_log("The number of matched dump is {}".format(dump_count))
+
 
 def _set_dump_switch4api_list(name):
     if DumpUtil.dump_api_list:

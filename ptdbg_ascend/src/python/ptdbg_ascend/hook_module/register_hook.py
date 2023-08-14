@@ -66,6 +66,17 @@ def initialize_hook(hook):
             if attr_name.startswith("wrap_"):
                 setattr(torch_npu, attr_name[5:], getattr(wrap_npu_custom.HOOKNpuOP, attr_name))
 
+def add_clear_overflow(func):
+    first_module = True
+    def clear_overflow_wrapper(*args, **kwargs):
+        nonlocal first_module
+        if first_module:
+            torch_npu._C._clear_overflow_npu()
+            first_module = False
+        return func(*args, **kwargs)
+    return clear_overflow_wrapper
+
+
 def register_hook(model, hook, **kwargs):
     print_info_log("Please disable dataloader shuffle before running the program.")
     OverFlowUtil.overflow_nums = kwargs.get('overflow_nums', 1)
@@ -96,7 +107,7 @@ def register_hook_core(hook, **kwargs):
                            "please check the version of software torch_npu.")
         # In NPU scene, clear the overflow flag before overflow detection
         if need_clear:
-            torch_npu._C._clear_overflow_npu()
+            HOOKModule.__init__ = add_clear_overflow(HOOKModule.__init__)
     elif "acc_cmp_dump" in hook_name:
         remove_dropout()
 

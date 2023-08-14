@@ -180,6 +180,9 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
 
     if DumpUtil.get_dump_switch():
         rank = get_tensor_rank(in_feat, out_feat)
+        if DumpUtil.target_rank is not None:
+            if rank != DumpUtil.target_rank:
+                return
         dump_file = create_dirs_if_not_exist(rank, dump_file)
         if DumpUtil.dump_init_enable:
             DumpUtil.dump_init_enable = False

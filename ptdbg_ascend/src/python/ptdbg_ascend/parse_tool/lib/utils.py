@@ -37,9 +37,8 @@ except ImportError as err:
     Table = None
     Columns = None
     rich_print = None
-    logging.warning("Failed to import rich.", err)
-    logging.warning("Some features may not be available. Please run 'pip install rich' to fix it.")
-    raise ParseException(ParseException.PARSE_NO_MODULE_ERROR)
+    print("Failed to import rich.", err)
+    print("Some features may not be available. Please run 'pip install rich' to fix it.")
 
 
 class Util:
@@ -94,17 +93,19 @@ class Util:
                     result = os.path.join(dir_path, name)
         if not result:
             self.log.error("Cannot find any file named %s in dir %s" % (target_file, Const.ASCEND_HOME_PATH))
+            self.log.error("Please specify a valid Ascend path or install the cann package")
             raise ParseException(ParseException.PARSE_MSACCUCMP_ERROR)
         else:
             self.log.info("Detect [%s] success. %s", target_file, result)
         return result
 
     def create_dir(self, path):
+        path = self.path_strip(path)
         if not os.path.exists(path):
             try:
                 os.makedirs(path, mode=0o750)
-            except OSError as err:
-                self.log.error("Failed to create %s. %s", path, str(err))
+            except OSError as e:
+                self.log.error("Failed to create %s. %s", path, str(e))
                 raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
 
     def gen_npy_info_txt(self, source_data):

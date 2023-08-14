@@ -42,5 +42,5 @@ def catch_exception(func):
         except ParseException:
             log.error("Command execution failed")
         except SystemExit:
-            log.debug("Please enter the correct command")
+            log.warning("Please enter the correct command")
     return inner

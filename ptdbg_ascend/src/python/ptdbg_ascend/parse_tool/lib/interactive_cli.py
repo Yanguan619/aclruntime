@@ -17,16 +17,8 @@
 import cmd
 from .parse_tool import ParseTool
 from .utils import Util
+from .config import Const
 from .parse_exception import catch_exception
-
-
-HEADER = r"""    ____                     
-   / __ \____ ______________ 
-  / /_/ / __ `/ ___/ ___/ _ \
- / ____/ /_/ / /  (__  )  __/
-/_/    \__,_/_/  /____/\___/ 
-                             
-"""
 
 
 class InteractiveCli(cmd.Cmd):
@@ -37,7 +29,7 @@ class InteractiveCli(cmd.Cmd):
         self.prompt = "Parse >>> "
         self.parse_tool = ParseTool()
         self.util = Util()
-        self.util.print_panel(HEADER)
+        self.util.print_panel(Const.HEADER)
         self._prepare()
 
     @staticmethod

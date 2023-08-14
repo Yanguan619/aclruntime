@@ -52,6 +52,11 @@ class ParseTool:
             help="<Optional> the output path",
             required=False
         )
+        parser.add_argument(
+            "-asc", "--ascend_path", dest="ascend_path", default=None,
+            help="<Optional> the Ascend home path",
+            required=False
+        )
         args = parser.parse_args(argv)
         if not args.output_path:
             result_dir = os.path.join(Const.COMPARE_DIR)
@@ -59,6 +64,8 @@ class ParseTool:
             result_dir = args.output_path
         my_dump_path = args.my_dump_path
         golden_dump_path = args.golden_dump_path
+        if args.ascend_path:
+            Const.ASCEND_HOME_PATH = args.ascend_path
         self.compare.npu_vs_npu_compare(my_dump_path, golden_dump_path, result_dir)
 
     @catch_exception
@@ -70,8 +77,13 @@ class ParseTool:
             '-f', '--format', dest='format', default=None, required=False, help='target format')
         parser.add_argument(
             '-out', '--output_path', dest='output_path', required=False, default=None, help='output path')
+        parser.add_argument(
+            "-asc", "--ascend_path", dest="ascend_path", default=None, help="<Optional> the Ascend home path",
+            required=False)
         args = parser.parse_args(argv)
         self.util.check_path_valid(args.path)
+        if args.ascend_path:
+            Const.ASCEND_HOME_PATH = args.ascend_path
         self.compare.convert_dump_to_npy(args.path, args.format, args.output_path)
 
     @catch_exception

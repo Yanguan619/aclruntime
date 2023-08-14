@@ -37,8 +37,11 @@ class ParseException(Exception):
 def catch_exception(func):
     def inner(*args, **kwargs):
         log = logging.getLogger()
+        line = args[-1] if len(args) == 2 else ""
         try:
             return func(*args, **kwargs)
+        except OSError:
+            log.error("%s: command not found" % line)
         except ParseException:
             log.error("Command execution failed")
         except SystemExit:

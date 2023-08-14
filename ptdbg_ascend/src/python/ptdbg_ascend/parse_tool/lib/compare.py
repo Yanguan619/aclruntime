@@ -34,8 +34,6 @@ class Compare:
         return self.msaccucmp
 
     def npu_vs_npu_compare(self, my_dump_path, golden_dump_path, result_dir):
-        self.util.check_path_valid(my_dump_path)
-        self.util.check_path_valid(golden_dump_path)
         self.log.info("Start Compare ...............")
         self.compare_vector(my_dump_path, golden_dump_path, result_dir)
         self.log.info("Compare finished!!")

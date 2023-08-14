@@ -21,7 +21,7 @@ from .config import Const
 from .utils import Util
 from .compare import Compare
 from .visualization import Visualization
-from .parse_exception import catch_exception
+from .parse_exception import catch_exception, ParseException
 
 
 class ParseTool:
@@ -64,6 +64,11 @@ class ParseTool:
             result_dir = args.output_path
         my_dump_path = args.my_dump_path
         golden_dump_path = args.golden_dump_path
+        self.util.check_path_valid(my_dump_path)
+        self.util.check_path_valid(golden_dump_path)
+        if not os.path.isdir(my_dump_path) or not os.path.isdir(golden_dump_path):
+            self.util.log.error("Please enter a directory not a file")
+            raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
         if args.ascend_path:
             Const.ASCEND_HOME_PATH = args.ascend_path
         self.compare.npu_vs_npu_compare(my_dump_path, golden_dump_path, result_dir)

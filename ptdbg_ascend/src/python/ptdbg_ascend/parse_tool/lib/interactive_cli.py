@@ -22,8 +22,6 @@ from .parse_exception import catch_exception
 
 
 class InteractiveCli(cmd.Cmd):
-
-    @catch_exception
     def __init__(self):
         cmd.Cmd.__init__(self)
         self.prompt = "Parse >>> "
@@ -44,13 +42,12 @@ class InteractiveCli(cmd.Cmd):
     def _prepare(self):
         self.parse_tool.prepare()
 
+    @catch_exception
     def default(self, line=""):
-        try:
-            self.util.execute_command(line)
-        except FileNotFoundError:
-            self.util.log.error("%s: command not found" % line)
+        self.util.execute_command(line)
         return False
 
+    @catch_exception
     def do_run(self, line=""):
         self.util.execute_command(line)
 

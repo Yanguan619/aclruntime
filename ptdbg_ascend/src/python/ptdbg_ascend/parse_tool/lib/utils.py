@@ -37,8 +37,8 @@ except ImportError as err:
     Table = None
     Columns = None
     rich_print = None
-    print("Failed to import rich.", err)
-    print("Some features may not be available. Please run 'pip install rich' to fix it.")
+    print("[Warning] Failed to import rich.", err)
+    print("[Warning] Some features may not be available. Please run 'pip install rich' to fix it.")
 
 
 class Util:

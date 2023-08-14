@@ -120,6 +120,9 @@ class CompareConst:
     # error message
     NO_BENCH = "No bench data matched."
 
+    # compare const
+    FLOAT_TYPE = [np.half, np.single, float, np.double, np.float64, np.longdouble]
+
 
 class VersionCheck:
     """
@@ -572,3 +575,24 @@ def parameter_adapter(func):
                     return getattr(torch._C._VariableFunctionsClass, "stack")(res, 0)
         return func(self, *args, **kwargs)
     return inner
+
+
+def generate_compare_script(dump_path, pkl_file_path, dump_switch_mode):
+    template_path = os.path.join(os.path.dirname(__file__), "compare_script.template")
+    pkl_dir = os.path.dirname(pkl_file_path)
+    compare_script_path = os.path.join(pkl_dir, "compare_data.py")
+    is_api_stack = "True" if dump_switch_mode == Const.API_STACK else "False"
+
+    try:
+        with open(template_path, 'r') as ftemp, \
+           os.fdopen(os.open(compare_script_path, Const.WRITE_FLAGS, Const.WRITE_MODES), 'w+') as fout:
+            code_temp = ftemp.read()
+            fout.write(code_temp % (pkl_file_path, dump_path, is_api_stack))
+    except OSError:
+        print_error_log(f"Failed to open file. Please check file {template_path} or path {pkl_dir}.")
+
+    print_info_log(f"Generate compare script successfully which is {compare_script_path}.")
+
+
+def check_is_npu():
+    return not is_gpu

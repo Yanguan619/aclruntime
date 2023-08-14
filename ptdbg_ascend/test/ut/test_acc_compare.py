@@ -23,14 +23,7 @@ result_op_dict = {'op_name': ['Functional_conv2d_0_forward_input.0', 'Functional
 'output_struct': [('torch.float32', [1, 16, 28, 28])], 'summery': [[3.029174327850342, -2.926689624786377, -0.06619918346405029], [0.19919930398464203, -0.19974489510059357, 0.006269412115216255], \
 [0.19734230637550354, -0.18177609145641327, 0.007903944700956345], [2.1166646480560303, -2.190781354904175, -0.003579073818400502]], 'stack_info': []}
 
-o_result = [['Functional_conv2d_0_forward_input.0', 'Functional_conv2d_0_forward_input.0', 'torch.float32', 'torch.float32', \
-[1, 1, 28, 28], [1, 1, 28, 28], ' ', ' ', 3.029174327850342, -2.926689624786377, -0.06619918346405029, 3.029174327850342, -2.926689624786377, -0.06619918346405029, 'Yes', ''], \
-['Functional_conv2d_0_forward_input.1', 'Functional_conv2d_0_forward_input.1', 'torch.float32', 'torch.float32', [16, 1, 5, 5], [16, 1, 5, 5], ' ', ' ',\
- 0.19919930398464203, -0.19974489510059357, 0.006269412115216255, 0.19919930398464203, -0.19974489510059357, 0.006269412115216255, 'Yes', ''], \
- ['Functional_conv2d_0_forward_input.2', 'Functional_conv2d_0_forward_input.2', 'torch.float32', 'torch.float32', [16], [16], ' ', ' ', \
- 0.19734230637550354, -0.18177609145641327, 0.007903944700956345, 0.19734230637550354, -0.18177609145641327, 0.007903944700956345, 'Yes', ''], \
- ['Functional_conv2d_0_forward_output', 'Functional_conv2d_0_forward_output', 'torch.float32', 'torch.float32', [1, 16, 28, 28], [1, 16, 28, 28], ' ', ' ',\
-  2.1166646480560303, -2.190781354904175, -0.003579073818400502, 2.1166646480560303, -2.190781354904175, -0.003579073818400502, 'Yes', '']]
+o_result = [['Functional_conv2d_0_forward_input.0', 'Functional_conv2d_0_forward_input.0', 'torch.float32', 'torch.float32', [1, 1, 28, 28], [1, 1, 28, 28], ' ', ' ', ' ', 3.029174327850342, -2.926689624786377, -0.06619918346405029, 3.029174327850342, -2.926689624786377, -0.06619918346405029, 'Yes', ''], ['Functional_conv2d_0_forward_input.1', 'Functional_conv2d_0_forward_input.1', 'torch.float32', 'torch.float32', [16, 1, 5, 5], [16, 1, 5, 5], ' ', ' ', ' ', 0.19919930398464203, -0.19974489510059357, 0.006269412115216255, 0.19919930398464203, -0.19974489510059357, 0.006269412115216255, 'Yes', ''], ['Functional_conv2d_0_forward_input.2', 'Functional_conv2d_0_forward_input.2', 'torch.float32', 'torch.float32', [16], [16], ' ', ' ', ' ', 0.19734230637550354, -0.18177609145641327, 0.007903944700956345, 0.19734230637550354, -0.18177609145641327, 0.007903944700956345, 'Yes', ''], ['Functional_conv2d_0_forward_output', 'Functional_conv2d_0_forward_output', 'torch.float32', 'torch.float32', [1, 16, 28, 28], [1, 16, 28, 28], ' ', ' ', ' ', 2.1166646480560303, -2.190781354904175, -0.003579073818400502, 2.1166646480560303, -2.190781354904175, -0.003579073818400502, 'Yes', '']]
 
 class TestUtilsMethods(unittest.TestCase):
     def test_correct_data(self):
@@ -99,7 +92,7 @@ class TestUtilsMethods(unittest.TestCase):
         b_value = np.array([1, 2, 3])
         max_relative_err, message = compare.get_max_relative_err(n_value, b_value)
         self.assertEqual(max_relative_err, CompareConst.NAN)
-        self.assertEqual(message, 'cannot compare by MaxRelativeError, The data contains 0 or nan in dump data.')
+        self.assertEqual(message, 'Cannot compare by MaxRelativeError, the data contains nan in dump data.')
 
     def test_get_max_relative_err_when_max_relative_is_not_nan(self):
         n_value = np.array([1, 2, 3])

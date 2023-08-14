@@ -39,6 +39,9 @@ backward_init_status = False
 
 backward_threading_id = 0
 
+api_list = []
+thread_lock = threading.Lock()
+pkl_name = ""
 
 class DataInfo(object):
     def __init__(self, data, save_data, summary_data, dtype, shape):
@@ -50,7 +53,6 @@ class DataInfo(object):
 
 
 def get_not_float_tensor_info(data):
-    summary_data = []
     if data.numel() == 0 or data.dtype == torch.bool:
         tensor_max = []
         tensor_min = []
@@ -63,9 +65,7 @@ def get_not_float_tensor_info(data):
         tensor_max = torch._C._VariableFunctionsClass.max(data).cpu().detach().float().numpy().tolist()
         tensor_min = torch._C._VariableFunctionsClass.min(data).cpu().detach().float().numpy().tolist()
         tensor_mean = torch._C._VariableFunctionsClass.mean(data.float()).cpu().detach().float().numpy().tolist()
-    saved_tensor = data.contiguous().cpu().detach().numpy()
-    summary_data.extend([tensor_max, tensor_min, tensor_mean])
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
+    return get_tensor_data_info(data, tensor_max, tensor_min, tensor_mean)
 
 
 def get_scalar_data_info(data):
@@ -74,13 +74,21 @@ def get_scalar_data_info(data):
 
 
 def get_float_tensor_info(data):
-    summary_data = []
     tensor_max = torch._C._VariableFunctionsClass.max(data).cpu().detach().float().numpy().tolist()
     tensor_min = torch._C._VariableFunctionsClass.min(data).cpu().detach().float().numpy().tolist()
     tensor_mean = torch._C._VariableFunctionsClass.mean(data).cpu().detach().float().numpy().tolist()
-    saved_tensor = data.contiguous().cpu().detach().numpy()
+    return get_tensor_data_info(data, tensor_max, tensor_min, tensor_mean)
+
+
+def get_tensor_data_info(data, tensor_max, tensor_min, tensor_mean):
+    summary_data = []
+    saved_tensor = data.contiguous().cpu().detach()
+    if data.dtype == torch.bfloat16:
+        saved_numpy = saved_tensor.to(torch.float32).numpy()
+    else:
+        saved_numpy = saved_tensor.numpy()
     summary_data.extend([tensor_max, tensor_min, tensor_mean])
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
+    return DataInfo(data, saved_numpy, summary_data, str(data.dtype), tuple(data.shape))
 
 
 def json_dump_condition(prefix):
@@ -118,13 +126,17 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
 
 
 def dump_data(dump_file_name, dump_step, prefix, data_info):
-    with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
-                   "a") as f:
+    global api_list
+    thread_lock.acquire()
+    try:
         if json_dump_condition(prefix):
             output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
             np.save(output_path, data_info.save_data)
-            json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
-            f.write('\n')
+            api_list.append([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data])
+    except Exception as e:
+        print_warn_log("Dump data failed, error: {}".format(e))
+    finally:
+        thread_lock.release()
 
 
 def dump_stack_info(name_template, dump_file):
@@ -137,20 +149,16 @@ def dump_stack_info(name_template, dump_file):
         stack_str.append(stack_line)
 
     prefix = name_template.format("stack_info")
-    with os.fdopen(os.open(dump_file, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-        if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
-            if json_dump_condition(prefix):
-                if Const.ALL in DumpUtil.dump_mode:
-                    json.dump([prefix, stack_str], f)
-                    f.write('\n')
-                else:
-                    for mode in DumpUtil.dump_mode:
-                        if mode in prefix:
-                            json.dump([prefix, stack_str], f)
-                            f.write('\n')
-        else:
-            json.dump([prefix, stack_str], f)
-            f.write('\n')
+    if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
+        if json_dump_condition(prefix):
+            if Const.ALL in DumpUtil.dump_mode:
+                api_list.append([prefix, stack_str])
+            else:
+                for mode in DumpUtil.dump_mode:
+                    if mode in prefix:
+                        api_list.append([prefix, stack_str])
+    else:
+        api_list.append([prefix, stack_str])
 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
@@ -177,6 +185,8 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     _set_dump_switch4api_list(name)
 
     dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
+    global pkl_name
+    pkl_name = dump_file
 
     if DumpUtil.get_dump_switch():
         rank = get_tensor_rank(in_feat, out_feat)
@@ -292,3 +302,16 @@ def acc_cmp_dump(name, **kwargs):
             del module.input_kwargs
 
     return acc_cmp_hook
+
+
+def write_to_disk():
+    with open(pkl_name, 'a') as f: 
+        try:
+            f.write('\n'.join(json.dumps(item) for item in api_list))
+            f.write('\n')
+        except:
+            raise Exception("write to disk failed")
+
+
+def get_pkl_file_path():
+    return pkl_name

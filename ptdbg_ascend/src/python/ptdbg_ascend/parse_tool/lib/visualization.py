@@ -51,37 +51,35 @@ class Visualization:
     def parse_pkl(self, path, api_name):
         path = self.util.path_strip(path)
         self.util.check_path_format(path, Const.PKL_SUFFIX)
-        pkl_handle = open(path, "r")
-        done = False
-        title_printed = False
-        while not done:
-            pkl_line = pkl_handle.readline()
-            if pkl_line == '\n':
-                continue
-            if len(pkl_line) == 0:
-                done = True
-                break
-            try:
-                msg = json.loads(pkl_line)
-            except json.JSONDecodeError as e:
-                self.util.log.error("%s %s in line %s" % ("JSONDecodeError", str(e), pkl_line))
-                self.util.log.warning("Please check the pkl file")
-                raise ParseException(ParseException.PARSE_JSONDECODE_ERROR)
-            info_prefix = msg[0]
-            if not info_prefix.startswith(api_name):
-                continue
-
-            if info_prefix.find("stack_info") != -1:
-                print("\nTrace back({}):".format(msg[0]))
-                for item in reversed(msg[1]):
-                    self.util.print("  File \"{}\", line {}, in {}".format(item[0], item[1], item[2]))
-                    self.util.print("    {}".format(item[3]))
-                continue
-            if len(msg) > 5:
-                summery_info = "  [{}][dtype: {}][shape: {}][max: {}][min: {}][mean: {}]" \
-                    .format(msg[0], msg[3], msg[4], msg[5][0], msg[5][1], msg[5][2])
-                if not title_printed:
-                    print("\nStatistic Info:")
-                    title_printed = True
-                print(summery_info)
-        pkl_handle.close()
+        with open(path, "r") as pkl_handle:
+            title_printed = False
+            while True:
+                pkl_line = pkl_handle.readline()
+                if pkl_line == '\n':
+                    continue
+                if len(pkl_line) == 0:
+                    break
+                try:
+                    msg = json.loads(pkl_line)
+                except json.JSONDecodeError as e:
+                    self.util.log.error("%s %s in line %s" % ("JSONDecodeError", str(e), pkl_line))
+                    self.util.log.warning("Please check the pkl file")
+                    raise ParseException(ParseException.PARSE_JSONDECODE_ERROR)
+                info_prefix = msg[0]
+                if not info_prefix.startswith(api_name):
+                    continue
+                if info_prefix.find("stack_info") != -1 and len(msg) == 2:
+                    print("\nTrace back({}):".format(msg[0]))
+                    if msg[1] and len(msg[1] > 4):
+                        for item in reversed(msg[1]):
+                            print("  File \"{}\", line {}, in {}".format(item[0], item[1], item[2]))
+                            print("    {}".format(item[3]))
+                        continue
+                if len(msg) > 5:
+                    summery_info = "  [{}][dtype: {}][shape: {}][max: {}][min: {}][mean: {}]" \
+                        .format(msg[0], msg[3], msg[4], msg[5][0], msg[5][1], msg[5][2])
+                    if not title_printed:
+                        print("\nStatistic Info:")
+                        title_printed = True
+                    print(summery_info)
+            pkl_handle.close()

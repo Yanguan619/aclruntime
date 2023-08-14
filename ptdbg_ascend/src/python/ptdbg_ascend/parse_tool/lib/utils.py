@@ -140,7 +140,7 @@ class Util:
 
     def create_table(self, title, columns):
         if not Table:
-            self.log.error("No Module named rich, please install it")
+            self.log.error("No Module named rich, please install it and restart parse tool")
             raise ParseException(ParseException.PARSE_NO_MODULE_ERROR)
         table = Table(title=title)
         for column_name in columns:

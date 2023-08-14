@@ -6,7 +6,8 @@ from pathlib import Path
 
 from ..dump import dump
 from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_info_log, \
-    check_mode_valid, get_api_name_from_matcher, check_switch_valid, check_dump_mode_valid
+    check_mode_valid, get_api_name_from_matcher, check_switch_valid, check_dump_mode_valid, generate_compare_script, \
+    check_is_npu
 
 from ..common.version import __version__
 
@@ -155,8 +156,8 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     if switch == "OFF":
         dump_path_str = generate_dump_path_str()
         dump.write_to_disk()
-        if _check_is_npu and DumpUtil.dump_switch_mode in [Const.ALL, Const.API_STACK]:
-            _generate_compare_script()
+        if check_is_npu() and DumpUtil.dump_switch_mode in [Const.ALL, Const.API_STACK]:
+            generate_compare_script()
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
     if switch == "ON":
         dump_path_str = generate_dump_path_str()
@@ -214,24 +215,3 @@ def check_writable(dump_file):
                 dump_file))
         raise DumpException(DumpException.INVALID_PATH_ERROR)
 
-
-def _generate_compare_script():
-    template_path = os.path.realpath("../compare/compare_script.template")
-    dump_path = DumpUtil.dump_data_dir
-    pkl_file_path = dump.get_pkl_file_path()
-    pkl_dir = os.path.dirname(pkl_file_path)
-    compare_script_path = os.path.join(pkl_dir, "compare_data.py")
-    dump_switch_mode = "True" if DumpUtil.dump_switch_mode == Const.API_STACK else "False"
-
-    with open(template_path, 'r') as ftemp, \
-         os.fdopen(os.open(compare_script_path, Const.WRITE_FLAGS, Const.WRITE_MODES), 'w+') as fout:
-        code_temp = ftemp.read()
-        fout.write(code_temp % (pkl_file_path, dump_path, dump_switch_mode))
-
-
-def _check_is_npu():
-    try:
-        import torch_npu
-    except ImportError:
-        return False
-    return True

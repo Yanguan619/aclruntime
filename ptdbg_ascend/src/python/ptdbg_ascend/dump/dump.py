@@ -295,6 +295,7 @@ def acc_cmp_dump(name, **kwargs):
 
     return acc_cmp_hook
 
+
 def write_to_disk():
     with open(pkl_name, 'a') as f: 
         try:
@@ -302,3 +303,7 @@ def write_to_disk():
             f.write('\n')
         except:
             raise Exception("write to disk failed")
+
+
+def get_pkl_file_path():
+    return pkl_name

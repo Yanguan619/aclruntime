@@ -5,7 +5,8 @@ from pathlib import Path
 
 from ..dump import dump
 from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_info_log, \
-    check_mode_valid, get_api_name_from_matcher, check_switch_valid, check_dump_mode_valid
+    check_mode_valid, get_api_name_from_matcher, check_switch_valid, check_dump_mode_valid, generate_compare_script, \
+    check_is_npu
 
 from ..common.version import __version__
 
@@ -154,6 +155,8 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     if switch == "OFF":
         dump_path_str = generate_dump_path_str()
         dump.write_to_disk()
+        if check_is_npu() and DumpUtil.dump_switch_mode in [Const.ALL, Const.API_STACK, Const.LIST, Const.RANGE]:
+            generate_compare_script(DumpUtil.dump_data_dir, dump.get_pkl_file_path(), DumpUtil.dump_switch_mode)
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
     if switch == "ON":
         dump_path_str = generate_dump_path_str()

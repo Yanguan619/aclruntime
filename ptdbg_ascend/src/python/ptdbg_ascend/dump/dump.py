@@ -299,5 +299,6 @@ def write_to_disk():
     with open(pkl_name, 'a') as f: 
         try:
             f.write('\n'.join(json.dumps(item) for item in api_list))
+            f.wirte('\n')
         except:
             raise Exception("write to disk failed")

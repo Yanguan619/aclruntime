@@ -29,6 +29,7 @@ def check_overflow_environment(pid):
         return False
     return True
 
+
 def check_data_overflow(x):
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
@@ -36,28 +37,30 @@ def check_data_overflow(x):
                 return True
         return False
     else:
-            if isinstance(x, torch.Tensor) and x.numel() != 0 and x.dtype != torch.bool:
-                if len(x.shape) == 0:
-                    tensor_max = x.cpu().detach().float().numpy().tolist()
-                    tensor_min = tensor_max
-                else:
-                    tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
-                    tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()
-                # inf
-                if tensor_max == float('inf') or tensor_min == float('-inf'):
-                    return True
-                # nan
-                elif tensor_max != tensor_max or tensor_min != tensor_min:
-                    return True
-                else:
-                    return False
-            elif isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
-                if x == float('inf') or x == float('-inf') or x != x :
-                    return True
-                else:
-                    return False
+        if isinstance(x, torch.Tensor) and x.numel() != 0 and x.dtype != torch.bool:
+            if len(x.shape) == 0:
+                tensor_max = x.cpu().detach().float().numpy().tolist()
+                tensor_min = tensor_max
+            else:
+                tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
+                tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()
+            # inf
+            if tensor_max == float('inf') or tensor_min == float('-inf') or \
+                    tensor_max == torch.finfo(x.dtype).max or tensor_min == torch.finfo(x.dtype).min:
+                return True
+            # nan
+            elif tensor_max != tensor_max or tensor_min != tensor_min:
+                return True
             else:
                 return False
+        elif isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
+            if x == float('inf') or x == float('-inf') or x != x:
+                return True
+            else:
+                return False
+        else:
+            return False
+
 
 def overflow_check(name, **kwargs):
     if DumpUtil.dump_path:
@@ -90,13 +93,28 @@ def overflow_check(name, **kwargs):
             if hasattr(module, 'input_kwargs'):
                 del module.input_kwargs
         if module.has_overflow and OverFlowUtil.check_overflow_dump_times(overflow_nums):
+            if module_name.endswith(Const.BACKWARD):
+                check_feat = out_feat
+            else:
+                check_feat = in_feat
+            if check_data_overflow(check_feat):
+                print_warn_log("module name :'{}' is overflow and its inputs already has an overflow, so you need "
+                               "to go back to find where the overflow started.".format(module_name))
+            elif not check_data_overflow(in_feat) and not check_data_overflow(out_feat):
+                print_warn_log("module name :'{}' is overflow and its inputs and outputs do not overflow, "
+                               "so this is a process overflow".format(module_name))
+            else:
+                print_warn_log("module name :'{}' is overflow. Its input is normal and its output "
+                               "is overflow.".format(module_name))
             OverFlowUtil.inc_overflow_dump_times()
             dump_file_name = os.path.join(DumpUtil.dump_dir,
-                "Overflow_info_{}_{}.pkl".format(get_time(), OverFlowUtil.real_overflow_dump_times))
+                                          "Overflow_info_{}_{}.pkl".format(get_time(),
+                                                                           OverFlowUtil.real_overflow_dump_times))
             dump_overflow(module_name, in_feat, out_feat, dump_file_name)
 
             print_warn_log("[overflow {} times]: module name :'{}' is overflow and dump file is saved in '{}'."
-                           .format(OverFlowUtil.real_overflow_dump_times, module_name, os.path.realpath(dump_file_name)))
+                           .format(OverFlowUtil.real_overflow_dump_times, module_name,
+                                   os.path.realpath(dump_file_name)))
             if dump_mode == "acl":
                 acl_dump(module, module_name)
 
@@ -104,7 +122,7 @@ def overflow_check(name, **kwargs):
             torch_npu._C._clear_overflow_npu()
             if not OverFlowUtil.check_overflow_dump_times(overflow_nums):
                 raise ValueError("[overflow {} times]: dump file is saved in '{}'."
-                                .format(OverFlowUtil.real_overflow_dump_times, os.path.realpath(dump_file_name)))
+                                 .format(OverFlowUtil.real_overflow_dump_times, os.path.realpath(dump_file_name)))
                 return
 
     def acl_dump(module, module_name):

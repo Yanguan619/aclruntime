@@ -1,7 +1,6 @@
 import os
 import shutil
 import sys
-import stat
 from pathlib import Path
 
 from ..dump import dump

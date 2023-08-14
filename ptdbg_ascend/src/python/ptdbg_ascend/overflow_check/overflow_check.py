@@ -113,13 +113,14 @@ def overflow_check(name, **kwargs):
             if hasattr(module, 'input_kwargs'):
                 del module.input_kwargs
         if module.has_overflow and OverFlowUtil.check_overflow_dump_times(overflow_nums):
-            overflow_type_judge(in_feat, out_feat, module_name)
-            if module_name.endswith(Const.FORWARD):
-                api_overflow.append(module_name)
-            else:
-                api_overflow.append(module_name.replace("backward", "forward"))
-                delete_forward_npy(api_overflow, forward_api_info)
-                backward_api_info.update({name: BackwardAPIInfo(name, out_feat)})
+            need_replicate = overflow_type_judge(in_feat, out_feat, module_name)
+            if need_replicate:
+                if module_name.endswith(Const.FORWARD):
+                    api_overflow.append(module_name)
+                else:
+                    api_overflow.append(module_name.replace("backward", "forward"))
+                    delete_forward_npy(api_overflow, forward_api_info)
+                    backward_api_info.update({name: BackwardAPIInfo(name, out_feat)})
             OverFlowUtil.inc_overflow_dump_times()
             dump_file_name = os.path.join(DumpUtil.dump_dir,
                                           "Overflow_info_{}_{}.pkl".format(get_time(),
@@ -162,12 +163,15 @@ def overflow_check(name, **kwargs):
         if check_data_overflow(check_feat):
             print_warn_log("module name :'{}' is overflow and its inputs already has an overflow, so you need "
                            "to go back to find where the overflow started.".format(module_name))
+            return False
         elif not check_data_overflow(in_feat) and not check_data_overflow(out_feat):
             print_warn_log("module name :'{}' is overflow and its inputs and outputs do not overflow, "
                            "so this is a process overflow".format(module_name))
+            return False
         else:
             print_warn_log("module name :'{}' is overflow. Its input is normal and its output "
                            "is overflow.".format(module_name))
+            return True
 
     def acl_dump(module, module_name):
         if "forward" in module_name:

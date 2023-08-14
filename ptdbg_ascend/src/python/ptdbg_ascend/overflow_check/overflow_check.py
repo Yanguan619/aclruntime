@@ -95,6 +95,7 @@ def overflow_check(name, **kwargs):
             dump_file_name = os.path.join(DumpUtil.dump_dir,
                 "Overflow_info_{}_{}.pkl".format(get_time(), OverFlowUtil.real_overflow_dump_times))
             dump_overflow(module_name, in_feat, out_feat, dump_file_name)
+            dump.pkl_name=dump_file_name
 
             print_warn_log("[overflow {} times]: module name :'{}' is overflow and dump file is saved in '{}'."
                            .format(OverFlowUtil.real_overflow_dump_times, module_name, os.path.realpath(dump_file_name)))

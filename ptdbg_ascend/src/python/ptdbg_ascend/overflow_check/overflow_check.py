@@ -4,7 +4,8 @@ import torch
 
 from ..common.utils import print_warn_log, get_time, print_info_log
 from ..dump.dump import forward_init_status, forward_acl_dump
-from .utils import OverFlowUtil, dump_overflow, write_api_info_json, ForwardAPIInfo, BackwardAPIInfo
+from .utils import OverFlowUtil, dump_overflow
+from .info_dump import write_api_info_json, ForwardAPIInfo, BackwardAPIInfo
 from ..dump.utils import DumpUtil, Const
 from ..dump import dump
 

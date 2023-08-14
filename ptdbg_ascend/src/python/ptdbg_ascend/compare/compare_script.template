@@ -1,0 +1,11 @@
+from ptdbg_ascend import compare
+
+dump_path_param = {
+    "npu_pkl_path": "%s",
+    "bench_pkl_path": "",
+    "npu_dump_data_dir": "%s",
+    "bench_dump_data_dir": "",
+    "is_print_compare_log": True
+}
+
+compare(dump_path_param, output_path="", stack_mode=%s)

@@ -70,10 +70,7 @@ def check_data_overflow(x):
 
 
 def check_path(apis, path):
-    for api in apis:
-        if api in path:
-            return True
-    return False
+    return any(api in path for api in apis)
 
 
 def overflow_check(name, **kwargs):

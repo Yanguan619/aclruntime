@@ -18,11 +18,11 @@ class TestCommonUtilsMethods(unittest.TestCase):
     def test_check_mode_valid(self):
         mode_check = common.check_mode_valid
         self.assertEqual(mode_check("all"), None)
-        self.assertEqual(mode_check("list"), None)
-        self.assertEqual(mode_check("range"), None)
-        self.assertEqual(mode_check("stack"), None)
-        self.assertEqual(mode_check("acl"), None)
-        self.assertEqual(mode_check("api_list"), None)
+        self.assertEqual(mode_check("list",scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward", "Torch_relu_3_backward"]), None)
+        self.assertEqual(mode_check("range", scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward"]), None)
+        self.assertEqual(mode_check("stack",scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward"]), None)
+        self.assertEqual(mode_check("acl",scope=["Tensor_permute_1_forward"]), None)
+        self.assertEqual(mode_check("api_list",api_list=["relu"]), None)
         self.assertEqual(mode_check("api_stack"), None)
         self.assertRaises(common.CompareException, mode_check, "api_stack_123")
     

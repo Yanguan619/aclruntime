@@ -120,6 +120,9 @@ class CompareConst:
     # error message
     NO_BENCH = "No bench data matched."
 
+    # compare const
+    FLOAT_TYPE = [np.half, np.single, float, np.double, np.float64, np.longdouble]
+
 
 class VersionCheck:
     """

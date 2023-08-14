@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-# Copyright (C) 2019-2020. Huawei Technologies Co., Ltd. All rights reserved.
+# Copyright (C) 2022-2023. Huawei Technologies Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -20,9 +20,8 @@ import os
 
 class Const:
 
-    ASCEND_HOME_PATH = '/usr/local/Ascend/'
+    MS_ACCU_CMP_PATH = '/usr/local/Ascend/ascend-toolkit/latest/tools/operator_cmp/compare/msaccucmp.py'
     ROOT_DIR = ""
-    MS_ACCU_CMP = r'msaccucmp.py[c]?'
     LOG_LEVEL = "NOTSET"
     DATA_ROOT_DIR = os.path.join(ROOT_DIR, 'parse_data')
     DUMP_CONVERT_DIR = os.path.join(DATA_ROOT_DIR, 'dump_convert')

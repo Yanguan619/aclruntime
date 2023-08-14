@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-# Copyright (C) 2019-2020. Huawei Technologies Co., Ltd. All rights reserved.
+# Copyright (C) 2022-2023. Huawei Technologies Co., Ltd. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -84,29 +84,27 @@ class Util:
         else:
             self.print(Panel(content, title=title))
 
-    def search_file(self, target_file):
+    def check_msaccucmp(self, target_file):
         self.log.info("Try to auto detect file with name: %s.", target_file)
-        result = None
-        for dir_path, dir_names, file_names in os.walk(Const.ASCEND_HOME_PATH, followlinks=True):
-            for name in file_names:
-                if re.match(target_file, name):
-                    result = os.path.join(dir_path, name)
-        if not result:
-            self.log.error("Cannot find any file named %s in dir %s" % (target_file, Const.ASCEND_HOME_PATH))
-            self.log.error("Please specify a valid Ascend path or install the cann package")
-            raise ParseException(ParseException.PARSE_MSACCUCMP_ERROR)
+        result = subprocess.run(
+            [self.python, target_file, "--help"], stdout=subprocess.PIPE)
+        if result.returncode == 0:
+            self.log.info("Check [%s] success.", target_file)
         else:
-            self.log.info("Detect [%s] success. %s", target_file, result)
-        return result
+            self.log.error("Check msaccucmp failed in dir %s" % target_file)
+            self.log.error("Please specify a valid msaccucmp.py path or install the cann package")
+            raise ParseException(ParseException.PARSE_MSACCUCMP_ERROR)
+        return target_file
 
     def create_dir(self, path):
         path = self.path_strip(path)
-        if not os.path.exists(path):
-            try:
-                os.makedirs(path, mode=0o750)
-            except OSError as e:
-                self.log.error("Failed to create %s. %s", path, str(e))
-                raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
+        if os.path.exists(path):
+            return
+        try:
+            os.makedirs(path, mode=0o750)
+        except OSError as e:
+            self.log.error("Failed to create %s. %s", path, str(e))
+            raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
 
     def gen_npy_info_txt(self, source_data):
         shape, dtype, max_data, min_data, mean = \

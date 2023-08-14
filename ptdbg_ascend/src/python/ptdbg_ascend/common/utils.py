@@ -569,10 +569,13 @@ def generate_compare_script(dump_path, pkl_file_path, dump_switch_mode):
     compare_script_path = os.path.join(pkl_dir, "compare_data.py")
     is_api_stack = "True" if dump_switch_mode == Const.API_STACK else "False"
 
-    with open(template_path, 'r') as ftemp, \
-         os.fdopen(os.open(compare_script_path, Const.WRITE_FLAGS, Const.WRITE_MODES), 'w+') as fout:
-        code_temp = ftemp.read()
-        fout.write(code_temp % (pkl_file_path, dump_path, is_api_stack))
+    try:
+        with open(template_path, 'r') as ftemp, \
+           os.fdopen(os.open(compare_script_path, Const.WRITE_FLAGS, Const.WRITE_MODES), 'w+') as fout:
+            code_temp = ftemp.read()
+            fout.write(code_temp % (pkl_file_path, dump_path, is_api_stack))
+    except OSError:
+        print_error_log(f"Failed to open file. Please check file {template_path} or path {pkl_dir}.")
 
     print_info_log(f"Generate compare script successfully which is {compare_script_path}.")
 

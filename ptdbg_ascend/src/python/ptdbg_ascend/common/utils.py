@@ -564,7 +564,7 @@ def parameter_adapter(func):
 
 
 def generate_compare_script(dump_path, pkl_file_path, dump_switch_mode):
-    template_path = os.path.realpath("compare_script.template")
+    template_path = os.path.join(os.path.dirname(__file__), "compare_script.template")
     pkl_dir = os.path.dirname(pkl_file_path)
     compare_script_path = os.path.join(pkl_dir, "compare_data.py")
     is_api_stack = "True" if dump_switch_mode == Const.API_STACK else "False"

@@ -85,10 +85,19 @@ def get_max_abs_err(n_value, b_value):
 
 def get_max_relative_err(n_value, b_value):
     np.seterr(divide='ignore', invalid='ignore')
+    if b_value.dtype in CompareConst.FLOAT_TYPE:
+        zero_mask = (b_value == 0)
+        b_value[zero_mask] += np.finfo(b_value.dtype).eps 
+        n_value[zero_mask] += np.finfo(b_value.dtype).eps 
+    else:
+        n_value, b_value = n_value.astype(float), b_value.astype(float)
+        zero_mask = (b_value == 0)
+        b_value[zero_mask] += np.finfo(float).eps 
+        n_value[zero_mask] += np.finfo(float).eps 
     relative_err = np.divide((n_value - b_value), b_value)
     max_relative_err = np.max(np.abs(relative_err))
     if np.isnan(max_relative_err):
-        message = 'Cannot compare by MaxRelativeError, the data contains 0 or nan in dump data.'
+        message = 'Cannot compare by MaxRelativeError, the data contains nan in dump data.'
         return CompareConst.NAN, message
     return format_value(max_relative_err), ""
 
@@ -380,6 +389,8 @@ def check_accuracy(cos, max_abs_err):
         return CompareConst.ACCURACY_CHECK_UNMATCH
     if cos == CompareConst.NAN or max_abs_err == CompareConst.NAN:
         return CompareConst.NAN
+    if cos == "N/A" or max_abs_err == "N/A":
+        return CompareConst.ACCURACY_CHECK_NO
     try:
         cos, max_abs_err = float(cos), float(max_abs_err)
     except ValueError:
@@ -417,6 +428,12 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
         err_msg = " Dtype of NPU and bench Tensor do not match."
     else:
         err_msg = ""
+    
+    n_value, b_value = handle_inf_nan(n_value, b_value)
+    if n_value is CompareConst.NAN or b_value is CompareConst.NAN:
+        return "N/A", "N/A", "N/A",  "The position of inf or nan in NPU and bench Tensor do not match."
+        
+
     n_value = n_value.reshape(-1).astype(float)
     b_value = b_value.reshape(-1).astype(float)
     err_msg = ""
@@ -433,6 +450,23 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     if npu_bench_name_list[0] != npu_bench_name_list[1]:
         err_msg += " Fuzzy matching data, the comparison accuracy may be affected."
     return cos_sim, max_abs_err, max_relative_err, err_msg
+
+
+def handle_inf_nan(n_value, b_value):
+    n_inf = np.isinf(n_value)
+    b_inf = np.isinf(b_value)
+    n_nan = np.isnan(n_value)
+    b_nan = np.isnan(b_value)
+    if np.any(n_inf) or np.any(b_inf) or np.any(n_nan) or np.any(b_nan):
+        if np.array_equal(n_inf, b_inf) and np.array_equal(n_nan, b_nan):
+            n_value[n_inf] = 0
+            b_value[b_inf] = 0
+            n_value[n_nan] = 0
+            b_value[b_nan] = 0
+        else:
+            return CompareConst.NAN, CompareConst.NAN
+    return n_value, b_value
+
 
 def compare(input_parma, output_path, **kwargs):
     if kwargs.get('suffix'):

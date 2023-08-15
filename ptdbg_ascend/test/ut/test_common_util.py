@@ -11,18 +11,20 @@ class TestCommonUtilsMethods(unittest.TestCase):
         V0_1 = "0.1"
         V1_8 = "1.8"
         V1_11 = "1.11"
+        V2_0 = "2.0"
+        V2_1 = "2.1"
         version_check = common.VersionCheck
         self.assertFalse(version_check.check_torch_version(V0_1))
-        self.assertTrue(version_check.check_torch_version(V1_8) or version_check.check_torch_version(V1_11))
+        self.assertTrue(version_check.check_torch_version(V1_8) or version_check.check_torch_version(V1_11) or version_check.check_torch_version(V2_0) or version_check.check_torch_version(V2_1))
 
     def test_check_mode_valid(self):
         mode_check = common.check_mode_valid
         self.assertEqual(mode_check("all"), None)
-        self.assertEqual(mode_check("list"), None)
-        self.assertEqual(mode_check("range"), None)
-        self.assertEqual(mode_check("stack"), None)
-        self.assertEqual(mode_check("acl"), None)
-        self.assertEqual(mode_check("api_list"), None)
+        self.assertEqual(mode_check("list",scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward", "Torch_relu_3_backward"]), None)
+        self.assertEqual(mode_check("range", scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward"]), None)
+        self.assertEqual(mode_check("stack",scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward"]), None)
+        self.assertEqual(mode_check("acl",scope=["Tensor_permute_1_forward"]), None)
+        self.assertEqual(mode_check("api_list",api_list=["relu"]), None)
         self.assertEqual(mode_check("api_stack"), None)
         self.assertRaises(common.CompareException, mode_check, "api_stack_123")
     

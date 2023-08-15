@@ -15,7 +15,7 @@ class PrecisionDebugger:
     hook_func = None
 
     # 提供两种使用方式：逐个传参和构造config后传config，看哪种使用方式更受欢迎，之后只保留一种
-    def __init__(self, dump_path=None, hook_name=None, rank=None, step=None, config=None):
+    def __init__(self, dump_path=None, hook_name=None, rank=None, step=[0], config=None):
         if config is None:
             if dump_path is None or hook_name is None:
                 err_msg = "You must provide dump_path and hook_name argument to PrecisionDebugger\

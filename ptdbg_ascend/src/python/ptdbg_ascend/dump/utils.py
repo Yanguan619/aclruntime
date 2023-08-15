@@ -210,8 +210,9 @@ def set_dump_switch_config(mode=Const.ALL, scope=[], api_list=[], filter_switch=
         print_error_log(str(err))
         sys.exit()
     switch = DumpUtil.dump_switch
-    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch,
+    DumpUtil.set_dump_switch("OFF", mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch,
                                 dump_mode=dump_mode)
+    DumpUtil.dump_switch = switch
 
 
 def set_dump_switch_print_info(switch, mode, dump_path_str):

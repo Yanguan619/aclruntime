@@ -192,7 +192,9 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
         rank = get_tensor_rank(in_feat, out_feat)
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:
+                print_warn_log(f"Rank {rank} is skipped.")
                 return
+        print_info_log(f"Start dump rank {rank} data.")
         dump_file = create_dirs_if_not_exist(rank, dump_file)
         pkl_name = dump_file
         if DumpUtil.dump_init_enable:
@@ -306,12 +308,13 @@ def acc_cmp_dump(name, **kwargs):
 
 
 def write_to_disk():
-    with open(pkl_name, 'a') as f: 
-        try:
-            f.write('\n'.join(json.dumps(item) for item in api_list))
-            f.write('\n')
-        except:
-            raise Exception("write to disk failed")
+    if api_list:
+        with open(pkl_name, 'a') as f:
+            try:
+                f.write('\n'.join(json.dumps(item) for item in api_list))
+                f.write('\n')
+            except:
+                raise Exception("write to disk failed")
 
 
 def get_pkl_file_path():

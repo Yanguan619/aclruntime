@@ -221,7 +221,7 @@ def set_dump_switch_print_info(switch, mode, dump_path_str):
         if mode == Const.LIST:
             dump_count = 0
     else:
-        print_info_log(f"Dump switch is turned off. Dump data has been saved {dump_path_str}. ")
+        print_info_log(f"Dump switch is turned off. ")
         if mode == Const.LIST:
             print_info_log("The number of matched dump is {}".format(dump_count))
 

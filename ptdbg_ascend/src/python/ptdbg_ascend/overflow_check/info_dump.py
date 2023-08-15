@@ -10,6 +10,7 @@ import numpy as np
 from ..common.utils import print_error_log
 
 
+special_torch_object = ["memory_format"]
 lock = threading.Lock()
 
 
@@ -41,6 +42,8 @@ class APIInfo:
                 if key in self.torch_object_key.keys():
                     fun = self.torch_object_key[key]
                     out[key] = fun(value)
+                elif key in special_torch_object:
+                    continue
                 else:
                     out[key] = self.analyze_element(value)
 

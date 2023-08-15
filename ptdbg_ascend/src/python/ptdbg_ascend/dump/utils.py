@@ -30,6 +30,7 @@ class DumpUtil(object):
     dump_config = None
     dataloader_iter = 0
     target_iter = None
+    target_rank = None
 
     @staticmethod
     def incr_iter_num_maybe_exit():

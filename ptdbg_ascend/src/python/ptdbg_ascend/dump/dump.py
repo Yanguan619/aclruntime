@@ -182,18 +182,15 @@ def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = DumpUtil.get_dump_path()
-    _set_dump_switch4api_list(name)
-
     dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
-    global pkl_name
-    pkl_name = dump_file
-
     if DumpUtil.get_dump_switch():
+        _set_dump_switch4api_list(name)
         rank = get_tensor_rank(in_feat, out_feat)
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:
                 return
         dump_file = create_dirs_if_not_exist(rank, dump_file)
+        global pkl_name
         pkl_name = dump_file
         if DumpUtil.dump_init_enable:
             DumpUtil.dump_init_enable = False

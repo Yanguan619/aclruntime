@@ -16,8 +16,8 @@ class PrecisionDebugger:
     def __init__(self, dump_path=None, hook_name=None, rank=None, step=None, config=None):
         if config is None:
             if dump_path is None or hook_name is None:
-                err_msg = "You must provide dump_path and hook_name argument to PrecisionDebugger\"
-                                "when config is not provided.")
+                err_msg = "You must provide dump_path and hook_name argument to PrecisionDebugger\
+                                when config is not provided."
                 raise Exception(err_msg)
             self.config = DebuggerConfig(dump_path, hook_name, rank, step)
         else:

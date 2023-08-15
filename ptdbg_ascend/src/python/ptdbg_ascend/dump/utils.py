@@ -53,14 +53,19 @@ class DumpUtil(object):
         DumpUtil.dump_config = dump_config
 
     @staticmethod
-    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode):
+    def set_dump_switch(switch, mode=None, scope=None, api_list=None, filter_switch=None, dump_mode=None):
         DumpUtil.dump_switch = switch
-        DumpUtil.dump_switch_mode = mode
+        if mode is not None:
+            DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_init_enable = True
-        DumpUtil.dump_switch_scope = scope
-        DumpUtil.dump_api_list = [api.lower() for api in api_list]
-        DumpUtil.dump_filter_switch = filter_switch
-        DumpUtil.dump_mode = dump_mode if isinstance(dump_mode, list) else [dump_mode]
+        if scope is not None:
+            DumpUtil.dump_switch_scope = scope
+        if api_list is not None:
+            DumpUtil.dump_api_list = [api.lower() for api in api_list]
+        if filter_switch is not None:
+            DumpUtil.dump_filter_switch = filter_switch
+        if dump_mode is not None:
+            DumpUtil.dump_mode = dump_mode if isinstance(dump_mode, list) else [dump_mode]
 
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]

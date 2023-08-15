@@ -117,7 +117,6 @@ def overflow_check(name, **kwargs):
                     api_overflow.append(module_name)
                 else:
                     api_overflow.append(module_name.replace("backward", "forward"))
-                    delete_forward_npy(api_overflow, forward_api_info)
                     backward_api_info.update({name: BackwardAPIInfo(name, out_feat)})
             OverFlowUtil.inc_overflow_dump_times()
             dump_file_name = os.path.join(DumpUtil.dump_dir,

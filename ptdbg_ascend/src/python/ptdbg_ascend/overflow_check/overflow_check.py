@@ -1,9 +1,11 @@
 import os
+import glob
 import torch
 
 from ..common.utils import print_warn_log, get_time, print_info_log
 from ..dump.dump import forward_init_status, forward_acl_dump
 from .utils import OverFlowUtil, dump_overflow
+from .info_dump import write_api_info_json, ForwardAPIInfo, BackwardAPIInfo
 from ..dump.utils import DumpUtil, Const
 from ..dump import dump
 
@@ -15,6 +17,11 @@ else:
     is_gpu = False
 
 backward_init_status = False
+api_overflow = []
+forward_api_info = {}
+backward_api_info = {}
+FORWARD_REAL_DATA_PATH = os.path.join('./', 'forward_real_data')
+BACKWARD_REAL_DATA_PATH = os.path.join('./', 'backward_real_data')
 
 
 def check_overflow_environment(pid):
@@ -63,6 +70,10 @@ def check_data_overflow(x):
             return False
 
 
+def check_path(apis, path):
+    return any(api in path for api in apis)
+
+
 def overflow_check(name, **kwargs):
     if DumpUtil.dump_path:
         DumpUtil.dump_dir = os.path.dirname(DumpUtil.dump_path)
@@ -78,6 +89,12 @@ def overflow_check(name, **kwargs):
     def overflowcheck_hook(module, in_feat, out_feat):
         if not check_overflow_environment(pid):
             return
+        global api_overflow
+        global forward_api_info
+        global backward_api_info
+        if name.endswith(Const.FORWARD):
+            forward_api_info.update({name: ForwardAPIInfo(name, module.input_args, module.input_kwargs)})
+
         module_name = name
         if hasattr(torch_npu._C, '_npu_is_support_inf_nan') and torch_npu._C._npu_is_support_inf_nan():
             # backward API endwith backward
@@ -94,13 +111,19 @@ def overflow_check(name, **kwargs):
             if hasattr(module, 'input_kwargs'):
                 del module.input_kwargs
         if module.has_overflow and OverFlowUtil.check_overflow_dump_times(overflow_nums):
-            overflow_type_judge(in_feat, out_feat, module_name)
+            need_replicate = overflow_type_judge(in_feat, out_feat, module_name)
+            if need_replicate:
+                if module_name.endswith(Const.FORWARD):
+                    api_overflow.append(module_name)
+                else:
+                    api_overflow.append(module_name.replace("backward", "forward"))
+                    backward_api_info.update({name: BackwardAPIInfo(name, out_feat)})
             OverFlowUtil.inc_overflow_dump_times()
             dump_file_name = os.path.join(DumpUtil.dump_dir,
                                           "Overflow_info_{}_{}.pkl".format(get_time(),
                                                                            OverFlowUtil.real_overflow_dump_times))
             dump_overflow(module_name, in_feat, out_feat, dump_file_name)
-            dump.pkl_name=dump_file_name
+            dump.pkl_name = dump_file_name
 
             print_warn_log("[overflow {} times]: module name :'{}' is overflow and dump file is saved in '{}'."
                            .format(OverFlowUtil.real_overflow_dump_times, module_name,
@@ -112,10 +135,22 @@ def overflow_check(name, **kwargs):
             # clear overflow flag for the next check
             torch_npu._C._clear_overflow_npu()
             if not OverFlowUtil.check_overflow_dump_times(overflow_nums):
-                
+                delete_forward_npy(api_overflow, forward_api_info)
+                for key in forward_api_info:
+                    write_api_info_json(forward_api_info[key])
+                for key in backward_api_info:
+                    write_api_info_json(backward_api_info[key])
                 raise ValueError("[overflow {} times]: dump file is saved in '{}'."
                                  .format(OverFlowUtil.real_overflow_dump_times, os.path.realpath(dump_file_name)))
                 return
+
+    def delete_forward_npy(api_overflow_list, api_info):
+        for path in glob.glob(FORWARD_REAL_DATA_PATH + "/*.npy"):
+            if not check_path(api_overflow_list, path):
+                os.remove(os.path.abspath(path))
+        for key in list(api_info.keys()):
+            if key not in api_overflow:
+                del forward_api_info[key]
 
     def overflow_type_judge(in_feat, out_feat, module_name):
         if module_name.endswith(Const.BACKWARD):
@@ -125,12 +160,15 @@ def overflow_check(name, **kwargs):
         if check_data_overflow(check_feat):
             print_warn_log("module name :'{}' is overflow and its inputs already has an overflow, so you need "
                            "to go back to find where the overflow started.".format(module_name))
+            return False
         elif not check_data_overflow(in_feat) and not check_data_overflow(out_feat):
             print_warn_log("module name :'{}' is overflow and its inputs and outputs do not overflow, "
                            "so this is a process overflow".format(module_name))
+            return False
         else:
             print_warn_log("module name :'{}' is overflow. Its input is normal and its output "
                            "is overflow.".format(module_name))
+            return True
 
     def acl_dump(module, module_name):
         if "forward" in module_name:

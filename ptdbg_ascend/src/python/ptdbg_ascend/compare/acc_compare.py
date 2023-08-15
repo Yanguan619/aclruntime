@@ -389,6 +389,8 @@ def check_accuracy(cos, max_abs_err):
         return CompareConst.ACCURACY_CHECK_UNMATCH
     if cos == CompareConst.NAN or max_abs_err == CompareConst.NAN:
         return CompareConst.NAN
+    if cos == "N/A" or max_abs_err == "N/A":
+        return "N/A"
     try:
         cos, max_abs_err = float(cos), float(max_abs_err)
     except ValueError:

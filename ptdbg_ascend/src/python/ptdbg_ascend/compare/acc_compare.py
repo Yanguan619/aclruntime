@@ -429,7 +429,8 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     
     n_value, b_value = handle_inf_nan(n_value, b_value)
     if n_value is CompareConst.NAN or b_value is CompareConst.NAN:
-        return -1, 1, CompareConst.NAN, "The position of inf or nan in NPU and bench Tensor do not match."
+        return "N/A", "N/A", "N/A",  "The position of inf or nan in NPU and bench Tensor do not match."
+        
 
     n_value = n_value.reshape(-1).astype(float)
     b_value = b_value.reshape(-1).astype(float)

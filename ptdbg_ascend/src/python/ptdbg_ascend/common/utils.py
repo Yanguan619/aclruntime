@@ -36,7 +36,15 @@ except ImportError:
 else:
     is_gpu = False
 
-if not is_gpu:
+torch_without_guard_version_list = ['2.1']
+for version in torch_without_guard_version_list:
+    if torch.__version__.startswith(version):
+        torch_without_guard_version = True
+        break
+    else:
+        torch_without_guard_version = False
+
+if not is_gpu and not torch_without_guard_version:
     from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
 
 device = collections.namedtuple('device', ['type', 'index'])
@@ -130,6 +138,8 @@ class VersionCheck:
     """
     V1_8 = "1.8"
     V1_11 = "1.11"
+    V2_0 = "2.0"
+    V2_1 = "2.1"
 
     @staticmethod
     def check_torch_version(version):
@@ -505,7 +515,7 @@ def format_value(value):
 
 
 def torch_device_guard(func):
-    if is_gpu:
+    if is_gpu or torch_without_guard_version:
         return func
     # Parse args/kwargs matched torch.device objects
 

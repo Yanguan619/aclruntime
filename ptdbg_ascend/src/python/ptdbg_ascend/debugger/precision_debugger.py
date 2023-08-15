@@ -31,6 +31,7 @@ class PrecisionDebugger:
         DumpUtil.target_iter = config.step
         DumpUtil.target_rank = config.rank
         make_dump_path_if_not_exists(config.dump_path)
+        set_dump_path(config.dump_path)
         if config.hook_name == "overflow_check":
             PrecisionDebugger.hook_func = overflow_check
         else:

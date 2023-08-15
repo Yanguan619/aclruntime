@@ -33,8 +33,6 @@ class ParseTool:
     @catch_exception
     def prepare(self):
         self.util.create_dir(Const.DATA_ROOT_DIR)
-        self.util.create_dir(Const.TMP_DIR)
-        self.util.create_dir(Const.DUMP_DIR)
 
     @catch_exception
     def do_vector_compare(self, argv=None):

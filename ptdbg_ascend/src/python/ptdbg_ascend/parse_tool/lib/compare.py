@@ -79,16 +79,14 @@ class Compare:
 
     def compare_data(self, left, right, save_txt=False, rl=0.001, al=0.001, diff_count=20):
         """Compare data"""
-        left_file_path = self._detect_file(left)
-        right_file_path = self._detect_file(right)
         if left is None or right is None:
             raise ParseException("invalid input or output")
-        left_data = np.load(left_file_path)
-        right_data = np.load(right_file_path)
+        left_data = np.load(left)
+        right_data = np.load(right)
         # save to txt
         if save_txt:
-            self.util.save_npy_to_txt(left_data, left_file_path + ".txt")
-            self.util.save_npy_to_txt(right_data, right_file_path + ".txt")
+            self.util.save_npy_to_txt(left_data, left + ".txt")
+            self.util.save_npy_to_txt(right_data, right + ".txt")
         # compare data
         total_cnt, all_close, cos_sim, err_percent = self._do_compare_data(left_data, right_data, rl, al, diff_count)
         content = ['Left:', ' ├─ NpyFile: %s' % left]
@@ -105,17 +103,6 @@ class Compare:
         content.append('CosSim:   %s' % cos_sim)
         content.append('ErrorPer: %s  (rl= %s, al= %s)' % (err_percent, rl, al))
         self.util.print_panel("\n".join(content))
-
-    def _detect_file(self, file_name):
-        """Find files in npu/overflow/cpu dump dir"""
-        if os.path.isfile(file_name):
-            return file_name
-        for parent_dir in [Const.TMP_DIR, Const.DUMP_DIR]:
-            file_infos = self.util.list_numpy_files(parent_dir, file_name)
-            if len(file_infos) > 0:
-                self.log.info("Find %s, choose first one.", list(file_infos.keys()))
-                return list(file_infos.values())[0].path
-        return None
 
     def _do_compare_data(self, left, right, rl=0.001, al=0.001, diff_count=20):
         data_left = left.astype(np.float32)

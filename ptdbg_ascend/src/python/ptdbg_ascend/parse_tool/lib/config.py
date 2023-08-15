@@ -26,8 +26,6 @@ class Const:
     DATA_ROOT_DIR = os.path.join(ROOT_DIR, 'parse_data')
     DUMP_CONVERT_DIR = os.path.join(DATA_ROOT_DIR, 'dump_convert')
     COMPARE_DIR = os.path.join(DATA_ROOT_DIR, 'compare_result')
-    TMP_DIR = os.path.join(DATA_ROOT_DIR, 'temp')
-    DUMP_DIR = os.path.join(DATA_ROOT_DIR, 'dump')
     OFFLINE_DUMP_CONVERT_PATTERN = \
         r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})" \
         r"\.([a-z]+)\.([0-9]{1,255})(\.[x0-9]+)?\.npy$"

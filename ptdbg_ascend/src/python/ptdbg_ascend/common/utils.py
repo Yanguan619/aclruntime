@@ -138,6 +138,7 @@ class VersionCheck:
     """
     V1_8 = "1.8"
     V1_11 = "1.11"
+    V2_0 = "2.0"
     V2_1 = "2.1"
 
     @staticmethod

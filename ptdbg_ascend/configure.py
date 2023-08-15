@@ -82,7 +82,7 @@ def setup_python(env_path):
                     (not compile_args[0].startswith(_PYTORCH_VERSION_2_0)) and \
                     (not compile_args[0].startswith(_PYTORCH_VERSION_2_1)):
                 print('Currently supported Pytorch version is %s/%s, we got %s.'
-                      % (_PYTORCH_VERSION_1_8, _PYTORCH_VERSION_1_11, _PYTORCH_VERSION_2_1, compile_args[0]))
+                      % (_PYTORCH_VERSION_1_8, _PYTORCH_VERSION_1_11, _PYTORCH_VERSION_2_0, _PYTORCH_VERSION_2_1, compile_args[0]))
                 continue
         except subprocess.CalledProcessError:
             print('Pytorch is not installed or does not work properly.')

@@ -21,7 +21,7 @@ import sys
 import subprocess
 import numpy as np
 from .config import Const
-from .file_desc import DumpDecodeFileDesc
+from .file_desc import DumpDecodeFileDesc, FileDesc
 from .parse_exception import ParseException
 
 try:
@@ -65,6 +65,10 @@ class Util:
         return DumpDecodeFileDesc(name, dir_path, int(match.groups()[-4]), op_name=match.group(2),
                                   op_type=match.group(1), task_id=int(match.group(3)), anchor_type=match.groups()[-3],
                                   anchor_idx=int(match.groups()[-2]))
+
+    @staticmethod
+    def _gen_numpy_file_info(name, math, dir_path):
+        return FileDesc(name, dir_path)
 
     def execute_command(self, cmd):
         if not cmd:
@@ -129,6 +133,10 @@ class Util:
         return self._list_file_with_pattern(
             path, Const.OFFLINE_DUMP_CONVERT_PATTERN, external_pattern, self._gen_npu_dump_convert_file_info
         )
+
+    def list_numpy_files(self, path, extern_pattern=''):
+        return self._list_file_with_pattern(path, Const.NUMPY_PATTERN, extern_pattern,
+                                            self._gen_numpy_file_info)
 
     def create_columns(self, content):
         if not Columns:

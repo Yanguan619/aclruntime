@@ -29,6 +29,7 @@ class Const:
     OFFLINE_DUMP_CONVERT_PATTERN = \
         r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})" \
         r"\.([a-z]+)\.([0-9]{1,255})(\.[x0-9]+)?\.npy$"
+    NUMPY_PATTERN = r".*\.npy$"
     NPY_SUFFIX = ".npy"
     PKL_SUFFIX = ".pkl"
     HEADER = r"""    ____                     

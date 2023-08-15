@@ -16,8 +16,10 @@
 """
 
 import os
+import numpy as np
 from .utils import Util
 from .config import Const
+from .parse_exception import ParseException
 
 
 class Compare:
@@ -75,4 +77,65 @@ class Compare:
             )
         return self.util.execute_command(cmd)
 
+    def compare_data(self, left, right, save_txt=False, rl=0.001, al=0.001, diff_count=20):
+        """Compare data"""
+        if left is None or right is None:
+            raise ParseException("invalid input or output")
+        left_data = np.load(left)
+        right_data = np.load(right)
+        # save to txt
+        if save_txt:
+            self.util.save_npy_to_txt(left_data, left + ".txt")
+            self.util.save_npy_to_txt(right_data, right + ".txt")
+        # compare data
+        total_cnt, all_close, cos_sim, err_percent = self._do_compare_data(left_data, right_data, rl, al, diff_count)
+        content = ['Left:', ' ├─ NpyFile: %s' % left]
+        if save_txt:
+            content.append(' ├─ TxtFile: [green]%s.txt[/green]' % left)
+        content.append(' └─ NpySpec: [yellow]%s[/yellow]' % self.util.gen_npy_info_txt(left_data))
+        content.append('Right:')
+        content.append(' ├─ NpyFile: %s' % right)
+        if save_txt:
+            content.append(' ├─ TxtFile: [green]%s.txt[/green]' % right)
+        content.append(' └─ NpySpec: [yellow]%s[/yellow]' % self.util.gen_npy_info_txt(right_data))
+        content.append('NumCnt:   %s' % total_cnt)
+        content.append('AllClose: %s' % all_close)
+        content.append('CosSim:   %s' % cos_sim)
+        content.append('ErrorPer: %s  (rl= %s, al= %s)' % (err_percent, rl, al))
+        self.util.print_panel("\n".join(content))
 
+    def _do_compare_data(self, left, right, rl=0.001, al=0.001, diff_count=20):
+        data_left = left.astype(np.float32)
+        data_right = right.astype(np.float32)
+        shape_left = data_left.shape
+        shape_right = data_right.shape
+        if shape_left != shape_right:
+            self.log.warning("Data shape not equal: %s vs %s", data_left.shape, data_right.shape)
+        data_left = data_left.reshape(-1)
+        data_right = data_right.reshape(-1)
+        if data_left.shape[0] != data_right.shape[0]:
+            self.log.warning("Data size not equal: %s vs %s", data_left.shape, data_right.shape)
+            if data_left.shape[0] < data_right.shape[0]:
+                data_left = np.pad(data_left, (0, data_right.shape[0] - data_left.shape[0]), 'constant')
+            else:
+                data_right = np.pad(data_right, (0, data_left.shape[0] - data_right.shape[0]), 'constant')
+        all_close = np.allclose(data_left, data_right, atol=al, rtol=rl)
+        # cos_sim = 1 - spatial.distance.cosine(data_left, data_right)
+        cos_sim = np.dot(data_left, data_right) / (
+                np.sqrt(np.dot(data_left, data_left)) * np.sqrt(np.dot(data_right, data_right)))
+        err_cnt = 0
+        total_cnt = data_left.shape[0]
+        diff_table_columns = ['Index', 'Left', 'Right', 'Diff']
+        err_table = self.util.create_table("Error Item Table", diff_table_columns)
+        top_table = self.util.create_table("Top Item Table", diff_table_columns)
+        for i in range(total_cnt):
+            abs_diff = abs(data_left[i] - data_right[i])
+            if i < diff_count:
+                top_table.add_row(str(i), str(data_left[i]), str(data_right[i]), str(abs_diff))
+            if abs_diff > (al + rl * abs(data_right[i])):
+                if err_cnt < diff_count:
+                    err_table.add_row(str(i), str(data_left[i]), str(data_right[i]), str(abs_diff))
+                err_cnt += 1
+        err_percent = float(err_cnt / total_cnt)
+        self.util.print(self.util.create_columns([err_table, top_table]))
+        return total_cnt, all_close, cos_sim, err_percent

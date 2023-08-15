@@ -108,3 +108,24 @@ class ParseTool:
             '-n', '--name', dest='api_name', default=None,  required=True, help='API name')
         args = parser.parse_args(argv)
         self.visual.parse_pkl(args.file_name, args.api_name)
+
+    @catch_exception
+    def do_compare_data(self, argv):
+        """compare two tensor"""
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "-m", "--my_dump_path", dest="my_dump_path", default=None,
+            help="<Required> my dump path, the data compared with golden data",
+            required=True
+        )
+        parser.add_argument(
+            "-g", "--golden_dump_path", dest="golden_dump_path", default=None,
+            help="<Required> the golden dump data path",
+            required=True
+        )
+        parser.add_argument('-p', '--print', dest='count', default=20, type=int, help='print err data num')
+        parser.add_argument('-s', '--save', dest='save', action='store_true', help='save data in txt format')
+        parser.add_argument('-al', '--atol', dest='atol', default=0.001, type=float, help='set rtol')
+        parser.add_argument('-rl', '--rtol', dest='rtol', default=0.001, type=float, help='set atol')
+        args = parser.parse_args(argv)
+        self.compare.compare_data(args.my_dump_path, args.golden_dump_path, args.save, args.rtol, args.atol, args.count)

@@ -63,5 +63,5 @@ class InteractiveCli(cmd.Cmd):
     def do_pk(self, line=""):
         self.parse_tool.do_parse_pkl(self._parse_argv(line))
 
-
-
+    def do_cn(self, line=''):
+        self.parse_tool.do_compare_data(self._parse_argv(line))

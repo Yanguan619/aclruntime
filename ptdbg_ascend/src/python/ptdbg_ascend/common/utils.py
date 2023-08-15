@@ -38,7 +38,7 @@ else:
 
 torch_without_guard_version_list = ['2.1']
 for version in torch_without_guard_version_list:
-    if version in torch.__version__:
+    if torch.__version__.startswith(version):
         torch_without_guard_version = True
         break
     else:

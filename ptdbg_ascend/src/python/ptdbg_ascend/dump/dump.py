@@ -194,6 +194,7 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
             if rank != DumpUtil.target_rank:
                 return
         dump_file = create_dirs_if_not_exist(rank, dump_file)
+        pkl_name = dump_file
         if DumpUtil.dump_init_enable:
             DumpUtil.dump_init_enable = False
             DumpUtil.dump_data_dir = make_dump_data_dir(dump_file) \

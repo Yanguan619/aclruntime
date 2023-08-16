@@ -92,10 +92,6 @@ def overflow_check(name, **kwargs):
         global api_overflow
         global forward_api_info
         global backward_api_info
-        if "eq" in name:
-            return
-        if name.endswith(Const.FORWARD):
-            forward_api_info.update({name: ForwardAPIInfo(name, False, module.input_args, module.input_kwargs)})
 
         module_name = name
         if hasattr(torch_npu._C, '_npu_is_support_inf_nan') and torch_npu._C._npu_is_support_inf_nan():
@@ -138,7 +134,6 @@ def overflow_check(name, **kwargs):
             # clear overflow flag for the next check
             torch_npu._C._clear_overflow_npu()
             if not OverFlowUtil.check_overflow_dump_times(overflow_nums):
-                delete_forward_npy(api_overflow, forward_api_info)
                 for key in forward_api_info:
                     write_api_info_json(forward_api_info[key])
                 for key in backward_api_info:

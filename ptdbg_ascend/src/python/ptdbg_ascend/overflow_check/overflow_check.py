@@ -92,6 +92,8 @@ def overflow_check(name, **kwargs):
         global api_overflow
         global forward_api_info
         global backward_api_info
+        if "eq" in name:
+            return
         if name.endswith(Const.FORWARD):
             forward_api_info.update({name: ForwardAPIInfo(name, False, module.input_args, module.input_kwargs)})
 

@@ -30,8 +30,7 @@ except ImportError:
 else:
     is_gpu = False
 
-from .utils import DumpUtil, _set_dump_switch4api_list, make_dump_data_dir
-
+from .utils import DumpUtil, _set_dump_switch4api_list, make_dump_data_dir, get_tensor_rank, create_dirs_if_not_exist
 from ..common.utils import print_warn_log, Const, print_info_log, modify_dump_path
 from ..dump.utils import check_writable
 
@@ -183,13 +182,16 @@ def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = DumpUtil.get_dump_path()
-    _set_dump_switch4api_list(name)
-
     dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
-    global pkl_name
-    pkl_name = dump_file
-
+    _set_dump_switch4api_list(name)
     if DumpUtil.get_dump_switch():
+        rank = get_tensor_rank(in_feat, out_feat)
+        if DumpUtil.target_rank is not None:
+            if rank != DumpUtil.target_rank:
+                return
+        dump_file = create_dirs_if_not_exist(rank, dump_file)
+        global pkl_name
+        pkl_name = dump_file
         if DumpUtil.dump_init_enable:
             DumpUtil.dump_init_enable = False
             DumpUtil.dump_data_dir = make_dump_data_dir(dump_file) \
@@ -286,7 +288,6 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
 def acc_cmp_dump(name, **kwargs):
     dump_step = kwargs.get('dump_step', 1)
     pid = kwargs.get('pid')
-    DumpUtil.set_dump_config(kwargs.get('dump_config'))
     if not pid:
         return RuntimeError("Not get the specified process pid.")
 
@@ -302,12 +303,13 @@ def acc_cmp_dump(name, **kwargs):
 
 
 def write_to_disk():
-    with open(pkl_name, 'a') as f: 
-        try:
-            f.write('\n'.join(json.dumps(item) for item in api_list))
-            f.write('\n')
-        except:
-            raise Exception("write to disk failed")
+    if api_list:
+        with open(pkl_name, 'a') as f:
+            try:
+                f.write('\n'.join(json.dumps(item) for item in api_list))
+                f.write('\n')
+            except:
+                raise Exception("write to disk failed")
 
 
 def get_pkl_file_path():

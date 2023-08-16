@@ -2,6 +2,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
+import torch
 
 from ..dump import dump
 from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_info_log, \
@@ -18,7 +19,7 @@ class DumpUtil(object):
     dump_data_dir = None
     dump_path = None
     dump_switch = None
-    dump_switch_mode = Const.ALL
+    dump_switch_mode = Const.ALL # all, api_stack, list, stack...
     dump_switch_scope = []
     dump_init_enable = False
     dump_api_list = []
@@ -27,6 +28,21 @@ class DumpUtil(object):
     backward_input = {}
     dump_dir_tag = 'ptdbg_dump'
     dump_config = None
+    dataloader_iter = 0
+    target_iter = None
+    target_rank = None
+
+    @staticmethod
+    def incr_iter_num_maybe_exit():
+        if DumpUtil.target_iter is None:
+            return
+        if DumpUtil.dataloader_iter == DumpUtil.target_iter:
+            set_dump_switch("ON")
+        elif DumpUtil.dataloader_iter > DumpUtil.target_iter:
+            raise Exception("Ptdbg: exit after iteration {}".format(DumpUtil.target_iter))
+        else:
+            set_dump_switch("OFF")
+        DumpUtil.dataloader_iter += 1
 
     @staticmethod
     def set_dump_path(save_path):
@@ -38,14 +54,19 @@ class DumpUtil(object):
         DumpUtil.dump_config = dump_config
 
     @staticmethod
-    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode):
+    def set_dump_switch(switch, mode=None, scope=None, api_list=None, filter_switch=None, dump_mode=None):
         DumpUtil.dump_switch = switch
-        DumpUtil.dump_switch_mode = mode
+        if mode is not None:
+            DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_init_enable = True
-        DumpUtil.dump_switch_scope = scope
-        DumpUtil.dump_api_list = [api.lower() for api in api_list]
-        DumpUtil.dump_filter_switch = filter_switch
-        DumpUtil.dump_mode = dump_mode if isinstance(dump_mode, list) else [dump_mode]
+        if scope is not None:
+            DumpUtil.dump_switch_scope = scope
+        if api_list is not None:
+            DumpUtil.dump_api_list = [api.lower() for api in api_list]
+        if filter_switch is not None:
+            DumpUtil.dump_filter_switch = filter_switch
+        if dump_mode is not None:
+            DumpUtil.dump_mode = dump_mode if isinstance(dump_mode, list) else [dump_mode]
 
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
@@ -129,6 +150,37 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
     DumpUtil.dump_dir_tag = dump_tag
 
 
+def get_tensor_rank(in_feat, out_feat):
+    def get_tensor_rank_single(x):
+        if isinstance(x, (list, tuple)):
+            if len(x) > 0:
+                return get_tensor_rank_single(x[0])
+            return None
+        elif isinstance(x, torch.Tensor):
+            device = x.device
+            if device.type == 'cpu':
+                return None
+            else:
+                return device.index
+        return None
+    in_rank = get_tensor_rank_single(in_feat)
+    if in_rank is None:
+        out_rank = get_tensor_rank_single(out_feat)
+        if out_rank is None:
+            return 0
+        return out_rank
+    return in_rank
+
+
+def create_dirs_if_not_exist(rank, dump_file):
+    dump_path, file_name = os.path.split(dump_file)
+    rank_dir = os.path.join(dump_path, f"rank{rank}")
+    dump_file = os.path.join(rank_dir, file_name)
+    if not os.path.isdir(rank_dir):
+        os.mkdir(rank_dir, mode=0o750)
+    return dump_file
+
+
 def generate_dump_path_str():
     if DumpUtil.dump_switch_mode == 'acl':
         if DumpUtil.dump_config == '':
@@ -136,40 +188,51 @@ def generate_dump_path_str():
             raise DumpException(DumpException.NONE_ERROR)
         dump_path = f"according to dump config {DumpUtil.dump_config}"
     else:
-        dump_path = f"to {DumpUtil.dump_path}"
+        dump_dir, dump_file = os.path.split(DumpUtil.dump_path)
+        if not dump_file.endswith(".pkl"):
+            dump_dir = DumpUtil.dump_path
+        dump_path = f"to {dump_dir}"
     return dump_path
 
 
 def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL]):
     try:
-        check_mode_valid(mode, scope, api_list)
         check_switch_valid(switch)
-        check_switch_valid(filter_switch)
-        dump_mode = check_dump_mode_valid(dump_mode)
-
-
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()
+    DumpUtil.set_dump_switch(switch)
+    dump_path_str = generate_dump_path_str()
+    set_dump_switch_print_info(switch, mode, dump_path_str)
+    set_dump_switch_config(mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
+    dump.write_to_disk()
 
-    if switch == "OFF":
-        dump_path_str = generate_dump_path_str()
-        dump.write_to_disk()
-        if check_is_npu() and DumpUtil.dump_switch_mode in [Const.ALL, Const.API_STACK, Const.LIST, Const.RANGE]:
-            generate_compare_script(DumpUtil.dump_data_dir, dump.get_pkl_file_path(), DumpUtil.dump_switch_mode)
-    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
-    if switch == "ON":
-        dump_path_str = generate_dump_path_str()
 
+def set_dump_switch_config(mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL]):
+    try:
+        check_mode_valid(mode, scope, api_list)
+        check_switch_valid(filter_switch)
+        dump_mode = check_dump_mode_valid(dump_mode)
+    except (CompareException, AssertionError) as err:
+        print_error_log(str(err))
+        sys.exit()
+    switch = DumpUtil.dump_switch
+    DumpUtil.set_dump_switch("OFF", mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch,
+                                dump_mode=dump_mode)
+    DumpUtil.dump_switch = switch
+
+
+def set_dump_switch_print_info(switch, mode, dump_path_str):
     global dump_count
     if switch == "ON":
         print_info_log(f"Dump switch is turned on. Dump data will be saved {dump_path_str}. ")
         if mode == Const.LIST:
             dump_count = 0
     else:
-        print_info_log(f"Dump switch is turned off. Dump data has been saved {dump_path_str}. ")
+        print_info_log(f"Dump switch is turned off. ")
         if mode == Const.LIST:
             print_info_log("The number of matched dump is {}".format(dump_count))
+
 
 def _set_dump_switch4api_list(name):
     if DumpUtil.dump_api_list:
@@ -194,16 +257,13 @@ def make_dump_data_dir(dump_file_name):
     return output_dir
 
 
-def make_dump_dirs(rank):
+def make_dump_dirs():
     dump_file_name, dump_file_name_body = "dump.pkl", "dump"
     dump_root_dir = DumpUtil.dump_path if DumpUtil.dump_path else "./"
     tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_v{__version__}')
     Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
-    rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
-    if not os.path.exists(rank_dir):
-        os.mkdir(rank_dir, mode=0o750)
-    DumpUtil.dump_dir = rank_dir
-    dump_file_path = os.path.join(rank_dir, dump_file_name)
+    DumpUtil.dump_dir = tag_dir
+    dump_file_path = os.path.join(tag_dir, dump_file_name)
     DumpUtil.set_dump_path(dump_file_path)
 
 

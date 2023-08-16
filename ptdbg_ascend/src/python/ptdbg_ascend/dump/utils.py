@@ -167,7 +167,7 @@ def get_tensor_rank(in_feat, out_feat):
     if in_rank is None:
         out_rank = get_tensor_rank_single(out_feat)
         if out_rank is None:
-            return "cpu"
+            return 0
         return out_rank
     return in_rank
 
@@ -205,6 +205,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     dump_path_str = generate_dump_path_str()
     set_dump_switch_print_info(switch, mode, dump_path_str)
     set_dump_switch_config(mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
+    write_to_disk()
 
 
 def set_dump_switch_config(mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL]):

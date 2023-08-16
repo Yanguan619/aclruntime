@@ -389,19 +389,19 @@ DebuggerConfig模块包含dump和溢出检测功能的总体配置项。可以�
 **原型**
 
 ```python
-debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="", dump_mode="", rank=0, step=[]))
+debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="", hook_name="", rank=0, step=[]))
 ```
 
 **参数说明**
 
 | 参数名    | 说明                                                         | 是否必选 |
 | --------- | ------------------------------------------------------------ | -------- |
-| dump_path | 设置dump数据目录路径，参数示例："./dump_path"。dump_path须为已存在目录。<br/>默认在指定的dump_path路径下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。 | 是       |
-| dump_mode | dump模式，可取值dump和overflow_check，表示dump模式和溢出检测模式，二选一。 | 是       |
+| dump_path | 设置dump数据目录路径，参数示例："./dump_path"。dump_path的父目录须为已存在目录。<br/>默认在指定的dump_path路径下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当**configure_hook**函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。 | 是       |
+| hook_name | dump模式，可取值dump和overflow_check，表示dump模式和溢出检测模式，二选一。 | 是       |
 | rank      | 指定对某张卡上的数据进行dump或溢出检测，默认未配置（表示dump所有卡的数据），须根据实际卡的Rank ID配置。 | 否       |
-| step      | 指定对某个迭代次数的数据进行dump或溢出检测，参数示例：step=[1,2,3]，默认为0（表示根据debugger.start和debugger.stop执行dump第一个迭代的数据），配置为1则dump第二个迭代，以此类推。 | 否       |
+| step      | 指定对某个迭代次数的数据进行dump或溢出检测，参数示例：step=[1,2,3 ]，默认为0（表示根据debugger.start和debugger.stop执行dump第0个迭代的数据后终止训练）。 | 否       |
 
-### Configure_hook函数（可选）
+### configure_hook函数（可选）
 
 **功能说明**
 
@@ -414,25 +414,25 @@ debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="", dump_mode="", r
 dump模式：
 
 ```python
-debugger.Configure_hook(mode="api_stack", scope=[], api_list=[], filter_switch=Const.ON, acl_config=None, backward_input=[], input_output_mode=[Const.ALL])
+debugger.configure_hook(mode="api_stack", scope=[], api_list=[], filter_switch=Const.ON, acl_config=None, backward_input=[], input_output_mode=[Const.ALL])
 ```
 
 溢出检测模式：
 
 ```python
-debugger.Configure_hook(mode=None, acl_config=None, overflow_nums=1)
+debugger.configure_hook(mode=None, acl_config=None, overflow_nums=1)
 ```
 
 **参数说明**
 
 | 参数名            | 说明                                                         | 是否必选 |
 | ----------------- | ------------------------------------------------------------ | -------- |
-| mode              | dump模式。可取值"all"、"list"、"range"、"stack"、"acl"、"api_list"、"api_stack"，各参数含义请参见本节的“**函数示例**”。参数示例：mode="list"。默认为空。该参数配置值将作为dump数据文件名的前缀，详情请参见“**dump数据存盘说明**”。 | 否       |
-| scope或api_list   | dump范围。根据model配置的模式选择dump的API范围。参数示例：scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward"]、api_list=["relu"]。默认为空。 | 否       |
+| mode              | dump模式。可取值"all"、"list"、"range"、"stack"、"acl"、"api_list"、"api_stack"，各参数含义请参见本节的“**函数示例**”。参数示例：mode="list"。默认为api_stack。该参数配置值将作为dump数据文件名的前缀，详情请参见“**dump数据存盘说明**”。 | 否       |
+| scope或api_list   | dump范围。根据model配置的模式选择dump的API范围，mode="api_list"时，需要配置api_list=[]，其他模式有需要时配置scope=[]。参数示例：scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward"]、api_list=["relu"]。默认为空。 | 否       |
 | filter_switch     | 开启dump bool和整型的tensor以及浮点、bool和整型的标量。可取值"ON"或"OFF"。参数示例：filter_switch="OFF"。默认不配置，即filter_switch="ON"，表示不dump上述数据。 | 否       |
 | acl_config        | acl dump的配置文件。mode="acl"时，该参数必选；mode为其他值时，该参数不选。参数示例：dump_config='./dump.json'。dump.json配置文件详细介绍请参见“**dump.json配置文件说明**”。 | 否       |
 | backward_input    | 该输入文件为首次运行训练dump得到反向API输入的.npy文件。例如若需要dump Functional_conv2d_1 API的反向过程的输入输出，则需要在dump目录下查找命名包含Functional_conv2d_1、backward和input字段的.npy文件。 | 否       |
-| input_output_mode | dump数据过滤。可取值“all”、“forward”、“backward”、input和output，表示仅保存dump的数据中文件名包含“forward”、“backward”、input或output的前向、反向、输入或输出的.npy文件。参数示例dump_mode=["backward"]或dump_mode=["forward", "backward"]。默认为all，即保存所有dump的数据。除了all参数只能单独配置外，其他参数可以自由组合。 | 否       |
+| input_output_mode | dump数据过滤。可取值“all”、“forward”、“backward”、input和output，表示仅保存dump的数据中文件名包含“forward”、“backward”、input或output的前向、反向、输入或输出的.npy文件。参数示例input_output_mode=["backward"]或input_output_mode=["forward", "backward"]。默认为all，即保存所有dump的数据。除了all参数只能单独配置外，其他参数可以自由组合。 | 否       |
 | overflow_nums     | 控制溢出次数，表示第N次溢出时，停止训练，过程中检测到溢出API对应ACL数据均dump。参数示例：overflow_nums=3。配置overflow_check时可配置，默认不配置，即检测到1次溢出，训练停止。 | 否       |
 
 **函数示例**
@@ -444,37 +444,37 @@ set_dump_switch可配置多中dump模式，示例如下：
 - 示例1：dump指定API列表
 
   ```python
-  debugger.Configure_hook(mode="list", scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward", "Torch_relu_3_backward"])
+  debugger.configure_hook(mode="list", scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward", "Torch_relu_3_backward"])
   ```
 
 - 示例2：dump指定范围
 
   ```python
-  debugger.Configure_hook(mode="range", scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward"])
+  debugger.configure_hook(mode="range", scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward"])
   ```
 
 - 示例3：STACK模式，只dump堆栈信息
 
   ```python
-  debugger.Configure_hook(mode="stack", scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward"])
+  debugger.configure_hook(mode="stack", scope=["Tensor_abs_1_forward", "Tensor_transpose_3_forward"])
   ```
 
 - 示例4：dump指定前向API的ACL级别数据
 
   ```python
-  debugger.Configure_hook(mode="acl", scope=["Tensor_permute_1_forward"], acl_config="./dump.json")
+  debugger.configure_hook(mode="acl", scope=["Tensor_permute_1_forward"], acl_config="./dump.json")
   ```
 
 - 示例4：dump指定反向API的ACL级别数据
 
   ```python
-  debugger.Configure_hook(mode="acl", scope=["Functional_conv2d_1_backward"], acl_config="./dump.json", backward_input=["./npu_dump/dump_conv2d_v2.0/rank0/dump/Functional_conv2d_1_backward_input.0.npy"])
+  debugger.configure_hook(mode="acl", scope=["Functional_conv2d_1_backward"], acl_config="./dump.json", backward_input=["./npu_dump/dump_conv2d_v2.0/rank0/dump/Functional_conv2d_1_backward_input.0.npy"])
   ```
 
 - 示例5：dump指定某一类API的API级别输入输出数据
 
   ```python
-  debugger.Configure_hook(mode="api_list", api_list=["relu"])
+  debugger.configure_hook(mode="api_list", api_list=["relu"])
   ```
 
   mode="api_list"时不配置scope。
@@ -482,7 +482,7 @@ set_dump_switch可配置多中dump模式，示例如下：
 - 示例6：dump全部API级别输入输出数据以及相应堆栈信息
 
   ```python
-  debugger.Configure_hook(mode="api_stack")
+  debugger.configure_hook(mode="api_stack")
   ```
 
   mode="api_stack"时不配置scope。
@@ -490,7 +490,7 @@ set_dump_switch可配置多中dump模式，示例如下：
 - 示例7： dump全部API级别输入输出数据并包含bool和整型的tensor以及浮点、bool和整型的标量，默认不配置为ON，会过滤bool和整型数据
 
   ```python
-  debugger.Configure_hook(filter_switch="OFF")
+  debugger.configure_hook(filter_switch="OFF")
   ```
 
   配置filter_switch="OFF"同时也可以配置mode、scope和api_list，除dump ACL级别数据。
@@ -498,13 +498,13 @@ set_dump_switch可配置多中dump模式，示例如下：
 - 示例8：仅保存dump的数据文件名包含“backward”的反向.npy文件
 
   ```python
-  debugger.Configure_hook(input_output_mode=["backward"])
+  debugger.configure_hook(input_output_mode=["backward"])
   ```
 
 - 示例9：溢出检测dump
 
   ```python
-  debugger.Configure_hook(overflow_nums=1)
+  debugger.configure_hook(overflow_nums=1)
   ```
 
   dump执行时会在**DebuggerConfig**模块的dump_path参数指定的目录下生成ptdbg_dump_{version}目录，保存溢出数据。
@@ -557,7 +557,7 @@ debugger.stop()
 
   ```python
   from ptdbg_ascend import *
-  debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="./dump_path", dump_mode="dump", rank=0, step=[1]))
+  debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="./dump_path", hook_name="dump"))
   
   # 主函数开始
   
@@ -572,7 +572,7 @@ debugger.stop()
 
   ```python
   from ptdbg_ascend import *
-  debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="./dump_path", dump_mode="overflow_check", rank=0, step=[1]))
+  debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="./dump_path", hook_name="overflow_check"))
   
   # 主函数开始
   
@@ -1260,7 +1260,7 @@ ptdbg_ascend.parse为命令行交互式界面解析工具，提供更多的数�
 - 支持交互式指定pkl文件中API对应dump数据查看。
 - 支持API进行可选层级比对和打印（统计级和像素级）。
 
-安装ptdbg_ascend工具后，可以通过使用命令 **python -m ptdbg_ascend.parse** 进入交互式界面，可在parse的界面中执行shell命令，以及上述场景的相关解析命令。
+安装ptdbg_ascend工具后，可以通过使用命令 **python -m ptdbg_ascend.parse** 进入交互式界面，可在parse的界面中执行Shell命令，以及上述场景的相关解析命令。Ctrl+C可以退出该界面。
 
 ### ACL层级算子数据比对
 
@@ -1268,15 +1268,17 @@ ptdbg_ascend.parse为命令行交互式界面解析工具，提供更多的数�
 
 - 输入以下比对命令进行数据比对。
 
+  ```bash
   vc -m [*my_dump_path*] -g [*golden_dump_path*] (-out) [*output_path*]
-
+  ```
+  
   | 参数名称 | 说明                                                         | 是否必填 |
   | -------- | ------------------------------------------------------------ | -------- |
   | -m       | 待比对dump数据目录。                                         | 是       |
   | -g       | dump数据目录。                                               | 是       |
   | -out     | 结果输出目录。                                               | 否       |
   | -asc     | 指定msaccucmp路径，默认路径为：/usr/local/Ascend/ascend-toolkit/latest/tools/operator_cmp/compare/msaccucmp.py。 | 否       |
-
+  
   - 输出结果：result_{timestamp}.csv文件。
   - 若指定-out参数需要用户传入输出路径，并且路径需要已存在。
   - 若未指定输出目录或指定目录不存在， 则比对结束后将结果保存在默认目录 “./parse_data/comapre_result”中，比对结束后会打印log提示输出结果存放路径。

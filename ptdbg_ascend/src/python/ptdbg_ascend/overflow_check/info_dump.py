@@ -23,10 +23,10 @@ def write_npy(file_path, tensor):
 
 
 class APIInfo:
-    def __init__(self, api_name, is_forward):
+    def __init__(self, api_name, is_forward, save_real_data=False):
         self.rank = os.getpid()
         self.api_name = api_name
-        self.save_real_data = True
+        self.save_real_data = save_real_data
         self.torch_object_key = {'device': self.analyze_device_in_kwargs, 'dtype': self.analyze_dtype_in_kwargs}
         self.is_forward = is_forward
         self.args_num = 0
@@ -150,8 +150,8 @@ class APIInfo:
 
 
 class ForwardAPIInfo(APIInfo):
-    def __init__(self, name, args, kwargs):
-        super().__init__(name, is_forward=True)
+    def __init__(self, name, save_real_data, args, kwargs):
+        super().__init__(name, is_forward=True, save_real_data=save_real_data)
         self.analyze_api_input(args, kwargs)
         self.analyze_api_call_stack()
 

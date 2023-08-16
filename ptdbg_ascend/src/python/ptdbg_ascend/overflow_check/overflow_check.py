@@ -86,7 +86,7 @@ def overflow_check(name, **kwargs):
             return
         rank = get_tensor_rank(in_feat, out_feat)
         if DumpUtil.target_rank is not None:
-            if rank != DumpUtil.target_rank:
+            if rank != DumpUtil.target_rank or rank == 'cpu':
                 return
         dump_path = create_dirs_if_not_exist(rank, DumpUtil.dump_path)
         dump_dir = os.path.split(dump_path)[0]

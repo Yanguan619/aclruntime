@@ -167,7 +167,7 @@ def get_tensor_rank(in_feat, out_feat):
     if in_rank is None:
         out_rank = get_tensor_rank_single(out_feat)
         if out_rank is None:
-            return 0
+            return 'cpu'
         return out_rank
     return in_rank
 
@@ -177,7 +177,7 @@ def create_dirs_if_not_exist(rank, dump_file):
     rank_dir = os.path.join(dump_path, f"rank{rank}")
     dump_file = os.path.join(rank_dir, file_name)
     if not os.path.isdir(rank_dir):
-        os.mkdir(rank_dir, mode=0o750)
+        Path(rank_dir).mkdir(mode=0o750, exist_ok=True)
     return dump_file
 
 

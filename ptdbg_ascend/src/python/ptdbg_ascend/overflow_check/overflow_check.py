@@ -93,7 +93,7 @@ def overflow_check(name, **kwargs):
         global forward_api_info
         global backward_api_info
         if name.endswith(Const.FORWARD):
-            forward_api_info.update({name: ForwardAPIInfo(name, module.input_args, module.input_kwargs)})
+            forward_api_info.update({name: ForwardAPIInfo(name, False, module.input_args, module.input_kwargs)})
 
         module_name = name
         if hasattr(torch_npu._C, '_npu_is_support_inf_nan') and torch_npu._C._npu_is_support_inf_nan():
@@ -114,6 +114,7 @@ def overflow_check(name, **kwargs):
             need_replicate = overflow_type_judge(in_feat, out_feat, module_name)
             if need_replicate:
                 if module_name.endswith(Const.FORWARD):
+                    forward_api_info.update({name: ForwardAPIInfo(name, True, module.input_args, module.input_kwargs)})
                     api_overflow.append(module_name)
                 else:
                     api_overflow.append(module_name.replace("backward", "forward"))

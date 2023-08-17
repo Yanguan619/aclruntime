@@ -167,7 +167,7 @@ def get_tensor_rank(in_feat, out_feat):
     if in_rank is None:
         out_rank = get_tensor_rank_single(out_feat)
         if out_rank is None:
-            return 'cpu'
+            return 0
         return out_rank
     return in_rank
 
@@ -250,10 +250,10 @@ def make_dump_data_dir(dump_file_name):
     name_body, name_extension = os.path.splitext(file_name)
     output_dir = os.path.join(dump_path, f"{name_body}")
     if not os.path.exists(output_dir):
-        os.mkdir(output_dir, mode=0o750)
+        Path(output_dir).mkdir(mode=0o750, exist_ok=True)
     else:
         shutil.rmtree(output_dir, ignore_errors=True)
-        os.mkdir(output_dir, mode=0o750)
+        Path(output_dir).mkdir(mode=0o750, exist_ok=True)
     return output_dir
 
 

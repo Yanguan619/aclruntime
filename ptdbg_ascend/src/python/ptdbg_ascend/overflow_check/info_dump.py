@@ -15,9 +15,14 @@ lock = threading.Lock()
 
 
 def write_npy(file_path, tensor):
+    saved_tensor = tensor.contiguous().cpu().detach()
+    if tensor.dtype == torch.bfloat16:
+        saved_numpy = saved_tensor.to(torch.float32).numpy()
+    else:
+        saved_numpy = saved_tensor.numpy()
     if os.path.exists(file_path):
         raise ValueError(f"File {file_path} already exists")
-    np.save(file_path, tensor)
+    np.save(file_path, saved_numpy)
     full_path = os.path.abspath(file_path)
     return full_path
 
@@ -84,7 +89,7 @@ class APIInfo:
                     os.makedirs(backward_real_data_path, 0o755)
                 file_path = os.path.join(backward_real_data_path, f'{api_args}.npy')
             self.args_num += 1
-            npy_path = write_npy(file_path, arg.contiguous().cpu().detach().numpy())
+            npy_path = write_npy(file_path, arg)
             single_arg.update({'type': 'torch.Tensor'})
             single_arg.update({'datapath': npy_path})
             single_arg.update({'requires_grad': arg.requires_grad})

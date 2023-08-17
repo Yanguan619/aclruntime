@@ -189,7 +189,7 @@ def make_dump_path_if_not_exists(dump_path):
     # 之前应该已经验证过dump_path的上层文件夹存在
     dump_root, dump_dir = os.path.split(dump_path)
     if not os.path.exists(dump_path):
-        Path(dump_path).mkdir(mode=0o750, parents=True, exist_ok=True)
+        Path(dump_path).mkdir(mode=0o750, exist_ok=True)
     else:
         if not os.path.isdir(dump_path):
             print_error_log((f"{dump_path} already exists and is not a directory."))

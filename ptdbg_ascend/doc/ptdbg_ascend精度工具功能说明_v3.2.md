@@ -389,7 +389,7 @@ DebuggerConfig模块包含dump和溢出检测功能的总体配置项。可以�
 **原型**
 
 ```python
-debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="", hook_name="", rank=0, step=[]))
+debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="", hook_name="", rank=None, step=[0]))
 ```
 
 **参数说明**
@@ -414,7 +414,7 @@ debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="", hook_name="", r
 dump模式：
 
 ```python
-debugger.configure_hook(mode="api_stack", scope=[], api_list=[], filter_switch=Const.ON, acl_config=None, backward_input=[], input_output_mode=[Const.ALL])
+debugger.configure_hook(mode="api_stack", scope=[], api_list=[], filter_switch="ON", acl_config=None, backward_input=[], input_output_mode=["all"])
 ```
 
 溢出检测模式：
@@ -796,7 +796,7 @@ dump操作必选。
 **函数原型**
 
 ```python
-def set_dump_switch(switch, mode="all", scope=[], api_list=[], filter_switch=Const.ON, dump_mode=["all"]):
+def set_dump_switch(switch, mode="all", scope=[], api_list=[], filter_switch="ON", dump_mode=["all"]):
 ```
 
 **参数说明**
@@ -892,7 +892,7 @@ set_dump_switch可配置多中dump模式，示例如下：
 
 以上示例均需要在结束dump的位置插入set_dump_switch("OFF")。
 
-set_dump_switch配置model为all或api_stack时，结束dump后，在dump目录下会自动生成compare_data.py比对脚本模板，示例如下：
+set_dump_switch配置mode为all或api_stack时，结束dump后，在dump目录下会自动生成compare_data.py比对脚本模板，示例如下：
 
 ```python
 from ptdbg_ascend import compare

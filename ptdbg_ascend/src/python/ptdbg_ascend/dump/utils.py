@@ -177,7 +177,7 @@ def create_dirs_if_not_exist(rank, dump_file):
     rank_dir = os.path.join(dump_path, f"rank{rank}")
     dump_file = os.path.join(rank_dir, file_name)
     if not os.path.isdir(rank_dir):
-        os.mkdir(rank_dir, mode=0o750)
+        Path(rank_dir).mkdir(mode=0o750, exist_ok=True)
     return dump_file
 
 
@@ -250,10 +250,10 @@ def make_dump_data_dir(dump_file_name):
     name_body, name_extension = os.path.splitext(file_name)
     output_dir = os.path.join(dump_path, f"{name_body}")
     if not os.path.exists(output_dir):
-        os.mkdir(output_dir, mode=0o750)
+        Path(output_dir).mkdir(mode=0o750, exist_ok=True)
     else:
         shutil.rmtree(output_dir, ignore_errors=True)
-        os.mkdir(output_dir, mode=0o750)
+        Path(output_dir).mkdir(mode=0o750, exist_ok=True)
     return output_dir
 
 

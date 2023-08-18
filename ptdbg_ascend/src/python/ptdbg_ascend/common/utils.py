@@ -625,7 +625,7 @@ def check_file_valid(file_path):
 
     if len(os.path.realpath(file_path)) > Const.DIRECTORY_LENGTH or len(os.path.basename(file_path)) > \
             Const.FILE_NAME_LENGTH:
-        print_error_log('The file path {} length exceeds limit.'.format(file_path))
+        print_error_log('The file path length exceeds limit.')
         raise CompareException(CompareException.INVALID_PATH_ERROR)
 
     if not re.match(Const.FILE_PATTERN, os.path.realpath(file_path)):

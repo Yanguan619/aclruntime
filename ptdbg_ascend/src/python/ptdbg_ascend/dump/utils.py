@@ -149,7 +149,7 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
 
     if len(real_path) > Const.DIRECTORY_LENGTH or len(os.path.basename(real_path)) > \
             Const.FILE_NAME_LENGTH:
-        print_error_log("set_dump_path '{}' error, the path length exceeds limit.".format(real_path))
+        print_error_log("set_dump_path error, the path length exceeds limit.")
         raise DumpException(DumpException.INVALID_PATH_ERROR)
 
     if not re.match(Const.FILE_PATTERN, real_path):

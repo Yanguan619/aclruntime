@@ -86,6 +86,13 @@ class Const:
     WRITE_FLAGS = os.O_WRONLY | os.O_CREAT
     WRITE_MODES = stat.S_IWUSR | stat.S_IRUSR
 
+    PKL_SUFFIX = ".pkl"
+    NUMPY_SUFFIX = ".npy"
+    ONE_GB = 1 * 1024 * 1024 * 1024
+    TEN_GB = 10 * 1024 * 1024 * 1024
+    FILE_PATTERN = r'^[a-zA-Z0-9_./]+$'
+    FILE_NAME_LENGTH = 255
+    DIRECTORY_LENGTH = 4096
 
 class CompareConst:
     """
@@ -172,6 +179,7 @@ class CompareException(Exception):
     INVALID_DUMP_MODE = 15
     PARSE_FILE_ERROR = 16
     INVALID_COMPARE_MODE = 17
+    OVER_SIZE_FILE_ERROR = 18
 
     def __init__(self, code, error_info: str = ""):
         super(CompareException, self).__init__()
@@ -317,6 +325,8 @@ def check_file_or_directory_path(path, isdir=False):
         if not os.path.isfile(path):
             print_error_log('{} is an invalid file or non-exist.'.format(path))
             raise CompareException(CompareException.INVALID_PATH_ERROR)
+
+    check_file_valid(path)
 
     if not os.access(path, os.R_OK):
         print_error_log(
@@ -606,3 +616,27 @@ def generate_compare_script(dump_path, pkl_file_path, dump_switch_mode):
 
 def check_is_npu():
     return not is_gpu
+
+
+def check_file_valid(file_path):
+    if os.path.islink(file_path):
+        print_error_log('The file path {} is a soft link.'.format(file_path))
+        raise CompareException(CompareException.INVALID_PATH_ERROR)
+
+    if len(os.path.realpath(file_path)) > Const.DIRECTORY_LENGTH or len(os.path.basename(file_path)) > \
+            Const.FILE_NAME_LENGTH:
+        print_error_log('The file path {} length exceeds limit.'.format(file_path))
+        raise CompareException(CompareException.INVALID_PATH_ERROR)
+
+    if not re.match(Const.FILE_PATTERN, os.path.realpath(file_path)):
+        print_error_log('The file path {} contains special characters.'.format(file_path))
+        raise CompareException(CompareException.INVALID_PATH_ERROR)
+
+    if os.path.isfile(file_path):
+        file_size = os.path.getsize(file_path)
+        if file_path.endswith(Const.PKL_SUFFIX) and file_size > Const.ONE_GB:
+            print_error_log('The file {} size is greater than 1GB.'.format(file_path))
+            raise CompareException(CompareException.INVALID_PATH_ERROR)
+        if file_path.endswith(Const.NUMPY_SUFFIX) and file_size > Const.TEN_GB:
+            print_error_log('The file {} size is greater than 10GB.'.format(file_path))
+            raise CompareException(CompareException.INVALID_PATH_ERROR)

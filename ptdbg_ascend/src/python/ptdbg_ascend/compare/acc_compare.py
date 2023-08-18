@@ -26,7 +26,8 @@ import pandas as pd
 
 from ..advisor.advisor import Advisor
 from ..common.utils import check_compare_param, add_time_as_suffix, \
-    print_warn_log, print_error_log, CompareException, Const, CompareConst, format_value, check_file_not_exists
+    print_warn_log, print_error_log, CompareException, Const,\
+    CompareConst, format_value, check_file_not_exists, check_file_valid
 
 
 def correct_data(result):
@@ -408,8 +409,12 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     if npu_bench_name_list[1] == CompareConst.NAN:
         return CompareConst.NAN, CompareConst.NAN, CompareConst.NAN, CompareConst.NO_BENCH
     try:
-        n_value = np.load(os.path.join(input_parma.get("npu_dump_data_dir"), npu_bench_name_list[0] + ".npy"))
-        b_value = np.load(os.path.join(input_parma.get("bench_dump_data_dir"), npu_bench_name_list[1] + ".npy"))
+        n_path = os.path.join(input_parma.get("npu_dump_data_dir"), npu_bench_name_list[0] + ".npy")
+        b_path = os.path.join(input_parma.get("bench_dump_data_dir"), npu_bench_name_list[1] + ".npy")
+        check_file_valid(n_path)
+        check_file_valid(b_path)
+        n_value = np.load(n_path)
+        b_value = np.load(n_path)
     except IOError as error:
         return CompareConst.NAN, CompareConst.NAN, CompareConst.NAN, "Dump file:{} not found.".format(error.filename)
     if len(n_value.shape) == 0:

@@ -1,6 +1,7 @@
 import os
 import shutil
 import sys
+import re
 from pathlib import Path
 import torch
 
@@ -141,7 +142,20 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
     if fpath is None:
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
         return
+    if os.path.islink(fpath):
+        print_error_log("set_dump_path '{}' error, the path is a soft link.".format(fpath))
+        raise DumpException(DumpException.INVALID_PATH_ERROR)
     real_path = os.path.realpath(fpath)
+
+    if len(real_path) > Const.DIRECTORY_LENGTH or len(os.path.basename(real_path)) > \
+            Const.FILE_NAME_LENGTH:
+        print_error_log("set_dump_path '{}' error, the path length exceeds limit.".format(real_path))
+        raise DumpException(DumpException.INVALID_PATH_ERROR)
+
+    if not re.match(Const.FILE_PATTERN, real_path):
+        print_error_log("set_dump_path '{}' error, the path contains special characters.".format(real_path))
+        raise DumpException(DumpException.INVALID_PATH_ERROR)
+
     if not os.path.isdir(real_path):
         print_error_log(
             "set_dump_path '{}' error, the path is not a directory please set a valid directory.".format(real_path))

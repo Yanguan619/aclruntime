@@ -414,7 +414,7 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
         check_file_valid(n_path)
         check_file_valid(b_path)
         n_value = np.load(n_path)
-        b_value = np.load(n_path)
+        b_value = np.load(b_path)
     except IOError as error:
         return CompareConst.NAN, CompareConst.NAN, CompareConst.NAN, "Dump file:{} not found.".format(error.filename)
     if len(n_value.shape) == 0:

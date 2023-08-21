@@ -31,6 +31,7 @@ class DumpUtil(object):
     dataloader_iter = 0
     target_iter = None
     target_rank = None
+    pkl_only = False
 
     @staticmethod
     def incr_iter_num_maybe_exit():
@@ -54,7 +55,7 @@ class DumpUtil(object):
         DumpUtil.dump_config = dump_config
 
     @staticmethod
-    def set_dump_switch(switch, mode=None, scope=None, api_list=None, filter_switch=None, dump_mode=None):
+    def set_dump_switch(switch, mode=None, scope=None, api_list=None, filter_switch=None, dump_mode=None, pkl_only=False):
         DumpUtil.dump_switch = switch
         if mode is not None:
             DumpUtil.dump_switch_mode = mode
@@ -70,6 +71,7 @@ class DumpUtil(object):
 
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
+        DumpUtil.pkl_only = pkl_only
 
     def check_list_or_acl_mode(name_prefix):
         global dump_count
@@ -195,23 +197,23 @@ def generate_dump_path_str():
     return dump_path
 
 
-def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL]):
+def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL], pkl_only=False):
     try:
         check_switch_valid(switch)
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()
-    DumpUtil.set_dump_switch(switch)
+    DumpUtil.set_dump_switch(switch, pkl_only=pkl_only)
     dump_path_str = generate_dump_path_str()
     set_dump_switch_print_info(switch, mode, dump_path_str)
-    set_dump_switch_config(mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
+    set_dump_switch_config(mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode,pkl_only=pkl_only)
     if switch == "OFF":
         dump.write_to_disk()
         if check_is_npu() and DumpUtil.dump_switch_mode in [Const.ALL, Const.API_STACK, Const.LIST, Const.RANGE]:
             generate_compare_script(DumpUtil.dump_data_dir, dump.get_pkl_file_path(), DumpUtil.dump_switch_mode)
 
 
-def set_dump_switch_config(mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL]):
+def set_dump_switch_config(mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL], pkl_only=False):
     try:
         check_mode_valid(mode, scope, api_list)
         check_switch_valid(filter_switch)
@@ -221,7 +223,7 @@ def set_dump_switch_config(mode=Const.ALL, scope=[], api_list=[], filter_switch=
         sys.exit()
     switch = DumpUtil.dump_switch
     DumpUtil.set_dump_switch("OFF", mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch,
-                                dump_mode=dump_mode)
+                                dump_mode=dump_mode, pkl_only=pkl_only)
     DumpUtil.dump_switch = switch
 
 

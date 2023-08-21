@@ -131,7 +131,8 @@ def dump_data(dump_file_name, dump_step, prefix, data_info):
     try:
         if json_dump_condition(prefix):
             output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-            np.save(output_path, data_info.save_data)
+            if not DumpUtil.pkl_only:
+                np.save(output_path, data_info.save_data)
             api_list.append([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data])
     except Exception as e:
         print_warn_log("Dump data failed, error: {}".format(e))
@@ -195,7 +196,7 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
         if DumpUtil.dump_init_enable:
             DumpUtil.dump_init_enable = False
             DumpUtil.dump_data_dir = make_dump_data_dir(dump_file) \
-                if DumpUtil.dump_switch_mode not in [Const.STACK, Const.ACL] else ""
+                if DumpUtil.dump_switch_mode not in [Const.STACK, Const.ACL] and not DumpUtil.pkl_only else ""
             if os.path.exists(dump_file) and not os.path.isdir(dump_file):
                 check_writable(dump_file)
                 os.remove(dump_file)

@@ -6,7 +6,7 @@ import torch
 
 from ..dump import dump
 from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_info_log, \
-    check_mode_valid, get_api_name_from_matcher, check_switch_valid, check_dump_mode_valid, generate_compare_script, \
+    check_mode_valid, get_api_name_from_matcher, check_switch_valid, check_dump_mode_valid, check_pkl_only_valid, generate_compare_script, \
     check_is_npu
 
 from ..common.version import __version__
@@ -218,6 +218,7 @@ def set_dump_switch_config(mode=Const.ALL, scope=[], api_list=[], filter_switch=
         check_mode_valid(mode, scope, api_list)
         check_switch_valid(filter_switch)
         dump_mode = check_dump_mode_valid(dump_mode)
+        pkl_only = check_pkl_only_valid(pkl_only)
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()

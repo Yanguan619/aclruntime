@@ -389,7 +389,7 @@ PrecisionDebugger模块包含dump和溢出检测功能的总体配置项。可�
 **原型**
 
 ```python
-PrecisionDebugger(dump_path=None, hook_name=None, rank=None, config=None):
+PrecisionDebugger(dump_path=None, hook_name=None, rank=None):
 ```
 
 **参数说明**
@@ -406,7 +406,7 @@ PrecisionDebugger(dump_path=None, hook_name=None, rank=None, config=None):
 
 设置dump范围。
 
-建议在**DebuggerConfig**模块与模型初始化之间的任意位置添加，不添加此函数时默认使用mode="api_stack" dump整网数据。
+建议在**PrecisionDebugger**模块与模型初始化之间的任意位置添加，不添加此函数时默认使用mode="api_stack" dump整网数据。
 
 **原型**
 
@@ -506,7 +506,7 @@ configure_hook可配置多种dump模式，示例如下：
   debugger.configure_hook(overflow_nums=1)
   ```
 
-  dump执行时会在**DebuggerConfig**模块的dump_path参数指定的目录下生成ptdbg_dump_{version}目录，保存溢出数据。
+  dump执行时会在**PrecisionDebugger**模块的dump_path参数指定的目录下生成ptdbg_dump_{version}目录，保存溢出数据。
 
   多卡场景时，需要检测到至少有一张卡溢出次数达到overflow_nums时，训练结束。
 
@@ -518,7 +518,7 @@ configure_hook可配置多种dump模式，示例如下：
   debugger.configure_hook(mode="acl", acl_config="./dump.json")
   ```
 
-  该场景**DebuggerConfig**模块的dump_path参数不生效，由acl_config中的dump.json文件配置溢出数据目录。
+  该场景**PrecisionDebugger**模块的dump_path参数不生效，由acl_config中的dump.json文件配置溢出数据目录。
 
   仅支持NPU环境。
 
@@ -536,6 +536,8 @@ dump或溢出检测启动函数。
 debugger.start()
 ```
 
+该函数为类函数，可以使用debugger.start()也可以使用PrecisionDebugger.start()。
+
 ### stop函数
 
 **功能说明**
@@ -550,16 +552,18 @@ dump或溢出检测停止函数。
 debugger.stop()
 ```
 
+该函数为类函数，可以使用debugger.stopt()也可以使用PrecisionDebugger.stop()。
+
 ### 示例代码
 
 - 示例1：开启dump
 
   ```python
   from ptdbg_ascend import *
-  PrecisionDebugger(dump_path="./dump_path", hook_name="dump")
+  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="dump")
   
   # 模型初始化
-  
+  # 下面代码也可以用PrecisionDebugger.start()和PrecisionDebugger.stop()
   debugger.start()
   
   ...
@@ -571,10 +575,10 @@ debugger.stop()
 
   ```python
   from ptdbg_ascend import *
-  PrecisionDebugger(dump_path="./dump_path", hook_name="overflow_check")
+  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="overflow_check")
   
   # 模型初始化
-  
+  # 下面代码也可以用PrecisionDebugger.start()和PrecisionDebugger.stop()
   debugger.start()
   
   ...

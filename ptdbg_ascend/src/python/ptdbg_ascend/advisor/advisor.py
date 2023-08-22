@@ -56,7 +56,7 @@ class Advisor:
 
     def _check_result_file(self):
         utils.check_file_or_directory_path(self.input_file)
-        utils.check_file_size(self.input_file, Const.ONE_HUNDRED_MB)
+        utils.check_file_size(self.input_file, Const.ONE_GB)
 
     @staticmethod
     def filter_data(pd_data):

@@ -64,7 +64,6 @@ class Const:
     DOT = "."
     DUMP_RATIO_MAX = 100
     SUMMERY_DATA_NUMS = 256
-    ONE_HUNDRED_MB = 100*1024*1024
     FLOAT_EPSILON = np.finfo(float).eps
     SUPPORT_DUMP_MODE = ['api', 'acl']
     ON = 'ON'

@@ -1051,3 +1051,4 @@ torch_npu:
   - npu_diou_backward
   - npu_sign_bits_pack
   - npu_sign_bits_unpack
+  - npu_flash_attention

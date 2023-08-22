@@ -276,6 +276,12 @@ def check_dump_mode_valid(dump_mode):
         return ['all']
     return dump_mode
 
+def check_summary_only_valid(summary_only):
+    if not isinstance(summary_only, bool):
+        print_error_log("Params auto_analyze only support True or False.")
+        raise CompareException(CompareException.INVALID_PARAM_ERROR)
+    return summary_only
+
 def check_compare_param(input_parma, output_path, stack_mode=False, auto_analyze=True,
                         fuzzy_match=False):  # 添加默认值来让不传参时能通过参数检查
     if not (isinstance(input_parma, dict) and isinstance(output_path, str)

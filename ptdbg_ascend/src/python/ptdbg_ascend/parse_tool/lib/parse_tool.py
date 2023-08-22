@@ -128,4 +128,8 @@ class ParseTool:
         parser.add_argument('-al', '--atol', dest='atol', default=0.001, type=float, help='set rtol')
         parser.add_argument('-rl', '--rtol', dest='rtol', default=0.001, type=float, help='set atol')
         args = parser.parse_args(argv)
+        self.util.check_path_valid(args.my_dump_path)
+        self.util.check_path_valid(args.golden_dump_path)
+        self.util.check_path_format(args.my_dump_path, Const.NUMPY_PATTERN)
+        self.util.check_path_format(args.golden_dump_path, Const.NUMPY_PATTERN)
         self.compare.compare_data(args.my_dump_path, args.golden_dump_path, args.save, args.rtol, args.atol, args.count)

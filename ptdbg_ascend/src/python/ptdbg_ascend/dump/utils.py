@@ -205,12 +205,12 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
         sys.exit()
     DumpUtil.set_dump_switch(switch, summary_only=summary_only)
     dump_path_str = generate_dump_path_str()
-    set_dump_switch_print_info(switch, mode, dump_path_str)
-    set_dump_switch_config(mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode,summary_only=summary_only)
     if switch == "OFF":
         dump.write_to_disk()
         if check_is_npu() and DumpUtil.dump_switch_mode in [Const.ALL, Const.API_STACK, Const.LIST, Const.RANGE]:
             generate_compare_script(DumpUtil.dump_data_dir, dump.get_pkl_file_path(), DumpUtil.dump_switch_mode)
+    set_dump_switch_print_info(switch, mode, dump_path_str)
+    set_dump_switch_config(mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode,summary_only=summary_only)
 
 
 def set_dump_switch_config(mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=[Const.ALL], summary_only=False):

@@ -40,7 +40,7 @@ def compare_distributed(npu_dump_dir, bench_dump_dir, output_path, **kwargs):
             if os.path.isdir(full_path):
                 dump_data_dir = full_path
                 dump_data_dirname = fname
-            else:
+            elif full_path.endswith('.pkl'):
                 pkl_path = full_path
                 pkl_name = fname
         # Provide robustness on invalid directory inputs

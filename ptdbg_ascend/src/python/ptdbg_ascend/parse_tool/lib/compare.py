@@ -56,6 +56,7 @@ class Compare:
             self.log.info("Convert all files in path: %s", dump_file)
             file_name = ""
         output = output if output else Const.DUMP_CONVERT_DIR
+        self.util.check_path_valid(output)
         convert = self.convert(dump_file, data_format, output)
         if convert == 0:
             convert_files = self.util.list_convert_files(output, file_name)

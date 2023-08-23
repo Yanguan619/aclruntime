@@ -93,6 +93,7 @@ class Const:
     FILE_NAME_LENGTH = 255
     DIRECTORY_LENGTH = 4096
 
+
 class CompareConst:
     """
     Class for compare module const

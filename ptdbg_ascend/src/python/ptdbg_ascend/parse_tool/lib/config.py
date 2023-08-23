@@ -32,6 +32,11 @@ class Const:
     NUMPY_PATTERN = r".*\.npy$"
     NPY_SUFFIX = ".npy"
     PKL_SUFFIX = ".pkl"
+    DIRECTORY_LENGTH = 4096
+    FILE_NAME_LENGTH = 255
+    FILE_PATTERN = r'^[a-zA-Z0-9_./-]+$'
+    ONE_GB = 1 * 1024 * 1024 * 1024
+    TEN_GB = 10 * 1024 * 1024 * 1024
     HEADER = r"""    ____                     
        / __ \____ ______________ 
       / /_/ / __ `/ ___/ ___/ _ \

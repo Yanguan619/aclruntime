@@ -66,11 +66,13 @@ class ParseTool:
         golden_dump_path = args.golden_dump_path
         self.util.check_path_valid(my_dump_path)
         self.util.check_path_valid(golden_dump_path)
+        self.util.check_path_valid(result_dir)
         if not os.path.isdir(my_dump_path) or not os.path.isdir(golden_dump_path):
             self.util.log.error("Please enter a directory not a file")
             raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
         if args.ascend_path:
             Const.MS_ACCU_CMP_PATH = self.util.path_strip(args.ascend_path)
+            self.util.check_path_valid(Const.MS_ACCU_CMP_PATH)
         self.compare.npu_vs_npu_compare(my_dump_path, golden_dump_path, result_dir)
 
     @catch_exception
@@ -89,6 +91,7 @@ class ParseTool:
         self.util.check_path_valid(args.path)
         if args.ascend_path:
             Const.MS_ACCU_CMP_PATH = self.util.path_strip(args.ascend_path)
+            self.util.check_path_valid(Const.MS_ACCU_CMP_PATH)
         self.compare.convert_dump_to_npy(args.path, args.format, args.output_path)
 
     @catch_exception

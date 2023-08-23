@@ -45,11 +45,13 @@ class Visualization:
 
     def print_npy_data(self, file_name):
         file_name = self.util.path_strip(file_name)
+        self.util.check_path_valid(file_name)
         self.util.check_path_format(file_name, Const.NPY_SUFFIX)
         return self.print_npy_summary(file_name)
 
     def parse_pkl(self, path, api_name):
         path = self.util.path_strip(path)
+        self.util.check_path_valid(path)
         self.util.check_path_format(path, Const.PKL_SUFFIX)
         with open(path, "r") as pkl_handle:
             title_printed = False

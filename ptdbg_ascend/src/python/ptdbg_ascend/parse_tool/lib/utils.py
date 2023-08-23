@@ -158,9 +158,29 @@ class Util:
         if not path or not os.path.exists(path):
             self.log.error("The path %s does not exist." % path)
             raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
+        if os.path.islink(path):
+            self.log.error('The file path {} is a soft link.'.format(path))
+            raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
+        if len(os.path.realpath(path)) > Const.DIRECTORY_LENGTH or len(os.path.basename(path)) > \
+                Const.FILE_NAME_LENGTH:
+            self.log.error('The file path length exceeds limit.')
+            raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
+        if not re.match(Const.FILE_PATTERN, os.path.realpath(path)):
+            self.log.error('The file path {} contains special characters.'.format(path))
+            raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
+
         if os.path.isdir(path) and len(os.listdir(path)) == 0:
             self.log.error("No files in %s." % path)
             raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
+
+        if os.path.isfile(path):
+            file_size = os.path.getsize(path)
+            if path.endswith(Const.PKL_SUFFIX) and file_size > Const.ONE_GB:
+                self.log.error('The file {} size is greater than 1GB.'.format(path))
+                raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
+            if path.endswith(Const.NPY_SUFFIX) and file_size > Const.TEN_GB:
+                self.log.error('The file {} size is greater than 10GB.'.format(path))
+                raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
 
     def npy_info(self, source_data):
         if isinstance(source_data, np.ndarray):

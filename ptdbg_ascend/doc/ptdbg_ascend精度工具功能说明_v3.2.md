@@ -378,18 +378,18 @@ register_hook需要在set_dump_path之后调用，也需要在每个进程上被
 
 ## debugger方式dump和溢出检测（推荐）
 
-### DebuggerConfig模块
+### PrecisionDebugger模块
 
 **功能说明**
 
-DebuggerConfig模块包含dump和溢出检测功能的总体配置项。可以指定dump目录，设置dump或溢出检测模式，指定dump的卡和迭代。
+PrecisionDebugger模块包含dump和溢出检测功能的总体配置项。可以指定dump目录，设置dump或溢出检测功能，指定dump的卡和迭代。
 
-可以在from ptdbg_ascend import *和主函数开始之间的任意位置添加该模块。
+可以在from ptdbg_ascend import *和模型初始化之间的任意位置添加该模块。
 
 **原型**
 
 ```python
-debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="", hook_name="", rank=0, step=[]))
+PrecisionDebugger(dump_path=None, hook_name=None, rank=None):
 ```
 
 **参数说明**
@@ -397,9 +397,8 @@ debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="", hook_name="", r
 | 参数名    | 说明                                                         | 是否必选 |
 | --------- | ------------------------------------------------------------ | -------- |
 | dump_path | 设置dump数据目录路径，参数示例："./dump_path"。dump_path的父目录须为已存在目录。<br/>默认在指定的dump_path路径下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当**configure_hook**函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。 | 是       |
-| hook_name | dump模式，可取值dump和overflow_check，表示dump模式和溢出检测模式，二选一。 | 是       |
+| hook_name | dump模式，可取值dump和overflow_check，表示dump和溢出检测功能，二选一。 | 是       |
 | rank      | 指定对某张卡上的数据进行dump或溢出检测，默认未配置（表示dump所有卡的数据），须根据实际卡的Rank ID配置。 | 否       |
-| step      | 指定对某个迭代次数的数据进行dump或溢出检测，参数示例：step=[1,2,3 ]，默认为0（表示根据debugger.start和debugger.stop执行dump第0个迭代的数据后终止训练）。 | 否       |
 
 ### configure_hook函数（可选）
 
@@ -407,17 +406,17 @@ debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="", hook_name="", r
 
 设置dump范围。
 
-建议在**DebuggerConfig**模块与主函数开始之间的任意位置添加。
+建议在**PrecisionDebugger**模块与模型初始化之间的任意位置添加，不添加此函数时默认使用mode="api_stack" dump整网数据。
 
 **原型**
 
-dump模式：
+dump：
 
 ```python
-debugger.configure_hook(mode="api_stack", scope=[], api_list=[], filter_switch=Const.ON, acl_config=None, backward_input=[], input_output_mode=[Const.ALL])
+debugger.configure_hook(mode="api_stack", scope=[], api_list=[], filter_switch="ON", acl_config=None, backward_input=[], input_output_mode=["all"])
 ```
 
-溢出检测模式：
+溢出检测：
 
 ```python
 debugger.configure_hook(mode=None, acl_config=None, overflow_nums=1)
@@ -430,14 +429,14 @@ debugger.configure_hook(mode=None, acl_config=None, overflow_nums=1)
 | mode              | dump模式。可取值"all"、"list"、"range"、"stack"、"acl"、"api_list"、"api_stack"，各参数含义请参见本节的“**函数示例**”。参数示例：mode="list"。默认为api_stack。该参数配置值将作为dump数据文件名的前缀，详情请参见“**dump数据存盘说明**”。 | 否       |
 | scope或api_list   | dump范围。根据model配置的模式选择dump的API范围，mode="api_list"时，需要配置api_list=[]，其他模式有需要时配置scope=[]。参数示例：scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward"]、api_list=["relu"]。默认为空。 | 否       |
 | filter_switch     | 开启dump bool和整型的tensor以及浮点、bool和整型的标量。可取值"ON"或"OFF"。参数示例：filter_switch="OFF"。默认不配置，即filter_switch="ON"，表示不dump上述数据。 | 否       |
-| acl_config        | acl dump的配置文件。mode="acl"时，该参数必选；mode为其他值时，该参数不选。参数示例：dump_config='./dump.json'。dump.json配置文件详细介绍请参见“**dump.json配置文件说明**”。 | 否       |
+| acl_config        | acl dump的配置文件。mode="acl"时，该参数必选；mode为其他值时，该参数不选。参数示例：acl_config='./dump.json'。dump.json配置文件详细介绍请参见“**dump.json配置文件说明**”。 | 否       |
 | backward_input    | 该输入文件为首次运行训练dump得到反向API输入的.npy文件。例如若需要dump Functional_conv2d_1 API的反向过程的输入输出，则需要在dump目录下查找命名包含Functional_conv2d_1、backward和input字段的.npy文件。 | 否       |
-| input_output_mode | dump数据过滤。可取值“all”、“forward”、“backward”、input和output，表示仅保存dump的数据中文件名包含“forward”、“backward”、input或output的前向、反向、输入或输出的.npy文件。参数示例input_output_mode=["backward"]或input_output_mode=["forward", "backward"]。默认为all，即保存所有dump的数据。除了all参数只能单独配置外，其他参数可以自由组合。 | 否       |
+| input_output_mode | dump数据过滤。可取值"all"、"forward"、"backward"、"input"和"output"，表示仅保存dump的数据中文件名包含"forward"、"backward"、"input"和"output"的前向、反向、输入或输出的.npy文件。参数示例input_output_mode=["backward"]或input_output_mode=["forward", "backward"]。默认为all，即保存所有dump的数据。除了all参数只能单独配置外，其他参数可以自由组合。 | 否       |
 | overflow_nums     | 控制溢出次数，表示第N次溢出时，停止训练，过程中检测到溢出API对应ACL数据均dump。参数示例：overflow_nums=3。配置overflow_check时可配置，默认不配置，即检测到1次溢出，训练停止。 | 否       |
 
 **函数示例**
 
-set_dump_switch可配置多中dump模式，示例如下：
+configure_hook可配置多种dump模式，示例如下：
 
 说明：以下均以dump部分API数据为例，API名可以从首次dump整网数据的结果csv文件中的NPU Name或Bench Name列获取。
 
@@ -507,7 +506,7 @@ set_dump_switch可配置多中dump模式，示例如下：
   debugger.configure_hook(overflow_nums=1)
   ```
 
-  dump执行时会在**DebuggerConfig**模块的dump_path参数指定的目录下生成ptdbg_dump_{version}目录，保存溢出数据。
+  dump执行时会在**PrecisionDebugger**模块的dump_path参数指定的目录下生成ptdbg_dump_{version}目录，保存溢出数据。
 
   多卡场景时，需要检测到至少有一张卡溢出次数达到overflow_nums时，训练结束。
 
@@ -516,10 +515,10 @@ set_dump_switch可配置多中dump模式，示例如下：
 - 示例10：dump指定API的ACL级别溢出数据
 
   ```python
-  debugger.Configure_hook(mode="acl", acl_config="./dump.json")
+  debugger.configure_hook(mode="acl", acl_config="./dump.json")
   ```
 
-  该场景**DebuggerConfig**模块的dump_path参数不生效，由acl_config中的dump.json文件配置溢出数据目录。
+  该场景**PrecisionDebugger**模块的dump_path参数不生效，由acl_config中的dump.json文件配置溢出数据目录。
 
   仅支持NPU环境。
 
@@ -529,7 +528,7 @@ set_dump_switch可配置多中dump模式，示例如下：
 
 dump或溢出检测启动函数。
 
-在主函数开始之后的任意位置添加。
+在模型初始化之后的任意位置添加。
 
 **原型**
 
@@ -537,13 +536,15 @@ dump或溢出检测启动函数。
 debugger.start()
 ```
 
+该函数为类函数，可以使用debugger.start()也可以使用PrecisionDebugger.start()。
+
 ### stop函数
 
 **功能说明**
 
 dump或溢出检测停止函数。
 
-在主函数开始之后以及**start**函数之后的任意位置添加。
+在**start**函数之后的任意位置添加。
 
 **原型**
 
@@ -551,16 +552,18 @@ dump或溢出检测停止函数。
 debugger.stop()
 ```
 
+该函数为类函数，可以使用debugger.stopt()也可以使用PrecisionDebugger.stop()。
+
 ### 示例代码
 
-- 示例1：开启dump模式
+- 示例1：开启dump
 
   ```python
   from ptdbg_ascend import *
-  debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="./dump_path", hook_name="dump"))
+  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="dump")
   
-  # 主函数开始
-  
+  # 模型初始化
+  # 下面代码也可以用PrecisionDebugger.start()和PrecisionDebugger.stop()
   debugger.start()
   
   ...
@@ -568,14 +571,14 @@ debugger.stop()
   debugger.stop()
   ```
 
-- 示例2：开启溢出检测模式
+- 示例2：开启溢出检测dump
 
   ```python
   from ptdbg_ascend import *
-  debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="./dump_path", hook_name="overflow_check"))
+  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="overflow_check")
   
-  # 主函数开始
-  
+  # 模型初始化
+  # 下面代码也可以用PrecisionDebugger.start()和PrecisionDebugger.stop()
   debugger.start()
   
   ...
@@ -796,7 +799,7 @@ dump操作必选。
 **函数原型**
 
 ```python
-def set_dump_switch(switch, mode="all", scope=[], api_list=[], filter_switch=Const.ON, dump_mode=["all"]):
+def set_dump_switch(switch, mode="all", scope=[], api_list=[], filter_switch="ON", dump_mode=["all"]):
 ```
 
 **参数说明**
@@ -804,10 +807,10 @@ def set_dump_switch(switch, mode="all", scope=[], api_list=[], filter_switch=Con
 | 参数名          | 说明                                                         | 是否必选 |
 | --------------- | ------------------------------------------------------------ | -------- |
 | switch          | dump开关。可取值"ON"或"OFF"。须在选定dump开始的位置配置set_dump_switch("ON")；dump结束的位置设置set_dump_switch("OFF")。 | 是       |
-| mode            | dump模式。可取值"all"、"list"、"range"、"stack"、"acl"、"api_list"、"api_stack"，各参数含义请参见本节的“**函数示例**”。参数示例：mode="list"。默认为空。该参数配置值将作为dump数据文件名的前缀，详情请参见“**dump数据存盘说明**”。 | 否       |
+| mode            | dump模式。可取值"all"、"list"、"range"、"stack"、"acl"、"api_list"、"api_stack"，各参数含义请参见本节的“**函数示例**”。参数示例：mode="list"。默认为all。该参数配置值将作为dump数据文件名的前缀，详情请参见“**dump数据存盘说明**”。 | 否       |
 | scope或api_list | dump范围。根据model配置的模式选择dump的API范围。参数示例：scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward"]、api_list=["relu"]。默认为空。 | 否       |
 | filter_switch   | 开启dump bool和整型的tensor以及浮点、bool和整型的标量。可取值"ON"或"OFF"。参数示例：filter_switch="OFF"。默认不配置，即filter_switch="ON"，表示不dump上述数据。 | 否       |
-| dump_mode       | dump数据过滤。可取值“all”、“forward”、“backward”、input和output，表示仅保存dump的数据中文件名包含“forward”、“backward”、input或output的前向、反向、输入或输出的.npy文件。参数示例dump_mode=["backward"]或dump_mode=["forward", "backward"]。默认为all，即保存所有dump的数据。除了all参数只能单独配置外，其他参数可以自由组合。 | 否       |
+| dump_mode       | dump数据过滤。可取值"all"、"forward"、"backward"、"input"和"output"，表示仅保存dump的数据中文件名包含"forward"、"backward"、"input"和"output"的前向、反向、输入或输出的.npy文件。参数示例dump_mode=["backward"]或dump_mode=["forward", "backward"]。默认为all，即保存所有dump的数据。除了all参数只能单独配置外，其他参数可以自由组合。 | 否       |
 
 **推荐配置**
 
@@ -819,7 +822,7 @@ set_dump_switch("ON", mode="api_stack", filter_switch="OFF")
 
 **函数示例**
 
-set_dump_switch可配置多中dump模式，示例如下：
+set_dump_switch可配置多种dump模式，示例如下：
 
 说明：以下均以dump部分API数据为例，API名可以从首次dump整网数据的结果csv文件中的NPU Name或Bench Name列获取。
 
@@ -892,7 +895,7 @@ set_dump_switch可配置多中dump模式，示例如下：
 
 以上示例均需要在结束dump的位置插入set_dump_switch("OFF")。
 
-set_dump_switch配置model为all或api_stack时，结束dump后，在dump目录下会自动生成compare_data.py比对脚本模板，示例如下：
+set_dump_switch配置mode为all或api_stack时，结束dump后，在dump目录下会自动生成compare_data.py比对脚本模板，示例如下：
 
 ```python
 from ptdbg_ascend import compare
@@ -1098,7 +1101,7 @@ dump结果目录结构示例如下：
    | NPU        | NPU亲和算子         |
    | VF         | torch._VF           |
 
-当set_dump_switch配置mode参数（例如：mode="api_stack" ）时，dump结果的文件名会添加api_stack前缀，dump结果如下：
+当set_dump_switch或configure_hook配置mode参数（例如：mode="api_stack" ）时，dump结果的文件名会添加api_stack前缀，dump结果如下：
 
 * api_stack_dump.pkl
 * api_stack_dump目录
@@ -1272,7 +1275,7 @@ ptdbg_ascend.parse为命令行交互式界面解析工具，提供更多的数�
   vc -m [*my_dump_path*] -g [*golden_dump_path*] (-out) [*output_path*]
   ```
   
-  | 参数名称 | 说明                                                         | 是否必填 |
+  | 参数名称 | 说明                                                         | 是否必选 |
   | -------- | ------------------------------------------------------------ | -------- |
   | -m       | 待比对dump数据目录。                                         | 是       |
   | -g       | dump数据目录。                                               | 是       |
@@ -1282,6 +1285,18 @@ ptdbg_ascend.parse为命令行交互式界面解析工具，提供更多的数�
   - 输出结果：result_{timestamp}.csv文件。
   - 若指定-out参数需要用户传入输出路径，并且路径需要已存在。
   - 若未指定输出目录或指定目录不存在， 则比对结束后将结果保存在默认目录 “./parse_data/comapre_result”中，比对结束后会打印log提示输出结果存放路径。
+
+**示例**
+
+```bash
+# 传入待比对数据目录以及标杆数据目录
+Parse >>> vc -m ./my_dump_path -g ./golden_data_path 
+......
+# 比对结果打印
+[INFO] The comparison result have been written to "./parse_data/compare_result/result_20230818104735.csv".
+[INFO] The command was completed and took 6 seconds.
+[INFO] Compare finished!!
+```
 
 ### ACL算子数据的npy转换
 
@@ -1293,7 +1308,7 @@ ptdbg_ascend.parse为命令行交互式界面解析工具，提供更多的数�
   dc -n [*file_name/file_path*] (-out) [*output_path*]
   ```
 
-  | 参数名称 | 说明                                                         | 是否必填 |
+  | 参数名称 | 说明                                                         | 是否必选 |
   | -------- | ------------------------------------------------------------ | -------- |
   | -n       | 需转换的dump数据文件或dump数据文件目录。                     | 是       |
   | -out     | 结果输出目录。                                               | 否       |
@@ -1311,11 +1326,45 @@ ptdbg_ascend.parse为命令行交互式界面解析工具，提供更多的数�
   pt -n [*file_path*]
   ```
 
-  | 参数名称 | 说明          | 是否必填 |
+  | 参数名称 | 说明          | 是否必选 |
   | -------- | ------------- | -------- |
   | -n       | npy文件路径。 | 是       |
 
   打印统计信息：shape, dtype, max, min和mean。
+
+**示例1**
+
+```bash
+# 传入需转换的dump文件目录
+Parse >>> dc -n ./dump_data/
+......
+# 转换结果
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ SrcFile: ./dump_data/
+│  - Add.fp32_vars_add_2fp32_vars_Relu_9.31.5.1636595794731103.input.0.npy                             │
+│  - Add.fp32_vars_add_1fp32_vars_Relu_6.24.5.1636595794631347.output.0.npy                            │
+│  - Add.fp32_vars_add_2fp32_vars_Relu_9.31.5.1636595794731103.input.1.npy                             │
+│  - Add.fp32_vars_add_1fp32_vars_Relu_6.24.5.1636595794631347.input.1.npy                             │
+│  - Add.fp32_vars_add_3fp32_vars_Relu_12.40.5.1636595794846124.input.1.npy                            │
+│  - Add.fp32_vars_add_1fp32_vars_Relu_6.24.5.1636595794631347.input.0.npy                             │
+│  - Add.fp32_vars_add_3fp32_vars_Relu_12.40.5.1636595794846124.input.0.npy                            │
+│  - Add.fp32_vars_add_2fp32_vars_Relu_9.31.5.1636595794731103.output.0.npy                            │
+│  - Add.fp32_vars_add_3fp32_vars_Relu_12.40.5.1636595794846124.output.0.npy                           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+**示例2**
+
+```bash
+# 查看某个dump数据块的数据信息
+# 默认会将数据中的tensor保存成 txt
+Parse >>> pt -n ./parse_data/dump_convert/Add.fp32_vars_add_1fp32_vars_Relu_6.24.5.1636595794631347.output.0.npy
+......
+# 打印统计信息
+[Shape: (1, 16, 56, 56, 16)] [Dtype: float16] [Max: 452.0] [Min: -408.5] [Mean: -3.809]
+Path: ./parse_data/dump_convert/Add.fp32_vars_add_1fp32_vars_Relu_6.24.5.1636595794631347.input.0.npy                           
+TextFile:./parse_data/dump_convert/Add.fp32_vars_add_1fp32_vars_Relu_6.24.5.1636595794631347.input.0.npy.txt 
+```
 
 ### pkl文件中指定API的dump数据信息查看
 
@@ -1325,13 +1374,28 @@ ptdbg_ascend.parse为命令行交互式界面解析工具，提供更多的数�
   pk -f [*pkl_path*] -n [*api_name*]
   ```
 
-  | 参数名称 | 说明              | 是否必填 |
+  | 参数名称 | 说明              | 是否必选 |
   | -------- | ----------------- | -------- |
   | -f       | 指定pkl文件路径。 | 是       |
   | -n       | 指定API名称。     | 是       |
 
   - 输出结果：打印统计信息（shape, dtype, max和min mean）。
   - 若pkl文件中存在相应的堆栈信息，则会打印堆栈信息。
+
+**示例**
+
+```bash
+# 传入pkl文件及api名称
+Parse >>> pk -f ./torch_dump/ptdbg_v3.2/rank0/api_stack_dump.pkl -n Functional_conv2d_0_forward
+......
+# 打印统计信息及堆栈（pkl文件不包含堆栈则不会打印堆栈）
+
+Statistic Info:
+  [Functional_conv2d_0_forward_input.0][dtype: torch.float32][shape: [2, 1, 2, 2]][max: 1.576936960220337][min: -0.9757485389709473][mean: 0.4961632490158081]
+  [Functional_conv2d_0_forward_input.1][dtype: torch.float32][shape: [2, 1, 2, 2]][max: 0.20064473152160645][min: -0.47102075815200806][mean: -0.20796933770179749]
+  [Functional_conv2d_0_forward_input.2][dtype: torch.float32][shape: [2]][max: 0.17380613088607788][min: -0.16853803396224976][mean: 0.0026340484619140625]
+  [Functional_conv2d_0_forward_output][dtype: torch.float32][shape: [2, 2, 1, 1]][max: 0.02364911139011383][min: -1.762906551361084][mean: -0.6710853576660156]
+```
 
 ### API可选层级比对
 
@@ -1344,19 +1408,56 @@ ptdbg_ascend.parse为命令行交互式界面解析工具，提供更多的数�
   - 统计级比对：对tensor整体进行余弦值及相对误差的计算。
   - 像素级比对：对输入的两个npy文件进行逐元素比对。若两个tensor对应元素的相对误差或绝对误差大于**误差阈值**（-al和-rl配置）则被标记为错误数据。
 
-  | 参数名称 | 说明                                            | 是否必填 |
+  | 参数名称 | 说明                                            | 是否必选 |
   | -------- | ----------------------------------------------- | -------- |
   | -m       | 待比对数据。                                    | 是       |
   | -g       | 标杆数据。                                      | 是       |
   | -p       | 设置比对结束后打印错误元素的个数，默认值20。    | 否       |
   | -al      | 判定数据存在精度问题的绝对误差阈值，默认0.001。 | 否       |
   | -rl      | 判定数据存在精度问题的相对误差阈值，默认0.001。 | 否       |
-
+  | -s       | 将npy文件保存成txt文件，用于查看，默认开启。    | 否       |
+  
   输出结果：
-
+  
   - 统计级比对结果。
   - 两个文件的统计信息（shape, dtype, max, min和mean）。
   - 错误数据打印表格。
+
+**示例**
+
+```bash
+# 对比两个tensor的数据
+Parse >>> cn -m Add.InceptionV3_InceptionV3_Mixed_7a_Branch_0_add_3.323.1619494134703053.output.0.npy -g InceptionV3_InceptionV3_Mixed_7a_Branch_0_add_3.0.1619492699305998.npy -p 10 -s -al 0.002 -rl 0.005
+                  Error Item Table                                        Top Item Table
+┏━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓ ┏━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Index ┃ Left          ┃ Right        ┃ Diff         ┃ ┃ Index ┃ Left        ┃ Right       ┃ Diff          ┃
+┡━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩ ┡━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ 155   │ 0.024600908   │ 0.022271132  │ 0.002329776  │ │ 0     │ -0.9206961  │ -0.9222216  │ 0.0015255213  │
+│ 247   │ 0.015752593   │ 0.017937578  │ 0.0021849852 │ │ 1     │ -0.6416973  │ -0.64051837 │ 0.0011789203  │
+│ 282   │ -0.0101207765 │ -0.007852031 │ 0.0022687456 │ │ 2     │ -0.35383835 │ -0.35433492 │ 0.0004965663  │
+│ 292   │ 0.019581757   │ 0.02240482   │ 0.0028230622 │ │ 3     │ -0.18851271 │ -0.18883198 │ 0.00031927228 │
+│ 640   │ -0.06593232   │ -0.06874806  │ 0.0028157383 │ │ 4     │ -0.43508735 │ -0.43534422 │ 0.00025686622 │
+│ 1420  │ 0.09293677    │ 0.09586689   │ 0.0029301196 │ │ 5     │ 1.4447614   │ 1.4466647   │ 0.0019032955  │
+│ 1462  │ -0.085207745  │ -0.088047795 │ 0.0028400496 │ │ 6     │ -0.3455438  │ -0.3444429  │ 0.0011008978  │
+│ 1891  │ -0.03433288   │ -0.036525503 │ 0.002192624  │ │ 7     │ -0.6560242  │ -0.6564579  │ 0.0004336834  │
+│ 2033  │ 0.06828873    │ 0.07139922   │ 0.0031104907 │ │ 8     │ -2.6964858  │ -2.6975214  │ 0.0010356903  │
+│ 2246  │ -0.06376442   │ -0.06121233  │ 0.002552092  │ │ 9     │ -0.73746175 │ -0.73650354 │ 0.00095820427 │
+└───────┴───────────────┴──────────────┴──────────────┘ └───────┴─────────────┴─────────────┴───────────────┘
+╭───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Left:                                                                                                                                 | 
+│  |- NpyFile: ./dump/temp/decode/Add.InceptionV3_InceptionV3_Mixed_7a_Branch_0_add_3.323.1619494134703053.output.0.npy                 |
+│  |- TxtFile: ./dump/temp/decode/Add.InceptionV3_InceptionV3_Mixed_7a_Branch_0_add_3.323.1619494134703053.output.0.npy.txt             |
+│  |- NpySpec: [Shape: (32, 8, 8, 320)] [Dtype: float32] [Max: 5.846897] [Min: -8.368301] [Mean: -0.72565556]                           |
+│ DstFile:                                                                                                                              │
+│  |- NpyFile: ./dump/cpu/InceptionV3_InceptionV3_Mixed_7a_Branch_0_add_3.0.1619492699305998.npy                                        |
+│  |- TxtFile: ./dump/cpu/InceptionV3_InceptionV3_Mixed_7a_Branch_0_add_3.0.1619492699305998.npy.txt                                    |
+│  |- NpySpec: [Shape: (32, 8, 8, 320)] [Dtype: float32] [Max: 5.8425903] [Min: -8.374472] [Mean: -0.7256237]                           │
+│ NumCnt:   655360                                                                                                                      │
+│ AllClose: False                                                                                                                       │
+│ CosSim:   0.99999493                                                                                                                  │
+│ ErrorPer: 0.023504638671875  (rl= 0.005, al= 0.002)                                                                                   │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
 
 ## FAQ
 

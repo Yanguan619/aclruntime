@@ -81,8 +81,17 @@ class Compare:
         """Compare data"""
         if left is None or right is None:
             raise ParseException("invalid input or output")
-        left_data = np.load(left)
-        right_data = np.load(right)
+        try:
+            left_data = np.load(left)
+            right_data = np.load(right)
+        except UnicodeError as e:
+            self.log.error("%s %s" % ("UnicodeError", str(e)))
+            self.log.warning("Please check the npy file")
+            raise ParseException(ParseException.PARSE_UNICODE_ERROR)
+        except IOError:
+            self.log.error("Failed to load npy %s or %s." % (left, right))
+            raise ParseException(ParseException.PARSE_LOAD_NPY_ERROR)
+
         # save to txt
         if save_txt:
             self.util.save_npy_to_txt(left_data, left + ".txt")
@@ -120,7 +129,6 @@ class Compare:
             else:
                 data_right = np.pad(data_right, (0, data_left.shape[0] - data_right.shape[0]), 'constant')
         all_close = np.allclose(data_left, data_right, atol=al, rtol=rl)
-        # cos_sim = 1 - spatial.distance.cosine(data_left, data_right)
         cos_sim = np.dot(data_left, data_right) / (
                 np.sqrt(np.dot(data_left, data_left)) * np.sqrt(np.dot(data_right, data_right)))
         err_cnt = 0

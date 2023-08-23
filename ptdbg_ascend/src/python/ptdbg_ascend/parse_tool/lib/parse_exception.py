@@ -27,6 +27,7 @@ class ParseException(Exception):
     PARSE_UNICODE_ERROR = 5
     PARSE_JSONDECODE_ERROR = 6
     PARSE_MSACCUCMP_ERROR = 7
+    PARSE_LOAD_NPY_ERROR = 8
 
     def __init__(self, code, error_info=""):
         super(ParseException, self).__init__()

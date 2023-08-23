@@ -89,9 +89,10 @@ class Const:
     NUMPY_SUFFIX = ".npy"
     ONE_GB = 1 * 1024 * 1024 * 1024
     TEN_GB = 10 * 1024 * 1024 * 1024
-    FILE_PATTERN = r'^[a-zA-Z0-9_./]+$'
+    FILE_PATTERN = r'^[a-zA-Z0-9_./-]+$'
     FILE_NAME_LENGTH = 255
     DIRECTORY_LENGTH = 4096
+
 
 class CompareConst:
     """
@@ -337,6 +338,7 @@ def check_file_or_directory_path(path, isdir=False):
         print_error_log(
             'The path {} does not have permission to read. Please check the path permission'.format(path))
         raise CompareException(CompareException.INVALID_PATH_ERROR)
+
 
 def _check_pkl(pkl_file_handle, file_name):
     tensor_line = pkl_file_handle.readline()

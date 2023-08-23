@@ -146,6 +146,10 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
         return
     check_file_valid(fpath)
     real_path = os.path.realpath(fpath)
+    if not os.path.isdir(real_path):
+        print_error_log(
+            "set_dump_path '{}' error, the path is not a directory please set a valid directory.".format(real_path))
+        raise DumpException(DumpException.INVALID_PATH_ERROR)
     DumpUtil.set_dump_path(real_path)
     DumpUtil.dump_dir_tag = dump_tag
 

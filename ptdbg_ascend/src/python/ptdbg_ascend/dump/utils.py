@@ -1,13 +1,14 @@
 import os
 import shutil
 import sys
+import re
 from pathlib import Path
 import torch
 
 from ..dump import dump
 from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_info_log, \
     check_mode_valid, get_api_name_from_matcher, check_switch_valid, check_dump_mode_valid, check_summary_only_valid, generate_compare_script, \
-    check_is_npu
+    check_is_npu, check_file_valid
 
 from ..common.version import __version__
 
@@ -143,11 +144,8 @@ def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
     if fpath is None:
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
         return
+    check_file_valid(fpath)
     real_path = os.path.realpath(fpath)
-    if not os.path.isdir(real_path):
-        print_error_log(
-            "set_dump_path '{}' error, the path is not a directory please set a valid directory.".format(real_path))
-        raise DumpException(DumpException.INVALID_PATH_ERROR)
     DumpUtil.set_dump_path(real_path)
     DumpUtil.dump_dir_tag = dump_tag
 

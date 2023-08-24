@@ -55,7 +55,7 @@ def check_data_overflow(x):
             # inf
             if tensor_max == float('inf') or tensor_min == float('-inf'):
                 return True
-            if (x.dtype == torch.float16 or x.dtype == torch.float32 or x.dtype == torch.bfloat16) and \
+            if x.dtype in [torch.float16, torch.float32, torch.bfloat16] and \
                     (tensor_max == torch.finfo(x.dtype).max or tensor_min == torch.finfo(x.dtype).min):
                 return True
             # nan

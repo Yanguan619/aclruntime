@@ -42,6 +42,7 @@ backward_threading_id = 0
 api_list = []
 thread_lock = threading.Lock()
 pkl_name = ""
+multi_output_apis = ["_sort_", "npu_flash_attention"]
 
 class DataInfo(object):
     def __init__(self, data, save_data, summary_data, dtype, shape):
@@ -254,9 +255,10 @@ def acl_backward_dump_status(output, grad, module_name):
         output.backward(grad, retain_graph=True)
         return True
 
-    if "_sort_" in module_name :
-        output[0].backward(grad, retain_graph=True)
-        return True
+    for api_name in multi_output_apis:
+        if api_name in module_name:
+            output[0].backward(grad, retain_graph=True)
+            return True
     return False
 
 

@@ -52,15 +52,16 @@ def check_data_overflow(x):
             else:
                 tensor_max = torch._C._VariableFunctionsClass.max(x).cpu().detach().float().numpy().tolist()
                 tensor_min = torch._C._VariableFunctionsClass.min(x).cpu().detach().float().numpy().tolist()
-            # inf
-            if tensor_max == float('inf') or tensor_min == float('-inf') or \
-                    tensor_max == torch.finfo(x.dtype).max or tensor_min == torch.finfo(x.dtype).min:
-                return True
-            # nan
-            elif tensor_max != tensor_max or tensor_min != tensor_min:
-                return True
-            else:
-                return False
+            if x.dtype == torch.float16 or x.dtype == torch.float32 or x.dtype == torch.bfloat16:
+                # inf
+                if tensor_max == float('inf') or tensor_min == float('-inf') or \
+                        tensor_max == torch.finfo(x.dtype).max or tensor_min == torch.finfo(x.dtype).min:
+                    return True
+                # nan
+                elif tensor_max != tensor_max or tensor_min != tensor_min:
+                    return True
+                else:
+                    return False
         elif isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
             if x == float('inf') or x == float('-inf') or x != x:
                 return True

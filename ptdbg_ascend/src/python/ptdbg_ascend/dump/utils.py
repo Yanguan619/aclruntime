@@ -243,7 +243,7 @@ def set_dump_switch_print_info(switch, mode, dump_path_str):
 
 
 def check_if_in_api_list(name):
-    if not DumpUtil.dump_api_list:
+    if DumpUtil.dump_mode != Const.API_STACK or not DumpUtil.dump_api_list:
         return False
     for api in DumpUtil.dump_api_list:
         if api.lower() in name.lower():

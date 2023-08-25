@@ -246,7 +246,7 @@ def check_if_in_api_list(name):
     if not DumpUtil.dump_api_list:
         return False
     for api in DumpUtil.dump_api_list:
-        if api in name:
+        if api.lower() in name.lower():
             return True
     return False
 

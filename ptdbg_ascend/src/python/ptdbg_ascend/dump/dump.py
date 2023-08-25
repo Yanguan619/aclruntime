@@ -324,9 +324,7 @@ def write_to_disk():
         dir_list = dir_name.split('/')
         dir_list[-1] = "rank"+str(rank)
         new_name = '/'.join(dir_list)
-        if os.path.exists(new_name):
-            pass
-        else:
+        if not os.path.exists(new_name):
             os.rename(dir_name, new_name)
 
 def get_pkl_file_path():

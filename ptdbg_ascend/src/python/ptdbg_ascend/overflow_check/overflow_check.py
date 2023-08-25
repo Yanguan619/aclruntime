@@ -132,7 +132,6 @@ def overflow_check(name, **kwargs):
             if dump_mode == "acl":
                 acl_dump(module, module_name)
             dump.write_to_disk()
-            dump.api_list.clear()
             # clear overflow flag for the next check
             torch_npu._C._clear_overflow_npu()
             if not OverFlowUtil.check_overflow_dump_times(overflow_nums):

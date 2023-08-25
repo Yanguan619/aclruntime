@@ -42,6 +42,7 @@ backward_threading_id = 0
 api_list = []
 thread_lock = threading.Lock()
 pkl_name = ""
+rank = None
 multi_output_apis = ["_sort_", "npu_flash_attention"]
 
 class DataInfo(object):
@@ -187,11 +188,12 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
     _set_dump_switch4api_list(name)
     if DumpUtil.get_dump_switch():
+        global rank
         rank = get_tensor_rank(in_feat, out_feat)
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:
                 return
-        dump_file = create_dirs_if_not_exist(rank, dump_file)
+        dump_file = create_dirs_if_not_exist(os.getpid(), dump_file)
         global pkl_name
         pkl_name = dump_file
         if DumpUtil.dump_init_enable:
@@ -306,6 +308,8 @@ def acc_cmp_dump(name, **kwargs):
 
 
 def write_to_disk():
+    global api_list
+    global rank
     if api_list:
         with open(pkl_name, 'a') as f:
             try:
@@ -313,7 +317,17 @@ def write_to_disk():
                 f.write('\n')
             except:
                 raise Exception("write to disk failed")
-
+        api_list = []
+    
+    if rank is not None and pkl_name is not None:
+        dir_name, file_name = os.path.split(pkl_name)
+        dir_list = dir_name.split('/')
+        dir_list[-1] = "rank"+str(rank)
+        new_name = '/'.join(dir_list)
+        if os.path.exists(new_name):
+            pass
+        else:
+            os.rename(dir_name, new_name)
 
 def get_pkl_file_path():
     return pkl_name

@@ -34,6 +34,8 @@ class OverFlowUtil(object):
 
     @staticmethod
     def check_overflow_dump_times(need_dump_times):
+        if need_dump_times == 0:
+            return True
         return OverFlowUtil.real_overflow_dump_times < need_dump_times
 
 

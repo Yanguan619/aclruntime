@@ -154,7 +154,7 @@ def dump_stack_info(name_template, dump_file):
     if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
         if json_dump_condition(prefix):
             for mode in DumpUtil.dump_mode:
-                if mode in prefix:
+                if mode in prefix and not any(x[0] == prefix and x[1] == stack_str for x in api_list):
                     api_list.append([prefix, stack_str])
     else:
         api_list.append([prefix, stack_str])

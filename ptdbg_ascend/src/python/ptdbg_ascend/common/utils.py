@@ -273,7 +273,7 @@ def check_dump_mode_valid(dump_mode):
     if 'forward' not in dump_mode and 'backward' not in dump_mode:
         dump_mode.extend(['forward', 'backward'])
     if 'all' in dump_mode or set(["forward", "backward", "input", "output"]).issubset(set(dump_mode)):
-        return ['all']
+        return ["forward", "backward", "input", "output"]
     return dump_mode
 
 def check_summary_only_valid(summary_only):

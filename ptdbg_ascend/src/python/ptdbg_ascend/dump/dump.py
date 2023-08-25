@@ -153,12 +153,9 @@ def dump_stack_info(name_template, dump_file):
     prefix = name_template.format("stack_info")
     if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
         if json_dump_condition(prefix):
-            if Const.ALL in DumpUtil.dump_mode:
-                api_list.append([prefix, stack_str])
-            else:
-                for mode in DumpUtil.dump_mode:
-                    if mode in prefix:
-                        api_list.append([prefix, stack_str])
+            for mode in DumpUtil.dump_mode:
+                if mode in prefix:
+                    api_list.append([prefix, stack_str])
     else:
         api_list.append([prefix, stack_str])
 
@@ -169,16 +166,10 @@ def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
             dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
         if 'output' in DumpUtil.dump_mode:
             dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file)
-        if Const.ALL in DumpUtil.dump_mode:
-            dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
-            dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file)
     elif Const.BACKWARD not in name_template and Const.BACKWARD not in DumpUtil.dump_mode:
         if 'input' in DumpUtil.dump_mode:
             dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
         if 'output' in DumpUtil.dump_mode:
-            dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
-        if Const.ALL in DumpUtil.dump_mode:
-            dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
             dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
 
 

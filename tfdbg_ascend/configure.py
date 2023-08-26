@@ -96,7 +96,14 @@ def setup_python(env_path):
             print('Invalid python path: %s tensorflow not installed.' %
                   python_bin_path)
             continue
+        site_packages_path = run_command([python_bin_path, "-c",
+                                          "import sysconfig; print(sysconfig.get_paths()['purelib'])"])
+        python_version = run_command([python_bin_path, "--version"]).split(" ")[1]
         # Write tools/python_bin_path.sh
+        with open(real_config_path("PYTHON_VERSION"), "w") as f:
+            f.write(python_version)
+        with open(real_config_path("PYTHON_SITE_PACKAGES_PATH"), "w") as f:
+            f.write(site_packages_path)
         with open(real_config_path('PYTHON_BIN_PATH'), 'w') as f:
             f.write(python_bin_path)
         with open(real_config_path('COMPILE_FLAGS'), 'w') as f:

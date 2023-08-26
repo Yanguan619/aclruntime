@@ -185,7 +185,7 @@ def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = DumpUtil.get_dump_path()
     dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
-    if check_if_in_api_list(name):
+    if DumpUtil.dump_switch_mode == Const.API_LIST and not check_if_in_api_list(name):
         return
     if DumpUtil.get_dump_switch():
         rank = get_tensor_rank(in_feat, out_feat)

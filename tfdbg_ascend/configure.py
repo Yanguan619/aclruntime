@@ -98,6 +98,9 @@ def setup_python(env_path):
             continue
         site_packages_path = run_command([python_bin_path, "-c",
                                           "import sysconfig; print(sysconfig.get_paths()['purelib'])"])
+        if not os.path.isdir(site_packages_path):
+            site_packages_path = run_command([python_bin_path, "-c",
+                                              "import site; print(site.getsitepackages()[0])"])
         python_version = run_command([python_bin_path, "--version"]).split(" ")[1]
         # Write tools/python_bin_path.sh
         with open(real_config_path("PYTHON_VERSION"), "w") as f:

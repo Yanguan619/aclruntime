@@ -1,4 +1,3 @@
-import os
 from ..common.utils import Const, make_dump_path_if_not_exists, print_error_log, print_info_log
 from ..dump.dump import DumpUtil, acc_cmp_dump, write_to_disk
 from ..dump.utils import set_dump_path, set_dump_switch_print_info, generate_dump_path_str, \
@@ -6,7 +5,6 @@ from ..dump.utils import set_dump_path, set_dump_switch_print_info, generate_dum
 from ..overflow_check.utils import OverFlowUtil
 from ..overflow_check.overflow_check import overflow_check
 from ..hook_module.register_hook import register_hook_core
-from ..hook_module.hook_module import HOOKModule
 from .debugger_config import DebuggerConfig
 
 

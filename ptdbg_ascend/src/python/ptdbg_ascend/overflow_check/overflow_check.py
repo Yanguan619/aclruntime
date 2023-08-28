@@ -144,14 +144,6 @@ def overflow_check(name, **kwargs):
                                  .format(OverFlowUtil.real_overflow_dump_times, os.path.realpath(dump_file_name)))
                 return
 
-    def delete_forward_npy(api_overflow_list, api_info):
-        for path in glob.glob(FORWARD_REAL_DATA_PATH + "/*.npy"):
-            if not check_path(api_overflow_list, path):
-                os.remove(os.path.abspath(path))
-        for key in list(api_info.keys()):
-            if key not in api_overflow:
-                del forward_api_info[key]
-
     def overflow_type_judge(in_feat, out_feat, module_name):
         if module_name.endswith(Const.BACKWARD):
             check_feat = out_feat

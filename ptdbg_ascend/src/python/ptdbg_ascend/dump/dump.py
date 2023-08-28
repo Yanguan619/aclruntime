@@ -18,7 +18,6 @@
 import inspect
 import json
 import os
-import stat
 import numpy as np
 import torch
 import threading

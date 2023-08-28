@@ -1,9 +1,4 @@
-import json
-import os
-import stat
 import torch
-
-import numpy as np
 
 from ..common.utils import Const, check_switch_valid
 from ..dump.dump import dump_stack_info, get_scalar_data_info, dump_data, \

@@ -188,9 +188,6 @@ def rename_():
     global rank
     global pkl_name
     if rank is not None and pkl_name is not None:
-        from ..debugger.precision_debugger import PrecisionDebugger
-        dir_name = os.path.join(DumpUtil.dump_root, "step{}".format(PrecisionDebugger.iter_num), "rank{}".format(os.getpid()))
-        new_name = os.path.join(DumpUtil.dump_root, "step{}".format(PrecisionDebugger.iter_num), "rank{}".format(rank))
         if not os.path.exists(new_name) and os.path.exists(dir_name):
             os.rename(dir_name, new_name)
             pkl_name = os.path.join(new_name, file_name)
@@ -200,15 +197,8 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
     _set_dump_switch4api_list(name)
     if DumpUtil.get_dump_switch():
-        from ..debugger.precision_debugger import PrecisionDebugger
         global rank
-        dump_dir, dump_filename = os.path.split(dump_file)
-        dump_dir = os.path.join(dump_dir, "step{}".format(PrecisionDebugger.iter_num)) 
-        if not os.path.exists(dump_dir):
-            Path(dump_dir).mkdir(mode=0o750, exist_ok=True)
-        dump_file = os.path.join(dump_dir, dump_filename)
         rank_this = get_tensor_rank(in_feat, out_feat)
-        DumpUtil.dump_root = os.path.dirname(DumpUtil.dump_path)
         if rank_this is not None and rank != rank_this:
             rank = rank_this 
             rename_()

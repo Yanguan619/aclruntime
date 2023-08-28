@@ -23,6 +23,8 @@ import numpy as np
 import torch
 import threading
 
+from pathlib import Path
+
 try:
     import torch_npu
 except ImportError:
@@ -42,7 +44,7 @@ backward_threading_id = 0
 api_list = []
 thread_lock = threading.Lock()
 pkl_name = ""
-rank = None
+rank = os.getpid()
 multi_output_apis = ["_sort_", "npu_flash_attention"]
 
 class DataInfo(object):
@@ -182,14 +184,34 @@ def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
             dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
             dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
 
+def rename_():
+    global rank
+    global pkl_name
+    if rank is not None and pkl_name is not None:
+        from ..debugger.precision_debugger import PrecisionDebugger
+        dir_name = os.path.join(DumpUtil.dump_root, "step{}".format(PrecisionDebugger.iter_num), "rank{}".format(os.getpid()))
+        new_name = os.path.join(DumpUtil.dump_root, "step{}".format(PrecisionDebugger.iter_num), "rank{}".format(rank))
+        if not os.path.exists(new_name) and os.path.exists(dir_name):
+            os.rename(dir_name, new_name)
+            pkl_name = os.path.join(new_name, file_name)
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = DumpUtil.get_dump_path()
     dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
     _set_dump_switch4api_list(name)
     if DumpUtil.get_dump_switch():
+        from ..debugger.precision_debugger import PrecisionDebugger
         global rank
-        rank = get_tensor_rank(in_feat, out_feat)
+        dump_dir, dump_filename = os.path.split(dump_file)
+        dump_dir = os.path.join(dump_dir, "step{}".format(PrecisionDebugger.iter_num)) 
+        if not os.path.exists(dump_dir):
+            Path(dump_dir).mkdir(mode=0o750, exist_ok=True)
+        dump_file = os.path.join(dump_dir, dump_filename)
+        rank_this = get_tensor_rank(in_feat, out_feat)
+        DumpUtil.dump_root = os.path.dirname(DumpUtil.dump_path)
+        if rank_this is not None and rank != rank_this:
+            rank = rank_this 
+            rename_()
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:
                 return
@@ -318,14 +340,6 @@ def write_to_disk():
             except:
                 raise Exception("write to disk failed")
         api_list = []
-    
-    if rank is not None and pkl_name is not None:
-        dir_name, file_name = os.path.split(pkl_name)
-        dir_list = dir_name.split('/')
-        dir_list[-1] = "rank"+str(rank)
-        new_name = '/'.join(dir_list)
-        if not os.path.exists(new_name):
-            os.rename(dir_name, new_name)
 
 def get_pkl_file_path():
     return pkl_name

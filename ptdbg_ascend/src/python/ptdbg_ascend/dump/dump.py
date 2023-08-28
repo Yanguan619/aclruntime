@@ -321,7 +321,6 @@ def acc_cmp_dump(name, **kwargs):
 
 def write_to_disk():
     global api_list
-    global rank
     if api_list:
         with open(pkl_name, 'a') as f:
             try:

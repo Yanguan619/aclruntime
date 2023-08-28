@@ -23,6 +23,8 @@ import numpy as np
 import torch
 import threading
 
+from pathlib import Path
+
 try:
     import torch_npu
 except ImportError:
@@ -42,7 +44,7 @@ backward_threading_id = 0
 api_list = []
 thread_lock = threading.Lock()
 pkl_name = ""
-multi_output_apis = ["_sort_", "npu_flash_attention"]
+rank = os.getpid()
 
 class DataInfo(object):
     def __init__(self, data, save_data, summary_data, dtype, shape):
@@ -155,8 +157,7 @@ def dump_stack_info(name_template, dump_file):
         if json_dump_condition(prefix):
             complement_set = set(['forward', 'backward', 'input', 'output']) - set(DumpUtil.dump_mode)
             if not any(mode in prefix for mode in complement_set):
-                if not any(x[0] == prefix and x[1] == stack_str for x in api_list):
-                    api_list.append([prefix, stack_str])
+                api_list.append([prefix, stack_str])
     else:
         api_list.append([prefix, stack_str])
 
@@ -174,18 +175,45 @@ def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
             dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
 
 
+def rename_():
+    global rank
+    global pkl_name
+    if rank is not None and pkl_name is not None:
+        from ..debugger.precision_debugger import PrecisionDebugger
+        dir_name = os.path.join(DumpUtil.dump_root, "step{}".format(PrecisionDebugger.iter_num), "rank{}".format(os.getpid()))
+        # dir_name, file_name = os.path.split(pkl_name)
+        # dir_list = dir_name.split('/')
+        # dir_list[-1] = "rank"+str(rank)
+        new_name = os.path.join(DumpUtil.dump_root, "step{}".format(PrecisionDebugger.iter_num), "rank{}".format(rank))
+        if not os.path.exists(new_name) and os.path.exists(dir_name):
+            os.rename(dir_name, new_name)
+            pkl_name = os.path.join(new_name, file_name)
+
+
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = DumpUtil.get_dump_path()
     dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
     _set_dump_switch4api_list(name)
     if DumpUtil.get_dump_switch():
-        rank = get_tensor_rank(in_feat, out_feat)
+        from ..debugger.precision_debugger import PrecisionDebugger
+        global rank
+        dump_dir, dump_filename = os.path.split(dump_file)
+        dump_dir = os.path.join(dump_dir, "step{}".format(PrecisionDebugger.iter_num)) 
+        if not os.path.exists(dump_dir):
+            Path(dump_dir).mkdir(mode=0o750, exist_ok=True)
+        dump_file = os.path.join(dump_dir, dump_filename)
+        rank_this = get_tensor_rank(in_feat, out_feat)
+        DumpUtil.dump_root = os.path.dirname(DumpUtil.dump_path)
+        if rank_this is not None and rank != rank_this:
+            rank = rank_this 
+            rename_()
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:
                 return
         dump_file = create_dirs_if_not_exist(rank, dump_file)
         global pkl_name
         pkl_name = dump_file
+        
         if DumpUtil.dump_init_enable:
             DumpUtil.dump_init_enable = False
             DumpUtil.dump_data_dir = make_dump_data_dir(dump_file) \
@@ -247,10 +275,9 @@ def acl_backward_dump_status(output, grad, module_name):
         output.backward(grad, retain_graph=True)
         return True
 
-    for api_name in multi_output_apis:
-        if api_name in module_name:
-            output[0].backward(grad, retain_graph=True)
-            return True
+    if "_sort_" in module_name :
+        output[0].backward(grad, retain_graph=True)
+        return True
     return False
 
 
@@ -298,6 +325,8 @@ def acc_cmp_dump(name, **kwargs):
 
 
 def write_to_disk():
+    global api_list
+    global rank
     if api_list:
         with open(pkl_name, 'a') as f:
             try:
@@ -305,6 +334,7 @@ def write_to_disk():
                 f.write('\n')
             except:
                 raise Exception("write to disk failed")
+    api_list = []
 
 
 def get_pkl_file_path():

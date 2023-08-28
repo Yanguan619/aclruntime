@@ -23,6 +23,8 @@ import numpy as np
 import torch
 import threading
 
+from pathlib import Path
+
 try:
     import torch_npu
 except ImportError:
@@ -42,6 +44,7 @@ backward_threading_id = 0
 api_list = []
 thread_lock = threading.Lock()
 pkl_name = ""
+rank = os.getpid()
 multi_output_apis = ["_sort_", "npu_flash_attention"]
 
 class DataInfo(object):
@@ -172,6 +175,13 @@ def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
         if 'output' in DumpUtil.dump_mode:
             dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
 
+def rename_():
+    global rank
+    global pkl_name
+    if rank is not None and pkl_name is not None:
+        if not os.path.exists(new_name) and os.path.exists(dir_name):
+            os.rename(dir_name, new_name)
+            pkl_name = os.path.join(new_name, file_name)
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = DumpUtil.get_dump_path()
@@ -179,7 +189,11 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     if DumpUtil.dump_switch_mode == Const.API_LIST and not check_if_in_api_list(name):
         return
     if DumpUtil.get_dump_switch():
-        rank = get_tensor_rank(in_feat, out_feat)
+        global rank
+        rank_this = get_tensor_rank(in_feat, out_feat)
+        if rank_this is not None and rank != rank_this:
+            rank = rank_this 
+            rename_()
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:
                 return
@@ -298,6 +312,7 @@ def acc_cmp_dump(name, **kwargs):
 
 
 def write_to_disk():
+    global api_list
     if api_list:
         with open(pkl_name, 'a') as f:
             try:
@@ -305,7 +320,7 @@ def write_to_disk():
                 f.write('\n')
             except:
                 raise Exception("write to disk failed")
-
+        api_list = []
 
 def get_pkl_file_path():
     return pkl_name

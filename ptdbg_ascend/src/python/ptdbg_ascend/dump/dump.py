@@ -44,6 +44,7 @@ backward_threading_id = 0
 api_list = []
 thread_lock = threading.Lock()
 pkl_name = ""
+multi_output_apis = ["_sort_", "npu_flash_attention"]
 rank = os.getpid()
 
 class DataInfo(object):
@@ -181,9 +182,6 @@ def rename_():
     if rank is not None and pkl_name is not None:
         from ..debugger.precision_debugger import PrecisionDebugger
         dir_name = os.path.join(DumpUtil.dump_root, "step{}".format(PrecisionDebugger.iter_num), "rank{}".format(os.getpid()))
-        # dir_name, file_name = os.path.split(pkl_name)
-        # dir_list = dir_name.split('/')
-        # dir_list[-1] = "rank"+str(rank)
         new_name = os.path.join(DumpUtil.dump_root, "step{}".format(PrecisionDebugger.iter_num), "rank{}".format(rank))
         if not os.path.exists(new_name) and os.path.exists(dir_name):
             os.rename(dir_name, new_name)
@@ -275,9 +273,10 @@ def acl_backward_dump_status(output, grad, module_name):
         output.backward(grad, retain_graph=True)
         return True
 
-    if "_sort_" in module_name :
-        output[0].backward(grad, retain_graph=True)
-        return True
+    for api_name in multi_output_apis:
+        if api_name in module_name:
+            output[0].backward(grad, retain_graph=True)
+            return True
     return False
 
 

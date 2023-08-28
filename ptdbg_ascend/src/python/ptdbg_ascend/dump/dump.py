@@ -215,7 +215,7 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:
                 return
-        dump_file = create_dirs_if_not_exist(os.getpid(), dump_file)
+        dump_file = create_dirs_if_not_exist(rank, dump_file)
         global pkl_name
         pkl_name = dump_file
         if DumpUtil.dump_init_enable:

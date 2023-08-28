@@ -30,7 +30,7 @@ except ImportError:
 else:
     is_gpu = False
 
-from .utils import DumpUtil, _set_dump_switch4api_list, make_dump_data_dir, get_tensor_rank, create_dirs_if_not_exist
+from .utils import DumpUtil, check_if_in_api_list, make_dump_data_dir, get_tensor_rank, create_dirs_if_not_exist
 from ..common.utils import print_warn_log, Const, print_info_log, modify_dump_path
 from ..dump.utils import check_writable
 
@@ -185,7 +185,8 @@ def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = DumpUtil.get_dump_path()
     dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
-    _set_dump_switch4api_list(name)
+    if DumpUtil.dump_switch_mode == Const.API_LIST and not check_if_in_api_list(name):
+        return
     if DumpUtil.get_dump_switch():
         rank = get_tensor_rank(in_feat, out_feat)
         if DumpUtil.target_rank is not None:

@@ -17,7 +17,6 @@ range_begin_flag, range_end_flag = False, False
 
 
 class DumpUtil(object):
-    dump_root = None
     dump_data_dir = None
     dump_path = None
     dump_switch = None

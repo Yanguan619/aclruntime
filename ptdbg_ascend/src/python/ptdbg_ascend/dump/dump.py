@@ -175,13 +175,15 @@ def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
         if 'output' in DumpUtil.dump_mode:
             dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
 
-def rename_():
+def rename_(dump_filename):
     global rank
     global pkl_name
     if rank is not None and pkl_name is not None:
+        dir_name = os.path.join(DumpUtil.dump_root, "rank{}".format(os.getpid()))
+        new_name = os.path.join(DumpUtil.dump_root, "rank{}".format(rank))
         if not os.path.exists(new_name) and os.path.exists(dir_name):
             os.rename(dir_name, new_name)
-            pkl_name = os.path.join(new_name, file_name)
+            pkl_name = os.path.join(new_name, dump_filename)
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = DumpUtil.get_dump_path()
@@ -190,10 +192,11 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
         return
     if DumpUtil.get_dump_switch():
         global rank
+        dump_dir, dump_filename = os.path.split(dump_file)
         rank_this = get_tensor_rank(in_feat, out_feat)
         if rank_this is not None and rank != rank_this:
             rank = rank_this 
-            rename_()
+            rename_(dump_filename)
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:
                 return

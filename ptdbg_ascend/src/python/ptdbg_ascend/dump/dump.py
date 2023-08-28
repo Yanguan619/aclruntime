@@ -155,8 +155,7 @@ def dump_stack_info(name_template, dump_file):
         if json_dump_condition(prefix):
             complement_set = set(['forward', 'backward', 'input', 'output']) - set(DumpUtil.dump_mode)
             if not any(mode in prefix for mode in complement_set):
-                if not any(x[0] == prefix and x[1] == stack_str for x in api_list):
-                    api_list.append([prefix, stack_str])
+                api_list.append([prefix, stack_str])
     else:
         api_list.append([prefix, stack_str])
 

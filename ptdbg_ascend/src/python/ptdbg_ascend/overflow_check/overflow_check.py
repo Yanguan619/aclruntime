@@ -1,7 +1,7 @@
 import os
 import glob
 import torch
-
+from pathlib import Path
 from ..common.utils import print_warn_log, get_time, print_info_log
 from ..dump.dump import forward_init_status, forward_acl_dump
 from .utils import OverFlowUtil, dump_overflow
@@ -86,11 +86,17 @@ def overflow_check(name, **kwargs):
     def overflowcheck_hook(module, in_feat, out_feat):
         if not check_overflow_environment(pid):
             return
+        dump_file = DumpUtil.get_dump_path()
+        dump_dir, dump_filename = os.path.split(dump_file)
+        dump_dir = os.path.join(dump_dir, "step{}".format(DumpUtil.iter_num))
+        if not os.path.exists(dump_dir):
+            Path(dump_dir).mkdir(mode=0o750, exist_ok=True)
+        dump_file = os.path.join(dump_dir, dump_filename)
         rank = get_tensor_rank(in_feat, out_feat)
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:
                 return
-        dump_path = create_dirs_if_not_exist(rank, DumpUtil.dump_path)
+        dump_path = create_dirs_if_not_exist(rank, dump_file)
         dump_dir = os.path.split(dump_path)[0]
         global api_overflow
         global forward_api_info

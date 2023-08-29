@@ -33,6 +33,7 @@ class PrecisionDebugger:
         PrecisionDebugger.hook_func = overflow_check if self.config.hook_name == "overflow_check" else acc_cmp_dump
         if enable_dataloader:
             PrecisionDebugger.dataloader = True
+            DumpUtil.iter_num -= 1
             torch.utils.data.dataloader._BaseDataLoaderIter.__next__ = iter_tracer(torch.utils.data.dataloader._BaseDataLoaderIter.__next__)
 
     def get_configure_hook(self, hook_name):

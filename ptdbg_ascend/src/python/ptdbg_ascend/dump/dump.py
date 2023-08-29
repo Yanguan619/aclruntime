@@ -179,7 +179,10 @@ def rename_():
     global rank
     global pkl_name
     if rank is not None and pkl_name is not None:
+        dir_name = os.path.join(DumpUtil.dump_root, "rank{}".format(os.getpid()))
+        new_name = os.path.join(DumpUtil.dump_root, "rank{}".format(rank))
         if not os.path.exists(new_name) and os.path.exists(dir_name):
+            _, file_name = os.path.split(pkl_name)
             os.rename(dir_name, new_name)
             pkl_name = os.path.join(new_name, file_name)
 

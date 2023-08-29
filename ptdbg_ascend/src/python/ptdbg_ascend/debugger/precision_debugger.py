@@ -71,6 +71,7 @@ class PrecisionDebugger:
                 register_hook_core(cls.hook_func)
                 cls.first_start = False
             DumpUtil.dump_switch = "ON"
+            OverFlowUtil.overflow_nums = "ON"
             dump_path_str = generate_dump_path_str()
             set_dump_switch_print_info("ON", DumpUtil.dump_switch_mode, dump_path_str)
         else:
@@ -79,6 +80,7 @@ class PrecisionDebugger:
     @classmethod
     def stop(cls):
         DumpUtil.dump_switch = "OFF"
+        OverFlowUtil.overflow_nums = "OFF"
         dump_path_str = generate_dump_path_str()
         set_dump_switch_print_info("OFF", DumpUtil.dump_switch_mode, dump_path_str)
         write_to_disk()

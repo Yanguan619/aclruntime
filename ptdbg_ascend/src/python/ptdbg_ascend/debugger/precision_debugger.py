@@ -10,6 +10,11 @@ from ..hook_module.register_hook import register_hook_core
 from ..hook_module.hook_module import HOOKModule
 from .debugger_config import DebuggerConfig
 
+class CustomException(Exception):
+    def __init__(self, message):
+        self.message = message
+    def __str__(self):
+        return self.message
 
 class PrecisionDebugger:
     first_start = True
@@ -60,9 +65,8 @@ class PrecisionDebugger:
                 raise ValueError("acl_config must be configured when mode is 'acl'")
         if isinstance(overflow_nums, int):
             OverFlowUtil.overflow_nums = overflow_nums
-            # breakpoint()
         else:
-            raise ValueError("overflow_nums must be int")
+            raise CustomException("ptdbg: exit after iteration {}".format(DumpUtil.target_iter))
 
     @classmethod
     def start(cls):

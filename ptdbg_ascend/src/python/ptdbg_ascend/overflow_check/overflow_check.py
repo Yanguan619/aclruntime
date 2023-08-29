@@ -75,6 +75,18 @@ def check_data_overflow(x):
 def check_path(apis, path):
     return any(api in path for api in apis)
 
+def rename_():
+    global rank
+    global pkl_name
+    if rank is not None and pkl_name is not None:
+        from ..debugger.precision_debugger import PrecisionDebugger
+        dir_name = os.path.join(DumpUtil.dump_root, "step{}".format(PrecisionDebugger.iter_num), "rank{}".format(os.getpid()))
+        new_name = os.path.join(DumpUtil.dump_root, "step{}".format(PrecisionDebugger.iter_num), "rank{}".format(rank))
+        if not os.path.exists(new_name) and os.path.exists(dir_name):
+            _, file_name = os.path.split(pkl_name)
+            os.rename(dir_name, new_name)
+            pkl_name = os.path.join(new_name, file_name)
+
 
 def overflow_check(name, **kwargs):
     overflow_nums = OverFlowUtil.overflow_nums
@@ -87,16 +99,23 @@ def overflow_check(name, **kwargs):
         if not check_overflow_environment(pid):
             return
         dump_file = DumpUtil.get_dump_path()
+        global rank
         dump_dir, dump_filename = os.path.split(dump_file)
-        dump_dir = os.path.join(dump_dir, "step{}".format(DumpUtil.iter_num))
+        dump_dir = os.path.join(dump_dir, "step{}".format(DumpUtil.iter_num)) 
         if not os.path.exists(dump_dir):
             Path(dump_dir).mkdir(mode=0o750, exist_ok=True)
         dump_file = os.path.join(dump_dir, dump_filename)
-        rank = get_tensor_rank(in_feat, out_feat)
+        rank_this = get_tensor_rank(in_feat, out_feat)
+        DumpUtil.dump_root = os.path.dirname(DumpUtil.dump_path)
+        if rank_this is not None and rank != rank_this:
+            rank = rank_this 
+            rename_()
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:
                 return
         dump_path = create_dirs_if_not_exist(rank, dump_file)
+        global pkl_name
+        pkl_name = dump_path
         dump_dir = os.path.split(dump_path)[0]
         global api_overflow
         global forward_api_info

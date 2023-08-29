@@ -65,7 +65,7 @@ class PrecisionDebugger:
 
     @classmethod
     def start(cls):
-        if DumpUtil.iter_num in DumpUtil.target_iter or cls.dataloader==False:
+        if DumpUtil.iter_num in DumpUtil.target_iter or cls.dataloader == False:
             if cls.first_start:
                 register_hook_core(cls.hook_func)
                 cls.first_start = False

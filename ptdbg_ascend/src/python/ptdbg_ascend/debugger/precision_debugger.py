@@ -66,7 +66,7 @@ class PrecisionDebugger:
         if isinstance(overflow_nums, int):
             OverFlowUtil.overflow_nums = overflow_nums
         else:
-            raise ValueError("overflow_nums must be int")
+            raise CustomException("ptdbg: exit after iteration {}".format(DumpUtil.target_iter))
 
     @classmethod
     def start(cls):
@@ -80,7 +80,7 @@ class PrecisionDebugger:
             set_dump_switch_print_info("ON", DumpUtil.dump_switch_mode, dump_path_str)
         elif DumpUtil.iter_num > max(DumpUtil.target_iter):
             PrecisionDebugger.stop()
-            raise CustomException("ptdbg: exit after iteration {}".format(DumpUtil.target_iter))
+            raise Exception("ptdbg: exit after iteration {}".format(DumpUtil.target_iter))
         else:
             cls.stop()
 

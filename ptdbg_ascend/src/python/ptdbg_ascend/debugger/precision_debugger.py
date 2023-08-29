@@ -32,8 +32,6 @@ class PrecisionDebugger:
         set_dump_path(self.config.dump_path)
         PrecisionDebugger.hook_func = overflow_check if self.config.hook_name == "overflow_check" else acc_cmp_dump
         if enable_dataloader:
-            PrecisionDebugger.dataloader = True
-            DumpUtil.iter_num -= 1
             torch.utils.data.dataloader._BaseDataLoaderIter.__next__ = iter_tracer(torch.utils.data.dataloader._BaseDataLoaderIter.__next__)
 
     def get_configure_hook(self, hook_name):
@@ -61,26 +59,30 @@ class PrecisionDebugger:
                 raise ValueError("acl_config must be configured when mode is 'acl'")
         if isinstance(overflow_nums, int):
             OverFlowUtil.overflow_nums = overflow_nums
+            # breakpoint()
         else:
             raise ValueError("overflow_nums must be int")
 
     @classmethod
     def start(cls):
-        if DumpUtil.iter_num in DumpUtil.target_iter or cls.dataloader == False:
+        if DumpUtil.iter_num in DumpUtil.target_iter:
             if cls.first_start:
                 register_hook_core(cls.hook_func)
                 cls.first_start = False
             DumpUtil.dump_switch = "ON"
-            OverFlowUtil.overflow_nums = "ON"
+            OverFlowUtil.overflow_check_switch = "ON"
             dump_path_str = generate_dump_path_str()
             set_dump_switch_print_info("ON", DumpUtil.dump_switch_mode, dump_path_str)
+        elif DumpUtil.iter_num > max(DumpUtil.target_iter):
+            PrecisionDebugger.stop()
+            raise Exception("ptdbg: exit after iteration {}".format(DumpUtil.target_iter))
         else:
             cls.stop()
 
     @classmethod
     def stop(cls):
         DumpUtil.dump_switch = "OFF"
-        OverFlowUtil.overflow_nums = "OFF"
+        OverFlowUtil.overflow_check_switch = "OFF"
         dump_path_str = generate_dump_path_str()
         set_dump_switch_print_info("OFF", DumpUtil.dump_switch_mode, dump_path_str)
         write_to_disk()
@@ -93,12 +95,8 @@ class PrecisionDebugger:
 
     @staticmethod
     def incr_iter_num_maybe_exit():
+        PrecisionDebugger.start()
         PrecisionDebugger.step()
-        if DumpUtil.iter_num > max(DumpUtil.target_iter):
-            PrecisionDebugger.stop()
-            raise Exception("ptdbg: exit after iteration {}".format(DumpUtil.target_iter))
-        else:
-            PrecisionDebugger.start()
         
 def iter_tracer(func):
     def func_wrapper(*args, **kwargs):

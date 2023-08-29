@@ -193,7 +193,6 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
         return
     if DumpUtil.get_dump_switch():
         global rank
-        dump_dir, dump_filename = os.path.split(dump_file)
         rank_this = get_tensor_rank(in_feat, out_feat)
         if rank_this is not None and rank != rank_this:
             rank = rank_this 

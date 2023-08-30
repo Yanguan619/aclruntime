@@ -22,6 +22,7 @@ forward_api_info = {}
 backward_api_info = {}
 FORWARD_REAL_DATA_PATH = os.path.join('./', 'forward_real_data')
 BACKWARD_REAL_DATA_PATH = os.path.join('./', 'backward_real_data')
+rank = os.getpid()
 
 
 def check_overflow_environment(pid):
@@ -87,11 +88,12 @@ def overflow_check(name, **kwargs):
             return
         dump_file = DumpUtil.get_dump_path()
         global rank
-        dump_dir, dump_filename = os.path.split(dump_file)
-        dump_dir = os.path.join(dump_dir, "step{}".format(DumpUtil.iter_num)) 
-        if not os.path.exists(dump_dir):
-            Path(dump_dir).mkdir(mode=0o750, exist_ok=True)
-        dump_file = os.path.join(dump_dir, dump_filename)
+        if len(DumpUtil.target_iter) != 0:
+            dump_dir, dump_filename = os.path.split(dump_file)
+            dump_dir = os.path.join(dump_dir, "step{}".format(DumpUtil.iter_num)) 
+            if not os.path.exists(dump_dir):
+                Path(dump_dir).mkdir(mode=0o750, exist_ok=True)
+            dump_file = os.path.join(dump_dir, dump_filename)
         rank_this = get_tensor_rank(in_feat, out_feat)
         DumpUtil.dump_root = os.path.dirname(DumpUtil.dump_path)
         if rank_this is not None and rank != rank_this:

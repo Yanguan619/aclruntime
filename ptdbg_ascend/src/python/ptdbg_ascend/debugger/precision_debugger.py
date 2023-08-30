@@ -17,7 +17,7 @@ class PrecisionDebugger:
     config = None
     dataloader = False
 
-    def __init__(self, dump_path=None, hook_name=None, rank=None, step=[0], enable_dataloader=True):
+    def __init__(self, dump_path=None, hook_name=None, rank=None, step=[], enable_dataloader=False):
 
         if dump_path is None or hook_name is None:
             err_msg = "You must provide dump_path and hook_name argument to PrecisionDebugger\
@@ -60,13 +60,12 @@ class PrecisionDebugger:
                 raise ValueError("acl_config must be configured when mode is 'acl'")
         if isinstance(overflow_nums, int):
             OverFlowUtil.overflow_nums = overflow_nums
-            # breakpoint()
         else:
             raise ValueError("overflow_nums must be int")
 
     @classmethod
     def start(cls):
-        if DumpUtil.iter_num in DumpUtil.target_iter:
+        if DumpUtil.iter_num in DumpUtil.target_iter or len(DumpUtil.target_iter) == 0:
             if cls.first_start:
                 register_hook_core(cls.hook_func)
                 cls.first_start = False
@@ -74,9 +73,10 @@ class PrecisionDebugger:
             OverFlowUtil.overflow_check_switch = "ON"
             dump_path_str = generate_dump_path_str()
             set_dump_switch_print_info("ON", DumpUtil.dump_switch_mode, dump_path_str)
-        elif DumpUtil.iter_num > max(DumpUtil.target_iter):
-            PrecisionDebugger.stop()
-            raise Exception("ptdbg: exit after iteration {}".format(DumpUtil.target_iter))
+        elif len(DumpUtil.target_iter) != 0:
+            if DumpUtil.iter_num > max(DumpUtil.target_iter):
+                PrecisionDebugger.stop()
+                raise Exception("ptdbg: exit after iteration {}".format(DumpUtil.target_iter))
         else:
             cls.stop()
 

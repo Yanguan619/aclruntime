@@ -24,8 +24,6 @@ class DebuggerConfig:
             print_warn_log(f"Rank argument is provided. Only rank {self.rank} data will be dumpped.")
         if not isinstance(self.step, list):
             raise ValueError("step {} should be list".format(self.step))
-        if len(self.step) == 0:
-            raise ValueError("step {} should not be empty".format(self.step))
         for s in self.step:
             if not isinstance(s, int):
                 raise ValueError("step element {} should be int".format(s))

@@ -179,8 +179,12 @@ def rename_():
     global rank
     global pkl_name
     if rank is not None and pkl_name is not None:
-        dir_name = os.path.join(DumpUtil.dump_root, "step{}".format(DumpUtil.iter_num), "rank{}".format(os.getpid()))
-        new_name = os.path.join(DumpUtil.dump_root, "step{}".format(DumpUtil.iter_num), "rank{}".format(rank))
+        if len(DumpUtil.target_iter) != 0:
+            dir_name = os.path.join(DumpUtil.dump_root, "step{}".format(DumpUtil.iter_num), "rank{}".format(os.getpid()))
+            new_name = os.path.join(DumpUtil.dump_root, "step{}".format(DumpUtil.iter_num), "rank{}".format(rank))
+        else:
+            dir_name = os.path.join(DumpUtil.dump_root, "rank{}".format(os.getpid()))
+            new_name = os.path.join(DumpUtil.dump_root, "rank{}".format(rank))          
         if not os.path.exists(new_name) and os.path.exists(dir_name):
             _, file_name = os.path.split(pkl_name)
             os.rename(dir_name, new_name)
@@ -193,11 +197,12 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
         return
     if DumpUtil.get_dump_switch():
         global rank
-        dump_dir, dump_filename = os.path.split(dump_file)
-        dump_dir = os.path.join(dump_dir, "step{}".format(DumpUtil.iter_num)) 
-        if not os.path.exists(dump_dir):
-            Path(dump_dir).mkdir(mode=0o750, exist_ok=True)
-        dump_file = os.path.join(dump_dir, dump_filename)
+        if len(DumpUtil.target_iter) != 0:
+            dump_dir, dump_filename = os.path.split(dump_file)
+            dump_dir = os.path.join(dump_dir, "step{}".format(DumpUtil.iter_num)) 
+            if not os.path.exists(dump_dir):
+                Path(dump_dir).mkdir(mode=0o750, exist_ok=True)
+            dump_file = os.path.join(dump_dir, dump_filename)
         rank_this = get_tensor_rank(in_feat, out_feat)
         DumpUtil.dump_root = os.path.dirname(DumpUtil.dump_path)
         if rank_this is not None and rank != rank_this:

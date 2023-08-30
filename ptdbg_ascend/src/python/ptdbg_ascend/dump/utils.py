@@ -32,20 +32,9 @@ class DumpUtil(object):
     dump_config = None
     dataloader_iter = 0
     target_iter = None
+    iter_num = 0
     target_rank = None
     summary_only = False
-
-    @staticmethod
-    def incr_iter_num_maybe_exit():
-        if DumpUtil.target_iter is None:
-            return
-        if DumpUtil.dataloader_iter == DumpUtil.target_iter:
-            set_dump_switch("ON")
-        elif DumpUtil.dataloader_iter > DumpUtil.target_iter:
-            raise Exception("Ptdbg: exit after iteration {}".format(DumpUtil.target_iter))
-        else:
-            set_dump_switch("OFF")
-        DumpUtil.dataloader_iter += 1
 
     @staticmethod
     def set_dump_path(save_path):

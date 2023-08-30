@@ -22,11 +22,9 @@ import torch
 import torch.nn as nn
 import torch.utils.hooks as full_hooks
 
-module_count = {}
-
 
 class HOOKModule(nn.Module):
-
+    module_count = {}
     def __init__(self, hook) -> None:
         super(HOOKModule, self).__init__()
         self.has_overflow = False
@@ -36,12 +34,12 @@ class HOOKModule(nn.Module):
         if hasattr(self, "prefix_op_name_"):
             prefix = self.prefix_op_name_
 
-        if prefix not in module_count:
-            module_count[prefix] = 1
+        if prefix not in HOOKModule.module_count:
+            HOOKModule.module_count[prefix] = 1
             prefix += '0_'
         else:
-            module_count[prefix] += 1
-            prefix = prefix + str(module_count[prefix] - 1) + '_'
+            HOOKModule.module_count[prefix] += 1
+            prefix = prefix + str(HOOKModule.module_count[prefix] - 1) + '_'
 
         self.register_forward_hook(hook(prefix + "forward"))
         self.register_backward_hook(hook(prefix + "backward"))

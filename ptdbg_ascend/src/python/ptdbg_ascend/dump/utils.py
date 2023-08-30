@@ -16,6 +16,7 @@ range_begin_flag, range_end_flag = False, False
 
 
 class DumpUtil(object):
+    dump_root = None
     dump_data_dir = None
     dump_path = None
     dump_switch = None
@@ -30,20 +31,9 @@ class DumpUtil(object):
     dump_config = None
     dataloader_iter = 0
     target_iter = None
+    iter_num = 0
     target_rank = None
     summary_only = False
-
-    @staticmethod
-    def incr_iter_num_maybe_exit():
-        if DumpUtil.target_iter is None:
-            return
-        if DumpUtil.dataloader_iter == DumpUtil.target_iter:
-            set_dump_switch("ON")
-        elif DumpUtil.dataloader_iter > DumpUtil.target_iter:
-            raise Exception("Ptdbg: exit after iteration {}".format(DumpUtil.target_iter))
-        else:
-            set_dump_switch("OFF")
-        DumpUtil.dataloader_iter += 1
 
     @staticmethod
     def set_dump_path(save_path):
@@ -241,10 +231,13 @@ def set_dump_switch_print_info(switch, mode, dump_path_str):
             print_info_log("The number of matched dump is {}".format(dump_count))
 
 
-def _set_dump_switch4api_list(name):
-    if DumpUtil.dump_api_list:
-        api_name = get_api_name_from_matcher(name)
-        DumpUtil.dump_switch = "ON" if api_name in DumpUtil.dump_api_list else "OFF"
+def check_if_in_api_list(name):
+    if not DumpUtil.dump_api_list:
+        return False
+    for api in DumpUtil.dump_api_list:
+        if api.lower() in name.lower():
+            return True
+    return False
 
 
 def set_backward_input(backward_input):

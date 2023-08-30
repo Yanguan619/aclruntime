@@ -194,6 +194,7 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     if DumpUtil.get_dump_switch():
         global rank
         rank_this = get_tensor_rank(in_feat, out_feat)
+        DumpUtil.dump_root = os.path.dirname(DumpUtil.dump_path)
         if rank_this is not None and rank != rank_this:
             rank = rank_this 
             rename_()

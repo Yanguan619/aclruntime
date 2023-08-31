@@ -15,7 +15,6 @@ class PrecisionDebugger:
     first_start = True
     hook_func = None
     config = None
-    dataloader = False
 
     def __init__(self, dump_path=None, hook_name=None, rank=None, step=[], enable_dataloader=False):
 

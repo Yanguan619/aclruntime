@@ -1,5 +1,4 @@
 import os
-import glob
 import torch
 from pathlib import Path
 from ..common.utils import print_warn_log, get_time, print_info_log
@@ -90,14 +89,14 @@ def overflow_check(name, **kwargs):
         global rank
         if len(DumpUtil.target_iter) != 0:
             dump_dir, dump_filename = os.path.split(dump_file)
-            dump_dir = os.path.join(dump_dir, "step{}".format(DumpUtil.iter_num)) 
+            dump_dir = os.path.join(dump_dir, "step{}".format(DumpUtil.iter_num))
             if not os.path.exists(dump_dir):
                 Path(dump_dir).mkdir(mode=0o750, exist_ok=True)
             dump_file = os.path.join(dump_dir, dump_filename)
         rank_this = get_tensor_rank(in_feat, out_feat)
         DumpUtil.dump_root = os.path.dirname(DumpUtil.dump_path)
         if rank_this is not None and rank != rank_this:
-            rank = rank_this 
+            rank = rank_this
             dump.rename_()
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:

@@ -1,12 +1,13 @@
 import os
 import torch
-from ..common.utils import Const, make_dump_path_if_not_exists, print_error_log, print_info_log
+from ..common.utils import Const, make_dump_path_if_not_exists
 from ..dump.dump import DumpUtil, acc_cmp_dump, write_to_disk
 from ..dump.utils import set_dump_path, set_dump_switch_print_info, generate_dump_path_str, \
         set_dump_switch_config, set_backward_input
 from ..overflow_check.utils import OverFlowUtil
 from ..overflow_check.overflow_check import overflow_check
 from ..hook_module.register_hook import register_hook_core
+from ..hook_module.hook_module import HOOKModule
 from .debugger_config import DebuggerConfig
 
 
@@ -37,7 +38,7 @@ class PrecisionDebugger:
     def get_configure_hook(self, hook_name):
         hook_dict = {"dump": self.configure_full_dump, "overflow_check": self.configure_overflow_dump}
         return hook_dict.get(hook_name, lambda: ValueError("hook name {} is not in ['dump', 'overflow_check']".format(hook_name)))
-    
+
     def configure_full_dump(self, mode='api_stack', scope=[], api_list=[], filter_switch=Const.ON,
             input_output_mode=[Const.ALL], acl_config=None, backward_input=[], summary_only=False):
         set_dump_switch_config(mode=mode, scope=scope, api_list=api_list,
@@ -89,7 +90,7 @@ class PrecisionDebugger:
 
     @classmethod
     def step(cls):
-        DumpUtil.dump_init_enable = True 
+        DumpUtil.dump_init_enable = True
         DumpUtil.iter_num += 1
         HOOKModule.module_count = {}
 
@@ -97,7 +98,7 @@ class PrecisionDebugger:
     def incr_iter_num_maybe_exit():
         PrecisionDebugger.step()
         PrecisionDebugger.start()
-        
+
 def iter_tracer(func):
     def func_wrapper(*args, **kwargs):
         PrecisionDebugger.stop()

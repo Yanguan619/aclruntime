@@ -368,7 +368,7 @@ register_hook需要在set_dump_path之后调用，也需要在每个进程上被
 
    ```
    cd $ATT_HOME/debug/accuracy_tools/api_accuracy_checker/run_ut
-   python run_overflow_check.py -forward ./forward_info_0.json
+   python run_overflow_check.py -forward ./forward_info_{pid}.json
    ```
    反向过程溢出的API暂不支持这一功能。
 

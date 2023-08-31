@@ -76,7 +76,7 @@ class APIInfo:
 
         else:
             dump_path = "./"
-            api_args = self.api_name + '*' + str(self.args_num)
+            api_args = self.api_name + '.' + str(self.args_num)
             rank = arg.device.index
             if self.is_forward:
                 forward_real_data_path = os.path.join(dump_path, 'forward_real_data', f"rank{rank}")

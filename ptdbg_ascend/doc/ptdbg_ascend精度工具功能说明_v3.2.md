@@ -362,14 +362,15 @@ register_hook需要在set_dump_path之后调用，也需要在每个进程上被
 
 3. NPU环境下执行训练dump溢出数据。
 
-   针对输入正常但输出存在溢出的API，会训练执行目录下将溢出的API信息dump并保存为`forward_info_{pid}.json`和`backward_info_{pid}.json`，通过 [Ascend模型精度预检工具](https://gitee.com/ascend/att/tree/master/debug/accuracy_tools/api_accuracy_checker)对json文件进行解析，输出溢出API为正常溢出还是非正常溢出，从而帮助用户快速判断。
+   针对输入正常但输出存在溢出的API，会在训练执行目录下将溢出的API信息按照前向和反向分类，dump并保存为`forward_info_{pid}.json`和`backward_info_{pid}.json`，前向过程溢出的API可通过 [Ascend模型精度预检工具](https://gitee.com/ascend/att/tree/master/debug/accuracy_tools/api_accuracy_checker)对json文件进行解析，输出溢出API为正常溢出还是非正常溢出，从而帮助用户快速判断。
 
    精度预检工具执行命令如下：
 
    ```
    cd $ATT_HOME/debug/accuracy_tools/api_accuracy_checker/run_ut
-   python run_overflow_check.py -forward ./forward_info_0.json -backward ./backward_info_0.json
+   python run_overflow_check.py -forward ./forward_info_0.json
    ```
+   反向过程溢出的API暂不支持这一功能。
 
 **注意事项**
 

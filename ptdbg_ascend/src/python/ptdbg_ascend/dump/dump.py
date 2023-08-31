@@ -178,7 +178,7 @@ def rename_():
     global rank
     global pkl_name
     if rank is not None and pkl_name is not None:
-        if len(DumpUtil.target_iter) != 0:
+        if DumpUtil.target_iter:
             dir_name = os.path.join(DumpUtil.dump_root, "step{}".format(DumpUtil.iter_num), "rank{}".format(os.getpid()))
             new_name = os.path.join(DumpUtil.dump_root, "step{}".format(DumpUtil.iter_num), "rank{}".format(rank))
         else:
@@ -196,7 +196,7 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
         return
     if DumpUtil.get_dump_switch():
         global rank
-        if len(DumpUtil.target_iter) != 0:
+        if DumpUtil.target_iter:
             dump_dir, dump_filename = os.path.split(dump_file)
             dump_dir = os.path.join(dump_dir, "step{}".format(DumpUtil.iter_num)) 
             if not os.path.exists(dump_dir):

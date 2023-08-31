@@ -87,7 +87,7 @@ def overflow_check(name, **kwargs):
             return
         dump_file = DumpUtil.get_dump_path()
         global rank
-        if len(DumpUtil.target_iter) != 0:
+        if DumpUtil.target_iter:
             dump_dir, dump_filename = os.path.split(dump_file)
             dump_dir = os.path.join(dump_dir, "step{}".format(DumpUtil.iter_num))
             if not os.path.exists(dump_dir):

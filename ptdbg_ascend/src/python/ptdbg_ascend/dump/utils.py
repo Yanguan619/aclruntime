@@ -1,7 +1,6 @@
 import os
 import shutil
 import sys
-import re
 from pathlib import Path
 import torch
 

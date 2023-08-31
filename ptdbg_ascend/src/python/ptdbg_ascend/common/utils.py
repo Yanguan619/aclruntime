@@ -483,16 +483,6 @@ def save_numpy_data(file_path, data):
     np.save(file_path, data)
 
 
-def parse_arg_value(values):
-    """
-    parse dynamic arg value of atc cmdline
-    """
-    value_list = []
-    for item in values.split(Const.SEMICOLON):
-        value_list.append(parse_value_by_comma(item))
-    return value_list
-
-
 def parse_value_by_comma(value):
     """
     parse value by comma, like '1,2,4,8'

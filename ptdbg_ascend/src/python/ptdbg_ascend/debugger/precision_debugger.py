@@ -7,7 +7,6 @@ from ..dump.utils import set_dump_path, set_dump_switch_print_info, generate_dum
 from ..overflow_check.utils import OverFlowUtil
 from ..overflow_check.overflow_check import overflow_check
 from ..hook_module.register_hook import register_hook_core
-from ..hook_module.hook_module import HOOKModule
 from .debugger_config import DebuggerConfig
 
 

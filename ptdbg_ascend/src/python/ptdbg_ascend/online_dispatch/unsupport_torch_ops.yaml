@@ -1,0 +1,10 @@
+aten:
+  - detach
+  - empty
+  - ones_like
+  - to
+  - view
+  - zeros_like
+  - _to_copy
+  - max_pool2d_with_indices_backward # shape unmatch
+  - native_batch_norm_backward

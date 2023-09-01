@@ -124,13 +124,11 @@ class PtdbgDispatch(TorchDispatchMode):
                 return
             check_file_or_directory_path(summery_path, False)
             fp_handle = open(summery_path, "r")
-            read_json = True
-            while read_json:
+            while True:
                 json_line_data = fp_handle.readline()
                 if json_line_data == '\n':
                     continue
                 if len(json_line_data) == 0:
-                    read_json = False
                     break
                 msg = json.loads(json_line_data)
                 self.all_summery[msg[0]] = msg[1]    

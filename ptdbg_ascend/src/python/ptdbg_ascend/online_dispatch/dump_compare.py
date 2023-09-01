@@ -162,7 +162,7 @@ def save_summery(run_param, npu_data, cpu_data, prefix, summery_list, compute_fl
 
 
 def support_basic_type(data):
-    if isinstance(data, bool) or isinstance(data, int) or isinstance(data, float) or isinstance(data, torch.Tensor):
+    if isinstance(data, (bool, int, float, torch.Tensor)):
         return True
     return False
 

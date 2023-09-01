@@ -80,10 +80,7 @@ def get_compare_result(npu_data, cpu_data):
             return "unsupported", max_abs_err, max_relative_err, "This is type of scalar data, can not compare."
         
         cos_sim, message = cosine_similarity(npu_npy, cpu_npy)
-        if not err_msg:
-            err_msg += message
-        else:
-            err_msg = err_msg + ' ' + message
+        err_msg += message
 
         return cos_sim, max_abs_err, max_relative_err, err_msg
     else:

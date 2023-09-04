@@ -362,7 +362,7 @@ register_hook需要在set_dump_path之后调用，也需要在每个进程上被
 
 3. NPU环境下执行训练dump溢出数据。
 
-   针对输入正常但输出存在溢出的API，会在训练执行目录下将溢出的API信息按照前向和反向分类，dump并保存为`forward_info_{pid}.json`和`backward_info_{pid}.json`，前向过程溢出的API可通过 [Ascend模型精度预检工具](https://gitee.com/ascend/att/tree/master/debug/accuracy_tools/api_accuracy_checker)对json文件进行解析，输出溢出API为正常溢出还是非正常溢出，从而帮助用户快速判断。
+   针对输入正常但输出存在溢出的API，会训练执行目录下将溢出的API信息dump并保存为`forward_info_{pid}.json`和`backward_info_{pid}.json`，通过 [Ascend模型精度预检工具](https://gitee.com/ascend/att/tree/master/debug/accuracy_tools/api_accuracy_checker)对json文件进行解析，输出溢出API为正常溢出还是非正常溢出，从而帮助用户快速判断。
 
    精度预检工具执行命令如下：
 
@@ -370,9 +370,8 @@ register_hook需要在set_dump_path之后调用，也需要在每个进程上被
    # 下载att代码仓后执行如下命令
    export PYTHONPATH=$PYTHONPATH:$ATT_HOME/debug/accuracy_tools/
    cd $ATT_HOME/debug/accuracy_tools/api_accuracy_checker/run_ut
-   python run_overflow_check.py -forward ./forward_info_{pid}.json
+   python run_overflow_check.py -forward ./forward_info_0.json -backward ./backward_info_0.json
    ```
-   反向过程溢出的API暂不支持这一功能。
 
 **注意事项**
 
@@ -392,16 +391,18 @@ PrecisionDebugger模块包含dump和溢出检测功能的总体配置项。可�
 **原型**
 
 ```python
-PrecisionDebugger(dump_path=None, hook_name=None, rank=None):
+PrecisionDebugger(dump_path=None, hook_name=None, rank=None, step[], enable_dataloader=False):
 ```
 
 **参数说明**
 
-| 参数名    | 说明                                                         | 是否必选 |
-| --------- | ------------------------------------------------------------ | -------- |
-| dump_path | 设置dump数据目录路径，参数示例："./dump_path"。dump_path的父目录须为已存在目录。<br/>默认在指定的dump_path路径下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当**configure_hook**函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。 | 是       |
-| hook_name | dump模式，可取值dump和overflow_check，表示dump和溢出检测功能，二选一。 | 是       |
-| rank      | 指定对某张卡上的数据进行dump或溢出检测，默认未配置（表示dump所有卡的数据），须根据实际卡的Rank ID配置。 | 否       |
+| 参数名            | 说明                                                         | 是否必选 |
+| ----------------- | ------------------------------------------------------------ | -------- |
+| dump_path         | 设置dump数据目录路径，参数示例："./dump_path"。dump_path的父目录须为已存在目录。<br/>默认在指定的dump_path路径下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当**configure_hook**函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。 | 是       |
+| hook_name         | dump模式，可取值dump和overflow_check，表示dump和溢出检测功能，二选一。 | 是       |
+| rank              | 指定对某张卡上的数据进行dump或溢出检测，默认未配置（表示dump所有卡的数据），须根据实际卡的Rank ID配置。 | 否       |
+| step              | 指定dump某个step的数据。                                     | 否       |
+| enable_dataloader | 自动控制开关，可取值True或False，配置为True后自动识别dump step参数指定的迭代，此时start和stop函数可不配置，配置为False则需要配置start和stop函数并在最后一个stop函数后或一个step结束的位置添加debugger.step()。 | 否       |
 
 ### configure_hook函数（可选）
 
@@ -416,7 +417,7 @@ PrecisionDebugger(dump_path=None, hook_name=None, rank=None):
 dump：
 
 ```python
-debugger.configure_hook(mode="api_stack", scope=[], api_list=[], filter_switch="ON", acl_config=None, backward_input=[], input_output_mode=["all"])
+debugger.configure_hook(mode="api_stack", scope=[], api_list=[], filter_switch="ON", acl_config=None, backward_input=[], input_output_mode=["all"], summary_only=False)
 ```
 
 溢出检测：
@@ -435,6 +436,7 @@ debugger.configure_hook(mode=None, acl_config=None, overflow_nums=1)
 | acl_config        | acl dump的配置文件。mode="acl"时，该参数必选；mode为其他值时，该参数不选。参数示例：acl_config='./dump.json'。dump.json配置文件详细介绍请参见“**dump.json配置文件说明**”。 | 否       |
 | backward_input    | 该输入文件为首次运行训练dump得到反向API输入的.npy文件。例如若需要dump Functional_conv2d_1 API的反向过程的输入输出，则需要在dump目录下查找命名包含Functional_conv2d_1、backward和input字段的.npy文件。 | 否       |
 | input_output_mode | dump数据过滤。可取值"all"、"forward"、"backward"、"input"和"output"，表示仅保存dump的数据中文件名包含"forward"、"backward"、"input"和"output"的前向、反向、输入或输出的.npy文件。参数示例input_output_mode=["backward"]或input_output_mode=["forward", "backward"]。默认为all，即保存所有dump的数据。除了all参数只能单独配置外，其他参数可以自由组合。 | 否       |
+| summary_only      | dump npy文件过滤，可取值True或False，配置为True后仅dump保存API统计信息的pkl文件，参数示例：summary_only=False，默认为False。 | 否       |
 | overflow_nums     | 控制溢出次数，表示第N次溢出时，停止训练，过程中检测到溢出API对应ACL数据均dump。参数示例：overflow_nums=3。配置overflow_check时可配置，默认不配置，即检测到1次溢出，训练停止。 | 否       |
 
 **函数示例**
@@ -503,7 +505,13 @@ configure_hook可配置多种dump模式，示例如下：
   debugger.configure_hook(input_output_mode=["backward"])
   ```
 
-- 示例9：溢出检测dump
+- 示例9：仅dump pkl文件
+
+  ```python
+  debugger.configure_hook(summary_only=True)
+  ```
+
+- 示例10：溢出检测dump
 
   ```python
   debugger.configure_hook(overflow_nums=1)
@@ -525,7 +533,7 @@ configure_hook可配置多种dump模式，示例如下：
 
   仅支持NPU环境。
 
-### start函数
+### start函数（可选）
 
 **功能说明**
 
@@ -541,7 +549,7 @@ debugger.start()
 
 该函数为类函数，可以使用debugger.start()也可以使用PrecisionDebugger.start()。
 
-### stop函数
+### stop函数（可选）
 
 **功能说明**
 
@@ -557,7 +565,25 @@ debugger.stop()
 
 该函数为类函数，可以使用debugger.stopt()也可以使用PrecisionDebugger.stop()。
 
-### 示例代码
+### 示例代码（自动模式）
+
+- 示例1：开启dump
+
+  ```python
+  from ptdbg_ascend import *
+  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="dump", step[0,2], enable_dataloader=True)
+  ```
+  
+- 示例2：开启溢出检测dump
+
+  ```python
+  from ptdbg_ascend import *
+  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="overflow_check", step[0,2], enable_dataloader=True)
+  ```
+
+### 示例代码（手动模式）
+
+一般情况下使用自动模式可以快速方便进行dump操作，但个别大模型可能在部分卡的训练操作中没有调用dataloader，这会导致自动模式无法dump指定迭代的数据，此时需要关闭自动模式手动在迭代前后插入start()和stop()函数，并在最后一个一个stop函数后或一个step结束的位置添加debugger.step()以标识dump结束。
 
 - 示例1：开启dump
 
@@ -569,9 +595,15 @@ debugger.stop()
   # 下面代码也可以用PrecisionDebugger.start()和PrecisionDebugger.stop()
   debugger.start()
   
-  ...
+  # 需要dump的代码片段1
   
   debugger.stop()
+  debugger.start()
+  
+  # 需要dump的代码片段1
+  
+  debugger.stop()
+  debugger.step()
   ```
 
 - 示例2：开启溢出检测dump
@@ -584,9 +616,15 @@ debugger.stop()
   # 下面代码也可以用PrecisionDebugger.start()和PrecisionDebugger.stop()
   debugger.start()
   
-  ...
+  # 需要dump的代码片段1
   
   debugger.stop()
+  debugger.start()
+  
+  # 需要dump的代码片段1
+  
+  debugger.stop()
+  debugger.step()
   ```
 
 ## CPU或GPU及NPU精度数据dump 
@@ -802,7 +840,7 @@ dump操作必选。
 **函数原型**
 
 ```python
-def set_dump_switch(switch, mode="all", scope=[], api_list=[], filter_switch="ON", dump_mode=["all"]):
+def set_dump_switch(switch, mode="all", scope=[], api_list=[], filter_switch="ON", dump_mode=["all"], summary_only=False):
 ```
 
 **参数说明**
@@ -814,6 +852,7 @@ def set_dump_switch(switch, mode="all", scope=[], api_list=[], filter_switch="ON
 | scope或api_list | dump范围。根据model配置的模式选择dump的API范围。参数示例：scope=["Tensor_permute_1_forward", "Tensor_transpose_2_forward"]、api_list=["relu"]。默认为空。 | 否       |
 | filter_switch   | 开启dump bool和整型的tensor以及浮点、bool和整型的标量。可取值"ON"或"OFF"。参数示例：filter_switch="OFF"。默认不配置，即filter_switch="ON"，表示不dump上述数据。 | 否       |
 | dump_mode       | dump数据过滤。可取值"all"、"forward"、"backward"、"input"和"output"，表示仅保存dump的数据中文件名包含"forward"、"backward"、"input"和"output"的前向、反向、输入或输出的.npy文件。参数示例dump_mode=["backward"]或dump_mode=["forward", "backward"]。默认为all，即保存所有dump的数据。除了all参数只能单独配置外，其他参数可以自由组合。 | 否       |
+| summary_only    | dump npy文件过滤，可取值True或False，配置为True后仅dump保存API统计信息的pkl文件，参数示例：summary_only=False，默认为False。 | 否       |
 
 **推荐配置**
 
@@ -894,6 +933,12 @@ set_dump_switch可配置多种dump模式，示例如下：
 
   ```python
   set_dump_switch("ON", dump_mode=["backward"])
+  ```
+  
+- 示例9：仅dump pkl文件
+
+  ```python
+  set_dump_switch("ON", summary_only=True)
   ```
 
 以上示例均需要在结束dump的位置插入set_dump_switch("OFF")。
@@ -1013,7 +1058,7 @@ set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
 set_backward_input(["./npu_dump/dump_conv2d_v2.0/rank0/dump/Functional_conv2d_1_backward_input.0.npy"])
 ```
 
-### dump.json配置文件说明
+## dump.json配置文件说明
 
 **dump.json配置示例**
 
@@ -1062,7 +1107,7 @@ set_backward_input(["./npu_dump/dump_conv2d_v2.0/rank0/dump/Functional_conv2d_1_
 │           └── TransData.trans_TransData_3.37.0.1675157077169473
 ```
 
-### dump数据存盘说明
+## dump数据存盘说明
 
 dump结果目录结构示例如下：
 
@@ -1085,6 +1130,20 @@ dump结果目录结构示例如下：
 ```
 
 其中ptdbg_dump_{version}为未设置set_dump_path的dump_tag参数时的默认命名；rank为设备上各卡的ID，每张卡上dump的数据会生成对应dump目录，可由register_hook函数的rank参数控制rank目录名称。
+
+当使用debugger方式dump数据时，配置了PrecisionDebugger模块的step[]参数，dump结果目录则以step为父目录，例如配置step[0,1,2]时，dump结果目录为：
+
+```
+├── dump_path
+│   └── step0
+│   |  └── ptdbg_dump_{version}
+│   |  |   ├── rank0
+│   |  |   ├── ...
+│   |  |   ├── rank7
+|   ├── step1
+|   |  |   ├── ...
+│   └── step2
+```
 
 **精度比对dump场景**
 

@@ -391,16 +391,18 @@ PrecisionDebugger模块包含dump和溢出检测功能的总体配置项。可�
 **原型**
 
 ```python
-PrecisionDebugger(dump_path=None, hook_name=None, rank=None):
+PrecisionDebugger(dump_path=None, hook_name=None, rank=None, step[], enable_dataloader=False):
 ```
 
 **参数说明**
 
-| 参数名    | 说明                                                         | 是否必选 |
-| --------- | ------------------------------------------------------------ | -------- |
-| dump_path | 设置dump数据目录路径，参数示例："./dump_path"。dump_path的父目录须为已存在目录。<br/>默认在指定的dump_path路径下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当**configure_hook**函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。 | 是       |
-| hook_name | dump模式，可取值dump和overflow_check，表示dump和溢出检测功能，二选一。 | 是       |
-| rank      | 指定对某张卡上的数据进行dump或溢出检测，默认未配置（表示dump所有卡的数据），须根据实际卡的Rank ID配置。 | 否       |
+| 参数名            | 说明                                                         | 是否必选 |
+| ----------------- | ------------------------------------------------------------ | -------- |
+| dump_path         | 设置dump数据目录路径，参数示例："./dump_path"。dump_path的父目录须为已存在目录。<br/>默认在指定的dump_path路径下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当**configure_hook**函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。 | 是       |
+| hook_name         | dump模式，可取值dump和overflow_check，表示dump和溢出检测功能，二选一。 | 是       |
+| rank              | 指定对某张卡上的数据进行dump或溢出检测，默认未配置（表示dump所有卡的数据），须根据实际卡的Rank ID配置。 | 否       |
+| step              | 指定dump某个step的数据。                                     | 否       |
+| enable_dataloader | 自动控制开关，可取值True或False，配置为True后自动识别dump step参数指定的迭代，此时start和stop函数可不配置，配置为False则需要配置start和stop函数并在最后一个stop函数后或一个step结束的位置添加debugger.step()。 | 否       |
 
 ### configure_hook函数（可选）
 
@@ -531,7 +533,7 @@ configure_hook可配置多种dump模式，示例如下：
 
   仅支持NPU环境。
 
-### start函数
+### start函数（可选）
 
 **功能说明**
 
@@ -547,7 +549,7 @@ debugger.start()
 
 该函数为类函数，可以使用debugger.start()也可以使用PrecisionDebugger.start()。
 
-### stop函数
+### stop函数（可选）
 
 **功能说明**
 
@@ -563,7 +565,25 @@ debugger.stop()
 
 该函数为类函数，可以使用debugger.stopt()也可以使用PrecisionDebugger.stop()。
 
-### 示例代码
+### 示例代码（自动模式）
+
+- 示例1：开启dump
+
+  ```python
+  from ptdbg_ascend import *
+  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="dump", step[0,2], enable_dataloader=True)
+  ```
+  
+- 示例2：开启溢出检测dump
+
+  ```python
+  from ptdbg_ascend import *
+  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="overflow_check", step[0,2], enable_dataloader=True)
+  ```
+
+### 示例代码（手动模式）
+
+一般情况下使用自动模式可以快速方便进行dump操作，但个别大模型可能在部分卡的训练操作中没有调用dataloader，这会导致自动模式无法dump指定迭代的数据，此时需要关闭自动模式手动在迭代前后插入start()和stop()函数，并在最后一个一个stop函数后或一个step结束的位置添加debugger.step()以标识dump结束。
 
 - 示例1：开启dump
 
@@ -575,9 +595,15 @@ debugger.stop()
   # 下面代码也可以用PrecisionDebugger.start()和PrecisionDebugger.stop()
   debugger.start()
   
-  ...
+  # 需要dump的代码片段1
   
   debugger.stop()
+  debugger.start()
+  
+  # 需要dump的代码片段1
+  
+  debugger.stop()
+  debugger.step()
   ```
 
 - 示例2：开启溢出检测dump
@@ -590,9 +616,15 @@ debugger.stop()
   # 下面代码也可以用PrecisionDebugger.start()和PrecisionDebugger.stop()
   debugger.start()
   
-  ...
+  # 需要dump的代码片段1
   
   debugger.stop()
+  debugger.start()
+  
+  # 需要dump的代码片段1
+  
+  debugger.stop()
+  debugger.step()
   ```
 
 ## CPU或GPU及NPU精度数据dump 
@@ -1026,7 +1058,7 @@ set_dump_switch("ON", mode="acl", scope=["Functional_conv2d_1_backward"])
 set_backward_input(["./npu_dump/dump_conv2d_v2.0/rank0/dump/Functional_conv2d_1_backward_input.0.npy"])
 ```
 
-### dump.json配置文件说明
+## dump.json配置文件说明
 
 **dump.json配置示例**
 
@@ -1075,7 +1107,7 @@ set_backward_input(["./npu_dump/dump_conv2d_v2.0/rank0/dump/Functional_conv2d_1_
 │           └── TransData.trans_TransData_3.37.0.1675157077169473
 ```
 
-### dump数据存盘说明
+## dump数据存盘说明
 
 dump结果目录结构示例如下：
 
@@ -1098,6 +1130,20 @@ dump结果目录结构示例如下：
 ```
 
 其中ptdbg_dump_{version}为未设置set_dump_path的dump_tag参数时的默认命名；rank为设备上各卡的ID，每张卡上dump的数据会生成对应dump目录，可由register_hook函数的rank参数控制rank目录名称。
+
+当使用debugger方式dump数据时，配置了PrecisionDebugger模块的step[]参数，dump结果目录则以step为父目录，例如配置step[0,1,2]时，dump结果目录为：
+
+```
+├── dump_path
+│   └── step0
+│   |  └── ptdbg_dump_{version}
+│   |  |   ├── rank0
+│   |  |   ├── ...
+│   |  |   ├── rank7
+|   ├── step1
+|   |  |   ├── ...
+│   └── step2
+```
 
 **精度比对dump场景**
 

@@ -370,8 +370,10 @@ register_hook需要在set_dump_path之后调用，也需要在每个进程上被
    # 下载att代码仓后执行如下命令
    export PYTHONPATH=$PYTHONPATH:$ATT_HOME/debug/accuracy_tools/
    cd $ATT_HOME/debug/accuracy_tools/api_accuracy_checker/run_ut
-   python run_overflow_check.py -forward ./forward_info_0.json -backward ./backward_info_0.json
+   python run_overflow_check.py -forward ./forward_info_0.json
    ```
+   
+   反向过程溢出的API暂不支持精度预检功能。
    
    当重复执行溢出检测dump操作时，需要删除上一次dump目录下的溢出检测dump数据，否则将因重名而报错。
 

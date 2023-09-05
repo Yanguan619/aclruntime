@@ -69,9 +69,13 @@ def np_save_data(data, file_name, data_path):
 
 
 def data_to_cpu(data, deep, data_cpu):
+    global cpu_device
     list_cpu = []
     if isinstance(data, torch.Tensor):
-        tensor_copy = data.cpu()
+        if data.device == cpu_device:
+            tensor_copy = data.clone().detach()
+        else:
+            tensor_copy = data.cpu()
         if tensor_copy.dtype in [torch.float16, torch.half]:
             tensor_copy = tensor_copy.float()
         
@@ -99,7 +103,6 @@ def data_to_cpu(data, deep, data_cpu):
             data_cpu.append(dict_cpu)
         return dict_cpu
     elif isinstance(data, torch._C.device):
-        global cpu_device
         return cpu_device
     else:
         return data

@@ -392,7 +392,7 @@ PrecisionDebugger模块包含dump和溢出检测功能的总体配置项。可�
 **原型**
 
 ```python
-PrecisionDebugger(dump_path=None, hook_name=None, rank=None):
+PrecisionDebugger(config=DebuggerConfig(dump_path=None, hook_name=None, rank=None)):
 ```
 
 **参数说明**
@@ -563,7 +563,7 @@ debugger.stop()
 
   ```python
   from ptdbg_ascend import *
-  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="dump")
+  debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="./dump_path", hook_name="dump"))
   
   # 模型初始化
   # 下面代码也可以用PrecisionDebugger.start()和PrecisionDebugger.stop()
@@ -578,7 +578,7 @@ debugger.stop()
 
   ```python
   from ptdbg_ascend import *
-  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="overflow_check")
+  debugger = PrecisionDebugger(config=DebuggerConfig(dump_path="./dump_path", hook_name="overflow_check"))
   
   # 模型初始化
   # 下面代码也可以用PrecisionDebugger.start()和PrecisionDebugger.stop()

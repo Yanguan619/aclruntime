@@ -196,13 +196,16 @@ class DumpException(CompareException):
 
 
 def make_dump_path_if_not_exists(dump_path):
-    # 之前应该已经验证过dump_path的上层文件夹存在
-    dump_root, dump_dir = os.path.split(dump_path)
     if not os.path.exists(dump_path):
-        Path(dump_path).mkdir(mode=0o750, exist_ok=True)
+        try:
+            Path(dump_path).mkdir(mode=0o750, exist_ok=True, parents=True)
+        except OSError as ex:
+            print_error_log(
+                'Failed to create {}.Please check the path permission or disk space .{}'.format(dump_path, str(ex)))
+            raise CompareException(CompareException.INVALID_PATH_ERROR)
     else:
         if not os.path.isdir(dump_path):
-            print_error_log((f"{dump_path} already exists and is not a directory."))
+            print_error_log('{} already exists and is not a directory.'.format(dump_path))
 
 
 def _print_log(level, msg):

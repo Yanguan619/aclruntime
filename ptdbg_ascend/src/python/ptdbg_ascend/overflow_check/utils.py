@@ -1,11 +1,6 @@
-import json
-import os
-import stat
 import torch
 
-import numpy as np
-
-from ..common.utils import Const
+from ..common.utils import Const, check_switch_valid
 from ..dump.dump import dump_stack_info, get_scalar_data_info, dump_data, \
     get_not_float_tensor_info, get_float_tensor_info
 from ..dump.utils import DumpUtil, make_dump_data_dir
@@ -15,6 +10,7 @@ class OverFlowUtil(object):
     overflow_check_switch = None
     overflow_filter_switch = None
     real_overflow_dump_times = 0
+    overflow_nums = 1
 
     @staticmethod
     def set_overflow_check_switch(switch, filter_switch):
@@ -33,12 +29,15 @@ class OverFlowUtil(object):
 
     @staticmethod
     def check_overflow_dump_times(need_dump_times):
+        if need_dump_times == -1:
+            return True
         return OverFlowUtil.real_overflow_dump_times < need_dump_times
 
 
 def set_overflow_check_switch(switch, filter_switch=Const.ON):
-    assert switch in ["ON", "OFF"], "Please set overflow switch with 'ON' or 'OFF'."
-    assert filter_switch in ["ON", "OFF"], "Please set overflow filter_switch with 'ON' or 'OFF'."
+    check_switch_valid(switch)
+    check_switch_valid(filter_switch)
+
     OverFlowUtil.set_overflow_check_switch(switch, filter_switch)
 
 

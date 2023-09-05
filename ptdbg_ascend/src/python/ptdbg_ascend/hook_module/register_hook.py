@@ -22,9 +22,11 @@ import torch
 
 from . import wrap_torch, wrap_functional, wrap_tensor, wrap_vf
 from .hook_module import HOOKModule
+from .wrap_functional import remove_dropout
 from ..common.utils import check_file_or_directory_path, print_error_log, CompareException, Const, \
     print_info_log, print_warn_log, get_process_rank
-from ..dump.utils import make_dump_dirs
+from ..dump.utils import make_dump_dirs, DumpUtil
+from ..overflow_check.utils import OverFlowUtil
 
 try:
     import torch_npu
@@ -64,24 +66,34 @@ def initialize_hook(hook):
             if attr_name.startswith("wrap_"):
                 setattr(torch_npu, attr_name[5:], getattr(wrap_npu_custom.HOOKNpuOP, attr_name))
 
+def add_clear_overflow(func):
+    first_module = True
+    def clear_overflow_wrapper(*args, **kwargs):
+        nonlocal first_module
+        if first_module:
+            torch_npu._C._clear_overflow_npu()
+            first_module = False
+        return func(*args, **kwargs)
+    return clear_overflow_wrapper
+
 
 def register_hook(model, hook, **kwargs):
-    global make_dir_flag
-    assert hasattr(model, "named_modules"), "Please register hooks to nn.Module."
-    print_info_log("Please disable the shuffle function of the dataset "
-                   "and the dropout function of the model "
-                   "before running the program.")
-    dump_step = kwargs.get('dump_step', 1)
-    overflow_nums = kwargs.get('overflow_nums', 1)
+    print_info_log("Please disable dataloader shuffle before running the program.")
+    OverFlowUtil.overflow_nums = kwargs.get('overflow_nums', 1)
     dump_mode, dump_config_file = init_dump_config(kwargs)
+    if dump_mode == 'acl':
+        DumpUtil.dump_switch_mode = dump_mode
+        DumpUtil.dump_config = dump_config_file
+    register_hook_core(hook, **kwargs)
+
+
+def register_hook_core(hook, **kwargs):
+    global make_dir_flag
 
     pid = os.getpid()
-    rank = kwargs.get('rank')
     need_clear = True
-    if rank is None:
-        rank, need_clear = get_process_rank(model)
     if make_dir_flag:
-        make_dump_dirs(rank)
+        make_dump_dirs()
         make_dir_flag = False
     hook_name = hook.__name__
 
@@ -95,25 +107,15 @@ def register_hook(model, hook, **kwargs):
                            "please check the version of software torch_npu.")
         # In NPU scene, clear the overflow flag before overflow detection
         if need_clear:
-            torch_npu.npu.set_device(rank)
-            torch_npu._C._clear_overflow_npu()
+            HOOKModule.__init__ = add_clear_overflow(HOOKModule.__init__)
+    elif "acc_cmp_dump" in hook_name:
+        remove_dropout()
 
     print_info_log("Start mounting the {} hook function to the model.".format(hook_name))
-    hook = functools.partial(hook, dump_step=dump_step, overflow_nums=overflow_nums, pid=pid,
-                             dump_mode=dump_mode, dump_config=dump_config_file)
+    hook = functools.partial(hook, dump_step=0, pid=pid)
     print_info_log("The {} hook function is successfully mounted to the model.".format(hook_name))
 
     initialize_hook(hook)
-    for _, module in model.named_modules():
-        if not isinstance(module, HOOKModule):
-            continue
-
-        prefix = "Module_" + module.__class__.__name__ + "_"
-        if hasattr(module, "prefix_op_name_"):
-            prefix = module.prefix_op_name_
-
-        module.register_forward_hook(hook(prefix + "forward"))
-        module.register_backward_hook(hook(prefix + "backward"))
 
 
 def init_dump_config(kwargs):

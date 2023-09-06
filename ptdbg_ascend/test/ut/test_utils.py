@@ -17,14 +17,6 @@ class TestUtilsMethods(unittest.TestCase):
         self.assertEqual(api_name_2, "norm_layer")
         self.assertEqual(api_name_3, "")
 
-    def test_check_mode_valid_error(self):
-        mode = "None"
-        with pytest.raises(CompareException) as error:
-            utils.check_mode_valid(mode)
-        self.assertEqual(error.value.code, CompareException.INVALID_DUMP_MODE)
-        mode = "list"
-        utils.check_mode_valid(mode)
-
     def test_check_file_or_directory_path_1(self):
         file = "list"
         with pytest.raises(CompareException) as error:

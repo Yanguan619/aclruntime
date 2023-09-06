@@ -15,19 +15,19 @@
 # limitations under the License.
 """
 
-import argparse
 import json
 import multiprocessing
 import os.path
+import stat
 import sys
-import re
 
 import numpy as np
 import pandas as pd
 
 from ..advisor.advisor import Advisor
 from ..common.utils import check_compare_param, add_time_as_suffix, \
-    print_warn_log, print_error_log, CompareException, Const, CompareConst, format_value
+    print_warn_log, print_error_log, CompareException, Const,\
+    CompareConst, format_value, check_file_not_exists, check_file_valid
 
 
 def correct_data(result):
@@ -86,10 +86,19 @@ def get_max_abs_err(n_value, b_value):
 
 def get_max_relative_err(n_value, b_value):
     np.seterr(divide='ignore', invalid='ignore')
+    if b_value.dtype in CompareConst.FLOAT_TYPE:
+        zero_mask = (b_value == 0)
+        b_value[zero_mask] += np.finfo(b_value.dtype).eps 
+        n_value[zero_mask] += np.finfo(b_value.dtype).eps 
+    else:
+        n_value, b_value = n_value.astype(float), b_value.astype(float)
+        zero_mask = (b_value == 0)
+        b_value[zero_mask] += np.finfo(float).eps 
+        n_value[zero_mask] += np.finfo(float).eps 
     relative_err = np.divide((n_value - b_value), b_value)
     max_relative_err = np.max(np.abs(relative_err))
     if np.isnan(max_relative_err):
-        message = 'Cannot compare by MaxRelativeError, the data contains 0 or nan in dump data.'
+        message = 'Cannot compare by MaxRelativeError, the data contains nan in dump data.'
         return CompareConst.NAN, message
     return format_value(max_relative_err), ""
 
@@ -381,6 +390,8 @@ def check_accuracy(cos, max_abs_err):
         return CompareConst.ACCURACY_CHECK_UNMATCH
     if cos == CompareConst.NAN or max_abs_err == CompareConst.NAN:
         return CompareConst.NAN
+    if cos == "N/A" or max_abs_err == "N/A":
+        return CompareConst.ACCURACY_CHECK_NO
     try:
         cos, max_abs_err = float(cos), float(max_abs_err)
     except ValueError:
@@ -398,8 +409,12 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     if npu_bench_name_list[1] == CompareConst.NAN:
         return CompareConst.NAN, CompareConst.NAN, CompareConst.NAN, CompareConst.NO_BENCH
     try:
-        n_value = np.load(os.path.join(input_parma.get("npu_dump_data_dir"), npu_bench_name_list[0] + ".npy"))
-        b_value = np.load(os.path.join(input_parma.get("bench_dump_data_dir"), npu_bench_name_list[1] + ".npy"))
+        n_path = os.path.join(input_parma.get("npu_dump_data_dir"), npu_bench_name_list[0] + ".npy")
+        b_path = os.path.join(input_parma.get("bench_dump_data_dir"), npu_bench_name_list[1] + ".npy")
+        check_file_valid(n_path)
+        check_file_valid(b_path)
+        n_value = np.load(n_path)
+        b_value = np.load(b_path)
     except IOError as error:
         return CompareConst.NAN, CompareConst.NAN, CompareConst.NAN, "Dump file:{} not found.".format(error.filename)
     if len(n_value.shape) == 0:
@@ -418,11 +433,17 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
         err_msg = " Dtype of NPU and bench Tensor do not match."
     else:
         err_msg = ""
+    
+    n_value, b_value = handle_inf_nan(n_value, b_value)
+    if n_value is CompareConst.NAN or b_value is CompareConst.NAN:
+        return "N/A", "N/A", "N/A",  "The position of inf or nan in NPU and bench Tensor do not match."
+        
+
     n_value = n_value.reshape(-1).astype(float)
     b_value = b_value.reshape(-1).astype(float)
     err_msg = ""
     cos_sim, message = cosine_similarity(n_value, b_value)
-    
+
     max_abs_err, _ = get_max_abs_err(n_value, b_value)
     max_relative_err, message = get_max_relative_err(n_value, b_value)
 
@@ -434,6 +455,23 @@ def compare_by_op(op_name, op_name_mapping_dict, input_parma):
     if npu_bench_name_list[0] != npu_bench_name_list[1]:
         err_msg += " Fuzzy matching data, the comparison accuracy may be affected."
     return cos_sim, max_abs_err, max_relative_err, err_msg
+
+
+def handle_inf_nan(n_value, b_value):
+    n_inf = np.isinf(n_value)
+    b_inf = np.isinf(b_value)
+    n_nan = np.isnan(n_value)
+    b_nan = np.isnan(b_value)
+    if np.any(n_inf) or np.any(b_inf) or np.any(n_nan) or np.any(b_nan):
+        if np.array_equal(n_inf, b_inf) and np.array_equal(n_nan, b_nan):
+            n_value[n_inf] = 0
+            b_value[b_inf] = 0
+            n_value[n_nan] = 0
+            b_value[b_nan] = 0
+        else:
+            return CompareConst.NAN, CompareConst.NAN
+    return n_value, b_value
+
 
 def compare(input_parma, output_path, **kwargs):
     if kwargs.get('suffix'):
@@ -465,7 +503,9 @@ def compare_core(input_parma, output_path, npu_pkl, bench_pkl, stack_mode=False,
 
     file_name = add_time_as_suffix("compare_result" + suffix)
     file_path = os.path.join(os.path.realpath(output_path), file_name)
-    result_df.to_csv(file_path, index=False)
+    check_file_not_exists(file_path)
+    with os.fdopen(os.open(file_path, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR | stat.S_IRGRP), 'w+') as fout:
+        result_df.to_csv(fout, index=False)
 
     _do_multi_process(input_parma, file_path)
     if auto_analyze:
@@ -558,17 +598,3 @@ def get_un_match_accuracy(result, n_dict):
         if npu_stack_info and index == 0:
             result_item.extend(npu_stack_info)
         result.append(result_item)
-
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--npu_pkl_path', type=str, required=True)
-    parser.add_argument('--bench_pkl_path', type=str, required=True)
-    parser.add_argument('--npu_dump_data_dir', type=str, required=True)
-    parser.add_argument('--bench_dump_data_dir', type=str, required=True)
-    parser.add_argument('--out_path', type=str, required=True)
-    parser.add_argument('--shape', action='store_true', default=False,
-                        help='Enforce tensor.shape is same when op matches')
-    args = parser.parse_args()
-    compare(args, args.out_path, args.shape)

@@ -18,13 +18,14 @@ import collections
 import os
 import random
 import re
+import shutil
 import stat
 import subprocess
 import sys
 import time
 from datetime import datetime, timezone
 from functools import wraps
-
+from pathlib import Path
 import numpy as np
 import torch
 
@@ -35,10 +36,19 @@ except ImportError:
 else:
     is_gpu = False
 
-if not is_gpu:
+torch_without_guard_version_list = ['2.1']
+for version in torch_without_guard_version_list:
+    if torch.__version__.startswith(version):
+        torch_without_guard_version = True
+        break
+    else:
+        torch_without_guard_version = False
+
+if not is_gpu and not torch_without_guard_version:
     from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
 
 device = collections.namedtuple('device', ['type', 'index'])
+prefixes = ['api_stack', 'list', 'range', 'acl']
 
 
 class Const:
@@ -54,7 +64,6 @@ class Const:
     DOT = "."
     DUMP_RATIO_MAX = 100
     SUMMERY_DATA_NUMS = 256
-    ONE_HUNDRED_MB = 100*1024*1024
     FLOAT_EPSILON = np.finfo(float).eps
     SUPPORT_DUMP_MODE = ['api', 'acl']
     ON = 'ON'
@@ -71,10 +80,20 @@ class Const:
     API_LIST = "api_list"
     API_STACK = "api_stack"
     DUMP_MODE = [ALL, LIST, RANGE, STACK, ACL, API_LIST, API_STACK]
+    AUTO = "auto"
+    ONLINE_DUMP_MODE = [ALL, LIST, AUTO, OFF]
 
     API_PATTERN = r"^[A-Za-z0-9]+[_]+([A-Za-z0-9]+[_]*[A-Za-z0-9]+)[_]+[0-9]+[_]+[A-Za-z0-9]+"
     WRITE_FLAGS = os.O_WRONLY | os.O_CREAT
     WRITE_MODES = stat.S_IWUSR | stat.S_IRUSR
+
+    PKL_SUFFIX = ".pkl"
+    NUMPY_SUFFIX = ".npy"
+    ONE_GB = 1 * 1024 * 1024 * 1024
+    TEN_GB = 10 * 1024 * 1024 * 1024
+    FILE_PATTERN = r'^[a-zA-Z0-9_./-]+$'
+    FILE_NAME_LENGTH = 255
+    DIRECTORY_LENGTH = 4096
 
 
 class CompareConst:
@@ -118,6 +137,9 @@ class CompareConst:
     # error message
     NO_BENCH = "No bench data matched."
 
+    # compare const
+    FLOAT_TYPE = [np.half, np.single, float, np.double, np.float64, np.longdouble]
+
 
 class VersionCheck:
     """
@@ -125,6 +147,8 @@ class VersionCheck:
     """
     V1_8 = "1.8"
     V1_11 = "1.11"
+    V2_0 = "2.0"
+    V2_1 = "2.1"
 
     @staticmethod
     def check_torch_version(version):
@@ -157,6 +181,7 @@ class CompareException(Exception):
     INVALID_DUMP_MODE = 15
     PARSE_FILE_ERROR = 16
     INVALID_COMPARE_MODE = 17
+    OVER_SIZE_FILE_ERROR = 18
 
     def __init__(self, code, error_info: str = ""):
         super(CompareException, self).__init__()
@@ -168,6 +193,17 @@ class CompareException(Exception):
 
 class DumpException(CompareException):
     pass
+
+
+def make_dump_path_if_not_exists(dump_path):
+    # 之前应该已经验证过dump_path的上层文件夹存在
+    dump_root, dump_dir = os.path.split(dump_path)
+    if not os.path.exists(dump_path):
+        Path(dump_path).mkdir(mode=0o750, exist_ok=True)
+    else:
+        if not os.path.isdir(dump_path):
+            print_error_log((f"{dump_path} already exists and is not a directory."))
+
 
 def _print_log(level, msg):
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(time.time())))
@@ -226,7 +262,7 @@ def check_mode_valid(mode, scope=[], api_list=[]):
 
 def check_switch_valid(switch):
     if switch not in ["ON", "OFF"]:
-        raise ValueError("Please set dump switch with 'ON' or 'OFF'.")
+        raise ValueError("Please set switch with 'ON' or 'OFF'.")
 
 def check_dump_mode_valid(dump_mode):
     if not isinstance(dump_mode, list):
@@ -234,9 +270,19 @@ def check_dump_mode_valid(dump_mode):
         dump_mode = [dump_mode]
     if not all(mode in ["all", "forward", "backward", "input", "output"] for mode in dump_mode):
         raise ValueError("Please set dump_mode as a list containing one or more of the following: 'all', 'forward', 'backward', 'input', 'output'.")
-    if len(dump_mode) < 1 or 'all' in dump_mode or set(["forward", "backward", "input", "output"]).issubset(set(dump_mode)) or (set(["forward", "backward"]).issubset(set(dump_mode)) and not set(["input", "output"]).intersection(set(dump_mode))) or (set(["input", "output"]).issubset(set(dump_mode)) and not set(["forward", "backward"]).intersection(set(dump_mode))):
-        return ['all']
+    if 'input' not in dump_mode and 'output' not in dump_mode:
+        dump_mode.extend(['input', 'output'])
+    if 'forward' not in dump_mode and 'backward' not in dump_mode:
+        dump_mode.extend(['forward', 'backward'])
+    if 'all' in dump_mode or set(["forward", "backward", "input", "output"]).issubset(set(dump_mode)):
+        return ["forward", "backward", "input", "output"]
     return dump_mode
+
+def check_summary_only_valid(summary_only):
+    if not isinstance(summary_only, bool):
+        print_error_log("Params auto_analyze only support True or False.")
+        raise CompareException(CompareException.INVALID_PARAM_ERROR)
+    return summary_only
 
 def check_compare_param(input_parma, output_path, stack_mode=False, auto_analyze=True,
                         fuzzy_match=False):  # 添加默认值来让不传参时能通过参数检查
@@ -288,10 +334,13 @@ def check_file_or_directory_path(path, isdir=False):
             print_error_log('{} is an invalid file or non-exist.'.format(path))
             raise CompareException(CompareException.INVALID_PATH_ERROR)
 
+    check_file_valid(path)
+
     if not os.access(path, os.R_OK):
         print_error_log(
             'The path {} does not have permission to read. Please check the path permission'.format(path))
         raise CompareException(CompareException.INVALID_PATH_ERROR)
+
 
 def _check_pkl(pkl_file_handle, file_name):
     tensor_line = pkl_file_handle.readline()
@@ -301,15 +350,19 @@ def _check_pkl(pkl_file_handle, file_name):
     pkl_file_handle.seek(0, 0)
 
 
+def is_starts_with(string, prefixes):
+    return any(string.startswith(prefix) for prefix in prefixes)
+
+
 def check_file_mode(npu_pkl, bench_pkl, stack_mode):
     npu_pkl_name = os.path.split(npu_pkl)[-1]
     bench_pkl_name = os.path.split(bench_pkl)[-1]
 
-    if not npu_pkl_name.startswith("api_stack") and not bench_pkl_name.startswith("api_stack"):
+    if not is_starts_with(npu_pkl_name, prefixes) and not is_starts_with(bench_pkl_name, prefixes):
         if stack_mode:
             print_error_log("The current file does not contain stack information, please turn off the stack_mode")
             raise CompareException(CompareException.INVALID_COMPARE_MODE)
-    elif npu_pkl_name.startswith("api_stack") and bench_pkl_name.startswith("api_stack"):
+    elif is_starts_with(npu_pkl_name, prefixes) and is_starts_with(bench_pkl_name, prefixes):
         if not stack_mode:
             print_error_log("The current file contains stack information, please turn on the stack_mode")
             raise CompareException(CompareException.INVALID_COMPARE_MODE)
@@ -328,6 +381,24 @@ def check_file_size(input_file, max_size):
         print_error_log('The size (%d) of %s exceeds (%d) bytes, tools not support.'
                         % (file_size, input_file, max_size))
         raise CompareException(CompareException.INVALID_FILE_ERROR)
+
+
+def check_file_not_exists(file_path):
+    if os.path.exists(file_path) or os.path.islink(file_path):
+        remove_path(file_path)
+
+
+def remove_path(path):
+    if not os.path.exists(path):
+        return
+    try:
+        if os.path.islink(path) or os.path.isfile(path):
+            os.remove(path)
+        else:
+            shutil.rmtree(path)
+    except PermissionError:
+        print_error_log("Failed to delete {}. Please check the permission.".format(path))
+        raise CompareException(CompareException.INVALID_PATH_ERROR)
 
 
 def get_dump_data_path(dump_dir):
@@ -414,16 +485,6 @@ def save_numpy_data(file_path, data):
     np.save(file_path, data)
 
 
-def parse_arg_value(values):
-    """
-    parse dynamic arg value of atc cmdline
-    """
-    value_list = []
-    for item in values.split(Const.SEMICOLON):
-        value_list.append(parse_value_by_comma(item))
-    return value_list
-
-
 def parse_value_by_comma(value):
     """
     parse value by comma, like '1,2,4,8'
@@ -463,7 +524,7 @@ def format_value(value):
 
 
 def torch_device_guard(func):
-    if is_gpu:
+    if is_gpu or torch_without_guard_version:
         return func
     # Parse args/kwargs matched torch.device objects
 
@@ -533,3 +594,48 @@ def parameter_adapter(func):
                     return getattr(torch._C._VariableFunctionsClass, "stack")(res, 0)
         return func(self, *args, **kwargs)
     return inner
+
+
+def generate_compare_script(dump_path, pkl_file_path, dump_switch_mode):
+    template_path = os.path.join(os.path.dirname(__file__), "compare_script.template")
+    pkl_dir = os.path.dirname(pkl_file_path)
+    compare_script_path = os.path.join(pkl_dir, "compare_data.py")
+    is_api_stack = "True" if dump_switch_mode == Const.API_STACK else "False"
+
+    try:
+        with open(template_path, 'r') as ftemp, \
+           os.fdopen(os.open(compare_script_path, Const.WRITE_FLAGS, Const.WRITE_MODES), 'w+') as fout:
+            code_temp = ftemp.read()
+            fout.write(code_temp % (pkl_file_path, dump_path, is_api_stack))
+    except OSError:
+        print_error_log(f"Failed to open file. Please check file {template_path} or path {pkl_dir}.")
+
+    print_info_log(f"Generate compare script successfully which is {compare_script_path}.")
+
+
+def check_is_npu():
+    return not is_gpu
+
+
+def check_file_valid(file_path):
+    if os.path.islink(file_path):
+        print_error_log('The file path {} is a soft link.'.format(file_path))
+        raise CompareException(CompareException.INVALID_PATH_ERROR)
+
+    if len(os.path.realpath(file_path)) > Const.DIRECTORY_LENGTH or len(os.path.basename(file_path)) > \
+            Const.FILE_NAME_LENGTH:
+        print_error_log('The file path length exceeds limit.')
+        raise CompareException(CompareException.INVALID_PATH_ERROR)
+
+    if not re.match(Const.FILE_PATTERN, os.path.realpath(file_path)):
+        print_error_log('The file path {} contains special characters.'.format(file_path))
+        raise CompareException(CompareException.INVALID_PATH_ERROR)
+
+    if os.path.isfile(file_path):
+        file_size = os.path.getsize(file_path)
+        if file_path.endswith(Const.PKL_SUFFIX) and file_size > Const.ONE_GB:
+            print_error_log('The file {} size is greater than 1GB.'.format(file_path))
+            raise CompareException(CompareException.INVALID_PATH_ERROR)
+        if file_path.endswith(Const.NUMPY_SUFFIX) and file_size > Const.TEN_GB:
+            print_error_log('The file {} size is greater than 10GB.'.format(file_path))
+            raise CompareException(CompareException.INVALID_PATH_ERROR)

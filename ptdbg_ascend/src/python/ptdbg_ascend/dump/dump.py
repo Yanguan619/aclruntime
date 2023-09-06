@@ -145,12 +145,16 @@ def dump_data(dump_file_name, dump_step, prefix, data_info):
 
 def dump_stack_info(name_template, dump_file):
     stack_str = []
-    for (_, path, line, func, code, _) in inspect.stack()[4:]:
-        if code:
-            stack_line = [path, str(line), func, code[0].strip() if code else code]
-        else:
-            stack_line = [path, str(line), func, code]
-        stack_str.append(stack_line)
+    try:
+        for (_, path, line, func, code, _) in inspect.stack()[3:]:
+            if code:
+                stack_line = [path, str(line), func, code[0].strip() if code else code]
+            else:
+                stack_line = [path, str(line), func, code]
+            stack_str.append(stack_line)
+    except Exception as e:
+        print_warn_log("Dump stack info failed, error: {}".format(e))
+        stack_str.append('')
 
     prefix = name_template.format("stack_info")
     if DumpUtil.dump_switch_mode in Const.DUMP_MODE:

@@ -153,7 +153,7 @@ def dump_stack_info(name_template, dump_file):
                 stack_line = [path, str(line), func, code]
             stack_str.append(stack_line)
     except Exception as e:
-        print(e)
+        print_warn_log("Dump stack info failed, error: {}".format(e))
         stack_str.append('')
 
     prefix = name_template.format("stack_info")

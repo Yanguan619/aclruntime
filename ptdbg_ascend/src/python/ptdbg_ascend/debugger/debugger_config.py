@@ -18,8 +18,8 @@ class DebuggerConfig:
             raise ValueError("dump path {} does not exist".format(dump_root))
         if self.hook_name not in ["dump", "overflow_check"]:
             raise ValueError("hook_name should be in ['dump', 'overflow_check']".format(self.hook_name))
-        if self.rank is not None and not isinstance(self.rank, int):
-            raise ValueError("rank {} should be int".format(self.rank))
+        if self.rank is not None and not isinstance(self.rank, int) and self.rank < 0:
+            raise ValueError("rank {} must be a positive integer.".format(self.rank))
         elif isinstance(self.rank, int):
             print_warn_log(f"Rank argument is provided. Only rank {self.rank} data will be dumpped.")
         if not isinstance(self.step, list):

@@ -51,7 +51,7 @@ class PrecisionDebugger:
                     raise ValueError("backward_input must be configured when mode is 'acl' and scope contains 'backward'")
                 set_backward_input(backward_input)
 
-    def configure_overflow_dump(self, mode="api", acl_config=None, overflow_nums=1, filter_switch = Const.OFF):
+    def configure_overflow_dump(self, mode="api", acl_config=None, overflow_nums=1, filter_switch = Const.ON):
         if mode == "acl":
             DumpUtil.dump_switch_mode = mode
             DumpUtil.dump_config = acl_config

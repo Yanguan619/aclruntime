@@ -8,9 +8,10 @@ class DebuggerConfig:
         self.hook_name = hook_name
         self.rank = rank
         self.step = step
+        self.check()
         if self.step:
             self.step.sort()
-        self.check()
+        
 
     def check(self):
         self._check_dump_path()

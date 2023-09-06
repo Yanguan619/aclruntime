@@ -19,8 +19,9 @@ import functools
 import os
 
 import torch
+import torch.distributed as dist
 
-from . import wrap_torch, wrap_functional, wrap_tensor, wrap_vf
+from . import wrap_torch, wrap_functional, wrap_tensor, wrap_vf, wrap_distributed
 from .hook_module import HOOKModule
 from .wrap_functional import remove_dropout
 from ..common.utils import check_file_or_directory_path, print_error_log, CompareException, Const, \
@@ -54,6 +55,11 @@ def initialize_hook(hook):
     for attr_name in dir(wrap_functional.HOOKFunctionalOP):
         if attr_name.startswith("wrap_"):
             setattr(torch.nn.functional, attr_name[5:], getattr(wrap_functional.HOOKFunctionalOP, attr_name))
+
+    wrap_distributed.wrap_distributed_ops_and_bind(hook)
+    for attr_name in dir(wrap_distributed.HOOKDistributedOP):
+        if attr_name.startswith("wrap_"):
+            setattr(dist, attr_name[5:], getattr(wrap_distributed.HOOKDistributedOP, attr_name))
 
     wrap_vf.wrap_vf_ops_and_bind(hook)
     for attr_name in dir(wrap_vf.HOOKVfOP):

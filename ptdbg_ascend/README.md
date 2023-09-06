@@ -115,7 +115,7 @@ ptdbg_ascend精度工具的安装方式包括：**下载whl包安装**和**源�
 
    请通过下表链接下载ptdbg_ascend精度工具whl包，推荐下载最新版本。
 
-   | ptdbg_ascend版本 | 发布日期  | 支持PyTorch版本      | 下载链接                                                     | 校验码                                                       | 参考指南                                                     |
+   | ptdbg_ascend版本 | 发布日期  | 支持PyTorch版本      | 下载链接                                                     | 参考指南                                                     | 校验码                                                       |
    | ---------------- | --------- | -------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
    | 3.2              | 2023-8-17 | 1.8.1/1.11.0/2.0/2.1 | [ptdbg_ascend-3.2-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/3.0/ptdbg_ascend-3.2-py3-none-any.whl) | [ptdbg_ascend精度工具功能说明_v3.2](doc/ptdbg_ascend精度工具功能说明_v3.2.md) | 0116f66c7c893fc171bfa86e12ecfbf9cd062aedd176a0e67befb880b995f472 |
    | 3.1              | 2023-8-02 | 1.8.1/1.11.0/2.0     | [ptdbg_ascend-3.1-py3-none-any.whl](https://ptdbg.obs.myhuaweicloud.com/package/ptdbg_ascend/3.0/ptdbg_ascend-3.1-py3-none-any.whl) | [ptdbg_ascend精度工具功能说明_v3.1](doc/ptdbg_ascend精度工具功能说明_v3.1.md) | ef0dd5f96faf3576466545f082383eece409f25642a9bc4d0efc944969c1445a |

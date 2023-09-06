@@ -57,10 +57,10 @@ class PrecisionDebugger:
             DumpUtil.dump_config = acl_config
             if acl_config is None:
                 raise ValueError("acl_config must be configured when mode is 'acl'")
-        if isinstance(overflow_nums, int) and overflow_nums > 0:
+        if isinstance(overflow_nums, int) and overflow_nums >= -1:
             OverFlowUtil.overflow_nums = overflow_nums
         else:
-            raise ValueError("overflow_nums must be a positive integer.")
+            raise ValueError("overflow_nums must be int")
         check_switch_valid(filter_switch)
         OverFlowUtil.overflow_filter_switch = filter_switch
 

@@ -7,8 +7,9 @@ class DebuggerConfig:
         self.dump_path = dump_path
         self.hook_name = hook_name
         self.rank = rank
-        self.step = step if step is not None else [0]
-        self.step.sort()
+        self.step = step
+        if self.step:
+            self.step.sort()
         self.check()
 
     def check(self):

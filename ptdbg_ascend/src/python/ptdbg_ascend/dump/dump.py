@@ -18,10 +18,11 @@
 import inspect
 import json
 import os
-import stat
 import numpy as np
 import torch
 import threading
+
+from pathlib import Path
 
 try:
     import torch_npu
@@ -30,8 +31,7 @@ except ImportError:
 else:
     is_gpu = False
 
-from .utils import DumpUtil, _set_dump_switch4api_list, make_dump_data_dir
-
+from .utils import DumpUtil, check_if_in_api_list, make_dump_data_dir, get_tensor_rank, create_dirs_if_not_exist
 from ..common.utils import print_warn_log, Const, print_info_log, modify_dump_path
 from ..dump.utils import check_writable
 
@@ -40,6 +40,11 @@ backward_init_status = False
 
 backward_threading_id = 0
 
+api_list = []
+thread_lock = threading.Lock()
+pkl_name = ""
+rank = os.getpid()
+multi_output_apis = ["_sort_", "npu_flash_attention"]
 
 class DataInfo(object):
     def __init__(self, data, save_data, summary_data, dtype, shape):
@@ -51,7 +56,6 @@ class DataInfo(object):
 
 
 def get_not_float_tensor_info(data):
-    summary_data = []
     if data.numel() == 0 or data.dtype == torch.bool:
         tensor_max = []
         tensor_min = []
@@ -64,9 +68,7 @@ def get_not_float_tensor_info(data):
         tensor_max = torch._C._VariableFunctionsClass.max(data).cpu().detach().float().numpy().tolist()
         tensor_min = torch._C._VariableFunctionsClass.min(data).cpu().detach().float().numpy().tolist()
         tensor_mean = torch._C._VariableFunctionsClass.mean(data.float()).cpu().detach().float().numpy().tolist()
-    saved_tensor = data.contiguous().cpu().detach().numpy()
-    summary_data.extend([tensor_max, tensor_min, tensor_mean])
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
+    return get_tensor_data_info(data, tensor_max, tensor_min, tensor_mean)
 
 
 def get_scalar_data_info(data):
@@ -75,13 +77,21 @@ def get_scalar_data_info(data):
 
 
 def get_float_tensor_info(data):
-    summary_data = []
     tensor_max = torch._C._VariableFunctionsClass.max(data).cpu().detach().float().numpy().tolist()
     tensor_min = torch._C._VariableFunctionsClass.min(data).cpu().detach().float().numpy().tolist()
     tensor_mean = torch._C._VariableFunctionsClass.mean(data).cpu().detach().float().numpy().tolist()
-    saved_tensor = data.contiguous().cpu().detach().numpy()
+    return get_tensor_data_info(data, tensor_max, tensor_min, tensor_mean)
+
+
+def get_tensor_data_info(data, tensor_max, tensor_min, tensor_mean):
+    summary_data = []
+    saved_tensor = data.contiguous().cpu().detach()
+    if data.dtype == torch.bfloat16:
+        saved_numpy = saved_tensor.to(torch.float32).numpy()
+    else:
+        saved_numpy = saved_tensor.numpy()
     summary_data.extend([tensor_max, tensor_min, tensor_mean])
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
+    return DataInfo(data, saved_numpy, summary_data, str(data.dtype), tuple(data.shape))
 
 
 def json_dump_condition(prefix):
@@ -119,13 +129,18 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
 
 
 def dump_data(dump_file_name, dump_step, prefix, data_info):
-    with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
-                   "a") as f:
+    global api_list
+    thread_lock.acquire()
+    try:
         if json_dump_condition(prefix):
             output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-            np.save(output_path, data_info.save_data)
-            json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
-            f.write('\n')
+            if not DumpUtil.summary_only:
+                np.save(output_path, data_info.save_data)
+            api_list.append([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data])
+    except Exception as e:
+        print_warn_log("Dump data failed, error: {}".format(e))
+    finally:
+        thread_lock.release()
 
 
 def dump_stack_info(name_template, dump_file):
@@ -138,56 +153,74 @@ def dump_stack_info(name_template, dump_file):
                 stack_line = [path, str(line), func, code]
             stack_str.append(stack_line)
     except Exception as e:
-        print(e)
+        print_warn_log("Dump stack info failed, error: {}".format(e))
         stack_str.append('')
 
     prefix = name_template.format("stack_info")
-    with os.fdopen(os.open(dump_file, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-        if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
-            if json_dump_condition(prefix):
-                if Const.ALL in DumpUtil.dump_mode:
-                    json.dump([prefix, stack_str], f)
-                    f.write('\n')
-                else:
-                    for mode in DumpUtil.dump_mode:
-                        if mode in prefix:
-                            json.dump([prefix, stack_str], f)
-                            f.write('\n')
-        else:
-            json.dump([prefix, stack_str], f)
-            f.write('\n')
+    if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
+        if json_dump_condition(prefix):
+            complement_set = set(['forward', 'backward', 'input', 'output']) - set(DumpUtil.dump_mode)
+            if not any(mode in prefix for mode in complement_set):
+                api_list.append([prefix, stack_str])
+    else:
+        api_list.append([prefix, stack_str])
 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
-    if Const.BACKWARD in name_template and Const.FORWARD not in DumpUtil.dump_mode:
+    if Const.BACKWARD in name_template and Const.BACKWARD in DumpUtil.dump_mode:
         if 'input' in DumpUtil.dump_mode:
             dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
         if 'output' in DumpUtil.dump_mode:
             dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file)
-        if Const.ALL in DumpUtil.dump_mode:
-            dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
-            dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file)
-    elif Const.BACKWARD not in name_template and Const.BACKWARD not in DumpUtil.dump_mode:
+    elif Const.BACKWARD not in name_template and Const.FORWARD in DumpUtil.dump_mode:
         if 'input' in DumpUtil.dump_mode:
             dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
         if 'output' in DumpUtil.dump_mode:
-            dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
-        if Const.ALL in DumpUtil.dump_mode:
-            dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
             dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
 
+def rename_():
+    global rank
+    global pkl_name
+    if rank is not None and pkl_name is not None:
+        if DumpUtil.target_iter:
+            dir_name = os.path.join(DumpUtil.dump_root, "step{}".format(DumpUtil.iter_num), "rank{}".format(os.getpid()))
+            new_name = os.path.join(DumpUtil.dump_root, "step{}".format(DumpUtil.iter_num), "rank{}".format(rank))
+        else:
+            dir_name = os.path.join(DumpUtil.dump_root, "rank{}".format(os.getpid()))
+            new_name = os.path.join(DumpUtil.dump_root, "rank{}".format(rank))          
+        if not os.path.exists(new_name) and os.path.exists(dir_name):
+            _, file_name = os.path.split(pkl_name)
+            os.rename(dir_name, new_name)
+            pkl_name = os.path.join(new_name, file_name)
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_file = DumpUtil.get_dump_path()
-    _set_dump_switch4api_list(name)
-
     dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
-
+    if DumpUtil.dump_switch_mode == Const.API_LIST and not check_if_in_api_list(name):
+        return
     if DumpUtil.get_dump_switch():
+        global rank
+        if DumpUtil.target_iter:
+            dump_dir, dump_filename = os.path.split(dump_file)
+            dump_dir = os.path.join(dump_dir, "step{}".format(DumpUtil.iter_num)) 
+            if not os.path.exists(dump_dir):
+                Path(dump_dir).mkdir(mode=0o750, exist_ok=True)
+            dump_file = os.path.join(dump_dir, dump_filename)
+        rank_this = get_tensor_rank(in_feat, out_feat)
+        DumpUtil.dump_root = os.path.dirname(DumpUtil.dump_path)
+        if rank_this is not None and rank != rank_this:
+            rank = rank_this 
+            rename_()
+        if DumpUtil.target_rank is not None:
+            if rank != DumpUtil.target_rank:
+                return
+        dump_file = create_dirs_if_not_exist(rank, dump_file)
+        global pkl_name
+        pkl_name = dump_file
         if DumpUtil.dump_init_enable:
             DumpUtil.dump_init_enable = False
             DumpUtil.dump_data_dir = make_dump_data_dir(dump_file) \
-                if DumpUtil.dump_switch_mode not in [Const.STACK, Const.ACL] else ""
+                if DumpUtil.dump_switch_mode not in [Const.STACK, Const.ACL] and not DumpUtil.summary_only else ""
             if os.path.exists(dump_file) and not os.path.isdir(dump_file):
                 check_writable(dump_file)
                 os.remove(dump_file)
@@ -200,11 +233,11 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
             dump_stack_info(name_template, dump_file)
         elif DumpUtil.check_switch_scope(name_prefix):
-            dump_stack_info(name_template, dump_file)
             if DumpUtil.dump_switch_mode == Const.ACL:
                 acl_dump(module, name, name_prefix)
             elif DumpUtil.dump_switch_mode != Const.STACK:
                 dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
+            dump_stack_info(name_template, dump_file)
 
 
 def acl_dump(module, module_name, name_prefix):
@@ -245,9 +278,10 @@ def acl_backward_dump_status(output, grad, module_name):
         output.backward(grad, retain_graph=True)
         return True
 
-    if "_sort_" in module_name :
-        output[0].backward(grad, retain_graph=True)
-        return True
+    for api_name in multi_output_apis:
+        if api_name in module_name:
+            output[0].backward(grad, retain_graph=True)
+            return True
     return False
 
 
@@ -280,7 +314,6 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
 def acc_cmp_dump(name, **kwargs):
     dump_step = kwargs.get('dump_step', 1)
     pid = kwargs.get('pid')
-    DumpUtil.set_dump_config(kwargs.get('dump_config'))
     if not pid:
         return RuntimeError("Not get the specified process pid.")
 
@@ -293,3 +326,18 @@ def acc_cmp_dump(name, **kwargs):
             del module.input_kwargs
 
     return acc_cmp_hook
+
+
+def write_to_disk():
+    global api_list
+    if api_list:
+        with open(pkl_name, 'a') as f:
+            try:
+                f.write('\n'.join(json.dumps(item) for item in api_list))
+                f.write('\n')
+            except:
+                raise Exception("write to disk failed")
+        api_list = []
+
+def get_pkl_file_path():
+    return pkl_name

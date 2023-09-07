@@ -98,14 +98,14 @@ void WriteTensor2Npy(tensorflow::Tensor tensor, std::string fname) {
 
   std::string realFileName = absl::StrCat(g_dumpConfig.dumpPath, fname);
   fp = fopen(realFileName.c_str(), "wb");
-  if (fp <= 0) {
+  if (fp == NULL) {
     if (errno == ENAMETOOLONG) {
         std::string hashValue = std::to_string(std::hash<std::string>{}(fname));
 
         std::string mapItem = hashValue + ',' + fname + '\n';
         std::string mappingFileName = absl::StrCat(g_dumpConfig.dumpPath, "mapping.csv");
         FILE *fpMap = fopen(mappingFileName.c_str(), "a+");
-        if (fpMap <= 0) {
+        if (fpMap == NULL) {
           std::cout << "Create mapping file failed"<< std::endl;
           return;
         }
@@ -114,7 +114,7 @@ void WriteTensor2Npy(tensorflow::Tensor tensor, std::string fname) {
 
         std::string newFileName = absl::StrCat(g_dumpConfig.dumpPath, hashValue);
         fp = fopen(newFileName.c_str(), "wb");
-        if (fp <= 0) {
+        if (fp == NULL) {
           std::cout << "Create newfile failed, file name is: " << hashValue.c_str() << std::endl;
           return;
         }

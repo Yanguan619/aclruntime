@@ -34,7 +34,7 @@ class OverFlowUtil(object):
         return OverFlowUtil.real_overflow_dump_times < need_dump_times
 
 
-def set_overflow_check_switch(switch, filter_switch=Const.ON):
+def set_overflow_check_switch(switch, filter_switch=Const.OFF):
     check_switch_valid(switch)
     check_switch_valid(filter_switch)
 

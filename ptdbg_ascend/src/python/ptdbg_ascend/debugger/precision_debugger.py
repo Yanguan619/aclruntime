@@ -1,6 +1,6 @@
 import os
 import torch
-from ..common.utils import Const, make_dump_path_if_not_exists
+from ..common.utils import Const, make_dump_path_if_not_exists, check_switch_valid
 from ..dump.dump import DumpUtil, acc_cmp_dump, write_to_disk
 from ..dump.utils import set_dump_path, set_dump_switch_print_info, generate_dump_path_str, \
         set_dump_switch_config, set_backward_input
@@ -51,16 +51,18 @@ class PrecisionDebugger:
                     raise ValueError("backward_input must be configured when mode is 'acl' and scope contains 'backward'")
                 set_backward_input(backward_input)
 
-    def configure_overflow_dump(self, mode="api", acl_config=None, overflow_nums=1):
+    def configure_overflow_dump(self, mode="api", acl_config=None, overflow_nums=1, filter_switch = Const.OFF):
         if mode == "acl":
             DumpUtil.dump_switch_mode = mode
             DumpUtil.dump_config = acl_config
             if acl_config is None:
                 raise ValueError("acl_config must be configured when mode is 'acl'")
-        if isinstance(overflow_nums, int):
+        if isinstance(overflow_nums, int) and overflow_nums >= -1:
             OverFlowUtil.overflow_nums = overflow_nums
         else:
             raise ValueError("overflow_nums must be int")
+        check_switch_valid(filter_switch)
+        OverFlowUtil.overflow_filter_switch = filter_switch
 
     @classmethod
     def start(cls):

@@ -3,7 +3,7 @@ from ..common.utils import print_warn_log
 
 
 class DebuggerConfig:
-    def __init__(self, dump_path, hook_name, rank=None, step=None):
+    def __init__(self, dump_path, hook_name, rank=None, step=[]):
         self.dump_path = dump_path
         self.hook_name = hook_name
         self.rank = rank

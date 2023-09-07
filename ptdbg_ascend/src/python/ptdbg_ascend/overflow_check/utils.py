@@ -1,4 +1,5 @@
 import torch
+import os
 
 from ..common.utils import Const, check_switch_valid
 from ..dump.dump import dump_stack_info, get_scalar_data_info, dump_data, \
@@ -63,6 +64,8 @@ def _dump_tensor_completely(x, prefix, dump_file_name):
             if OverFlowUtil.overflow_filter_switch == Const.OFF:
                 data_info = get_not_float_tensor_info(x)
                 dump_data(dump_file_name, dump_flag, prefix, data_info)
+            else:
+                remove_dump_dir()
         else:
             data_info = get_float_tensor_info(x)
             dump_data(dump_file_name, dump_flag, prefix, data_info)
@@ -71,3 +74,12 @@ def _dump_tensor_completely(x, prefix, dump_file_name):
         if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
             data_info = get_scalar_data_info(x)
             dump_data(dump_file_name, dump_flag, prefix, data_info)
+    else:
+        remove_dump_dir()
+
+def remove_dump_dir():
+    try:
+        os.rmdir(DumpUtil.dump_data_dir)
+        OverFlowUtil.real_overflow_dump_times -= 1
+    except Exception:
+        pass

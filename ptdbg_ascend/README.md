@@ -100,7 +100,7 @@ ptdbg_ascend为PyTorch精度工具，用来进行PyTorch整网API粒度的数据
 ### 环境准备
 
 - 通过pip安装环境依赖wheel、numpy、pandas（1.3.5及以上版本）和pyyaml。
-- ptdbg_ascend与PyTorch有严格的版本配套关系，使用工具前，您需要确保已经正确安装了PyTorch v1.8.1、PyTorch v1.11.0或PyTorch v2.0.0版本：
+- ptdbg_ascend与PyTorch有严格的版本配套关系，使用工具前，您需要确保已经正确安装了PyTorch v1.8.1、PyTorch v1.11.0、PyTorch v2.0.0或PyTorch v2.1.0版本：
   - CPU或GPU环境：请至[PyTorch官网](https://www.pytorch.org)下载并安装。
   - NPU环境：请参见《[CANN软件安装指南](https://www.hiascend.com/document/detail/zh/canncommercial/63RC1/envdeployment/instg/instg_000002.html)》“安装开发环境 > 在昇腾设备上安装 > 安装深度学习框架 > 安装PyTorch”章节进行安装。
 

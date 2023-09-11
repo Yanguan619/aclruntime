@@ -62,3 +62,24 @@ torch.npu.set_device(f'npu:{rank}')
 ### 6.dump得到的VF_lstm_99_forward_input.1.0.npy、VF_lstm_99_forward_input.1.1.npy类似的数据是否正常？
 带1.0/1.1/1.2后缀的npy是正常现象，例如当输入数据为[[tensor1, tensor2, tensor3]]会生成这样的后缀
 
+### 7.dump数据时，dump输出目录只得到了.npy文件，不生成pkl文件
+- 检查set_dump_switch("ON")，set_dump_switch("OFF")是否都配置了；
+- 如果都配置了，观察模型运行日志结尾是否打印“Dump switch is turned off”，如果没有，则表明代码没有执行到set_dump_switch("OFF")，请检查模型代码中是否有exit()操作。
+
+### 8.进行compare报错：The current file contains stack information, please turn on the stack_mode
+在比对脚本中，设置stack_mode=True，例如：
+
+```
+from ptdbg_ascend import *
+dump_result_param={
+"npu_pkl_path": "./npu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump.pkl",
+"bench_pkl_path": "./gpu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump.pkl",
+"npu_dump_data_dir": "./npu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump",
+"bench_dump_data_dir": "./gpu_dump/ptdbg_dump_v2.0/rank0/api_stack_dump",
+"is_print_compare_log": True
+}
+compare(dump_result_param, "./output", stack_mode=True)
+```
+### 9.dump指定反向API的ACL级别的数据报错：NameError：name 'torch_npu' is not defined
+如果是npu环境，请安装torch_npu；
+如果是gpu环境，暂不支持dump指定API的ACL级别的数据

@@ -1,5 +1,13 @@
 ## FAQ
+## 工具使用
+### 1.环境变量方式导入ptdbg_ascend
+当需要使用export PYTHONPATH的方法导入ptdbg_ascend的时候，需要在tools/ptdbg_ascend/src/python/ptdbg_ascend/common的目录下，手动添加一个version.py，并加上以下版本号信息，其中‘3.2’为当前ptdbg_ascend的版本
 
+```
+__version__ = '2.1'
+```
+
+## 异常情况
 ### 1. 单机多卡场景dump目录下只生成一个rank目录或pkl文件格式损坏
 
 **故障现象**
@@ -31,3 +39,26 @@ CANN软件版本较低导致不兼容。
 **故障处理**
 
 升级新版CANN软件版本。
+### 3. torch_npu._C._clear_overflow_npu() RuntimeError NPU error，error code is 107002
+如果运行溢出检测功能遇到这个报错，采取以下解决方法：
+如果是单卡运行，添加如下代码，0是卡号，选择自己空闲的卡号。
+
+```
+torch.npu.set_device('npu:0')
+```
+如果多卡运行，请在代码中修改对应卡号，比如进程使用卡号为{rank}时可以添加如下代码：
+
+```
+torch.npu.set_device(f'npu:{rank}')
+```
+如果运行精度比对功能遇到这个报错，尝试安装最新版本的ptdbg_ascend
+
+### 4. 运行compare.py时报错：json.decoder.JSONDecodeError: Extra data: line 1 column 37(char 36)
+遇到这种情况，先更新工具版本为2.2以上，再重新运行训练代码dump数据，再用新的dump数据进行精度比对。
+
+### 5.AssertionError: assert set(WrapTensorOps) <= set(_tensor_ops)
+遇到这种情况，先检查安装的torch版本，建议先更新工具版本为2.2以上，版本2.2的工具支持torch1.8、1.11和2.0
+
+### 6.dump得到的VF_lstm_99_forward_input.1.0.npy、VF_lstm_99_forward_input.1.1.npy类似的数据是否正常？
+带1.0/1.1/1.2后缀的npy是正常现象，例如当输入数据为[[tensor1, tensor2, tensor3]]会生成这样的后缀
+

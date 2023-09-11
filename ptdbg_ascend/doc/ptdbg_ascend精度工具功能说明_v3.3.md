@@ -426,7 +426,7 @@ PrecisionDebugger模块包含dump和溢出检测功能的总体配置项。可�
 **原型**
 
 ```python
-PrecisionDebugger(dump_path=None, hook_name=None, rank=None, step[], enable_dataloader=False):
+PrecisionDebugger(dump_path=None, hook_name=None, rank=None, step=[], enable_dataloader=False):
 ```
 
 **参数说明**
@@ -606,14 +606,14 @@ debugger.stop()
 
   ```python
   from ptdbg_ascend import *
-  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="dump", step[0,2], enable_dataloader=True)
+  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="dump", step=[0,2], enable_dataloader=True)
   ```
   
 - 示例2：开启溢出检测dump
 
   ```python
   from ptdbg_ascend import *
-  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="overflow_check", step[0,2], enable_dataloader=True)
+  debugger = PrecisionDebugger(dump_path="./dump_path", hook_name="overflow_check", step=[0,2], enable_dataloader=True)
   ```
 
 ### 示例代码（手动模式）
@@ -1166,7 +1166,7 @@ dump结果目录结构示例如下：
 
 其中ptdbg_dump_{version}为未设置set_dump_path的dump_tag参数时的默认命名；rank为设备上各卡的ID，每张卡上dump的数据会生成对应dump目录，可由register_hook函数的rank参数控制rank目录名称。
 
-当使用debugger方式dump数据时，配置了PrecisionDebugger模块的step[]参数，dump结果目录则以step为父目录，例如配置step[0,1,2]时，dump结果目录为：
+当使用debugger方式dump数据时，配置了PrecisionDebugger模块的step=[]参数，dump结果目录则以step为父目录，例如配置step=[0,1,2]时，dump结果目录为：
 
 ```
 ├── dump_path

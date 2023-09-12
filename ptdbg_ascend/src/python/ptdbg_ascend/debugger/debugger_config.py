@@ -11,19 +11,12 @@ class DebuggerConfig:
         self.check()
         if self.step:
             self.step.sort()
-        
 
     def check(self):
-        self._check_dump_path()
         self._check_hook_name()
         self._check_rank()
         self._check_step()
         return True
-
-    def _check_dump_path(self):
-        dump_root = os.path.split(self.dump_path)[0]
-        if not os.path.exists(dump_root):
-            raise ValueError(f"dump path {dump_root} does not exist")
 
     def _check_hook_name(self):
         if self.hook_name not in ["dump", "overflow_check"]:

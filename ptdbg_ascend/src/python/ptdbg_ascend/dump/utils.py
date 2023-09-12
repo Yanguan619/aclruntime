@@ -130,9 +130,7 @@ class DumpUtil(object):
 
 
 def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
-    if fpath is None:
-        raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
-        return
+    fpath = load_env_dump_path(fpath)
     check_file_valid(fpath)
     real_path = os.path.realpath(fpath)
     make_dump_path_if_not_exists(real_path)
@@ -191,6 +189,8 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()
+    if not DumpUtil.dump_path:
+        set_dump_path()
     DumpUtil.set_dump_switch(switch, summary_only=summary_only)
     dump_path_str = generate_dump_path_str()
     if switch == "OFF":
@@ -256,7 +256,7 @@ def make_dump_data_dir(dump_file_name):
 
 def make_dump_dirs():
     dump_file_name, dump_file_name_body = "dump.pkl", "dump"
-    dump_root_dir = DumpUtil.dump_path if DumpUtil.dump_path else "./"
+    dump_root_dir = load_env_dump_path(DumpUtil.dump_path)
     tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_v{__version__}')
     Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
     DumpUtil.dump_dir = tag_dir
@@ -271,3 +271,20 @@ def check_writable(dump_file):
                 dump_file))
         raise DumpException(DumpException.INVALID_PATH_ERROR)
 
+
+def load_env_dump_path(dump_path):
+    if not dump_path:
+        dump_path = os.getenv(Const.ASCEND_WORK_PATH)
+        if dump_path:
+            try:
+                dump_path = os.path.join(str(dump_path), Const.DUMP_DIR)
+            except TypeError:
+                print_error_log("Generating dump path from environment variables ASCEND_WORK_PATH failed.")
+                raise DumpException(DumpException.INVALID_PATH_ERROR)
+        else:
+            print_error_log("Dump path is None, you can configure it in the following ways:\n"
+                            "1. Configure set_dump_path function.\n"
+                            "2. Configure the dump_path parameter of PrecisionDebugger.\n"
+                            "3. Set environment variables ASCEND_WORK_PATH.")
+            raise DumpException(DumpException.INVALID_PATH_ERROR)
+    return dump_path

@@ -343,4 +343,3 @@ def write_to_disk():
 
 def get_pkl_file_path():
     return pkl_name
- 

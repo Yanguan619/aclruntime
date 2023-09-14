@@ -95,6 +95,9 @@ class Const:
     FILE_NAME_LENGTH = 255
     DIRECTORY_LENGTH = 4096
 
+    # env dump path
+    ASCEND_WORK_PATH = "ASCEND_WORK_PATH"
+    DUMP_DIR = "dump_data"
 
 class CompareConst:
     """

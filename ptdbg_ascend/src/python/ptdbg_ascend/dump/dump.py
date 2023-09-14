@@ -200,8 +200,8 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
         return
     if DumpUtil.get_dump_switch():
         global rank
+        dump_dir, dump_filename = os.path.split(dump_file)
         if DumpUtil.target_iter:
-            dump_dir, dump_filename = os.path.split(dump_file)
             dump_dir = os.path.join(dump_dir, "step{}".format(DumpUtil.iter_num)) 
             if not os.path.exists(dump_dir):
                 Path(dump_dir).mkdir(mode=0o750, exist_ok=True)
@@ -213,9 +213,9 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
             rename_()
             if not DumpUtil.dump_init_enable:
                 if DumpUtil.target_iter:
-                    DumpUtil.dump_data_dir = os.path.join(DumpUtil.dump_root, "step{}".format(DumpUtil.iter_num), "rank{}".format(rank),"dump")
+                    DumpUtil.dump_data_dir = os.path.join(DumpUtil.dump_root, "step{}".format(DumpUtil.iter_num), "rank{}".format(rank), dump_filename[:-4])
                 else:
-                    DumpUtil.dump_data_dir = os.path.join(DumpUtil.dump_root, "rank{}".format(rank), "dump")
+                    DumpUtil.dump_data_dir = os.path.join(DumpUtil.dump_root, "rank{}".format(rank), dump_filename[:-4])
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:
                 return

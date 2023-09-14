@@ -433,7 +433,7 @@ PrecisionDebugger(dump_path=None, hook_name=None, rank=None, step=[], enable_dat
 
 | 参数名            | 说明                                                         | 是否必选 |
 | ----------------- | ------------------------------------------------------------ | -------- |
-| dump_path         | 设置dump数据目录路径，参数示例："./dump_path"。dump_path的父目录须为已存在目录。<br/>默认在指定的dump_path路径下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当**configure_hook**函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。 | 是       |
+| dump_path         | 设置dump数据目录路径，参数示例："./dump_path"。<br/>默认在dump_path目录下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当**configure_hook**函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。<br/>未配置dump_path时，也可以通过环境变量ASCEND_WORK_PATH配置dump路径，此时dump数据将落盘在${ASCEND_WORK_PATH}/dump_data下，自定义配置dump_path优先级高于环境变量，dump_path和环境变量需要二选一。 | 否       |
 | hook_name         | dump模式，可取值dump和overflow_check，表示dump和溢出检测功能，二选一。 | 是       |
 | rank              | 指定对某张卡上的数据进行dump或溢出检测，默认未配置（表示dump所有卡的数据），须根据实际卡的Rank ID配置。应配置为大于0的正整数，且须根据实际卡的Rank ID配置，若所配置的值大于实际训练所运行的卡的Rank ID，则dump数据为空，比如当前环境Rank ID为0~7，实际训练运行0~3卡，此时若配置Rank ID为4或不存在的10等其他值，此时dump数据为空。 | 否       |
 | step              | 指定dump某个step的数据。                                     | 否       |
@@ -767,8 +767,6 @@ train_loader = torch.utils.data.DataLoader(
 
 设置dump数据目录。建议在seed_all函数之后调用且需要保证训练进程能够调用该函数；多卡时须保证每个进程都能调用该函数。
 
-dump操作必选。
-
 **函数原型**
 
 ```python
@@ -779,7 +777,7 @@ set_dump_path(fpath=None, dump_tag='ptdbg_dump')
 
 | 参数名   | 说明                                                         | 是否必选 |
 | -------- | ------------------------------------------------------------ | -------- |
-| fpath    | 设置dump数据目录路径。参数示例：'./dump_path'。dump_path须为已存在目录。<br/>默认在指定的dump_path路径下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当set_dump_switch函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**” | 是       |
+| fpath    | 设置dump数据目录路径。参数示例：'./dump_path'。<br/>默认在dump_path目录下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当set_dump_switch函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。<br/>未配置fpath时，也可以通过环境变量ASCEND_WORK_PATH配置dump路径，此时dump数据将落盘在${ASCEND_WORK_PATH}/dump_data下，自定义配置dump_path优先级高于环境变量，fpath和环境变量需要二选一。 | 否       |
 | dump_tag | 设置dump数据目录名称。参数示例：dump_tag='dump_conv2d'。默认dump数据目录命名为ptdbg_dump_{version}。<br/>{version}为当前安装ptdbg_ascend工具版本。目录结构参见“**dump数据存盘说明**”。<br/>配置该参数会将生成的`ptdbg_dump_{version}`目录名称变更为dump_tag配置的值，如`dump_conv2d_{version}`。 | 否       |
 
 **函数示例**

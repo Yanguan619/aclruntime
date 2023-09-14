@@ -212,10 +212,14 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
             rank = rank_this 
             rename_()
             if not DumpUtil.dump_init_enable:
-                if DumpUtil.target_iter:
-                    DumpUtil.dump_data_dir = os.path.join(DumpUtil.dump_root, "step{}".format(DumpUtil.iter_num), "rank{}".format(rank), dump_filename[:-4])
+                if '.pkl' in dump_filename:
+                    npy_dir = dump_filename[:-4]
                 else:
-                    DumpUtil.dump_data_dir = os.path.join(DumpUtil.dump_root, "rank{}".format(rank), dump_filename[:-4])
+                    npy_dir = dump_filename
+                if DumpUtil.target_iter:
+                    DumpUtil.dump_data_dir = os.path.join(DumpUtil.dump_root, "step{}".format(DumpUtil.iter_num), "rank{}".format(rank), npy_dir)
+                else:
+                    DumpUtil.dump_data_dir = os.path.join(DumpUtil.dump_root, "rank{}".format(rank), npy_dir)
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:
                 return

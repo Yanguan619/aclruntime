@@ -212,7 +212,10 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
             rank = rank_this 
             rename_()
             if not DumpUtil.dump_init_enable:
-                DumpUtil.dump_data_dir = os.path.join(DumpUtil.dump_root, "rank{}".format(rank), "dump")
+                if DumpUtil.target_iter:
+                    DumpUtil.dump_data_dir = os.path.join(DumpUtil.dump_root, "step{}".format(DumpUtil.iter_num), "rank{}".format(rank),"dump")
+                else:
+                    DumpUtil.dump_data_dir = os.path.join(DumpUtil.dump_root, "rank{}".format(rank), "dump")
         if DumpUtil.target_rank is not None:
             if rank != DumpUtil.target_rank:
                 return

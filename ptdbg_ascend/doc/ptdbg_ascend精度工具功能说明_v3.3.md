@@ -433,11 +433,11 @@ PrecisionDebugger(dump_path=None, hook_name=None, rank=None, step=[], enable_dat
 
 | 参数名            | 说明                                                         | 是否必选 |
 | ----------------- | ------------------------------------------------------------ | -------- |
-| dump_path         | 设置dump数据目录路径，参数示例："./dump_path"。dump_path的父目录须为已存在目录。<br/>默认在指定的dump_path路径下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当**configure_hook**函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。 | 是       |
+| dump_path         | 设置dump数据目录路径，参数示例："./dump_path"。<br/>默认在dump_path目录下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当**configure_hook**函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。<br/>未配置dump_path时，也可以通过环境变量ASCEND_WORK_PATH配置dump路径，此时dump数据将落盘在${ASCEND_WORK_PATH}/dump_data下，自定义配置dump_path优先级高于环境变量，dump_path和环境变量需要二选一。 | 否       |
 | hook_name         | dump模式，可取值dump和overflow_check，表示dump和溢出检测功能，二选一。 | 是       |
 | rank              | 指定对某张卡上的数据进行dump或溢出检测，默认未配置（表示dump所有卡的数据），须根据实际卡的Rank ID配置。应配置为大于0的正整数，且须根据实际卡的Rank ID配置，若所配置的值大于实际训练所运行的卡的Rank ID，则dump数据为空，比如当前环境Rank ID为0~7，实际训练运行0~3卡，此时若配置Rank ID为4或不存在的10等其他值，此时dump数据为空。 | 否       |
 | step              | 指定dump某个step的数据。                                     | 否       |
-| enable_dataloader | 自动控制开关，可取值True或False，配置为True后自动识别dump step参数指定的迭代，此时start和stop函数可不配置，配置为False则需要配置start和stop函数并在最后一个stop函数后或一个step结束的位置添加debugger.step()。 | 否       |
+| enable_dataloader | 自动控制开关，可取值True或False，配置为True后自动识别dump step参数指定的迭代，并在该迭代执行完成后退出训练，此时start和stop函数可不配置，配置为False则需要配置start和stop函数并在最后一个stop函数后或一个step结束的位置添加debugger.step()。 | 否       |
 
 ### configure_hook函数（可选）
 
@@ -767,8 +767,6 @@ train_loader = torch.utils.data.DataLoader(
 
 设置dump数据目录。建议在seed_all函数之后调用且需要保证训练进程能够调用该函数；多卡时须保证每个进程都能调用该函数。
 
-dump操作必选。
-
 **函数原型**
 
 ```python
@@ -779,7 +777,7 @@ set_dump_path(fpath=None, dump_tag='ptdbg_dump')
 
 | 参数名   | 说明                                                         | 是否必选 |
 | -------- | ------------------------------------------------------------ | -------- |
-| fpath    | 设置dump数据目录路径。参数示例：'./dump_path'。dump_path须为已存在目录。<br/>默认在指定的dump_path路径下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当set_dump_switch函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。 | 是       |
+| fpath    | 设置dump数据目录路径。参数示例：'./dump_path'。<br/>默认在dump_path目录下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当set_dump_switch函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。<br/>未配置fpath时，也可以通过环境变量ASCEND_WORK_PATH配置dump路径，此时dump数据将落盘在${ASCEND_WORK_PATH}/dump_data下，自定义配置dump_path优先级高于环境变量，fpath和环境变量需要二选一。 | 否       |
 | dump_tag | 设置dump数据目录名称。参数示例：dump_tag='dump_conv2d'。默认dump数据目录命名为ptdbg_dump_{version}。<br/>{version}为当前安装ptdbg_ascend工具版本。目录结构参见“**dump数据存盘说明**”。<br/>配置该参数会将生成的`ptdbg_dump_{version}`目录名称变更为dump_tag配置的值，如`dump_conv2d_{version}`。 | 否       |
 
 **函数示例**
@@ -1369,7 +1367,7 @@ ptdbg_ascend.parse为命令行交互式界面解析工具，提供更多的数�
 - 输入以下比对命令进行数据比对。
 
   ```bash
-  vc -m [*my_dump_path*] -g [*golden_dump_path*] (-out) [*output_path*]
+  vc -m my_dump_path -g golden_dump_path [-out output_path]
   ```
   
   | 参数名称 | 说明                                                         | 是否必选 |
@@ -1381,7 +1379,7 @@ ptdbg_ascend.parse为命令行交互式界面解析工具，提供更多的数�
   
   - 输出结果：result_{timestamp}.csv文件。
   - 若指定-out参数需要用户传入输出路径，并且路径需要已存在。
-  - 若未指定输出目录或指定目录不存在， 则比对结束后将结果保存在默认目录 “./parse_data/comapre_result”中，比对结束后会打印log提示输出结果存放路径。
+  - 若未指定输出目录， 则比对结束后将结果保存在默认目录 “./parse_data/comapre_result”中，比对结束后会打印log提示输出结果存放路径。
 
 **示例**
 
@@ -1402,12 +1400,13 @@ Parse >>> vc -m ./my_dump_path -g ./golden_data_path
 - 输入以下转换命令进行数据转换， 将ACL级别dump数据转为npy文件。
 
   ```bash
-  dc -n [*file_name/file_path*] (-out) [*output_path*]
+  dc -n file_name/file_path [-f format] [-out output_path]
   ```
 
   | 参数名称 | 说明                                                         | 是否必选 |
   | -------- | ------------------------------------------------------------ | -------- |
   | -n       | 需转换的dump数据文件或dump数据文件目录。                     | 是       |
+  | -f       | 开启format转换，指定该参数时需要配置format格式，若未指定该参数，则直接转换为npy格式。 | 否       |
   | -out     | 结果输出目录。                                               | 否       |
   | -asc     | 指定msaccucmp路径，默认路径为：/usr/local/Ascend/ascend-toolkit/latest/tools/operator_cmp/compare/msaccucmp.py | 否       |
 
@@ -1415,12 +1414,12 @@ Parse >>> vc -m ./my_dump_path -g ./golden_data_path
 
   - 输出结果：npy文件。
   - 若指定-out参数需要用户传入输出路径，并且路径需要已存在。
-  - 若未指定输出目录或指定目录不存在， 则比对结束后将结果保存在默认目录 “./parse_data/convert_result”中，比对结束后会打印log提示输出结果存放路径及转换结果。
+  - 若未指定输出目录， 则比对结束后将结果保存在默认目录 “./parse_data/convert_result”中，比对结束后会打印log提示输出结果存放路径及转换结果。
 
 - 输入以下命令，展示npy数据统计信息。
 
   ```bash
-  pt -n [*file_path*]
+  pt -n file_path
   ```
 
   | 参数名称 | 说明          | 是否必选 |
@@ -1468,7 +1467,7 @@ TextFile:./parse_data/dump_convert/Add.fp32_vars_add_1fp32_vars_Relu_6.24.5.1636
 - 输入以下命令，解析并输出pkl文件中指定api的统计信息。
 
   ```bash
-  pk -f [*pkl_path*] -n [*api_name*]
+  pk -f pkl_path -n api_name
   ```
 
   | 参数名称 | 说明              | 是否必选 |
@@ -1499,7 +1498,7 @@ Statistic Info:
 - 输入以下命令, 进行统计级和像素级比对。
 
   ```bash
-  cn -m [*my_data *.npy*] -g [*gloden *.npy*] (-p) [*num*] (-al) [*atol*] (-rl) [*rtol*]
+  cn -m my_data*.npy -g gloden*.npy [-p num] [-al atol] [-rl rtol]
   ```
 
   - 统计级比对：对tensor整体进行余弦值及相对误差的计算。

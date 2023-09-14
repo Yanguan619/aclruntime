@@ -155,7 +155,7 @@ def get_tensor_rank(in_feat, out_feat):
     if in_rank is None:
         out_rank = get_tensor_rank_single(out_feat)
         if out_rank is None:
-            return 0
+            return None
         return out_rank
     return in_rank
 

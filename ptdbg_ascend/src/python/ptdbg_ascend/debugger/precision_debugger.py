@@ -1,6 +1,6 @@
 import os
 import torch
-from ..common.utils import Const, make_dump_path_if_not_exists, check_switch_valid, generate_compare_script,check_is_npu
+from ..common.utils import Const, check_switch_valid, generate_compare_script, check_is_npu
 from ..dump.dump import DumpUtil, acc_cmp_dump, write_to_disk, get_pkl_file_path
 from ..dump.utils import set_dump_path, set_dump_switch_print_info, generate_dump_path_str, \
         set_dump_switch_config, set_backward_input

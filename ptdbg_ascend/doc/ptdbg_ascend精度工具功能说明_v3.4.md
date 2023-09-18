@@ -328,6 +328,8 @@ set_dump_switch("ON", mode="api_list", api_list=["distributed"])
      ```python
      from ptdbg_ascend import *
      seed_all()
+     # 配置溢出数据目录路径和名称
+     set_dump_path("./overflow_dump")
      ...
      # 设置检测到3次溢出后退出训练
      register_hook(model, overflow_check, overflow_nums=3)
@@ -342,6 +344,8 @@ set_dump_switch("ON", mode="api_list", api_list=["distributed"])
      ```python
      from ptdbg_ascend import *
      seed_all()
+     # 配置溢出数据目录路径和名称
+     set_dump_path("./overflow_dump")
      ...
      # dump指定API的ACL级别溢出数据
      register_hook(model, overflow_check, dump_mode='acl', dump_config='./dump.json')
@@ -364,6 +368,8 @@ set_dump_switch("ON", mode="api_list", api_list=["distributed"])
         ```python
         from ptdbg_ascend import *
         seed_all()
+        # 配置溢出数据目录路径和名称
+        set_dump_path("./overflow_dump")
         ...
         # 设置检测到3次溢出后退出训练
         register_hook(model, overflow_check)
@@ -372,10 +378,12 @@ set_dump_switch("ON", mode="api_list", api_list=["distributed"])
         ```
 
      2. dump指定反向API的ACL级别的溢出数据
-
+     
         ```python
         from ptdbg_ascend import *
         seed_all()
+        # 配置溢出数据目录路径和名称
+        set_dump_path("./overflow_dump")
         ...
         # dump指定反向API的ACL级别溢出数据
         register_hook(model, acc_cmp_dump, dump_mode='acl', dump_config='./dump.json')
@@ -765,7 +773,7 @@ train_loader = torch.utils.data.DataLoader(
 
 **功能说明**
 
-设置dump数据目录。建议在seed_all函数之后调用且需要保证训练进程能够调用该函数；多卡时须保证每个进程都能调用该函数。
+设置数据保存目录。建议在seed_all函数之后调用且需要保证训练进程能够调用该函数；多卡时须保证每个进程都能调用该函数。
 
 **函数原型**
 
@@ -777,25 +785,25 @@ set_dump_path(fpath=None, dump_tag='ptdbg_dump')
 
 | 参数名   | 说明                                                         | 是否必选 |
 | -------- | ------------------------------------------------------------ | -------- |
-| fpath    | 设置dump数据目录路径。参数示例：'./dump_path'。<br/>默认在dump_path目录下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当set_dump_switch函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。<br/>未配置fpath时，也可以通过环境变量ASCEND_WORK_PATH配置dump路径，此时dump数据将落盘在${ASCEND_WORK_PATH}/dump_data下，自定义配置dump_path优先级高于环境变量，fpath和环境变量需要二选一。 | 否       |
-| dump_tag | 设置dump数据目录名称。参数示例：dump_tag='dump_conv2d'。默认dump数据目录命名为ptdbg_dump_{version}。<br/>{version}为当前安装ptdbg_ascend工具版本。目录结构参见“**dump数据存盘说明**”。<br/>配置该参数会将生成的`ptdbg_dump_{version}`目录名称变更为dump_tag配置的值，如`dump_conv2d_{version}`。 | 否       |
+| fpath    | 设置数据目录路径。参数示例：'./dump_path'。<br/>默认在dump_path目录下生成`ptdbg_dump_{version}`目录，并在该目录下生成`dump.pkl`文件以及`dump`数据文件保存目录。<br/>当set_dump_switch函数配置了mode参数时，`dump.pkl`文件以及`dump`数据文件保存目录名称添加mode参数值为前缀，详情请参见“**dump数据存盘说明**”。<br/>未配置fpath时，也可以通过环境变量ASCEND_WORK_PATH配置dump路径，此时数据将落盘在${ASCEND_WORK_PATH}/dump_data下，自定义配置dump_path优先级高于环境变量，fpath和环境变量需要二选一。 | 否       |
+| dump_tag | 设置数据目录名称。参数示例：dump_tag='dump_conv2d'。默认数据目录命名为ptdbg_dump_{version}。<br/>{version}为当前安装ptdbg_ascend工具版本。目录结构参见“**dump数据存盘说明**”。<br/>配置该参数会将生成的`ptdbg_dump_{version}`目录名称变更为dump_tag配置的值，如`dump_conv2d_{version}`。 | 否       |
 
 **函数示例**
 
-- 示例1：设置dump数据目录路径
+- 示例1：设置数据目录路径
 
   ```python
   set_dump_path('./dump_path')
   ```
 
-- 示例2：设置dump数据目录名称
+- 示例2：设置数据目录名称
 
   ```python
   set_dump_path('./dump_path', dump_tag='dump_conv2d')
   ```
 
 
-若以相同的dump数据目录多次dump，则会因同名导致覆盖；多次dump建议配置不同的dump_tag。
+若以相同的数据目录多次dump，则会因同名导致覆盖；多次dump建议配置不同的dump_tag。
 
 ### register_hook
 

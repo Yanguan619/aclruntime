@@ -55,7 +55,7 @@ torch.npu.set_device(f'npu:{rank}')
 
 ### 4. 运行compare.py时报错：json.decoder.JSONDecodeError: Extra data: line 1 column 37(char 36)
 
-遇到这种情况，先更新工具版本为2.2以上，再重新运行训练代码dump数据，再用新的dump数据进行精度比对。
+遇到这种情况，先更新工具版本为最新版本，再重新运行训练代码dump数据，再用新的dump数据进行精度比对，如果最新版本未能解决问题，请联系ptdbg工具开发人员。
 
 ### 5. AssertionError: assert set(WrapTensorOps) <= set(_tensor_ops)
 

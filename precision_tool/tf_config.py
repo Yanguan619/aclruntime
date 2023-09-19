@@ -32,7 +32,7 @@ def seed_everything(seed=cfg.DUMP_SEED):
         from tfdeterminism import patch
         patch()
         print("[PrecisionTool] patch tf determinism success.")
-    except ImportError as err:
+    except Exception as err:
         print("[PrecisionTool] No tfdeterminism module. Install it by pip3 install tfdeterminism.", err)
 
 

@@ -20,6 +20,8 @@ JSON_VALUE = 'value'
 JSON_KEY_LIST = 'list'
 JSON_KEY_STR = 's'
 JSON_KEY_INT = 'i'
+JSON_KEY_INPUT_I = 'input_i'
+JSON_KEY_OUTPUT_I = 'output_i'
 JSON_KEY_PASS_NAME = 'pass_name'
 JSON_KEY_DATA_DUMP_ORIGINAL_OP_NAMES = '_datadump_original_op_names'
 JSON_KEY_GE_ATTR_OP_KERNEL_LIB_NAME = "_ge_attr_op_kernel_lib_name"
@@ -74,6 +76,9 @@ class Op(object):
             self._looking_for_real_inputs()
         return self.input_list
 
+    def input_addr(self):
+        return self.op_json[JSON_KEY_INPUT_I]
+
     def outputs(self):
         """Get output list"""
         if self.output_list is None:
@@ -81,6 +86,9 @@ class Op(object):
         if len(self.output_list) == 0 and self.type() == 'PartitionedCall':
             self._looking_for_real_outputs()
         return self.output_list
+
+    def output_addr(self):
+        return self.op_json[JSON_KEY_OUTPUT_I]
 
     def pass_name(self):
         return self._attr(JSON_KEY_PASS_NAME)
@@ -165,6 +173,8 @@ class Op(object):
             res_str.append('OriginalOp: %s' % origin_op)
         if attr_detail:
             res_str.append(self._attr_detail())
+        res_str.append('InputAddr : [yellow]%s[/yellow]' % self.input_addr())
+        res_str.append('OutputAddr: [yellow]%s[/yellow]' % self.output_addr())
         res_str.append('Input:%s' % InputDesc.summary.__doc__)
         for i in self.inputs():
             res_str.append(' -' + i.summary(origin_txt))

@@ -1,7 +1,7 @@
 import os
 import torch
-from ..common.utils import Const, make_dump_path_if_not_exists, check_switch_valid
-from ..dump.dump import DumpUtil, acc_cmp_dump, write_to_disk
+from ..common.utils import Const, check_switch_valid, generate_compare_script, check_is_npu
+from ..dump.dump import DumpUtil, acc_cmp_dump, write_to_disk, get_pkl_file_path
 from ..dump.utils import set_dump_path, set_dump_switch_print_info, generate_dump_path_str, \
         set_dump_switch_config, set_backward_input
 from ..overflow_check.utils import OverFlowUtil
@@ -86,6 +86,8 @@ class PrecisionDebugger:
         dump_path_str = generate_dump_path_str()
         set_dump_switch_print_info("OFF", DumpUtil.dump_switch_mode, dump_path_str)
         write_to_disk()
+        if check_is_npu() and DumpUtil.dump_switch_mode in [Const.ALL, Const.API_STACK, Const.LIST, Const.RANGE]:
+            generate_compare_script(DumpUtil.dump_data_dir, get_pkl_file_path(), DumpUtil.dump_switch_mode)
 
     @classmethod
     def step(cls):

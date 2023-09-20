@@ -168,11 +168,6 @@ class Util:
         if not re.match(Const.FILE_PATTERN, os.path.realpath(path)):
             self.log.error('The file path {} contains special characters.'.format(path))
             raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
-
-        if os.path.isdir(path) and len(os.listdir(path)) == 0:
-            self.log.error("No files in %s." % path)
-            raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
-
         if os.path.isfile(path):
             file_size = os.path.getsize(path)
             if path.endswith(Const.PKL_SUFFIX) and file_size > Const.ONE_GB:
@@ -181,6 +176,11 @@ class Util:
             if path.endswith(Const.NPY_SUFFIX) and file_size > Const.TEN_GB:
                 self.log.error('The file {} size is greater than 10GB.'.format(path))
                 raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
+            
+    def check_files_in_path(self, path):
+        if os.path.isdir(path) and len(os.listdir(path)) == 0:
+            self.log.error("No files in %s." % path)
+            raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
 
     def npy_info(self, source_data):
         if isinstance(source_data, np.ndarray):

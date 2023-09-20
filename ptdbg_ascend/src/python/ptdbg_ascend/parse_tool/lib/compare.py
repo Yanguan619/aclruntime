@@ -42,6 +42,7 @@ class Compare:
 
     def compare_vector(self, my_dump_path, golden_dump_path, result_dir):
         self.util.create_dir(result_dir)
+        self.util.check_path_valid(result_dir)
         cmd = '%s %s compare -m %s -g %s -out %s' % (
             self.util.python, self.call_msaccucmp, my_dump_path, golden_dump_path, result_dir
         )
@@ -68,6 +69,7 @@ class Compare:
 
     def convert(self, dump_file, data_format, output):
         self.util.create_dir(output)
+        self.util.check_path_valid(output)
         if data_format:
             cmd = '%s %s convert -d %s -out %s -f %s' % (
                 self.util.python, self.call_msaccucmp, dump_file, output, data_format

@@ -44,7 +44,7 @@ class PrecisionDebugger:
             if acl_config is None:
                 raise ValueError("acl_config must be configured when mode is 'acl'")
             DumpUtil.dump_config = acl_config
-        if 'backward' in scope:
+            if 'backward' in scope:
                 if not backward_input:
                     raise ValueError("backward_input must be configured when mode is 'acl' and scope contains 'backward'")
                 set_backward_input(backward_input)

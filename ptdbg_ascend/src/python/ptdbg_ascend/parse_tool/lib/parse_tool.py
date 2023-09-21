@@ -94,7 +94,6 @@ class ParseTool:
         if args.ascend_path:
             Const.MS_ACCU_CMP_PATH = self.util.path_strip(args.ascend_path)
             self.util.check_path_valid(Const.MS_ACCU_CMP_PATH)
-            self.util.check_files_in_path(Const.MS_ACCU_CMP_PATH)
         self.compare.convert_dump_to_npy(args.path, args.format, args.output_path)
 
     @catch_exception

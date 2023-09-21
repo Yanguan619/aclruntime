@@ -66,7 +66,8 @@ class ParseTool:
         golden_dump_path = args.golden_dump_path
         self.util.check_path_valid(my_dump_path)
         self.util.check_path_valid(golden_dump_path)
-        self.util.check_path_valid(result_dir)
+        self.util.check_files_in_path(my_dump_path)
+        self.util.check_files_in_path(golden_dump_path)
         if not os.path.isdir(my_dump_path) or not os.path.isdir(golden_dump_path):
             self.util.log.error("Please enter a directory not a file")
             raise ParseException(ParseException.PARSE_INVALID_PATH_ERROR)
@@ -89,6 +90,7 @@ class ParseTool:
             required=False)
         args = parser.parse_args(argv)
         self.util.check_path_valid(args.path)
+        self.util.check_files_in_path(args.path)
         if args.ascend_path:
             Const.MS_ACCU_CMP_PATH = self.util.path_strip(args.ascend_path)
             self.util.check_path_valid(Const.MS_ACCU_CMP_PATH)

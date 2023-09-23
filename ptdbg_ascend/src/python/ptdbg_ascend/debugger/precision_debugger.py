@@ -44,12 +44,12 @@ class PrecisionDebugger:
             if not acl_config:
                 raise ValueError("acl_config must be configured when mode is 'acl'")
             DumpUtil.dump_config = acl_config
-            if scope and isinstance(scope[0], str) and 'backward' in scope[0]:
-                if not backward_input:
-                    raise ValueError("backward_input must be configured when mode is 'acl' and scope contains 'backward'")
+            if not scope or not isinstance(scope, list) or len(scope) != 1:
+                raise ValueError("scope must be congfigured as a list with one api name")
+            if isinstance(scope[0], str) and 'backward' in scope[0] and not backward_input:
+                raise ValueError("backward_input must be configured when scope contains 'backward'")
+            elif 'backward' in scope[0]:
                 set_backward_input(backward_input)
-            elif not scope:
-                raise ValueError("scope must be configured when mode is 'acl'")
 
     def configure_overflow_dump(self, mode="api", acl_config=None, overflow_nums=1, filter_switch = Const.OFF):
         if mode == "acl":

@@ -249,6 +249,10 @@ def print_warn_log(warn_msg):
 
 
 def check_mode_valid(mode, scope=[], api_list=[]):
+    if not isinstance(scope, list):
+        raise ValueError("scope param set invalid, it's must be a list.")
+    elif not isinstance(api_list, list):
+        raise ValueError("api_list param set invalid, it's must be a list.")
     mode_check = {
         Const.ALL: lambda: None,
         Const.RANGE: lambda:  ValueError("set_dump_switch, scope param set invalid, it's must be [start, end].") if len(scope) != 2 else None,

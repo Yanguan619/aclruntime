@@ -526,7 +526,7 @@ def get_time():
 
 
 def format_value(value):
-    return '{:.6f}'.format(value)
+    return '{:.14f}'.format(value)
 
 
 def torch_device_guard(func):

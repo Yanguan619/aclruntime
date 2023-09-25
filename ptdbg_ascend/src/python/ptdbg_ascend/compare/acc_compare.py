@@ -369,9 +369,9 @@ def _save_cmp_result(idx, cos_result, max_err_result, max_relative_err_result, e
         process_idx = idx[1]
         for i, _ in enumerate(cos_result):
             process_index = i * process_num + process_idx
-            csv_pd.loc[process_index, CompareConst.COSINE] = "{:.14f}".format(cos_result[i])
-            csv_pd.loc[process_index, CompareConst.MAX_ABS_ERR] = "{:.14f}".format(max_err_result[i])
-            csv_pd.loc[process_index, CompareConst.MAX_RELATIVE_ERR] = "{:.14f}".format(max_relative_err_result[i])
+            csv_pd.loc[process_index, CompareConst.COSINE] = cos_result[i]
+            csv_pd.loc[process_index, CompareConst.MAX_ABS_ERR] = max_err_result[i]
+            csv_pd.loc[process_index, CompareConst.MAX_RELATIVE_ERR] = max_relative_err_result[i]
             csv_pd.loc[process_index, CompareConst.ERROR_MESSAGE] = err_msg[i]
             csv_pd.loc[process_index, CompareConst.ACCURACY] = check_accuracy(cos_result[i], max_err_result[i])
         csv_pd.to_csv(result_path, index=False)

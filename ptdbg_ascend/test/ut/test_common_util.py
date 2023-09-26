@@ -50,7 +50,7 @@ class TestCommonUtilsMethods(unittest.TestCase):
 
     def test_format_value(self):
         value = 12345.6789
-        format_value = '{:.6f}'.format(value)
+        format_value = '{:.12f}'.format(value)
         self.assertEqual(common.format_value(value), format_value)
 
     def test_modify_dump_path(self):

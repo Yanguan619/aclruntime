@@ -137,6 +137,7 @@ def dump_data(dump_file_name, dump_step, prefix, data_info):
             if not DumpUtil.summary_only:
                 np.save(output_path, data_info.save_data)
             api_list.append([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data])
+            print("process: {} dump: {}".format(os.getpid(), prefix), end='\r', flush=True)
     except Exception as e:
         print_warn_log("Dump data failed, error: {}".format(e))
     finally:

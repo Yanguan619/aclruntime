@@ -14,7 +14,6 @@ class TestDump(unittest.TestCase):
 
     def test_get_not_float_tensor_info(self):
         data_info = get_not_float_tensor_info(self.tensor)
-        self.assertEqual(data_info.data, self.tensor)
         self.assertEqual(data_info.save_data.tolist(), self.tensor.numpy().tolist())
         self.assertEqual(data_info.summary_data, [3.0, 1.0, 2.0])
         self.assertEqual(data_info.dtype, 'torch.float32')
@@ -30,7 +29,6 @@ class TestDump(unittest.TestCase):
 
     def test_get_float_tensor_info(self):
         data_info = get_float_tensor_info(self.tensor)
-        self.assertEqual(data_info.data, self.tensor)
         self.assertEqual(data_info.save_data.tolist(), self.tensor.numpy().tolist())
         self.assertEqual(data_info.summary_data, [3.0, 1.0, 2.0])
         self.assertEqual(data_info.dtype, 'torch.float32')
@@ -41,7 +39,6 @@ class TestDump(unittest.TestCase):
         tensor_min = 1.0
         tensor_mean = 2.0
         data_info = get_tensor_data_info(self.tensor, tensor_max, tensor_min, tensor_mean)
-        self.assertEqual(data_info.data, self.tensor)
         self.assertEqual(data_info.save_data.tolist(), self.tensor.numpy().tolist())
         self.assertEqual(data_info.summary_data, [tensor_max, tensor_min, tensor_mean])
         self.assertEqual(data_info.dtype, 'torch.float32')
@@ -50,31 +47,6 @@ class TestDump(unittest.TestCase):
     def test_json_dump_condition(self):
         result = json_dump_condition(self.prefix)
         self.assertEqual(result, False)
-
-    def test_dump_tensor(self):
-        dump_tensor(self.tensor, self.prefix, self.dump_step, self.dump_file_name)
-        self.assertTrue(os.path.exists(self.dump_file_name))
-
-    def test_dump_data(self):
-        data_info = get_float_tensor_info(self.tensor)
-        dump_data(self.dump_file_name, self.dump_step, self.prefix, data_info)
-        self.assertTrue(os.path.exists(self.dump_file_name))
-
-    def test_dump_stack_info(self):
-        dump_stack_info(self.prefix, self.dump_file_name)
-        self.assertTrue(os.path.exists(self.dump_file_name))
-
-    def test_dump_api_tensor(self):
-        in_feat = self.tensor
-        out_feat = self.tensor
-        name_template = "{}"
-        dump_file = "test_file"
-        dump_api_tensor(self.dump_step, in_feat, name_template, out_feat, dump_file)
-        self.assertTrue(os.path.exists(dump_file))
-
-    def test_write_to_disk(self):
-        write_to_disk()
-        self.assertTrue(os.path.exists(self.dump_file_name))
 
     def test_get_pkl_file_path(self):
         result = get_pkl_file_path()

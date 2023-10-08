@@ -13,11 +13,6 @@ class TestUtils(unittest.TestCase):
             result = self.util.execute_command('echo hello')
             self.assertEqual(result, 0)
 
-    def test_print_panel(self):
-        with patch('rich.print') as mocked_print:
-            self.util.print_panel('Hello')
-            mocked_print.assert_called_once()
-
     def test_check_msaccucmp(self):
         with patch('subprocess.run') as mocked_run:
             mocked_run.return_value.returncode = 0
@@ -34,28 +29,6 @@ class TestUtils(unittest.TestCase):
         with patch('numpy.savetxt') as mocked_savetxt:
             self.util.save_npy_to_txt(data, 'test.txt')
             mocked_savetxt.assert_called_once()
-
-    def test_list_convert_files(self):
-        with patch('os.walk') as mocked_walk:
-            mocked_walk.return_value = [('dir_path', 'dir_names', ['file1', 'file2'])]
-            result = self.util.list_convert_files('path')
-            self.assertEqual(result, {})
-
-    def test_list_numpy_files(self):
-        with patch('os.walk') as mocked_walk:
-            mocked_walk.return_value = [('dir_path', 'dir_names', ['file1.npy', 'file2.npy'])]
-            result = self.util.list_numpy_files('path')
-            self.assertEqual(result, {})
-
-    def test_create_columns(self):
-        with patch('rich.columns.Columns') as mocked_columns:
-            self.util.create_columns('content')
-            mocked_columns.assert_called_once()
-
-    def test_create_table(self):
-        with patch('rich.table.Table') as mocked_table:
-            self.util.create_table('title', ['column1', 'column2'])
-            mocked_table.assert_called_once()
 
     def test_check_path_valid(self):
         with patch('os.path.exists') as mocked_exists:

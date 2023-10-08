@@ -22,9 +22,9 @@ class TestVisualization(unittest.TestCase):
 
     def test_parse_pkl(self):
         with open('test.pkl', 'w') as f:
-            f.write('{"0": "test", "1": [], "2": "", "3": "float32", "4": [1, 2], "5": [0, 1, 0.5]}')
+            f.write('["api_name", [], "", "", "", ["", "", ""]]')
         try:
-            self.visualization.parse_pkl('test.pkl', 'test')
+            self.visualization.parse_pkl('test.pkl', 'api_name')
         except Exception as e:
             self.fail(f"parse_pkl raised exception {e}")
 

@@ -1,7 +1,7 @@
 import unittest
 import torch
 import os
-from src.python.ptdbg_ascend.overflow_check import info_dump
+from ptdbg_ascend.overflow_check import info_dump
 
 class TestInfoDump(unittest.TestCase):
 

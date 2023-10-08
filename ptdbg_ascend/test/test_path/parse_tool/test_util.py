@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import numpy as np
-from src.python.ptdbg_ascend.parse_tool.lib import utils
+from ptdbg_ascend.parse_tool.lib import utils
 
 class TestUtils(unittest.TestCase):
     def setUp(self):

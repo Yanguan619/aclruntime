@@ -1,7 +1,7 @@
 import unittest
 import os
 import torch
-from src.python.ptdbg_ascend.online_dispatch import utils
+from ptdbg_ascend.online_dispatch import utils
 
 class TestUtils(unittest.TestCase):
     def setUp(self):

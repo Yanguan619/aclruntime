@@ -1,6 +1,6 @@
 import unittest
 import torch.distributed as dist
-from src.python.ptdbg_ascend.hook_module.wrap_distributed import *
+from ptdbg_ascend.hook_module.wrap_distributed import *
 
 class TestWrapDistributed(unittest.TestCase):
     def setUp(self):

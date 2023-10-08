@@ -1,5 +1,5 @@
 import unittest
-from src.python.ptdbg_ascend.debugger.debugger_config import DebuggerConfig
+from ptdbg_ascend.debugger.debugger_config import DebuggerConfig
 
 class TestDebuggerConfig(unittest.TestCase):
     def setUp(self):

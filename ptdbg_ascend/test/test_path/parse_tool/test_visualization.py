@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from src.python.ptdbg_ascend.parse_tool.lib.visualization import Visualization
+from ptdbg_ascend.parse_tool.lib.visualization import Visualization
 
 class TestVisualization(unittest.TestCase):
     def setUp(self):

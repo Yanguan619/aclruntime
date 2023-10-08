@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from src.python.ptdbg_ascend.parse_tool.lib.compare import Compare
+from ptdbg_ascend.parse_tool.lib.compare import Compare
 
 # - my_dump_path：要比较的第一个文件或目录的路径。
 # - golden_dump_path：要比较的第二个文件或目录的路径。

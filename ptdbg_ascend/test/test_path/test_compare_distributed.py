@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from src.python.ptdbg_ascend.compare.distributed_compare import compare_distributed
+from ptdbg_ascend.compare.distributed_compare import compare_distributed
 
 class TestDistributedCompare(unittest.TestCase):
 

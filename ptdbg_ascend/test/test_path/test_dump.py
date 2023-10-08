@@ -1,7 +1,7 @@
 import unittest
 import torch
 import numpy as np
-from src.python.ptdbg_ascend.dump.dump import *
+from ptdbg_ascend.dump.dump import *
 
 class TestDump(unittest.TestCase):
 

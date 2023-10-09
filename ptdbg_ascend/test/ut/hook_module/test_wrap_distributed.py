@@ -4,7 +4,7 @@ from ptdbg_ascend.hook_module.wrap_distributed import *
 
 class TestWrapDistributed(unittest.TestCase):
     def setUp(self):
-        self.hook = lambda x: x  # 定义一个简单的钩子函数，只返回输入
+        self.hook = lambda x: x
 
     def test_get_distributed_ops(self):
         ops = get_distributed_ops()

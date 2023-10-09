@@ -50,23 +50,3 @@ class TestUtilsMethods(unittest.TestCase):
         overflow_check.backward_init_status = False
         res = overflow_check.check_overflow_environment(pid)
         self.assertEqual(res, True)
-
-    # def test_delete_forward_npy(self):
-    #     utils.set_overflow_check_switch(ON, ON)
-    #     OverFlowUtil.get_overflow_check_switch()
-    #     pid = os.getpid()
-    #     overflow_check.is_gpu = False
-    #     overflow_check.backward_init_status = False
-    #     overflow_check.check_overflow_environment(pid)
-    #     res = overflow_check.delete_forward_npy(pid)
-    #     self.assertEqual(res, True)
-    
-    # def test_check_data_overflow_when_data_inf_nan(self):
-    #     utils.set_overflow_check_switch(ON, ON)
-    #     OverFlowUtil.get_overflow_check_switch()
-    #     pid = os.getpid()
-    #     overflow_check.is_gpu = False
-    #     overflow_check.backward_init_status = False
-    #     overflow_check.check_overflow_environment(pid)
-    #     res = overflow_check.check_data_overflow_when_data_inf_nan(pid)
-    #     self.assertEqual(res, True)

@@ -60,6 +60,11 @@ def initialize_hook(hook):
     for attr_name in dir(wrap_distributed.HOOKDistributedOP):
         if attr_name.startswith("wrap_"):
             setattr(dist, attr_name[5:], getattr(wrap_distributed.HOOKDistributedOP, attr_name))
+            setattr(dist.distributed_c10d, attr_name[5:], getattr(wrap_distributed.HOOKDistributedOP, attr_name))
+            if not is_gpu:
+                setattr(torch_npu.distributed, attr_name[5:], getattr(wrap_distributed.HOOKDistributedOP, attr_name))
+                setattr(torch_npu.distributed.distributed_c10d, attr_name[5:],
+                        getattr(wrap_distributed.HOOKDistributedOP, attr_name))
 
     wrap_vf.wrap_vf_ops_and_bind(hook)
     for attr_name in dir(wrap_vf.HOOKVfOP):

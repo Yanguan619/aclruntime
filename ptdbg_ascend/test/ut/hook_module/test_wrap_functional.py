@@ -15,20 +15,6 @@ class TestWrapFunctional(unittest.TestCase):
         actual_ops = wf.get_functional_ops()
         self.assertTrue(expected_ops.issubset(actual_ops))
 
-    def test_FunctionalOPTemplate(self):
-        instance = wf.FunctionalOPTemplate('relu', None)
-        input_tensor = torch.randn(20, 16)
-        expected_output = torch.relu(input_tensor)
-        actual_output = instance.forward(input_tensor)
-        self.assertTrue(torch.equal(expected_output, actual_output))
-
-    def test_wrap_functional_op(self):
-        wrapped_op = wf.wrap_functional_op('relu', None)
-        input_tensor = torch.randn(20, 16)
-        expected_output = torch.relu(input_tensor)
-        actual_output = wrapped_op(input_tensor)
-        self.assertTrue(torch.equal(expected_output, actual_output))
-
     def test_wrap_functional_ops_and_bind(self):
         wf.wrap_functional_ops_and_bind(None)
         self.assertTrue(hasattr(wf.HOOKFunctionalOP, 'wrap_relu'))

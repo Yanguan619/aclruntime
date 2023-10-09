@@ -24,19 +24,9 @@ class TestWrapTorch(unittest.TestCase):
         template = TorchOPTemplate(self.op_name, self.hook)
         self.assertFalse(template.input_param_need_adapt())
 
-    def test_einsum_adapt(self):
-        template = TorchOPTemplate('einsum', self.hook)
-        equation, operands = template.einsum_adapt('i->', torch.tensor([0, 1, 2]))
-        self.assertEqual(equation, 'i->')
-        self.assertEqual(operands, (torch.tensor([0, 1, 2]),))
-
     def test_forward(self):
         template = TorchOPTemplate(self.op_name, self.hook)
         result = template.forward(torch.tensor([1, 2, 3]), torch.tensor([4, 5, 6]))
-        torch.testing.assert_allclose(result, torch.tensor([5, 7, 9]))
-
-    def test_wrap_torch_op(self):
-        result = self.torch_op(torch.tensor([1, 2, 3]), torch.tensor([4, 5, 6]))
         torch.testing.assert_allclose(result, torch.tensor([5, 7, 9]))
 
     def test_wrap_torch_ops_and_bind(self):

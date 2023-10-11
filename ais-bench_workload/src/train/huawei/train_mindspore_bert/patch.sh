@@ -77,15 +77,21 @@ get_git_info(){
         git_url="https://gitee.com/mindspore/models.git"
         modelzoo_sub_dir="models/official/nlp/bert"
     elif [ "$branch_args" == "r2.0" ];then
-        branch="master"
+        branch="r2.0"
         patch_file_name="r2.0"
-        commitid="c8aef5ce27c01f09f85e48013327f9176bced004"
+        commitid="f211f336e8bee3cf531bcad5f611f408069c6f9f"
         git_url="https://gitee.com/mindspore/models.git"
         modelzoo_sub_dir="models/official/nlp/Bert"
     elif [ "$branch_args" == "r2.1" ];then
-        branch="master"
+        branch="r2.1"
         patch_file_name="r2.1"
-        commitid="c3fadcba55559e3a3bc6f190b8cde9676b53b5fe"
+        commitid="44f2dc18e9bd52c6bcadd18f6567817ad798f641"
+        git_url="https://gitee.com/mindspore/models.git"
+        modelzoo_sub_dir="models/official/nlp/Bert"
+    elif [ "$branch_args" == "r2.2" ];then
+        branch="master"
+        patch_file_name="r2.2"
+        commitid="80205cf2601cc2563d33c77e1bcf44d651d6049b"
         git_url="https://gitee.com/mindspore/models.git"
         modelzoo_sub_dir="models/official/nlp/Bert"
     else

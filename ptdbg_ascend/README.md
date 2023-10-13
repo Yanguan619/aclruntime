@@ -1,5 +1,7 @@
 # **PyTorch精度工具**
 
+ptdbg_ascend精度工具已迁移，当前代码不再维护，最新版本请切换到新地址使用：https://gitee.com/ascend/att/tree/master/debug/accuracy_tools/ptdbg_ascend
+
 ## 快速安装
 
 进行PyTorch精度比对需要将ptdbg_ascend精度工具分别安装在CPU或GPU环境以及NPU环境下。

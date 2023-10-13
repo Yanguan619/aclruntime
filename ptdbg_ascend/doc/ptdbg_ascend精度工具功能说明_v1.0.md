@@ -1,5 +1,7 @@
 # **PyTorch精度工具使用指南**
 
+ptdbg_ascend精度工具已迁移，当前代码不再维护，最新版本请切换到新地址使用：https://gitee.com/ascend/att/tree/master/debug/accuracy_tools/ptdbg_ascend
+
 ## 简介
 本文介绍ptdbg_ascend精度工具，用来进行整网API粒度的数据dump，精度比对和溢出检测，从而定位pytoch训练场景下的精度问题。
 

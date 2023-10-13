@@ -1,5 +1,7 @@
 # **PyTorch精度工具使用指南**
 
+ptdbg_ascend精度工具已迁移，当前代码不再维护，最新版本请切换到新地址使用：https://gitee.com/ascend/att/tree/master/debug/accuracy_tools/ptdbg_ascend
+
 本文主要介绍PyTorch精度工具精度工具ptdbg_ascend的使用以及精度比对场景示例。
 
 ptdbg_ascend工具的原理及安装请参见《[PyTorch精度工具](https://gitee.com/ascend/tools/blob/master/ptdbg_ascend/README.md)》。

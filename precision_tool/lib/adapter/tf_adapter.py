@@ -93,7 +93,7 @@ class TfAdapter(object):
         if self._is_dump(action):
             npu_device.global_options().dump_config.enable_dump = True
             npu_device.global_options().dump_config.dump_path = cfg.DEFAULT_NPU_DUMP_DIR
-            npu_device.global_options().dump_config.dump_debug_mode = "all"
+            npu_device.global_options().dump_config.dump_mode = "all"
             npu_device.global_options().op_debug_level = cfg.OP_DEBUG_LEVEL
             npu_device.global_options().dump_config.dump_step = cfg.TF_DUMP_STEP
             if self._is_dump_stats(action):

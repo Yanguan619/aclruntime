@@ -494,7 +494,7 @@ class Util(object):
 
     @staticmethod
     def _gen_build_graph_file_info(name, match, dir_path):
-        return BuildGraphFileDesc(name, dir_path, -1, int(match.group(1)), match.group(2))
+        return BuildGraphFileDesc(name, dir_path, -1, int(match.group(1)), match.groups()[-1])
 
     @staticmethod
     def _gen_dump_file_info(name, match, dir_path):

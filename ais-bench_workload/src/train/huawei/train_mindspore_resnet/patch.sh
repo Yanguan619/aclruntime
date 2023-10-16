@@ -85,7 +85,7 @@ get_git_info(){
     elif [ "$branch_args" == "r2.2" ];then
         branch="master"
         patch_file_name="r2.2"
-        commitid="80205cf2601cc2563d33c77e1bcf44d651d6049b"
+        commitid="bb9ab4fdfb2fc205ffeb4dd671be77312908ef88"
         git_url="https://gitee.com/mindspore/models.git"
         modelzoo_sub_dir="models/official/cv/ResNet"
     else

@@ -77,7 +77,9 @@ class Op(object):
         return self.input_list
 
     def input_addr(self):
-        return self.op_json[JSON_KEY_INPUT_I]
+        if JSON_KEY_INPUT_I in self.op_json:
+            return self.op_json[JSON_KEY_INPUT_I]
+        return []
 
     def outputs(self):
         """Get output list"""
@@ -88,7 +90,9 @@ class Op(object):
         return self.output_list
 
     def output_addr(self):
-        return self.op_json[JSON_KEY_OUTPUT_I]
+        if JSON_KEY_OUTPUT_I in self.op_json:
+            return self.op_json[JSON_KEY_OUTPUT_I]
+        return []
 
     def pass_name(self):
         return self._attr(JSON_KEY_PASS_NAME)

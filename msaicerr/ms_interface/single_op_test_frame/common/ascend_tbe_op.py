@@ -121,6 +121,7 @@ class AscendOpKernel:
         self.compile_info = compile_info
         self.need_do_tiling = True
 
+
 class AscendOpKernelParam:
     """
     Class AscendOpKernelParam
@@ -133,7 +134,11 @@ class AscendOpKernelParam:
             self._np_data = np_data
             self._is_const = True
             self.shape = np_data.shape
-            self.dtype = dtype_trans.np_dtype_to_str(np_data.dtype)
+            if str(np_data.dtype) == "|V2":
+                logger.log_info(f"self.dtype is None, MayBe bloat16, same size with float16")
+                self.dtype = "float16"
+            else:
+                self.dtype = dtype_trans.np_dtype_to_str(np_data.dtype)
         else:
             self._np_data = None
             self._is_const = False
@@ -336,8 +341,7 @@ class AscendOpKernelRunner:
                 init_value = kernel.parameters[param_index].get("init_value")
                 dtype_size = dtype_trans.get_dtype_byte(data_dtype)
                 shape = (math.ceil(workspace_size / dtype_size),)
-                data = (np.ones(shape) *
-                        init_value if init_value else np.zeros(shape)).astype(data_dtype)
+                data = (np.ones(shape) * init_value if init_value else np.zeros(shape)).astype(data_dtype)
                 kernel_param = AscendOpKernelParam.build_op_param_by_np_data(np_data=data)
                 kernel_param.sync_to_device(self.ascend_device)
                 wksp_hbm_pointers.append(kernel_param._hbm_pointer)

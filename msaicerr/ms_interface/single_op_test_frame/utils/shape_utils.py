@@ -20,6 +20,7 @@ shape utils module
 import functools
 from ms_interface.single_op_test_frame.common import dtype_trans
 
+
 def calc_shape_size(shape):
     """
     calc shape size

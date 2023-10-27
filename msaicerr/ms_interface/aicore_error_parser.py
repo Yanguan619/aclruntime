@@ -43,10 +43,11 @@ class AicoreErrorParser:
     The AicoreErrorParser class, parse aicore error info
     """
 
-    def __init__(self: any, collection: any, output_path: str, collect_time: any) -> None:
+    def __init__(self: any, collection: any, output_path: str, collect_time: any, parameters: any = None) -> None:
         self.collection = collection
         self.output_path = output_path
         self.collect_time = collect_time
+        self.parameters = parameters
 
     def _get_graph_file(self: any) -> str:
         utils.print_info_log("Start to get graph file.")
@@ -58,7 +59,10 @@ class AicoreErrorParser:
                 if pattern_match:
                     match_list.append((pattern_match.group(1), os.path.join(top, name)))
         new_match_list = sorted(match_list, key=lambda s: s[0], reverse=True)
-        choose_file = new_match_list[0][1]
+        if len(new_match_list) > 0 and len(new_match_list[0]) > 0:
+            choose_file = new_match_list[0][1]
+        else:
+            choose_file  = []
         utils.print_info_log(f'Choose {choose_file} to read op info.')
         return choose_file
 
@@ -85,7 +89,7 @@ class AicoreErrorParser:
 建议选择最近发生的AICERROR，查看其中的info.txt
 
 """ % (time.strftime("%Y-%m-%d %H:%M:%S", self.collect_time),
-       len(self.collection.ai_core_error_list), "\n".join(summary_info_list))
+        len(self.collection.ai_core_error_list), "\n".join(summary_info_list))
         summary_file = os.path.join(self.output_path, "README.txt")
         utils.write_file(summary_file, summary)
         utils.print_info_log('The summary info is saved in %s' % summary_file)
@@ -153,11 +157,11 @@ class AicoreErrorParser:
                         self.collection.collect_plog_path]
         _, aic_info = utils.execute_command(aic_info_cmd)
         utils.print_info_log(f"===============================\n{aic_info}\n==================================")
-        
+
         if not aic_info:
-          utils.print_error_log(f"Failed to get \"[AIC_INFO] dev_func:\" {info.kernel_name} in plog, "
-                                ".Please check exception_dump of Gragh Engine!")
-          raise utils.AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR)
+            utils.print_error_log(f"Failed to get \"[AIC_INFO] dev_func:\" {info.kernel_name} in plog, "
+                                  ".Please check exception_dump of Gragh Engine!")
+            raise utils.AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR)
 
         # 解析出输入参数
         aic_info_input_regexp = r"\[AIC_INFO\]\sinput:(.*?);shape:(.*?);format:(.*?);dtype:(.*?);addr:(.*?)$"
@@ -169,8 +173,8 @@ class AicoreErrorParser:
             first_input_addr = utils.get_str_value(aic_info_input_ret[0][4])
         input_params = []
 
-        
-        json_file = os.path.join(self.collection.collect_kernel_path, info.kernel_name + ".json") 
+
+        json_file = os.path.join(self.collection.collect_kernel_path, info.kernel_name + ".json")
         try:
             with open(json_file, "r") as f:
                 json_obj = json.load(f)
@@ -178,7 +182,7 @@ class AicoreErrorParser:
             len_of_args = len(self.parameters)
         except Exception as e:
             utils.print_error_log(f"There is no json file {json_file}!")
-            utils.global_result = False
+            utils.GLOBAL_RESULT = False
             len_of_args = 0
 
         need_check_args = []
@@ -186,7 +190,7 @@ class AicoreErrorParser:
             if first_input_addr == args[0]:
                 need_check_args = args[: len_of_args]
                 break
-        
+
         index_of_arg = 0
         for input_info in aic_info_input_ret:
             input_param = {}
@@ -219,8 +223,23 @@ class AicoreErrorParser:
                 index_of_arg += 1
             output_params.append(output_param)
 
+        #workspace
+        workspace = self._get_workspace(aic_info)
+
+        # tiling
+        tiling_key, tiling_data, block_dim = self._get_tiling(aic_info)
+
+        result["input_addr"] = input_params
+        result["output_addr"] = output_params
+        result["workspace"] = workspace
+        result["tiling"] = [tiling_key, tiling_data, block_dim]
+        result["need_check_args"] = need_check_args
+        return result
+
+    @staticmethod
+    def _get_workspace(aic_info_workspace: str) -> str:
         aic_info_workspace_regex = r"\[AIC_INFO\]\sworkspace_bytes|workspace_size:(.*?)"
-        aic_info_workspace_ret = re.findall(aic_info_workspace_regex, aic_info, re.M)
+        aic_info_workspace_ret = re.findall(aic_info_workspace_regex, aic_info_workspace, re.M)
         if len(aic_info_workspace_ret) == 0:
             utils.print_warn_log(f"Failed to get {aic_info_workspace_regex} from [AIC_INFO].")
         elif len(aic_info_workspace_ret[0]) == 0:
@@ -228,10 +247,12 @@ class AicoreErrorParser:
             workspace = "0"
         else:
             workspace = aic_info_workspace_ret[0][0]
+        return workspace
 
-        # tiling
+    @staticmethod
+    def _get_tiling(aic_info_tiling: str) -> tuple:
         tiling_data_regexp = r"\[AIC_INFO\]\stiling_data:(.*)"
-        tiling_data_ret = re.findall(tiling_data_regexp, aic_info, re.M)
+        tiling_data_ret = re.findall(tiling_data_regexp, aic_info_tiling, re.M)
         if len(tiling_data_ret) == 0:
             utils.print_warn_log(f"Failed to get {tiling_data_regexp}")
             tiling_data = None
@@ -247,7 +268,7 @@ class AicoreErrorParser:
                 tiling_data = bytes(tiling_data_ret[0], 'utf-8')
 
         tiling_key_regexp = r"\[AIC_INFO\]\stiling_key:([0-9]{1,})"
-        tiling_key_ret = re.findall(tiling_key_regexp, aic_info, re.M)
+        tiling_key_ret = re.findall(tiling_key_regexp, aic_info_tiling, re.M)
         if len(tiling_key_ret) == 0:
             utils.print_warn_log(f"Failed to get {tiling_key_regexp}")
             tiling_key = "0"
@@ -255,7 +276,7 @@ class AicoreErrorParser:
             tiling_key = tiling_key_ret[0]
 
         block_dim_regexp = r"\[AIC_INFO\]\sblock_dim:(\d+)"
-        block_dim_ret = re.findall(block_dim_regexp, aic_info, re.M)
+        block_dim_ret = re.findall(block_dim_regexp, aic_info_tiling, re.M)
         if len(block_dim_ret) == 0:
             utils.print_warn_log(f"Failed to get {block_dim_regexp} from [AIC_INFO].")
         elif len(block_dim_ret[0]) == 0:
@@ -263,13 +284,7 @@ class AicoreErrorParser:
             block_dim = -1
         else:
             block_dim = int(block_dim_ret[0])
-
-        result["input_addr"] = input_params
-        result["output_addr"] = output_params
-        result["workspace"] = workspace
-        result["tiling"] = [tiling_key, tiling_data, block_dim]
-        result["need_check_args"] = need_check_args
-        return result
+        return tiling_key, tiling_data, block_dim
 
     @staticmethod
     def _cal_shape_size(shape_str):
@@ -278,7 +293,7 @@ class AicoreErrorParser:
             return 1
         shape_str_list = shape_str.replace("[", "").replace("]", "").split(",")
         return reduce(lambda x, y: int(x) * int(y), shape_str_list)
-    
+
     @staticmethod
     def _check_addr_in_range(addr, size, ranges):
         if not isinstance(addr, int):
@@ -324,12 +339,12 @@ class AicoreErrorParser:
             utils.print_info_log(f"shape_size is {shape_size}, size_of_dtype is {size_of_dtype}")
             output_param["size"] = int(shape_size) * int(size_of_dtype)
             output_param["in_range"] = self._check_addr_in_range(start_addr, output_param["size"], avaliable_addrs)
-        
-        used_addrs["fault_arg_index"]=[]
+
+        used_addrs["fault_arg_index"] = []
         if need_check_args:
             for i, arg in enumerate(need_check_args):
                 if not self._check_addr_in_range(arg, 0, avaliable_addrs):
-                  used_addrs["fault_arg_index"].append(i)
+                    used_addrs["fault_arg_index"].append(i)
 
     def _get_info_for_decompile(self: any, info: any) -> tuple:
         info.instr = ""
@@ -354,11 +369,18 @@ class AicoreErrorParser:
 
     @staticmethod
     def _get_decompile_status(o_file: str, decompile_file: str) -> int:
-        cmd = [Constant.OBJ_DUMP_FILE, '-d', '--line-numbers', o_file]
+        if shutil.which(Constant.OBJ_DUMP_FILE):
+            objdump = Constant.OBJ_DUMP_FILE
+        elif shutil.which(Constant.NEW_DUMP_FILE):
+            objdump = Constant.NEW_DUMP_FILE
+        else:
+            utils.print_error_log("No cce-objdump or llvm-objdump found.")
+        cmd = [objdump, '-d', '--line-numbers', o_file]
         status, _ = utils.execute_command(cmd, file_out=decompile_file)
         return status
 
-    def _update_err_pc(self: any, err_pc: str, decompile_file: str, kernel_name: str) -> None:
+    @staticmethod
+    def _update_err_pc(err_pc: str, decompile_file: str, kernel_name: str) -> None:
         # 模板类算子是多个.o合成需找到对应的行号
         utils.print_info_log(f"Start to update err pc: {err_pc}.")
         update_pc_cmd = ['grep', f'{kernel_name}$local', decompile_file]
@@ -374,7 +396,7 @@ class AicoreErrorParser:
 
     def _decompile(self: any, kernel_meta_path: str, dir_path: str, info: any) -> bool:
         kernel_name = info.kernel_name
-        
+
         tiling_key = info.necessary_addr["tiling"][0]
 
         # decompile .o file
@@ -424,6 +446,8 @@ class AicoreErrorParser:
                 new_pc_value -= 1024
             err_pc = hex(new_pc_value - start_pc5_value)[2:]
             info.instr += "\nError occured most likely at line: %s\n\n" % err_pc
+        else:
+            err_pc = hex(current_pc5_value - start_pc5_value)[2:]
 
         return err_pc
 
@@ -485,13 +509,12 @@ SingleOpCase.run(config)"""
         with open(case_file, 'w') as f:
             f.write(case_content)
         return case_file
-    
+
     @staticmethod
     def _test_single_op(collection):
         single_op_case = SingleOpCase(collection)
         config_list = single_op_case.generate_config()
         for config in config_list:
-            single_op_ret = single_op_case.run(config)
             case_file = AicoreErrorParser.__generate_case(config)
 
             date_string = time.strftime("%Y%m%d%H%M%S", time.localtime(int(time.time())))
@@ -504,11 +527,11 @@ SingleOpCase.run(config)"""
             new_env['ASCEND_PROCESS_LOG_PATH'] = single_op_log_path
             new_env['PYTHONPATH'] = new_env['PYTHONPATH'] + ":" + os.path.dirname(current_path)
             subprocess.run(['python3', case_file],  env=new_env)
-            single_op_ret = not AicoreErrorParser.search_aicerr_log(kernel_name, os.path.join(single_op_log_path, "debug"))
+            single_op_ret = not AicoreErrorParser.search_aicerr_log(kernel_name,
+                                                                    os.path.join(single_op_log_path, "debug"))
 
             if os.path.exists(single_op_log_path):
                 shutil.rmtree(single_op_log_path)
-
             if not single_op_ret:
                 split_line = "#" * 50
                 utils.print_info_log(split_line)
@@ -516,7 +539,6 @@ SingleOpCase.run(config)"""
                 utils.print_info_log(f"Run 'python3 {case_file}' can test op!")
                 utils.print_info_log(split_line)
                 return False
-
         return True
 
     @staticmethod
@@ -562,21 +584,22 @@ SingleOpCase.run(config)"""
 
         # get graph file
         graph_file = self._get_graph_file()
-        aicore_error_data_list.extend([graph_file])
+        if graph_file:
+            aicore_error_data_list.extend([graph_file])
         return aicore_error_data_list
 
     def _get_data_dump_result(self:any):
         try:
-            data_dump_failed_cmd = ['grep', 'exception_dumper.cc.*Dump exception.*failed', '-nr', 
+            data_dump_failed_cmd = ['grep', 'exception_dumper.cc.*Dump exception.*failed', '-nr',
                                     self.collection.collect_plog_path]
             data_dump_ret, _ = utils.execute_command(data_dump_failed_cmd)
             if data_dump_ret == 0:
-              utils.print_warn_log("Data dump failed in exception dump. Please contact GE to resolve it!")
-              return False
+                utils.print_warn_log("Data dump failed in exception dump. Please contact GE to resolve it!")
+                return False
         except utils.AicErrException as e:
             utils.print_info_log("Failed to dump data!")
         return True
-    
+
     def _need_atomic_clean(self: any, kernel_meta_path: str, info: any) -> bool:
         kernel_name = info.kernel_name
         json_file = os.path.join(kernel_meta_path, kernel_name + ".json")
@@ -592,9 +615,9 @@ SingleOpCase.run(config)"""
             self.parameters = json_obj.get("parameters")
             for param in self.parameters:
                 if param is not None:
-                  return True
+                    return True
         return False
-          
+
     def _check_atomic_clean(self: any, kernel_meta_path: str, info: AicErrorInfo) -> bool:
         need_atomic_clean = self._need_atomic_clean(kernel_meta_path, info)
         if need_atomic_clean:
@@ -621,19 +644,19 @@ SingleOpCase.run(config)"""
 
         args_exec_result = []
         for args_exec_ret in args_exec_rets:
-            args_array=re.split(",|\\s", args_exec_ret)
+            args_array = re.split(",|\\s", args_exec_ret)
             args_list = []
             for arg in args_array:
                 if (not isinstance(arg, str)) or (not arg.strip()):
                     continue
                 arg = arg.strip()
                 if arg.startswith("0x") or arg == "0":
-                  args_list.append(utils.get_hexstr_value(arg))
+                    args_list.append(utils.get_hexstr_value(arg))
                 else:
-                  args_list.append(int(arg))
-            args_list = tuple(args_list)
-            if args_list not in args_exec_result:
-                args_exec_result.append(args_list)
+                    args_list.append(int(arg))
+            args_tuple = tuple(args_list)
+            if args_tuple not in args_exec_result:
+                args_exec_result.append(args_tuple)
         return args_exec_result
 
     def _get_args_after_exc(self: any) -> list:
@@ -655,7 +678,7 @@ SingleOpCase.run(config)"""
             if s in content and kernel_name in content:
                 return True
         return False
- 
+
     @staticmethod
     def _wait_for_log_stabilization(log_path):
         log_size = os.path.getsize(log_path)
@@ -711,7 +734,7 @@ SingleOpCase.run(config)"""
                 return "Ascend310"
         except Exception as e:
             utils.print_warn_log('Can not get soc_version from cce file {cce_file}')
-            utils.global_result = False
+            utils.GLOBAL_RESULT = False
             return "Ascend310"
 
     @staticmethod
@@ -754,13 +777,17 @@ SingleOpCase.run(config)"""
             os.system("chmod 755 " + obj_dump_file)
             os.environ["PATH"] = os.path.join(os.getcwd(), "tools") + ":" + os.environ["PATH"]
         else:
-            cce_dump = shutil.which("cce-objdump")
+            cce_dump = shutil.which("cce-objdump") or shutil.which("llvm-objdump")
             if not cce_dump:
                 # guess where is cce-objdump
                 parent_path = "aarch64-linux" if "aarch64" in platform.machine() else "x86_64-linux"
                 cce_dump_guess = os.path.join("/usr/local/Ascend/latest", parent_path, "ccec_compiler/bin/cce-objdump")
+                llvm_dump_guess = os.path.join("/usr/local/Ascend/latest", parent_path,
+                                               "ccec_compiler/bin/llvm-objdump")
                 if os.path.exists(cce_dump_guess):
                     cce_dump = cce_dump_guess
+                elif os.path.exists(llvm_dump_guess):
+                    cce_dump = llvm_dump_guess
                 else:
                     utils.print_error_log("Cannot find cce-objdump! please add cce-objdump path in env PATH.")
                     raise utils.AicErrException(Constant.MS_AICERR_EXECUTE_COMMAND_ERROR)
@@ -772,7 +799,7 @@ SingleOpCase.run(config)"""
                 info.extra_info, info.current_pc = current_pc
             info.node_name = self.collection.node_name_list[i]
             info.kernel_name = self.collection.kernel_name_list[i]
-            
+
             if "0x800000" == info.aic_error:
                 info.atomic_add_err = self._get_atomic_err_log()
 
@@ -782,7 +809,8 @@ SingleOpCase.run(config)"""
             err_i_folder = os.path.join(self.output_path, err_i_folder_name)
             utils.check_path_valid(err_i_folder, isdir=True, output=True)
             # get op info in build proto file
-            self._get_op_by_graph(aicore_error_data_list[Constant.GRAPH_FILE], info)
+            if len(aicore_error_data_list) > 0:
+                self._get_op_by_graph(aicore_error_data_list[Constant.GRAPH_FILE], info)
 
             info.args_after_list = self._get_args_after_exc()
             info.args_before_list = self._get_args_before_exc()
@@ -799,7 +827,7 @@ SingleOpCase.run(config)"""
             if not result:
                 utils.print_warn_log(f"decompile kernel_meta file \
                     {os.path.join(kernel_meta_path, info.kernel_name)}.o failed.")
-            
+
             # 判断是否是动态op, 动态op且需要atomic add的情况下，需要检查框架是否正确插入memset
             info.atomic_clean_check = self._check_atomic_clean(kernel_meta_path, info)
 

@@ -39,7 +39,8 @@ class Constant:
         "int32": np.int32,
         "uint32": np.uint32,
         "int64": np.int64,
-        "uint64": np.uint64
+        "uint64": np.uint64,
+        "bfloat16": "bfloat16"
     }
 
 

@@ -21,7 +21,8 @@ from datetime import datetime
 
 from ms_interface.constant import Constant
 
-global_result = True
+GLOBAL_RESULT = True
+
 
 class AicErrException(Exception):
     """
@@ -170,9 +171,11 @@ def copy_src_to_dest(src_file_list: list, dest_path: str):
     :param dest_path: the dest path
     """
     check_path_valid(dest_path, isdir=True, output=True)
+    if not src_file_list:
+        print_info_log(f"Failed to copy file.")
+        return
     for file in src_file_list:
         dest_file = os.path.join(dest_path, os.path.basename(file))
-        # 文件夹
         if os.path.isdir(file):
             original_files = [os.path.join(file, name) for name in os.listdir(file)]
             copy_src_to_dest(original_files, dest_file)
@@ -202,6 +205,7 @@ def write_file(output_path: str, file_content: str, write_mode="w") -> None:
     finally:
         pass
 
+
 def get_str_value(value_str: str) -> int:
     """
     get value by string
@@ -217,6 +221,7 @@ def get_str_value(value_str: str) -> int:
     except ValueError as value_error:
         print_error_log(f"Failed to get value from {value_str}. {value_error}")
         return -1
+
 
 def get_hexstr_value(hexstr: str) -> int:
     """

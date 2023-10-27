@@ -8,8 +8,8 @@ Huawei Technologies Co., Ltd. All Rights Reserved © 2020
 """
 
 import re
-from ms_interface import utils
 import struct
+from ms_interface import utils
 from ms_interface.constant import Constant
 
 
@@ -59,10 +59,11 @@ class AicErrorInfo:
         tiling_str = self._get_tiling_str()
         single_op_test_result = "No Error" if self.single_op_test_result else "Aicore Error"
 
-        if utils.global_result:
+        if utils.GLOBAL_RESULT:
             analysis_result = "Analysis result: success."
         else:
-            analysis_result = "Analysis result: failed. Conclusion is unreliable due to incomplete collection, the following content is for reference only. "
+            analysis_result = "Analysis result: failed. Conclusion is unreliable due to incomplete collection, "\
+                              "the following content is for reference only. "
         conclusion = self._get_conclusion()
 
         msg = f"""{analysis_result}
@@ -80,12 +81,12 @@ node name    : {self.node_name}
 kernel name  : {self.kernel_name}
 
 ***********************2. AICERROR code***********************
-error code  : {self.aic_error}
-error bits : 
+error code   : {self.aic_error}
+error bits   : 
 {aicerror_info}
 
 ***********************3. Instructions************************
-start   pc   : {self.start_pc}
+start pc     : {self.start_pc}
 current pc   : {self.current_pc}
 instruction  : {self.instr}
 
@@ -109,11 +110,7 @@ args after  excute: {self._get_args_str(self.args_after_list)}
 
     def _get_conclusion(self: any) -> str:
         conclusion = ""
-        if 60 in self.aicerror_bit:
-            conclusion = "ecc error. This is a hardware issue. Please contact hardware developer to resolve it.\n"
-        elif not self.env_available:
-            conclusion = "Golden Op run error on your environment. Please check your environment!\n"
-        elif not self.atomic_clean_check:
+        if not self.atomic_clean_check:
             conclusion = "Op need atomic clean. However, no memset or atomic_clean op launched.\n"
         elif not self.data_dump_result:
             conclusion = "Dump data failed in exception dump! Address of input or output is error!"
@@ -122,7 +119,7 @@ args after  excute: {self._get_args_str(self.args_after_list)}
         elif self.atomic_add_err:
             conclusion = "\"dha status 1\" found in log. It means Atomic accumulation exception, "\
                           "please check the input data and network accuracy.\n"\
-                          "Attention please,  if multiple tasks are running on the same device at the same time, "\
+                          "Attention please! If multiple tasks are running on the same device at the same time, "\
                           "false positives may be generated. You are advised to pull up only one task and collect it ."
         elif "data invalid" in self.dump_info:
             conclusion = "Input data is abnormal. Check the network accuracy.\n"
@@ -134,6 +131,8 @@ args after  excute: {self._get_args_str(self.args_after_list)}
         elif not self.addr_valid:
             conclusion = "Please check addrs. The addr of input/output is used but not alloc, "\
                          "details in \"4. Input and output of node\"\n"
+        elif not self.env_available:
+            conclusion = "Golden Op run error on your environment. Please check your environment!\n"
         else:
             conclusion = "There's no obvious known error, so I can't determine what the error is.\n"
         return conclusion
@@ -145,7 +144,8 @@ args after  excute: {self._get_args_str(self.args_after_list)}
                     return True
             return False
 
-    def _get_args_str(self: any, input_list: list) -> str:
+    @staticmethod
+    def _get_args_str(input_list: list) -> str:
         args_str = ""
         for args in input_list:
             hex_str = ", ".join([hex(i) for i in args])
@@ -238,7 +238,7 @@ args after  excute: {self._get_args_str(self.args_after_list)}
         need_check_args = used_addrs.get("need_check_args")
         if fault_arg_indexes:
             for arg_index in fault_arg_indexes:
-              result_str += f"arg[{arg_index}][0x{need_check_args[arg_index]:X}] cannot found alloc log, "\
+                result_str += f"arg[{arg_index}][0x{need_check_args[arg_index]:X}] cannot found alloc log, "\
                               "if it is not tiling_gm, please check \n"
 
         workspace = used_addrs.get("workspace")
@@ -257,17 +257,17 @@ args after  excute: {self._get_args_str(self.args_after_list)}
                 continue
             handled_err_type.append(err_type)
             if err_type == "vec":
-                aicerror_info_list.append("\nVEC_ERR_INFO: " + self._analyse_vec_errinfo())
+                aicerror_info_list.append("\nVEC_ERR_INFO : " + self._analyse_vec_errinfo())
             elif err_type == "ifu":
-                aicerror_info_list.append("\nIFU_ERR_INFO: " + self._analyse_ifu_errinfo())
+                aicerror_info_list.append("\nIFU_ERR_INFO : " + self._analyse_ifu_errinfo())
             elif err_type == "mte":
-                aicerror_info_list.append("\nMTE_ERR_INFO: " + self._analyse_mte_errinfo(i))
+                aicerror_info_list.append("\nMTE_ERR_INFO : " + self._analyse_mte_errinfo(i))
             elif err_type == "cube":
                 aicerror_info_list.append("\nCUBE_ERR_INFO: " + self._analyse_cube_errinfo())
             elif err_type == "ccu":
-                aicerror_info_list.append("\nCCU_ERR_INFO: " + self._analyse_ccu_errinfo())
+                aicerror_info_list.append("\nCCU_ERR_INFO : " + self._analyse_ccu_errinfo())
             elif err_type == "biu":
-                aicerror_info_list.append("\nBIU_ERR_INFO: " + self._analyse_biu_errinfo())
+                aicerror_info_list.append("\nBIU_ERR_INFO : " + self._analyse_biu_errinfo())
             aicerror_info_list.append(f"\n{aicerr_info}")
             aicerror_info_list.append("\n\n")
         aicerror_info = "".join(aicerror_info_list).strip("\n")
@@ -294,6 +294,8 @@ args after  excute: {self._get_args_str(self.args_after_list)}
         for ret_a in ret:
             error_info = Constant.AIC_ERROR_INFO_DICT.get(ret_a)
             err_type = error_info.split('_')[0].lower()
+            if err_type == "ccu":
+                return ""
             if err_type in key_map.keys():
                 extra_err_key = key_map.get(err_type)
                 break
@@ -359,14 +361,14 @@ args after  excute: {self._get_args_str(self.args_after_list)}
             info = mte_dict.get(code)
         else:
             info = "NA"
-        errinfo += f"\nmte_err_type bit[26:24]={code}  meaning:{info}"
+        errinfo += "\nmte_err_type bit[26:24]={0:<14}  meaning:{1:}".format(code, info)
 
         # mte_err_addr
         code = utils.get_01_from_hexstr(ret[0], 22, 8)
         info = "MTE Error Address [19:5]"
         # 补5位0，猜测值
         approximate = hex(int(code + "00000", 2))
-        errinfo += f"\nmte_err_addr bit[22:8]={code}  meaning:{info}  approximate:{approximate}"
+        errinfo += "\nmte_err_addr bit[22:8]={0:<15}  meaning:{1:}  approximate:{2:}".format(code, info, approximate)
         return errinfo
 
     def _analyse_biu_errinfo(self: any) -> str:
@@ -424,11 +426,11 @@ args after  excute: {self._get_args_str(self.args_after_list)}
         info = "VEC Error Address [17:5]"
         # 补5位0，猜测值
         approximate = hex(int(code + "00000", 2))
-        errinfo += f"\nvec_err_addr bit[28:16]={code}  meaning:{info}  approximate:{approximate}"
+        errinfo += "\nvec_err_addr bit[28:16]={0:<13}  meaning:{1:<28}  approximate:{2}".format(code, info, approximate)
 
         # vec_err_rcnt
         code = utils.get_01_from_hexstr(ret[0], 15, 8)
         info = "VEC Error repeat count [7:0]"
         repeats = str(int(code, 2))
-        errinfo += f"\nvec_err_rcnt bit[15:8]={code}  meaning:{info}  repeats:{repeats}"
+        errinfo += "\nvec_err_rcnt bit[15:8]={0:<13}  meaning:{1:<28}  repeats:{2}".format(code, info, repeats)
         return errinfo

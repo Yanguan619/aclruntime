@@ -24,15 +24,52 @@ class SingleOpCase:
     def __init__(self, collection) -> None:
         self.collection = collection
 
+    @staticmethod
+    def _check_file_content(kernel_name, content):
+        error_strings = [
+            "there is an aivec error exception",
+            "there is an aicore error exception",
+            "aicore exception"
+        ]
+        for s in error_strings:
+            if s in content and kernel_name in content:
+                return True
+        return False
+ 
+    @staticmethod
+    def _wait_for_log_stabilization(log_path):
+        log_size = os.path.getsize(log_path)
+        while True:
+            sleep(0.2)
+            current_log_size = os.path.getsize(log_path)
+            if current_log_size == log_size:
+                break
+            log_size = current_log_size
+
+    @staticmethod
+    def search_aicerr_log(kernel_name, path):
+        for root, _, files in os.walk(path):
+            for file in files:
+                if not file.endswith(".log"):
+                    continue
+                log_path = os.path.abspath(os.path.join(root, file))
+                utils.print_info_log(f"The find single op log {log_path}")
+                SingleOpCase._wait_for_log_stabilization(log_path)
+                with open(log_path, "r") as f:
+                    content = f.read()
+                if SingleOpCase._check_file_content(kernel_name, content):
+                    return True
+        return False
+
     def generate_config(self):
         config_file_list = []
         kernel_path = self.collection.collect_kernel_path
 
         encoding = chardet.detect(self.collection.tiling_list[1])["encoding"]
         if encoding:
-          tiling_data = self.collection.tiling_list[1].decode(encoding)
+            tiling_data = self.collection.tiling_list[1].decode(encoding)
         else:
-          tiling_data = ""
+            tiling_data = ""
 
         for kernel_name in self.collection.kernel_name_list:
             data = {
@@ -67,7 +104,6 @@ class SingleOpCase:
                 return "Ascend310"
         except Exception as e:
             utils.print_warn_log('Can not get soc_version from cce file {cce_file}')
-            utils.global_result = False
             return "Ascend310"
 
     def get_cce_file(self):
@@ -96,11 +132,11 @@ class SingleOpCase:
             utils.print_warn_log(f"The dirty_ub_{soc_version} file path cannot be found.")
         for file in kernel_file_list:
             if file.endswith(".o"):
-              bin_path = file
+                bin_path = file
             elif file.endswith(".json"):
-              json_path = file
+                json_path = file
             else:
-              continue
+                continue
         if not os.path.exists(bin_path) or not os.path.exists(json_path):
             utils.print_info_log(f"Can not find bin_file  and json_file ")
             
@@ -134,8 +170,6 @@ class SingleOpCase:
             tik_instance.vec_dup(64, all_ub[loop_idx * 64], 1.7976931348623157e+30, 1, 8)
         tik_instance.BuildCCE(kernel_name=kernel_name, inputs=[], outputs=[output_gm])
 
-        return tik_instance
-
     @staticmethod
     def run_kernel(data):
         runner = AscendOpKernelRunner()
@@ -158,7 +192,11 @@ class SingleOpCase:
             output_info = {}
             np_data = np.load(file)
             output_info["size"] = np_data.nbytes
-            output_info["dtype"] = str(np_data.dtype)
+            if str(np_data.dtype) == "|V2":
+                utils.print_warn_log("np_data.dtype is V2, maybe bfloat16, same size with float16")
+                output_info["dtype"] = "float16"
+            else:
+                output_info["dtype"] = str(np_data.dtype)
             output_info["shape"] = np_data.shape
             output_info_list.append(output_info)
 
@@ -172,6 +210,7 @@ class SingleOpCase:
 
     @staticmethod
     def run(configs: dict):
+        # set single op log path
         soc_version = SingleOpCase.get_soc_version_from_cce(configs.get("cce_file"))
         SingleOpCase.run_dirty_ub(soc_version)
         SingleOpCase.run_kernel(configs)

@@ -99,8 +99,9 @@ class Collection:
                 plog_path_ret = utils.get_inquire_result(find_path_cmd, find_path_regexp)
                 if plog_path_ret:
                     original_files = [plog_path_ret[0]]
-                utils.print_error_log(f"Aicore error log 'there is an' cannot be found in {self.report_path}.")
-                raise utils.AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
+                else:
+                    utils.print_error_log(f"Aicore error log 'there is an' cannot be found in {self.report_path}.")
+                    raise utils.AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
             dest_path = os.path.join(collect_target_path, original_path.split(self.report_path)[1][1:])
             utils.check_path_valid(dest_path, isdir=True, output=True)
             self.collect_plog_path = dest_path
@@ -126,9 +127,8 @@ class Collection:
             regexp = r"([_\-/0-9a-zA-Z.]{1,}_Build.txt)"
             graph_file_list = utils.get_inquire_result(find_path_cmd, regexp)
             if not graph_file_list:
-                utils.print_error_log(
+                utils.print_warn_log(
                     f"Graph file cannot be collected, the graph file cannot be found in {self.report_path}.")
-                raise utils.AicErrException(Constant.MS_AICERR_INVALID_PATH_ERROR)
             original_files = graph_file_list
             dest_path = os.path.join(collect_target_path, "compile")
             utils.check_path_valid(dest_path, isdir=True, output=True)

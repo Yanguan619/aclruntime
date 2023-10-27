@@ -70,13 +70,17 @@ class ConstManager:
             Constant.DTYPE: np.bool_,
             Constant.STRUCT_FORMAT_KEY: '?'
         },
+        DD.DT_BF16: {
+            Constant.DTYPE: 'bfloat16',
+            Constant.STRUCT_FORMAT_KEY: 'e'
+        }
     }
+
 
 class DumpDataParser:
     """
     The class for dump data parser
     """
-
 
     def __init__(self, dump_path, node_name, kernel_name):
         self.dump_path = dump_path
@@ -91,11 +95,20 @@ class DumpDataParser:
     def get_output_data(self):
         return self.output_data_list
 
-    def _get_dtype_by_data_type(self, data_type):
+    @staticmethod
+    def _get_dtype_by_data_type(data_type):
         if data_type not in ConstManager.DATA_TYPE_TO_DTYPE_MAP:
             utils.print_error_log(f"The output data type({data_type}) does not support.")
             raise utils.AicErrException(Constant.MS_AICERR_INVALID_DUMP_DATA_ERROR)
-        return ConstManager.DATA_TYPE_TO_DTYPE_MAP.get(data_type).get(Constant.DTYPE)
+        dtype = ConstManager.DATA_TYPE_TO_DTYPE_MAP.get(data_type).get(Constant.DTYPE)
+        if dtype == 'bfloat16':
+            try:
+                from bfloat16ext import bfloat16
+                dtype = bfloat16
+            except ModuleNotFoundError as ee:
+                raise TypeError(
+                    'bfloat16 is not supported in numpy, run `pip3 install bfloat16ext` for support.') from ee
+        return dtype
 
     @staticmethod
     def _check_tensor_data(index, array, data_dtype):

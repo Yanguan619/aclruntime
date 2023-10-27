@@ -90,7 +90,7 @@ class HostLogParser:
             utils.print_error_log("aic error info does not match in plog \"aicore error exception\"")
             raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
         if len(aic_err_ret) > 1:
-            utils.print_error_log("Find more than one aicore error, choose first one to analysis")
+            utils.print_info_log("Find more than one aicore error, choose first one to analysis")
             aic_err_ret = (aic_err_ret[0],)
         new_codes = []
         if aic_err_ret[0][3] == "0" or aic_err_ret[0][3] == "0x0":

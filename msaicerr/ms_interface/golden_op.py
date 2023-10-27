@@ -11,27 +11,26 @@ class GoldenOp:
     @staticmethod
     def golden_op(soc_version, kernel_name):
         try:
-            from te import tik
             from tbe.common import platform as cce
             from tbe.common.platform import set_current_compile_soc_info as te_set_version
         except ImportError as e:
             utils.print_warn_log("failed to import te or tbe to compile op golden op, skipped it. error:", e)
             return 
         te_set_version(soc_version)
-        M = 256
-        N = 32
-        K = 128
+        m = 256
+        n = 32
+        k = 128
         tik_instance = tik.Tik()
 
-        input_a = tik_instance.Tensor("float16", (M, N), name="a",  scope=tik.scope_gm)
-        input_b = tik_instance.Tensor("float16", (N, K), name="b",  scope=tik.scope_gm)
+        input_a = tik_instance.Tensor("float16", (m, n), name="a",  scope=tik.scope_gm)
+        input_b = tik_instance.Tensor("float16", (n, k), name="b",  scope=tik.scope_gm)
 
-        input_a_ub = tik_instance.Tensor("float16", (M, N), name="a_ub",  scope=tik.scope_cbuf)
-        input_b_ub = tik_instance.Tensor("float16", (M, N), name="b_ub",  scope=tik.scope_cbuf)
-        output_ub = tik_instance.Tensor("float32", (M, K), name="out_ub",  scope=tik.scope_ubuf)
-        output_cb = tik_instance.Tensor("float32", (M, K), name="out_ub",  scope=tik.scope_cbuf_out)
+        input_a_ub = tik_instance.Tensor("float16", (m, n), name="a_ub",  scope=tik.scope_cbuf)
+        input_b_ub = tik_instance.Tensor("float16", (m, n), name="b_ub",  scope=tik.scope_cbuf)
+        output_ub = tik_instance.Tensor("float32", (m, k), name="out_ub",  scope=tik.scope_ubuf)
+        output_cb = tik_instance.Tensor("float32", (m, k), name="out_ub",  scope=tik.scope_cbuf_out)
 
-        output_gm = tik_instance.Tensor("float32", (M, K), name="out_ub",  scope=tik.scope_gm)
+        output_gm = tik_instance.Tensor("float32", (m, k), name="out_ub",  scope=tik.scope_gm)
 
         index_scalar = tik_instance.Scalar("int32", init_value=0)
         tik_instance.data_move(input_a_ub, input_a[index_scalar], 0, 1, 32, 0, 0)
@@ -52,7 +51,8 @@ class GoldenOp:
         try:
             GoldenOp.golden_op(soc_version, kernel_name=kernel_name)
         except Exception as e:
-            import traceback; traceback.print_exc();
+            import traceback
+            traceback.print_exc()
             utils.print_warn_log("compile golden op failed, skip golden op test.")
             return False
 
@@ -65,11 +65,11 @@ class GoldenOp:
         # find golden op kernel
         for file in kernel_file_list:
             if file.endswith(".o"):
-              bin_path = file
+                bin_path = file
             elif file.endswith(".json"):
-              json_path = file
+                json_path = file
             else:
-              continue
+                continue
         if not os.path.exists(bin_path) or not os.path.exists(json_path):
             utils.print_info_log(f"Can not find bin_file  and json_file ")  
             return False
@@ -78,25 +78,25 @@ class GoldenOp:
         utils.print_info_log(f"Find bin_file {bin_path} and json_file {json_path}")
         op_kernel = AscendOpKernel(bin_path, json_path)
         runner = AscendOpKernelRunner()
-        input_a = np.ones((256,32), dtype=np.float16) * 2
+        input_a = np.ones((256, 32), dtype=np.float16) * 2
         input_b = np.ones((32, 128), dtype=np.float16) * 6
-        output_info = {"size": 131072, "dtype": "float32", "shape": (256,128), "name": "output"}
+        output_info = {"size": 131072, "dtype": "float32", "shape": (256, 128), "name": "output"}
         runner.run(op_kernel, inputs=[input_a, input_b], actual_output_info=(output_info,))
+        return True
 
-
-if __name__=="__main__":
+if __name__ == "__main__":
     if len(sys.argv) < 2 or not sys.argv[1]:
-        soc_version = "Ascend310"
+        SOC_VERSION = "Ascend310"
     else:
-        soc_version = sys.argv[1]
+        SOC_VERSION = sys.argv[1]
     
     if len(sys.argv) < 3 or not sys.argv[2]:
-        kernel_name = f"golden_op_{soc_version}"
+        KERNEL_NAME = f"golden_op_{SOC_VERSION}"
     else:
-        kernel_name = sys.argv[2]
+        KERNEL_NAME = sys.argv[2]
     
-    result = GoldenOp.run_golden_op(soc_version,  kernel_name=kernel_name)
-    if result:
+    RESULT = GoldenOp.run_golden_op(SOC_VERSION,  kernel_name=KERNEL_NAME)
+    if RESULT:
         sys.exit(0)
     else:
         sys.exit(-1)

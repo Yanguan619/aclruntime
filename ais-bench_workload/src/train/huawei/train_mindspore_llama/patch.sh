@@ -1,2 +1,65 @@
 #!/bin/bash
-echo "load patch to modify source code"
+declare -i ret_ok=0
+declare -i ret_error=1
+
+CUR_PATH=$(dirname $(readlink -f "$0"))
+
+target_dir=$CUR_PATH/code
+target_patchcode_dir=$CUR_PATH/patchcode
+
+SRC_PATH=$CUR_PATH/../../../
+. $SRC_PATH/common/patch_common.sh
+
+get_git_info(){
+    local branch_args="$1"
+    local run_type="$2"
+
+    # set default branch
+    [[ -z "$branch_args" ]] && { branch_args="r1.5"; }
+
+    modelzoo_sub_dir="mindformers"
+    if [ "$branch_args" == "r2.2" ];then
+        branch="r0.8"
+        patch_file_name="r2.2"
+        commitid="c0f478fc517b1daec896f5c72bcea10b2ab83bd4"
+        git_url="https://gitee.com/mindspore/mindformers.git"
+    else
+        echo "bad parameters : $1"
+        return $ret_error
+    fi
+    [ "$run_type" == "modelarts" ] && { patch_file_name="modelarts_"$patch_file_name; }
+    return $ret_ok
+}
+
+main(){
+    if [ "$1" != "mkpatch" -a "$1" != "loadcode" ];then
+        echo "target not valid in:[$1] not match [mkpatch loadcode]"
+        return $ret_error
+    fi
+
+    local patch_type="$1"
+    local branch_args="$2"
+    local run_type="$3"
+    local changed_code_path="$4"
+
+    get_git_info "$branch_args" "$run_type" || { echo "warn get git info failed"; return $ret_error; }
+
+    BUILD_TMP_PATH=$CUR_PATH/buildtmp
+    [ ! -d $BUILD_TMP_PATH ] || rm -rf $BUILD_TMP_PATH
+    mkdir -p $BUILD_TMP_PATH
+
+    if [ "$patch_type" == "mkpatch" ];then
+        target_dir=$changed_code_path
+        make_patch || { echo "warn make patch failed"; return $ret_error; }
+    elif [ "$patch_type" == "loadcode" ];then
+        load_code || { echo "warn make patch failed"; return $ret_error; }
+        mkdir -p $CUR_PATH/doc
+        mk_version_file $CUR_PATH/doc/version.txt
+    else
+        echo "null op"
+        return $ret_error
+    fi
+}
+
+main "$@"
+exit $?

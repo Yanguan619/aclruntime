@@ -9,6 +9,8 @@ wikitest2_url="https://aisbenchtest.obs.myhuaweicloud.com/LLM_resource/llama/wik
 alpaca_url="https://aisbenchtest.obs.myhuaweicloud.com/LLM_resource/llama/alpaca_data.json"
 
 export PYTHON_COMMAND=python3
+export LLAMA_MODEL_TYPE='7b'
+export LLAMA_RUN_MODE='pretrain'
 
 export PRETRAIN_DATA_PATH=/home/datasets/imagenet/train/
 export FINETUNE_DATA_PATH=/home/datasets/imagenet/train/

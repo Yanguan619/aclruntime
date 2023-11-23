@@ -23,22 +23,13 @@ fi
 if [ -d $FINETUNE_DATA_PATH ];then
     cp -r $FINETUNE_DATA_PATH $CUR_PATH || { logger_Warn "ERROR: cp $FINETUNE_DATA_PATH failed!";return $ret_init_failed; }
 fi
-[ $LLAMA_RUN_MODE == "pretrain" ] && . $CODE_PATH/pretrain.sh
-[ $LLAMA_RUN_MODE == "finetune" ] && . $CODE_PATH/finetune.sh
+
+. $CODE_PATH/cluster_offline_run.sh
 
 main(){
-    pip_cmd="pip install pyyaml"
-    $pip_cmd
     init || { logger_Warn "init failed:$?";return $ret_init_failed; }
-    if [ $LLAMA_RUN_MODE == "pretrain" ];then
-        run_train "pretrain" || { logger_Warn "run_train failed ret:$?";return $ret_run_train_failed; }
-    elif [ $LLAMA_RUN_MODE == "finetune" ];then
-        run_train "finetune" || { logger_Warn "run_train failed ret:$?";return $ret_run_train_failed; }
-        run_eval "finetune" || { logger_Warn "run_eval failed ret:$?";return $ret_run_eval_failed; }
-    else
-        echo "wrong or empty llama run mode $LLAMA_RUN_MODE"
-        return $ret_mode_failed
-    fi
+    run_train || { logger_Warn "run_train failed ret:$?";return $ret_run_train_failed; }
+    run_eval || { logger_Warn "run_eval failed ret:$?";return $ret_run_eval_failed; }
     get_result || { logger_Warn "get_result failed ret:$?";return $ret_get_result_failed; }
     return $ret_ok
 }

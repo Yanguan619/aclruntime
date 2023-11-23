@@ -1,0 +1,117 @@
+#!/bin/bash
+. $WORK_PATH/common/common.sh
+. $WORK_PATH/common/log_util.sh
+. $WORK_PATH/common/node_common.sh
+
+declare -i ret_ok=0
+declare -i ret_failed=1
+
+function get_train_cmd()
+{
+    [[ $RANK_SIZE -gt 1 ]] && DISTRUTE_ENABLE="True" || DISTRUTE_ENABLE="False"
+    # 基准代码r2.0.0版本中训练配置文件resnet50_imagenet2012_Boost_config.yaml中，将训练参数output_path改为output_dir
+    CONFIG_PATH=$WORK_PATH/code/config/resnet50_imagenet2012_Boost_config.yaml
+    isexisted=`cat $CONFIG_PATH |grep "output_dir" |grep -v grep |awk -F= 'NR==1{print $NF}'`
+    if [ ! -n "$isexisted" ]; then
+        OUTPUT_PARA_NAME="output_path"
+    else
+        OUTPUT_PARA_NAME="output_dir"
+    fi
+
+    train_run_cmd="${PYTHON_COMMAND} -u $WORK_PATH/code/train.py \
+        --run_distribute=$DISTRUTE_ENABLE \
+        --data_path=${TRAIN_DATA_PATH} \
+        --device_num=${DEVICE_NUM}  \
+        --epoch_size=${EPOCH_SIZE}  \
+        --$OUTPUT_PARA_NAME="$RUN_PATH"  \
+        --save_checkpoint=True  \
+        --save_checkpoint_epochs=${EPOCH_SIZE} \
+        --config_path=$CONFIG_PATH
+        "
+        # # for mindspore1.5
+        # export ENV_FUSION_CLEAR=1
+        # export ENV_SINGLE_EVAL=1
+        # export SKT_ENABLE=1
+        chipname=`npu-smi info -t board  -i 0 -c 0 | grep 'Chip Name' | awk {'print $4'}`
+        if [[ "$chipname" == "910B1" || "$chipname" == "910B2" || "$chipname" == "910B3" || "$chipname" == "910B4" ]]; then
+            export MS_ENABLE_GE=1
+            export MS_GE_TRAIN=1
+        fi
+}
+
+function get_eval_cmd()
+{
+    chipname=`npu-smi info -t board  -i 0 -c 0 | grep 'Chip Name' | awk {'print $4'}`
+    if [[ "$chipname" == "910B1" || "$chipname" == "910B2" || "$chipname" == "910B3" || "$chipname" == "910B4" ]]; then
+        export MS_ENABLE_GE=1
+        export MS_GE_TRAIN=0
+    fi
+    eval_run_cmd="${PYTHON_COMMAND} -u $WORK_PATH/code/eval.py \
+         --data_path=${EVAL_DATA_PATH} \
+         --config_path=$WORK_PATH/code/config/resnet50_imagenet2012_Boost_config.yaml \
+         --checkpoint_file_path=${CHECKPOINT_PATH}"
+    return 0
+}
+
+function node_init()
+{
+    export PYTHONPATH=$PYTHONPATH:$WORK_PATH
+    pip_cmd="pip install pyyaml"
+    $pip_cmd || { logger_Warn "pyyaml install failed:$?";return $ret_failed; }
+
+    # install mindformers
+    cd $WORK_PATH/code
+    bash build.sh || { logger_Warn "mindformers install failed:$?";return $ret_failed; }
+    cd $WORK_PATH
+    # for eval env set
+    [ $1 == "eval" ] && { export RANK_SIZE=1; export DEVICE_ID=0; : "${SINGLE_CARD_INDEX:=0}";export RANK_ID=$SINGLE_CARD_INDEX; unset RANK_TABLE_FILE; }
+    [[ -z "$RESULT_PATH" ]] || { mkdir -p $RESULT_PATH; }
+}
+
+function node_check()
+{
+    CONFIG_FILE_PATH=$1
+    source $CONFIG_FILE_PATH
+
+    node_common_check "${PYTHON_COMMAND}" "${RANK_SIZE}" "$RANK_TABLE_FILE" || { logger_Warn "node common check failed" ; return 1; }
+
+    check_mindspore_run_ok_Ascend ${PYTHON_COMMAND} || { logger_Warn "mindspore running failed" ; return 1; }
+    logger_Debug "mindspore running successfully"
+}
+
+function node_train()
+{
+    node_common_train "true" "false" || { logger_Warn "run train failed" ; return 1; }
+}
+
+function node_eval()
+{
+    CHECKPOINT_PATH=`find ${WORK_PATH}/train_parallel$RANK_ID/ -name "*.ckpt" | xargs ls -t | awk 'NR==1{print}'`
+    [ -f $CHECKPOINT_PATH ] || { logger_Warn "CHECKPOINT_PATH:${CHECKPOINT_PATH} not valid path" ; return 1; }
+    cp $CHECKPOINT_PATH  $RESULT_PATH/
+    RUN_PATH=$WORK_PATH/train_parallel$RANK_ID
+    cd $RUN_PATH
+    get_eval_cmd
+    echo "start eval RUN_PATH:${RUN_PATH} SERVER_ID:$SERVER_ID rank $RANK_ID device $DEVICE_ID begin cmd:${eval_run_cmd}"
+    $eval_run_cmd || { echo "run eval node error ret:$?"; return 1; }
+    return 0
+}
+
+main()
+{
+    type="$1"
+    shift
+    node_init $type || { logger_Warn "init failed"; return 1; }
+    if [ "$type" == "train" ];then
+        node_train "$@" || { logger_Warn "run_node_train failed"; return 1; }
+    elif [ "$type" == "eval" ];then
+        node_eval "$@" || { logger_Warn "run_node_eval failed"; return 1; }
+    elif [ "$type" == "check" ];then
+        node_check "$@" || { logger_Warn "run_node_check failed"; return 1; }
+    else
+        { logger_Warn "invalid argument '${type}'"; return 1; }
+    fi
+}
+
+main "$@"
+exit $?

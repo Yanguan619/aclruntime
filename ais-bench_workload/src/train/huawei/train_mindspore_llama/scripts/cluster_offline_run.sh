@@ -4,11 +4,6 @@
 . $CODE_PATH/common/cluster_common.sh
 . $CODE_PATH/common/node_common.sh
 
-train_config_set()
-{
-    $PYTHON_COMMAND $CODE_PATH/pre_conf_yaml.py
-}
-
 # env check
 check_env()
 {
@@ -49,11 +44,10 @@ init()
 run_train()
 {
     logger_Info "-------------------------------- train start --------------------------------"
-    run_mode=$1
     cmd="export WORK_PATH=$WORK_PATH;
         export RESULT_PATH=$RESULT_PATH;
         source $WORK_PATH/config/$CONFIG_FILE;
-        bash $WORK_PATH/run_${run_mode}_node.sh train"
+        bash $WORK_PATH/run_node.sh train"
 
     cluster_run_cmd_parallel "${NODEINFO_FILE}" ${cmd} || { logger_Warn "run train failed"; return 1; }
     logger_Info "-------------------------------- train end --------------------------------"
@@ -62,11 +56,10 @@ run_train()
 run_eval()
 {
     logger_Info "-------------------------------- eval start --------------------------------"
-    run_mode=$1
     cmd="source $WORK_PATH/config/$CONFIG_FILE;
         export WORK_PATH=$WORK_PATH;
         export RESULT_PATH=$RESULT_PATH;
-        bash $WORK_PATH/run_${run_mode}_node.sh eval "
+        bash $WORK_PATH/run_node.sh eval "
     cluster_run_cmd_single "${NODEINFO_FILE}" ${cmd} || { logger_Warn "run eval failed"; return 1; }
     logger_Info "-------------------------------- eval end --------------------------------"
 }

@@ -32,7 +32,7 @@ else:
 ckpt_path = os.path.join(cur_path, f'open_llama_{model_type}')
 
 
-if os.path.exists(target_yaml):
+if not os.path.exists(target_yaml):
     raise RuntimeError(f"yaml file: {target_yaml} not find!")
 
 

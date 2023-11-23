@@ -5,6 +5,7 @@ import os
 import yaml
 import acl
 
+run_mode = sys.argv[1]
 cur_path = os.path.realpath(__file__)
 config_path = os.path.join(cur_path, 'code/config/llama/')
 try:
@@ -12,25 +13,21 @@ try:
 except Exception as err:
     raise RuntimeError("get soc versiob failed!") from err
 
-pretrain_dataset = os.path.join(cur_path, 'dataset/wikitext/wiki2048.mindrecord')
-finetune_dataset = os.path.join(cur_path, 'dataset/alpaca/alpaca-fastchat2048.mindrecord')
+pretrain_dataset = os.getenv('PRETRAIN_DATA_PATH')
+finetune_dataset = os.getenv('FINETUNE_DATA_PATH')
 model_type = os.getenv('LLAMA_MODEL_TYPE')
-run_mode = sys.argv[1]
 epoch_size = os.getenv("EPOCH_SIZE")
 layer_num = os.getenv("LLAMA_LAYER_NUM")
-eval_data_type = os.getenv('EVAL_DATASET_TYPE')
-
-eval_dataset_dict = {
-    'wikitext': os.path.join(cur_path, 'dataset/wikitext/wiki2048valid.mindrecord'),
-    'squad': os.path.join(cur_path, 'dataset/squad/squadvalid.mindrecord')
-}
+eval_data_path = os.getenv('EVAL_DATASET_PATH')
 
 if 'Ascend 910B'in soc_version:
     target_yaml = os.path.join(config_path, f'run_llama_{model_type}_910b.yaml')
 else:
     target_yaml = os.path.join(config_path, f'run_llama_{model_type}.yaml')
-ckpt_path = os.path.join(cur_path, f'open_llama_{model_type}')
-
+if os.getenv('LLAMA_RUN_MODE') == 'only_finetune':
+    ckpt_path = os.path.join(cur_path, f'../datas/open_llama_{model_type}')
+else:
+    ckpt_path = os.path.join(cur_path, f'../datas/target_ckpt/llama_{model_type}0.ckpt')
 
 if not os.path.exists(target_yaml):
     raise RuntimeError(f"yaml file: {target_yaml} not find!")
@@ -46,7 +43,7 @@ def write_pretrain_yaml(data):
     data['lr_schedule']['lr_end'] = 3.e-5
     data['train_dataset']['input_columns'] = ["input_ids"]
     data['train_dataset']['data_loader']['dataset_dir'] = pretrain_dataset
-    data['eval_dataset']['data_loader']['dataset_dir'] = eval_data_type
+    data['eval_dataset']['data_loader']['dataset_dir'] = eval_data_path
     data['model']['model_config']['num_layers'] = layer_num
 
 
@@ -60,7 +57,7 @@ def write_finetune_yaml(data):
     data['lr_schedule']['lr_end'] = 1.e-5
     data['train_dataset']['input_columns'] = ["input_ids", "labels"]
     data['train_dataset']['data_loader']['dataset_dir'] = finetune_dataset
-    data['eval_dataset']['data_loader']['dataset_dir'] = eval_data_type
+    data['eval_dataset']['data_loader']['dataset_dir'] = eval_data_path
     data['model']['model_config']['num_layers'] = layer_num
 
 

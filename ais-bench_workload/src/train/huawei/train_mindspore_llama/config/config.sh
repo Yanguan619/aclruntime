@@ -1,20 +1,14 @@
 #!/bin/bash
 echo "set env of llama train"
-pretrained_origin_7b_ckpt_url=""
-pretrained_origin_13b_ckpt_url=""
-pretrained_converted_7b_ckpt_url="https://ascend-repo-modelzoo.obs.cn-east-2.myhuaweicloud.com/XFormer_for_mindspore/llama/open_llama_7b.ckpt"
-pretrained_converted_13b_ckpt_url="https://ascend-repo-modelzoo.obs.cn-east-2.myhuaweicloud.com/XFormer_for_mindspore/llama/open_llama_13b.ckpt"
-tokenizer_url="https://ascend-repo-modelzoo.obs.cn-east-2.myhuaweicloud.com/XFormer_for_mindspore/llama/tokenizer.model"
-wikitest2_url="https://aisbenchtest.obs.myhuaweicloud.com/LLM_resource/llama/wikitext-2.tar.gz"
-alpaca_url="https://aisbenchtest.obs.myhuaweicloud.com/LLM_resource/llama/alpaca_data.json"
 
 export PYTHON_COMMAND=python3
 export LLAMA_MODEL_TYPE='7b'
-export LLAMA_RUN_MODE='coherent' # 'coherent':ckpt userd by finetune is from pretrain in testcase; 'separated':ckpt userd by finetune is from huggingface pretrained ckpt;
+export LLAMA_RUN_MODE='only_pretrain' # 'only_pretrain', 'only_finetune', 'full'
 
-export PRETRAIN_DATA_PATH=/home/datasets/wiki.train.tokens
-export FINETUNE_DATA_PATH=/home/datasets/alpaca_data.json
+export PRETRAIN_DATA_PATH=./dataset_files/wikitext-2/wiki2048.mindrecord # 相对mindformer源码的路径
+export FINETUNE_DATA_PATH=./dataset_files/alpaca-fastchat2048.mindrecord # 相对mindformer源码的路径
 export EVAL_DATASET_TYPE='wikitext' # 'wikitext' 'squad'
+export EVAL_DATASET_PATH=./dataset_files/wikitext-2/wiki2048valid.mindrecord
 
 export EPOCH_SIZE=50
 export LLAMA_LAYER_NUM=4 # 32

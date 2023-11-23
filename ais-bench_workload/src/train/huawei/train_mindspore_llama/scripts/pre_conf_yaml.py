@@ -24,10 +24,11 @@ if 'Ascend 910B'in soc_version:
     target_yaml = os.path.join(config_path, f'run_llama_{model_type}_910b.yaml')
 else:
     target_yaml = os.path.join(config_path, f'run_llama_{model_type}.yaml')
+os.environ['LLAMA_RUN_YAML_NAME'] = target_yaml
 if os.getenv('LLAMA_RUN_MODE') == 'only_finetune':
-    ckpt_path = os.path.join(cur_path, f'../datas/open_llama_{model_type}')
+    ckpt_path = os.path.join(cur_path, f'datas/open_llama_{model_type}')
 else:
-    ckpt_path = os.path.join(cur_path, f'../datas/target_ckpt/llama_{model_type}0.ckpt')
+    ckpt_path = os.path.join(cur_path, f'datas/target_ckpt/llama_{model_type}0.ckpt')
 
 if not os.path.exists(target_yaml):
     raise RuntimeError(f"yaml file: {target_yaml} not find!")

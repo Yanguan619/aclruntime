@@ -67,13 +67,12 @@ run_eval()
 get_result()
 {
     logger_Info "-------------------------------- get_result start --------------------------------"
+    # cmd="mkdir -p ${RESULT_PATH}"
+    # cluster_run_cmd_serial "$NODEINFO_FILE" ${cmd} || { logger_Warn "mkdir resultpath failed"; return 1; }
 
-    cmd="mkdir -p ${RESULT_PATH}"
-    cluster_run_cmd_serial "$NODEINFO_FILE" ${cmd} || { logger_Warn "mkdir resultpath failed"; return 1; }
+    # cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH}
+    # ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_result.py ${RESULT_PATH} ${RANK_SIZE}
 
-    cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH}
-    ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_result.py ${RESULT_PATH} ${RANK_SIZE}
-
-    [ -d $BASE_PATH/result ] && cp ${RESULT_PATH}/* -rf  $BASE_PATH/result/
+    # [ -d $BASE_PATH/result ] && cp ${RESULT_PATH}/* -rf  $BASE_PATH/result/
     logger_Info "-------------------------------- get_result end --------------------------------"
 }

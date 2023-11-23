@@ -10,19 +10,20 @@ alpaca_url="https://aisbenchtest.obs.myhuaweicloud.com/LLM_resource/llama/alpaca
 
 export PYTHON_COMMAND=python3
 export LLAMA_MODEL_TYPE='7b'
-export LLAMA_RUN_MODE='pretrain'
+export LLAMA_RUN_MODE='coherent' # 'coherent':ckpt userd by finetune is from pretrain in testcase; 'separated':ckpt userd by finetune is from huggingface pretrained ckpt;
 
-export PRETRAIN_DATA_PATH=/home/datasets/imagenet/train/
-export FINETUNE_DATA_PATH=/home/datasets/imagenet/train/
-export EVAL_DATA_PATH=/home/datasets/imagenet/val/
+export PRETRAIN_DATA_PATH=/home/datasets/wiki.train.tokens
+export FINETUNE_DATA_PATH=/home/datasets/alpaca_data.json
+export EVAL_DATASET_TYPE='wikitext' # 'wikitext' 'squad'
 
-export EPOCH_SIZE=90
+export EPOCH_SIZE=50
+export LLAMA_LAYER_NUM=4 # 32
 
 export RANK_SIZE=8
 export DEVICE_NUM=8
 
 # need if rank_size > 1
-export RANK_TABLE_FILE=/home/lcm/tool/rank_table_8p.json
+export RANK_TABLE_FILE=/home/hccl/hccl_xxxx_8p.json
 
 # cluster need for node info
 #export NODEINFO_FILE=/home/lcm/tool/ssh64_66.json

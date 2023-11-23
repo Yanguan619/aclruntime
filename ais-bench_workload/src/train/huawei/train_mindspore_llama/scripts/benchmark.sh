@@ -17,7 +17,12 @@ source ${CODE_PATH}/config/config.sh || { logger_Warn "source file failed:$?";re
 
 . $CODE_PATH/common/log_util.sh
 . $CODE_PATH/common/common.sh
-
+if [ -d $PRETRAIN_DATA_PATH ];then
+    cp -r $PRETRAIN_DATA_PATH $CUR_PATH || { logger_Warn "ERROR: cp $PRETRAIN_DATA_PATH failed!";return $ret_init_failed; }
+fi
+if [ -d $FINETUNE_DATA_PATH ];then
+    cp -r $FINETUNE_DATA_PATH $CUR_PATH || { logger_Warn "ERROR: cp $FINETUNE_DATA_PATH failed!";return $ret_init_failed; }
+fi
 [ $LLAMA_RUN_MODE == "pretrain" ] && . $CODE_PATH/pretrain.sh
 [ $LLAMA_RUN_MODE == "finetune" ] && . $CODE_PATH/finetune.sh
 

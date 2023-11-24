@@ -28,6 +28,9 @@ init()
     export RESULT_PATH=${WORK_PATH}/result
     export PYTHONPATH=$PYTHONPATH:$CODE_PATH
 
+    CONFIG_FILE="config.sh"
+    source ${CODE_PATH}/config/$CONFIG_FILE || { logger_Warn "source file failed:$?";return 1; }
+
     rm -rf $RESULT_PATH;mkdir -p $RESULT_PATH
     # sync data if work_path not exist so new one
 

@@ -6,7 +6,7 @@ import yaml
 import acl
 
 run_mode = sys.argv[1]
-cur_path = os.path.realpath(__file__)
+cur_path = os.path.dirname(os.path.abspath(__file__))
 config_path = os.path.join(cur_path, 'code/config/llama/')
 try:
     soc_version = acl.get_soc_name()

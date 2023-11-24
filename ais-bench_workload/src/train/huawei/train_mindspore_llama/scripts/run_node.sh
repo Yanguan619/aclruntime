@@ -103,13 +103,14 @@ function node_check()
 
 function node_run()
 {
+    logger_Info "node_run running"
     $PYTHON_COMMAND $WORK_PATH/pre_conf_yaml.py $1 # change yaml params
     run_script_path=$WORK_PATH/code/scripts/run_distribute.sh
     run_yaml_path=$WORK_PATH/code/config/llama/$LLAMA_RUN_YAML_NAME
     result_output_path=$WORK_PATH/code/output
     transform_ckpt_path=$WORK_PATH/code/mindformers/tools/transform_ckpt.py
     # train run
-    cmd="bash $run_script_path $RANK_FILE_PATH $run_yaml_path $RANK_ID_RANGE $1"
+    cmd="bash $run_script_path $RANK_TABLE_FILE $run_yaml_path $RANK_ID_RANGE $1"
     $cmd || { logger_Warn "run finetune failed, , rank id range: $RANK_ID_RANGE" ; return $ret_failed; }
     # ckpt merge
     $PYTHON_COMMAND $transform_ckpt_path \
@@ -123,6 +124,7 @@ function node_run()
 
 function node_train()
 {
+    logger_Info "node_train running"
     if [ "$LLAMA_RUN_MODE" = "full" ];then
         node_run "pretrain" || { logger_Warn "run pretrain failed" ; return $ret_failed; }
         node_run "finetune" || { logger_Warn "run finetune failed" ; return $ret_failed; }
@@ -139,6 +141,7 @@ function node_train()
 
 function eval_run()
 {
+    logger_Info "eval_run running"
     run_yaml_path=$WORK_PATH/code/config/llama/$LLAMA_RUN_YAML_NAME
     eval_dataset_path=$WORK_PATH/code/$EVAL_DATASET_PATH
     load_checkpoint_path=$WORK_PATH/datas/target_ckpt/llama_${LLAMA_MODEL_TYPE}0.ckpt
@@ -164,6 +167,7 @@ function eval_run()
 
 function node_eval()
 {
+    logger_Info "node_eval running"
     if [ "$LLAMA_RUN_MODE" = "full" ];then
         eval_run
     elif [ "$LLAMA_RUN_MODE" = "only_pretrain" ];then

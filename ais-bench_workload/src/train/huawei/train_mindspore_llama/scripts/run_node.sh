@@ -115,14 +115,16 @@ function node_run()
 {
     logger_Info "node_run running"
     $PYTHON_COMMAND $WORK_PATH/pre_conf_yaml.py $1 # change yaml params
-    run_script_path=$WORK_PATH/code/scripts/run_distribute.sh
+    run_script_path=$WORK_PATH/code/scripts/
     run_yaml_path=$WORK_PATH/code/configs/llama/$LLAMA_RUN_YAML_NAME
     result_output_path=$WORK_PATH/code/output
     transform_ckpt_path=$WORK_PATH/code/mindformers/tools/transform_ckpt.py
     # train run
+    cd $run_script_path
     cmd="bash $run_script_path $RANK_TABLE_FILE $run_yaml_path $RANK_ID_RANGE $1"
     echo "$cmd"
     $cmd || { logger_Warn "node_run failed, rank id range: $RANK_ID_RANGE" ; return $ret_failed; }
+    cd $WORK_PATH
     # ckpt merge
     $PYTHON_COMMAND $transform_ckpt_path \
         --src_ckpt_strategy $result_output_path/strategy/ \

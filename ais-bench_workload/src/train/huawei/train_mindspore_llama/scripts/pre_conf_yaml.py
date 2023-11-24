@@ -46,6 +46,7 @@ def write_pretrain_yaml(data):
     data['train_dataset']['data_loader']['dataset_dir'] = pretrain_dataset
     data['eval_dataset']['data_loader']['dataset_dir'] = eval_data_path
     data['model']['model_config']['num_layers'] = layer_num
+    return data
 
 
 def write_finetune_yaml(data):
@@ -60,19 +61,20 @@ def write_finetune_yaml(data):
     data['train_dataset']['data_loader']['dataset_dir'] = finetune_dataset
     data['eval_dataset']['data_loader']['dataset_dir'] = eval_data_path
     data['model']['model_config']['num_layers'] = layer_num
+    return data
 
-
+data = {}
 with open(target_yaml, 'r') as file:
     data = yaml.safe_load(file)
 
 if run_mode == 'train':
-    write_pretrain_yaml(data)
+    data = write_pretrain_yaml(data)
 elif run_mode == "finetune":
-    write_finetune_yaml(data)
+    data = write_finetune_yaml(data)
 else:
     raise RuntimeError(f"run_mode{run_mode} not valid!")
 
-with open(target_yaml, 'r') as file
+with open(target_yaml, 'r') as file:
     yaml.safe_dump(data, file)
 
 

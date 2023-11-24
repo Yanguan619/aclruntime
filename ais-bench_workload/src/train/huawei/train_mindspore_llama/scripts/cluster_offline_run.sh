@@ -8,7 +8,7 @@
 check_env()
 {
     # mindspore check (also check cann)
-    check_mindspore_run_ok_Ascend || { logger_Warn "check mindspore failed:$?";return 1; }
+    check_mindspore_run_ok_Ascend ${PYTHON_COMMAND} || { logger_Warn "check mindspore failed:$?";return 1; }
 
     # model info check
     : "${PRETRAIN_DATA_PATH?PRETRAIN_DATA_PATH not set}"

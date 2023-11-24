@@ -71,11 +71,15 @@ function node_init()
 
     # install pyyaml
     if pip show pyyaml >/dev/null 2>&1;then
+        logger_info "pyyaml exist, won't be installed again"
+    else
         pip_cmd="pip install pyyaml"
         $pip_cmd || { logger_Warn "pyyaml install failed:$?";return $ret_failed; }
     fi
     # install mindformers
     if pip show mindformers >/dev/null 2>&1;then
+        logger_info "mindformers exist, won't be installed again"
+    else
         cd $WORK_PATH/code
         bash build.sh || { logger_Warn "mindformers install failed:$?";return $ret_failed; }
         cd $WORK_PATH
@@ -93,12 +97,12 @@ function node_check()
     check_mindspore_run_ok_Ascend ${PYTHON_COMMAND} || { logger_Warn "mindspore running failed" ; return $ret_failed; }
     logger_Debug "mindspore running successfully"
 
-    if [ "$LLAMA_RUN_MODE" = "full" ] || [ "$LLAMA_RUN_MODE" = "pretrain" ];then
+    if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "pretrain" ];then
         check_path_valid "${PRETRAIN_DATA_PATH}" || { logger_Warn "TRAIN_DATA_PATH:${PRETRAIN_DATA_PATH} not valid path" ; return 1; }
         logger_Debug "PRETRAIN_DATA_PATH is valid"
     fi
 
-    if [ "$LLAMA_RUN_MODE" = "full" ] || [ "$LLAMA_RUN_MODE" = "finetune" ];then
+    if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "finetune" ];then
         check_path_valid "${FINETUNE_DATA_PATH}" || { logger_Warn "FINETUNE_DATA_PATH:${FINETUNE_DATA_PATH} not valid path" ; return 1; }
         logger_Debug "FINETUNE_DATA_PATH is valid"
         check_path_valid "${EVAL_DATASET_PATH}" || { logger_Warn "EVAL_DATASET_PATH:${EVAL_DATASET_PATH} not valid path" ; return 1; }
@@ -117,7 +121,8 @@ function node_run()
     transform_ckpt_path=$WORK_PATH/code/mindformers/tools/transform_ckpt.py
     # train run
     cmd="bash $run_script_path $RANK_TABLE_FILE $run_yaml_path $RANK_ID_RANGE $1"
-    $cmd || { logger_Warn "run finetune failed, , rank id range: $RANK_ID_RANGE" ; return $ret_failed; }
+    echo "$cmd"
+    $cmd || { logger_Warn "node_run failed, rank id range: $RANK_ID_RANGE" ; return $ret_failed; }
     # ckpt merge
     $PYTHON_COMMAND $transform_ckpt_path \
         --src_ckpt_strategy $result_output_path/strategy/ \
@@ -131,12 +136,12 @@ function node_run()
 function node_train()
 {
     logger_Info "node_train running"
-    if [ "$LLAMA_RUN_MODE" = "full" ];then
+    if [ "$LLAMA_RUN_MODE" == "full" ];then
         node_run "pretrain" || { logger_Warn "run pretrain failed" ; return $ret_failed; }
         node_run "finetune" || { logger_Warn "run finetune failed" ; return $ret_failed; }
-    elif [ "$LLAMA_RUN_MODE" = "only_pretrain" ];then
+    elif [ "$LLAMA_RUN_MODE" == "only_pretrain" ];then
         node_run "pretrain" || { logger_Warn "run pretrain failed" ; return $ret_failed; }
-    elif [ "$LLAMA_RUN_MODE" = "only_finetune" ];then
+    elif [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
         node_run "finetune" || { logger_Warn "run finetune failed" ; return $ret_failed; }
     else
         echo "train run mode $LLAMA_RUN_MODE is invalid"
@@ -162,7 +167,7 @@ function eval_run()
             --epochs 1 \
             --use_parallel False \
             --device_id $EVAL_DEVICE_ID || { logger_Warn "run eval failed" ; return $ret_failed; }
-    elif [ "$EVAL_DATASET_TYPE" = "squad" ];then
+    elif [ "$EVAL_DATASET_TYPE" == "squad" ];then
         echo "eval not supported yet"
     else
         echo "invalid eval mode"
@@ -174,11 +179,11 @@ function eval_run()
 function node_eval()
 {
     logger_Info "node_eval running"
-    if [ "$LLAMA_RUN_MODE" = "full" ];then
+    if [ "$LLAMA_RUN_MODE" == "full" ];then
         eval_run
-    elif [ "$LLAMA_RUN_MODE" = "only_pretrain" ];then
+    elif [ "$LLAMA_RUN_MODE" == "only_pretrain" ];then
         echo "eval not supported yet"
-    elif [ "$LLAMA_RUN_MODE" = "only_finetune" ];then
+    elif [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
         eval_run
     else
         echo "llama run mode not supported"

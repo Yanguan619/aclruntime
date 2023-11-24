@@ -97,7 +97,7 @@ function node_check()
     check_mindspore_run_ok_Ascend ${PYTHON_COMMAND} || { logger_Warn "mindspore running failed" ; return $ret_failed; }
     logger_Debug "mindspore running successfully"
 
-    if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "pretrain" ];then
+    if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "train" ];then
         check_path_valid "${PRETRAIN_DATA_PATH}" || { logger_Warn "TRAIN_DATA_PATH:${PRETRAIN_DATA_PATH} not valid path" ; return 1; }
         logger_Debug "PRETRAIN_DATA_PATH is valid"
     fi
@@ -137,10 +137,10 @@ function node_train()
 {
     logger_Info "node_train running"
     if [ "$LLAMA_RUN_MODE" == "full" ];then
-        node_run "pretrain" || { logger_Warn "run pretrain failed" ; return $ret_failed; }
+        node_run "train" || { logger_Warn "run pretrain failed" ; return $ret_failed; }
         node_run "finetune" || { logger_Warn "run finetune failed" ; return $ret_failed; }
     elif [ "$LLAMA_RUN_MODE" == "only_pretrain" ];then
-        node_run "pretrain" || { logger_Warn "run pretrain failed" ; return $ret_failed; }
+        node_run "train" || { logger_Warn "run pretrain failed" ; return $ret_failed; }
     elif [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
         node_run "finetune" || { logger_Warn "run finetune failed" ; return $ret_failed; }
     else

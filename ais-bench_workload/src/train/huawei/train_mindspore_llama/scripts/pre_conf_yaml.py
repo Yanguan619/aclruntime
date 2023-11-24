@@ -65,7 +65,7 @@ def write_finetune_yaml(data):
 with open(target_yaml, 'r') as file:
     data = yaml.safe_load(file)
 
-if run_mode == 'pretrain':
+if run_mode == 'train':
     write_pretrain_yaml(data)
 elif run_mode == "finetune":
     write_finetune_yaml(data)

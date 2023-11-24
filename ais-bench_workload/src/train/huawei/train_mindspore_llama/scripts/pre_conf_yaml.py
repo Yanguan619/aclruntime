@@ -73,7 +73,7 @@ elif run_mode == "finetune":
 else:
     raise RuntimeError(f"run_mode{run_mode} not valid!")
 
-with open(target_yaml, 'r') as file:
+with open(target_yaml, 'w') as file:
     yaml.safe_dump(data, file)
 
 

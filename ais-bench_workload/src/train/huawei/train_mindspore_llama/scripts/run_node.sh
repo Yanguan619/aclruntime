@@ -116,6 +116,7 @@ function node_check()
 function node_run()
 {
     logger_Info "node_run running"
+    source $WORK_PATH/config/config.sh
     $PYTHON_COMMAND $WORK_PATH/pre_conf_yaml.py $1 # change yaml params
     run_script_path=$WORK_PATH/code/scripts/
     run_yaml_path=$WORK_PATH/code/configs/llama/$LLAMA_RUN_YAML_NAME

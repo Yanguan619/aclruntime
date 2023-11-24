@@ -62,7 +62,7 @@ function get_node_rank_id_range()
         RANK_START=`expr ${SERVER_ID} \* $DEVICE_NUM`
     fi
     RANK_ID_MAX=$[DEVICE_NUM+RANK_START]
-    RANK_ID_RANGE="[$RANK_START, $RANK_ID_MAX]"
+    RANK_ID_RANGE="[$RANK_START,$RANK_ID_MAX]"
 }
 
 function node_init()
@@ -71,14 +71,14 @@ function node_init()
 
     # install pyyaml
     if pip show pyyaml >/dev/null 2>&1;then
-        logger_info "pyyaml exist, won't be installed again"
+        logger_Info "pyyaml exist, won't be installed again"
     else
         pip_cmd="pip install pyyaml"
         $pip_cmd || { logger_Warn "pyyaml install failed:$?";return $ret_failed; }
     fi
     # install mindformers
     if pip show mindformers >/dev/null 2>&1;then
-        logger_info "mindformers exist, won't be installed again"
+        logger_Info "mindformers exist, won't be installed again"
     else
         cd $WORK_PATH/code
         bash build.sh || { logger_Warn "mindformers install failed:$?";return $ret_failed; }

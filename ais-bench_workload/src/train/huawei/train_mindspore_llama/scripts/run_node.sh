@@ -69,20 +69,22 @@ function node_init()
 {
     export PYTHONPATH=$PYTHONPATH:$WORK_PATH
 
-    # install pyyaml
-    if pip show pyyaml >/dev/null 2>&1;then
-        logger_Info "pyyaml exist, won't be installed again"
-    else
-        pip_cmd="pip install pyyaml"
-        $pip_cmd || { logger_Warn "pyyaml install failed:$?";return $ret_failed; }
-    fi
-    # install mindformers
-    if pip show mindformers >/dev/null 2>&1;then
-        logger_Info "mindformers exist, won't be installed again"
-    else
-        cd $WORK_PATH/code
-        bash build.sh || { logger_Warn "mindformers install failed:$?";return $ret_failed; }
-        cd $WORK_PATH
+    if [ $1 == "check" ];then
+        # install pyyaml
+        if pip show pyyaml >/dev/null 2>&1;then
+            logger_Info "pyyaml exist, won't be installed again"
+        else
+            pip_cmd="pip install pyyaml"
+            $pip_cmd || { logger_Warn "pyyaml install failed:$?";return $ret_failed; }
+        fi
+        # install mindformers
+        if pip show mindformers >/dev/null 2>&1;then
+            logger_Info "mindformers exist, won't be installed again"
+        else
+            cd $WORK_PATH/code
+            bash build.sh || { logger_Warn "mindformers install failed:$?";return $ret_failed; }
+            cd $WORK_PATH
+        fi
     fi
     # for eval env set
     [ $1 == "eval" ] && { export RANK_SIZE=1; export DEVICE_ID=0; : "${SINGLE_CARD_INDEX:=0}";export RANK_ID=$SINGLE_CARD_INDEX; unset RANK_TABLE_FILE; }
@@ -121,7 +123,7 @@ function node_run()
     transform_ckpt_path=$WORK_PATH/code/mindformers/tools/transform_ckpt.py
     # train run
     cd $run_script_path
-    cmd="bash $run_script_path $RANK_TABLE_FILE $run_yaml_path $RANK_ID_RANGE $1"
+    cmd="bash run_distribute.sh $RANK_TABLE_FILE $run_yaml_path $RANK_ID_RANGE $1"
     echo "$cmd"
     $cmd || { logger_Warn "node_run failed, rank id range: $RANK_ID_RANGE" ; return $ret_failed; }
     cd $WORK_PATH

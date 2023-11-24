@@ -36,7 +36,7 @@ if not os.path.exists(target_yaml):
 def write_pretrain_yaml(data):
     data['load_checkpoint'] = ''
     data['run_mode'] = 'train'
-    data['runner_config']['epochs'] = epoch_size
+    data['runner_config']['epochs'] = int(epoch_size)
     data['optimizer']['beta2'] = 0.95
     data['optimizer']['learning_rate'] = 3.e-4
     data['lr_schedule']['learning_rate'] = 3.e-4
@@ -44,14 +44,14 @@ def write_pretrain_yaml(data):
     data['train_dataset']['input_columns'] = ["input_ids"]
     data['train_dataset']['data_loader']['dataset_dir'] = pretrain_dataset
     data['eval_dataset']['data_loader']['dataset_dir'] = eval_data_path
-    data['model']['model_config']['num_layers'] = layer_num
+    data['model']['model_config']['num_layers'] = int(layer_num)
     return data
 
 
 def write_finetune_yaml(data):
     data['load_checkpoint'] = ckpt_path
     data['run_mode'] = 'finetune'
-    data['runner_config']['epochs'] = epoch_size
+    data['runner_config']['epochs'] = int(epoch_size)
     data['optimizer']['beta2'] = 0.999
     data['optimizer']['learning_rate'] = 1.e-5
     data['lr_schedule']['learning_rate'] = 1.e-5
@@ -59,7 +59,7 @@ def write_finetune_yaml(data):
     data['train_dataset']['input_columns'] = ["input_ids", "labels"]
     data['train_dataset']['data_loader']['dataset_dir'] = finetune_dataset
     data['eval_dataset']['data_loader']['dataset_dir'] = eval_data_path
-    data['model']['model_config']['num_layers'] = layer_num
+    data['model']['model_config']['num_layers'] = int(layer_num)
     return data
 
 data = {}

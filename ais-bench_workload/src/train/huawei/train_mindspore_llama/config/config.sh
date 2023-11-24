@@ -5,10 +5,10 @@ export PYTHON_COMMAND=python3
 export LLAMA_MODEL_TYPE='7b'
 export LLAMA_RUN_MODE='only_pretrain' # 'only_pretrain', 'only_finetune', 'full'
 
-export PRETRAIN_DATA_PATH=./dataset_files/wikitext-2/wiki2048.mindrecord # 相对mindformer源码的路径
-export FINETUNE_DATA_PATH=./dataset_files/alpaca-fastchat2048.mindrecord # 相对mindformer源码的路径
+export PRETRAIN_DATA_PATH=./mindformers/dataset_files/wikitext-2/wiki2048.mindrecord # 相对mindformers源码的路径, 必须以./mindformers/开头
+export FINETUNE_DATA_PATH=./mindformers/dataset_files/alpaca-fastchat2048.mindrecord # 相对mindformers源码的路径，必须以./mindformers/开头
 export EVAL_DATASET_TYPE='wikitext' # 'wikitext' 'squad'
-export EVAL_DATASET_PATH=./dataset_files/wikitext-2/wiki2048valid.mindrecord # 评测用的数据集路径
+export EVAL_DATASET_PATH=./mindformers/dataset_files/wikitext-2/wiki2048valid.mindrecord # 评测用的数据集路径，必须以./mindformers/开头
 export EVAL_DEVICE_ID=0 # 评测用的npu
 
 export EPOCH_SIZE=50

@@ -86,6 +86,19 @@ function node_check()
 
     check_mindspore_run_ok_Ascend ${PYTHON_COMMAND} || { logger_Warn "mindspore running failed" ; return $ret_failed; }
     logger_Debug "mindspore running successfully"
+
+    if [ "$LLAMA_RUN_MODE" = "full" ] || [ "$LLAMA_RUN_MODE" = "pretrain" ];then
+        check_path_valid "${PRETRAIN_DATA_PATH}" || { logger_Warn "TRAIN_DATA_PATH:${PRETRAIN_DATA_PATH} not valid path" ; return 1; }
+        logger_Debug "PRETRAIN_DATA_PATH is valid"
+    fi
+
+    if [ "$LLAMA_RUN_MODE" = "full" ] || [ "$LLAMA_RUN_MODE" = "finetune" ];then
+        check_path_valid "${FINETUNE_DATA_PATH}" || { logger_Warn "FINETUNE_DATA_PATH:${FINETUNE_DATA_PATH} not valid path" ; return 1; }
+        logger_Debug "FINETUNE_DATA_PATH is valid"
+        check_path_valid "${EVAL_DATASET_PATH}" || { logger_Warn "EVAL_DATASET_PATH:${EVAL_DATASET_PATH} not valid path" ; return 1; }
+        logger_Debug "EVAL_DATASET_PATH is valid"
+    fi
+
 }
 
 function node_run()
@@ -168,15 +181,16 @@ main()
 {
     type="$1"
     shift
-    node_init "$@" || { logger_Warn "init failed"; return 1; }
-    node_check
+    node_init "$@" || { logger_Warn "init failed"; return $ret_failed; }
     get_node_train_data
     if [ "$type" == "train" ];then
-        node_train || { logger_Warn "run_node_train failed"; return 1; }
+        node_train || { logger_Warn "run_node_train failed"; return $ret_failed; }
     elif [ "$type" == "eval" ];then
-        node_eval || { logger_Warn "run_node_eval failed"; return 1; }
+        node_eval || { logger_Warn "run_node_eval failed"; return $ret_failed; }
+    elif [ "$type" == "check" ];then
+        node_check || { logger_Warn "run_node_check failed"; return $ret_failed; }
     else
-        { logger_Warn "invalid argument '${type}'"; return 1; }
+        { logger_Warn "invalid argument '${type}'"; return $ret_failed; }
     fi
 }
 

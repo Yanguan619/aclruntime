@@ -11,7 +11,7 @@ export EVAL_DATASET_TYPE='wikitext' # 'wikitext' 'squad'
 export EVAL_DATASET_PATH=./mindformers/dataset_files/wikitext-2/wiki2048valid.mindrecord # 评测用的数据集路径，必须以./mindformers/开头
 export EVAL_DEVICE_ID=0 # 评测用的npu
 
-export EPOCH_SIZE=50
+export EPOCH_SIZE=1
 export LLAMA_LAYER_NUM=4 # 32
 
 export RANK_SIZE=8

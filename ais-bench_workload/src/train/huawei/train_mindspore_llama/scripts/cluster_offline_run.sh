@@ -49,6 +49,7 @@ run_train()
     logger_Info "-------------------------------- train start --------------------------------"
     cmd="export WORK_PATH=$WORK_PATH;
         export RESULT_PATH=$RESULT_PATH;
+        export PYTHONPATH=$WORK_PATH:$PYTHONPATH;
         source $WORK_PATH/config/$CONFIG_FILE;
         bash $WORK_PATH/run_node.sh train"
 
@@ -62,6 +63,7 @@ run_eval()
     cmd="source $WORK_PATH/config/$CONFIG_FILE;
         export WORK_PATH=$WORK_PATH;
         export RESULT_PATH=$RESULT_PATH;
+        export PYTHONPATH=$WORK_PATH:$PYTHONPATH;
         bash $WORK_PATH/run_node.sh eval "
     cluster_run_cmd_single "${NODEINFO_FILE}" ${cmd} || { logger_Warn "run eval failed"; return 1; }
     logger_Info "-------------------------------- eval end --------------------------------"
@@ -70,7 +72,7 @@ run_eval()
 get_result()
 {
     logger_Info "-------------------------------- get_result start --------------------------------"
-    # cmd="mkdir -p ${RESULT_PATH}"
+    # cmd="mkdir -p ${RESULT_PATH};export PYTHONPATH=$WORK_PATH:$PYTHONPATH;"
     # cluster_run_cmd_serial "$NODEINFO_FILE" ${cmd} || { logger_Warn "mkdir resultpath failed"; return 1; }
 
     # cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH}

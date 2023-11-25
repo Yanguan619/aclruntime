@@ -202,7 +202,7 @@ main()
 {
     type="$1"
     shift
-    node_init "$@" || { logger_Warn "init failed"; return $ret_failed; }
+    node_init $type || { logger_Warn "init failed"; return $ret_failed; }
     get_node_train_data
     if [ "$type" == "train" ];then
         node_train || { logger_Warn "run_node_train failed"; return $ret_failed; }

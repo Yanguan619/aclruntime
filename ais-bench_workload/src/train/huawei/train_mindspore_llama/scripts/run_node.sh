@@ -100,14 +100,14 @@ function node_check()
     logger_Debug "mindspore running successfully"
 
     if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "train" ];then
-        check_path_valid "${WORK_PATH}/code/${PRETRAIN_DATA_PATH}" || { logger_Warn "TRAIN_DATA_PATH:${PRETRAIN_DATA_PATH} not valid path" ; return 1; }
+        check_file_valid "${WORK_PATH}/code/${PRETRAIN_DATA_PATH}" || { logger_Warn "PRETRAIN_DATA_PATH:${PRETRAIN_DATA_PATH} not valid path" ; return 1; }
         logger_Debug "PRETRAIN_DATA_PATH is valid"
     fi
 
     if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "finetune" ];then
-        check_path_valid "${WORK_PATH}/code/${FINETUNE_DATA_PATH}" || { logger_Warn "FINETUNE_DATA_PATH:${FINETUNE_DATA_PATH} not valid path" ; return 1; }
+        check_file_valid "${WORK_PATH}/code/${FINETUNE_DATA_PATH}" || { logger_Warn "FINETUNE_DATA_PATH:${FINETUNE_DATA_PATH} not valid path" ; return 1; }
         logger_Debug "FINETUNE_DATA_PATH is valid"
-        check_path_valid "${WORK_PATH}/code/${EVAL_DATASET_PATH}" || { logger_Warn "EVAL_DATASET_PATH:${EVAL_DATASET_PATH} not valid path" ; return 1; }
+        check_file_valid "${WORK_PATH}/code/${EVAL_DATASET_PATH}" || { logger_Warn "EVAL_DATASET_PATH:${EVAL_DATASET_PATH} not valid path" ; return 1; }
         logger_Debug "EVAL_DATASET_PATH is valid"
     fi
 

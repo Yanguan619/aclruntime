@@ -17,6 +17,7 @@ pretrain_dataset = os.getenv('PRETRAIN_DATA_PATH')
 finetune_dataset = os.getenv('FINETUNE_DATA_PATH')
 model_type = os.getenv('LLAMA_MODEL_TYPE')
 epoch_size = os.getenv("EPOCH_SIZE")
+sink_size = 1
 layer_num = os.getenv("LLAMA_LAYER_NUM")
 eval_data_path = os.getenv('EVAL_DATASET_PATH')
 
@@ -37,6 +38,7 @@ def write_pretrain_yaml(data):
     data['load_checkpoint'] = ''
     data['run_mode'] = 'train'
     data['runner_config']['epochs'] = int(epoch_size)
+    data['runner_config']['sink_size'] = sink_size
     data['optimizer']['beta2'] = 0.95
     data['optimizer']['learning_rate'] = 3.e-4
     data['lr_schedule']['learning_rate'] = 3.e-4
@@ -52,6 +54,7 @@ def write_finetune_yaml(data):
     data['load_checkpoint'] = ckpt_path
     data['run_mode'] = 'finetune'
     data['runner_config']['epochs'] = int(epoch_size)
+    data['runner_config']['sink_size'] = sink_size
     data['optimizer']['beta2'] = 0.999
     data['optimizer']['learning_rate'] = 1.e-5
     data['lr_schedule']['learning_rate'] = 1.e-5

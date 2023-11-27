@@ -72,12 +72,11 @@ run_eval()
 get_result()
 {
     logger_Info "-------------------------------- get_result start --------------------------------"
-    # cmd="mkdir -p ${RESULT_PATH};export PYTHONPATH=$WORK_PATH:$PYTHONPATH;"
-    # cluster_run_cmd_serial "$NODEINFO_FILE" ${cmd} || { logger_Warn "mkdir resultpath failed"; return 1; }
+    cmd="mkdir -p ${RESULT_PATH};export PYTHONPATH=$WORK_PATH:$PYTHONPATH"
+    cluster_run_cmd_serial "$NODEINFO_FILE" ${cmd} || { logger_Warn "mkdir resultpath failed"; return 1; }
 
-    # cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH}
-    # ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_result.py ${RESULT_PATH} ${RANK_SIZE}
-    ${PYTHON_COMMAND} ${CODE_PATH}/ais_utils.py set_result "training" "result" "OK"
-    # [ -d $BASE_PATH/result ] && cp ${RESULT_PATH}/* -rf  $BASE_PATH/result/
+    cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH}
+    ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_llm_result.py ${RESULT_PATH} ${RANK_SIZE} ${LLAMA_RUN_MODE}
+    [ -d $BASE_PATH/result ] && cp ${RESULT_PATH}/* -rf  $BASE_PATH/result/
     logger_Info "-------------------------------- get_result end --------------------------------"
 }

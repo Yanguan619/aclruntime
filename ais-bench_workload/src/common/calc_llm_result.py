@@ -1,43 +1,55 @@
 import json
 import os
 import sys
+import ais_utils
 
 RESULT_PATH = sys.argv[1]
 RANK_SIZE = sys.argv[2]
+RUN_MODE = sys.argv[2]
 
 total_throughput = 0
 accuracy = 0
+merged_json_data = {}
+# get all json data
 for rank_id in range(int(RANK_SIZE)):
-    json_path = os.path.join(RESULT_PATH, f"result_rank_{rank_id}")
-    log_path = os.path.join(RESULT_PATH, file_name)
-    if not os.path.exists(log_path):
-        print("{} file not exist".format(log_path))
+    json_path = os.path.join(RESULT_PATH, f"result_rank_{rank_id}.json")
+    if not os.path.exists(json_path):
+        raise FileExistsError("{} file not exist".format(json_path))
     else:
-        f = open(log_path, 'r')
-        cur_throughput = float(f.read())
-        print("{} file throught: {}".format(log_path, cur_throughput))
-        total_throughput += cur_throughput
-        f.close()
+        with open(f"result_rank_{rank_id}.json", "r") as file:
+            json_data = json.load(file)
+        if not merged_json_data:
+            merged_json_data = json_data
+        for mode_key, mode_value in json_data.items():
+            for param_key, param_value in mode_value.items():
+                merged_json_data[mode_key][param_key].extend(param_value)
 
-accuracy_file = os.path.join(RESULT_PATH, "eval_acc.log")
-if not os.path.exists(accuracy_file):
-    print("{} file not exist".format(accuracy_file))
+# sort all json data
+for mode_key, mode_value in merged_json_data.items():
+    for param_key, param_value in mode_value.items():
+        merged_json_data[mode_key][param_key].sort()
+
+def set_result_single(mode:str):
+    for key, value in merged_json_data[mode].items():
+        if key == "throughput_ratio":
+            ais_utils.set_result("training", key, sum(value))
+        elif "start" in key:
+            ais_utils.set_result("training", key, value[0])
+        elif "end" in key:
+            ais_utils.set_result("training", key, value[-1])
+
+def set_result_finetune():
+    pass
+
+def set_result_full():
+    pass
+
+if RUN_MODE == "only_pretrain":
+    set_result_single("train")
+elif RUN_MODE == "only_finetune":
+    set_result_single("finetune")
+elif RUN_MODE == "full":
+    set_result_full()
 else:
-    with open(accuracy_file, 'rb') as fd:
-        accuracy = float(fd.read())
-
-print("throughput_ratio:{}".format(total_throughput))
-print("accuracy:{}".format(accuracy))
-
-result = {'throughput_ratio': total_throughput, 'accuracy': accuracy}
-result_file = os.path.join(RESULT_PATH, "result.log")
-with open(result_file, 'w') as f:
-    json.dump(result, f)
-
-try:
-    import ais_utils
-    ais_utils.set_result("training", "throughput_ratio", total_throughput)
-    ais_utils.set_result("training", "accuracy", float(accuracy))
-    ais_utils.set_result("training", "result", "OK")
-except:
-    sys.exit()
+    raise RuntimeError(f"not supported run mode :{RUN_MODE}")
+ais_utils.set_result("training", "result", "OK")

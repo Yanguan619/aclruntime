@@ -8,7 +8,7 @@ RANK_SIZE = sys.argv[2]
 total_throughput = 0
 accuracy = 0
 for rank_id in range(int(RANK_SIZE)):
-    file_name = "throughput_rank_{}".format(str(rank_id))
+    json_path = os.path.join(RESULT_PATH, f"result_rank_{rank_id}")
     log_path = os.path.join(RESULT_PATH, file_name)
     if not os.path.exists(log_path):
         print("{} file not exist".format(log_path))

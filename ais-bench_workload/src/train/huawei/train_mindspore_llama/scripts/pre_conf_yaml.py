@@ -17,7 +17,7 @@ pretrain_dataset = os.getenv('PRETRAIN_DATA_PATH')
 finetune_dataset = os.getenv('FINETUNE_DATA_PATH')
 model_type = os.getenv('LLAMA_MODEL_TYPE')
 epoch_size = os.getenv("EPOCH_SIZE")
-sink_size = 1
+sink_size = 2
 layer_num = os.getenv("LLAMA_LAYER_NUM")
 eval_data_path = os.getenv('EVAL_DATASET_PATH')
 

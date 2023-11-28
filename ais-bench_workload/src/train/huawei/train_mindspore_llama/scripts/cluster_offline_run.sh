@@ -85,6 +85,7 @@ get_result()
 
     cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH}
     source ${CODE_PATH}/config/$CONFIG_FILE
+    export PYTHONPATH=${CODE_PATH}/logging:$PYTHONPATH
     ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_llm_result.py ${RESULT_PATH} ${RANK_SIZE} ${LLAMA_RUN_MODE}
     [ -d $BASE_PATH/result ] && cp ${RESULT_PATH}/* -rf  $BASE_PATH/result/
     logger_Info "-------------------------------- get_result end --------------------------------"

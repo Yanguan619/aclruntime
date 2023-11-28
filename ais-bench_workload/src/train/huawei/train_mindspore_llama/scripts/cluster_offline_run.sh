@@ -53,7 +53,7 @@ run_train()
     cmd="export WORK_PATH=$WORK_PATH;
         export RESULT_PATH=$RESULT_PATH;
         export PYTHONPATH=$WORK_PATH:$PYTHONPATH;
-        export PYTHONPATH=$WORK_PATH/code/logging:$PYTHONPATH;
+        export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH;
         source $WORK_PATH/config/$CONFIG_FILE;
         rm -rf $RESULT_PATH/*.json;
         bash $WORK_PATH/run_node.sh train"
@@ -69,7 +69,7 @@ run_eval()
         export WORK_PATH=$WORK_PATH;
         export RESULT_PATH=$RESULT_PATH;
         export PYTHONPATH=$WORK_PATH:$PYTHONPATH;
-        export PYTHONPATH=$WORK_PATH/code/logging:$PYTHONPATH;
+        export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH;
         bash $WORK_PATH/run_node.sh eval "
     cluster_run_cmd_single "${NODEINFO_FILE}" ${cmd} || { logger_Warn "run eval failed"; return 1; }
     logger_Info "-------------------------------- eval end --------------------------------"
@@ -80,7 +80,7 @@ get_result()
     logger_Info "-------------------------------- get_result start --------------------------------"
     cmd="mkdir -p ${RESULT_PATH};
         export PYTHONPATH=$WORK_PATH:$PYTHONPATH;
-        export PYTHONPATH=$WORK_PATH/code/logging:$PYTHONPATH;"
+        export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH;"
     cluster_run_cmd_serial "$NODEINFO_FILE" ${cmd} || { logger_Warn "mkdir resultpath failed"; return 1; }
 
     cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH}

@@ -72,7 +72,7 @@ run_eval()
 get_result()
 {
     logger_Info "-------------------------------- get_result start --------------------------------"
-    cmd="mkdir -p ${RESULT_PATH};export PYTHONPATH=$WORK_PATH:$PYTHONPATH"
+    cmd="mkdir -p ${RESULT_PATH};export PYTHONPATH=$WORK_PATH:$PYTHONPATH;source $WORK_PATH/config/$CONFIG_FILE"
     cluster_run_cmd_serial "$NODEINFO_FILE" ${cmd} || { logger_Warn "mkdir resultpath failed"; return 1; }
 
     cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH}

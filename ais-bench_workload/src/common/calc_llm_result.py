@@ -16,7 +16,7 @@ for rank_id in range(int(RANK_SIZE)):
     if not os.path.exists(json_path):
         raise FileExistsError("{} file not exist".format(json_path))
     else:
-        with open(f"result_rank_{rank_id}.json", "r") as file:
+        with open(json_path, "r") as file:
             json_data = json.load(file)
         if not merged_json_data:
             merged_json_data = json_data

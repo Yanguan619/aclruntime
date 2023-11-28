@@ -51,6 +51,7 @@ run_train()
         export RESULT_PATH=$RESULT_PATH;
         export PYTHONPATH=$WORK_PATH:$PYTHONPATH;
         source $WORK_PATH/config/$CONFIG_FILE;
+        rm -rf $RESULT_PATH/*.json;
         bash $WORK_PATH/run_node.sh train"
 
     cluster_run_cmd_parallel "${NODEINFO_FILE}" ${cmd} || { logger_Warn "run train failed"; return 1; }
@@ -72,10 +73,11 @@ run_eval()
 get_result()
 {
     logger_Info "-------------------------------- get_result start --------------------------------"
-    cmd="mkdir -p ${RESULT_PATH};export PYTHONPATH=$WORK_PATH:$PYTHONPATH;source $WORK_PATH/config/$CONFIG_FILE"
+    cmd="mkdir -p ${RESULT_PATH};export PYTHONPATH=$WORK_PATH:$PYTHONPATH"
     cluster_run_cmd_serial "$NODEINFO_FILE" ${cmd} || { logger_Warn "mkdir resultpath failed"; return 1; }
 
     cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH}
+    source ${CODE_PATH}/config/$CONFIG_FILE
     ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_llm_result.py ${RESULT_PATH} ${RANK_SIZE} ${LLAMA_RUN_MODE}
     [ -d $BASE_PATH/result ] && cp ${RESULT_PATH}/* -rf  $BASE_PATH/result/
     logger_Info "-------------------------------- get_result end --------------------------------"

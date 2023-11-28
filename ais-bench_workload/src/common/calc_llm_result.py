@@ -5,7 +5,7 @@ import ais_utils
 
 RESULT_PATH = sys.argv[1]
 RANK_SIZE = sys.argv[2]
-RUN_MODE = sys.argv[2]
+RUN_MODE = sys.argv[3]
 
 total_throughput = 0
 accuracy = 0

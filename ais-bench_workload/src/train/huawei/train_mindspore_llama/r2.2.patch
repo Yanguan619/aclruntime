@@ -1,0 +1,304 @@
+diff -Nur origin/.git/HEAD code/.git/HEAD
+--- origin/.git/HEAD	2023-11-29 04:08:10.662351776 +0000
++++ code/.git/HEAD	2023-11-29 04:08:10.758351779 +0000
+@@ -1 +1 @@
+-ref: refs/heads/r0.8
++ref: refs/heads/llama_workload
+diff -Nur origin/.git/ORIG_HEAD code/.git/ORIG_HEAD
+--- origin/.git/ORIG_HEAD	2023-11-29 04:08:10.634351775 +0000
++++ code/.git/ORIG_HEAD	1970-01-01 00:00:00.000000000 +0000
+@@ -1 +0,0 @@
+-337c5562a15597ebb3ba132f68fc990c421de985
+diff -Nur origin/.git/config code/.git/config
+--- origin/.git/config	2023-11-29 04:08:10.634351775 +0000
++++ code/.git/config	2023-11-29 04:08:10.726351778 +0000
+@@ -4,8 +4,11 @@
+ 	bare = false
+ 	logallrefupdates = true
+ [remote "origin"]
+-	url = https://gitee.com/mindspore/mindformers.git
++	url = https://gitee.com/y30044005/mindformers.git
+ 	fetch = +refs/heads/*:refs/remotes/origin/*
+-[branch "r0.8"]
++[branch "dev"]
+ 	remote = origin
+-	merge = refs/heads/r0.8
++	merge = refs/heads/dev
++[branch "llama_workload"]
++	remote = origin
++	merge = refs/heads/llama_workload
+Binary files origin/.git/index and code/.git/index differ
+diff -Nur origin/.git/logs/HEAD code/.git/logs/HEAD
+--- origin/.git/logs/HEAD	2023-11-29 04:08:10.634351775 +0000
++++ code/.git/logs/HEAD	2023-11-29 04:08:10.726351778 +0000
+@@ -1,2 +1,2 @@
+-0000000000000000000000000000000000000000 337c5562a15597ebb3ba132f68fc990c421de985 root <root@fc2e9adf4824.(none)> 1701230889 +0000	clone: from https://gitee.com/mindspore/mindformers.git
+-337c5562a15597ebb3ba132f68fc990c421de985 c0f478fc517b1daec896f5c72bcea10b2ab83bd4 root <root@fc2e9adf4824.(none)> 1701230890 +0000	reset: moving to c0f478fc517b1daec896f5c72bcea10b2ab83bd4
++0000000000000000000000000000000000000000 e673175fe9e3b1a87fb8cb6ea4ebfda2009b8f0c root <root@fc2e9adf4824.(none)> 1701229188 +0000	clone: from https://gitee.com/y30044005/mindformers.git
++e673175fe9e3b1a87fb8cb6ea4ebfda2009b8f0c 96399d409942b9fab28d1706ed7314b750f96bb8 root <root@fc2e9adf4824.(none)> 1701230696 +0000	checkout: moving from dev to llama_workload
+diff -Nur origin/.git/logs/refs/heads/dev code/.git/logs/refs/heads/dev
+--- origin/.git/logs/refs/heads/dev	1970-01-01 00:00:00.000000000 +0000
++++ code/.git/logs/refs/heads/dev	2023-11-29 04:08:10.726351778 +0000
+@@ -0,0 +1 @@
++0000000000000000000000000000000000000000 e673175fe9e3b1a87fb8cb6ea4ebfda2009b8f0c root <root@fc2e9adf4824.(none)> 1701229188 +0000	clone: from https://gitee.com/y30044005/mindformers.git
+diff -Nur origin/.git/logs/refs/heads/llama_workload code/.git/logs/refs/heads/llama_workload
+--- origin/.git/logs/refs/heads/llama_workload	1970-01-01 00:00:00.000000000 +0000
++++ code/.git/logs/refs/heads/llama_workload	2023-11-29 04:08:10.726351778 +0000
+@@ -0,0 +1 @@
++0000000000000000000000000000000000000000 96399d409942b9fab28d1706ed7314b750f96bb8 root <root@fc2e9adf4824.(none)> 1701230696 +0000	branch: Created from refs/remotes/origin/llama_workload
+diff -Nur origin/.git/logs/refs/heads/r0.8 code/.git/logs/refs/heads/r0.8
+--- origin/.git/logs/refs/heads/r0.8	2023-11-29 04:08:10.634351775 +0000
++++ code/.git/logs/refs/heads/r0.8	1970-01-01 00:00:00.000000000 +0000
+@@ -1,2 +0,0 @@
+-0000000000000000000000000000000000000000 337c5562a15597ebb3ba132f68fc990c421de985 root <root@fc2e9adf4824.(none)> 1701230889 +0000	clone: from https://gitee.com/mindspore/mindformers.git
+-337c5562a15597ebb3ba132f68fc990c421de985 c0f478fc517b1daec896f5c72bcea10b2ab83bd4 root <root@fc2e9adf4824.(none)> 1701230890 +0000	reset: moving to c0f478fc517b1daec896f5c72bcea10b2ab83bd4
+diff -Nur origin/.git/logs/refs/remotes/origin/HEAD code/.git/logs/refs/remotes/origin/HEAD
+--- origin/.git/logs/refs/remotes/origin/HEAD	2023-11-29 04:08:10.634351775 +0000
++++ code/.git/logs/refs/remotes/origin/HEAD	2023-11-29 04:08:10.726351778 +0000
+@@ -1 +1 @@
+-0000000000000000000000000000000000000000 da445e5b723ec14f2d26fa01cf65d80a85e8b270 root <root@fc2e9adf4824.(none)> 1701230889 +0000	clone: from https://gitee.com/mindspore/mindformers.git
++0000000000000000000000000000000000000000 e673175fe9e3b1a87fb8cb6ea4ebfda2009b8f0c root <root@fc2e9adf4824.(none)> 1701229188 +0000	clone: from https://gitee.com/y30044005/mindformers.git
+Binary files origin/.git/objects/pack/pack-668ec20bd389d4fb4d129ea7440efc21e50d06d5.idx and code/.git/objects/pack/pack-668ec20bd389d4fb4d129ea7440efc21e50d06d5.idx differ
+Binary files origin/.git/objects/pack/pack-668ec20bd389d4fb4d129ea7440efc21e50d06d5.pack and code/.git/objects/pack/pack-668ec20bd389d4fb4d129ea7440efc21e50d06d5.pack differ
+Binary files origin/.git/objects/pack/pack-a864bda8937b4717f3bd0809f71f634366b69f95.idx and code/.git/objects/pack/pack-a864bda8937b4717f3bd0809f71f634366b69f95.idx differ
+Binary files origin/.git/objects/pack/pack-a864bda8937b4717f3bd0809f71f634366b69f95.pack and code/.git/objects/pack/pack-a864bda8937b4717f3bd0809f71f634366b69f95.pack differ
+diff -Nur origin/.git/packed-refs code/.git/packed-refs
+--- origin/.git/packed-refs	2023-11-29 04:08:10.662351776 +0000
++++ code/.git/packed-refs	2023-11-29 04:08:10.758351779 +0000
+@@ -1,14 +1,15 @@
+ # pack-refs with: peeled fully-peeled sorted
+ 76ad8083cca7adf544f10f263d377a9426a17fb6 refs/remotes/origin/0.6rc1
+-da445e5b723ec14f2d26fa01cf65d80a85e8b270 refs/remotes/origin/dev
+-04f4969ce0f2b1442eb472c33c158799697dd3d4 refs/remotes/origin/ft-predict-opt
++e673175fe9e3b1a87fb8cb6ea4ebfda2009b8f0c refs/remotes/origin/dev
++09365b1cccf6d2320a47d15a82e5f3a469e720d2 refs/remotes/origin/ft-predict-opt
++96399d409942b9fab28d1706ed7314b750f96bb8 refs/remotes/origin/llama_workload
+ 6f6cd8cb99a8c2e279714c74612816a23b650c76 refs/remotes/origin/master
+ 46b354b29d966c813300aa74e23baa8ca4601c07 refs/remotes/origin/r0.2
+ d95ac3bce5aa6e8b1c18b09f5f0ab8814e712878 refs/remotes/origin/r0.3
+ c7fee8e8a68691cabb7af77f6d9149e73a7a65b6 refs/remotes/origin/r0.6
+ 013370c667715a9a280eb8d5343353f9928ce5d6 refs/remotes/origin/r0.6.1_demo
+ 3b6cedd6549fa1ed07ae85cb3080361e6c3cc8be refs/remotes/origin/r0.7
+-337c5562a15597ebb3ba132f68fc990c421de985 refs/remotes/origin/r0.8
++c0f478fc517b1daec896f5c72bcea10b2ab83bd4 refs/remotes/origin/r0.8
+ 01ed9a30270ad7ef259ba1d9bb0c6676d637c47f refs/remotes/origin/v0.1.0
+ f7ef4400d04c8ff6fc1359bd09a386f02ad90032 refs/remotes/origin/v0.1.1
+ e3f9adf442d1739dee5b79a93dfaaa8571bbc219 refs/remotes/origin/v0.1.2
+diff -Nur origin/.git/refs/heads/dev code/.git/refs/heads/dev
+--- origin/.git/refs/heads/dev	1970-01-01 00:00:00.000000000 +0000
++++ code/.git/refs/heads/dev	2023-11-29 04:08:10.758351779 +0000
+@@ -0,0 +1 @@
++e673175fe9e3b1a87fb8cb6ea4ebfda2009b8f0c
+diff -Nur origin/.git/refs/heads/llama_workload code/.git/refs/heads/llama_workload
+--- origin/.git/refs/heads/llama_workload	1970-01-01 00:00:00.000000000 +0000
++++ code/.git/refs/heads/llama_workload	2023-11-29 04:08:10.758351779 +0000
+@@ -0,0 +1 @@
++96399d409942b9fab28d1706ed7314b750f96bb8
+diff -Nur origin/.git/refs/heads/r0.8 code/.git/refs/heads/r0.8
+--- origin/.git/refs/heads/r0.8	2023-11-29 04:08:10.666351776 +0000
++++ code/.git/refs/heads/r0.8	1970-01-01 00:00:00.000000000 +0000
+@@ -1 +0,0 @@
+-c0f478fc517b1daec896f5c72bcea10b2ab83bd4
+diff -Nur origin/mindformers/core/callback/callback.py code/mindformers/core/callback/callback.py
+--- origin/mindformers/core/callback/callback.py	2023-11-29 04:08:10.590351773 +0000
++++ code/mindformers/core/callback/callback.py	2023-11-29 04:08:10.678351776 +0000
+@@ -33,7 +33,11 @@
+ from mindformers.tools.register import MindFormerRegister, MindFormerModuleType
+ from mindformers.tools.cloud_adapter.cloud_adapter import Local2ObsMonitor
+ from mindformers.tools.logger import logger
+-from mindformers.tools.utils import get_output_root_path, get_output_subpath, get_remote_save_url, check_in_modelarts
++from mindformers.tools.utils import get_output_root_path, get_output_subpath, get_remote_save_url, check_in_modelarts, save_aisbench_result
++try:
++    import ais_utils
++except Exception:
++    print("ais_utils not find")
+
+ __all__ = ['ObsMonitor', 'MFLossMonitor', 'CheckpointMointor', 'SummaryMonitor', 'ProfileMonitor', 'EvalCallBack']
+
+@@ -551,6 +555,7 @@
+
+         if save_ckpt:
+             logger.info('......Saving ckpt......')
++            save_aisbench_result("model_persistence_start_time", ais_utils.get_datatime().decode('utf-8'))
+             cur_ckpoint_file = self._prefix + "-" + str(cb_params.cur_epoch_num) + "_" \
+                                + str(step_num_in_epoch) + ".ckpt"
+             # update checkpoint file list.
+@@ -629,7 +634,7 @@
+                                     self._config.async_save, {}, self._config.enc_key, self._config.enc_mode)
+
+             save_only_network_params()
+-
++            save_aisbench_result("model_persistence_end_time", ais_utils.get_datatime().decode('utf-8'))
+             self._latest_ckpt_file_name = cur_file
+
+
+diff -Nur origin/mindformers/tools/transform_ckpt.py code/mindformers/tools/transform_ckpt.py
+--- origin/mindformers/tools/transform_ckpt.py	2023-11-29 04:08:10.594351773 +0000
++++ code/mindformers/tools/transform_ckpt.py	2023-11-29 04:08:10.678351776 +0000
+@@ -17,6 +17,11 @@
+ import argparse
+
+ import mindspore as ms
++from mindformers.tools.utils import save_aisbench_result
++try:
++    import ais_utils
++except Exception:
++    print("ais_utils not find")
+
+ def get_strategy(startegy_path, rank_id=None):
+     """Merge strategy if strategy path is dir
+@@ -84,6 +89,8 @@
+     print(f"dst_ckpt_dir: {dst_ckpt_dir}")
+     print(f"prefix: {prefix}")
+
+-    print("......Start transform......")
++    print("......Start transform......") # model_format_start_time
++    save_aisbench_result("model_format_start_time", ais_utils.get_datatime().decode('utf-8'))
+     ms.transform_checkpoints(src_ckpt_dir, dst_ckpt_dir, prefix, src_ckpt_strategy, dst_ckpt_strategy)
+-    print("......Transform succeed!......")
++    print("......Transform succeed!......") # model_format_end_time
++    save_aisbench_result("model_format_end_time", ais_utils.get_datatime().decode('utf-8'))
+diff -Nur origin/mindformers/tools/utils.py code/mindformers/tools/utils.py
+--- origin/mindformers/tools/utils.py	2023-11-29 04:08:10.594351773 +0000
++++ code/mindformers/tools/utils.py	2023-11-29 04:08:10.678351776 +0000
+@@ -55,6 +55,28 @@
+ _PROTOCOL = 'obs'
+ _PROTOCOL_S3 = 's3'
+
++AISBENCH_RESULT_PATH=os.getenv('RESULT_PATH')
++
++
++def save_aisbench_result(rt_key:str, rt_value):
++    cur_rank_id = os.getenv("RANK_ID", "0")
++    cur_run_mode = os.getenv("LLAMA_CUR_RUN_MODE", "train")
++    result_file_path = os.path.join(AISBENCH_RESULT_PATH, f"result_rank_{cur_rank_id}.json")
++    if not os.path.exists(result_file_path):
++        with open(result_file_path, "w") as f:
++            init_data = {}
++            json.dump(init_data, f)
++    with open(result_file_path, "r") as result_file:
++        result_log = json.load(result_file)
++    if not cur_run_mode in result_log:
++        result_log[cur_run_mode] = {}
++    if rt_key in result_log[cur_run_mode]:
++        result_log[cur_run_mode][rt_key].append(rt_value)
++    else:
++        result_log[cur_run_mode][rt_key] = [rt_value]
++    with open(result_file_path, "w") as result_file:
++        json.dump(result_log, result_file)
++
+
+ def check_in_modelarts():
+     """Check if the training is on modelarts.
+diff -Nur origin/mindformers/trainer/base_trainer.py code/mindformers/trainer/base_trainer.py
+--- origin/mindformers/trainer/base_trainer.py	2023-11-29 04:08:10.586351773 +0000
++++ code/mindformers/trainer/base_trainer.py	2023-11-29 04:08:10.674351776 +0000
+@@ -42,7 +42,7 @@
+ from mindformers.wrapper import build_wrapper
+ from mindformers.tools.register import MindFormerConfig
+ from mindformers.tools.logger import logger
+-from mindformers.tools.utils import count_params
++from mindformers.tools.utils import count_params, save_aisbench_result
+ from mindformers.auto_class import AutoModel
+ from mindformers.pet import get_pet_model
+ from .config_args import ConfigArguments
+@@ -51,6 +51,10 @@
+ from .optimizer_grouped_parameters import get_optimizer_grouped_parameters
+ from .utils import set_seed, check_train_data_loader_type, \
+     check_eval_data_loader_type, check_optimizer_and_lr_type, check_wrapper_config
++try:
++    import ais_utils
++except Exception:
++    print("ais_utils not find")
+
+ SUPPORT_TASKS = MindFormerBook().get_trainer_support_task_list()
+ SUPPORT_MODEL_NAMES = MindFormerBook().get_model_name_support_list()
+@@ -543,7 +547,8 @@
+             load_resume_context_from_checkpoint(config)
+
+         # build dataset
+-        logger.info(".........Build Dataset For Train..........")
++        logger.info(".........Build Dataset For Train..........") # dataload_start_time
++        save_aisbench_result("dataload_start_time", ais_utils.get_datatime().decode('utf-8'))
+         if dataset is None:
+             dataset = self.create_train_dataset()
+         self.set_train_dataset(dataset)
+@@ -553,10 +558,12 @@
+                                   * config.runner_config.sink_size / dataset.get_dataset_size())
+             # pylint: disable=W0212
+             dataset._dataset_helper = DatasetHelper(dataset, config.runner_config.sink_mode,
+-                                                    config.runner_config.sink_size, epoch_num)
++                                                    config.runner_config.sink_size, epoch_num) # dataload_end_time
++        save_aisbench_result("dataload_end_time", ais_utils.get_datatime().decode('utf-8'))
+
+         # build network
+-        logger.info(".........Build Net For Train..........")
++        logger.info(".........Build Net For Train..........") # train_launch_start_time
++        save_aisbench_result("train_launch_start_time", ais_utils.get_datatime().decode('utf-8'))
+         eval_network = None
+         if network is None and wrapper is None and \
+                 self.model_wrapper is None and self.network is None:
+@@ -651,18 +658,30 @@
+                 step_interval=config.eval_step_interval if config.eval_step_interval else 100,
+                 epoch_interval=config.eval_epoch_interval if config.eval_epoch_interval else -1,
+             )
+-            callbacks.append(eval_callback)
++            callbacks.append(eval_callback) # train_launch_end_time
+
+         logger.info(".........Starting Training Model..........")
+         if int(os.getenv("RANK_ID", '0')) % 8 == 0:
+             pprint(config)
+         logger.info(".........Model Compiling, Please Wait a Moment...........")
++        model.build(dataset, None, sink_size=config.runner_config.sink_size, epoch=config.runner_config.epochs)
++        save_aisbench_result("train_launch_end_time", ais_utils.get_datatime().decode('utf-8'))
++        logger.info(".........Model Build Done, Traininf Start...........")
++        train_start_time = ais_utils.get_datatime()
++        save_aisbench_result("train_start_time", train_start_time.decode('utf-8')) # train_start_time
+         model.train(config.runner_config.epochs, dataset,
+                     callbacks=callbacks,
+                     dataset_sink_mode=config.runner_config.sink_mode,
+                     sink_size=config.runner_config.sink_size,
+                     initial_epoch=config.runner_config.initial_epoch)
+-        logger.info(".........Training Over!.............")
++        logger.info(".........Training Over!.............") # train_end_time
++        train_end_time = ais_utils.get_datatime()
++        all_data_sum = self.config.runner_config.epochs * self.get_train_data_size() * \
++            self.config.train_dataset.batch_size
++        throughput_rate = ais_utils.calc_throughput_rate(all_data_sum, train_start_time, train_end_time)
++        save_aisbench_result("train_end_time", train_end_time.decode('utf-8'))
++        save_aisbench_result("throughput_ratio", throughput_rate)
++
+
+     def evaluate_process(
+             self,
+diff -Nur origin/requirements.txt code/requirements.txt
+--- origin/requirements.txt	2023-11-29 04:08:10.666351776 +0000
++++ code/requirements.txt	2023-11-29 04:08:10.758351779 +0000
+@@ -11,4 +11,5 @@
+ pydantic==1.10.11
+ mdtex2html
+ gradio
+-opencv-python-headless
+\ No newline at end of file
++opencv-python-headless
++pyyaml
+\ No newline at end of file
+diff -Nur origin/scripts/run_distribute.sh code/scripts/run_distribute.sh
+--- origin/scripts/run_distribute.sh	2023-11-29 04:08:10.602351773 +0000
++++ code/scripts/run_distribute.sh	2023-11-29 04:08:10.690351777 +0000
+@@ -179,7 +179,14 @@
+   fi
+ fi
+ shopt -u extglob
+-
++wait
++if [ $? -eq 0 ];then
++  echo "all train processes completed successfully!"
++  exit 0
++else
++  echo "one or more train processes exited with a error!"
++  exit 1
++fi
+
+ #cd ./pretrain_parallel${START_DEVICE} || exit
+ #tail -f mindformer.log

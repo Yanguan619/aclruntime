@@ -14,40 +14,10 @@ else
     LLAMA_RUN_YAML_NAME="run_llama_${LLAMA_MODEL_TYPE}.yaml"
 fi
 
-pretrained_converted_7b_ckpt_url="https://ascend-repo-modelzoo.obs.cn-east-2.myhuaweicloud.com/XFormer_for_mindspore/llama/open_llama_7b.ckpt"
-pretrained_converted_13b_ckpt_url="https://ascend-repo-modelzoo.obs.cn-east-2.myhuaweicloud.com/XFormer_for_mindspore/llama/open_llama_13b.ckpt"
+
 tokenizer_url="https://ascend-repo-modelzoo.obs.cn-east-2.myhuaweicloud.com/XFormer_for_mindspore/llama/tokenizer.model"
 wikitest2_url="https://aisbenchtest.obs.myhuaweicloud.com/LLM_resource/llama/wikitext-2.tar.gz"
 alpaca_url="https://aisbenchtest.obs.myhuaweicloud.com/LLM_resource/llama/alpaca_data.json"
-
-
-function get_node_train_data()
-{
-    URL_DATA_PATH=$WORK_PATH/datas/
-    if [ ! -d $URL_DATA_PATH ];then
-        mkdir $URL_DATA_PATH
-    fi
-    # if [ ! -f $URL_DATA_PATH/tokenizer.model ];then
-    #     wget -P $URL_DATA_PATH $tokenizer_url --no-check-certificate || { echo "wget $tokenizer_url failed!";return $ret_failed; }
-    # fi
-    # if [ ! -d $URL_DATA_PATH/wikitext-2/ ];then
-    #     wget -P $URL_DATA_PATH $wikitest2_url --no-check-certificate || { echo "wget $wikitest2_url failed!";return $ret_failed; }
-    #     tar xzf $URL_DATA_PATH/wikitext-2.tar.gz -C $URL_DATA_PATH
-    #     rm -rf $URL_DATA_PATH/wikitext-2.tar.gz
-    # fi
-    # if [ ! -f $URL_DATA_PATH/alpaca_data.json ];then
-    #     wget -P $URL_DATA_PATH $alpaca_url --no-check-certificate || { echo "wget $alpaca_url failed!";return $ret_failed; }
-    # fi
-    if [ "$LLAMA_RUN_MODE" = "only_finetune" ];then
-        if [ "$LLAMA_MODEL_TYPE" = "7b" ] && [ ! -f $URL_DATA_PATH/open_llama_7b.ckpt ];then
-            wget -P $URL_DATA_PATH $pretrained_converted_7b_ckpt_url --no-check-certificate || { echo "wget $pretrained_converted_7b_ckpt_url failed!";return $ret_failed; }
-        fi
-        if [ "$LLAMA_MODEL_TYPE" = "13b" ] && [ ! -f $URL_DATA_PATH/open_llama_13b.ckpt ];then
-            wget -P $URL_DATA_PATH $pretrained_converted_13b_ckpt_url --no-check-certificate || { echo "wget $pretrained_converted_13b_ckpt_url failed!";return $ret_failed; }
-        fi
-    fi
-    return $ret_ok
-}
 
 function get_node_rank_id_range()
 {
@@ -203,7 +173,6 @@ main()
     type="$1"
     shift
     node_init $type || { logger_Warn "init failed"; return $ret_failed; }
-    get_node_train_data
     if [ "$type" == "train" ];then
         node_train || { logger_Warn "run_node_train failed"; return $ret_failed; }
     elif [ "$type" == "eval" ];then

@@ -47,7 +47,7 @@ def write_pretrain_yaml(data):
     data['train_dataset']['data_loader']['dataset_dir'] = pretrain_dataset
     data['eval_dataset']['data_loader']['dataset_dir'] = eval_data_path
     data['model']['model_config']['num_layers'] = int(layer_num)
-    data['callbacks']['save_checkpoint_steps'] = 100000
+    data['callbacks'][1]['save_checkpoint_steps'] = 100000
     return data
 
 
@@ -64,7 +64,7 @@ def write_finetune_yaml(data):
     data['train_dataset']['data_loader']['dataset_dir'] = finetune_dataset
     data['eval_dataset']['data_loader']['dataset_dir'] = eval_data_path
     data['model']['model_config']['num_layers'] = int(layer_num)
-    data['callbacks']['save_checkpoint_steps'] = 100000
+    data['callbacks'][1]['save_checkpoint_steps'] = 100000
     return data
 
 data = {}

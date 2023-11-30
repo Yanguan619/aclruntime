@@ -26,7 +26,7 @@ if 'Ascend 910B'in soc_version:
 else:
     target_yaml = os.path.join(config_path, f'run_llama_{model_type}.yaml')
 if os.getenv('LLAMA_RUN_MODE') == 'only_finetune':
-    ckpt_path = os.path.join(cur_path, f'datas/open_llama_{model_type}')
+    ckpt_path = os.path.join(cur_path, f'datas/open_llama_{model_type}.ckpt')
 else:
     ckpt_path = os.path.join(cur_path, f'datas/target_ckpt/rank_0/llama_{model_type}0.ckpt')
 

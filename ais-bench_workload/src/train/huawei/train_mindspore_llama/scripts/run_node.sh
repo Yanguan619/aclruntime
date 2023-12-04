@@ -83,47 +83,48 @@ function node_check()
 
 }
 
-function node_run()
+function ckpt_merge()
 {
-    logger_Info "node_run running"
-    export LLAMA_CUR_RUN_MODE=$1
-    source $WORK_PATH/config/config.sh
-    $PYTHON_COMMAND $WORK_PATH/pre_conf_yaml.py $1 # change yaml params
-    run_script_path=$WORK_PATH/code/scripts/
-    run_yaml_path=$WORK_PATH/code/configs/llama/$LLAMA_RUN_YAML_NAME
-    result_output_path=$WORK_PATH/code/output
     transform_ckpt_path=$WORK_PATH/code/mindformers/tools/transform_ckpt.py
-    # train run
-    cd $run_script_path
-    cmd="bash run_distribute.sh $RANK_TABLE_FILE $run_yaml_path $RANK_ID_RANGE $1"
-    echo "$cmd"
-    $cmd || { logger_Warn "node_run failed, rank id range: $RANK_ID_RANGE" ; return $ret_failed; }
+    result_output_path=$WORK_PATH/result/output
     cd $WORK_PATH
     # ckpt merge
     $PYTHON_COMMAND $transform_ckpt_path \
         --src_ckpt_strategy $result_output_path/strategy/ \
         --src_ckpt_dir $result_output_path/checkpoint/ \
-        --dst_ckpt_dir $WORK_PATH/datas/target_ckpt/ \
+        --dst_ckpt_dir $result_output_path/target_ckpt/ \
         --prefix "llama_$LLAMA_MODEL_TYPE" || { logger_Warn "ckpt merge failed, rank id range: $RANK_ID_RANGE" ; return $ret_failed; }
     rm -rf $result_output_path/checkpoint/
-    return $ret_ok
 }
 
 function node_train()
 {
     logger_Info "node_train running"
-    if [ "$LLAMA_RUN_MODE" == "full" ];then
-        node_run "train" || { logger_Warn "run pretrain failed" ; return $ret_failed; }
-        node_run "finetune" || { logger_Warn "run finetune failed" ; return $ret_failed; }
-    elif [ "$LLAMA_RUN_MODE" == "only_pretrain" ];then
-        node_run "train" || { logger_Warn "run pretrain failed" ; return $ret_failed; }
-    elif [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
-        node_run "finetune" || { logger_Warn "run finetune failed" ; return $ret_failed; }
-    else
-        echo "train run mode $LLAMA_RUN_MODE is invalid"
-        return $ret_failed
-    fi
+    export LLAMA_CUR_RUN_MODE=$1
+    source $WORK_PATH/config/config.sh
+    $PYTHON_COMMAND $WORK_PATH/pre_conf_yaml.py $1 # change yaml params
+    run_script_path=$WORK_PATH/code/scripts/
+    run_yaml_path=$WORK_PATH/code/configs/llama/$LLAMA_RUN_YAML_NAME
+    # train run
+    cd $run_script_path
+    cmd="bash run_distribute.sh $RANK_TABLE_FILE $run_yaml_path $RANK_ID_RANGE $1"
+    [ $NODEINFO_FILE != "" ] && cmd="$cmd $RANK_SIZE"
+    echo "$cmd"
+    $cmd || { logger_Warn "node_run failed, rank id range: $RANK_ID_RANGE" ; return $ret_failed; }
+    mv $WORK_PATH/code/output/ $WORK_PATH/result/ || { logger_Warn "move output failed!" ; return $ret_failed; }
     return $ret_ok
+    # if [ "$LLAMA_RUN_MODE" == "full" ];then
+    #     node_run "train" || { logger_Warn "run pretrain failed" ; return $ret_failed; }
+    #     node_run "finetune" || { logger_Warn "run finetune failed" ; return $ret_failed; }
+    # elif [ "$LLAMA_RUN_MODE" == "only_pretrain" ];then
+    #     node_run "train" || { logger_Warn "run pretrain failed" ; return $ret_failed; }
+    # elif [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
+    #     node_run "finetune" || { logger_Warn "run finetune failed" ; return $ret_failed; }
+    # else
+    #     echo "train run mode $LLAMA_RUN_MODE is invalid"
+    #     return $ret_failed
+    # fi
+    # return $ret_ok
 }
 
 function eval_run()
@@ -171,10 +172,13 @@ function node_eval()
 main()
 {
     type="$1"
+    mode="$2"
     shift
     node_init $type || { logger_Warn "init failed"; return $ret_failed; }
     if [ "$type" == "train" ];then
-        node_train || { logger_Warn "run_node_train failed"; return $ret_failed; }
+        node_train $mode || { logger_Warn "run_node_train failed"; return $ret_failed; }
+    elif [ "$type" == "merge" ];then
+        ckpt_merge || { logger_Warn "ckpt_merge failed"; return $ret_failed; }
     elif [ "$type" == "eval" ];then
         node_eval || { logger_Warn "run_node_eval failed"; return $ret_failed; }
     elif [ "$type" == "check" ];then

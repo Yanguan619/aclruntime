@@ -50,7 +50,7 @@ init()
 run_train()
 {
     logger_Info "-------------------------------- train start --------------------------------"
-    env_cmd=cmd="export WORK_PATH=$WORK_PATH;
+    env_cmd="export WORK_PATH=$WORK_PATH;
         export RESULT_PATH=$RESULT_PATH;
         export PYTHONPATH=$WORK_PATH:$PYTHONPATH;
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH;

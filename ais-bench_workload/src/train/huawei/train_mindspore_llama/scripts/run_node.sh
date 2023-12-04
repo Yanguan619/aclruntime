@@ -89,6 +89,7 @@ function ckpt_merge()
     result_output_path=$WORK_PATH/result/output
     cd $WORK_PATH
     # ckpt merge
+    export P
     $PYTHON_COMMAND $transform_ckpt_path \
         --src_ckpt_strategy $result_output_path/strategy/ \
         --src_ckpt_dir $result_output_path/checkpoint/ \
@@ -113,18 +114,6 @@ function node_train()
     $cmd || { logger_Warn "node_run failed, rank id range: $RANK_ID_RANGE" ; return $ret_failed; }
     mv $WORK_PATH/code/output/ $WORK_PATH/result/ || { logger_Warn "move output failed!" ; return $ret_failed; }
     return $ret_ok
-    # if [ "$LLAMA_RUN_MODE" == "full" ];then
-    #     node_run "train" || { logger_Warn "run pretrain failed" ; return $ret_failed; }
-    #     node_run "finetune" || { logger_Warn "run finetune failed" ; return $ret_failed; }
-    # elif [ "$LLAMA_RUN_MODE" == "only_pretrain" ];then
-    #     node_run "train" || { logger_Warn "run pretrain failed" ; return $ret_failed; }
-    # elif [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
-    #     node_run "finetune" || { logger_Warn "run finetune failed" ; return $ret_failed; }
-    # else
-    #     echo "train run mode $LLAMA_RUN_MODE is invalid"
-    #     return $ret_failed
-    # fi
-    # return $ret_ok
 }
 
 function eval_run()

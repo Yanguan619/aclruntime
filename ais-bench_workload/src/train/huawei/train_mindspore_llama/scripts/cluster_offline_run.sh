@@ -56,7 +56,7 @@ run_train()
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH;
         source $WORK_PATH/config/$CONFIG_FILE"
 
-    if [ "$LLAMA_RUN_MODE" == "full" ] && [ "$LLAMA_RUN_MODE" == "only_pretrain" ];then
+    if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "only_pretrain" ];then
         cmd="$env_cmd;
             rm -rf $RESULT_PATH/*.json;
             bash $WORK_PATH/run_node.sh train train"
@@ -67,7 +67,7 @@ run_train()
         $env_cmd
         bash $WORK_PATH/run_node.sh merge || { logger_Warn "ckpt merge failed"; return 1; }
     fi
-    if [ "$LLAMA_RUN_MODE" == "full" ] && [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
+    if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
         cmd="$env_cmd;
             rm -rf $RESULT_PATH/*.json;
             bash $WORK_PATH/run_node.sh train finetune"

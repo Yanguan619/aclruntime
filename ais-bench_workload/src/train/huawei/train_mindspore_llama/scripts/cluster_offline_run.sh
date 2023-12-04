@@ -61,7 +61,7 @@ run_train()
             rm -rf $RESULT_PATH/*.json;
             bash $WORK_PATH/run_node.sh train train"
         cluster_run_cmd_parallel "${NODEINFO_FILE}" ${cmd} || { logger_Warn "run train(pretrain) failed"; return 1; }
-        if [ $NODEINFO_FILE != "" ];then
+        if [ "$NODEINFO_FILE" != "" ];then
             cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH} || { logger_Warn "cp result between nodes failed"; return 1; }
         fi
         $env_cmd
@@ -72,7 +72,7 @@ run_train()
             rm -rf $RESULT_PATH/*.json;
             bash $WORK_PATH/run_node.sh train finetune"
         cluster_run_cmd_parallel "${NODEINFO_FILE}" ${cmd} || { logger_Warn "run train(finetune) failed"; return 1; }
-        if [ $NODEINFO_FILE != "" ];then
+        if [ "$NODEINFO_FILE" != "" ];then
             cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH} || { logger_Warn "cp result between nodes failed"; return 1; }
         fi
         $env_cmd

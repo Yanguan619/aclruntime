@@ -109,7 +109,7 @@ function node_train()
     # train run
     cd $run_script_path
     cmd="bash run_distribute.sh $RANK_TABLE_FILE $run_yaml_path $RANK_ID_RANGE $1"
-    [ $NODEINFO_FILE != "" ] && cmd="$cmd $RANK_SIZE"
+    [ "$NODEINFO_FILE" != "" ] && cmd="$cmd $RANK_SIZE"
     echo "$cmd"
     $cmd || { logger_Warn "node_run failed, rank id range: $RANK_ID_RANGE" ; return $ret_failed; }
     mv $WORK_PATH/code/output/ $WORK_PATH/result/ || { logger_Warn "move output failed!" ; return $ret_failed; }

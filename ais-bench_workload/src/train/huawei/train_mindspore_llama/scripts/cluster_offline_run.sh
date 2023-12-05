@@ -59,23 +59,23 @@ run_train()
     if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "only_pretrain" ];then
         cmd="$env_cmd;
             rm -rf $RESULT_PATH/*.json;
-            bash $WORK_PATH/run_node.sh train train"
+            bash $WORK_PATH/run_node.sh train train "
         cluster_run_cmd_parallel "${NODEINFO_FILE}" ${cmd} || { logger_Warn "run train(pretrain) failed"; return 1; }
         if [ "$NODEINFO_FILE" != "" ];then
             cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH} || { logger_Warn "cp result between nodes failed"; return 1; }
         fi
-        $env_cmd
+        eval $env_cmd
         bash $WORK_PATH/run_node.sh merge || { logger_Warn "ckpt merge failed"; return 1; }
     fi
     if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
         cmd="$env_cmd;
             rm -rf $RESULT_PATH/*.json;
-            bash $WORK_PATH/run_node.sh train finetune"
+            bash $WORK_PATH/run_node.sh train finetune "
         cluster_run_cmd_parallel "${NODEINFO_FILE}" ${cmd} || { logger_Warn "run train(finetune) failed"; return 1; }
         if [ "$NODEINFO_FILE" != "" ];then
             cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH} || { logger_Warn "cp result between nodes failed"; return 1; }
         fi
-        $env_cmd
+        eval $env_cmd
         bash $WORK_PATH/run_node.sh merge || { logger_Warn "ckpt merge failed"; return 1; }
     fi
     logger_Info "-------------------------------- train end --------------------------------"

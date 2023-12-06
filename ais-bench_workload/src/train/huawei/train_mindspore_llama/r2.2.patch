@@ -1,6 +1,6 @@
 diff -Nur origin/mindformers/core/callback/callback.py code/mindformers/core/callback/callback.py
---- origin/mindformers/core/callback/callback.py	2023-11-29 04:08:10.590351773 +0000
-+++ code/mindformers/core/callback/callback.py	2023-11-29 04:08:10.678351776 +0000
+--- origin/mindformers/core/callback/callback.py	2023-12-06 11:50:58.448000000 +0800
++++ code/mindformers/core/callback/callback.py	2023-12-06 11:50:58.540000000 +0800
 @@ -33,7 +33,11 @@
  from mindformers.tools.register import MindFormerRegister, MindFormerModuleType
  from mindformers.tools.cloud_adapter.cloud_adapter import Local2ObsMonitor
@@ -31,9 +31,33 @@ diff -Nur origin/mindformers/core/callback/callback.py code/mindformers/core/cal
              self._latest_ckpt_file_name = cur_file
 
 
+diff -Nur origin/mindformers/core/metric/metric.py code/mindformers/core/metric/metric.py
+--- origin/mindformers/core/metric/metric.py	2023-12-06 11:50:58.448000000 +0800
++++ code/mindformers/core/metric/metric.py	2023-12-06 11:50:58.540000000 +0800
+@@ -39,6 +39,11 @@
+
+ from .utils import PerplexityCell
+ from ...dataset.labels import cluener_labels
++from mindformers.tools.utils import save_aisbench_result
++try:
++    import ais_utils
++except Exception:
++    print("ais_utils not find")
+
+ __all__ = ['EntityScore', 'SQuADMetric', 'PerplexityMetric', 'ADGENMetric', 'PromptAccMetric', 'EmF1Metric']
+
+@@ -541,6 +546,8 @@
+             return None
+         avg_loss = float(self.total_loss / self.num_data)
+         result = {"loss": avg_loss, "PPL": math.exp(avg_loss)}
++        result_log="loss: {}, Perplexity: {}".format(avg_loss, math.exp(avg_loss))
++        save_aisbench_result("accuracy", result_log)
+         if self.pipeline_parallel:
+             print("Average Loss and PPL Metric:", result)
+         return result
 diff -Nur origin/mindformers/tools/transform_ckpt.py code/mindformers/tools/transform_ckpt.py
---- origin/mindformers/tools/transform_ckpt.py	2023-11-29 04:08:10.594351773 +0000
-+++ code/mindformers/tools/transform_ckpt.py	2023-11-29 04:08:10.678351776 +0000
+--- origin/mindformers/tools/transform_ckpt.py	2023-12-06 11:50:58.456000000 +0800
++++ code/mindformers/tools/transform_ckpt.py	2023-12-06 11:50:58.548000000 +0800
 @@ -17,6 +17,11 @@
  import argparse
 
@@ -58,8 +82,8 @@ diff -Nur origin/mindformers/tools/transform_ckpt.py code/mindformers/tools/tran
 +    print("......Transform succeed!......") # model_format_end_time
 +    save_aisbench_result("model_format_end_time", ais_utils.get_datatime().decode('utf-8'))
 diff -Nur origin/mindformers/tools/utils.py code/mindformers/tools/utils.py
---- origin/mindformers/tools/utils.py	2023-11-29 04:08:10.594351773 +0000
-+++ code/mindformers/tools/utils.py	2023-11-29 04:08:10.678351776 +0000
+--- origin/mindformers/tools/utils.py	2023-12-06 11:50:58.456000000 +0800
++++ code/mindformers/tools/utils.py	2023-12-06 11:50:58.548000000 +0800
 @@ -55,6 +55,28 @@
  _PROTOCOL = 'obs'
  _PROTOCOL_S3 = 's3'
@@ -90,8 +114,8 @@ diff -Nur origin/mindformers/tools/utils.py code/mindformers/tools/utils.py
  def check_in_modelarts():
      """Check if the training is on modelarts.
 diff -Nur origin/mindformers/trainer/base_trainer.py code/mindformers/trainer/base_trainer.py
---- origin/mindformers/trainer/base_trainer.py	2023-11-29 04:08:10.586351773 +0000
-+++ code/mindformers/trainer/base_trainer.py	2023-11-29 04:08:10.674351776 +0000
+--- origin/mindformers/trainer/base_trainer.py	2023-12-06 11:50:58.456000000 +0800
++++ code/mindformers/trainer/base_trainer.py	2023-12-06 11:50:58.552000000 +0800
 @@ -42,7 +42,7 @@
  from mindformers.wrapper import build_wrapper
  from mindformers.tools.register import MindFormerConfig
@@ -171,8 +195,8 @@ diff -Nur origin/mindformers/trainer/base_trainer.py code/mindformers/trainer/ba
      def evaluate_process(
              self,
 diff -Nur origin/requirements.txt code/requirements.txt
---- origin/requirements.txt	2023-11-29 04:08:10.666351776 +0000
-+++ code/requirements.txt	2023-11-29 04:08:10.758351779 +0000
+--- origin/requirements.txt	2023-12-06 11:50:58.396000000 +0800
++++ code/requirements.txt	2023-12-06 11:50:58.492000000 +0800
 @@ -11,4 +11,5 @@
  pydantic==1.10.11
  mdtex2html
@@ -183,8 +207,8 @@ diff -Nur origin/requirements.txt code/requirements.txt
 +pyyaml
 \ No newline at end of file
 diff -Nur origin/scripts/run_distribute.sh code/scripts/run_distribute.sh
---- origin/scripts/run_distribute.sh	2023-11-29 04:08:10.602351773 +0000
-+++ code/scripts/run_distribute.sh	2023-11-29 04:08:10.690351777 +0000
+--- origin/scripts/run_distribute.sh	2023-12-06 11:50:58.460000000 +0800
++++ code/scripts/run_distribute.sh	2023-12-06 11:50:58.556000000 +0800
 @@ -179,7 +179,14 @@
    fi
  fi

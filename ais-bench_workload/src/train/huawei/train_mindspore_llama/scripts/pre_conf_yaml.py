@@ -15,6 +15,15 @@ except Exception as err:
 
 pretrain_dataset = os.getenv('PRETRAIN_DATA_PATH')
 finetune_dataset = os.getenv('FINETUNE_DATA_PATH')
+
+rank_size = int(os.getenv('RANK_SIZE'))
+data_parallel = int(os.getenv('DATA_PARALLEL'))
+model_parallel = int(os.getenv('MODEL_PARALLEL'))
+pipeline_stage = int(os.getenv('PIPELINE_STAGE'))
+
+if not rank_size == data_parallel * model_parallel * pipeline_stage:
+    raise RuntimeError("DATA_PARALLEL * MODEL_PARALLEL * PIPELINE_STAGE should equal to RANK_SIZE !")
+
 model_type = os.getenv('LLAMA_MODEL_TYPE')
 epoch_size = os.getenv("EPOCH_SIZE")
 sink_size = 2
@@ -34,11 +43,21 @@ if not os.path.exists(target_yaml):
     raise RuntimeError(f"yaml file: {target_yaml} not find!")
 
 
+def change_parallel_params(data):
+    data_parallel = int(data['parallel_config']['data_parallel'])
+    model_parallel = int(data['parallel_config']['model_parallel'])
+    pipeline_stage = int(data['parallel_config']['pipeline_stage'])
+
+    return int(rank_size / (data_parallel * model_parallel * pipeline_stage))
+
 def write_pretrain_yaml(data):
     data['load_checkpoint'] = ''
     data['run_mode'] = 'train'
     data['runner_config']['epochs'] = int(epoch_size)
     data['runner_config']['sink_size'] = sink_size
+    data['parallel_config']['data_parallel'] = data_parallel
+    data['parallel_config']['model_parallel'] = model_parallel
+    data['parallel_config']['pipeline_stage'] = pipeline_stage
     data['optimizer']['beta2'] = 0.95
     data['optimizer']['learning_rate'] = 3.e-4
     data['lr_schedule']['learning_rate'] = 3.e-4
@@ -56,6 +75,9 @@ def write_finetune_yaml(data):
     data['run_mode'] = 'finetune'
     data['runner_config']['epochs'] = int(epoch_size)
     data['runner_config']['sink_size'] = sink_size
+    data['parallel_config']['data_parallel'] = data_parallel
+    data['parallel_config']['model_parallel'] = model_parallel
+    data['parallel_config']['pipeline_stage'] = pipeline_stage
     data['optimizer']['beta2'] = 0.999
     data['optimizer']['learning_rate'] = 1.e-5
     data['lr_schedule']['learning_rate'] = 1.e-5

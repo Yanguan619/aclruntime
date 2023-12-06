@@ -17,6 +17,11 @@ export LLAMA_LAYER_NUM=4 # 32
 export RANK_SIZE=8
 export DEVICE_NUM=8
 
+# parallel strategy config, DATA_PARALLEL * MODEL_PARALLEL * PIPELINE_STAGE should equal to RANK_SIZE
+export DATA_PARALLEL=2
+export MODEL_PARALLEL=1
+export PIPELINE_STAGE=4
+
 # need if rank_size > 1
 export RANK_TABLE_FILE=/home/hccl/hccl_xxxx_8p.json
 

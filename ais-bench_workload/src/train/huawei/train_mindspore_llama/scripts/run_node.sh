@@ -121,7 +121,7 @@ function eval_run()
     logger_Info "eval_run running"
     run_yaml_path=$WORK_PATH/code/configs/llama/$LLAMA_RUN_YAML_NAME
     eval_dataset_path=$WORK_PATH/code/$EVAL_DATASET_PATH
-    load_checkpoint_path=$WORK_PATH/datas/target_ckpt/rank_0/llama_${LLAMA_MODEL_TYPE}0.ckpt
+    load_checkpoint_path=$WORK_PATH/result/target_ckpt/rank_0/llama_${LLAMA_MODEL_TYPE}0.ckpt
     if [ "$EVAL_DATASET_TYPE" = "wikitext" ];then
         echo "run eval using wiki"
         eval_script_path=$WORK_PATH/code/run_mindformer.py

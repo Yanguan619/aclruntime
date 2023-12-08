@@ -76,11 +76,11 @@ diff -Nur origin/mindformers/tools/transform_ckpt.py code/mindformers/tools/tran
 
 -    print("......Start transform......")
 +    print("......Start transform......") # model_format_start_time
-+    save_aisbench_result("model_format_start_time", ais_utils.get_datatime().decode('utf-8'))
++    ais_utils.set_result("train", "model_format_start_time", ais_utils.get_datatime().decode('utf-8'))
      ms.transform_checkpoints(src_ckpt_dir, dst_ckpt_dir, prefix, src_ckpt_strategy, dst_ckpt_strategy)
 -    print("......Transform succeed!......")
 +    print("......Transform succeed!......") # model_format_end_time
-+    save_aisbench_result("model_format_end_time", ais_utils.get_datatime().decode('utf-8'))
++    ais_utils.set_result("train", "model_format_end_time", ais_utils.get_datatime().decode('utf-8'))
 diff -Nur origin/mindformers/tools/utils.py code/mindformers/tools/utils.py
 --- origin/mindformers/tools/utils.py	2023-12-06 11:50:58.456000000 +0800
 +++ code/mindformers/tools/utils.py	2023-12-06 11:50:58.548000000 +0800

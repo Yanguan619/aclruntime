@@ -29,8 +29,7 @@ function get_train_cmd()
         --config_path=$CONFIG_FILE
         "
 
-    chipname=`npu-smi info -t board  -i 0 -c 0 | grep 'Chip Name' | awk {'print $4'}`
-    export MS_DISABLE_REF_MODE=1
+    export MS_DISABLE_REF_MODE=0
     export MS_ENABLE_FORMAT_MODE=0
     return 0
 }

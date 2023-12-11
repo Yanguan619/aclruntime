@@ -51,7 +51,7 @@ diff -Nur origin/mindformers/core/metric/metric.py code/mindformers/core/metric/
          avg_loss = float(self.total_loss / self.num_data)
          result = {"loss": avg_loss, "PPL": math.exp(avg_loss)}
 +        result_log="loss: {}, Perplexity: {}".format(avg_loss, math.exp(avg_loss))
-+        save_aisbench_result("accuracy", result_log)
++        set_result("training", "accuracy", result_log)
          if self.pipeline_parallel:
              print("Average Loss and PPL Metric:", result)
          return result

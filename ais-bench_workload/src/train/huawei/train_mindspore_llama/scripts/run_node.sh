@@ -6,7 +6,6 @@
 declare -i ret_ok=0
 declare -i ret_failed=1
 
-RANK_ID_RANGE="[0,8]"
 SOC_VERSION=`python3 -c 'import acl;print(acl.get_soc_name())'`
 if [[ "$SOC_VERSION" == "910B1" || "$SOC_VERSION" == "910B2" || "$SOC_VERSION" == "910B3" || "$SOC_VERSION" == "910B4" ]];then
     LLAMA_RUN_YAML_NAME="run_llama_${LLAMA_MODEL_TYPE}_910b.yaml"
@@ -21,6 +20,7 @@ alpaca_url="https://aisbenchtest.obs.myhuaweicloud.com/LLM_resource/llama/alpaca
 
 function get_node_rank_id_range()
 {
+    RANK_ID_RANGE="[0,8]"
     # get server node id default is 0
     : "${SERVER_ID:=0}"
     # get rank start index

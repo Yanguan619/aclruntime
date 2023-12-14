@@ -14,7 +14,8 @@ check_env()
     : "${PRETRAIN_DATA_PATH?PRETRAIN_DATA_PATH not set}"
 
     # check env of each node
-    cmd="export WORK_PATH=$WORK_PATH;
+    cmd="source ~/.bashrc;
+       export WORK_PATH=$WORK_PATH;
        bash $WORK_PATH/run_node.sh check ${WORK_PATH}/config/$CONFIG_FILE"
     cluster_run_cmd_serial "$NODEINFO_FILE" ${cmd} || { return 1; }
 }
@@ -50,7 +51,8 @@ init()
 run_train()
 {
     logger_Info "-------------------------------- train start --------------------------------"
-    env_cmd="export WORK_PATH=$WORK_PATH;
+    env_cmd="source ~/.bashrc;
+        export WORK_PATH=$WORK_PATH;
         export RESULT_PATH=$RESULT_PATH;
         export PYTHONPATH=$WORK_PATH:$PYTHONPATH;
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH;
@@ -84,7 +86,8 @@ run_train()
 run_eval()
 {
     logger_Info "-------------------------------- eval start --------------------------------"
-    cmd="source $WORK_PATH/config/$CONFIG_FILE;
+    cmd="source ~/.bashrc;
+        source $WORK_PATH/config/$CONFIG_FILE;
         export WORK_PATH=$WORK_PATH;
         export RESULT_PATH=$RESULT_PATH;
         export PYTHONPATH=$WORK_PATH:$PYTHONPATH;
@@ -97,7 +100,8 @@ run_eval()
 get_result()
 {
     logger_Info "-------------------------------- get_result start --------------------------------"
-    cmd="mkdir -p ${RESULT_PATH};
+    cmd="source ~/.bashrc;
+        mkdir -p ${RESULT_PATH};
         export PYTHONPATH=$WORK_PATH:$PYTHONPATH;
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH;"
     cluster_run_cmd_serial "$NODEINFO_FILE" ${cmd} || { logger_Warn "mkdir resultpath failed"; return 1; }

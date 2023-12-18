@@ -105,7 +105,7 @@ function node_train()
     source $WORK_PATH/config/config.sh
     $PYTHON_COMMAND $WORK_PATH/pre_conf_yaml.py $1 # change yaml params
     run_script_path=$WORK_PATH/code/scripts/
-    run_yaml_path=$WORK_PATH/code/configs/llama/$LLAMA_RUN_YAML_NAME
+    run_yaml_path=$WORK_PATH/code/configs/llama${LLAMA_MODEL_TYPE}/$LLAMA_RUN_YAML_NAME
     # train run
     cd $run_script_path
     cmd="bash run_distribute.sh $RANK_TABLE_FILE $run_yaml_path $RANK_ID_RANGE $1"
@@ -119,7 +119,7 @@ function node_train()
 function eval_run()
 {
     logger_Info "eval_run running"
-    run_yaml_path=$WORK_PATH/code/configs/llama/$LLAMA_RUN_YAML_NAME
+    run_yaml_path=$WORK_PATH/code/configs/llama${LLAMA_MODEL_TYPE}/$LLAMA_RUN_YAML_NAME
     eval_dataset_path=$WORK_PATH/code/$EVAL_DATASET_PATH
     load_checkpoint_path=$WORK_PATH/result/output/target_ckpt/rank_0/llama${LLAMA_MODEL_TYPE}_${LLAMA_MODEL_SCALE}0.ckpt
     if [ "$EVAL_DATASET_TYPE" = "wikitext" ];then

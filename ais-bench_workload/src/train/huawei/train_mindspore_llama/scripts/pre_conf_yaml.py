@@ -7,7 +7,6 @@ import acl
 
 run_mode = sys.argv[1]
 cur_path = os.path.dirname(os.path.abspath(__file__))
-config_path = os.path.join(cur_path, 'code/configs/llama/')
 try:
     soc_version = acl.get_soc_name()
 except Exception as err:
@@ -26,6 +25,7 @@ if not rank_size == data_parallel * model_parallel * pipeline_stage:
 
 model_scale = os.getenv('LLAMA_MODEL_SCALE')
 model_type = os.getenv('LLAMA_MODEL_TYPE')
+config_path = os.path.join(cur_path, f'code/configs/llama{model_type}/')
 epoch_size = os.getenv("EPOCH_SIZE")
 sink_size = 2
 layer_num = os.getenv("LLAMA_LAYER_NUM")

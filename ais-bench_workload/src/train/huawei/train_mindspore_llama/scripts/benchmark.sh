@@ -17,22 +17,11 @@ declare -i ret_mode_failed=5
 CUR_PATH=$(dirname $(readlink -f "$0"))
 export CODE_PATH=$CUR_PATH
 export BASE_PATH=$(cd "$CUR_PATH/../";pwd)
-pretrained_converted_7b_ckpt_url="https://ascend-repo-modelzoo.obs.cn-east-2.myhuaweicloud.com/XFormer_for_mindspore/llama/open_llama_7b.ckpt"
-pretrained_converted_13b_ckpt_url="https://ascend-repo-modelzoo.obs.cn-east-2.myhuaweicloud.com/XFormer_for_mindspore/llama/open_llama_13b.ckpt"
 
 function get_node_train_data()
 {
-    URL_DATA_PATH=${CODE_PATH}/datas/
-    if [ ! -d $URL_DATA_PATH ];then
-        mkdir $URL_DATA_PATH
-    fi
     if [ "$LLAMA_RUN_MODE" = "only_finetune" ];then
-        if [ "$LLAMA_MODEL_TYPE" = "7b" ] && [ ! -f $URL_DATA_PATH/open_llama_7b.ckpt ];then
-            wget -P $URL_DATA_PATH $pretrained_converted_7b_ckpt_url --no-check-certificate || { echo "wget $pretrained_converted_7b_ckpt_url failed!";return $ret_failed; }
-        fi
-        if [ "$LLAMA_MODEL_TYPE" = "13b" ] && [ ! -f $URL_DATA_PATH/open_llama_13b.ckpt ];then
-            wget -P $URL_DATA_PATH $pretrained_converted_13b_ckpt_url --no-check-certificate || { echo "wget $pretrained_converted_13b_ckpt_url failed!";return $ret_failed; }
-        fi
+        [ ! -f $FINETUNE_CKPT_PATH ] || { echo "finetune base ckpt:$FINETUNE_CKPT_PATH";return $ret_failed; }
     fi
     return $ret_ok
 }

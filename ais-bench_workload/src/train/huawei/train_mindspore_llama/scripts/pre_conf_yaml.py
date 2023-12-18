@@ -24,6 +24,7 @@ pipeline_stage = int(os.getenv('PIPELINE_STAGE'))
 if not rank_size == data_parallel * model_parallel * pipeline_stage:
     raise RuntimeError("DATA_PARALLEL * MODEL_PARALLEL * PIPELINE_STAGE should equal to RANK_SIZE !")
 
+model_scale = os.getenv('LLAMA_MODEL_SCALE')
 model_type = os.getenv('LLAMA_MODEL_TYPE')
 epoch_size = os.getenv("EPOCH_SIZE")
 sink_size = 2
@@ -31,13 +32,13 @@ layer_num = os.getenv("LLAMA_LAYER_NUM")
 eval_data_path = os.getenv('EVAL_DATASET_PATH')
 
 if 'Ascend 910B'in soc_version:
-    target_yaml = os.path.join(config_path, f'run_llama_{model_type}_910b.yaml')
+    target_yaml = os.path.join(config_path, f'run_llama{model_type}_{model_scale}_910b.yaml')
 else:
-    target_yaml = os.path.join(config_path, f'run_llama_{model_type}.yaml')
+    target_yaml = os.path.join(config_path, f'run_llama{model_type}_{model_scale}.yaml')
 if os.getenv('LLAMA_RUN_MODE') == 'only_finetune':
-    ckpt_path = os.path.join(cur_path, f'datas/open_llama_{model_type}.ckpt')
+    ckpt_path = os.path.realpath(os.getenv('FINETUNE_CKPT_PATH'))
 else:
-    ckpt_path = os.path.join(cur_path, f'result/output/target_ckpt/rank_0/llama_{model_type}0.ckpt')
+    ckpt_path = os.path.join(cur_path, f'result/output/target_ckpt/rank_0/llama{model_type}_{model_scale}0.ckpt')
 
 if not os.path.exists(target_yaml):
     raise RuntimeError(f"yaml file: {target_yaml} not find!")

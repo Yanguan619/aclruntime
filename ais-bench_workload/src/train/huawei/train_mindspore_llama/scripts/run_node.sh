@@ -8,9 +8,9 @@ declare -i ret_failed=1
 
 SOC_VERSION=`python3 -c 'import acl;print(acl.get_soc_name())'`
 if [[ "$SOC_VERSION" == "910B1" || "$SOC_VERSION" == "910B2" || "$SOC_VERSION" == "910B3" || "$SOC_VERSION" == "910B4" ]];then
-    LLAMA_RUN_YAML_NAME="run_llama_${LLAMA_MODEL_TYPE}_910b.yaml"
+    LLAMA_RUN_YAML_NAME="run_llama${LLAMA_MODEL_TYPE}_${LLAMA_MODEL_SCALE}_910b.yaml"
 else
-    LLAMA_RUN_YAML_NAME="run_llama_${LLAMA_MODEL_TYPE}.yaml"
+    LLAMA_RUN_YAML_NAME="run_llama${LLAMA_MODEL_TYPE}_${LLAMA_MODEL_SCALE}.yaml"
 fi
 
 
@@ -94,7 +94,7 @@ function ckpt_merge()
         --src_ckpt_strategy $result_output_path/strategy/ \
         --src_ckpt_dir $result_output_path/checkpoint/ \
         --dst_ckpt_dir $result_output_path/target_ckpt/ \
-        --prefix "llama_$LLAMA_MODEL_TYPE" || { logger_Warn "ckpt merge failed, rank id range: $RANK_ID_RANGE" ; return $ret_failed; }
+        --prefix "llama${LLAMA_MODEL_TYPE}_${LLAMA_MODEL_SCALE}" || { logger_Warn "ckpt merge failed, rank id range: $RANK_ID_RANGE" ; return $ret_failed; }
     rm -rf $result_output_path/checkpoint/
 }
 
@@ -121,7 +121,7 @@ function eval_run()
     logger_Info "eval_run running"
     run_yaml_path=$WORK_PATH/code/configs/llama/$LLAMA_RUN_YAML_NAME
     eval_dataset_path=$WORK_PATH/code/$EVAL_DATASET_PATH
-    load_checkpoint_path=$WORK_PATH/result/output/target_ckpt/rank_0/llama_${LLAMA_MODEL_TYPE}0.ckpt
+    load_checkpoint_path=$WORK_PATH/result/output/target_ckpt/rank_0/llama_${}0.ckpt
     if [ "$EVAL_DATASET_TYPE" = "wikitext" ];then
         echo "run eval using wiki"
         eval_script_path=$WORK_PATH/code/run_mindformer.py

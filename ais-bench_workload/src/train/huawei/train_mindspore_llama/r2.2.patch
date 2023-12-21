@@ -185,8 +185,9 @@ diff -Nur origin/mindformers/trainer/base_trainer.py code/mindformers/trainer/ba
 -        logger.info(".........Training Over!.............")
 +        logger.info(".........Training Over!.............") # train_end_time
 +        train_end_time = ais_utils.get_datatime()
-+        all_data_sum = self.get_train_data_size() * \
-+             config.model.model_config.seq_length
++        device_num = int(os.getenv("RANK_ID", '0'))
++        all_data_sum = all_data_sum = int(config.runner_config.sink_size * dataset.get_dataset_size() / device_num) * \
++             config.runner_config.origin_epochs * config.model.model_config.seq_length
 +        throughput_rate = ais_utils.calc_throughput_rate(all_data_sum, train_start_time, train_end_time)
 +        save_aisbench_result("train_end_time", train_end_time.decode('utf-8'))
 +        save_aisbench_result("throughput_ratio", throughput_rate)

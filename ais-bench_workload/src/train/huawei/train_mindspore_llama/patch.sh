@@ -15,7 +15,7 @@ get_git_info(){
     local run_type="$2"
 
     # set default branch
-    [[ -z "$branch_args" ]] && { branch_args="r1.5"; }
+    [[ -z "$branch_args" ]] && { branch_args="r2.2"; }
 
     modelzoo_sub_dir="mindformers"
     if [ "$branch_args" == "r2.2" ];then

@@ -46,7 +46,7 @@ diff -Nur origin/mindformers/core/metric/metric.py code/mindformers/core/metric/
 
  __all__ = ['EntityScore', 'SQuADMetric', 'PerplexityMetric', 'ADGENMetric', 'PromptAccMetric', 'EmF1Metric']
 
-@@ -541,6 +546,8 @@
+@@ -541,6 +546,12 @@
              return None
          avg_loss = float(self.total_loss / self.num_data)
          result = {"loss": avg_loss, "PPL": math.exp(avg_loss)}

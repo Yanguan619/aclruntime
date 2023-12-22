@@ -41,7 +41,7 @@ else:
     ckpt_path = os.path.join(cur_path, f'result/output/target_ckpt/rank_0/llama{model_type}_{model_scale}0.ckpt')
 
 if not os.path.exists(target_yaml):
-    raise RuntimeError(f"yaml file: {target_yaml} not find!")
+    raise FileExistsError(f"yaml file: {target_yaml} not find!")
 
 
 def change_parallel_params(data):

@@ -92,7 +92,10 @@ def write_finetune_yaml(data):
 
 data = {}
 with open(target_yaml, 'r', encoding='utf-8') as file:
-    data = yaml.safe_load(file)
+    try:
+        data = yaml.safe_load(file)
+    except Exception as err:
+        raise RuntimeError(f"load target_yaml: {target_yaml} failed") from err
 
 if run_mode == 'train':
     data = write_pretrain_yaml(data)
@@ -102,6 +105,8 @@ else:
     raise RuntimeError(f"run_mode{run_mode} not valid!")
 
 with open(target_yaml, 'w', encoding='utf-8') as file:
-    yaml.safe_dump(data, file)
-
+    try:
+        yaml.safe_dump(data, file)
+    except Exception as err:
+        raise RuntimeError(f"dump target_yaml: {target_yaml} failed") from err
 

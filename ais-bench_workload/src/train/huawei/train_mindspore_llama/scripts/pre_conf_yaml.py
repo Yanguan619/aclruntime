@@ -42,7 +42,8 @@ else:
 
 if not os.path.exists(target_yaml):
     raise FileExistsError(f"yaml file: {target_yaml} not find!")
-
+if os.path.islink(target_yaml):
+    raise RuntimeError(f"yaml file: {target_yaml} is softlink!")
 
 def change_parallel_params(data):
     data_parallel = int(data['parallel_config']['data_parallel'])

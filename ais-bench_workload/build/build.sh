@@ -104,10 +104,12 @@ function build_packet()
     chmod -R u+x $OUTPUT_BASE_DIR/code
 
     # for stubs old versions add adapter new ais_utils.py file
-    [ ! -f $OUTPUT_BASE_DIR/code/ais_utils.py ] && { cp ${ROOT_PATH}/src/ais_utils_adapter.py $OUTPUT_BASE_DIR/code/ais_utils.py; }
+    if [ ! -f $OUTPUT_BASE_DIR/code/ais_utils.py ] && [ -f $OUTPUT_BASE_DIR/code/libset_result.so ];then
+        cp ${ROOT_PATH}/src/ais_utils_adapter.py $OUTPUT_BASE_DIR/code/ais_utils.py
+    fi
 
     copy_doc_files $scripts_args
-    
+
     #PLATFORM=`uname -i`
     # OUTPUT_PACKET_NAME="$PACKET_TYPE"_"$MANUFACTORY"_"$TARGETDIR-Ais-Bench-$PLATFORM-${scripts_args// /_}"
     OUTPUT_PACKET_NAME="$PACKET_TYPE"_"$MANUFACTORY"_"$TARGETDIR-$STUBS_SUBNAME-${scripts_args// /_}"

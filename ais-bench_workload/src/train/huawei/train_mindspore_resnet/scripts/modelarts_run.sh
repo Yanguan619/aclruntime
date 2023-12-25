@@ -28,7 +28,7 @@ run_train()
         echo "now not set singleserver_mode"
         ${PYTHON_COMMAND} -u ${CODE_PATH}/common/train_modelarts.py --local_code_path $CODE_PATH/code --modelarts_version $modelarts_version || { logger_Warn "run train modelarts failed ret:$?";return 1; }
     fi
-    ${PYTHON_COMMAND} $CODE_PATH/ais_utils.py set_result "training" "result" "OK"
+    ${PYTHON_COMMAND} $CODE_PATH/ais_utils.py  "training" "result" "OK"
 }
 
 run_eval()

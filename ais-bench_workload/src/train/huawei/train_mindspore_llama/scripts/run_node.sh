@@ -137,8 +137,10 @@ function eval_run()
         echo "eval not supported yet"
     else
         echo "invalid eval mode"
+        rm -rf $load_checkpoint_path
         return $ret_failed
     fi
+    rm -rf $load_checkpoint_path
     return $ret_ok
 }
 

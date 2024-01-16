@@ -1,7 +1,18 @@
 #!/bin/bash
+###
+ # @Author: yanhe13 yanhe13@huawei.com
+ # @Date: 2023-12-18 17:19:19
+ # @LastEditors: yanhe13 yanhe13@huawei.com
+ # @LastEditTime: 2024-01-16 10:34:13
+ # @FilePath: \tools\ais-bench_workload\src\train\huawei\train_mindspore_llama\config\config.sh
+ # @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+###
 echo "set env of llama train"
 
 export PYTHON_COMMAND=python3
+export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa
+export CLUSTER_AUTO_SET_KEY='on' # 'off'
+
 export LLAMA_MODEL_SCALE='7b' # '7b' or '13b'
 export LLAMA_MODEL_TYPE='' # llama : '' ; llama2 : '2'
 export LLAMA_RUN_MODE='only_pretrain' # 'only_pretrain', 'only_finetune', 'full'

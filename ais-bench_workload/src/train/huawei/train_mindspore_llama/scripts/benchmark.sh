@@ -1,18 +1,8 @@
 #!/bin/bash
-###
- # @Author: yanhe13 yanhe13@huawei.com
- # @Date: 2023-12-18 17:19:19
- # @LastEditors: yanhe13 yanhe13@huawei.com
- # @LastEditTime: 2024-01-16 10:16:26
- # @FilePath: \tools\ais-bench_workload\src\train\huawei\train_mindspore_llama\scripts\benchmark.sh
- # @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
-###
-
 # 遗留问题
 # 1. mindformers的多机多卡的parallel_config怎么改？
 # 2、yaml文件是否能够pretrain和finetune各一份？
 # 3、如何判断llama跑完了，且没有出错？
-
 
 # 返回码
 declare -i ret_ok=0

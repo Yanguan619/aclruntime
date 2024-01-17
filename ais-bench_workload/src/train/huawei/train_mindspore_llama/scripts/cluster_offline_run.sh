@@ -41,11 +41,11 @@ check_env()
 init_cluster()
 {
     if [ -f $CLUSTER_SSH_KEY_PATH ];then
-        $PYTHON_COMMAND ais_bench.cluster init -n $NODEINFO_FILE -s $CLUSTER_SSH_KEY_PATH || { return 1; }
+        $PYTHON_COMMAND -m ais_bench.cluster init -n $NODEINFO_FILE -s $CLUSTER_SSH_KEY_PATH || { return 1; }
     elif [ $CLUSTER_AUTO_SET_KEY == 'on' ];then
-        $PYTHON_COMMAND ais_bench.cluster init -n $NODEINFO_FILE -a  || { return 1; }
+        $PYTHON_COMMAND -m ais_bench.cluster init -n $NODEINFO_FILE -a  || { return 1; }
     else
-        $PYTHON_COMMAND ais_bench.cluster init -n $NODEINFO_FILE
+        $PYTHON_COMMAND -m ais_bench.cluster init -n $NODEINFO_FILE
     fi
     return 0
 }
@@ -79,15 +79,15 @@ init()
     # sync data if work_path not exist so new one.节点的work/ 路径是相对于在node_file中指定的work_path
 
     cmd="rm -rf ${RELAT_WORK_PATH};mkdir -p ${RELAT_WORK_PATH}"
-    $PYTHON_COMMAND ais_bench.cluster multi_exec -c ${cmd} -m serial || { logger_Error "renew workpath failed"; return 1; }
+    $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c ${cmd} -m serial || { logger_Error "renew workpath failed"; return 1; }
 
     # copy code to node work path
-    $PYTHON_COMMAND ais_bench.cluster multi_put -s ${CODE_PATH} -d ${RELAT_WORK_PATH}  || { logger_Error "deploy code to work place failed"; return 1; }
+    $PYTHON_COMMAND -m ais_bench.cluster multi_put -s ${CODE_PATH} -d ${RELAT_WORK_PATH}  || { logger_Error "deploy code to work place failed"; return 1; }
 
     cmd="source /etc/profile;
        export WORK_PATH=\$PWD/$RELAT_WORK_PATH;
        bash \$WORK_PATH/run_node.sh check \$WORK_PATH/config/$CONFIG_FILE"
-    $PYTHON_COMMAND ais_bench.cluster multi_exec -c ${cmd} -m serial|| { return 1; }
+    $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c ${cmd} -m serial|| { return 1; }
     logger_Info "-------------------------------- init end --------------------------------"
 }
 
@@ -98,16 +98,16 @@ run_train()
         cmd="$env_cmd;
             rm -rf \$RESULT_PATH/*.json;
             bash \$WORK_PATH/run_node.sh train train "
-        $PYTHON_COMMAND ais_bench.cluster multi_exec -c ${cmd} || { logger_Error "run train(pretrain) failed"; return 1; }
-        $PYTHON_COMMAND ais_bench.cluster multi_get ${RELAT_RESULT_PATH} ${RESULT_PATH} || { logger_Error "cp result between nodes failed"; return 1; }
+        $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c ${cmd} || { logger_Error "run train(pretrain) failed"; return 1; }
+        $PYTHON_COMMAND -m ais_bench.cluster multi_get ${RELAT_RESULT_PATH} ${RESULT_PATH} || { logger_Error "cp result between nodes failed"; return 1; }
         bash $WORK_PATH/run_node.sh merge || { logger_Error "ckpt merge failed"; return 1; }
     fi
     if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
         cmd="$env_cmd;
             rm -rf \$RESULT_PATH/*.json;
             bash \$WORK_PATH/run_node.sh train finetune "
-        $PYTHON_COMMAND ais_bench.cluster multi_exec -c ${cmd} || { logger_Error "run train(finetune) failed"; return 1; }
-        $PYTHON_COMMAND ais_bench.cluster multi_get ${RELAT_RESULT_PATH} ${RESULT_PATH} || { logger_Error "cp result between nodes failed"; return 1; }
+        $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c ${cmd} || { logger_Error "run train(finetune) failed"; return 1; }
+        $PYTHON_COMMAND -m ais_bench.cluster multi_get ${RELAT_RESULT_PATH} ${RESULT_PATH} || { logger_Error "cp result between nodes failed"; return 1; }
         bash $WORK_PATH/run_node.sh merge || { logger_Error "ckpt merge failed"; return 1; }
     fi
     logger_Info "-------------------------------- train end --------------------------------"
@@ -118,7 +118,7 @@ run_eval()
     logger_Info "-------------------------------- eval start --------------------------------"
     cmd="$env_cmd;
         bash \$WORK_PATH/run_node.sh eval"
-    $PYTHON_COMMAND ais_bench.cluster single_exec -c ${cmd} || { logger_Error "run eval failed"; return 1; }
+    $PYTHON_COMMAND -m ais_bench.cluster single_exec -c ${cmd} || { logger_Error "run eval failed"; return 1; }
     logger_Info "-------------------------------- eval end --------------------------------"
 }
 
@@ -127,9 +127,9 @@ get_result()
     logger_Info "-------------------------------- get_result start --------------------------------"
     cmd="$env_cmd;
         mkdir -p \$RESULT_PATH"
-    $PYTHON_COMMAND ais_bench.cluster multi_exec -c ${cmd} -m serial || { logger_Error "mkdir resultpath failed"; return 1; }
+    $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c ${cmd} -m serial || { logger_Error "mkdir resultpath failed"; return 1; }
 
-    $PYTHON_COMMAND ais_bench.cluster multi_get ${RELAT_RESULT_PATH} ${RESULT_PATH} || { logger_Error "get result from ${RELAT_RESULT_PATH} failed"; return 1; }
+    $PYTHON_COMMAND -m ais_bench.cluster multi_get ${RELAT_RESULT_PATH} ${RESULT_PATH} || { logger_Error "get result from ${RELAT_RESULT_PATH} failed"; return 1; }
     source ${CODE_PATH}/config/$CONFIG_FILE
     export PYTHONPATH=${CODE_PATH}/logging:$PYTHONPATH
     ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_llm_result.py ${RESULT_PATH} ${RANK_SIZE} ${LLAMA_RUN_MODE}

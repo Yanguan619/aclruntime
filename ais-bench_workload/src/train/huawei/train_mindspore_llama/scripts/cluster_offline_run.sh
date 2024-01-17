@@ -7,6 +7,7 @@
 # env check
 export RELAT_WORK_PATH=work
 export RELAT_RESULT_PATH=result
+CONFIG_FILE="config.sh"
 env_cmd="source /etc/profile;
         export WORK_PATH=\$PWD/$RELAT_WORK_PATH;
         export RESULT_PATH=\$PWD/$RELAT_RESULT_PATH;
@@ -60,7 +61,6 @@ init()
     export RESULT_PATH=${WORK_PATH}/result
     export PYTHONPATH=$PYTHONPATH:$CODE_PATH
 
-    CONFIG_FILE="config.sh"
     source ${CODE_PATH}/config/$CONFIG_FILE || { logger_Error "source file failed:$?";return 1; }
     if [ -d ${DEPEND_PATH}/logging ];then
         cp -r ${DEPEND_PATH}/logging ${CODE_PATH}

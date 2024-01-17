@@ -22,14 +22,14 @@ function get_node_rank_id_range()
 {
     RANK_ID_RANGE="[0,8]"
     # get server node id default is 0
-    : "${SERVER_ID:=0}"
+    : "${NODE_ID:=0}"
     # get rank start index
     if [[ $DEVICE_NUM == 1  && $RANK_SIZE == 1 ]];then
         : "${SINGLE_CARD_INDEX:=0}"
         RANK_START=$SINGLE_CARD_INDEX
     else
         # get rank start index
-        RANK_START=`expr ${SERVER_ID} \* $DEVICE_NUM`
+        RANK_START=`expr ${NODE_ID} \* $DEVICE_NUM`
     fi
     RANK_ID_MAX=$[DEVICE_NUM+RANK_START]
     RANK_ID_RANGE="[$RANK_START,$RANK_ID_MAX]"
@@ -107,7 +107,7 @@ function node_train()
     $PYTHON_COMMAND $WORK_PATH/pre_conf_yaml.py $1 # change yaml params
     run_script_path=$WORK_PATH/code/scripts/
     run_yaml_path=$WORK_PATH/code/configs/llama${LLAMA_MODEL_TYPE}/$LLAMA_RUN_YAML_NAME
-    rank_table_path= ${WORK_PATH}/${RANK_TABLE_FILE}
+    rank_table_path= $WORK_PATH/$RANK_TABLE_FILE
     # train run
     cd $run_script_path
     cmd="bash run_distribute.sh $rank_table_path $run_yaml_path $RANK_ID_RANGE $1"

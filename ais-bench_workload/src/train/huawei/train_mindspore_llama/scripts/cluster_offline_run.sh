@@ -99,7 +99,7 @@ run_train()
             rm -rf \$RESULT_PATH/*.json;
             bash \$WORK_PATH/run_node.sh train train "
         $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" || { logger_Error "run train(pretrain) failed"; return 1; }
-        $PYTHON_COMMAND -m ais_bench.cluster multi_get -s "$RELAT_RESULT_PATH" -d "$RESULT_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
+        $PYTHON_COMMAND -m ais_bench.cluster multi_get -s "$RELAT_RESULT_PATH" -d "$WORK_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH
         bash $WORK_PATH/run_node.sh merge || { logger_Error "ckpt merge failed"; return 1; }
     fi
@@ -108,7 +108,7 @@ run_train()
             rm -rf \$RESULT_PATH/*.json;
             bash \$WORK_PATH/run_node.sh train finetune "
         $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" || { logger_Error "run train(finetune) failed"; return 1; }
-        $PYTHON_COMMAND -m ais_bench.cluster multi_get -s "$RELAT_RESULT_PATH" -d "$RESULT_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
+        $PYTHON_COMMAND -m ais_bench.cluster multi_get -s "$RELAT_RESULT_PATH" -d "$WORK_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH
         bash $WORK_PATH/run_node.sh merge || { logger_Error "ckpt merge failed"; return 1; }
     fi

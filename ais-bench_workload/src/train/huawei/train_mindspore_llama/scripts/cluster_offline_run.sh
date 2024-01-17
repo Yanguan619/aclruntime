@@ -6,7 +6,7 @@
 
 # env check
 export RELAT_WORK_PATH=work
-export RELAT_RESULT_PATH=result
+export RELAT_RESULT_PATH=$RELAT_WORK_PATH/result
 CONFIG_FILE="config.sh"
 env_cmd="source /etc/profile;
         export WORK_PATH=\$PWD/$RELAT_WORK_PATH;
@@ -99,7 +99,7 @@ run_train()
             rm -rf \$RESULT_PATH/*.json;
             bash \$WORK_PATH/run_node.sh train train "
         $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" || { logger_Error "run train(pretrain) failed"; return 1; }
-        $PYTHON_COMMAND -m ais_bench.cluster multi_get "$RELAT_RESULT_PATH" "$RESULT_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
+        $PYTHON_COMMAND -m ais_bench.cluster multi_get -s "$RELAT_RESULT_PATH" -d "$RESULT_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
         bash $WORK_PATH/run_node.sh merge || { logger_Error "ckpt merge failed"; return 1; }
     fi
     if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
@@ -107,7 +107,7 @@ run_train()
             rm -rf \$RESULT_PATH/*.json;
             bash \$WORK_PATH/run_node.sh train finetune "
         $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" || { logger_Error "run train(finetune) failed"; return 1; }
-        $PYTHON_COMMAND -m ais_bench.cluster multi_get "$RELAT_RESULT_PATH" "$RESULT_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
+        $PYTHON_COMMAND -m ais_bench.cluster multi_get -s "$RELAT_RESULT_PATH" -d "$RESULT_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
         bash $WORK_PATH/run_node.sh merge || { logger_Error "ckpt merge failed"; return 1; }
     fi
     logger_Info "-------------------------------- train end --------------------------------"
@@ -129,7 +129,7 @@ get_result()
         mkdir -p \$RESULT_PATH"
     $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" -m serial || { logger_Error "mkdir resultpath failed"; return 1; }
 
-    $PYTHON_COMMAND -m ais_bench.cluster multi_get "${RELAT_RESULT_PATH}" "${RESULT_PATH}" || { logger_Error "get result from ${RELAT_RESULT_PATH} failed"; return 1; }
+    $PYTHON_COMMAND -m ais_bench.cluster multi_get -s "${RELAT_RESULT_PATH}" -d "${RESULT_PATH}" || { logger_Error "get result from ${RELAT_RESULT_PATH} failed"; return 1; }
     source ${CODE_PATH}/config/$CONFIG_FILE
     export PYTHONPATH=${CODE_PATH}/logging:$PYTHONPATH
     ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_llm_result.py ${RESULT_PATH} ${RANK_SIZE} ${LLAMA_RUN_MODE}

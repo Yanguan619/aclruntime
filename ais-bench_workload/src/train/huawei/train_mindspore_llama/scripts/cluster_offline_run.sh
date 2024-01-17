@@ -40,7 +40,7 @@ check_env()
 
 init_cluster()
 {
-    if [ -f $CLUSTER_SSH_KEY_PATH ];then
+    if [ -n "$CLUSTER_SSH_KEY_PATH" ];then
         $PYTHON_COMMAND -m ais_bench.cluster init -n $NODEINFO_FILE -s $CLUSTER_SSH_KEY_PATH || { return 1; }
     elif [ $CLUSTER_AUTO_SET_KEY == 'on' ];then
         $PYTHON_COMMAND -m ais_bench.cluster init -n $NODEINFO_FILE -a  || { return 1; }

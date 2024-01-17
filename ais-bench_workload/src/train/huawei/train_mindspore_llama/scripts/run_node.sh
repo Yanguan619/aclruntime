@@ -64,7 +64,8 @@ function node_init()
 
 function node_check()
 {
-    node_common_check "${PYTHON_COMMAND}" "${RANK_SIZE}" "$RANK_TABLE_FILE" || { logger_Warn "node common check failed" ; return $ret_failed; }
+    rank_table_path=${WORK_PATH}/${RANK_TABLE_FILE}
+    node_common_check "${PYTHON_COMMAND}" "${RANK_SIZE}" "$rank_table_path" || { logger_Warn "node common check failed" ; return $ret_failed; }
 
     # check_mindspore_run_ok_Ascend ${PYTHON_COMMAND} || { logger_Warn "mindspore running failed" ; return $ret_failed; }
     check_mindspore_run_ok ${PYTHON_COMMAND} || { logger_Warn "mindspore running failed" ; return $ret_failed; }
@@ -106,9 +107,10 @@ function node_train()
     $PYTHON_COMMAND $WORK_PATH/pre_conf_yaml.py $1 # change yaml params
     run_script_path=$WORK_PATH/code/scripts/
     run_yaml_path=$WORK_PATH/code/configs/llama${LLAMA_MODEL_TYPE}/$LLAMA_RUN_YAML_NAME
+    rank_table_path=${WORK_PATH}/${RANK_TABLE_FILE}
     # train run
     cd $run_script_path
-    cmd="bash run_distribute.sh $RANK_TABLE_FILE $run_yaml_path $RANK_ID_RANGE $1"
+    cmd="bash run_distribute.sh $rank_table_path $run_yaml_path $RANK_ID_RANGE $1"
     [ "$NODEINFO_FILE" != "" ] && cmd="$cmd $RANK_SIZE"
     echo "$cmd"
     $cmd || { logger_Warn "node_run failed, rank id range: $RANK_ID_RANGE" ; return $ret_failed; }

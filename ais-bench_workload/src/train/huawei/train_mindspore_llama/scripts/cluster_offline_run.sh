@@ -73,7 +73,7 @@ init()
     # refresh result path
     rm -rf $RESULT_PATH;mkdir -p $RESULT_PATH
     rm -rf $WORK_PATH;mkdir -p $WORK_PATH
-    cp -r $CODE_PATH $WORK_PATH # CPU可以执行的都在host节点执行
+    cp -r $CODE_PATH/* $WORK_PATH # CPU可以执行的都在host节点执行
 
     # sync data if work_path not exist so new one.节点的work/ 路径是相对于在node_file中指定的work_path
 

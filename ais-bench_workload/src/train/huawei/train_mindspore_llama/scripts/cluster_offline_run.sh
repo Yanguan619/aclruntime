@@ -81,7 +81,7 @@ init()
     $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" -m serial || { logger_Error "renew workpath failed"; return 1; }
 
     # copy code to node work path
-    $PYTHON_COMMAND -m ais_bench.cluster multi_put -s "$CODE_PATH" -d "./"  || { logger_Error "deploy code to work place failed"; return 1; }
+    $PYTHON_COMMAND -m ais_bench.cluster multi_put -s "$WORK_PATH" -d "./"  || { logger_Error "deploy code to work place failed"; return 1; }
 
     cmd="source /etc/profile;
        export WORK_PATH=\$PWD/$RELAT_WORK_PATH;

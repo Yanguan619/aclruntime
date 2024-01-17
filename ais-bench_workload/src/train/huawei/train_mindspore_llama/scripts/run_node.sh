@@ -107,7 +107,7 @@ function node_train()
     $PYTHON_COMMAND $WORK_PATH/pre_conf_yaml.py $1 # change yaml params
     run_script_path=$WORK_PATH/code/scripts/
     run_yaml_path=$WORK_PATH/code/configs/llama${LLAMA_MODEL_TYPE}/$LLAMA_RUN_YAML_NAME
-    rank_table_path= $WORK_PATH/$RANK_TABLE_FILE
+    rank_table_path=${WORK_PATH}/$RANK_TABLE_FILE
     # train run
     cd $run_script_path
     cmd="bash run_distribute.sh $rank_table_path $run_yaml_path $RANK_ID_RANGE $1"

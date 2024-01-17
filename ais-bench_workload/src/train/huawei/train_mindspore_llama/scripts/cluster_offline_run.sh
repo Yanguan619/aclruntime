@@ -85,7 +85,8 @@ init()
 
     cmd="source /etc/profile;
        export WORK_PATH=\$PWD/$RELAT_WORK_PATH;
-       bash \$WORK_PATH/run_node.sh check \$WORK_PATH/config/$CONFIG_FILE"
+       source \$WORK_PATH/config/$CONFIG_FILE;
+       bash \$WORK_PATH/run_node.sh check"
     $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" -m serial|| { return 1; }
     logger_Info "-------------------------------- init end --------------------------------"
 }
@@ -98,7 +99,7 @@ run_train()
             rm -rf \$RESULT_PATH/*.json;
             bash \$WORK_PATH/run_node.sh train train "
         $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" || { logger_Error "run train(pretrain) failed"; return 1; }
-        $PYTHON_COMMAND -m ais_bench.cluster multi_get "${RELAT_RESULT_PATH}" "${RESULT_PATH}" || { logger_Error "cp result between nodes failed"; return 1; }
+        $PYTHON_COMMAND -m ais_bench.cluster multi_get "$RELAT_RESULT_PATH" "$RESULT_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
         bash $WORK_PATH/run_node.sh merge || { logger_Error "ckpt merge failed"; return 1; }
     fi
     if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
@@ -106,7 +107,7 @@ run_train()
             rm -rf \$RESULT_PATH/*.json;
             bash \$WORK_PATH/run_node.sh train finetune "
         $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" || { logger_Error "run train(finetune) failed"; return 1; }
-        $PYTHON_COMMAND -m ais_bench.cluster multi_get "${RELAT_RESULT_PATH}" "${RESULT_PATH}" || { logger_Error "cp result between nodes failed"; return 1; }
+        $PYTHON_COMMAND -m ais_bench.cluster multi_get "$RELAT_RESULT_PATH" "$RESULT_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
         bash $WORK_PATH/run_node.sh merge || { logger_Error "ckpt merge failed"; return 1; }
     fi
     logger_Info "-------------------------------- train end --------------------------------"

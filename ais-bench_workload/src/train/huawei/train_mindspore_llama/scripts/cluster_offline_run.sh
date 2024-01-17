@@ -5,7 +5,8 @@
 . $CODE_PATH/common/node_common.sh
 
 # env check
-
+export RELAT_WORK_PATH=work
+export RELAT_RESULT_PATH=result
 env_cmd="source /etc/profile;
         export WORK_PATH=\$PWD/$RELAT_WORK_PATH;
         export RESULT_PATH=\$PWD/$RELAT_RESULT_PATH;
@@ -55,10 +56,8 @@ init()
     logger_Info "-------------------------------- init start --------------------------------"
     # set nodes work path. 仅仅是管理节点的work/
     export WORK_PATH=${BASE_PATH}/work
-    export RELAT_WORK_PATH=work
     # set nodes result path
     export RESULT_PATH=${WORK_PATH}/result
-    export RELAT_RESULT_PATH=result
     export PYTHONPATH=$PYTHONPATH:$CODE_PATH
 
     CONFIG_FILE="config.sh"

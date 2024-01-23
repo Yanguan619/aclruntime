@@ -59,22 +59,9 @@ cluster_multi_exec()
     local mode="$2"
     local device_num="$3"
     _cmd="$PYTHON_COMMAND -m ais_bench.cluster multi_exec -c \"$cmd\" "
-    [ "$mode" != "" ] && _cmd="$_cmd -m $mode "
-    [ "$device_num" != "" ] && _cmd="$_cmd -d $device_num "
+    [ "$mode" != "" ] && _cmd="\"$_cmd\" -m $mode "
+    [ "$device_num" != "" ] && _cmd="\"$_cmd\" -d $device_num "
     $_cmd || { return $ret_failed; }
-    return $ret_ok
-}
-
-cluster_multi_exec_eval()
-{
-    [ "$NODEINFO_FILE" == "" ] && { local_run_cmd "$@";return $?; }
-    local cmd="$1"
-    local mode="$2"
-    local device_num="$3"
-    _cmd="$PYTHON_COMMAND -m ais_bench.cluster multi_exec -c \"$cmd\" "
-    [ "$mode" != "" ] && _cmd="$_cmd -m $mode "
-    [ "$device_num" != "" ] && _cmd="$_cmd -d $device_num "
-    (eval $_cmd) || { return $ret_failed; }
     return $ret_ok
 }
 
@@ -85,22 +72,9 @@ cluster_single_exec()
     local node_id="$2"
     local device_num="$3"
     _cmd="$PYTHON_COMMAND -m ais_bench.cluster single_exec -c \"$cmd\" "
-    [ "$node_id" != "" ] && _cmd="$_cmd -m $node_id "
-    [ "$device_num" != "" ] && _cmd="$_cmd -d $device_num "
+    [ "$node_id" != "" ] && _cmd="\"$_cmd\" -m $node_id "
+    [ "$device_num" != "" ] && _cmd="\"$_cmd\" -d $device_num "
     $_cmd || { return $ret_failed; }
-    return $ret_ok
-}
-
-cluster_single_exec_eval()
-{
-    [ "$NODEINFO_FILE" == "" ] && { local_run_cmd "$@";return $?; }
-    local cmd="$1"
-    local node_id="$2"
-    local device_num="$3"
-    _cmd="$PYTHON_COMMAND -m ais_bench.cluster single_exec -c \"$cmd\" "
-    [ "$node_id" != "" ] && _cmd="$_cmd -m $node_id "
-    [ "$device_num" != "" ] && _cmd="$_cmd -d $device_num "
-    (eval $_cmd) || { return $ret_failed; }
     return $ret_ok
 }
 

@@ -76,8 +76,9 @@ init()
     cluster_multi_exec "$cmd" serial || { logger_Error "renew workpath failed"; return 1; }
 
     # copy code to node work path
-    cluster_multi_put "$WORK_PATH" "./"  || { logger_Error "deploy code to work place failed"; return 1; }
-
+    if [ "$NODEINFO_FILE" != "" ];then
+        cluster_multi_put "$WORK_PATH" "./"  || { logger_Error "deploy code to work place failed"; return 1; }
+    fi
     cmd="source /etc/profile;
        export WORK_PATH=\$PWD/$RELAT_WORK_PATH;
        source \$WORK_PATH/config/$CONFIG_FILE;

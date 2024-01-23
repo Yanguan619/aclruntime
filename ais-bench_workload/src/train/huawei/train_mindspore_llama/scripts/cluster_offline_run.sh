@@ -8,6 +8,10 @@
 export RELAT_WORK_PATH=work
 export RELAT_RESULT_PATH=$RELAT_WORK_PATH/result
 CONFIG_FILE="config.sh"
+# set nodes work path. 仅仅是管理节点的work/
+export WORK_PATH=${BASE_PATH}/work
+# set nodes result path
+export RESULT_PATH=${WORK_PATH}/result
 local_env_cmd="source /etc/profile;
         export WORK_PATH=$WORK_PATH;
         export RESULT_PATH=$RESULT_PATH;
@@ -50,12 +54,7 @@ check_env()
 init()
 {
     logger_Info "-------------------------------- init start --------------------------------"
-    # set nodes work path. 仅仅是管理节点的work/
-    export WORK_PATH=${BASE_PATH}/work
-    # set nodes result path
-    export RESULT_PATH=${WORK_PATH}/result
     export PYTHONPATH=$PYTHONPATH:$CODE_PATH
-
     source ${CODE_PATH}/config/$CONFIG_FILE || { logger_Error "source file failed:$?";return 1; }
     if [ -d ${DEPEND_PATH}/logging ];then
         cp -r ${DEPEND_PATH}/logging ${CODE_PATH}

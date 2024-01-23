@@ -65,6 +65,7 @@ init()
     cluster_init || { logger_Error "ais_bench_cluster init failed!";return 1; }
 
     # refresh result path
+    rm -rf ${BASE_PATH}/${RELAT_RESULT_PATH};mkdir -p ${BASE_PATH}/${RELAT_RESULT_PATH}
     rm -rf $RESULT_PATH;mkdir -p $RESULT_PATH
     rm -rf $WORK_PATH;mkdir -p $WORK_PATH
     cp -r $CODE_PATH/* $WORK_PATH # CPU可以执行的都在host节点执行

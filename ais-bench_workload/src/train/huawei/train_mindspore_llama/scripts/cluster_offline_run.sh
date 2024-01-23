@@ -1,7 +1,7 @@
 #!/bin/bash
 . $CODE_PATH/common/common.sh
 . $CODE_PATH/common/log_util.sh
-. $CODE_PATH/common/cluster_common.sh
+. $CODE_PATH/common/cluster_common_2.0.sh
 . $CODE_PATH/common/node_common.sh
 
 # env check
@@ -40,18 +40,6 @@ check_env()
     [[ $RANK_SIZE -le 8 ]] || check_file_valid "${NODEINFO_FILE}" || { echo "nodeinfofile:${NODEINFO_FILE} not valid" ; return 1; }
 }
 
-init_cluster()
-{
-    if [ -n "$CLUSTER_SSH_KEY_PATH" ];then
-        $PYTHON_COMMAND -m ais_bench.cluster init -n $NODEINFO_FILE -s $CLUSTER_SSH_KEY_PATH || { return 1; }
-    elif [ $CLUSTER_AUTO_SET_KEY == 'on' ];then
-        $PYTHON_COMMAND -m ais_bench.cluster init -n $NODEINFO_FILE -a  || { return 1; }
-    else
-        $PYTHON_COMMAND -m ais_bench.cluster init -n $NODEINFO_FILE
-    fi
-    return 0
-}
-
 init()
 {
     logger_Info "-------------------------------- init start --------------------------------"
@@ -67,8 +55,8 @@ init()
     fi
     check_env || { logger_Error "env check failed'" ; return 1; }
 
-    # init cluster
-    init_cluster || { logger_Error "ais_bench_cluster init failed!";return 1; }
+    # init ais_bench.cluster
+    cluster_init || { logger_Error "ais_bench_cluster init failed!";return 1; }
 
     # refresh result path
     rm -rf $RESULT_PATH;mkdir -p $RESULT_PATH

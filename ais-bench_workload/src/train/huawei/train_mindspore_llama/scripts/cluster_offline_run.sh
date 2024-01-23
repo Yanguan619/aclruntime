@@ -66,16 +66,16 @@ init()
     # sync data if work_path not exist so new one.节点的work/ 路径是相对于在node_file中指定的work_path
 
     cmd="rm -rf ${RELAT_WORK_PATH};mkdir -p ${RELAT_WORK_PATH}"
-    $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" -m serial || { logger_Error "renew workpath failed"; return 1; }
+    cluster_multi_exec "$cmd" serial || { logger_Error "renew workpath failed"; return 1; }
 
     # copy code to node work path
-    $PYTHON_COMMAND -m ais_bench.cluster multi_put -s "$WORK_PATH" -d "./"  || { logger_Error "deploy code to work place failed"; return 1; }
+    cluster_multi_put "$WORK_PATH" "./"  || { logger_Error "deploy code to work place failed"; return 1; }
 
     cmd="source /etc/profile;
        export WORK_PATH=\$PWD/$RELAT_WORK_PATH;
        source \$WORK_PATH/config/$CONFIG_FILE;
        bash \$WORK_PATH/run_node.sh check"
-    $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" -m serial|| { return 1; }
+    cluster_multi_exec "$cmd" serial|| { return 1; }
     logger_Info "-------------------------------- init end --------------------------------"
 }
 
@@ -86,8 +86,8 @@ run_train()
         cmd="$env_cmd;
             rm -rf \$RESULT_PATH/*.json;
             bash \$WORK_PATH/run_node.sh train train "
-        $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" || { logger_Error "run train(pretrain) failed"; return 1; }
-        $PYTHON_COMMAND -m ais_bench.cluster multi_get -s "$RELAT_RESULT_PATH" -d "$WORK_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
+        cluster_multi_exec "$cmd" || { logger_Error "run train(pretrain) failed"; return 1; }
+        cluster_multi_get "$RELAT_RESULT_PATH" "$WORK_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH
         bash $WORK_PATH/run_node.sh merge || { logger_Error "ckpt merge failed"; return 1; }
     fi
@@ -95,8 +95,8 @@ run_train()
         cmd="$env_cmd;
             rm -rf \$RESULT_PATH/*.json;
             bash \$WORK_PATH/run_node.sh train finetune "
-        $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" || { logger_Error "run train(finetune) failed"; return 1; }
-        $PYTHON_COMMAND -m ais_bench.cluster multi_get -s "$RELAT_RESULT_PATH" -d "$WORK_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
+        cluster_multi_exec "$cmd" || { logger_Error "run train(finetune) failed"; return 1; }
+        cluster_multi_get "$RELAT_RESULT_PATH" "$WORK_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH
         bash $WORK_PATH/run_node.sh merge || { logger_Error "ckpt merge failed"; return 1; }
     fi
@@ -108,7 +108,7 @@ run_eval()
     logger_Info "-------------------------------- eval start --------------------------------"
     cmd="$env_cmd;
         bash \$WORK_PATH/run_node.sh eval"
-    $PYTHON_COMMAND -m ais_bench.cluster single_exec -c "$cmd" || { logger_Error "run eval failed"; return 1; }
+    cluster_single_exec "$cmd" || { logger_Error "run eval failed"; return 1; }
     logger_Info "-------------------------------- eval end --------------------------------"
 }
 
@@ -117,9 +117,9 @@ get_result()
     logger_Info "-------------------------------- get_result start --------------------------------"
     cmd="$env_cmd;
         mkdir -p \$RESULT_PATH"
-    $PYTHON_COMMAND -m ais_bench.cluster multi_exec -c "$cmd" -m serial || { logger_Error "mkdir resultpath failed"; return 1; }
+    cluster_multi_exec "$cmd" serial || { logger_Error "mkdir resultpath failed"; return 1; }
 
-    $PYTHON_COMMAND -m ais_bench.cluster multi_get -s "${RELAT_RESULT_PATH}" -d "${RESULT_PATH}" || { logger_Error "get result from ${RELAT_RESULT_PATH} failed"; return 1; }
+    cluster_multi_get "${RELAT_RESULT_PATH}" "${RESULT_PATH}" || { logger_Error "get result from ${RELAT_RESULT_PATH} failed"; return 1; }
     source ${CODE_PATH}/config/$CONFIG_FILE
     export PYTHONPATH=${CODE_PATH}/logging:$PYTHONPATH
     ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_llm_result.py ${RESULT_PATH} ${RANK_SIZE} ${LLAMA_RUN_MODE}

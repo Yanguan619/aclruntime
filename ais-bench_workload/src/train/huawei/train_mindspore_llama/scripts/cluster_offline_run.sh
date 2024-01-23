@@ -97,6 +97,7 @@ run_train()
             cmd="$env_cmd;
                 rm -rf \$RESULT_PATH/*.json;
                 bash \$WORK_PATH/run_node.sh train train "
+        fi
         cluster_multi_exec "$cmd" || { logger_Error "run train(pretrain) failed"; return 1; }
         cluster_multi_get "$RELAT_RESULT_PATH" "$WORK_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH
@@ -111,6 +112,7 @@ run_train()
             cmd="$env_cmd;
                 rm -rf \$RESULT_PATH/*.json;
                 bash \$WORK_PATH/run_node.sh train finetune "
+        fi
         cluster_multi_exec "$cmd" || { logger_Error "run train(finetune) failed"; return 1; }
         cluster_multi_get "$RELAT_RESULT_PATH" "$WORK_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH
@@ -128,6 +130,7 @@ run_eval()
     else
         cmd="$env_cmd;
         bash \$WORK_PATH/run_node.sh eval"
+    fi
     cluster_single_exec "$cmd" || { logger_Error "run eval failed"; return 1; }
     logger_Info "-------------------------------- eval end --------------------------------"
 }
@@ -141,6 +144,7 @@ get_result()
     else
         cmd="$env_cmd;
         mkdir -p \$RESULT_PATH"
+    fi
     cluster_multi_exec "$cmd" serial || { logger_Error "mkdir resultpath failed"; return 1; }
 
     cluster_multi_get "${RELAT_RESULT_PATH}" "${WORK_PATH}" || { logger_Error "get result from ${RELAT_RESULT_PATH} failed"; return 1; }

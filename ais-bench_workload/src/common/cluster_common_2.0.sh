@@ -61,7 +61,7 @@ cluster_multi_exec()
     _cmd="$PYTHON_COMMAND -m ais_bench.cluster multi_exec -c \"$cmd\" "
     [ "$mode" != "" ] && _cmd="$_cmd -m $mode "
     [ "$device_num" != "" ] && _cmd="$_cmd -d $device_num "
-    $_cmd || { return $ret_failed; }
+    (eval $_cmd) || { return $ret_failed; }
     return $ret_ok
 }
 
@@ -74,7 +74,7 @@ cluster_single_exec()
     _cmd="$PYTHON_COMMAND -m ais_bench.cluster single_exec -c \"$cmd\" "
     [ "$node_id" != "" ] && _cmd="$_cmd -m $node_id "
     [ "$device_num" != "" ] && _cmd="$_cmd -d $device_num "
-    $_cmd || { return $ret_failed; }
+    (eval $_cmd) || { return $ret_failed; }
     return $ret_ok
 }
 
@@ -86,7 +86,7 @@ cluster_multi_put()
     local mode="$3"
     _cmd="$PYTHON_COMMAND -m ais_bench.cluster multi_put -s $src -d $dst "
     [ "$mode" != "" ] && _cmd="$_cmd -m $mode "
-    $_cmd || { return $ret_failed; }
+    (eval $_cmd) || { return $ret_failed; }
     return $ret_ok
 }
 
@@ -98,7 +98,7 @@ cluster_single_put()
     local mode="$3"
     _cmd="$PYTHON_COMMAND -m ais_bench.cluster single_put -s $src -d $dst "
     [ "$node_id" != "" ] && _cmd="$_cmd -m $node_id "
-    $_cmd || { return $ret_failed; }
+    (eval $_cmd) || { return $ret_failed; }
     return $ret_ok
 }
 
@@ -110,7 +110,7 @@ cluster_multi_get()
     local mode="$3"
     _cmd="$PYTHON_COMMAND -m ais_bench.cluster multi_get -s $src -d $dst "
     [ "$mode" != "" ] && _cmd="$_cmd -m $mode "
-    $_cmd || { return $ret_failed; }
+    (eval $_cmd) || { return $ret_failed; }
     return $ret_ok
 }
 
@@ -122,6 +122,6 @@ cluster_single_get()
     local mode="$3"
     _cmd="$PYTHON_COMMAND -m ais_bench.cluster single_get -s $src -d $dst "
     [ "$node_id" != "" ] && _cmd="$_cmd -m $node_id "
-    $_cmd || { return $ret_failed; }
+    (eval $_cmd) || { return $ret_failed; }
     return $ret_ok
 }

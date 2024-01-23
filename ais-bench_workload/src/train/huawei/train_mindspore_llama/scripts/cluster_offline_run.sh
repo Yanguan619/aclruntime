@@ -143,7 +143,7 @@ get_result()
         mkdir -p \$RESULT_PATH"
     cluster_multi_exec "$cmd" serial || { logger_Error "mkdir resultpath failed"; return 1; }
 
-    cluster_multi_get "${RELAT_RESULT_PATH}" "${RESULT_PATH}" || { logger_Error "get result from ${RELAT_RESULT_PATH} failed"; return 1; }
+    cluster_multi_get "${RELAT_RESULT_PATH}" "${WORK_PATH}" || { logger_Error "get result from ${RELAT_RESULT_PATH} failed"; return 1; }
     source ${CODE_PATH}/config/$CONFIG_FILE
     export PYTHONPATH=${CODE_PATH}/logging:$PYTHONPATH
     ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_llm_result.py ${RESULT_PATH} ${RANK_SIZE} ${LLAMA_RUN_MODE}

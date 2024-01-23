@@ -70,13 +70,11 @@ init()
     rm -rf $WORK_PATH;mkdir -p $WORK_PATH
     cp -r $CODE_PATH/* $WORK_PATH # CPU可以执行的都在host节点执行
 
-    # sync data if work_path not exist so new one.节点的work/ 路径是相对于在node_file中指定的work_path
-
-    cmd="rm -rf ${RELAT_WORK_PATH};mkdir -p ${RELAT_WORK_PATH}"
-    cluster_multi_exec "$cmd" serial || { logger_Error "renew workpath failed"; return 1; }
-
-    # copy code to node work path
     if [ "$NODEINFO_FILE" != "" ];then
+         # sync data if work_path not exist so new one.节点的work/ 路径是相对于在node_file中指定的work_path
+        cmd="rm -rf ${RELAT_WORK_PATH};mkdir -p ${RELAT_WORK_PATH}"
+        cluster_multi_exec "$cmd" serial || { logger_Error "renew workpath failed"; return 1; }
+         # copy code to node work path
         cluster_multi_put "$WORK_PATH" "./"  || { logger_Error "deploy code to work place failed"; return 1; }
     fi
     cmd="source /etc/profile;

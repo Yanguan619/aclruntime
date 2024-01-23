@@ -8,6 +8,12 @@
 export RELAT_WORK_PATH=work
 export RELAT_RESULT_PATH=$RELAT_WORK_PATH/result
 CONFIG_FILE="config.sh"
+local_env_cmd="source /etc/profile;
+        export WORK_PATH=$WORK_PATH;
+        export RESULT_PATH=$RESULT_PATH;
+        export PYTHONPATH=$WORK_PATH:$PYTHONPATH;
+        export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH;
+        source $WORK_PATH/config/$CONFIG_FILE"
 env_cmd="source /etc/profile;
         export WORK_PATH=\$PWD/$RELAT_WORK_PATH;
         export RESULT_PATH=\$PWD/$RELAT_RESULT_PATH;
@@ -83,18 +89,28 @@ run_train()
 {
     logger_Info "-------------------------------- train start --------------------------------"
     if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "only_pretrain" ];then
-        cmd="$env_cmd;
-            rm -rf \$RESULT_PATH/*.json;
-            bash \$WORK_PATH/run_node.sh train train "
+        if [ "$NODEINFO_FILE" == "" ];then
+            cmd="$local_env_cmd;
+            rm -rf $RESULT_PATH/*.json;
+            bash $WORK_PATH/run_node.sh train train "
+        else
+            cmd="$env_cmd;
+                rm -rf \$RESULT_PATH/*.json;
+                bash \$WORK_PATH/run_node.sh train train "
         cluster_multi_exec "$cmd" || { logger_Error "run train(pretrain) failed"; return 1; }
         cluster_multi_get "$RELAT_RESULT_PATH" "$WORK_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH
         bash $WORK_PATH/run_node.sh merge || { logger_Error "ckpt merge failed"; return 1; }
     fi
     if [ "$LLAMA_RUN_MODE" == "full" ] || [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
-        cmd="$env_cmd;
-            rm -rf \$RESULT_PATH/*.json;
-            bash \$WORK_PATH/run_node.sh train finetune "
+        if [ "$NODEINFO_FILE" == "" ];then
+            cmd="$local_env_cmd;
+            rm -rf $RESULT_PATH/*.json;
+            bash $WORK_PATH/run_node.sh train finetune "
+        else
+            cmd="$env_cmd;
+                rm -rf \$RESULT_PATH/*.json;
+                bash \$WORK_PATH/run_node.sh train finetune "
         cluster_multi_exec "$cmd" || { logger_Error "run train(finetune) failed"; return 1; }
         cluster_multi_get "$RELAT_RESULT_PATH" "$WORK_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH
@@ -106,7 +122,11 @@ run_train()
 run_eval()
 {
     logger_Info "-------------------------------- eval start --------------------------------"
-    cmd="$env_cmd;
+    if [ "$NODEINFO_FILE" == "" ];then
+        cmd="$local_env_cmd;
+        bash $WORK_PATH/run_node.sh eval"
+    else
+        cmd="$env_cmd;
         bash \$WORK_PATH/run_node.sh eval"
     cluster_single_exec "$cmd" || { logger_Error "run eval failed"; return 1; }
     logger_Info "-------------------------------- eval end --------------------------------"
@@ -115,7 +135,11 @@ run_eval()
 get_result()
 {
     logger_Info "-------------------------------- get_result start --------------------------------"
-    cmd="$env_cmd;
+    if [ "$NODEINFO_FILE" == "" ];then
+        cmd="$local_env_cmd;
+        mkdir -p $RESULT_PATH"
+    else
+        cmd="$env_cmd;
         mkdir -p \$RESULT_PATH"
     cluster_multi_exec "$cmd" serial || { logger_Error "mkdir resultpath failed"; return 1; }
 

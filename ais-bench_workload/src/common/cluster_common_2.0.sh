@@ -5,8 +5,8 @@ declare -i ret_failed=1
 
 local_run_cmd()
 {
-    local cmd="$*"
-    (eval $cmd) || { echo "Warn local run '${cmd}'"; return $ret_failed; }
+    local cmd="$1"
+    (eval "$cmd") || { echo "Warn local run '${cmd}'"; return $ret_failed; }
 }
 
 local_cp_cmd()

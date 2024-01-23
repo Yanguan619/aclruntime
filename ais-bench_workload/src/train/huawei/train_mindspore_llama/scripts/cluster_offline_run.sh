@@ -66,7 +66,7 @@ init()
     # sync data if work_path not exist so new one.节点的work/ 路径是相对于在node_file中指定的work_path
 
     cmd="rm -rf ${RELAT_WORK_PATH};mkdir -p ${RELAT_WORK_PATH}"
-    cluster_multi_exec "$cmd" serial || { logger_Error "renew workpath failed"; return 1; }
+    cluster_multi_exec_eval "$cmd" serial || { logger_Error "renew workpath failed"; return 1; }
 
     # copy code to node work path
     cluster_multi_put "$WORK_PATH" "./"  || { logger_Error "deploy code to work place failed"; return 1; }

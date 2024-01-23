@@ -31,6 +31,7 @@ check_env()
 
     # check python
     : "${PYTHON_COMMAND?PYTHON_COMMAND not set}"
+    [ "$NODEINFO_FILE" == "" ] && { echo "NODEINFO_FILE not set, will not check cluster";return 1; }
     if pip show ais_bench_cluster >/dev/null 2>&1;then
         logger_Info "ais_bench cluster module exist, won't be installed again"
     else

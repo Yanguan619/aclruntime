@@ -42,6 +42,7 @@ local_get_cmd()
 
 cluster_init()
 {
+    [ "$NODEINFO_FILE" == "" ] && { echo "NODEINFO_FILE not set, will not use cluster";return $ret_ok; }
     if [ -n "$CLUSTER_SSH_KEY_PATH" ];then
         $PYTHON_COMMAND -m ais_bench.cluster init -n $NODEINFO_FILE -s $CLUSTER_SSH_KEY_PATH || { return $ret_failed; }
     elif [ $CLUSTER_AUTO_SET_KEY == 'on' ];then

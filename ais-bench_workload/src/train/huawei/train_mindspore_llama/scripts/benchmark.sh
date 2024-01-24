@@ -1,9 +1,4 @@
 #!/bin/bash
-# 遗留问题
-# 1. mindformers的多机多卡的parallel_config怎么改？
-# 2、yaml文件是否能够pretrain和finetune各一份？
-# 3、如何判断llama跑完了，且没有出错？
-
 # 返回码
 declare -i ret_ok=0
 declare -i ret_init_failed=1

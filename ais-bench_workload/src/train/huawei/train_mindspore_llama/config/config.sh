@@ -2,8 +2,8 @@
 echo "set env of llama train"
 
 export PYTHON_COMMAND=python3
-export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa
-export CLUSTER_AUTO_SET_KEY='on' # 'off'
+export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # the path of ssh private key path
+export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'
 
 export LLAMA_MODEL_SCALE='7b' # '7b' or '13b'
 export LLAMA_MODEL_TYPE='' # llama : '' ; llama2 : '2'

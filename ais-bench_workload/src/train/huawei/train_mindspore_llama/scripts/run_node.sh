@@ -13,11 +13,6 @@ else
     LLAMA_RUN_YAML_NAME="run_llama${LLAMA_MODEL_TYPE}_${LLAMA_MODEL_SCALE}.yaml"
 fi
 
-
-tokenizer_url="https://ascend-repo-modelzoo.obs.cn-east-2.myhuaweicloud.com/XFormer_for_mindspore/llama/tokenizer.model"
-wikitest2_url="https://aisbenchtest.obs.myhuaweicloud.com/LLM_resource/llama/wikitext-2.tar.gz"
-alpaca_url="https://aisbenchtest.obs.myhuaweicloud.com/LLM_resource/llama/alpaca_data.json"
-
 function get_node_rank_id_range()
 {
     RANK_ID_RANGE="[0,8]"

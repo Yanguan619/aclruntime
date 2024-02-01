@@ -1,3 +1,17 @@
+# Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 #!/bin/bash
 CUR_PATH=$(dirname $(readlink -f "$0"))
 try_download_url(){
@@ -18,7 +32,7 @@ function get_aippConfig_file()
 {
     rm -rf "$1"
     aipp_config_url="https://gitee.com/ascend/ModelZoo-PyTorch/raw/master/ACL_PyTorch/built-in/cv/InceptionV3_for_Pytorch/aipp_inceptionv3_pth.config"
-    wget $aipp_config_url -O $1
+    wget $aipp_config_url -O $1 --no-check-certificate
 }
 
 convert_staticbatch_om()
@@ -141,13 +155,13 @@ convert_dymshape_om()
     fi
 }
 
-# 基准路径 https://gitee.com/ascend/ModelZoo-PyTorch/tree/master/ACL_PyTorch/built-in/cv/Resnet101_Pytorch_Infer
+
 main()
 {
     SOC_VERSION=${1:-"Ascend310P3"}
     PYTHON_COMMAND=${2:-"python3"}
     TESTDATA_PATH=$CUR_PATH/testdata/
-    [ -d $TESTDATA_PATH ] || mkdir $TESTDATA_PATH
+    [ -d $TESTDATA_PATH ] || { mkdir $TESTDATA_PATH;chmod 750 $TESTDATA_PATH; }
 
     model_url="https://obs-9be7.obs.cn-east-2.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/InceptionV3/inceptionv3.onnx"
     onnx_file="$TESTDATA_PATH/pth_inceptionv3.onnx"
@@ -159,16 +173,16 @@ main()
     AIPPCONFIG_FILE_PATH=$TESTDATA_PATH/aipp_inceptionsv3.aippconfig
     get_aippConfig_file $AIPPCONFIG_FILE_PATH || { echo "get aipp file failed";return 1; }
 
-    # staticbatch="1 2 4 8"
-    # convert_staticbatch_om $onnx_file $SOC_VERSION "${staticbatch[*]}" $input_tensor_name $AIPPCONFIG_FILE_PATH || { echo "convert static om failed";return 1; }
+    staticbatch="1 2 4 8"
+    convert_staticbatch_om $onnx_file $SOC_VERSION "${staticbatch[*]}" $input_tensor_name $AIPPCONFIG_FILE_PATH || { echo "convert static om failed";return 1; }
     dymbatch="1,2,4,8"
     convert_dymbatch_om $onnx_file $SOC_VERSION $dymbatch $input_tensor_name $AIPPCONFIG_FILE_PATH || { echo "convert dymbatch om failed";return 1; }
     dymhw="299,299"
     convert_dymhw_om $onnx_file $SOC_VERSION $dymhw $input_tensor_name $AIPPCONFIG_FILE_PATH || { echo "convert dymhw om failed";return 1; }
-    # dymdims="1,224,224;8,448,448"
-    # convert_dymdim_om $onnx_file $SOC_VERSION $dymdims $input_tensor_name $AIPPCONFIG_FILE_PATH || { echo "convert dymdim om failed";return 1; }
-    # dymshapes="[1~16,3,200~300,200~300]"
-    # convert_dymshape_om $onnx_file $SOC_VERSION $dymshapes $input_tensor_name $AIPPCONFIG_FILE_PATH || { echo "convert dymshape om failed";return 1; }
+    dymdims="1,224,224;8,448,448"
+    convert_dymdim_om $onnx_file $SOC_VERSION $dymdims $input_tensor_name $AIPPCONFIG_FILE_PATH || { echo "convert dymdim om failed";return 1; }
+    dymshapes="[1~16,3,200~300,200~300]"
+    convert_dymshape_om $onnx_file $SOC_VERSION $dymshapes $input_tensor_name $AIPPCONFIG_FILE_PATH || { echo "convert dymshape om failed";return 1; }
 }
 
 main "$@"

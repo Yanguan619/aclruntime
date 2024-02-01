@@ -1,5 +1,5 @@
 /*
- * Copyright(C) 2020. Huawei Technologies Co.,Ltd. All rights reserved.
+ * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 
 #include "Base/MemoryHelper/MemoryHelper.h"
+#include <sys/time.h>
 #include "acl/acl.h"
 #include "acl/ops/acl_dvpp.h"
 #include "Base/Log/Log.h"
-#include <sys/time.h>
 
 namespace Base {
 using MemeoryDataFreeFuncPointer = APP_ERROR (*)(void*);
@@ -42,13 +42,15 @@ struct MemorySummary* GetMemorySummaryPtr()
     return &g_MemorySummary;
 }
 
-APP_ERROR MemoryHelper::Malloc(MemoryData& data)
+void MemoryHelper::LogErrorInfo()
+{
+    LOG_ERROR << GetError(APP_ERR_ACL_BAD_ALLOC)<< "The module type is not defined.";
+    return;
+}
+
+APP_ERROR MemoryHelper::specificMalloc(MemoryData& data)
 {
     APP_ERROR ret = APP_ERR_OK;
-    if (data.size == 0) {
-        data.ptrData = nullptr;
-        return APP_ERR_OK;
-    }
     switch (data.type) {
         case MemoryData::MEMORY_HOST:
             ret = aclrtMallocHost(&(data.ptrData), data.size);
@@ -90,12 +92,22 @@ APP_ERROR MemoryHelper::Malloc(MemoryData& data)
             data.free = (MemeoryDataFreeFuncPointer)FreeFuncDelete;
             break;
         default:
-            LogError << GetError(APP_ERR_ACL_BAD_ALLOC)
-                     << "The module type is not defined.";
+            LogErrorInfo();
             return APP_ERR_ACL_BAD_ALLOC;
     }
+    return ret;
+}
+
+APP_ERROR MemoryHelper::Malloc(MemoryData& data)
+{
+    APP_ERROR ret = APP_ERR_OK;
+    if (data.size == 0) {
+        data.ptrData = nullptr;
+        return APP_ERR_OK;
+    }
+    ret = specificMalloc(data);
     if (ret != APP_ERR_OK) {
-        LogError << GetError(ret) << "Malloc ptrData failed.";
+        LOG_ERROR << GetError(ret) << "Malloc ptrData failed.";
         data.ptrData = nullptr;
         return APP_ERR_ACL_BAD_ALLOC;
     }
@@ -108,7 +120,7 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
         return APP_ERR_OK;
     }
     if (data.ptrData == nullptr) {
-        LogError << GetError(APP_ERR_COMM_INVALID_POINTER)
+        LOG_ERROR << GetError(APP_ERR_COMM_INVALID_POINTER)
                  << "Free failed, ptrData is nullptr.";
         return APP_ERR_COMM_INVALID_POINTER;
     }
@@ -143,12 +155,12 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
             ret = APP_ERR_OK;
             break;
         default:
-            LogError << GetError(APP_ERR_ACL_BAD_FREE)
+            LOG_ERROR << GetError(APP_ERR_ACL_BAD_FREE)
                      << "Free failed, the module type is not defined, data type:" << data.type;
             return APP_ERR_ACL_BAD_FREE;
     }
     if (ret != APP_ERR_OK) {
-        LogError << GetError(ret) << "Free ptrData failed.";
+        LOG_ERROR << GetError(ret) << "Free ptrData failed.";
         return APP_ERR_ACL_BAD_FREE;
     }
     data.ptrData = nullptr;
@@ -158,16 +170,26 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
 APP_ERROR MemoryHelper::Memset(MemoryData& data, int32_t value, size_t count)
 {
     if (data.ptrData == nullptr) {
-        LogError << GetError(APP_ERR_COMM_INVALID_POINTER)
+        LOG_ERROR << GetError(APP_ERR_COMM_INVALID_POINTER)
                  << "Memset failed, ptrData is nullptr.";
         return APP_ERR_COMM_INVALID_POINTER;
     }
     APP_ERROR ret = aclrtMemset(data.ptrData, data.size, value, count);
     if (ret != APP_ERR_OK) {
         cout << aclGetRecentErrMsg() << endl;
-        LogError << GetError(ret) << "Memset ptrData failed.";
+        LOG_ERROR << GetError(ret) << "Memset ptrData failed.";
     }
     return ret;
+}
+
+void AddCostTime(float time, string type)
+{
+    std::lock_guard<std::mutex> lock(g_MemorySummary.mtx_);
+    if (type == "h2d") {
+        g_MemorySummary.H2DTimeList.push_back(time);
+    } else if (type == "d2h") {
+        g_MemorySummary.D2HTimeList.push_back(time);
+    }
 }
 
 APP_ERROR MemoryHelper::Memcpy(MemoryData& dest, const MemoryData& src, size_t count)
@@ -176,7 +198,7 @@ APP_ERROR MemoryHelper::Memcpy(MemoryData& dest, const MemoryData& src, size_t c
         return APP_ERR_OK;
     }
     if (dest.ptrData == nullptr || src.ptrData == nullptr) {
-        LogError << GetError(APP_ERR_COMM_INVALID_POINTER)
+        LOG_ERROR << GetError(APP_ERR_COMM_INVALID_POINTER)
                  << "Memcpy failed, ptrData is nullptr.";
         return APP_ERR_COMM_INVALID_POINTER;
     }
@@ -184,12 +206,13 @@ APP_ERROR MemoryHelper::Memcpy(MemoryData& dest, const MemoryData& src, size_t c
     struct timeval start = { 0 };
     struct timeval end = { 0 };
     float costTime;
+    const float sec_to_usec = 1000.0;
     if (IsDeviceToHost(dest, src)) {
         gettimeofday(&start, nullptr);
         ret = aclrtMemcpy(dest.ptrData, dest.size, src.ptrData, count, ACL_MEMCPY_DEVICE_TO_HOST);
         gettimeofday(&end, nullptr);
-        costTime = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
-        g_MemorySummary.D2HTimeList.push_back(costTime);
+        costTime = sec_to_usec * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / sec_to_usec;
+        AddCostTime(costTime, "d2h");
     } else if (IsHostToHost(dest, src)) {
         ret = aclrtMemcpy(dest.ptrData, dest.size, src.ptrData, count, ACL_MEMCPY_HOST_TO_HOST);
     } else if (IsDeviceToDevice(dest, src)) {
@@ -198,12 +221,12 @@ APP_ERROR MemoryHelper::Memcpy(MemoryData& dest, const MemoryData& src, size_t c
         gettimeofday(&start, nullptr);
         ret = aclrtMemcpy(dest.ptrData, dest.size, src.ptrData, count, ACL_MEMCPY_HOST_TO_DEVICE);
         gettimeofday(&end, nullptr);
-        costTime = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
-        g_MemorySummary.H2DTimeList.push_back(costTime);
+        costTime = sec_to_usec * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / sec_to_usec;
+        AddCostTime(costTime, "h2d");
     }
     if (ret != APP_ERR_OK) {
         cout << aclGetRecentErrMsg() << endl;
-        LogError << GetError(ret) << "Memcpy ptrData failed.";
+        LOG_ERROR << GetError(ret) << "Memcpy ptrData failed.";
         return APP_ERR_ACL_BAD_COPY;
     }
     return ret;
@@ -212,23 +235,23 @@ APP_ERROR MemoryHelper::Memcpy(MemoryData& dest, const MemoryData& src, size_t c
 APP_ERROR MemoryHelper::MxbsMallocAndCopy(MemoryData& dest, const MemoryData& src)
 {
     if (src.ptrData == nullptr) {
-        LogError << GetError(APP_ERR_COMM_INVALID_POINTER)
+        LOG_ERROR << GetError(APP_ERR_COMM_INVALID_POINTER)
                  << "Memcpy failed, ptrData of src is nullptr.";
         return APP_ERR_COMM_INVALID_POINTER;
     }
 
     APP_ERROR ret = MemoryHelper::Malloc(dest);
     if (ret != APP_ERR_OK) {
-        LogError << GetError(ret) << "MxbsMallocAndCopy function malloc ptrData failed.";
+        LOG_ERROR << GetError(ret) << "MxbsMallocAndCopy function malloc ptrData failed.";
         return ret;
     }
 
     ret = MemoryHelper::Memcpy(dest, src, src.size);
     if (ret != APP_ERR_OK) {
-        LogError << GetError(ret) << "MxbsMallocAndCopy function memcpy failed.";
+        LOG_ERROR << GetError(ret) << "MxbsMallocAndCopy function memcpy failed.";
         ret = dest.free(dest.ptrData);
         if (ret != APP_ERR_OK) {
-            LogError << GetError(ret) << "MxbsMallocAndCopy function free failed.";
+            LOG_ERROR << GetError(ret) << "MxbsMallocAndCopy function free failed.";
         }
         dest.ptrData = nullptr;
         return APP_ERR_ACL_BAD_COPY;
@@ -239,7 +262,7 @@ APP_ERROR MemoryHelper::MxbsMallocAndCopy(MemoryData& dest, const MemoryData& sr
 bool MemoryHelper::IsHostToDevice(const MemoryData& dest, const MemoryData& src)
 {
     return (dest.type == MemoryData::MEMORY_DEVICE || dest.type == MemoryData::MEMORY_DVPP) &&
-        (src.type == MemoryData::MEMORY_HOST || src.type == MemoryData::MEMORY_HOST_MALLOC || 
+        (src.type == MemoryData::MEMORY_HOST || src.type == MemoryData::MEMORY_HOST_MALLOC ||
         src.type == MemoryData::MEMORY_HOST_NEW);
 }
 
@@ -251,15 +274,15 @@ bool MemoryHelper::IsDeviceToDevice(const MemoryData& dest, const MemoryData& sr
 
 bool MemoryHelper::IsHostToHost(const MemoryData& dest, const MemoryData& src)
 {
-    return (dest.type == MemoryData::MEMORY_HOST || dest.type == MemoryData::MEMORY_HOST_MALLOC || 
-        dest.type == MemoryData::MEMORY_HOST_NEW) && 
-        (src.type == MemoryData::MEMORY_HOST || src.type == MemoryData::MEMORY_HOST_MALLOC || 
+    return (dest.type == MemoryData::MEMORY_HOST || dest.type == MemoryData::MEMORY_HOST_MALLOC ||
+        dest.type == MemoryData::MEMORY_HOST_NEW) &&
+        (src.type == MemoryData::MEMORY_HOST || src.type == MemoryData::MEMORY_HOST_MALLOC ||
         src.type == MemoryData::MEMORY_HOST_NEW);
 }
 
 bool MemoryHelper::IsDeviceToHost(const MemoryData& dest, const MemoryData& src)
 {
-    return (dest.type == MemoryData::MEMORY_HOST || dest.type == MemoryData::MEMORY_HOST_MALLOC || 
+    return (dest.type == MemoryData::MEMORY_HOST || dest.type == MemoryData::MEMORY_HOST_MALLOC ||
         dest.type == MemoryData::MEMORY_HOST_NEW) &&
         (src.type == MemoryData::MEMORY_DEVICE || src.type == MemoryData::MEMORY_DVPP);
 }

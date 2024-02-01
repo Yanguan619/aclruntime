@@ -1,5 +1,5 @@
 /*
- * Copyright(C) 2021. Huawei Technologies Co.,Ltd. All rights reserved.
+ * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef TENSOR_BUFFER_H
 #define TENSOR_BUFFER_H
 
@@ -25,7 +26,6 @@
 #include "Base/ErrorCode/ErrorCode.h"
 
 namespace Base {
-
 enum TensorBufferCopyType {
     HOST_AND_HOST = 0,
     HOST_AND_DEVICE,
@@ -36,9 +36,9 @@ enum TensorBufferCopyType {
 class TensorBuffer {
 public:
     TensorBuffer() {}
-    TensorBuffer(uint32_t size, MemoryData::MemoryType type, int32_t deviceId) 
+    TensorBuffer(uint32_t size, MemoryData::MemoryType type, int32_t deviceId)
         : size(size), type(type), deviceId(deviceId) {}
-    TensorBuffer(uint32_t size, int32_t deviceId) 
+    TensorBuffer(uint32_t size, int32_t deviceId)
         : size(size), deviceId(deviceId) {}
     TensorBuffer(uint32_t size) : size(size) {}
     TensorBuffer(void *ptr, uint32_t size) : size(size)
@@ -74,10 +74,9 @@ public:
     size_t size = 0;
     MemoryData::MemoryType type = MemoryData::MemoryType::MEMORY_HOST;
     int32_t deviceId = -1;
+    size_t contextIndex = 0;
     std::shared_ptr<void> data = nullptr;
 };
-
-
 }
 
 #endif

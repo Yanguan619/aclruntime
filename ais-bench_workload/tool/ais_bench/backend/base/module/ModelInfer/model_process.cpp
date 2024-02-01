@@ -1,40 +1,88 @@
-/**
-* Copyright 2020 Huawei Technologies Co., Ltd
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+/*
+ * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-* http://www.apache.org/licenses/LICENSE-2.0
-
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-
-#include "model_process.h"
-#include "utils.h"
 #include <cstddef>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include "utils.h"
+#include "model_process.h"
+
 
 using namespace std;
-bool g_is_device = true;
-bool g_is_txt = false;
+namespace {
+bool g_isDevice = true;
+bool g_isTxt = false;
 vector<int> g_output_size;
 
-ModelProcess::ModelProcess()
-    : modelId_(0)
-    , loadFlag_(false)
-    , modelDesc_(nullptr)
-    , input_(nullptr)
-    , output_(nullptr)
-    , numInputs_(0)
-    , numOutputs_(0)
+int GetDynamicAippParaByBatch(
+    size_t batchIndex,
+    std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    std::string cfgItem
+)
 {
+    if (cfgItem.compare("dtcPixelMean") == 0) {
+        if (dyAippCfg->GetDtcPixelMean().count(batchIndex) == 1) {
+            return batchIndex;
+        } else {
+            return -1;
+        }
+    } else if (cfgItem.compare("crop") == 0) {
+        if (dyAippCfg->GetCropParams().count(batchIndex) == 1) {
+            return batchIndex;
+        } else {
+            return -1;
+        }
+    } else if (cfgItem.compare("pad") == 0) {
+        if (dyAippCfg->GetPaddingParams().count(batchIndex) == 1) {
+            return batchIndex;
+        } else {
+            return -1;
+        }
+    } else if (cfgItem.compare("dtcPixelMin") == 0) {
+        if (dyAippCfg->GetDtcPixelMin().count(batchIndex) == 1) {
+            return batchIndex;
+        } else {
+            return -1;
+        }
+    } else if (cfgItem.compare("pixelVarReci") == 0) {
+        if (dyAippCfg->GetPixelVarReci().count(batchIndex) == 1) {
+            return batchIndex;
+        } else {
+            return -1;
+        }
+    }
+
+    return -1;
+}
+} // namespace
+
+ModelProcess::ModelProcess()
+    :modelId_(0),
+    loadFlag_(false),
+    modelDesc_(nullptr),
+    input_(nullptr),
+    output_(nullptr),
+    numInputs_(0),
+    numOutputs_(0)
+{
+    str2aclAippInputFormat["YUV420SP_U8"] = ACL_YUV420SP_U8;
+    str2aclAippInputFormat["XRGB8888_U8"] = ACL_XRGB8888_U8;
+    str2aclAippInputFormat["RGB888_U8"] = ACL_RGB888_U8;
+    str2aclAippInputFormat["YUV400_U8"] = ACL_YUV400_U8;
 }
 
 ModelProcess::~ModelProcess()
@@ -51,14 +99,18 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath)
         ERROR_LOG("has already loaded a model");
         return FAILED;
     }
-
+    struct timeval start = { 0 };
+    struct timeval end = { 0 };
+    gettimeofday(&start, nullptr);
     aclError ret = aclmdlLoadFromFile(modelPath.c_str(), &modelId_);
+    gettimeofday(&end, nullptr);
     if (ret != ACL_SUCCESS) {
         cout << aclGetRecentErrMsg() << endl;
         ERROR_LOG("load model from file failed, model file is %s", modelPath.c_str());
         return FAILED;
     }
-
+    float time_cost = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
+    DEBUG_LOG("model aclmdlLoadFromFile cost : %f (ms)", time_cost);
     loadFlag_ = true;
     INFO_LOG("load model %s success", modelPath.c_str());
     return SUCCESS;
@@ -86,8 +138,7 @@ Result ModelProcess::CreateDesc()
 
 Result ModelProcess::GetDynamicGearCount(size_t &dymGearCount)
 {
-    aclError ret;
-    ret = aclmdlGetInputDynamicGearCount(modelDesc_, -1, &dymGearCount);
+    aclError ret = aclmdlGetInputDynamicGearCount(modelDesc_, -1, &dymGearCount);
     if (ret != ACL_SUCCESS) {
         cout << aclGetRecentErrMsg() << endl;
         ERROR_LOG("get input dynamic gear count failed %d", ret);
@@ -108,11 +159,11 @@ Result ModelProcess::GetDynamicIndex(size_t &dymindex)
     size_t numInputs = aclmdlGetNumInputs(modelDesc_);
     for (size_t i = 0; i < numInputs; i++) {
         inputname = aclmdlGetInputNameByIndex(modelDesc_, i);
-        if (strcmp(inputname, ACL_DYNAMIC_TENSOR_NAME) == 0){
+        if (strcmp(inputname, ACL_DYNAMIC_TENSOR_NAME) == 0) {
             dynamicIndex_exist = true;
         }
     }
-    if (dynamicIndex_exist == false){
+    if (dynamicIndex_exist == false) {
         g_dymindex = -1;
         return SUCCESS;
     }
@@ -129,7 +180,11 @@ Result ModelProcess::GetDynamicIndex(size_t &dymindex)
     return SUCCESS;
 }
 
-Result ModelProcess::CheckDynamicShape(std::vector<std::string> dym_shape_tmp, std::map<string, std::vector<int64_t>> &dym_shape_map, std::vector<int64_t> &dims_num)
+Result ModelProcess::CheckDynamicShape(
+    std::vector<std::string> dym_shape_tmp,
+    std::map<string, std::vector<int64_t>> &dym_shape_map,
+    std::vector<int64_t> &dims_num
+)
 {
     const char *inputname = nullptr;
     vector<const char *> inputnames;
@@ -137,7 +192,7 @@ Result ModelProcess::CheckDynamicShape(std::vector<std::string> dym_shape_tmp, s
     string shape_str;
     size_t numInputs = aclmdlGetNumInputs(modelDesc_);
     int64_t num_tmp = 0;
-    if (numInputs != dym_shape_tmp.size()){
+    if (numInputs != dym_shape_tmp.size()) {
         ERROR_LOG("om has %zu input, but dymShape parametet give %zu", numInputs, dym_shape_tmp.size());
         return FAILED;
     }
@@ -150,56 +205,50 @@ Result ModelProcess::CheckDynamicShape(std::vector<std::string> dym_shape_tmp, s
         }
         inputnames.push_back(inputname);
     }
-    for (size_t i = 0; i < dym_shape_tmp.size(); ++i){
-        istringstream block(dym_shape_tmp[i]);
-        string cell;
-        size_t index = 0;
-        vector<string> shape_tmp;
-        while (getline(block, cell, ':')) {
-            if (index == 0){
-                name = cell;
-            }
-            else if (index == 1){
-               shape_str = cell;
-            }
-            index += 1;
+    for (size_t i = 0; i < dym_shape_tmp.size(); ++i) {
+        string tmpStr = dym_shape_tmp[i];
+        size_t charPos = tmpStr.rfind(':');
+        if (charPos != string::npos) {
+            name = tmpStr.substr(0, charPos);
+            shape_str = tmpStr.substr(charPos + 1);
         }
+        vector<string> shape_tmp;
         Utils::SplitStringWithPunctuation(shape_str, shape_tmp, ',');
         size_t shape_tmp_size = shape_tmp.size();
         vector<int64_t> shape_array_tmp;
 
-	    dims_num.push_back(shape_tmp_size);
-        for(size_t index = 0; index < shape_tmp_size; ++index){
+        dims_num.push_back(shape_tmp_size);
+        for (size_t index = 0; index < shape_tmp_size; ++index) {
             num_tmp = atoi(shape_tmp[index].c_str());
             shape_array_tmp.push_back(num_tmp);
         }
         dym_shape_map[name] = shape_array_tmp;
     }
-    for (size_t i = 0; i < inputnames.size(); ++i){
-        if (dym_shape_map.count(inputnames[i]) <= 0){
+    for (size_t i = 0; i < inputnames.size(); ++i) {
+        if (dym_shape_map.count(inputnames[i]) <= 0) {
             ERROR_LOG("the dymShape parameter set error, please check input name");
             return FAILED;
         }
     }
     DEBUG_LOG("check Dynamic Shape success");
     return SUCCESS;
-
 }
 
-Result ModelProcess::SetDynamicShape(std::map<std::string, std::vector<int64_t>> dym_shape_map, std::vector<int64_t> &dims_num)
+Result ModelProcess::SetDynamicShape(
+    std::map<std::string, std::vector<int64_t>> dym_shape_map,
+    std::vector<int64_t> &dims_num
+)
 {
     aclError ret;
     const char *name;
-    size_t input_num = dym_shape_map.size();
-    aclTensorDesc * inputDesc;
+    size_t  input_num = dym_shape_map.size();
+    aclTensorDesc *inputDesc;
     for (size_t i = 0; i < input_num; i++) {
         name = aclmdlGetInputNameByIndex(modelDesc_, i);
         int64_t arr[dym_shape_map[name].size()];
         std::copy(dym_shape_map[name].begin(), dym_shape_map[name].end(), arr);
 	    inputDesc = aclCreateTensorDesc(ACL_FLOAT, dims_num[i], arr, ACL_FORMAT_NCHW);
         ret = aclmdlSetDatasetTensorDesc(input_, inputDesc, i);
-        aclDestroyTensorDesc(inputDesc);
-        inputDesc = nullptr;
         if (ret != ACL_SUCCESS) {
             cout << aclGetRecentErrMsg() << endl;
             ERROR_LOG("aclmdlSetDatasetTensorDesc failed %d", ret);
@@ -207,7 +256,7 @@ Result ModelProcess::SetDynamicShape(std::map<std::string, std::vector<int64_t>>
         }
     }
     DEBUG_LOG("set Dynamic shape success");
-	return SUCCESS;
+    return SUCCESS;
 }
 
 Result ModelProcess::GetMaxDynamicHWSize(uint64_t &outsize)
@@ -254,14 +303,12 @@ Result ModelProcess::CheckDynamicHWSize(pair<int, int> dynamicPair, bool &is_dym
                 break;
             }
         }
-        if (! if_same){
+        if (! if_same) {
             ERROR_LOG("the dymHW parameter is not correct");
             return FAILED;
         }
         is_dymHW = true;
-
-    }
-    else{
+    } else {
         ERROR_LOG("the dynamic_image_size parameter is not specified for model conversion");
         return FAILED;
     }
@@ -269,10 +316,9 @@ Result ModelProcess::CheckDynamicHWSize(pair<int, int> dynamicPair, bool &is_dym
     return SUCCESS;
 }
 
-Result ModelProcess::SetDynamicHW(std::pair<uint64_t , uint64_t > dynamicPair)
+Result ModelProcess::SetDynamicHW(std::pair<uint64_t, uint64_t > dynamicPair)
 {
-    aclError ret;
-    ret = aclmdlSetDynamicHWSize(modelId_, input_, g_dymindex, dynamicPair.first, dynamicPair.second);
+    aclError ret = aclmdlSetDynamicHWSize(modelId_, input_, g_dymindex, dynamicPair.first, dynamicPair.second);
     if (ret != ACL_SUCCESS) {
         cout << aclGetRecentErrMsg() << endl;
         ERROR_LOG("aclmdlSetDynamicHWSize failed %d", ret);
@@ -295,19 +341,18 @@ Result ModelProcess::CheckDynamicBatchSize(uint64_t dymbatch, bool &is_dymbatch)
     }
     if (batch_info.batchCount > 0) {
         for (size_t i = 0; i < batch_info.batchCount; i++) {
-            if (dymbatch == batch_info.batch[i]){
+            if (dymbatch == batch_info.batch[i]) {
                 if_same = true;
                 break;
             }
         }
-        if (! if_same){
+        if (!if_same) {
             ERROR_LOG("the dymBatch parameter is not correct");
             GetDymBatchInfo();
             return FAILED;
         }
         is_dymbatch = true;
-    }
-    else{
+    } else {
         ERROR_LOG("the dynamic_batch_size parameter is not specified for model conversion");
         return FAILED;
     }
@@ -330,8 +375,7 @@ Result ModelProcess::SetDynamicBatchSize(uint64_t batchSize)
 Result ModelProcess::GetMaxBatchSize(uint64_t &maxBatchSize)
 {
     aclmdlBatch batch_info;
-    aclError ret;
-    ret = aclmdlGetDynamicBatch(modelDesc_, &batch_info);
+    aclError ret = aclmdlGetDynamicBatch(modelDesc_, &batch_info);
     if (ret != ACL_SUCCESS) {
         cout << aclGetRecentErrMsg() << endl;
         ERROR_LOG("get DynamicBatch failed");
@@ -339,7 +383,7 @@ Result ModelProcess::GetMaxBatchSize(uint64_t &maxBatchSize)
     }
     if (batch_info.batchCount > 0) {
         for (size_t i = 0; i < batch_info.batchCount; i++) {
-            if (maxBatchSize < batch_info.batch[i]){
+            if (maxBatchSize < batch_info.batch[i]) {
                 maxBatchSize = batch_info.batch[i];
             }
         }
@@ -371,48 +415,41 @@ Result ModelProcess::CheckDynamicDims(vector<string> dym_dims, size_t gearCount,
 {
     aclmdlGetInputDynamicDims(modelDesc_, -1, dims, gearCount);
     bool if_same = false;
-    for (size_t i = 0; i < gearCount; i++)
-    {
-        if ((size_t)dym_dims.size() != dims[i].dimCount){
-            ERROR_LOG("the dymDims parameter is not correct i:%zu dysize:%zu dimcount:%zu", i, dym_dims.size(), dims[i].dimCount);
+    for (size_t i = 0; i < gearCount; i++) {
+        if ((size_t)dym_dims.size() != dims[i].dimCount) {
+            ERROR_LOG("the dymDims parameter is not correct i:%zu dysize:%zu dimcount:%zu",
+                i, dym_dims.size(), dims[i].dimCount);
             GetDimInfo(gearCount, dims);
             return FAILED;
         }
-        for (size_t j = 0; j < dims[i].dimCount; j++)
-        {
-            if (dims[i].dims[j] != atoi(dym_dims[j].c_str()))
-            {
+        for (size_t j = 0; j < dims[i].dimCount; j++) {
+            if (dims[i].dims[j] != atoi(dym_dims[j].c_str())) {
                 break;
             }
-            if (j == dims[i].dimCount - 1)
-            {
+            if (j == dims[i].dimCount - 1) {
                 if_same = true;
             }
         }
-
     }
 
-    if(! if_same){
+    if (!if_same) {
         ERROR_LOG("the dynamic_dims parameter is not correct");
         GetDimInfo(gearCount, dims);
         return FAILED;
     }
     DEBUG_LOG("check dynamic dims success");
     return SUCCESS;
-
 }
 
 Result ModelProcess::SetDynamicDims(vector<string> dym_dims)
 {
     aclmdlIODims dims;
     dims.dimCount = dym_dims.size();
-    for (size_t i = 0; i < dims.dimCount; i++)
-    {
+    for (size_t i = 0; i < dims.dimCount; i++) {
         dims.dims[i] = atoi(dym_dims[i].c_str());
     }
 
     aclError ret = aclmdlSetInputDynamicDims(modelId_, input_, g_dymindex, &dims);
-
     if (ret != ACL_SUCCESS) {
         cout << aclGetRecentErrMsg() << endl;
         ERROR_LOG("aclmdlSetInputDynamicDims failed %d", ret);
@@ -422,7 +459,8 @@ Result ModelProcess::SetDynamicDims(vector<string> dym_dims)
     return SUCCESS;
 }
 
-void ModelProcess::GetDymBatchInfo(){
+void ModelProcess::GetDymBatchInfo()
+{
     aclmdlBatch batch_info;
     aclmdlGetDynamicBatch(modelDesc_, &batch_info);
     stringstream ss;
@@ -434,7 +472,8 @@ void ModelProcess::GetDymBatchInfo(){
     ERROR_LOG("%s", ss.str().c_str());
 }
 
-void ModelProcess::GetDymHWInfo(){
+void ModelProcess::GetDymHWInfo()
+{
     aclmdlHW  hw_info;
     aclmdlGetDynamicHW(modelDesc_, -1, &hw_info);
     stringstream ss;
@@ -451,33 +490,25 @@ void ModelProcess::GetDimInfo(size_t gearCount, aclmdlIODims *dims)
 {
     aclmdlGetInputDynamicDims(modelDesc_, -1, dims, gearCount);
 
-    for (size_t i = 0; i < gearCount; i++)
-    {
-        if (i == 0)
-        {
+    for (size_t i = 0; i < gearCount; i++) {
+        if (i == 0) {
             ERROR_LOG("model has %zu gear of dims", gearCount);
         }
         stringstream ss;
         ss << "dims[" << i << "]:";
-        for (size_t j = 0; j < dims[i].dimCount; j++)
-        {
+        for (size_t j = 0; j < dims[i].dimCount; j++) {
             ss << "[" << dims[i].dims[j] << "]";
         }
         ERROR_LOG("%s", ss.str().c_str());
     }
 }
 
-Result ModelProcess::PrintDesc()
+void ModelProcess::model_description(
+    aclError ret, size_t& numInputs,
+    size_t& numOutputs, aclmdlIODims& dimsInput,
+    aclmdlIODims& dimsOutput
+)
 {
-    aclError ret;
-    DEBUG_LOG("start print model description");
-    size_t numInputs = aclmdlGetNumInputs(modelDesc_);
-    size_t numOutputs = aclmdlGetNumOutputs(modelDesc_);
-    DEBUG_LOG("NumInputs: %zu", numInputs);
-    DEBUG_LOG("NumOutputs: %zu", numOutputs);
-
-    aclmdlIODims dimsInput;
-    aclmdlIODims dimsOutput;
     for (size_t i = 0; i < numInputs; i++) {
         DEBUG_LOG("the size of %zu input: %zu", i, aclmdlGetInputSizeByIndex(modelDesc_, i));
         ret = aclmdlGetInputDims(modelDesc_, i, &dimsInput);
@@ -503,6 +534,21 @@ Result ModelProcess::PrintDesc()
         DEBUG_LOG("the Format of %zu output: %u", i, aclmdlGetOutputFormat(modelDesc_, i));
         DEBUG_LOG("the DataType of %zu output: %u", i, aclmdlGetOutputDataType(modelDesc_, i));
     }
+    return;
+}
+
+Result ModelProcess::PrintDesc()
+{
+    aclError ret;
+    DEBUG_LOG("start print model description");
+    size_t numInputs = aclmdlGetNumInputs(modelDesc_);
+    size_t numOutputs = aclmdlGetNumOutputs(modelDesc_);
+    DEBUG_LOG("NumInputs: %zu", numInputs);
+    DEBUG_LOG("NumOutputs: %zu", numOutputs);
+
+    aclmdlIODims dimsInput;
+    aclmdlIODims dimsOutput;
+    model_description(ret, numInputs, numOutputs, dimsInput, dimsOutput);
     aclmdlBatch batch_info;
     ret = aclmdlGetDynamicBatch(modelDesc_, &batch_info);
     if (ret != ACL_SUCCESS) {
@@ -568,6 +614,7 @@ Result ModelProcess::CreateDymInput(size_t index)
         return FAILED;
     }
     ret = aclmdlAddDatasetBuffer(input_, inputData);
+    DEBUG_LOG("add input_ at CreateDymInput +1");
     if (ret != ACL_SUCCESS) {
         cout << aclGetRecentErrMsg() << endl;
         ERROR_LOG("add input dataset buffer failed");
@@ -577,6 +624,107 @@ Result ModelProcess::CreateDymInput(size_t index)
         inputData = nullptr;
         return FAILED;
     }
+    return SUCCESS;
+}
+
+Result ModelProcess::UpdateInputsReuse(const std::vector<int> &inOutRelation)
+{
+    if (input_ == nullptr || output_ == nullptr) {
+        if (input_ == nullptr) {ERROR_LOG("can't find inputdatas");}
+        if (output_ == nullptr) {ERROR_LOG("can't find outputdatas");}
+        return FAILED;
+    }
+    size_t inputsNum = aclmdlGetDatasetNumBuffers(input_);
+    size_t outputsNum = aclmdlGetDatasetNumBuffers(output_);
+    std::vector<int> tmpRelation = inOutRelation;
+    if (g_dymindex != SIZE_MAX) {
+        tmpRelation.insert(tmpRelation.begin() + g_dymindex, -1);
+    }
+
+    if (inputsNum != tmpRelation.size()) {
+        ERROR_LOG("wrong inOutRelation size, inputsNum: %zu, inOutList size: %zu", inputsNum, tmpRelation.size());
+        return FAILED;
+    }
+
+    for (size_t i = 0; i < inputsNum; ++i) {
+        aclError ret;
+        if (tmpRelation[i] < 0) {
+            continue;
+        } else if (tmpRelation[i] < outputsNum) {
+            aclDataBuffer* tmpInputData = aclmdlGetDatasetBuffer(input_, i);
+            aclDataBuffer* tmpOutputData = aclmdlGetDatasetBuffer(output_, tmpRelation[i]);
+            if (aclGetDataBufferSizeV2(tmpInputData) != aclGetDataBufferSizeV2(tmpOutputData)
+                && g_dymindex == SIZE_MAX) {
+                ERROR_LOG("inputSize_current and outputSize_last not matched");
+                return FAILED;
+            }
+            size_t tensorSize = aclGetDataBufferSizeV2(tmpInputData);
+            void* inBuffer = aclGetDataBufferAddr(tmpInputData);
+            void* outBuffer = aclGetDataBufferAddr(tmpOutputData);
+            ret = aclUpdateDataBuffer(tmpInputData, outBuffer, tensorSize);
+            if (ret != ACL_SUCCESS) {
+                cout << aclGetRecentErrMsg() << endl;
+                ERROR_LOG("new input buffer update from last output failed. size is %zu", tensorSize);
+                return FAILED;
+            }
+            if (!reuseOutput_) {
+                (void)aclrtFree(inBuffer);
+            }
+        } else {
+            ERROR_LOG("find outputdata index out of range");
+            return FAILED;
+        }
+    }
+    if (!reuseOutput_) {
+        reuseOutput_ = true;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::UpdateInputsMemcpy(const std::vector<int> &inOutRelation)
+{
+    if (input_ == nullptr || output_ == nullptr) {
+        if (input_ == nullptr) {ERROR_LOG("can't find inputdatas");}
+        if (output_ == nullptr) {ERROR_LOG("can't find outputdatas");}
+        return FAILED;
+    }
+    size_t inputsNum = aclmdlGetDatasetNumBuffers(input_);
+    size_t outputsNum = aclmdlGetDatasetNumBuffers(output_);
+    std::vector<int> tmpRelation = inOutRelation;
+    if (g_dymindex != SIZE_MAX) {
+        tmpRelation.insert(tmpRelation.begin() + g_dymindex, -1);
+    }
+    if (inputsNum != tmpRelation.size()) {
+        ERROR_LOG("wrong inOutRelation size, inputsNum: %zu, inOutList size: %zu", inputsNum, tmpRelation.size());
+        return FAILED;
+    }
+
+    for (size_t i = 0; i < inputsNum; ++i) {
+        aclError ret;
+        if (tmpRelation[i] < 0) {
+            continue;
+        } else if (tmpRelation[i] < outputsNum) {
+            aclDataBuffer* tmpInputData = aclmdlGetDatasetBuffer(input_, i);
+            aclDataBuffer* tmpOutputData = aclmdlGetDatasetBuffer(output_, tmpRelation[i]);
+            if (aclGetDataBufferSizeV2(tmpInputData) > aclGetDataBufferSizeV2(tmpOutputData)) {
+                ERROR_LOG("inputSize_current and outputSize_last not matched");
+                return FAILED;
+            }
+            size_t tensorSize = aclGetDataBufferSizeV2(tmpInputData);
+            void* lastBuffer = aclGetDataBufferAddr(tmpInputData);
+            void* lastOutBuffer = aclGetDataBufferAddr(tmpOutputData);
+            ret = aclrtMemcpy(lastBuffer, tensorSize, lastOutBuffer, tensorSize, ACL_MEMCPY_DEVICE_TO_DEVICE);
+            if (ret != ACL_SUCCESS) {
+                cout << aclGetRecentErrMsg() << endl;
+                ERROR_LOG("new input buffer aclrtMemcpy from last output failed. size is %zu", tensorSize);
+                return FAILED;
+            }
+        } else {
+            ERROR_LOG("find outputdata index out of range");
+            return FAILED;
+        }
+    }
+
     return SUCCESS;
 }
 
@@ -597,9 +745,45 @@ Result ModelProcess::CreateInput(void* inputDataBuffer, size_t bufferSize)
     }
 
     aclError ret = aclmdlAddDatasetBuffer(input_, inputData);
+    DEBUG_LOG("add input_ at CreateInput +1");
     if (ret != ACL_SUCCESS) {
         cout << aclGetRecentErrMsg() << endl;
         ERROR_LOG("add input dataset buffer failed");
+        aclDestroyDataBuffer(inputData);
+        inputData = nullptr;
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::check_ret(aclError ret, size_t buffer_size_zero)
+{
+    if (ret != ACL_SUCCESS) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("malloc device buffer failed. size is %zu", buffer_size_zero);
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::check_create_buffer(aclDataBuffer* inputData, void* inBufferDev)
+{
+    if (inputData == nullptr) {
+        ERROR_LOG("can't create data buffer, create input failed");
+        aclrtFree(inBufferDev);
+        inBufferDev = nullptr;
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::check_add_buffer(aclError ret, void* inBufferDev, aclDataBuffer* inputData)
+{
+    if (ret != ACL_SUCCESS) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("add input dataset buffer failed");
+        aclrtFree(inBufferDev);
+        inBufferDev = nullptr;
         aclDestroyDataBuffer(inputData);
         inputData = nullptr;
         return FAILED;
@@ -619,7 +803,6 @@ Result ModelProcess::CreateZeroInput()
     aclError ret;
     numInputs_ = aclmdlGetNumInputs(modelDesc_);
     for (size_t i = 0; i < numInputs_; i++) {
-
         const char *name = aclmdlGetInputNameByIndex(modelDesc_, i);
         if (name == nullptr) {
             ERROR_LOG("get input name failed, index = %zu.", i);
@@ -630,9 +813,7 @@ Result ModelProcess::CreateZeroInput()
         void* inBufferDev = nullptr;
 
         ret = aclrtMalloc(&inBufferDev, buffer_size_zero, ACL_MEM_MALLOC_HUGE_FIRST);
-        if (ret != ACL_SUCCESS) {
-            cout << aclGetRecentErrMsg() << endl;
-            ERROR_LOG("malloc device buffer failed. size is %zu", buffer_size_zero);
+        if (check_ret(ret, buffer_size_zero) == FAILED) {
             return FAILED;
         }
         if (strcmp(name, ACL_DYNAMIC_TENSOR_NAME) != 0) {
@@ -647,27 +828,19 @@ Result ModelProcess::CreateZeroInput()
         }
 
         aclDataBuffer* inputData = aclCreateDataBuffer(inBufferDev, buffer_size_zero);
-        if (inputData == nullptr) {
-            ERROR_LOG("can't create data buffer, create input failed");
-            aclrtFree(inBufferDev);
-            inBufferDev = nullptr;
+        if (check_create_buffer(inputData, inBufferDev) == FAILED) {
             return FAILED;
         }
         ret = aclmdlAddDatasetBuffer(input_, inputData);
-        if (ret != ACL_SUCCESS) {
-            cout << aclGetRecentErrMsg() << endl;
-            ERROR_LOG("add input dataset buffer failed");
-            aclrtFree(inBufferDev);
-            inBufferDev = nullptr;
-            aclDestroyDataBuffer(inputData);
-            inputData = nullptr;
+        DEBUG_LOG("add input_ at CreateZeroInput +1");
+        if (check_add_buffer(ret, inBufferDev, inputData) == FAILED) {
             return FAILED;
         }
     }
     return SUCCESS;
 }
 
-void ModelProcess::DestroyInput(bool free_memory_flag=true)
+void ModelProcess::DestroyInput(bool free_memory_flag = true)
 {
     if (input_ == nullptr) {
         return;
@@ -676,15 +849,15 @@ void ModelProcess::DestroyInput(bool free_memory_flag=true)
     size_t bufNum = aclmdlGetDatasetNumBuffers(input_);
     for (size_t i = 0; i < bufNum; ++i) {
         aclDataBuffer *dataBuffer = aclmdlGetDatasetBuffer(input_, i);
-        if (dataBuffer == nullptr){
+        if (dataBuffer == nullptr) {
             continue;
         }
         void *data = aclGetDataBufferAddr(dataBuffer);
-        if (data == nullptr){
+        if (data == nullptr) {
             (void)aclDestroyDataBuffer(dataBuffer);
             continue;
         }
-        if (free_memory_flag == true){
+        if (free_memory_flag == true) {
             (void)aclrtFree(data);
             data = nullptr;
         }
@@ -710,18 +883,16 @@ Result ModelProcess::CreateOutput()
     }
 
     size_t outputNum = aclmdlGetNumOutputs(modelDesc_);
-
-    if ((g_output_size.empty() == false)  && (outputNum != g_output_size.size())){
+    if ((g_output_size.empty() == false)  && (outputNum != g_output_size.size())) {
         ERROR_LOG("om has %zu output, but outputSize parametet give %zu", outputNum, g_output_size.size());
         return FAILED;
     }
 
     for (size_t i = 0; i < outputNum; ++i) {
         size_t buffer_size = 0;
-        if (g_output_size.empty() == false){
+        if (g_output_size.empty() == false) {
             buffer_size = g_output_size[i];
-        }
-        else{
+        } else {
             buffer_size = aclmdlGetOutputSizeByIndex(modelDesc_, i);
         }
         void* outputBuffer = nullptr;
@@ -754,305 +925,275 @@ Result ModelProcess::CreateOutput()
     return SUCCESS;
 }
 
-// void ModelProcess::OutbufTofile()
-// {
-//     void* data = nullptr;
-//     size_t len = 0;
-//     aclError ret = ACL_SUCCESS;
-//     void* outHostData = nullptr;
-//     for (size_t i = 0; i < aclmdlGetDatasetNumBuffers(output_); ++i) {
-//         aclDataBuffer* dataBuffer = aclmdlGetDatasetBuffer(output_, i);
-//         data = aclGetDataBufferAddr(dataBuffer);
-// 	    len = aclGetDataBufferSizeV2(dataBuffer);
-
-//         ret = aclrtMallocHost(&outHostData, len);
-//         ret = aclrtMemcpy(outHostData, len, data, len, ACL_MEMCPY_DEVICE_TO_HOST);
-//         ofstream outstr("./lcmdebugmsame_output_" + to_string(i) + ".bin", ios::out | ios::binary);
-//         printf("lcm debug outto buf i:%d\n");
-//         outstr.write((char*)outHostData, len);
-//         outstr.close();
-//         ret = aclrtFreeHost(outHostData);
-//     }
-// }
-
-void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, std::uint64_t dymbatch_size, bool is_dymshape)
+void ModelProcess::print_float_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
 {
-    void* data = nullptr;
-    void* outHostData = nullptr;
-    void* outData = nullptr;
-    aclError ret = ACL_SUCCESS;
-    uint64_t maxBatchSize = 0;
-    size_t len = 0;
-    ret = GetMaxBatchSize(maxBatchSize);
-    if (ret != ACL_SUCCESS) {
-        cout << aclGetRecentErrMsg() << endl;
-        ERROR_LOG("aclrtMallocHost failed, ret[%d]", ret);
-        return;
-    }
-    for (size_t i = 0; i < aclmdlGetDatasetNumBuffers(output_); ++i) {
-        aclDataBuffer* dataBuffer = aclmdlGetDatasetBuffer(output_, i);
-        data = aclGetDataBufferAddr(dataBuffer);
-        if (is_dymshape){
-	    aclTensorDesc *outputDesc = aclmdlGetDatasetTensorDesc(output_, i);
-	    len = aclGetTensorDescSize(outputDesc);
-	}
-        else
-	{
-	    len = aclGetDataBufferSizeV2(dataBuffer);
-            if (dymbatch_size > 0 && maxBatchSize > 0){
-                len = len / (maxBatchSize / dymbatch_size);
-            }
-	}
-        aclDataType datatype = aclmdlGetOutputDataType(modelDesc_, i);
-        if (!g_is_device) {
-            ret = aclrtMallocHost(&outHostData, len);
-            if (ret != ACL_SUCCESS) {
-                cout << aclGetRecentErrMsg() << endl;
-                ERROR_LOG("aclrtMallocHost failed, ret[%d]", ret);
-                return;
-            }
-            ret = aclrtMemcpy(outHostData, len, data, len, ACL_MEMCPY_DEVICE_TO_HOST);
-            if (ret != ACL_SUCCESS) {
-                cout << aclGetRecentErrMsg() << endl;
-                ERROR_LOG("aclrtMemcpy failed, ret[%d]", ret);
-                return;
-            }
-            switch (datatype) {
-            case 0:
-                outData = reinterpret_cast<float*>(outHostData);
+    for (size_t i = 1; i <= len / sizeof(float); i++) {
+        float out = *((float*)outData + i - 1);
+        outstr << out << " ";
+        vector<int64_t>::iterator it;
+        for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
+            if ((i != 0) && (i % *it == 0)) {
+                outstr << "\n";
                 break;
-            case 1:
-                outData = reinterpret_cast<aclFloat16*>(outHostData);
-                break;
-            case 2:
-                outData = reinterpret_cast<int8_t*>(outHostData);
-                break;
-            case 3:
-                outData = reinterpret_cast<int*>(outHostData);
-                break;
-            case 4:
-                outData = reinterpret_cast<uint8_t*>(outHostData);
-                break;
-            case 6:
-                outData = reinterpret_cast<int16_t*>(outHostData);
-                break;
-            case 7:
-                outData = reinterpret_cast<uint16_t*>(outHostData);
-                break;
-            case 8:
-                outData = reinterpret_cast<uint32_t*>(outHostData);
-                break;
-            case 9:
-                outData = reinterpret_cast<int64_t*>(outHostData);
-                break;
-            case 10:
-                outData = reinterpret_cast<uint64_t*>(outHostData);
-                break;
-            case 11:
-                outData = reinterpret_cast<double*>(outHostData);
-                break;
-            case 12:
-                outData = reinterpret_cast<bool*>(outHostData);
-                break;
-            default:
-                printf("undefined data type!\n");
-                break;
-            }
-
-        } else {
-            outData = reinterpret_cast<float*>(data);
-        }
-        if (g_is_txt) {
-            vector<int64_t> curOutputDimsMul;
-            ret = GetCurOutputDimsMul(i, curOutputDimsMul);
-            ofstream outstr(s + "/" + modelName + "_output_" + to_string(i) + ".txt", ios::out);
-            switch (datatype) {
-            case 0:
-                for (size_t i = 1; i <= len / sizeof(float); i++) {
-                    float out = *((float*)outData + i - 1);
-                    outstr << out << " ";
-                    vector<int64_t>::iterator it;
-                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
-                        if ((i != 0) && (i % *it == 0)){
-                            outstr << "\n";
-                            break;
-                        }
-                    }
-                }
-                break;
-            case 1:{
-                aclFloat16 * out_fp16 = reinterpret_cast<aclFloat16*>(outData);
-                float out = 0;
-                for (size_t i = 1; i <= len / sizeof(aclFloat16); i++) {
-                    out = aclFloat16ToFloat(out_fp16[i-1]);
-                    outstr << out << " ";
-                    vector<int64_t>::iterator it;
-                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
-                        if ((i != 0) && (i % *it == 0)){
-                            outstr << "\n";
-                            break;
-                        }
-                    }
-                }
-                break;
-            }
-            case 2:
-                for (size_t i = 1; i <= len / sizeof(int8_t); i++) {
-                    int8_t out = *((int8_t*)outData + i - 1);
-                    outstr << out << " ";
-                    vector<int64_t>::iterator it;
-                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
-                        if ((i != 0) && (i % *it == 0)){
-                            outstr << "\n";
-                            break;
-                        }
-                    }
-                }
-                break;
-            case 3:
-                for (size_t i = 1; i <= len / sizeof(int); i++) {
-                    int out = *((int*)outData + i - 1);
-                    outstr << out << " ";
-                    vector<int64_t>::iterator it;
-                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
-                        if ((i != 0) && (i % *it == 0)){
-                            outstr << "\n";
-                            break;
-                        }
-                    }
-                }
-                break;
-            case 4:
-                for (size_t i = 1; i <= len / sizeof(uint8_t); i++) {
-                    uint8_t out = *((uint8_t*)outData + i - 1);
-                    outstr << out << " ";
-                    vector<int64_t>::iterator it;
-                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
-                        if ((i != 0) && (i % *it == 0)){
-                            outstr << "\n";
-                            break;
-                        }
-                    }
-                }
-                break;
-            case 6:
-                for (size_t i = 1; i <= len / sizeof(int16_t); i++) {
-                    int16_t out = *((int16_t*)outData + i - 1);
-                    outstr << out << " ";
-                    vector<int64_t>::iterator it;
-                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
-                        if ((i != 0) && (i % *it == 0)){
-                            outstr << "\n";
-                            break;
-                        }
-                    }
-                }
-                break;
-            case 7:
-                for (size_t i = 1; i <= len / sizeof(uint16_t); i++) {
-                    uint16_t out = *((uint16_t*)outData + i - 1);
-                    outstr << out << " ";
-                    vector<int64_t>::iterator it;
-                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
-                        if ((i != 0) && (i % *it == 0)){
-                            outstr << "\n";
-                            break;
-                        }
-                    }
-                }
-                break;
-            case 8:
-                for (size_t i = 1; i <= len / sizeof(uint32_t); i++) {
-                    uint32_t out = *((uint32_t*)outData + i - 1);
-                    outstr << out << " ";
-                    vector<int64_t>::iterator it;
-                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
-                        if ((i != 0) && (i % *it == 0)){
-                            outstr << "\n";
-                            break;
-                        }
-                    }
-                }
-                break;
-            case 9:
-                for (size_t i = 1; i <= len / sizeof(int64_t); i++) {
-                    int64_t out = *((int64_t*)outData + i - 1);
-                    outstr << out << " ";
-                    vector<int64_t>::iterator it;
-                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
-                        if ((i != 0) && (i % *it == 0)){
-                            outstr << "\n";
-                            break;
-                        }
-                    }
-                }
-                break;
-            case 10:
-                for (size_t i = 1; i <= len / sizeof(uint64_t); i++) {
-                    uint64_t out = *((uint64_t*)outData + i - 1);
-                    outstr << out << " ";
-                    vector<int64_t>::iterator it;
-                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
-                        if ((i != 0) && (i % *it == 0)){
-                            outstr << "\n";
-                            break;
-                        }
-                    }
-                }
-                break;
-            case 11:
-                for (size_t i = 1; i <= len / sizeof(double); i++) {
-                    double out = *((double*)outData + i - 1);
-                    outstr << out << " ";
-                    vector<int64_t>::iterator it;
-                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
-                        if ((i != 0) && (i % *it == 0)){
-                            outstr << "\n";
-                            break;
-                        }
-                    }
-                }
-                break;
-            case 12:
-                for (size_t i = 1; i <= len / sizeof(bool); i++) {
-                    int out = *((bool*)outData + i - 1);
-                    outstr << out << " ";
-                    vector<int64_t>::iterator it;
-                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
-                        if ((i != 0) && (i % *it == 0)){
-                            outstr << "\n";
-                            break;
-                        }
-                    }
-                }
-                break;
-            default:
-                printf("undefined data type!\n");
-                break;
-            }
-            outstr.close();
-        } else {
-            ofstream outstr(s + "/" + modelName + "_output_" + to_string(i) + ".bin", ios::out | ios::binary);
-
-            outstr.write((char*)outData, len);
-            outstr.close();
-        }
-
-        if (!g_is_device) {
-            ret = aclrtFreeHost(outHostData);
-            if (ret != ACL_SUCCESS) {
-                cout << aclGetRecentErrMsg() << endl;
-                ERROR_LOG("aclrtFreeHost failed, ret[%d]", ret);
-                return;
             }
         }
     }
-
-    INFO_LOG("output data success");
     return;
 }
 
-void ModelProcess::DestroyOutput(bool free_memory_flag=true)
+void ModelProcess::print_aclFloat16_info(
+    size_t len, std::ofstream& outstr,
+    void* outData, vector<int64_t> curOutputDimsMul
+)
+{
+    aclFloat16 *out_fp16 = reinterpret_cast<aclFloat16*>(outData);
+    float out = 0;
+    for (size_t i = 1; i <= len / sizeof(aclFloat16); i++) {
+        out = aclFloat16ToFloat(out_fp16[i-1]);
+        outstr << out << " ";
+        vector<int64_t>::iterator it;
+        for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
+            if ((i != 0) && (i % *it == 0)) {
+                outstr << "\n";
+                break;
+            }
+        }
+    }
+    return;
+}
+
+void ModelProcess::print_int8_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
+{
+    for (size_t i = 1; i <= len / sizeof(int8_t); i++) {
+        int8_t out = *((int8_t*)outData + i - 1);
+        outstr << out << " ";
+        vector<int64_t>::iterator it;
+        for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
+            if ((i != 0) && (i % *it == 0)) {
+            outstr << "\n";
+            break;
+            }
+        }
+    }
+    return;
+}
+
+void ModelProcess::print_int_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
+{
+    for (size_t i = 1; i <= len / sizeof(int); i++) {
+        int out = *((int*)outData + i - 1);
+        outstr << out << " ";
+        vector<int64_t>::iterator it;
+        for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
+            if ((i != 0) && (i % *it == 0)) {
+                outstr << "\n";
+                break;
+            }
+        }
+    }
+    return;
+}
+
+void ModelProcess::print_uint8_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
+{
+    for (size_t i = 1; i <= len / sizeof(uint8_t); i++) {
+        uint8_t out = *((uint8_t*)outData + i - 1);
+        outstr << out << " ";
+        vector<int64_t>::iterator it;
+        for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
+            if ((i != 0) && (i % *it == 0)) {
+                outstr << "\n";
+                break;
+            }
+        }
+    }
+    return;
+}
+
+void ModelProcess::print_int16_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
+{
+    for (size_t i = 1; i <= len / sizeof(int16_t); i++) {
+        int16_t out = *((int16_t*)outData + i - 1);
+        outstr << out << " ";
+        vector<int64_t>::iterator it;
+        for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
+            if ((i != 0) && (i % *it == 0)) {
+                outstr << "\n";
+                break;
+            }
+        }
+    }
+    return;
+}
+
+void ModelProcess::print_uint16_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
+{
+    for (size_t i = 1; i <= len / sizeof(uint16_t); i++) {
+        uint16_t out = *((uint16_t*)outData + i - 1);
+        outstr << out << " ";
+        vector<int64_t>::iterator it;
+        for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
+            if ((i != 0) && (i % *it == 0)) {
+                outstr << "\n";
+                break;
+            }
+        }
+    }
+    return;
+}
+
+void ModelProcess::print_uint32_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
+{
+    for (size_t i = 1; i <= len / sizeof(uint32_t); i++) {
+        uint32_t out = *((uint32_t*)outData + i - 1);
+        outstr << out << " ";
+        vector<int64_t>::iterator it;
+        for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
+            if ((i != 0) && (i % *it == 0)) {
+                outstr << "\n";
+                break;
+            }
+        }
+    }
+    return;
+}
+
+void ModelProcess::print_int64_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
+{
+    for (size_t i = 1; i <= len / sizeof(int64_t); i++) {
+        int64_t out = *((int64_t*)outData + i - 1);
+        outstr << out << " ";
+        vector<int64_t>::iterator it;
+        for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
+            if ((i != 0) && (i % *it == 0)) {
+                outstr << "\n";
+                break;
+            }
+        }
+    }
+    return;
+}
+
+void ModelProcess::print_uint64_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
+{
+    for (size_t i = 1; i <= len / sizeof(uint64_t); i++) {
+        uint64_t out = *((uint64_t*)outData + i - 1);
+        outstr << out << " ";
+        vector<int64_t>::iterator it;
+        for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
+            if ((i != 0) && (i % *it == 0)) {
+                outstr << "\n";
+                break;
+            }
+        }
+    }
+    return;
+}
+
+void ModelProcess::print_double_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
+{
+    for (size_t i = 1; i <= len / sizeof(double); i++) {
+        double out = *((double*)outData + i - 1);
+        outstr << out << " ";
+        vector<int64_t>::iterator it;
+        for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
+            if ((i != 0) && (i % *it == 0)) {
+                outstr << "\n";
+                break;
+            }
+        }
+    }
+    return;
+}
+
+void ModelProcess::print_bool_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
+{
+    for (size_t i = 1; i <= len / sizeof(bool); i++) {
+        int out = *((bool*)outData + i - 1);
+        outstr << out << " ";
+        vector<int64_t>::iterator it;
+        for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
+            if ((i != 0) && (i % *it == 0)) {
+                outstr << "\n";
+                break;
+            }
+        }
+    }
+    return;
+}
+
+void ModelProcess::print_data_log(
+    aclDataType datatype, size_t len, std::ofstream& outstr,
+    void* outData, vector<int64_t> curOutputDimsMul
+)
+{
+    switch (datatype) {
+        case TYPE_FLOAT:
+            print_float_info(len, outstr, outData, curOutputDimsMul);
+            break;
+        case TYPE_ACLFLOAT16:
+            print_aclFloat16_info(len, outstr, outData, curOutputDimsMul);
+            break;
+        case TYPE_INT8_T:
+            print_int8_info(len, outstr, outData, curOutputDimsMul);
+            break;
+        case TYPE_INT:
+            print_int_info(len, outstr, outData, curOutputDimsMul);
+            break;
+        case TYPE_UINT8_T:
+            print_uint8_info(len, outstr, outData, curOutputDimsMul);
+            break;
+        case TYPE_INT16_T:
+            print_int16_info(len, outstr, outData, curOutputDimsMul);
+            break;
+        case TYPE_UINT16_T:
+            print_uint16_info(len, outstr, outData, curOutputDimsMul);
+            break;
+        case TYPE_UINT32_T:
+            print_uint32_info(len, outstr, outData, curOutputDimsMul);
+            break;
+        case TYPE_INT64_T:
+            print_int64_info(len, outstr, outData, curOutputDimsMul);
+            break;
+        case TYPE_UINT64_T:
+            print_uint64_info(len, outstr, outData, curOutputDimsMul);
+            break;
+        case TYPE_DOUBLE:
+            print_double_info(len, outstr, outData, curOutputDimsMul);
+            break;
+        case TYPE_BOOL:
+            print_bool_info(len, outstr, outData, curOutputDimsMul);
+            break;
+        default:
+            printf("undefined data type!\n");
+            break;
+    }
+    return;
+}
+
+Result ModelProcess::Free_Host_Try(aclError ret, void*& outHostData)
+{
+    if (!g_isDevice) {
+        ret = aclrtFreeHost(outHostData);
+        if (ret != ACL_SUCCESS) {
+            cout << aclGetRecentErrMsg() << endl;
+            ERROR_LOG("aclrtFreeHost failed, ret[%d]", ret);
+            return FAILED;
+        }
+    }
+    return SUCCESS;
+}
+
+void ModelProcess::print_error_log(aclError ret)
+{
+    if (ret != ACL_SUCCESS) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("aclrtMemcpy failed, ret[%d]", ret);
+    }
+    return;
+}
+
+void ModelProcess::DestroyOutput(bool free_memory_flag = true)
 {
     if (output_ == nullptr) {
         return;
@@ -1061,7 +1202,7 @@ void ModelProcess::DestroyOutput(bool free_memory_flag=true)
     for (size_t i = 0; i < aclmdlGetDatasetNumBuffers(output_); ++i) {
         aclDataBuffer* dataBuffer = aclmdlGetDatasetBuffer(output_, i);
         void* data = aclGetDataBufferAddr(dataBuffer);
-        if (free_memory_flag == true){
+        if (free_memory_flag == true) {
             (void)aclrtFree(data);
         }
         (void)aclDestroyDataBuffer(dataBuffer);
@@ -1071,6 +1212,7 @@ void ModelProcess::DestroyOutput(bool free_memory_flag=true)
     output_ = nullptr;
 }
 
+namespace {
 Result GetDescShape(const aclTensorDesc *desc, std::vector<int64_t>& shape)
 {
     size_t dimNums = aclGetTensorDescNumDims(desc);
@@ -1091,7 +1233,8 @@ Result GetDescShape(const aclTensorDesc *desc, std::vector<int64_t>& shape)
     return SUCCESS;
 }
 
-Result GetDescShapeStr(const aclTensorDesc *desc, std::string &shapestr) {
+Result GetDescShapeStr(const aclTensorDesc *desc, std::string &shapestr)
+{
     std::vector<int64_t> shape;
     Result result = GetDescShape(desc, shape);
     if (result != SUCCESS) {
@@ -1114,7 +1257,7 @@ Result SaveTensorMemoryToFile(const aclTensorDesc *desc, std::string &prefixName
     aclFormat format = aclGetTensorDescFormat(desc);
     aclDataType dtype = aclGetTensorDescType(desc);
     std::string shapestr;
-    if (GetDescShapeStr(desc, shapestr) != SUCCESS){
+    if (GetDescShapeStr(desc, shapestr) != SUCCESS) {
         WARN_LOG("exception_cb get shape failed continue");
     }
     void *devaddr = aclGetTensorDescAddress(desc);
@@ -1137,7 +1280,8 @@ Result SaveTensorMemoryToFile(const aclTensorDesc *desc, std::string &prefixName
             ret, hostaddr, devaddr, len);
         return FAILED;
     }
-    std::string fileName = prefixName + "_format_" + std::to_string(format) + "_dtype_" + std::to_string(dtype) + "_shape_" + shapestr + ".bin";
+    std::string fileName = prefixName + "_format_" + std::to_string(format) +
+        "_dtype_" + std::to_string(dtype) + "_shape_" + shapestr + ".bin";
     INFO_LOG("exception_cb hostaddr:%p devaddr:%p len:%zu write to filename:%s",
              hostaddr, devaddr, len, fileName.c_str());
     ofstream outFile(fileName, ios::out | ios::binary);
@@ -1145,7 +1289,7 @@ Result SaveTensorMemoryToFile(const aclTensorDesc *desc, std::string &prefixName
     return SUCCESS;
 }
 
-void callback(aclrtExceptionInfo *exceptionInfo)
+void Callback(aclrtExceptionInfo *exceptionInfo)
 {
     uint32_t deviceId = aclrtGetDeviceIdFromExceptionInfo(exceptionInfo);
     if (deviceId == 0xffffffff) {
@@ -1169,7 +1313,7 @@ void callback(aclrtExceptionInfo *exceptionInfo)
     size_t inputCnt = 0;
     size_t outputCnt = 0;
     aclError ret = aclmdlCreateAndGetOpDesc(deviceId, streamId, taskId, opName, 256, \
-                    &inputDesc, &inputCnt, &outputDesc, &outputCnt);
+                                            &inputDesc, &inputCnt, &outputDesc, &outputCnt);
     if (ret != ACL_SUCCESS) {
         WARN_LOG("exception_cb deviceId:%u streamId:%u taskId:%u failed:%d", deviceId, streamId, taskId, ret);
         return;
@@ -1191,7 +1335,7 @@ void callback(aclrtExceptionInfo *exceptionInfo)
         const aclTensorDesc *desc = aclGetTensorDescByIndex(outputDesc, i);
         std::string prefix_filename = "exception_cb_index_" + std::to_string(index) + \
             "_output_" + std::to_string(i);
-        if (SaveTensorMemoryToFile(desc, prefix_filename) != SUCCESS){
+        if (SaveTensorMemoryToFile(desc, prefix_filename) != SUCCESS) {
             WARN_LOG("exception_cb input_%zu save failed", i);
             break;
         }
@@ -1200,10 +1344,16 @@ void callback(aclrtExceptionInfo *exceptionInfo)
     aclDestroyTensorDesc(inputDesc);
     aclDestroyTensorDesc(outputDesc);
 }
+} // namespace
 
 void ModelProcess::SetExceptionCallBack()
 {
-    aclrtSetExceptionInfoCallback(callback);
+    aclrtSetExceptionInfoCallback(Callback);
+}
+
+void ModelProcess::InitReuseOutput()
+{
+    reuseOutput_ = false;
 }
 
 Result ModelProcess::Execute()
@@ -1247,19 +1397,18 @@ Result ModelProcess::GetCurOutputShape(size_t index, bool is_dymshape, std::vect
     if (is_dymshape == true) {
         aclTensorDesc *outputDesc = aclmdlGetDatasetTensorDesc(output_, index);
         size_t dimNums = aclGetTensorDescNumDims(outputDesc);
-         if (dimNums == ACL_UNKNOWN_RANK) {
+        if (dimNums == ACL_UNKNOWN_RANK) {
             return FAILED;
-         } else {
+        } else {
             for (size_t i = 0; i < dimNums; ++i) {
                 int64_t dim;
                 ret = aclGetTensorDescDimV2(outputDesc, i, &dim);
                 shape.push_back(dim);
             }
-         }
+        }
     } else {
         ret = aclmdlGetCurOutputDims(modelDesc_, index, &ioDims);
         if (ret != ACL_SUCCESS) {
-            // cout << aclGetRecentErrMsg() << endl;
             DEBUG_LOG("aclmdlGetCurOutputDims get not success, maybe the modle has dynamic shape.ret=%d", ret);
             return FAILED;
         }
@@ -1280,7 +1429,10 @@ size_t ModelProcess::GetNumOutputs()
     return aclmdlGetNumOutputs(modelDesc_);
 }
 
-Result ModelProcess::GetInTensorDesc(size_t i, std::string& name, int& datatype, size_t& format, std::vector<int64_t>& shape, size_t& size)
+Result ModelProcess::GetInTensorDesc(
+    size_t i, std::string& name, int& datatype,
+    size_t& format, std::vector<int64_t>& shape, size_t& size
+)
 {
     name = aclmdlGetInputNameByIndex(modelDesc_, i);
     datatype = aclmdlGetInputDataType(modelDesc_, i);
@@ -1297,7 +1449,10 @@ Result ModelProcess::GetInTensorDesc(size_t i, std::string& name, int& datatype,
     return SUCCESS;
 }
 
-Result ModelProcess::GetOutTensorDesc(size_t i, std::string& name, int& datatype, size_t& format, std::vector<int64_t>& shape, size_t& size)
+Result ModelProcess::GetOutTensorDesc(
+    size_t i, std::string& name, int& datatype,
+    size_t& format, std::vector<int64_t>& shape, size_t& size
+)
 {
     name = aclmdlGetOutputNameByIndex(modelDesc_, i);
     datatype = aclmdlGetOutputDataType(modelDesc_, i);
@@ -1320,13 +1475,12 @@ size_t ModelProcess::GetOutTensorLen(size_t i, bool is_dymshape)
     uint64_t maxBatchSize = 0;
     size_t len;
     GetMaxBatchSize(maxBatchSize);
-    if (is_dymshape){
+    if (is_dymshape) {
 	    aclTensorDesc *outputDesc = aclmdlGetDatasetTensorDesc(output_, i);
 	    len = aclGetTensorDescSize(outputDesc);
-	}
-    else{
+    } else {
 	    len = aclGetDataBufferSizeV2(dataBuffer);
-	}
+    }
     return len;
 }
 
@@ -1357,4 +1511,381 @@ Result ModelProcess::CreateOutput(void* outputBuffer, size_t bufferSize)
         return FAILED;
     }
     return SUCCESS;
+}
+
+Result ModelProcess::FreeAIPP(aclmdlAIPP* aippParmsSet)
+{
+    aclError ret = aclmdlDestroyAIPP(aippParmsSet);
+    if (ret != ACL_SUCCESS) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("free aclmdlAIPP failed");
+        return FAILED;
+    }
+    aippParmsSet = nullptr;
+    return SUCCESS;
+}
+
+int ModelProcess::CheckDymAIPPInputExist()
+{
+    /*
+    模型有没有动态AIPP输入，用aclmdlGetAippType 函数找找，能找到说明模型没问题
+    */
+    size_t numInputs = aclmdlGetNumInputs(modelDesc_);
+    std::vector<size_t> dataNeedDynamicAipp = {};
+    DEBUG_LOG("Input nums: %d", int(numInputs));
+    DEBUG_LOG("Model id: %u", modelId_);
+    for (size_t index = 0; index < numInputs; ++index) {
+        aclmdlInputAippType aippType;
+        size_t dynamicAttachedDataIndex;
+        aclError ret = aclmdlGetAippType(modelId_, index, &aippType, &dynamicAttachedDataIndex);
+        if (ret != ACL_SUCCESS) {
+            cout << aclGetRecentErrMsg() << endl;
+            ERROR_LOG("aclmdlGetAippType failed");
+            return -1;
+        }
+        if (aippType == ACL_DATA_WITH_DYNAMIC_AIPP) {
+            dataNeedDynamicAipp.push_back(index);
+        }
+    }
+    int aippNum = dataNeedDynamicAipp.size();
+    return aippNum;
+}
+
+Result ModelProcess::GetAIPPIndexList(std::vector<size_t> &dataNeedDynamicAipp)
+{
+    // 获取标识动态AIPP输入的index
+    // modelDesc_为aclmdlCreateDesc表示模型描述信息，根据1中加载成功的模型的ID，获取该模型的描述信息
+    const char *inputName = nullptr;
+    for (size_t index = 0; index < aclmdlGetNumInputs(modelDesc_); ++index) {
+        inputName = aclmdlGetInputNameByIndex(modelDesc_, index);
+        if (strcmp(inputName, ACL_DYNAMIC_AIPP_NAME) == 0) {
+            dataNeedDynamicAipp.push_back(index);
+            break;
+        }
+    }
+
+    if (dataNeedDynamicAipp.size() == 0) {
+        return FAILED;
+    }
+    INFO_LOG("GetAIPPIndex success");
+    return SUCCESS;
+}
+
+Result ModelProcess::SetInputAIPP(size_t index, void* pAippDynamicSet)
+{
+    DEBUG_LOG("PREPARE aclmdlSetInputAIPP");
+    aclError ret = aclmdlSetInputAIPP(modelId_, input_, index, (aclmdlAIPP *)pAippDynamicSet);
+    if (ret != ACL_ERROR_NONE) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("aclmdlSetInputAIPP failed, index:%d ret %d", int(index), ret);
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::SetAIPPSrcImageSize(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg, aclmdlAIPP* aippDynamicSet)
+{
+    DEBUG_LOG("aclmdlSetAIPPSrcImageSize params: aippParmsSet: %p srcImageSizeW: %d srcImageSizeH: %d",
+        aippDynamicSet, dyAippCfg->GetSrcImageSizeW(), dyAippCfg->GetSrcImageSizeH());
+    aclError ret = aclmdlSetAIPPSrcImageSize(aippDynamicSet,
+        dyAippCfg->GetSrcImageSizeW(), dyAippCfg->GetSrcImageSizeH());
+    if (ret != ACL_ERROR_NONE) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("aclmdlSetAIPPSrcImageSize failed, w: %d, h: %d, ret: %d", dyAippCfg->GetSrcImageSizeW(),
+            dyAippCfg->GetSrcImageSizeH(), ret);
+        throw "AippData set failed!";
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::SetAIPPInputFormat(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg, aclmdlAIPP* aippDynamicSet)
+{
+    DEBUG_LOG("aclmdlSetAIPPInputFormat, params: aippParmsSet: %p inputFormat: %s",
+        aippDynamicSet, dyAippCfg->GetInputFormat().c_str());
+    aclError ret = aclmdlSetAIPPInputFormat(aippDynamicSet, str2aclAippInputFormat[dyAippCfg->GetInputFormat()]);
+    if (ret != ACL_ERROR_NONE) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("aclmdlSetAIPPInputFormat failed, ret %d", ret);
+        throw "AippData set failed!";
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::SetAIPPCscParams(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg, aclmdlAIPP* aippDynamicSet)
+{
+    DEBUG_LOG("aclmdlSetAIPPCscParams, params: aippParmsSet: %p csc_switch: %d cscMatrixR0C0: %d cscMatrixR0C1: %d \
+        cscMatrixR0C2: %d cscMatrixR1C0: %d cscMatrixR1C1: %d cscMatrixR1C2: %d cscMatrixR2C0: %d cscMatrixR2C1: %d \
+        cscMatrixR2C2: %d cscOutputBias0: %d cscOutputBias1: %d cscOutputBias2: %d cscInputBias0: %d \
+        cscInputBias1: %d cscInputBias2: %d", aippDynamicSet, dyAippCfg->GetCscParams().cscSwitch,
+        dyAippCfg->GetCscParams().cscMatrixR0C0, dyAippCfg->GetCscParams().cscMatrixR0C1,
+        dyAippCfg->GetCscParams().cscMatrixR0C2, dyAippCfg->GetCscParams().cscMatrixR1C0,
+        dyAippCfg->GetCscParams().cscMatrixR1C1, dyAippCfg->GetCscParams().cscMatrixR1C2,
+        dyAippCfg->GetCscParams().cscMatrixR2C0, dyAippCfg->GetCscParams().cscMatrixR2C1,
+        dyAippCfg->GetCscParams().cscMatrixR2C2, dyAippCfg->GetCscParams().cscOutputBias0,
+        dyAippCfg->GetCscParams().cscOutputBias1, dyAippCfg->GetCscParams().cscOutputBias2,
+        dyAippCfg->GetCscParams().cscInputBias0, dyAippCfg->GetCscParams().cscInputBias1,
+        dyAippCfg->GetCscParams().cscInputBias2);
+    aclError ret = aclmdlSetAIPPCscParams(aippDynamicSet, dyAippCfg->GetCscParams().cscSwitch,
+        dyAippCfg->GetCscParams().cscMatrixR0C0, dyAippCfg->GetCscParams().cscMatrixR0C1,
+        dyAippCfg->GetCscParams().cscMatrixR0C2, dyAippCfg->GetCscParams().cscMatrixR1C0,
+        dyAippCfg->GetCscParams().cscMatrixR1C1, dyAippCfg->GetCscParams().cscMatrixR1C2,
+        dyAippCfg->GetCscParams().cscMatrixR2C0, dyAippCfg->GetCscParams().cscMatrixR2C1,
+        dyAippCfg->GetCscParams().cscMatrixR2C2, dyAippCfg->GetCscParams().cscOutputBias0,
+        dyAippCfg->GetCscParams().cscOutputBias1, dyAippCfg->GetCscParams().cscOutputBias2,
+        dyAippCfg->GetCscParams().cscInputBias0, dyAippCfg->GetCscParams().cscInputBias1,
+        dyAippCfg->GetCscParams().cscInputBias2);
+    if (ret != ACL_ERROR_NONE) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("aclmdlSetAIPPCscParams failed, ret %d", ret);
+        throw "AippData set failed!";
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::SetAIPPRbuvSwapSwitch(
+    std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    aclmdlAIPP* aippDynamicSet
+)
+{
+    DEBUG_LOG("aclmdlSetAIPPRbuvSwapSwitch paras: aippParmsSet: %p rbuvSwapSwitch: %d",
+        aippDynamicSet, dyAippCfg->GetRbuvSwapSwitch());
+    aclError ret = aclmdlSetAIPPRbuvSwapSwitch(aippDynamicSet, dyAippCfg->GetRbuvSwapSwitch());
+    if (ret != ACL_ERROR_NONE) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("aclmdlSetAIPPRbuvSwapSwitch failed rbuvSwap:%d aippset:%p ret %d",
+            dyAippCfg->GetRbuvSwapSwitch(), aippDynamicSet, ret);
+        throw "AippData set failed!";
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::SetAIPPAxSwapSwitch(
+    std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    aclmdlAIPP* aippDynamicSet
+)
+{
+    DEBUG_LOG("aclmdlSetAIPPAxSwapSwitch paras: aippDynamicSet: %p axSwapSwitch: %d",
+        aippDynamicSet, dyAippCfg->GetAxSwapSwitch());
+    aclError ret = aclmdlSetAIPPAxSwapSwitch(aippDynamicSet, dyAippCfg->GetAxSwapSwitch());
+    if (ret != ACL_ERROR_NONE) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("aclmdlSetAIPPAxSwapSwitch failed, ret %d", ret);
+        throw "AippData set failed!";
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::SetAIPPDtcPixelMean(
+    std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    aclmdlAIPP* aippDynamicSet, size_t batchIndex
+)
+{
+    aclError ret = ACL_ERROR_NONE;
+    int dtcPixelMeanIndex = GetDynamicAippParaByBatch(batchIndex, dyAippCfg, "dtcPixelMean");
+    if (dtcPixelMeanIndex >= 0) {
+        DEBUG_LOG("aclmdlSetAIPPDtcPixelMean params: aippDynamicSet: %p dtcPixelMeanChn0: %d dtcPixelMeanChn1: %d\
+            dtcPixelMeanChn2: %d dtcPixelMeanChn3: %d batchIndex: %d", aippDynamicSet,
+            dyAippCfg->GetDtcPixelMean()[dtcPixelMeanIndex].dtcPixelMeanChn0,
+            dyAippCfg->GetDtcPixelMean()[dtcPixelMeanIndex].dtcPixelMeanChn1,
+            dyAippCfg->GetDtcPixelMean()[dtcPixelMeanIndex].dtcPixelMeanChn2,
+            dyAippCfg->GetDtcPixelMean()[dtcPixelMeanIndex].dtcPixelMeanChn3, int(batchIndex));
+        ret = aclmdlSetAIPPDtcPixelMean(aippDynamicSet,
+            dyAippCfg->GetDtcPixelMean()[dtcPixelMeanIndex].dtcPixelMeanChn0,
+            dyAippCfg->GetDtcPixelMean()[dtcPixelMeanIndex].dtcPixelMeanChn1,
+            dyAippCfg->GetDtcPixelMean()[dtcPixelMeanIndex].dtcPixelMeanChn2,
+            dyAippCfg->GetDtcPixelMean()[dtcPixelMeanIndex].dtcPixelMeanChn3, batchIndex);
+    } else {
+        DEBUG_LOG("aclmdlSetAIPPDtcPixelMean params: aippDynamicSet: %p dtcPixelMeanChn0: %d dtcPixelMeanChn1: %d\
+            dtcPixelMeanChn2: %d dtcPixelMeanChn3: %d batchIndex: %d", aippDynamicSet, 0, 0, 0, 0, int(batchIndex));
+        ret = aclmdlSetAIPPDtcPixelMean(aippDynamicSet, 0, 0, 0, 0, batchIndex);
+    }
+    if (ret != ACL_ERROR_NONE) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("aclmdlSetAIPPDtcPixelMean failed, ret %d", ret);
+        throw "AippData set failed!";
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::SetAIPPDtcPixelMin(
+    std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    aclmdlAIPP* aippDynamicSet, size_t batchIndex
+)
+{
+    aclError ret = ACL_ERROR_NONE;
+    int dtcPixelMinIndex = GetDynamicAippParaByBatch(batchIndex, dyAippCfg, "dtcPixelMin");
+    if (dtcPixelMinIndex >= 0) {
+        DEBUG_LOG("aclmdlSetAIPPDtcPixelMin params: %p dtcPixelMinChn0: %f dtcPixelMinChn1: %f dtcPixelMinChn2: %f \
+            dtcPixelMinChn3 %f batchIndex: %d", aippDynamicSet,
+            dyAippCfg->GetDtcPixelMin()[dtcPixelMinIndex].dtcPixelMinChn0,
+            dyAippCfg->GetDtcPixelMin()[dtcPixelMinIndex].dtcPixelMinChn1,
+            dyAippCfg->GetDtcPixelMin()[dtcPixelMinIndex].dtcPixelMinChn2,
+            dyAippCfg->GetDtcPixelMin()[dtcPixelMinIndex].dtcPixelMinChn3, int(batchIndex));
+        ret = aclmdlSetAIPPDtcPixelMin(aippDynamicSet,
+            dyAippCfg->GetDtcPixelMin()[dtcPixelMinIndex].dtcPixelMinChn0,
+            dyAippCfg->GetDtcPixelMin()[dtcPixelMinIndex].dtcPixelMinChn1,
+            dyAippCfg->GetDtcPixelMin()[dtcPixelMinIndex].dtcPixelMinChn2,
+            dyAippCfg->GetDtcPixelMin()[dtcPixelMinIndex].dtcPixelMinChn3, batchIndex);
+    } else {
+        DEBUG_LOG("aclmdlSetAIPPDtcPixelMin params: %p dtcPixelMinChn0: %f dtcPixelMinChn1: %f dtcPixelMinChn2: %f \
+            dtcPixelMinChn3 %f batchIndex: %d", aippDynamicSet, 0.0, 0.0, 0.0, 0.0, int(batchIndex));
+        ret = aclmdlSetAIPPDtcPixelMin(aippDynamicSet, 0.0, 0.0, 0.0, 0.0, batchIndex);
+    }
+    if (ret != ACL_ERROR_NONE) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("aclmdlSetAIPPDtcPixelMin failed, ret %d", ret);
+        throw "AippData set failed!";
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::SetAIPPPixelVarReci(
+    std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    aclmdlAIPP* aippDynamicSet, size_t batchIndex
+)
+{
+    aclError ret = ACL_ERROR_NONE;
+    int pixelVarReciIndex = GetDynamicAippParaByBatch(batchIndex, dyAippCfg, "pixelVarReci");
+    if (pixelVarReciIndex >= 0) {
+        DEBUG_LOG("aclmdlSetAIPPPixelVarReci params: aippDynamicSet: %p dtcPixelVarReciChn0: %f dtcPixelVarReciChn1: \
+            %f dtcPixelVarReciChn2: %f dtcPixelVarReciChn3: %f batchIndex: %d", aippDynamicSet,
+            dyAippCfg->GetPixelVarReci()[pixelVarReciIndex].dtcPixelVarReciChn0,
+            dyAippCfg->GetPixelVarReci()[pixelVarReciIndex].dtcPixelVarReciChn1,
+            dyAippCfg->GetPixelVarReci()[pixelVarReciIndex].dtcPixelVarReciChn2,
+            dyAippCfg->GetPixelVarReci()[pixelVarReciIndex].dtcPixelVarReciChn3, int(batchIndex));
+        ret = aclmdlSetAIPPPixelVarReci(aippDynamicSet,
+            dyAippCfg->GetPixelVarReci()[pixelVarReciIndex].dtcPixelVarReciChn0,
+            dyAippCfg->GetPixelVarReci()[pixelVarReciIndex].dtcPixelVarReciChn1,
+            dyAippCfg->GetPixelVarReci()[pixelVarReciIndex].dtcPixelVarReciChn2,
+            dyAippCfg->GetPixelVarReci()[pixelVarReciIndex].dtcPixelVarReciChn3, batchIndex);
+    } else {
+        DEBUG_LOG("aclmdlSetAIPPPixelVarReci params: aippDynamicSet: %p dtcPixelVarReciChn0: %f dtcPixelVarReciChn1: \
+            %f dtcPixelVarReciChn2: %f dtcPixelVarReciChn3: %f batchIndex: %d", aippDynamicSet, 0.0,
+            0.0, 0.0, 0.0, int(batchIndex));
+        ret = aclmdlSetAIPPPixelVarReci(aippDynamicSet, 0.0, 0.0, 0.0, 0.0, batchIndex);
+    }
+
+    if (ret != ACL_ERROR_NONE) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("aclmdlSetAIPPPixelVarReci failed, ret %d", ret);
+        throw "AippData set failed!";
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::SetAIPPCropParams(
+    std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    aclmdlAIPP* aippDynamicSet, size_t batchIndex
+)
+{
+    aclError ret = ACL_ERROR_NONE;
+    int cropIndex = GetDynamicAippParaByBatch(batchIndex, dyAippCfg, "crop");
+    if (cropIndex >= 0) {
+        DEBUG_LOG("aclmdlSetAIPPCropParams params: aippDynamicSet: %p cropSwitch: %d loadStartPosW: %d \
+            loadStartPosH: %d cropSizeW: %d cropSizeH: %d batchIndex: %d", aippDynamicSet,
+            dyAippCfg->GetCropParams()[cropIndex].cropSwitch, dyAippCfg->GetCropParams()[cropIndex].loadStartPosW,
+            dyAippCfg->GetCropParams()[cropIndex].loadStartPosH, dyAippCfg->GetCropParams()[cropIndex].cropSizeW,
+            dyAippCfg->GetCropParams()[cropIndex].cropSizeH, int(batchIndex));
+        ret = aclmdlSetAIPPCropParams(aippDynamicSet, dyAippCfg->GetCropParams()[cropIndex].cropSwitch,
+            dyAippCfg->GetCropParams()[cropIndex].loadStartPosW, dyAippCfg->GetCropParams()[cropIndex].loadStartPosH,
+            dyAippCfg->GetCropParams()[cropIndex].cropSizeW, dyAippCfg->GetCropParams()[cropIndex].cropSizeH,
+            batchIndex);
+    } else {
+        ret = aclmdlSetAIPPCropParams(aippDynamicSet, 0, 0, 0, Base::CROP_SIZE_W_DEFAULT,
+            Base::CROP_SIZE_H_DEFAULT, batchIndex);
+    }
+    if (ret != ACL_ERROR_NONE) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("aclmdlSetAIPPCropParams failed, ret %d", ret);
+        throw "AippData set failed!";
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::SetAIPPPaddingParams(
+    std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    aclmdlAIPP* aippDynamicSet, size_t batchIndex
+)
+{
+    aclError ret = ACL_ERROR_NONE;
+    int padIndex = GetDynamicAippParaByBatch(batchIndex, dyAippCfg, "pad");
+    if (padIndex >= 0) {
+        DEBUG_LOG("aclmdlSetAIPPPaddingParams params: aippDynamicSet: %p paddingSwitch: %d paddingSizeTop: %d \
+            paddingSizeBottom: %d paddingSizeLeft: %d paddingSizeRight: %d batchIndex: %d", aippDynamicSet,
+            dyAippCfg->GetPaddingParams()[padIndex].paddingSwitch,
+            dyAippCfg->GetPaddingParams()[padIndex].paddingSizeTop,
+            dyAippCfg->GetPaddingParams()[padIndex].paddingSizeBottom,
+            dyAippCfg->GetPaddingParams()[padIndex].paddingSizeLeft,
+            dyAippCfg->GetPaddingParams()[padIndex].paddingSizeRight,
+            int(batchIndex));
+        ret = aclmdlSetAIPPPaddingParams(aippDynamicSet, dyAippCfg->GetPaddingParams()[padIndex].paddingSwitch,
+            dyAippCfg->GetPaddingParams()[padIndex].paddingSizeTop,
+            dyAippCfg->GetPaddingParams()[padIndex].paddingSizeBottom,
+            dyAippCfg->GetPaddingParams()[padIndex].paddingSizeLeft,
+            dyAippCfg->GetPaddingParams()[padIndex].paddingSizeRight,
+            batchIndex);
+    } else {
+        ret = aclmdlSetAIPPPaddingParams(aippDynamicSet, 0, 0, 0, 0, 0, batchIndex);
+    }
+    if (ret != ACL_ERROR_NONE) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("aclmdlSetAIPPPaddingParams failed, ret %d", ret);
+        throw "AippData set failed!";
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::GetDymAIPPConfigSet(
+    std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    aclmdlAIPP* &pAIPPSet, uint64_t maxBatchSize
+)
+{
+    Result ret = SUCCESS;
+    INFO_LOG("dynamic aipp mode. batchsize:%d", int(maxBatchSize));
+
+    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(maxBatchSize);
+    if (aippDynamicSet == nullptr) {
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("aclmdlCreateAIPP failed");
+        return FAILED;
+    }
+    try {
+        ret = SetAIPPSrcImageSize(dyAippCfg, aippDynamicSet);
+        ret = SetAIPPInputFormat(dyAippCfg, aippDynamicSet);
+        ret = SetAIPPCscParams(dyAippCfg, aippDynamicSet);
+        ret = SetAIPPRbuvSwapSwitch(dyAippCfg, aippDynamicSet);
+        ret = SetAIPPAxSwapSwitch(dyAippCfg, aippDynamicSet);
+    } catch (...) {
+        FreeAIPP(aippDynamicSet);
+        return FAILED;
+    }
+
+    for (size_t batchIndex = 0; batchIndex < maxBatchSize; batchIndex++) { // 遍历设置需要以batchIndex为单位的配置
+        try {
+            SetAIPPDtcPixelMean(dyAippCfg, aippDynamicSet, batchIndex);
+            SetAIPPDtcPixelMin(dyAippCfg, aippDynamicSet, batchIndex);
+            SetAIPPPixelVarReci(dyAippCfg, aippDynamicSet, batchIndex);
+            SetAIPPCropParams(dyAippCfg, aippDynamicSet, batchIndex);
+            SetAIPPPaddingParams(dyAippCfg, aippDynamicSet, batchIndex);
+        } catch (...) {
+            FreeAIPP(aippDynamicSet);
+            return FAILED;
+        }
+    }
+    if (pAIPPSet != nullptr) {
+        FreeAIPP(pAIPPSet);
+    }
+    pAIPPSet = aippDynamicSet;
+    DEBUG_LOG("debug now get pset :%p %p\n", pAIPPSet, aippDynamicSet);
+    return ret;
 }

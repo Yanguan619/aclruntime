@@ -1,5 +1,5 @@
 /*
- * Copyright(C) 2021. Huawei Technologies Co.,Ltd. All rights reserved.
+ * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,10 +71,11 @@ public:
     TensorBase(const TensorBase &tensor) = default;
     // tensor构造函数
     TensorBase(const MemoryData &memoryData, const bool &isBorrowed,
-        const std::vector<uint32_t> &shape, const TensorDataType &type);
+        const std::vector<uint32_t> &shape, const TensorDataType &type, const size_t contextIndex);
     TensorBase(const std::vector<uint32_t> &shape, const TensorDataType &type,
-        const MemoryData::MemoryType &bufferType, const int32_t &deviceId);
-    TensorBase(const std::vector<uint32_t> &shape, const TensorDataType &type, const int32_t &deviceId);
+        const MemoryData::MemoryType &bufferType, const int32_t &deviceId, const size_t contextIndex);
+    TensorBase(const std::vector<uint32_t> &shape, const TensorDataType &type, const int32_t &deviceId,
+               const size_t contextIndex);
     TensorBase(const std::vector<uint32_t> &shape, const TensorDataType &type);
     TensorBase(const std::vector<uint32_t> &shape);
     TensorBase& operator=(const TensorBase &other);
@@ -106,6 +107,8 @@ public:
     APP_ERROR ToHost();
     static APP_ERROR BatchConcat(const std::vector<TensorBase> &inputs, TensorBase &output);
     static APP_ERROR BatchStack(const std::vector<TensorBase> &inputs, TensorBase &output);
+    // 设置TensorBase的contextIndex，可以不设置默认为0
+    void SetContextIndex(const size_t contextIndex);
 
     // 组batch
     static APP_ERROR BatchVector(const std::vector<TensorBase> &inputs, TensorBase &output,

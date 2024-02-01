@@ -1,16 +1,36 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+# Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import json
 import math
 import os
 import shutil
+import sys
+import logging
 
 import aclruntime
 import pytest
 from test_common import TestCommonClass
 
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
+logger = logging.getLogger(__name__)
 
-class TestClass():
+
+class TestClass:
     @classmethod
     def setup_class(cls):
         """
@@ -20,15 +40,12 @@ class TestClass():
 
     @classmethod
     def teardown_class(cls):
-        print('\n ---class level teardown_class')
+        logger.info('\n ---class level teardown_class')
 
     def init(self):
-        self.model_name = self.get_model_name(self)
+        self.model_name = "yolov3"
         self.model_base_path = self.get_model_base_path(self)
         self.output_file_num = 5
-
-    def get_model_name(self):
-        return "yolov3"
 
     def get_model_base_path(self):
         """
@@ -39,7 +56,7 @@ class TestClass():
             ├── model
             └── output
         """
-        return os.path.join(TestCommonClass.base_path, self.model_name)
+        return os.path.join(TestCommonClass.get_basepath(), self.model_name)
 
     def get_dynamic_batch_om_path(self):
         return os.path.join(self.model_base_path, "model", "pth_yolov3_dymbatch.om")
@@ -58,9 +75,10 @@ class TestClass():
 
         for _, batch_size in enumerate(batch_list):
             model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
-            cmd = "{} --model {} --device {}".format(TestCommonClass.cmd_prefix, model_path,
-                                                     TestCommonClass.default_device_id)
-            print("run cmd:{}".format(cmd))
+            cmd = "{} --model {} --device {}".format(
+                TestCommonClass.cmd_prefix, model_path, TestCommonClass.default_device_id
+            )
+            logger.info("run cmd:{}".format(cmd))
             ret = os.system(cmd)
             assert ret == 0
 
@@ -68,9 +86,10 @@ class TestClass():
         batch_list = [1, 2, 4, 8, 16]
         model_path = self.get_dynamic_batch_om_path()
         for _, dys_batch_size in enumerate(batch_list):
-            cmd = "{} --model {} --device {} --dymBatch {}".format(TestCommonClass.cmd_prefix, model_path, TestCommonClass.default_device_id,
-                                                                dys_batch_size)
-            print("run cmd:{}".format(cmd))
+            cmd = "{} --model {} --device {} --dymBatch {}".format(
+                TestCommonClass.cmd_prefix, model_path, TestCommonClass.default_device_id, dys_batch_size
+            )
+            logger.info("run cmd:{}".format(cmd))
             ret = os.system(cmd)
             assert ret == 0
 
@@ -78,8 +97,9 @@ class TestClass():
         batch_size = 1
         static_model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
         input_size = TestCommonClass.get_model_inputs_size(static_model_path)[0]
-        input_path = TestCommonClass.get_inputs_path(input_size, os.path.join(self.model_base_path, "input"),
-                                                     self.output_file_num)
+        input_path = TestCommonClass.get_inputs_path(
+            input_size, os.path.join(self.model_base_path, "input"), self.output_file_num
+        )
         batch_list = [1, 2, 4, 8, 16]
         base_output_path = os.path.join(self.model_base_path, "output")
         output_paths = []
@@ -91,13 +111,19 @@ class TestClass():
             if os.path.exists(tmp_output_path):
                 shutil.rmtree(tmp_output_path)
             os.makedirs(tmp_output_path)
-            cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {}".format(TestCommonClass.cmd_prefix, model_path,
-                TestCommonClass.default_device_id, input_path, base_output_path, output_dirname)
-            print("run cmd:{}".format(cmd))
+            cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {}".format(
+                TestCommonClass.cmd_prefix,
+                model_path,
+                TestCommonClass.default_device_id,
+                input_path,
+                base_output_path,
+                output_dirname,
+            )
+            logger.info("run cmd:{}".format(cmd))
             ret = os.system(cmd)
             assert ret == 0
             output_bin_file_num = len(os.listdir(tmp_output_path))
-            assert(output_bin_file_num == 3 * self.output_file_num)
+            assert output_bin_file_num == 3 * self.output_file_num
             output_paths.append(tmp_output_path)
 
         # compare different batchsize inference bin files
@@ -116,8 +142,9 @@ class TestClass():
         batch_size = 1
         static_model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
         input_size = TestCommonClass.get_model_inputs_size(static_model_path)[0]
-        input_path = TestCommonClass.get_inputs_path(input_size, os.path.join(self.model_base_path, "input"),
-                                                     self.output_file_num)
+        input_path = TestCommonClass.get_inputs_path(
+            input_size, os.path.join(self.model_base_path, "input"), self.output_file_num
+        )
         batch_list = [1, 2, 4, 8, 16]
         base_output_path = os.path.join(self.model_base_path, "output")
         output_paths = []
@@ -130,13 +157,20 @@ class TestClass():
             if os.path.exists(tmp_output_path):
                 shutil.rmtree(tmp_output_path)
             os.makedirs(tmp_output_path)
-            cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {} --dymBatch {}".format(TestCommonClass.cmd_prefix, model_path,
-                TestCommonClass.default_device_id, input_path, base_output_path, output_dirname, dys_batch_size)
-            print("run cmd:{}".format(cmd))
+            cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {} --dymBatch {}".format(
+                TestCommonClass.cmd_prefix,
+                model_path,
+                TestCommonClass.default_device_id,
+                input_path,
+                base_output_path,
+                output_dirname,
+                dys_batch_size,
+            )
+            logger.info("run cmd:{}".format(cmd))
             ret = os.system(cmd)
             assert ret == 0
             output_bin_file_num = len(os.listdir(tmp_output_path))
-            assert(output_bin_file_num == 3 * self.output_file_num)
+            assert output_bin_file_num == 3 * self.output_file_num
             output_paths.append(tmp_output_path)
 
         # compare different batchsize inference bin files
@@ -156,8 +190,9 @@ class TestClass():
         input_file_num = 100
         static_model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
         input_size = TestCommonClass.get_model_inputs_size(static_model_path)[0]
-        input_path = TestCommonClass.get_inputs_path(input_size, os.path.join(self.model_base_path, "input"),
-                                                     input_file_num)
+        input_path = TestCommonClass.get_inputs_path(
+            input_size, os.path.join(self.model_base_path, "input"), input_file_num
+        )
 
         output_path = os.path.join(self.model_base_path, "output")
         output_paths = []
@@ -168,44 +203,58 @@ class TestClass():
         if os.path.exists(output_dir_path):
             shutil.rmtree(output_dir_path)
         os.makedirs(output_dir_path)
-        summary_json_path = os.path.join(output_path,  "{}_summary.json".format(output_dir_name))
-        cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {}".format(TestCommonClass.cmd_prefix, model_path,
-            TestCommonClass.default_device_id, input_path, output_path, output_dir_name)
-        print("run cmd:{}".format(cmd))
+        summary_json_path = os.path.join(output_path, "{}_summary.json".format(output_dir_name))
+        cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {}".format(
+            TestCommonClass.cmd_prefix,
+            model_path,
+            TestCommonClass.default_device_id,
+            input_path,
+            output_path,
+            output_dir_name,
+        )
+        logger.info("run cmd:{}".format(cmd))
         ret = os.system(cmd)
         assert ret == 0
 
-        with open(summary_json_path,'r',encoding='utf8') as fp:
+        with open(summary_json_path, 'r', encoding='utf8') as fp:
             json_data = json.load(fp)
             ais_bench_inference_time_ms = json_data["NPU_compute_time"]["mean"]
 
         assert math.fabs(ais_bench_inference_time_ms) > TestCommonClass.EPSILON
 
         output_bin_file_num = len(os.listdir(output_dir_path))
-        assert(output_bin_file_num == 3 * input_file_num)
+        assert output_bin_file_num == 3 * input_file_num
 
         # get msame inference  average time without first time
         msame_infer_log_path = os.path.join(output_path, output_dir_name, "msame_infer.log")
-        cmd = "{} --model {} --input {} > {}".format(TestCommonClass.msame_bin_path, model_path, input_path, msame_infer_log_path)
-        print("run cmd:{}".format(cmd))
+        cmd = "{} --model {} --input {} > {}".format(
+            TestCommonClass.msame_bin_path, model_path, input_path, msame_infer_log_path
+        )
+        logger.info("run cmd:{}".format(cmd))
         ret = os.system(cmd)
         assert ret == 0
         assert os.path.exists(msame_infer_log_path)
 
-        msame_inference_time_ms = 0
+        msame_inference_time_ms = 0.0
         with open(msame_infer_log_path) as f:
             for line in f:
                 if "Inference average time without first time" not in line:
                     continue
 
-                sub_str = line[(line.rfind(':') + 1):]
-                sub_str = sub_str.replace('ms\n','')
+                sub_str = line[(line.rfind(':') + 1) :]
+                sub_str = sub_str.replace('ms\n', '')
                 msame_inference_time_ms = float(sub_str)
 
         assert math.fabs(msame_inference_time_ms) > TestCommonClass.EPSILON
         # compare
         allowable_performance_deviation = 0.01
-        assert math.fabs(msame_inference_time_ms - ais_bench_inference_time_ms)/msame_inference_time_ms < allowable_performance_deviation
+        if msame_inference_time_ms != 0.0:
+            actual_performance_deviation = (
+                math.fabs(msame_inference_time_ms - ais_bench_inference_time_ms) / msame_inference_time_ms
+            )
+            assert actual_performance_deviation < allowable_performance_deviation
+        else:
+            logger.warning("zero division!")
         os.remove(msame_infer_log_path)
         shutil.rmtree(output_dir_path)
 
@@ -222,11 +271,17 @@ class TestClass():
             log_path = os.path.join(output_path, "log.txt")
             if os.path.exists(output_path):
                 shutil.rmtree(output_path)
-            os.makedirs(output_path)
-            summary_json_path = os.path.join(output_parent_path,  "{}_summary.json".format(output_dirname))
-            cmd = "{} --model {} --device {}  --output {} --output_dirname {} > {}".format(TestCommonClass.cmd_prefix, model_path,
-                TestCommonClass.default_device_id, output_parent_path, output_dirname, log_path)
-            print("run cmd:{}".format(cmd))
+            os.makedirs(output_path, 0o750)
+            summary_json_path = os.path.join(output_parent_path, "{}_summary.json".format(output_dirname))
+            cmd = "{} --model {} --device {}  --output {} --output_dirname {} > {}".format(
+                TestCommonClass.cmd_prefix,
+                model_path,
+                TestCommonClass.default_device_id,
+                output_parent_path,
+                output_dirname,
+                log_path,
+            )
+            logger.info("run cmd:{}".format(cmd))
             ret = os.system(cmd)
             assert ret == 0
 
@@ -262,11 +317,18 @@ class TestClass():
             log_path = os.path.join(output_path, "log.txt")
             if os.path.exists(output_path):
                 shutil.rmtree(output_path)
-            os.makedirs(output_path)
-            summary_json_path = os.path.join(output_parent_path,  "{}_summary.json".format(output_dirname))
-            cmd = "{} --model {} --device {} --output {} --output_dirname {} --dymBatch {} > {}".format(TestCommonClass.cmd_prefix, model_path,
-                TestCommonClass.default_device_id, output_parent_path, output_dirname, dys_batch_size, log_path)
-            print("run cmd:{}".format(cmd))
+            os.makedirs(output_path, 0o750)
+            summary_json_path = os.path.join(output_parent_path, "{}_summary.json".format(output_dirname))
+            cmd = "{} --model {} --device {} --output {} --output_dirname {} --dymBatch {} > {}".format(
+                TestCommonClass.cmd_prefix,
+                model_path,
+                TestCommonClass.default_device_id,
+                output_parent_path,
+                output_dirname,
+                dys_batch_size,
+                log_path,
+            )
+            logger.info("run cmd:{}".format(cmd))
             ret = os.system(cmd)
             assert ret == 0
             output_paths.append(output_path)
@@ -302,11 +364,18 @@ class TestClass():
             log_path = os.path.join(output_path, "log.txt")
             if os.path.exists(output_path):
                 shutil.rmtree(output_path)
-            os.makedirs(output_path)
-            summary_json_path = os.path.join(output_parent_path,  "{}_summary.json".format(output_dirname))
-            cmd = "{} --model {} --device {} --output {} --output_dirname {} --dymDims {} > {}".format(TestCommonClass.cmd_prefix, model_path,
-                TestCommonClass.default_device_id, output_parent_path, output_dirname, dym_dim, log_path)
-            print("run cmd:{}".format(cmd))
+            os.makedirs(output_path, 0o750)
+            summary_json_path = os.path.join(output_parent_path, "{}_summary.json".format(output_dirname))
+            cmd = "{} --model {} --device {} --output {} --output_dirname {} --dymDims {} > {}".format(
+                TestCommonClass.cmd_prefix,
+                model_path,
+                TestCommonClass.default_device_id,
+                output_parent_path,
+                output_dirname,
+                dym_dim,
+                log_path,
+            )
+            logger.info("run cmd:{}".format(cmd))
             ret = os.system(cmd)
             assert ret == 0
             output_paths.append(output_path)
@@ -342,11 +411,18 @@ class TestClass():
             log_path = os.path.join(output_path, "log.txt")
             if os.path.exists(output_path):
                 shutil.rmtree(output_path)
-            os.makedirs(output_path)
-            summary_json_path = os.path.join(output_parent_path,  "{}_summary.json".format(output_dirname))
-            cmd = "{} --model {} --device {} --output {} --output_dirname {} --dymHW {} > {}".format(TestCommonClass.cmd_prefix, model_path,
-                TestCommonClass.default_device_id, output_parent_path, output_dirname, dym_wh, log_path)
-            print("run cmd:{}".format(cmd))
+            os.makedirs(output_path, 0o750)
+            summary_json_path = os.path.join(output_parent_path, "{}_summary.json".format(output_dirname))
+            cmd = "{} --model {} --device {} --output {} --output_dirname {} --dymHW {} > {}".format(
+                TestCommonClass.cmd_prefix,
+                model_path,
+                TestCommonClass.default_device_id,
+                output_parent_path,
+                output_dirname,
+                dym_wh,
+                log_path,
+            )
+            logger.info("run cmd:{}".format(cmd))
             ret = os.system(cmd)
             assert ret == 0
             output_paths.append(output_path)
@@ -366,6 +442,7 @@ class TestClass():
             shutil.rmtree(output_path)
         for summary_path in summary_paths:
             os.remove(summary_path)
+
 
 if __name__ == '__main__':
     pytest.main(['test_infer_yolov3.py', '-vs'])

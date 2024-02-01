@@ -1,3 +1,5 @@
+
+
 # ais_bench推理工具使用指南
 
 ## 简介
@@ -8,7 +10,7 @@
 ### 环境和依赖
 
 - 请参见《[CANN开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/envdeployment/instg/instg_000002.html)》安装昇腾设备开发或运行环境，即toolkit或nnrt软件包。
-- 安装Python3。
+- 安装Python3、Python包模块numpy、tqdm、wheel。
 
 ### 工具安装方式
 
@@ -27,13 +29,18 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
 
    0.0.2版本（aclruntime包请根据当前环境选择适配版本）：
 
-   - [aclruntime-0.0.2-cp37-cp37m-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/aclruntime-0.0.2-cp37-cp37m-linux_x86_64.whl)
-   - [aclruntime-0.0.2-cp37-cp37m-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/aclruntime-0.0.2-cp37-cp37m-linux_aarch64.whl)
-   - [aclruntime-0.0.2-cp38-cp38-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/aclruntime-0.0.2-cp38-cp38-linux_x86_64.whl)
-   - [aclruntime-0.0.2-cp38-cp38-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/aclruntime-0.0.2-cp38-cp38-linux_aarch64.whl)
-   - [aclruntime-0.0.2-cp39-cp39-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/aclruntime-0.0.2-cp39-cp39-linux_x86_64.whl)
-   - [aclruntime-0.0.2-cp39-cp39-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/aclruntime-0.0.2-cp39-cp39-linux_aarch64.whl)
-   - [ais_bench-0.0.2-py3-none-any.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ais_bench-0.0.2-py3-none-any.whl)
+   |whl包|commit节点|MD5|SHA256|
+   |---|---|---|---|
+   |[aclruntime-0.0.2-cp37-cp37m-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp37-cp37m-linux_x86_64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|E14ACDFBDD52E08F79456D9BC72D589C| F1523E25B714EF51E03D640570E8655A139DB8B9340C8DD6E4DA82D6122B2C01|
+   |[aclruntime-0.0.2-cp37-cp37m-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp37-cp37m-linux_aarch64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e| 9455E267118011CAC764ECECA3B13B64|4C1F7CD1CD767912B597EAF4F4BE296E914D43DE4AF80C6894399B7BF313A80F|
+   |[aclruntime-0.0.2-cp38-cp38-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp38-cp38-linux_x86_64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|CE23FEDB8BAC2917E7238B8E25F8E54D| 63C86CEE2C9F622FAB2F6A1AA4EAB47D2D68622EC12BDC8F74A9F8CED6506D67|
+   |[aclruntime-0.0.2-cp38-cp38-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp38-cp38-linux_aarch64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|52CA43514A7373E50678A890D085C531|20AFB7A24DB774EF67250E062A0F593E419DBC5A1A668B98B60D4BBF8CA87E88|
+   |[aclruntime-0.0.2-cp39-cp39-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp39-cp39-linux_x86_64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|55016F7E2544849E128AA7B5A608893D| 22824F38CAA547805FA76DBAA4889307BE171B79CCDA68AD00FED946762E6EAD|
+   |[aclruntime-0.0.2-cp39-cp39-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp39-cp39-linux_aarch64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|080065E702277C1EE443B02C902B49E6|258CDCFBBA145E200D08F1976C442BC921D68961157BDFD1F0D73985FDC45F24|
+   |[aclruntime-0.0.2-cp310-cp310-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp310-cp310-linux_x86_64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|78242C34E7DB95E6587C47254E309BBB|4F563603FCFF9CBC3FF74322936894C0E01038BF0101E85F03975B8BDDC57E6A|
+   |[aclruntime-0.0.2-cp310-cp310-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp310-cp310-linux_aarch64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|5988B1565C8136BF17374FA703BE0BC7|185CBC5DDE9C03E26494871FCC0A6F91351DE654CB36F9438DDBF9637C049CB8|
+   |[ais_bench-0.0.2-py3-none-any.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/ais_bench-0.0.2-py3-none-any.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|1E43A8BE245C015B47C9C5E72EA5F619|D52406D0AC02F9A8EBEFDCE0866736322753827298A4FCB1C23DA98789BF8EFE|
+
 
 2. 执行如下命令，进行安装。
 
@@ -62,7 +69,7 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    Successfully installed ais_bench-{version}
    ```
 
-   
+
 
 #### 一键式编译安装
 
@@ -71,13 +78,13 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    在安装环境执行如下命令安装aclruntime包：
 
    ```bash
-   pip3 install -v 'git+https://gitee.com/ascend/tools.git#egg=aclruntime&subdirectory=ais-bench_workload/tool/ais_bench/backend'
+   pip3 install -v 'git+https://gitee.com/ascend/ait.git#egg=aclruntime&subdirectory=ait/components/benchmark/backend'
    ```
 
    说明：若为覆盖安装，请增加“--force-reinstall”参数强制安装，例如：
 
    ```bash
-   pip3 install -v --force-reinstall 'git+https://gitee.com/ascend/tools.git#egg=aclruntime&subdirectory=ais-bench_workload/tool/ais_bench/backend'
+   pip3 install -v --force-reinstall 'git+https://gitee.com/ascend/ait.git#egg=aclruntime&subdirectory=ait/components/benchmark/backend'
    ```
 
    提示如下示例信息则表示安装成功：
@@ -91,17 +98,17 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    在安装环境执行如下命令安装ais_bench推理程序包：
 
    ```bash
-   pip3 install -v 'git+https://gitee.com/ascend/tools.git#egg=ais_bench&subdirectory=ais-bench_workload/tool/ais_bench'
+    pip3 install -v 'git+https://gitee.com/ascend/ait.git#egg=ais_bench&subdirectory=ait/components/benchmark'
    ```
 
    说明：若为覆盖安装，请增加“--force-reinstall”参数强制安装，例如：
 
    ```bash
-   pip3 install -v --force-reinstall 'git+https://gitee.com/ascend/tools.git#egg=ais_bench&subdirectory=ais-bench_workload/tool/ais_bench'
+   pip3 install -v --force-reinstall 'git+https://gitee.com/ascend/ait.git#egg=ais_bench&subdirectory=ait/components/benchmark'
    ```
-   
+
    提示如下示例信息则表示安装成功：
-   
+
    ```bash
    Successfully installed ais_bench-{version}
    ```
@@ -109,15 +116,15 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
 
 
 #### 源代码编译安装
-1. 从代码开源仓[Gitee](https://gitee.com/ascend/tools)克隆/下载工具压缩包“tools-xxx.zip”。
+1. 从代码开源仓[Gitee](https://gitee.com/ascend/ait)克隆/下载工具压缩包“ait-master.zip”。
 
 2. 将工具压缩包上传并解压至安装环境。
 
-3. 从工具解压目录下进入ais-bench_workload/tool/ais_bench目录下，执行如下命令进行编译：
+3. 从工具解压目录下进入/ait/ait/components/benchmark/ais_bench目录下，执行如下命令进行编译：
 
    ```bash
    # 进入工具解压目录
-   cd ${HOME}/ais-bench_workload/tool/ais_bench/
+   cd ${HOME}/ait/ait/components/benchmark
    # 构建aclruntime包
    pip3 wheel ./backend/ -v
    # 构建ais_bench推理程序包
@@ -152,7 +159,7 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    pip3 install ./aclruntime-{version}-{python_version}-linux_{arch}.whl --force-reinstall
    pip3 install ./ais_bench-{version}-py3-none-any.whl --force-reinstall
    ```
-   
+
    分别提示如下信息则表示安装成功：
 
    ```bash
@@ -161,22 +168,21 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    # 成功安装ais_bench推理程序
    Successfully installed ais_bench-{version}
    ```
-   
-   
-
-### 运行准备
-完成ais_bench推理工具安装后，需要执行如下操作，确保工具能够正确运行：
-1. 执行requirements.txt文件中的依赖安装，执行如下命令：
+5. 完成ais_bench推理工具安装后，需要执行如下操作，确保工具能够正确运行：
+   执行requirements.txt文件中的依赖安装，执行如下命令：
 
    ```bash
-   cd ${HOME}/ais-bench_workload/tool/ais_bench/
+   cd ${HOME}ait/ait/components/benchmark/
    pip3 install -r ./requirements.txt
    ```
 
    其中，${HOME}为ais_bench推理工具包所在目录。
 
    说明：若依赖已安装，忽略此步骤。
-2. 设置CANN包的环境变量，执行如下命令：
+
+
+### 运行准备
+1. 设置CANN包的环境变量，执行如下命令：
 
    ```bash
    source ${INSTALL_PATH}/Ascend/ascend-toolkit/set_env.sh
@@ -227,6 +233,7 @@ ais_bench推理工具可以通过配置不同的参数，来应对各种测试�
 | --loop                | 推理次数。默认值为1，取值范围为大于0的正整数。  profiler参数配置为true时，推荐配置为1。 | 否       |
 | --warmup_count        | 推理预热次数。默认值为1，取值范围为大于等于0的整数。配置为0则表示不预热。 | 否       |
 | --device              | 指定运行设备。根据设备实际的Device ID指定，默认值为0。多Device场景下，可以同时指定多个Device进行推理测试，例如：--device 0,1,2,3。 | 否       |
+| --divide_input | 输入数据集切分开关，1或true（开启）、0或false（关闭），默认关闭。多Device场景下，打开时，工具会将数据集平分给这些Device进行推理。| 否 |
 | --help                | 工具使用帮助信息。                                           | 否       |
 
 ##### 高级功能参数
@@ -236,22 +243,27 @@ ais_bench推理工具可以通过配置不同的参数，来应对各种测试�
 | --dymBatch               | 动态Batch参数，指定模型输入的实际Batch。 <br>如ATC模型转换时，设置--input_shape="data:-1,600,600,3;img_info:-1,3" --dynamic_batch_size="1,2,4,8"，dymBatch参数可设置为：--dymBatch 2。 | 否       |
 | --dymHW                  | 动态分辨率参数，指定模型输入的实际H、W。 <br>如ATC模型转换时，设置--input_shape="data:8,3,-1,-1;img_info:8,4,-1,-1" --dynamic_image_size="300,500;600,800"，dymHW参数可设置为：--dymHW 300,500。 | 否       |
 | --dymDims                | 动态维度参数，指定模型输入的实际Shape。 <br>如ATC模型转换时，设置 --input_shape="data:1,-1;img_info:1,-1" --dynamic_dims="224,224;600,600"，dymDims参数可设置为：--dymDims "data:1,600;img_info:1,600"。 | 否       |
-| --dymShape               | 动态Shape参数，指定模型输入的实际Shape。 <br>如ATC模型转换时，设置--input_shape_range="input1:\[8\~20,3,5,-1\];input2:\[5,3\~9,10,-1\]"，dymShape参数可设置为：--dymShape "input1:8,3,5,10;input2:5,3,10,10"。<br>动态Shape场景下，获取模型的输出size通常为0（即输出数据占内存大小未知），建议设置--outputSize参数。<br/>例如：--dymShape "input1:8,3,5,10;input2:5,3,10,10" --outputSize "10000,10000"。 | 否       |
-| --dymShape_range         | 动态Shape的阈值范围。如果设置该参数，那么将根据参数中所有的Shape列表进行依次推理，得到汇总推理信息。<br/>配置格式为：name1:1,3,200\~224,224-230;name2:1,300。其中，name为模型输入名，“\~”表示范围，“-”表示某一位的取值。<br/>也可以指定动态Shape的阈值范围配置文件*.info，该文件中记录动态Shape的阈值范围，文件中可同时设置多组Shape，一组Shape占用一行。 | 否       |
+| --dymShape               | 动态Shape参数，指定模型输入的实际Shape。 <br>如ATC模型转换时，设置--input_shape_range="input1:\[8\~20,3,5,-1\];input2:\[5,3\~9,10,-1\]"，dymShape参数可设置为：--dymShape "input1:8,3,5,10;input2:5,3,10,10"。<br>动态Shape场景下，获取模型的输出size通常为0（即输出数据占内存大小未知），建议设置--outputSize参数。<br/>例如：--dymShape "input1:8,3,5,10;input2:5,3,10,10" --outputSize "10000,10000" | 否       |
+| --dymShape_range         | 动态Shape的阈值范围。如果设置该参数，那么将根据参数中所有的Shape列表进行依次推理，得到汇总推理信息。<br/>配置格式为：name1:1,3,200\~224,224-230;name2:1,300。其中，name为模型输入名，“\~”表示范围，“-”表示某一位的取值。<br/>也可以指定动态Shape的阈值范围配置文件*.info，该文件中记录动态Shape的阈值范围。 | 否       |
 | --outputSize             | 指定模型的输出数据所占内存大小，多个输出时，需要为每个输出设置一个值，多个值之间用“,”隔开。<br>动态Shape场景下，获取模型的输出size通常为0（即输出数据占内存大小未知），需要根据输入的Shape，预估一个较合适的大小，配置输出数据占内存大小。<br>例如：--dymShape "input1:8,3,5,10;input2:5,3,10,10" --outputSize "10000,10000" | 否       |
 | --auto_set_dymdims_mode  | 自动设置动态Dims模式。1或true（开启）、0或false（关闭），默认关闭。<br/>针对动态档位Dims模型，根据输入的文件的信息，自动设置Shape参数，注意输入数据只能为npy文件，因为bin文件不能读取Shape信息。<br/>配合input参数使用，单独使用无效。<br/>例如：--input 1.npy --auto_set_dymdims_mode 1 | 否       |
 | --auto_set_dymshape_mode | 自动设置动态Shape模式。取值为：1或true（开启）、0或false（关闭），默认关闭。<br>针对动态Shape模型，根据输入的文件的信息，自动设置Shape参数，注意输入数据只能为npy文件，因为bin文件不能读取Shape信息。<br>配合input参数使用，单独使用无效。<br/>例如：--input 1.npy --auto_set_dymshape_mode 1 | 否       |
-| --profiler               | profiler开关。1或true（开启）、0或false（关闭），默认关闭。<br>profiler数据在--output参数指定的目录下的profiler文件夹内。配合--output参数使用，单独使用无效。不能与--dump同时开启。<br/>若环境配置了GE_PROFILING_TO_STD_OUT=1，则--profiler参数采集性能数据时使用的是acl.json配置文件方式。 | 否       |
+| --profiler               | profiler开关。1或true（开启）、0或false（关闭），默认关闭。<br>profiler数据在--output参数指定的目录下的profiler文件夹内。配合--output参数使用，单独使用无效。不能与--dump同时开启。<br/>若环境配置了AIT_NO_MSPROF_MODE=1，则使用--profiler参数采集性能数据时调用的是acl.json文件。 | 否       |
+| --profiler_rename        | 调用profiler落盘文件文件名修改开关。1或true（开启）、0或false（关闭），默认开启。配合--profiler参数使用，单独使用无效。|否|
 | --dump                   | dump开关。1或true（开启）、0或false（关闭），默认关闭。<br>dump数据在--output参数指定的目录下的dump文件夹内。配合--output参数使用，单独使用无效。不能与--profiler同时开启。 | 否       |
-| --acl_json_path          | acl.json配置文件路径，须指定一个有效的json文件。该文件内可配置profiler或者dump。当配置该参数时，--dump和--profiler参数无效。 | 否       |
-| --batchsize              | 模型batchsize。不输入该值将自动推导。参数传递的batchszie有且只用于结果吞吐率计算。自动推导逻辑为尝试获取模型的batchsize时，首先获取第一个参数的最高维作为batchsize； 如果是动态Batch的话，更新为动态Batch的值；如果是动态dims和动态Shape更新为设置的第一个参数的最高维。如果自动推导逻辑不满足要求，请务必传入准确的batchsize值，以计算出正确的吞吐率。 | 否       |
-| --output_batchsize_axis  | 输出tensor的batchsize轴。输出结果保存文件时，根据哪个轴进行切割推理结果，那输出结果的batch维度就在哪个轴。默认按照0轴进行切割，但是部分模型的输出batch为1轴，所以要设置该值为1。 | 否       |
-| --divide_input  | 多Device场景下，可以同时指定多个Device进行推理测试，输入数据均等切分到指定多个Device进行推理测试。1或true（开启）、0或false（关闭），默认开启。 | 否       |
-
+| --acl_json_path          | acl.json文件路径，须指定一个有效的json文件。该文件内可配置profiler或者dump。当配置该参数时，--dump和--profiler参数无效。 | 否       |
+| --batchsize              | 模型batchsize。不输入该值将自动推导。当前推理模块根据模型输入和文件输出自动进行组Batch。参数传递的batchszie有且只用于结果吞吐率计算。自动推导逻辑为尝试获取模型的batchsize时，首先获取第一个参数的最高维作为batchsize； 如果是动态Batch的话，更新为动态Batch的值；如果是动态dims和动态Shape更新为设置的第一个参数的最高维。如果自动推导逻辑不满足要求，请务必传入准确的batchsize值，以计算出正确的吞吐率。 | 否       |
+| --output_batchsize_axis  | 输出tensor的batchsize轴，默认值为0。输出结果保存文件时，根据哪个轴进行切割推理结果，比如batchsize为2，表示2个输入文件组batch进行推理，那输出结果的batch维度是在哪个轴。默认为0轴，按照0轴进行切割为2份，但是部分模型的输出batch为1轴，所以要设置该值为1。 | 否       |
+| --aipp_config|带有动态aipp配置的om模型在推理前需要配置的AIPP具体参数，以.config文件路径形式传入。当om模型带有动态aipp配置时，此参数为必填参数；当om模型不带有动态aipp配置时，配置此参数不影响正常推理。|否|
+| --backend|指定trtexec开关。需要指定为trtexec。配合--perf参数使用，单独使用无效。|否|
+| --perf|调用trtexec开关。1或true（开启）、0或false（关闭），默认关闭。配合--backend参数使用，单独使用无效。|否|
+| --energy_consumption     |能耗采集开关。1或true（开启）、0或false（关闭），默认关闭。需要配合--npu_id参数使用，单独使用无效。|否|
+| --npu_id                 |指定npu_id开关。需要通过npu-smi info命令获取指定device所对应的npu id。配合--energy_consumption参数使用，单独使用无效。|否|
+| --pipeline               |指定pipeline开关，用于开启多线程推理功能。1或true（开启）、0或false（关闭），默认关闭。|否|
+| --dump_npy               |指定dump_npy开关，用于开启dump结果自动转换功能。1或true（开启）、0或false（关闭），默认关闭。需要配合--output和--dump/--acl_json_path参数使用，单独使用无效。|否|
+| --threads                |指定threads开关，用于设置多计算线程推理时计算线程的数量。默认值为1，取值范围为大于0的正整数。需要配合--pipeline 1参数使用，单独使用无效。|否|
 
 ### 使用场景
-
-**说明**：对于ais_bench推理工具的输入输出，工具会根据模型的实际输入size对输入文件进行组合，输入文件不足则自动补全，输入文件过多则分批次；完成推理测试后根据模型batchsize对输出文件进行切割。
 
  #### 纯推理场景
 
@@ -295,6 +307,8 @@ python3 -m ais_bench --model /home/model/resnet50_v1.om --output ./ --debug 1
 
 使用--input参数指定模型输入文件，多个文件之间通过“,”进行分隔。
 
+本场景会根据文件输入size和模型实际输入size进行对比，若缺少数据则会自动构造数据补全，称为组Batch。
+
 示例命令如下：
 
 ```bash
@@ -305,11 +319,13 @@ python3 -m ais_bench --model ./resnet50_v1_bs1_fp32.om --input "./1.bin,./2.bin,
 
 使用input参数指定模型输入文件所在目录，多个目录之间通过“,”进行分隔。
 
+本场景会根据文件输入size和模型实际输入size进行组Batch。
+
 ```bash
 python3 -m ais_bench --model ./resnet50_v1_bs1_fp32.om --input "./"
 ```
 
-传入文件夹的个数需要与模型实际输入一致。
+模型输入需要与传入文件夹的个数一致。
 
 例如，bert模型有三个输入，则必须传入3个文件夹，且三个文件夹分别对应模型的三个输入，顺序要对应。
 模型输入参数的信息可以通过开启调试模式查看，bert模型的三个输入依次为input_ids、 input_mask、 segment_ids，所以依次传入三个文件夹：
@@ -367,7 +383,7 @@ i:1 device_2 throughput:276.54867008654026 start_time:1676875630.8043878 end_tim
 
 ##### 动态Batch
 
-以档位1 2 4 8档为例，设置档位为2。
+以档位1 2 4 8档为例，设置档位为2，本程序将获取实际模型输入组Batch，每2个输入为一组，进行组Batch。
 
 ```bash
 python3 -m ais_bench --model ./resnet50_v1_dynamicbatchsize_fp32.om --input=./data/ --dymBatch 2
@@ -375,7 +391,7 @@ python3 -m ais_bench --model ./resnet50_v1_dynamicbatchsize_fp32.om --input=./da
 
 ##### 动态HW宽高
 
-以档位224,224;448,448档为例，设置档位为224,224。
+以档位224,224;448,448档为例，设置档位为224,224，本程序将获取实际模型输入组Batch。
 
 ```bash
 python3 -m ais_bench --model ./resnet50_v1_dynamichw_fp32.om --input=./data/ --dymHW 224,224
@@ -383,7 +399,7 @@ python3 -m ais_bench --model ./resnet50_v1_dynamichw_fp32.om --input=./data/ --d
 
 ##### 动态Dims
 
-以设置档位1,3,224,224为例。
+以设置档位1,3,224,224为例，本程序将获取实际模型输入组Batch。
 
 ```bash
 python3 -m ais_bench --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --dymDims actual_input_1:1,3,224,224
@@ -403,7 +419,7 @@ python3 -m ais_bench --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --
 
 ##### 动态Shape
 
-以ATC设置[1\~8,3,200\~300,200\~300]，设置档位1,3,224,224为例。
+以ATC设置[1\~8,3,200\~300,200\~300]，设置档位1,3,224,224为例，本程序将获取实际模型输入组Batch。
 
 动态Shape的输出大小通常为0，建议通过outputSize参数设置对应输出的内存大小。
 
@@ -431,12 +447,122 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --a
 python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --dymShape_range actual_input_1:1,3,224,224~226
 ```
 
+#### 动态AIPP场景
+- 动态AIPP的介绍参考[ATC模型转换](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/63RC1alpha002/download)中"6.1 AIPP使能"章节。
+- 目前benchmark工具只支持单个input的带有动态AIPP配置的模型，只支持静态shape、动态batch、动态宽高三种场景，不支持动态shape场景。
+##### --aipp_config 输入的.config文件模板
+以resnet18模型所对应的一种aipp具体配置为例(actual_aipp_conf.config)：
+```cfg
+[aipp_op]
+    input_format : RGB888_U8
+    src_image_size_w : 256
+    src_image_size_h : 256
 
+    crop : 1
+    load_start_pos_h : 16
+    load_start_pos_w : 16
+    crop_size_w : 224
+    crop_size_h : 224
+
+    padding : 0
+    csc_switch : 0
+    rbuv_swap_switch : 0
+    ax_swap_switch : 0
+    csc_switch : 0
+
+	  min_chn_0 : 123.675
+	  min_chn_1 : 116.28
+	  min_chn_2 : 103.53
+	  var_reci_chn_0 : 0.0171247538316637
+	  var_reci_chn_1 : 0.0175070028011204
+	  var_reci_chn_2 : 0.0174291938997821
+```
+- .config文件`[aipp_op]`下的各字段名称及其取值范围参考[ATC模型转换](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/63RC1alpha002/download)中"6.1.9 配置文件模板"章节中"静态AIPP需设置，动态AIPP无需设置"部分，其中字段取值为为true、false的字段，在.config文件中取值对应为1、0。
+- .config文件`[aipp_op]`下的`input_format`、`src_image_size_w`、`src_image_size_h`字段是必填字段。
+- .config文件中字段的具体取值是否适配对应的模型，benchmark本身不会检测，在推理时acl接口报错不属于benchmark的问题
+##### 静态shape场景示例，以resnet18模型为例
+###### atc命令转换出带动态aipp配置的静态shape模型
+```
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_bs4_dym_aipp --input_format=NCHW --input_shape="image:4,3,224,224" --soc_version=Ascend310 --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+```
+- dym_aipp_conf.aippconfig的内容(下同)为：
+```
+aipp_op{
+    related_input_rank ： 0
+    aipp_mode : dynamic
+    max_src_image_size : 4000000
+}
+```
+###### benchmark命令
+```
+python3 -m ais_bench --model resnet18_bs4_dym_aipp.om --aipp_config actual_aipp_conf.config
+```
+##### 动态batch场景示例，以resnet18模型为例
+###### atc命令转换出带动态aipp配置的动态batch模型
+```
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_batch_aipp --input_format=NCHW --input_shape="image:-1,3,224,224" --dynamic_batch_size "1,2" --soc_version=Ascend310 --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+```
+###### benchmark命令
+```
+python3 -m ais_bench --model resnet18_dym_batch_aipp.om --aipp_config actual_aipp_conf.config --dymBatch 1
+```
+##### 动态宽高场景示例，以resnet18模型为例
+###### atc命令转换出带动态aipp配置的动态宽高模型
+```
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_image_aipp --input_format=NCHW --input_shape="image:4,3,-1,-1" --dynamic_image_size "112,112;224,224" --soc_version=Ascend310 --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+```
+###### benchmark命令
+```
+python3 -m ais_bench --model resnet18_dym_image_aipp.om --aipp_config actual_aipp_conf.config --dymHW 112,112
+```
+
+#### trtexec场景
+
+ais_bench支持onnx模型推理（集成trtexec）,trtexec为NVIDIA TensorRT自带工具。用户使用ais_bench拉起trtexec工具进行推理性能测试，测试过程中实时输出trtexec日志，打印在控制台，推理性能测试完成后，将性能数据输出在控制台。
+##### 前置条件
+推理性能测试环境需要配置有GPU，安装CANN、CUDA及TensorRT，并且trtexec可以通过命令行调用到，安装方式可参考[TensorRT](https://github.com/NVIDIA/TensorRT)。
+
+示例命令如下：
+
+```bash
+python3 -m ais_bench --model pth_resnet50.onnx --backend trtexec --perf 1
+```
+
+输出结果推理测试结果，示例如下：
+
+```bash
+[INFO] [05/27/2023-12:05:31] [I] === Performance summary ===
+[INFO] [05/27/2023-12:05:31] [I] Throughput: 120.699 qps
+[INFO] [05/27/2023-12:05:31] [I] Latency: min = 9.11414 ms, max = 11.7442 ms, mean = 9.81005 ms, median = 9.76404 ms, percentile(90%) = 10.1075 ms, percentile(95%) = 10.1624 ms, percentile(99%) = 11.4742 ms
+[INFO] [05/27/2023-12:05:31] [I] Enqueue Time: min = 0.516296 ms, max = 0.598633 ms, mean = 0.531443 ms, median = 0.5271 ms, percentile(90%) = 0.546875 ms, percentile(95%) = 0.564575 ms, percentile(99%) = 0.580566 ms
+[INFO] [05/27/2023-12:05:31] [I] H2D Latency: min = 1.55066 ms, max = 1.57336 ms, mean = 1.55492 ms, median = 1.55444 ms, percentile(90%) = 1.55664 ms, percentile(95%) = 1.55835 ms, percentile(99%) = 1.56458 ms
+[INFO] [05/27/2023-12:05:31] [I] GPU Compute Time: min = 7.54407 ms, max = 10.1723 ms, mean = 8.23978 ms, median = 8.19409 ms, percentile(90%) = 8.5354 ms, percentile(95%) = 8.59131 ms, percentile(99%) = 9.90002 ms
+[INFO] [05/27/2023-12:05:31] [I] D2H Latency: min = 0.0130615 ms, max = 0.0170898 ms, mean = 0.015342 ms, median = 0.0153809 ms, percentile(90%) = 0.0162354 ms, percentile(95%) = 0.0163574 ms, percentile(99%) = 0.0168457 ms
+[INFO] [05/27/2023-12:05:31] [I] Total Host Walltime: 3.02405 s
+[INFO] [05/27/2023-12:05:31] [I] Total GPU Compute Time: 3.00752 s
+```
+
+**字段说明**
+
+| 字段                  | 说明                                                         |
+| --------------------- | ------------------------------------------------------------ |
+| Throughput            | 吞吐率。                    |
+| Latency               | H2D 延迟、GPU 计算时间和 D2H 延迟的总和。这是推断单个执行的延迟。。                    |
+| min                   | 推理执行时间最小值。                                         |
+| max                   | 推理执行时间最大值。                                         |
+| mean                  | 推理执行时间平均值。                                         |
+| median                | 推理执行时间取中位数。                                       |
+| percentile(99%)       | 推理执行时间中的百分位数。                                   |
+| H2D Latency           | 单个执行的输入张量的主机到设备数据传输的延迟。                                   |
+| GPU Compute Time      | 为执行 CUDA 内核的 GPU 延迟。                                |
+| D2H Latency           | 单个执行的输出张量的设备到主机数据传输的延迟。                    |
+| Total Host Walltime   | 从第一个执行（预热后）入队到最后一个执行完成的主机时间。 |
+| Total GPU Compute Time| 所有执行的 GPU 计算时间的总和。 |
 
 #### profiler或dump场景
 
 支持以--acl_json_path、--profiler、--dump参数形式实现：
-+ acl_json_path参数指定acl.json配置文件，可以在该文件中对应的profiler或dump参数。示例代码如下：
++ acl_json_path参数指定acl.json文件，可以在该文件中对应的profiler或dump参数。示例代码如下：
 
   + profiler
 
@@ -449,7 +575,7 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
     }
     ```
 
-    更多性能参数配置请参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>性能数据采集（acl.json配置文件方式）”章节。
+    更多性能参数配置请依据CANN包种类（商用版或社区版）分别参见《[CANN 商用版：开发工具指南/性能数据采集（acl.json配置文件方式）](https://www.hiascend.com/document/detail/zh/canncommercial/63RC1/devtools/auxiliarydevtool/atlasprofiling_16_0086.html)》和《[CANN 社区版：开发工具指南/性能数据采集（acl.json配置文件方式）](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/63RC1alpha002/developmenttools/devtool/atlasprofiling_16_0086.html)》中的参数配置详细描述
 
   + dump
 
@@ -469,7 +595,9 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
 
     更多dump配置请参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“精度比对工具>比对数据准备>推理场景数据准备>准备离线模型dump数据文件”章节。
 
-  通过该方式进行Profiler采集时，输出的性能数据文件需要参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>数据解析与导出”章节，将性能数据解析并导出为可视化的timeline和summary文件。
+- 通过该方式进行profiler采集时，如果配置了环境变量`export AIT_NO_MSPROF_MODE=1`，输出的性能数据文件需要参见《[CANN 开发工具指南/数据解析与导出/Profiling数据导出](https://www.hiascend.com/document/detail/zh/canncommercial/63RC1/devtools/auxiliarydevtool/atlasprofiling_16_0100.html)》，将性能数据解析并导出为可视化的timeline和summary文件。
+- 通过该方式进行profiler采集时，如果**没有**配置环境变量`AIT_NO_MSPROF_MODE=1`，benchmark会将acl.json中与profiler相关的参数解析成msprof命令，调用msprof采集性能数据，结果默认带有可视化的timeline和summary文件，msprof输出的文件含义参考[性能数据采集（msprof命令行方式）](https://www.hiascend.com/document/detail/zh/canncommercial/63RC1/devtools/auxiliarydevtool/atlasprofiling_16_0040.html)。
+- 如果acl.json文件中同时配置了profiler和dump参数，需要要配置环境变量`export AIT_NO_MSPROF_MODE=1`保证同时采集
 
 + profiler为固化到程序中的一组性能数据采集配置，生成的性能数据保存在--output参数指定的目录下的profiler文件夹内。
 
@@ -483,8 +611,10 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
   该方式进行性能数据采集时，首先检查是否存在msprof命令：
 
   - 若命令存在，则使用该命令进行性能数据采集、解析并导出为可视化的timeline和summary文件。
-  - 若命令不存在，则调用acl.json配置文件进行性能数据采集。采集的性能数据文件未自动解析，需要参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>数据解析与导出”章节，将性能数据解析并导出为可视化的timeline和summary文件。
-  - 若环境配置了GE_PROFILING_TO_STD_OUT=1，则--profiler参数采集性能数据时使用的是acl.json配置文件方式。采集的性能数据文件未自动解析，需要参见《[解析profiling文件](https://gitee.com/ascend/tools/blob/master/ada/doc/ada_pa.md)》对性能数据进行解析。
+  - 若命令不存在，则msprof层面会报错，benchmark层面不检查命令内容合法性。
+  - 若环境配置了AIT_NO_MSPROF_MODE=1，则使用--profiler参数采集性能数据时调用的是acl.json文件。
+
+  msprof命令不存在或环境配置了AIT_NO_MSPROF_MODE=1情况下，采集的性能数据文件未自动解析，需要参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>数据解析与导出”章节，将性能数据解析并导出为可视化的timeline和summary文件。
 
   更多性能数据采集参数介绍请参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>性能数据采集（msprof命令行方式）”章节。
 
@@ -572,7 +702,7 @@ python3 -m ais_bench  --model /home/model/resnet50_v1.om --output ./ --profiler 
   ```bash
   python3 -m ais_bench --model ./pth_resnet50_bs1.om --output ./result --dump 1
   ```
-  
+
   ```bash
   result
   |-- 2022_12_17-07_37_18
@@ -580,7 +710,7 @@ python3 -m ais_bench  --model /home/model/resnet50_v1.om --output ./ --profiler 
   |-- dump
   `-- 2022_12_17-07_37_18_summary.json
   ```
-  
+
 - 设置--profiler参数。示例命令及结果如下：
 
   ```bash
@@ -596,6 +726,35 @@ python3 -m ais_bench  --model /home/model/resnet50_v1.om --output ./ --profiler 
   `-- 2022_12_17-07_56_10_summary.json
   ```
 
+#### 多线程推理场景
+
+  ```bash
+  python3 -m ais_bench --model ./pth_resnet50_bs1.om --pipeline 1
+  ```
+  在单线程推理的命令行基础上加上--pipeline 1即可开启多线程推理模式，实现计算-搬运的并行，加快端到端推理速度。
+
+  ```bash
+  python3 -m ais_bench --model ./pth_resnet50_bs1.om --pipeline 1 --threads 2
+  ```
+  在多线程推理的命令行基础上加上--threads {$number of threads}，即可开启多计算线程推理模式，实现计算-计算的并行，提高推理吞吐量。
+
+#### dump数据自动转换场景
+
+  ```bash
+  python3 -m ais_bench --model ./pth_resnet50_bs1.om --output ./result --dump 1 --dump_npy 1
+  ```
+  在dump场景上加上--dump_npy 1开启自动转换dump数据模式, 需要配合--dump或者--acl_json_path参数。
+
+  转换后dump目录
+
+  ```bash
+  result/
+  |-- 2023_01_03-06_35_53/
+  |-- 2023_01_03-06_35_53_summary.json
+  `-- dump/
+      |--20230103063551/
+      |--20230103063551_npy/
+  ```
 
 
 ### 输出结果
@@ -659,7 +818,7 @@ def infer_simple():
 
   outputs = session.infer([ndata])
   print("outputs:{} type:{}".format(outputs, type(outputs)))
-    
+
   print("static infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
 ```
 
@@ -677,6 +836,23 @@ def infer_dymshape():
   print("dymshape infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
 ```
 
+多线程推理：
+
+使用多线程推理接口时需要注意内存的使用情况，传入的input和预计output总和内存需要小于可用内存，否则程序将会异常退出。
+
+```python
+def infer_pipeline():
+  device_id = 0
+  session = InferSession(device_id, model_path)
+
+  barray = bytearray(session.get_inputs()[0].realsize)
+  ndata = np.frombuffer(barray)
+
+  outputs = session.infer([[ndata]])
+  print("outputs:{} type:{}".format(outputs, type(outputs)))
+
+  print("static infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
+```
 
 
 ### 推理异常保存文件功能
@@ -700,16 +876,16 @@ python3 -m ais_bench --model ./test/testdata/bert/model/pth_bert_bs1.om --input 
 [INFO] exception_cb hostaddr:0x124040753000 devaddr:0x12400db20400 len:589824 write to filename:exception_cb_index_0_output_0_format_2_dtype_1_shape_384x768.bin
 EZ9999: Inner Error!
 EZ9999  The error from device(2), serial number is 17, there is an aicore error, core id is 0, error code = 0x800000, dump info: pc start: 0x800124080041000, current: 0x124080041100, vec error info: 0x1ff1d3ae, mte error info: 0x3022733, ifu error info: 0x7d1f3266f700, ccu error info: 0xd510fef0003608cf, cube error info: 0xfc, biu error info: 0, aic error mask: 0x65000200d000288, para base: 0x124080017040, errorStr: The DDR address of the MTE instruction is out of range.[FUNC:PrintCoreErrorInfo]
-      
+
 # ls exception_cb_index_0_* -lh
 -rw-r--r-- 1 root root  45M Jan  7 08:17 exception_cb_index_0_input_0_format_2_dtype_1_shape_30522x768.bin
 -rw-r--r-- 1 root root 1.5K Jan  7 08:17 exception_cb_index_0_input_1_format_2_dtype_3_shape_384.bin
 -rw-r--r-- 1 root root    4 Jan  7 08:17 exception_cb_index_0_input_2_format_2_dtype_3_shape_.bin
 -rw-r--r-- 1 root root 576K Jan  7 08:17 exception_cb_index_0_output_0_format_2_dtype_1_shape_384x768.bin
 ```
-如果有需要将生成的异常bin文件转换为npy文件，请使用[转换脚本convert_exception_cb_bin_to_npy.py](https://gitee.com/ascend/tools/tree/master/ais-bench_workload/tool/ais_bench/test/convert_exception_cb_bin_to_npy.py).  
+如果有需要将生成的异常bin文件转换为npy文件，请使用[转换脚本convert_exception_cb_bin_to_npy.py](https://gitee.com/ascend/tools/tree/master/ais-bench_workload/tool/ais_bench/test/convert_exception_cb_bin_to_npy.py).
 使用方法：python3 convert_exception_cb_bin_to_npy.py --input {bin_file_path}。支持输入bin文件或文件夹。
 
 
 ## FAQ
-[FAQ](FAQ.md) 
+[FAQ](FAQ.md)

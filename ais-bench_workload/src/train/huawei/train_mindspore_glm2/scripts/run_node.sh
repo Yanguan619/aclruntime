@@ -28,7 +28,7 @@ function get_node_rank_id_range()
 
 function node_init()
 {
-    export PYTHONPATH=$WORK_PATH:$PYTHONPATH
+    export PYTHONPATH=$WORK_PATH:$WORK_PATH/logging:$PYTHONPATH
 
     if [ $1 == "check" ];then
         # install pyyaml

@@ -19,7 +19,7 @@ import stat
 import logging
 
 import pytest
-from ais_bench.infer.benchmark_process import get_legal_json_content
+from ais_bench.infer.infer_process import get_legal_json_content
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)

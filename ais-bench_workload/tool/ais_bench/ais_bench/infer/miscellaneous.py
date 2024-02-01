@@ -21,7 +21,7 @@ import numpy as np
 
 from ais_bench.infer.utils import logger
 from ais_bench.infer.path_security_check import ms_open, MAX_SIZE_LIMITE_CONFIG_FILE, MAX_SIZE_LIMITE_NORMAL_FILE
-from ais_bench.infer.args_adapter import BenchMarkArgsAdapter
+from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 
 PERMISSION_DIR = 0o750
 
@@ -59,7 +59,7 @@ def version_check(args):
     try:
         aclruntime_version = get_modules_version('aclruntime')
     except Exception:
-        url = 'https://gitee.com/ascend/ait/tree/master/ait/components/benchmark'
+        url = 'https://gitee.com/ascend/tools/tree/master/ais-bench_workload/tool/ais_bench'
         logger.warning(f"can't find aclruntime, please visit {url} to install ais_bench(benchmark)"
                        "to install")
         args.run_mode = "tensor"
@@ -233,7 +233,7 @@ def get_throughtput_from_log(out_log):
     return "Failed", 0
 
 
-def regenerate_dymshape_cmd(args: BenchMarkArgsAdapter, dym_shape):
+def regenerate_dymshape_cmd(args: AISBenchInferArgsAdapter, dym_shape):
     args_dict = args.get_all_args_dict()
     cmd = sys.executable + " -m ais_bench"
     for key, value in args_dict.items():
@@ -248,7 +248,7 @@ def regenerate_dymshape_cmd(args: BenchMarkArgsAdapter, dym_shape):
     return cmd_list
 
 
-def dymshape_range_run(args: BenchMarkArgsAdapter):
+def dymshape_range_run(args: AISBenchInferArgsAdapter):
     dymshape_list = get_dymshape_list(args.dym_shape_range)
     results = []
     for dymshape in dymshape_list:

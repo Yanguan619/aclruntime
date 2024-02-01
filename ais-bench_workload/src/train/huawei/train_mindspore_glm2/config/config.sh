@@ -5,13 +5,13 @@ export PYTHON_COMMAND=python3
 export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # the path of ssh private key path
 export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'
 
-export GLM_RUN_MODE='only_finetune' # 'only_pretrain', 'only_finetune', 'full'
+export GLM_RUN_MODE='only_finetune'
 
 # PRETRAIN_DATA_PATH, FINETUNE_DATA_PATH, EVAL_DATASET_PATH 这三个路径是相对mindformers源码的路径, 必须以./mindformers/开头
-export FINETUNE_DATA_PATH=./mindformers/dataset_files/AdevertiseGen/train.json # 微调数据集
+export FINETUNE_DATA_PATH=./mindformers/dataset_files/AdvertiseGen/train.json # 微调数据集
 export EVAL_DATASET_TYPE='ADGEN' # 'ADGEN'
 export EVAL_DATASET_PATH=./mindformers/dataset_files/AdevertiseGen/dev.json # 评测用的数据集路径，必须以./mindformers/开头
-export FINETUNE_CKPT_PATH=/home/data/ckpt/glm2_6b.ckpt # only for 'only_finetune'
+export FINETUNE_CKPT_PATH=./mindformers/checkpoint_download/glm2/glm2_6b.ckpt # only for 'only_finetune'
 export EVAL_DEVICE_ID=0 # 评测用的npu 的device id
 
 export EPOCH_SIZE=1

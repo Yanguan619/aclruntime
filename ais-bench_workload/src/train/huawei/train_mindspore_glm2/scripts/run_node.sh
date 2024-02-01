@@ -62,7 +62,7 @@ function node_check()
     check_mindspore_run_ok ${PYTHON_COMMAND} || { logger_Warn "mindspore running failed" ; return $ret_failed; }
     logger_Debug "mindspore running successfully"
 
-    if [ "$GLM_RUN_MODE" == "finetune" ];then
+    if [ "$GLM_RUN_MODE" == "only_finetune" ];then
         check_file_valid "${WORK_PATH}/code/${FINETUNE_DATA_PATH}" || { logger_Warn "FINETUNE_DATA_PATH:${FINETUNE_DATA_PATH} not valid path" ; return 1; }
         logger_Debug "FINETUNE_DATA_PATH is valid"
         check_file_valid "${WORK_PATH}/code/${EVAL_DATASET_PATH}" || { logger_Warn "EVAL_DATASET_PATH:${EVAL_DATASET_PATH} not valid path" ; return 1; }

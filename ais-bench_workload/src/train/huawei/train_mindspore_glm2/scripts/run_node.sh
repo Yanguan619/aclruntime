@@ -94,6 +94,8 @@ function node_train()
     run_script_path=$WORK_PATH/code/scripts/
     run_yaml_path=$WORK_PATH/code/configs/glm2/$GLM_RUN_YAML_NAME
     rank_table_path=${WORK_PATH}/$RANK_TABLE_FILE
+    run_processed_yaml=$WORK_PATH/$GLM_RUN_YAML_NAME
+    cp $run_processed_yaml $run_yaml_path
     # train run
     cd $run_script_path
     cmd="bash run_distribute.sh $rank_table_path $run_yaml_path $RANK_ID_RANGE $1"
@@ -107,7 +109,7 @@ function node_train()
 function eval_run()
 {
     logger_Info "eval_run running"
-    eval_yaml_path=$WORK_PATH/code/configs/glm2/$GLM_RUN_YAML_NAME
+    eval_yaml_path=$WORK_PATH/code/configs/glm2/$GLM_EVAL_YAML_NAME
     eval_processed_yaml=$WORK_PATH/$GLM_EVAL_YAML_NAME
     cp $eval_processed_yaml $eval_yaml_path
     eval_dataset_path=$WORK_PATH/code/$EVAL_DATASET_PATH

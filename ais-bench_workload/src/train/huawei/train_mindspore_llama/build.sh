@@ -19,6 +19,7 @@ function main()
     bash $CURDIR/patch.sh loadcode "$@" || { echo "warn run patch failed"; return 1; }
     cp -rf ${CURDIR}/patchcode ${CURDIR}//output/code
     cp -rf ${CURDIR}/scripts/* ${CURDIR}//output/
+    cp -f ${CURDIR}/README.md ${CURDIR}//output/
     cp ${CURDIR}/../../../common -r ${CURDIR}//output/
 
     mkdir -p ${CURDIR}/output/config

@@ -90,7 +90,6 @@ function node_train()
     logger_Info "node_train running"
     export GLM_CUR_RUN_MODE=$1
     source $WORK_PATH/config/config.sh
-    $PYTHON_COMMAND $WORK_PATH/pre_conf_yaml.py $1 # change yaml params
     run_script_path=$WORK_PATH/code/scripts/
     run_yaml_path=$WORK_PATH/code/configs/glm2/$GLM_RUN_YAML_NAME
     rank_table_path=${WORK_PATH}/$RANK_TABLE_FILE

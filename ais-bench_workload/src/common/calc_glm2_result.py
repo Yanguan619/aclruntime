@@ -39,10 +39,6 @@ def set_result_single(mode:str):
             ais_utils.set_result("training", key, value[-1])
 
 
-def set_result_full():
-    pass
-
-
 if RUN_MODE == "only_finetune":
     set_result_single("train")
 else:

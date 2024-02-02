@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "start to build llama workload"
+echo "start to build glm2 workload"
 
 declare -i ret_ok=0
 declare -i ret_error=1

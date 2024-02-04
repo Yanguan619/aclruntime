@@ -36,7 +36,9 @@ if 'Ascend 910B'in soc_version:
 else:
     target_yaml = os.path.join(config_path, f'run_llama{model_type}_{model_scale}.yaml')
 if os.getenv('LLAMA_RUN_MODE') == 'only_finetune':
-    ckpt_path = os.path.realpath(os.getenv('FINETUNE_CKPT_PATH'))
+    ckpt_path = os.path.join(cur_path, os.getenv('FINETUNE_CKPT_PATH'))
+    if not os.path.exists(ckpt_path):
+        raise FileExistsError(f"ckpt_path: {ckpt_path} not find!")
 else:
     ckpt_path = os.path.join(cur_path, f'result/output/target_ckpt/rank_0/llama{model_type}_{model_scale}0.ckpt')
 

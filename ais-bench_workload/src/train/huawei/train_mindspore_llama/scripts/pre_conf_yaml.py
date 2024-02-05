@@ -20,7 +20,7 @@ data_parallel = int(os.getenv('DATA_PARALLEL'))
 model_parallel = int(os.getenv('MODEL_PARALLEL'))
 pipeline_stage = int(os.getenv('PIPELINE_STAGE'))
 
-if not rank_size == data_parallel * model_parallel * pipeline_stage:
+if not rank_size == data_parallel * model_parallel * pipeline_stage and run_mode != "finetune_eval":
     raise RuntimeError("DATA_PARALLEL * MODEL_PARALLEL * PIPELINE_STAGE should equal to RANK_SIZE !")
 
 model_scale = os.getenv('LLAMA_MODEL_SCALE')

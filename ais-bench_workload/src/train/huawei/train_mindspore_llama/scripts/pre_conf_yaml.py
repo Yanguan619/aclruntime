@@ -47,9 +47,10 @@ if not os.path.exists(target_yaml):
 if os.path.islink(target_yaml):
     raise RuntimeError(f"yaml file: {target_yaml} is softlink!")
 
-seq_length = 2048
-if model_type == "2" and not os.getenv("TRAINING_TEST_PERIAD", "DEFAULT") == "EVAL":
+if model_type == "2" and run_mode == "finetune_eval":
     seq_length = 4096
+else:
+    seq_length = 2048
 
 def change_parallel_params(data):
     data_parallel = int(data['parallel_config']['data_parallel'])
@@ -109,8 +110,6 @@ if run_mode == 'train':
     data = write_pretrain_yaml(data)
 elif run_mode == "finetune":
     data = write_finetune_yaml(data)
-else:
-    raise RuntimeError(f"run_mode{run_mode} not valid!")
 
 with open(target_yaml, 'w', encoding='utf-8') as file:
     try:

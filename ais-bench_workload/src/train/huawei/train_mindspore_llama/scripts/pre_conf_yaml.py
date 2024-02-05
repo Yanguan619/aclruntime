@@ -47,6 +47,10 @@ if not os.path.exists(target_yaml):
 if os.path.islink(target_yaml):
     raise RuntimeError(f"yaml file: {target_yaml} is softlink!")
 
+seq_length = 2048
+if model_type == "2" and not os.getenv("TRAINING_TEST_PERIAD", "DEFAULT") == "EVAL":
+    seq_length = 4096
+
 def change_parallel_params(data):
     data_parallel = int(data['parallel_config']['data_parallel'])
     model_parallel = int(data['parallel_config']['model_parallel'])
@@ -90,6 +94,7 @@ def write_finetune_yaml(data):
     data['train_dataset']['data_loader']['dataset_dir'] = finetune_dataset
     data['eval_dataset']['data_loader']['dataset_dir'] = eval_data_path
     data['model']['model_config']['num_layers'] = int(layer_num)
+    data['model']['model_config']['seq_length'] = seq_length
     data['callbacks'][1]['save_checkpoint_steps'] = 100000
     return data
 

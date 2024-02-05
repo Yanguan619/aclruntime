@@ -31,7 +31,7 @@ sink_size = 2
 layer_num = os.getenv("LLAMA_LAYER_NUM")
 eval_data_path = os.getenv('EVAL_DATASET_PATH')
 
-if 'Ascend 910B'in soc_version:
+if '910B'in soc_version:
     target_yaml = os.path.join(config_path, f'run_llama{model_type}_{model_scale}_910b.yaml')
 else:
     target_yaml = os.path.join(config_path, f'run_llama{model_type}_{model_scale}.yaml')
@@ -109,6 +109,8 @@ with open(target_yaml, 'r', encoding='utf-8') as file:
 if run_mode == 'train':
     data = write_pretrain_yaml(data)
 elif run_mode == "finetune":
+    data = write_finetune_yaml(data)
+elif run_mode == "finetune_eval":
     data = write_finetune_yaml(data)
 
 with open(target_yaml, 'w', encoding='utf-8') as file:

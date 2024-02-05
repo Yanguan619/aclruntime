@@ -1,7 +1,7 @@
 seed: 0
 run_mode: 'train'
 output_dir: './output' # path to save checkpoint/strategy
-load_checkpoint: './code/mindformers/checkpoint_download/glm2_6b.ckpt'
+load_checkpoint: '../../mindformers/checkpoint_download/glm2_6b.ckpt'
 src_strategy_path_or_dir: ''
 auto_trans_ckpt: False  # If true, auto transform load_checkpoint to load in distributed model
 only_save_strategy: False
@@ -96,14 +96,14 @@ processor:
 train_dataset: &train_dataset
   data_loader:
     type: ADGenDataLoader
-    dataset_dir: "./code/mindformers/dataset_files/AdvertiseGen/train.json"
+    dataset_dir: "../../mindformers/dataset_files/AdvertiseGen/train.json"
     shuffle: True
     phase: "train"
     version: 2
     origin_columns: ["content", "summary"]
   tokenizer:
     type: ChatGLM2Tokenizer
-    vocab_file: "./code/mindformers/checkpoint_download/tokenizer.model"
+    vocab_file: "../../mindformers/checkpoint_download/tokenizer.model"
   input_columns: ["input_ids", "labels"]
   max_source_length: 64
   max_target_length: 128

@@ -130,7 +130,7 @@ eval_dataset: &eval_dataset
     origin_columns: ["content", "summary"]
   tokenizer:
     type: ChatGLM2Tokenizer
-    vocab_file: "./code/mindformers/checkpoint_download/tokenizer.model"
+    vocab_file: "./work/code/mindformers/checkpoint_download/tokenizer.model"
   max_source_length: 256
   max_target_length: 256
   ignore_pad_token_for_loss: True

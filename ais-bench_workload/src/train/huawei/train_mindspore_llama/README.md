@@ -42,15 +42,15 @@ llama2参考[llama2资源准备](https://gitee.com/mindspore/mindformers/blob/ac
 #### 预训练数据集准备
 llama参考[llama资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)的“预训练/数据集准备-预训练”章节；
 llama2参考[llama2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)“预训练/数据集准备”章节。
-#### 1.3.2 微调数据集准备
+#### 微调数据集准备
 llama参考[llama资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)的“微调/数据集准备-微调”章节；
 llama2参考[llama2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)“微调/数据集准备”章节。
-#### 1.3.3 评测数据集准备
+#### 评测数据集准备
 **wikitext**
 llama参考[llama资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)的“评测/文本生成/获取数据集”章节；
 llama2参考[llama2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)“评测/文本生成/获取数据集”章节。
 
-### 1.4 nodeinfo_file准备（多机多卡训练需要）
+### nodeinfo_file准备（多机多卡训练需要）
 nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）并按照如下格式配置节点信息：
 ```json
 {
@@ -67,10 +67,10 @@ nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）
 }
 ```
 
-## 2 负载启动前配置项
-### 2.0 和tester连接的配置（仅在线测试需要）
+## 负载启动前配置项
+### 和tester连接的配置（仅在线测试需要）
 `./config/config.json`和`./config/system.json`请参考《Stubs被测试者接入使用文档》中的“配置与Tester相关的配置文件”章节以及测试机构的要求进行配置。
-### 2.1 ./code/config/config.sh配置
+### ./code/config/config.sh配置
 `./code/config/config.sh`内容如下：
 ```bash
 #!/bin/bash
@@ -90,7 +90,7 @@ export PRETRAIN_DATA_PATH=./mindformers/dataset_files/wikitext-2/wiki2048.mindre
 export FINETUNE_DATA_PATH=./mindformers/dataset_files/alpaca-fastchat2048.mindrecord # 微调数据集
 export EVAL_DATASET_TYPE='wikitext' # 评估数据集名，可选 'wikitext'
 export EVAL_DATASET_PATH=./mindformers/dataset_files/wikitext-2/wiki2048valid.mindrecord # 评测用的数据集路径，必须以./mindformers/开头
-export FINETUNE_CKPT_PATH=/home/data/ckpt/open_llama_7b.ckpt # only for 'only_finetune'
+export FINETUNE_CKPT_PATH=/home/data/ckpt/open_llama_7b.ckpt # only for 'only_finetune',相对于Ais-Benchmark-Stubs-<arch>/code/目录的路径，权重也要放在code/内
 export EVAL_DEVICE_ID=0 # 评测用的npu 的device id
 
 export EPOCH_SIZE=1 # 全量遍历数据集的迭代次数
@@ -105,20 +105,20 @@ export MODEL_PARALLEL=1
 export PIPELINE_STAGE=4
 
 # need if rank_size > 1
-export RANK_TABLE_FILE=/home/hccl/hccl_xxxx_8p.json # rank_table_file的路径
+export RANK_TABLE_FILE=hccl_xxxx_8p.json # rank_table_file的路径，相对于Ais-Benchmark-Stubs-<arch>/code/目录的路径，rank_table_file需要放在code/内
 
 # 多机多卡需要配置，单机不能配置
 #export NODEINFO_FILE=/home/lcm/tool/ssh64_66.json
 ```
 请参考`./code/config/config.sh`的注释将第一章准备的资源的路径在`config.sh`中配置好，并且确定好训练相关的参数
 
-## 3 负载启动
-### 3.1 在线测试
+## 负载启动
+### 在线测试
 执行命令
 ```bash
 ./ais-bench-stubs
 ```
-### 3.2 轻量化离线测试
+### 轻量化离线测试
 执行命令
 ```bash
 ./ais-bench-stubs test

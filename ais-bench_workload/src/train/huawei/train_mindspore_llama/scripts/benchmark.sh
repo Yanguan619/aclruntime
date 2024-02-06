@@ -35,7 +35,6 @@ fi
 . $CODE_PATH/cluster_offline_run.sh
 
 main(){
-    get_node_train_data || { logger_Warn "download open llama cpkt failed:$?";return $ret_init_failed; }
     init || { logger_Warn "init failed:$?";return $ret_init_failed; }
     run_train || { logger_Warn "run_train failed ret:$?";return $ret_run_train_failed; }
     run_eval || { logger_Warn "run_eval failed ret:$?";return $ret_run_eval_failed; }

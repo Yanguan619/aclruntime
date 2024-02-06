@@ -20,6 +20,7 @@ for rank_id in range(int(RANK_SIZE)):
             json_data = json.load(file)
         if not merged_json_data:
             merged_json_data = json_data
+            continue
         for mode_key, mode_value in json_data.items():
             for param_key, param_value in mode_value.items():
                 merged_json_data[mode_key][param_key].extend(param_value)

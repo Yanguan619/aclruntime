@@ -7,7 +7,7 @@ declare -i ret_ok=0
 declare -i ret_failed=1
 
 SOC_VERSION=`python3 -c 'import acl;print(acl.get_soc_name())'`
-if [[ "$SOC_VERSION" == "910B1" || "$SOC_VERSION" == "910B2" || "$SOC_VERSION" == "910B3" || "$SOC_VERSION" == "910B4" ]];then
+if [[ "$SOC_VERSION" =~ "910B1" || "$SOC_VERSION" =~ "910B2" || "$SOC_VERSION" =~ "910B3" || "$SOC_VERSION" =~ "910B4" ]];then
     LLAMA_RUN_YAML_NAME="run_llama${LLAMA_MODEL_TYPE}_${LLAMA_MODEL_SCALE}_910b.yaml"
 else
     LLAMA_RUN_YAML_NAME="run_llama${LLAMA_MODEL_TYPE}_${LLAMA_MODEL_SCALE}.yaml"
@@ -116,6 +116,7 @@ function node_train()
 function eval_run()
 {
     logger_Info "eval_run running"
+    $PYTHON_COMMAND $WORK_PATH/pre_conf_yaml.py $1 # change yaml params
     run_yaml_path=$WORK_PATH/code/configs/llama${LLAMA_MODEL_TYPE}/$LLAMA_RUN_YAML_NAME
     eval_dataset_path=$WORK_PATH/code/$EVAL_DATASET_PATH
     load_checkpoint_path=$WORK_PATH/result/output/target_ckpt/rank_0/llama${LLAMA_MODEL_TYPE}_${LLAMA_MODEL_SCALE}0.ckpt
@@ -145,11 +146,11 @@ function node_eval()
 {
     logger_Info "node_eval running"
     if [ "$LLAMA_RUN_MODE" == "full" ];then
-        eval_run
+        eval_run "finetune_eval"
     elif [ "$LLAMA_RUN_MODE" == "only_pretrain" ];then
         echo "eval not supported yet"
     elif [ "$LLAMA_RUN_MODE" == "only_finetune" ];then
-        eval_run
+        eval_run "finetune_eval"
     else
         echo "llama run mode not supported"
         return $ret_failed

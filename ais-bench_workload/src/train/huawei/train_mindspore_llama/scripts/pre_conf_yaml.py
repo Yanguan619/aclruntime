@@ -20,7 +20,7 @@ data_parallel = int(os.getenv('DATA_PARALLEL'))
 model_parallel = int(os.getenv('MODEL_PARALLEL'))
 pipeline_stage = int(os.getenv('PIPELINE_STAGE'))
 
-if not rank_size == data_parallel * model_parallel * pipeline_stage:
+if not rank_size == data_parallel * model_parallel * pipeline_stage and run_mode != "finetune_eval":
     raise RuntimeError("DATA_PARALLEL * MODEL_PARALLEL * PIPELINE_STAGE should equal to RANK_SIZE !")
 
 model_scale = os.getenv('LLAMA_MODEL_SCALE')
@@ -31,12 +31,14 @@ sink_size = 2
 layer_num = os.getenv("LLAMA_LAYER_NUM")
 eval_data_path = os.getenv('EVAL_DATASET_PATH')
 
-if 'Ascend 910B'in soc_version:
+if '910B'in soc_version:
     target_yaml = os.path.join(config_path, f'run_llama{model_type}_{model_scale}_910b.yaml')
 else:
     target_yaml = os.path.join(config_path, f'run_llama{model_type}_{model_scale}.yaml')
 if os.getenv('LLAMA_RUN_MODE') == 'only_finetune':
-    ckpt_path = os.path.realpath(os.getenv('FINETUNE_CKPT_PATH'))
+    ckpt_path = os.path.join(cur_path, os.getenv('FINETUNE_CKPT_PATH'))
+    if not os.path.exists(ckpt_path):
+        raise FileExistsError(f"ckpt_path: {ckpt_path} not find!")
 else:
     ckpt_path = os.path.join(cur_path, f'result/output/target_ckpt/rank_0/llama{model_type}_{model_scale}0.ckpt')
 
@@ -44,6 +46,11 @@ if not os.path.exists(target_yaml):
     raise FileExistsError(f"yaml file: {target_yaml} not find!")
 if os.path.islink(target_yaml):
     raise RuntimeError(f"yaml file: {target_yaml} is softlink!")
+
+if model_type == "2" and run_mode == "finetune_eval":
+    seq_length = 4096
+else:
+    seq_length = 2048
 
 def change_parallel_params(data):
     data_parallel = int(data['parallel_config']['data_parallel'])
@@ -88,6 +95,7 @@ def write_finetune_yaml(data):
     data['train_dataset']['data_loader']['dataset_dir'] = finetune_dataset
     data['eval_dataset']['data_loader']['dataset_dir'] = eval_data_path
     data['model']['model_config']['num_layers'] = int(layer_num)
+    data['model']['model_config']['seq_length'] = seq_length
     data['callbacks'][1]['save_checkpoint_steps'] = 100000
     return data
 
@@ -102,8 +110,8 @@ if run_mode == 'train':
     data = write_pretrain_yaml(data)
 elif run_mode == "finetune":
     data = write_finetune_yaml(data)
-else:
-    raise RuntimeError(f"run_mode{run_mode} not valid!")
+elif run_mode == "finetune_eval":
+    data = write_finetune_yaml(data)
 
 with open(target_yaml, 'w', encoding='utf-8') as file:
     try:

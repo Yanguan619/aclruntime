@@ -15,7 +15,7 @@ export PRETRAIN_DATA_PATH=./mindformers/dataset_files/wikitext-2/wiki2048.mindre
 export FINETUNE_DATA_PATH=./mindformers/dataset_files/alpaca-fastchat2048.mindrecord # 微调数据集
 export EVAL_DATASET_TYPE='wikitext' # 评估数据集名，可选 'wikitext'
 export EVAL_DATASET_PATH=./mindformers/dataset_files/wikitext-2/wiki2048valid.mindrecord # 评测用的数据集路径，必须以./mindformers/开头
-export FINETUNE_CKPT_PATH=/home/data/ckpt/open_llama_7b.ckpt # only for 'only_finetune',相对于Ais-Benchmark-Stubs-<arch>/code/目录的路径，权重也要放在code/内
+export FINETUNE_CKPT_PATH=open_llama_7b.ckpt # only for 'only_finetune',相对于Ais-Benchmark-Stubs-<arch>/code/目录的路径，权重也要放在code/内
 export EVAL_DEVICE_ID=0 # 评测用的npu 的device id
 
 export EPOCH_SIZE=1 # 全量遍历数据集的迭代次数

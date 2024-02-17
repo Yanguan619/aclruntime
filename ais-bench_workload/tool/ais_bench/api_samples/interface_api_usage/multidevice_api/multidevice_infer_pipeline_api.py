@@ -22,8 +22,8 @@ def multidevice_infer_pipeline_static():
     # create multidevice session of om model for inference
     multi_session = MultiDeviceSession(model_path)
     # create new numpy data
-    shape1 = [1,3,32,32]
-    shape2 = [1,3,32,32]
+    shape1 = [1, 3, 32, 32]
+    shape2 = [1, 3, 32, 32]
     ndata1 = np.full(shape1, 0).astype(np.float32)
     ndata2 = np.full(shape2, 0).astype(np.float32)
     feeds = [ndata1, ndata2]

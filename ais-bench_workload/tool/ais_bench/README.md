@@ -78,13 +78,13 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    在安装环境执行如下命令安装aclruntime包：
 
    ```bash
-   pip3 install -v 'git+https://gitee.com/ascend/ait.git#egg=aclruntime&subdirectory=ait/components/benchmark/backend'
+   pip3 install -v 'git+https://gitee.com/ascend/tools.git#egg=aclruntime&subdirectory=ais-bench_workload/tool/ais_bench/backend'
    ```
 
    说明：若为覆盖安装，请增加“--force-reinstall”参数强制安装，例如：
 
    ```bash
-   pip3 install -v --force-reinstall 'git+https://gitee.com/ascend/ait.git#egg=aclruntime&subdirectory=ait/components/benchmark/backend'
+   pip3 install -v --force-reinstall 'git+https://gitee.com/ascend/tools.git#egg=aclruntime&subdirectory=ais-bench_workload/tool/ais_bench/backend'
    ```
 
    提示如下示例信息则表示安装成功：
@@ -98,13 +98,13 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    在安装环境执行如下命令安装ais_bench推理程序包：
 
    ```bash
-    pip3 install -v 'git+https://gitee.com/ascend/ait.git#egg=ais_bench&subdirectory=ait/components/benchmark'
+    pip3 install -v 'git+https://gitee.com/ascend/tools.git#egg=ais_bench&subdirectory=ais-bench_workload/tool/ais_bench'
    ```
 
    说明：若为覆盖安装，请增加“--force-reinstall”参数强制安装，例如：
 
    ```bash
-   pip3 install -v --force-reinstall 'git+https://gitee.com/ascend/ait.git#egg=ais_bench&subdirectory=ait/components/benchmark'
+   pip3 install -v --force-reinstall 'git+https://gitee.com/ascend/tools.git#egg=ais_bench&subdirectory=ais-bench_workload/tool/ais_bench'
    ```
 
    提示如下示例信息则表示安装成功：
@@ -116,15 +116,15 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
 
 
 #### 源代码编译安装
-1. 从代码开源仓[Gitee](https://gitee.com/ascend/ait)克隆/下载工具压缩包“ait-master.zip”。
+1. 从代码开源仓[Gitee](https://gitee.com/ascend/tools.git)克隆/下载工具压缩包“tools-master.zip”。
 
 2. 将工具压缩包上传并解压至安装环境。
 
-3. 从工具解压目录下进入/ait/ait/components/benchmark/ais_bench目录下，执行如下命令进行编译：
+3. 从工具解压目录下进入tools/ais-bench_workload/tool/ais_bench目录下，执行如下命令进行编译：
 
    ```bash
    # 进入工具解压目录
-   cd ${HOME}/ait/ait/components/benchmark
+   cd ${HOME}/tools/ais-bench_workload/tool/ais_bench
    # 构建aclruntime包
    pip3 wheel ./backend/ -v
    # 构建ais_bench推理程序包
@@ -197,6 +197,7 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
 ## 使用方法
 
 ### 工具介绍
+ais_bench推理工具的使用方法主要分为命令行使用和API调用。本章节主要介绍命令行使用，API调用请参考
 
  #### 使用入口
 

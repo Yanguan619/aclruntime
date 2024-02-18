@@ -29,10 +29,9 @@ def multidevice_infer_pipeline_static():
     feeds = [ndata1, ndata2]
     feeds_list = [feeds, feeds]
     # create {device_id : input datas} dict
-    device_feeds = {device_id: [feeds_list, feeds_list]}
+    device_feeds = {device_id:[feeds_list, feeds_list]}
     # in is numpy list and output is numpy list
     outputs = multi_session.infer_pipeline(device_feeds, mode='static')
     print(f"outputs: {outputs}")
-
 
 multidevice_infer_pipeline_static()

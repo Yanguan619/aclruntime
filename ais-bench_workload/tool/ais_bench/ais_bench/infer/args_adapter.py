@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-class BenchMarkArgsAdapter():
+class AISBenchInferArgsAdapter():
     def __init__(self, model, input_path, output, output_dirname, outfmt, loop,
                  debug, device, dym_batch, dym_hw, dym_dims,
                  dym_shape, output_size, auto_set_dymshape_mode,

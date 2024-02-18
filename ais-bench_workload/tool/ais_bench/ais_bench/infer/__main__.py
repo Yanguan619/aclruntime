@@ -15,8 +15,8 @@
 import argparse
 import os
 import re
-from ais_bench.infer.benchmark_process import benchmark_process
-from ais_bench.infer.args_adapter import BenchMarkArgsAdapter
+from ais_bench.infer.infer_process import infer_process
+from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.args_check import (
     check_dym_string, check_dym_range_string, check_number_list, str2bool, check_positive_integer,
     check_batchsize_valid, check_nonnegative_integer, check_device_range_valid, check_om_path_legality,
@@ -269,7 +269,7 @@ def get_args():
 if __name__ == "__main__":
     args = get_args()
 
-    args = BenchMarkArgsAdapter(args.model, args.input, args.output,
+    args = AISBenchInferArgsAdapter(args.model, args.input, args.output,
                 args.output_dirname, args.outfmt, args.loop, args.debug, args.device,
                 args.dym_batch, args.dym_hw, args.dym_dims, args.dym_shape, args.output_size,
                 args.auto_set_dymshape_mode, args.auto_set_dymdims_mode, args.batchsize, args.pure_data_type,
@@ -277,5 +277,5 @@ if __name__ == "__main__":
                 args.display_all_summary, args.warmup_count, args.dym_shape_range, args.aipp_config,
                 args.energy_consumption, args.npu_id, args.backend, args.perf, args.pipeline, args.profiler_rename,
                 args.dump_npy, args.divide_input, args.threads)
-    ret = benchmark_process(args)
+    ret = infer_process(args)
     exit(ret)

@@ -32,5 +32,4 @@ def multidevice_infer_static():
     outputs = multi_session.infer(device_feeds, mode='static')
     print(f"outputs: {outputs}")
 
-
 multidevice_infer_static()

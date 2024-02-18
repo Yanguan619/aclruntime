@@ -49,7 +49,7 @@ from ais_bench.infer.utils import (get_file_content, get_file_datasize,
                                    save_data_to_files, create_fake_file_name, logger,
                                    create_tmp_acl_json, move_subdir, convert_helper)
 from ais_bench.infer.path_security_check import is_legal_args_path_string
-from ais_bench.infer.args_adapter import BenchMarkArgsAdapter
+from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.backends import BackendFactory
 from ais_bench.infer.path_security_check import ms_open, MAX_SIZE_LIMITE_CONFIG_FILE
 
@@ -316,7 +316,7 @@ def json_to_msprof_cmd(acl_json_path):
     return msprof_option_cmd
 
 
-def regenerate_cmd(args:BenchMarkArgsAdapter):
+def regenerate_cmd(args:AISBenchInferArgsAdapter):
     args_dict = args.get_all_args_dict()
     cmd = sys.executable + " -m ais_bench"
     for key, value in args_dict.items():
@@ -719,7 +719,7 @@ def backend_run(args):
     logger.info(f"perf info:{perf}")
 
 
-def benchmark_process(args:BenchMarkArgsAdapter):
+def infer_process(args:AISBenchInferArgsAdapter):
     args = args_rules(args)
     version_check(args)
     args = acl_json_base_check(args)

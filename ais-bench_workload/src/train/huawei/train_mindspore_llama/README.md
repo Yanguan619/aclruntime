@@ -1,5 +1,31 @@
 # 基于Mindspore/mindformers框架的llama大模型训练负载使用指南
 本文主要介绍使用基于llama 或Llama2 大模型训练业务代码构建的AISBench的负载包，进行服务器性能测试的流程。
+## 名词定义
+|名词|定义|
+| --- | --- |
+|管理节点|运行大模型训练负载的环境，只有一个|
+|计算节点|执行训练任务的环境，可以有多个|
+## 运行环境前置条件
+### 管理节点
+```
+python >= 3.7
+```
+### 计算节点
+```
+mindspore >= 2.2
+```
+mindspore安装参考[Mindspore官网](https://www.mindspore.cn/)mindspore需要能成功在npu上运行，验证命令：
+```bash
+python -c "import mindspore;mindspore.set_context(device_target='Ascend');mindspore.run_check()"
+```
+如果正常输出：
+```bash
+MindSpore version: 版本号
+The result of multiplication calculation is correct, MindSpore has been installed on platform [Ascend] successfully!
+```
+说明成功。
+### 单机多卡与多机多卡的区别
+单机多卡执行负载时，管理节点和计算节点是一个环境；多机多卡执行负载时，多机就是多个计算节点，管理节点可以是其中一个计算节点，也可以是单独一个环境。
 ## 负载包中文件夹主要目录结构
 
 ```
@@ -28,7 +54,7 @@
 ## 资源准备
 ### 前置声明
 运行llama（llama2）训练的Mindspore/mindformers的代码全部在`./code/code`文件夹中，资源的准备参考[llama资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)和[llama2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)，具体资源的参考详见本章其他小节。
-**注意**：需要确认环境中是否原来已经安装了mindformers，如果安装了，请使用`pip uninstall mindformers`卸载，确保负载代码的mindformers能正常安装。
+**注意**：需要确认计算节点中是否原来已经安装了mindformers，如果安装了，请使用`pip uninstall mindformers`卸载，确保负载代码的mindformers能正常在计算节点中安装。
 ### rank_table_file准备(llama和llama2通用)
 确保`/etc/hccn.conf`文件已经配好（如果没配好，参考[数据中心解决方案/配置训练节点](https://www.hiascend.com/document/detail/zh/Ascend%20Data%20Center%20Solution/22.0.0/install/800_9000/install_800_9000_0029.html)配置）。
 
@@ -51,14 +77,14 @@ llama参考[llama资源准备](https://gitee.com/mindspore/mindformers/blob/ac5b
 llama2参考[llama2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)“评测/文本生成/获取数据集”章节。
 
 ### nodeinfo_file准备（多机多卡训练需要）
-nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）并按照如下格式配置节点信息：
+nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）并按照如下格式配置计算节点信息：
 ```json
 {
-    "0": { // 节点编号，为用户自定义，非设备实际编号，配置要求：不能重复、必须是0开始的连续整数，例如共有4个节点，节点编号只能取0，1，2，3。若不同节点配置了相同编号，那么只会读取其中一个节点的信息，另一个节点信息则被覆盖，实际运行测试时被覆盖的节点不会被测试。
-        "ip": "xx.xx.xx.xx", // 节点的ip地址 ipv4
-        "user": "user0", // 节点的用户名
-        "port": 12345, // 访问节点的端口
-        "work_path": "/xx/xx/xx/xx"  // 节点的工作路径，管理节点进入节点后处于的路径
+    "0": { // 计算节点编号，为用户自定义，非设备实际编号，配置要求：不能重复、必须是0开始的连续整数，例如共有4个节点，节点编号只能取0，1，2，3。若不同节点配置了相同编号，那么只会读取其中一个节点的信息，另一个节点信息则被覆盖，实际运行测试时被覆盖的节点不会被测试。
+        "ip": "xx.xx.xx.xx", //  计算节点的ip地址 ipv4
+        "user": "user0", //  计算节点的用户名
+        "port": 12345, // 访问计算节点的端口
+        "work_path": "/xx/xx/xx/xx"  //  计算节点的工作路径，管理节点进入节点后处于的路径
     },
     "1":{
         ...
@@ -90,7 +116,7 @@ export PRETRAIN_DATA_PATH=./mindformers/dataset_files/wikitext-2/wiki2048.mindre
 export FINETUNE_DATA_PATH=./mindformers/dataset_files/alpaca-fastchat2048.mindrecord # 微调数据集
 export EVAL_DATASET_TYPE='wikitext' # 评估数据集名，可选 'wikitext'
 export EVAL_DATASET_PATH=./mindformers/dataset_files/wikitext-2/wiki2048valid.mindrecord # 评测用的数据集路径，必须以./mindformers/开头
-export FINETUNE_CKPT_PATH=/home/data/ckpt/open_llama_7b.ckpt # only for 'only_finetune',相对于Ais-Benchmark-Stubs-<arch>/code/目录的路径，权重也要放在code/内
+export FINETUNE_CKPT_PATH=../../open_llama_7b.ckpt # only for 'only_finetune',相对于Ais-Benchmark-Stubs-<arch>/code/目录的路径，权重也要放在code/内
 export EVAL_DEVICE_ID=0 # 评测用的npu 的device id
 
 export EPOCH_SIZE=1 # 全量遍历数据集的迭代次数
@@ -114,12 +140,12 @@ export RANK_TABLE_FILE=hccl_xxxx_8p.json # rank_table_file的路径，相对于A
 
 ## 负载启动
 ### 在线测试
-执行命令
+在管理节点上执行命令
 ```bash
 ./ais-bench-stubs
 ```
 ### 轻量化离线测试
-执行命令
+在管理节点上执行命令
 ```bash
 ./ais-bench-stubs test
 ```

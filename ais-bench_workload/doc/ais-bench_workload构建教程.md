@@ -45,12 +45,14 @@ ais-bench_workload
 │   ├── build.sh   # 标准构建脚本
 │   └── download_and_build.sh  # 快速构建脚本
 ├── doc
+│   ├── ais_bench推理程序更新说明.md
 │   ├── ais-bench_workload_inference推理负载说明文档.md
 │   ├── ais-bench_workload_train_modelarts训练说明文档.md
 │   ├── ais-bench_workload_train_offline线下训练说明文档.md
 │   ├── ais-bench_workload构建教程.md
 │   ├── ais-bench_workload推理执行容器环境搭建指导.md
-│   └── modelarts_notebook使用入门指导.docx
+│   ├── modelarts_notebook使用入门指导.docx
+│   └── 制作可ssh登录镜像ascend-mindspore-arm的方法.md
 ├── README.md
 ├── src    # 构建测试软件包的模型保存目录
 │   ├── inference # 推理场景

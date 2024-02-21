@@ -1,5 +1,5 @@
-# 基于Mindspore/mindformers框架的llama大模型训练负载使用指南
-本文主要介绍使用基于llama 或Llama2 大模型训练业务代码构建的AISBench的负载包"train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2.tar.gz"，进行服务器性能测试的流程。
+# 基于MindSpore/mindformers框架的llama大模型训练负载使用指南
+本文主要介绍使用基于LLaMA 或LLaMA2 大模型训练业务代码构建的AISBench的负载包"train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2.tar.gz"，进行服务器性能测试的流程。
 ## 名词定义
 |名词|定义|
 | --- | --- |
@@ -14,7 +14,7 @@ python >= 3.7
 ```
 mindspore >= 2.2
 ```
-mindspore安装参考[Mindspore官网](https://www.mindspore.cn/)mindspore需要能成功在npu上运行，验证命令：
+MindSpore安装参考[MindSpore官网](https://www.mindspore.cn/)MindSpore需要能成功在npu上运行，验证命令：
 ```bash
 python -c "import mindspore;mindspore.set_context(device_target='Ascend');mindspore.run_check()"
 ```
@@ -53,28 +53,28 @@ The result of multiplication calculation is correct, MindSpore has been installe
 **后续对于相对路径的描述都是相对于负载包中的一级目录，例如 ./ais-bench-stubs表示Stubs主程序**
 ## 资源准备
 ### 前置声明
-运行llama（llama2）训练的Mindspore/mindformers的代码全部在`./code/code`文件夹中，资源的准备参考[llama资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)和[llama2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)，具体资源的参考详见本章其他小节。
-**注意**：需要确认计算节点中是否原来已经安装了mindformers，如果安装了，请使用`pip uninstall mindformers`卸载，确保负载代码的mindformers能正常在计算节点中安装。
+运行LLaMA（LLaMA2）训练的MindSpore/mindformers的代码全部在`./code/code`文件夹中，资源的准备参考[LLaMA资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)和[LLaMA2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)，具体资源的参考详见本章其他小节。
+**注意**：需要确认计算节点中是否原来已经安装了MindFormers，如果安装了，请使用`pip uninstall mindformers`卸载，确保负载代码的MindFormers能正常在计算节点中安装。
 ### rank_table_file准备(llama和llama2通用)
 确保`/etc/hccn.conf`文件已经配好（如果没配好，参考[数据中心解决方案/配置训练节点](https://www.hiascend.com/document/detail/zh/Ascend%20Data%20Center%20Solution/22.0.0/install/800_9000/install_800_9000_0029.html)配置）。
 
-参考[llama资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)的“生成RANK_TABLE_FILE(多卡运行必须环节)”和“多机RANK_TABLE_FILE合并(多机多卡必备环节)”章节。
+参考[LLaMA资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)的“生成RANK_TABLE_FILE(多卡运行必须环节)”和“多机RANK_TABLE_FILE合并(多机多卡必备环节)”章节。
 
 ### 模型权重下载与转换
-llama参考[llama资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)的“模型权重下载与转换”章节；
-llama2参考[llama2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)的“模型权重下载与转换”章节。
+LLaMA参考[LLaMA资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)的“模型权重下载与转换”章节；
+LLaMA2参考[LLaMA2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)的“模型权重下载与转换”章节。
 
 ### 数据集准备
 #### 预训练数据集准备
-llama参考[llama资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)的“预训练/数据集准备-预训练”章节；
-llama2参考[llama2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)“预训练/数据集准备”章节。
+LLaMA参考[LLaMA资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)的“预训练/数据集准备-预训练”章节；
+LLaMA2参考[LLaMA2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)“预训练/数据集准备”章节。
 #### 微调数据集准备
-llama参考[llama资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)的“微调/数据集准备-微调”章节；
-llama2参考[llama2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)“微调/数据集准备”章节。
+LLaMA参考[LLaMA资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)的“微调/数据集准备-微调”章节；
+LLaMA2参考[LLaMA2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)“微调/数据集准备”章节。
 #### 评测数据集准备
 **wikitext**
-llama参考[llama资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)的“评测/文本生成/获取数据集”章节；
-llama2参考[llama2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)“评测/文本生成/获取数据集”章节。
+LLaMA参考[LLaMA资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)的“评测/文本生成/获取数据集”章节；
+LLaMA2参考[LLaMA2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)“评测/文本生成/获取数据集”章节。
 
 ### nodeinfo_file准备（多机多卡训练需要）
 nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）并按照如下格式配置计算节点信息：

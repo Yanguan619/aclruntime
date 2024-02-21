@@ -1,5 +1,5 @@
 # 基于Mindspore/mindformers框架的llama大模型训练负载使用指南
-本文主要介绍使用基于llama 或Llama2 大模型训练业务代码构建的AISBench的负载包，进行服务器性能测试的流程。
+本文主要介绍使用基于llama 或Llama2 大模型训练业务代码构建的AISBench的负载包"train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2.tar.gz"，进行服务器性能测试的流程。
 ## 名词定义
 |名词|定义|
 | --- | --- |

@@ -77,7 +77,7 @@ LLaMA参考[LLaMA资源准备](https://gitee.com/mindspore/mindformers/blob/ac5b
 LLaMA2参考[LLaMA2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)“评测/文本生成/获取数据集”章节。
 
 ### nodeinfo_file准备（多机多卡训练需要）
-nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）并按照如下格式配置计算节点信息：
+nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）并按照如下格式配置计算节点信息(不要把注释加进去)：
 ```json
 {
     "0": { // 计算节点编号，为用户自定义，非设备实际编号，配置要求：不能重复、必须是0开始的连续整数，例如共有4个节点，节点编号只能取0，1，2，3。若不同节点配置了相同编号，那么只会读取其中一个节点的信息，另一个节点信息则被覆盖，实际运行测试时被覆盖的节点不会被测试。

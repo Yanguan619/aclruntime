@@ -67,8 +67,12 @@ ais-bench_workload
 │       │   ├── train_mindspore_deeplabv3
 │       │   ├── train_mindspore_deepspeech2
 │       │   ├── train_mindspore_faster_rcnn
+│       │   ├── train_mindspore_glm2
+│       │   ├── train_mindspore_gnmt_v2
+│       │   ├── train_mindspore_llama
 │       │   ├── train_mindspore_pangu_alpha
 │       │   ├── train_mindspore_resnet
+│       │   ├── train_mindspore_ssd
 │       │   ├── train_mindspore_widedeep
 │       │   ├── train_tensorflow_bert_base
 │       │   ├── train_tensorflow_densenet121

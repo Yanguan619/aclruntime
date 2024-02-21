@@ -103,7 +103,7 @@ ais-bench_workload
 - **Windows系统：**git bash--Mircrosoft Windows git命令的模拟终端
 - **Linux系统**
 
-要求操作系统处于稳定的联网状态，主要保证能够顺利下载ais-bench stubs基础测试工具包，可以先执行curl http://www.aipubservice.com测试。
+要求操作系统处于稳定的联网状态，主要保证能够顺利下载ais-bench stubs基础测试工具包，可以先执行“curl  http://www.aipubservice.com”测试。
 
 不建议多用户同时执行快速构建操作，可能出现依赖下载失败。
 

@@ -110,17 +110,11 @@ ais-bench_workload
 
 - **Linux系统**：
 
-  - 要求操作系统处于稳定的联网状态，主要保证能够顺利下载ais-bench stubs基础测试工具包，可以先执行如下命令测试网络是否畅通：
+  要求操作系统处于稳定的联网状态，主要保证能够顺利下载ais-bench stubs基础测试工具包，可以先执行如下命令测试网络是否畅通：
 
-    ```bash
-    curl http://www.aipubservice.com
-    ```
-
-  - build.sh脚本是从Windows环境开发的，Windows的换行符格式与Linux不一致，需要在Ascend/tools/ais-bench-workload目录下执行如下命令将脚本进行格式化：
-
-    ```bash
-    find src/train/huawei/train_mindspore_glm2 -type f -name "*.sh" -exec dos2unix {} +
-    ```
+  ```bash
+  curl http://www.aipubservice.com
+  ```
 
 不建议多用户同时执行快速构建操作，可能出现依赖下载失败。
 
@@ -172,12 +166,6 @@ Windows系统需预先安装git软件。在ais-bench_workload工作目录下鼠�
 
   ```bash
   curl http://www.aipubservice.com
-  ```
-
-- build.sh脚本是从Windows环境开发的，Windows的换行符格式与Linux不一致，需要在Ascend/tools/ais-bench-workload目录下执行如下命令将脚本进行格式化：
-
-  ```bash
-  find src/train/huawei/train_mindspore_glm2 -type f -name "*.sh" -exec dos2unix {} +
   ```
 
 - 一次执行只能构建一个模型的性能测试软件包。

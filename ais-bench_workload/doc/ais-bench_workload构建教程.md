@@ -106,14 +106,21 @@ ais-bench_workload
 
 支持构建环境：
 
-- **Windows系统**：git bash--Mircrosoft Windows git命令的模拟终端
-- **Linux系统**
+- **Windows系统**：git bash--Mircrosoft Windows git命令的模拟终端。
 
-要求操作系统处于稳定的联网状态，主要保证能够顺利下载ais-bench stubs基础测试工具包，可以先执行如下命令测试网络是否畅通：
+- **Linux系统**：
 
-```bash
-curl http://www.aipubservice.com
-```
+  - 要求操作系统处于稳定的联网状态，主要保证能够顺利下载ais-bench stubs基础测试工具包，可以先执行如下命令测试网络是否畅通：
+
+    ```bash
+    curl http://www.aipubservice.com
+    ```
+
+  - build.sh脚本是从Windows环境开发的，Windows的换行符格式与Linux不一致，需要在Ascend/tools/ais-bench-workload目录下执行如下命令将脚本进行格式化：
+
+    ```bash
+    find src/train/huawei/train_mindspore_glm2 -type f -name "*.sh" -exec dos2unix {} +
+    ```
 
 不建议多用户同时执行快速构建操作，可能出现依赖下载失败。
 
@@ -167,6 +174,12 @@ Windows系统需预先安装git软件。在ais-bench_workload工作目录下鼠�
   curl http://www.aipubservice.com
   ```
 
+- build.sh脚本是从Windows环境开发的，Windows的换行符格式与Linux不一致，需要在Ascend/tools/ais-bench-workload目录下执行如下命令将脚本进行格式化：
+
+  ```bash
+  find src/train/huawei/train_mindspore_glm2 -type f -name "*.sh" -exec dos2unix {} +
+  ```
+
 - 一次执行只能构建一个模型的性能测试软件包。
 
 #### 2.2.3 构建准备
@@ -206,7 +219,7 @@ ais-bench_workload
 
 
 
-##### 2.2.5 构建操作
+#### 2.2.5 构建操作
 
 **训练场景示例如下：**
 
@@ -229,6 +242,28 @@ ais-bench_workload
   ./build.sh ../output/Ais-Benchmark-Stubs-aarch64-1.0.tar.gz inference recommendation widedeep
 + 构建x86_64架构推理场景recommendation分类widedeep模型的性能测试软件包  
   ./build.sh ../output/Ais-Benchmark-Stubs-x86_64-1.0.tar.gz inference recommendation widedeep
+
+## FAQ
+
+### 1. Linux环境下执行构建报错：$'\r': command not found
+
+**故障现象**
+
+在Linux环境执行./build.sh构建操作时会出现如下报错：
+
+![a503d8c4_10012209](D:\蔡伟伟\备份\ais-bench_workload\a503d8c4_10012209.png)
+
+**故障原因**
+
+build.sh脚本是从Windows环境开发的，Windows的换行符格式与Linux不一致，导致在Linux环境执行报错。
+
+**故障处理**
+
+在Ascend/tools/ais-bench-workload目录下执行如下命令将脚本进行格式化后重新执行构建操作：
+
+```
+find src/train/huawei/train_mindspore_glm2 -type f -name "*.sh" -exec dos2unix {} +
+```
 
 
 

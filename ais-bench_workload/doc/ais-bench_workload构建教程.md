@@ -251,7 +251,7 @@ ais-bench_workload
 
 在Linux环境执行./build.sh构建操作时会出现如下报错：
 
-![a503d8c4_10012209](D:\蔡伟伟\备份\ais-bench_workload\a503d8c4_10012209.png)
+![faq1](D:\蔡伟伟\tools_aisbench\ais-bench_workload\img\faq1.png)
 
 **故障原因**
 

@@ -122,14 +122,14 @@ export RANK_TABLE_FILE=./hccl_xxxx_8p.json # 配置为生成的rank table路径�
 train_dataset: &train_dataset
   data_loader:
     type: ADGenDataLoader
-    dataset_dir: "/path/to/AdvertiseGen/train.json（需要修改为实际AdvertiseGen/train.json路径）"
+    dataset_dir: "/path/to/AdvertiseGen/train.json" # 需要修改为实际AdvertiseGen/train.json路径
     shuffle: True
     phase: "train"
     version: 2
     origin_columns: ["content", "summary"]
   tokenizer:
     type: ChatGLM2Tokenizer
-    vocab_file: "/path/to/tokenizer.model（需要修改为实际tokenizer.model路径）"
+    vocab_file: "/path/to/tokenizer.model" # 需要修改为实际tokenizer.model路径
   input_columns: ["input_ids", "labels"]
   max_source_length: 64
   max_target_length: 128
@@ -150,14 +150,14 @@ train_dataset_task:
 eval_dataset: &eval_dataset
   data_loader:
     type: ADGenDataLoader
-    dataset_dir: "/path/to/AdvertiseGen/dev.json（需要修改为实际AdvertiseGen/dev.json路径）"
+    dataset_dir: "/path/to/AdvertiseGen/dev.json" # 需要修改为实际AdvertiseGen/dev.json路径
     shuffle: False
     phase: "eval"
     version: 2
     origin_columns: ["content", "summary"]
   tokenizer:
     type: ChatGLM2Tokenizer
-    vocab_file: "/path/to/tokenizer.model（需要修改为实际tokenizer.model路径）"
+    vocab_file: "/path/to/tokenizer.model" # 需要修改为实际tokenizer.model路径
   max_source_length: 256
   max_target_length: 256
   ignore_pad_token_for_loss: True
@@ -181,7 +181,7 @@ eval_dataset_task:
 seed: 0
 run_mode: 'train'
 output_dir: './output'  # 当前不支持自定义修改，请勿修改该默认值
-load_checkpoint: 'glm2_6b（修改为实际下载的glm2_6b.ckpt路径）'
+load_checkpoint: 'glm2_6b' # 修改为实际下载的glm2_6b.ckpt路径
 auto_trans_ckpt: False  # If true, auto transform load_checkpoint to load in distributed model
 only_save_strategy: False
 resume_training: False

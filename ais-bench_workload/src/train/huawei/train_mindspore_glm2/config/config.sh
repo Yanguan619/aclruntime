@@ -2,20 +2,20 @@
 echo "set env of glm train"
 
 export PYTHON_COMMAND=python3
-export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # the path of ssh private key path
-export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'
+export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，通过此私钥管理节点能免密访问所有计算节点
+export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'， 若为'on' 不需要配置CLUSTER_SSH_KEY_PATH
 
 export GLM_RUN_MODE='only_finetune'
 
-# PRETRAIN_DATA_PATH, FINETUNE_DATA_PATH, EVAL_DATASET_PATH 这三个路径是相对mindformers源码的路径, 必须以./mindformers/开头
+# FINETUNE_CKPT_PATH, FINETUNE_DATA_PATH, EVAL_DATASET_PATH 这三个路径是相对mindformers源码的路径, 必须以./mindformers/开头
 export FINETUNE_DATA_PATH=./mindformers/dataset_files/AdvertiseGen/train.json # 微调数据集
 export EVAL_DATASET_TYPE='ADGEN' # 'ADGEN'
 export EVAL_DATASET_PATH=./mindformers/dataset_files/AdvertiseGen/dev.json # 评测用的数据集路径，必须以./mindformers/开头
-export FINETUNE_CKPT_PATH=./mindformers/checkpoint_download/glm2/glm2_6b.ckpt # only for 'only_finetune'
+export FINETUNE_CKPT_PATH=./mindformers/checkpoint_download/glm2/glm2_6b.ckpt # 微调使用的预训练权重，必须以./mindformers/开头
 export EVAL_DEVICE_ID=0 # 评测用的npu 的device id
 
 export EPOCH_SIZE=1
-export GLM_LAYER_NUM=4 # 7b:32  13b:40
+export GLM_LAYER_NUM=4
 
 export RANK_SIZE=8 # 集群总加速卡数
 export DEVICE_NUM=8 # 集群每个节点的加速卡数

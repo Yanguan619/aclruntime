@@ -1,5 +1,7 @@
 # 基于Mindspore/mindformers框架的glm2大模型训练负载使用指南
 本文主要介绍使用基于glm2 大模型训练业务代码构建的AISBench的负载包，进行服务器性能测试的流程。
+单机场景：节点已安装mindspore，获取负载包，本章所有操作在训练单机节点上执行。
+多机场景：负载包放到管理节点，管理节点和训练节点已安装mindspore，本章内所有内容均在管理节点上执行。
 ## 负载包中文件夹主要目录结构
 
 ```
@@ -28,7 +30,8 @@
 ├── result # 测试结果文件。建议无需上传的结果文件，另建目录存放
 └── STUBS_PACKAGE_INTRO.md # Stubs被测试者接入使用文档
 ```
-**后续对于相对路径的描述都是相对于负载包中的一级目录，例如 ./ais-bench-stubs表示Stubs主程序**
+- **后续对于相对路径的描述都是相对于负载包中的一级目录，例如 ./ais-bench-stubs表示Stubs主程序**
+- 管理节点安装mindformer需在code/code目录下执行`pip3 install .`
 ## 资源准备
 ### 前置声明
 - 运行glm2训练的Mindspore/mindformers的代码全部在`./code/code`文件夹中，资源的准备参考[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md),具体资源的参考详见本章其他小节。
@@ -82,8 +85,8 @@ nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）
 echo "set env of glm train"
 
 export PYTHON_COMMAND=python3
-export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # the path of ssh private key path
-export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'
+export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，确保通过此私钥管理节点能免密访问所有计算节点
+export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'， 若为'on' 不需要配置CLUSTER_SSH_KEY_PATH
 
 export GLM_RUN_MODE='only_finetune'
 
@@ -92,7 +95,7 @@ export GLM_RUN_MODE='only_finetune'
 export FINETUNE_DATA_PATH=./mindformers/dataset_files/AdvertiseGen/train.json # 微调数据集实际路径
 export EVAL_DATASET_TYPE='ADGEN' # 'ADGEN'
 export EVAL_DATASET_PATH=./mindformers/dataset_files/AdvertiseGen/dev.json # 评测用的数据集路径，必须以./mindformers/开头
-export FINETUNE_CKPT_PATH=./mindformers/checkpoint_download/glm2/glm2_6b.ckpt # only for 'only_finetune'
+export FINETUNE_CKPT_PATH=./mindformers/checkpoint_download/glm2/glm2_6b.ckpt # 微调使用的预训练权重，必须以./mindformers/开头
 export EVAL_DEVICE_ID=0 # 评测用的npu 的device id
 
 export EPOCH_SIZE=1
@@ -122,14 +125,14 @@ export RANK_TABLE_FILE=./hccl_xxxx_8p.json # 配置为生成的rank table路径�
 train_dataset: &train_dataset
   data_loader:
     type: ADGenDataLoader
-    dataset_dir: "/path/to/AdvertiseGen/train.json（需要修改为实际AdvertiseGen/train.json路径）"
+    dataset_dir: "/path/to/AdvertiseGen/train.json" # 需要修改为实际AdvertiseGen/train.json路径
     shuffle: True
     phase: "train"
     version: 2
     origin_columns: ["content", "summary"]
   tokenizer:
     type: ChatGLM2Tokenizer
-    vocab_file: "/path/to/tokenizer.model（需要修改为实际tokenizer.model路径）"
+    vocab_file: "/path/to/tokenizer.model" # 需要修改为实际tokenizer.model路径
   input_columns: ["input_ids", "labels"]
   max_source_length: 64
   max_target_length: 128
@@ -150,14 +153,14 @@ train_dataset_task:
 eval_dataset: &eval_dataset
   data_loader:
     type: ADGenDataLoader
-    dataset_dir: "/path/to/AdvertiseGen/dev.json（需要修改为实际AdvertiseGen/dev.json路径）"
+    dataset_dir: "/path/to/AdvertiseGen/dev.json" # 需要修改为实际AdvertiseGen/dev.json路径
     shuffle: False
     phase: "eval"
     version: 2
     origin_columns: ["content", "summary"]
   tokenizer:
     type: ChatGLM2Tokenizer
-    vocab_file: "/path/to/tokenizer.model（需要修改为实际tokenizer.model路径）"
+    vocab_file: "/path/to/tokenizer.model" # 需要修改为实际tokenizer.model路径
   max_source_length: 256
   max_target_length: 256
   ignore_pad_token_for_loss: True
@@ -181,7 +184,7 @@ eval_dataset_task:
 seed: 0
 run_mode: 'train'
 output_dir: './output'  # 当前不支持自定义修改，请勿修改该默认值
-load_checkpoint: 'glm2_6b（修改为实际下载的glm2_6b.ckpt路径）'
+load_checkpoint: 'glm2_6b' # 修改为实际下载的glm2_6b.ckpt路径
 auto_trans_ckpt: False  # If true, auto transform load_checkpoint to load in distributed model
 only_save_strategy: False
 resume_training: False

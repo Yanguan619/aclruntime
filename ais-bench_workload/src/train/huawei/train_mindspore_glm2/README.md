@@ -1,7 +1,38 @@
 # 基于Mindspore/mindformers框架的glm2大模型训练负载使用指南
 本文主要介绍使用基于glm2 大模型训练业务代码构建的AISBench的负载包，进行服务器性能测试的流程。
-单机场景：节点已安装mindspore，获取负载包，本章所有操作在训练单机节点上执行。
-多机场景：负载包放到管理节点，管理节点和训练节点已安装mindspore，本章内所有内容均在管理节点上执行。
+## 名词定义
+|名词|定义|
+| --- | --- |
+|管理节点|运行大模型训练负载的环境，只有一个|
+|计算节点|执行训练任务的环境，可以有多个|
+## 运行环境前置条件
+### 管理节点
+```
+python >= 3.7
+```
+### 计算节点
+```
+mindspore >= 2.2
+```
+MindSpore安装参考[MindSpore官网](https://www.mindspore.cn/)MindSpore需要能成功在npu上运行，验证命令：
+```bash
+python -c "import mindspore;mindspore.set_context(device_target='Ascend');mindspore.run_check()"
+```
+如果正常输出：
+```bash
+MindSpore version: 版本号
+The result of multiplication calculation is correct, MindSpore has been installed on platform [Ascend] successfully!
+```
+说明成功。
+### 单机多卡与多机多卡的区别
+单机多卡执行负载时，管理节点和计算节点是一个环境；多机多卡执行负载时，多机就是多个计算节点，管理节点可以是其中一个计算节点，也可以是单独一个环境。<br>
+**多机多卡需注意**
+1. 如果管理节点不是计算节点，管理节点也需要安装与计算节点相同版本的mindspore，也需要安装训练负载包中的mindformers，mindformers的安装方式如下：
+```bash
+cd train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/code/code
+pip install .
+```
+2. 为确保能操作计算节点的数据，管理节点需要是root用户
 ## 负载包中文件夹主要目录结构
 
 ```

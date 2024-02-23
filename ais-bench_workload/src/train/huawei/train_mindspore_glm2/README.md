@@ -31,21 +31,30 @@
 **后续对于相对路径的描述都是相对于负载包中的一级目录，例如 ./ais-bench-stubs表示Stubs主程序**
 ## 资源准备
 ### 前置声明
-运行glm2训练的Mindspore/mindformers的代码全部在`./code/code`文件夹中，资源的准备参考[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md)
-**注意**：需要确认环境中是否原来已经安装了mindformers，如果安装了，请使用`pip uninstall mindformers`卸载，确保负载代码的mindformers能正常安装。
+- 运行glm2训练的Mindspore/mindformers的代码全部在`./code/code`文件夹中，资源的准备参考[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md),具体资源的参考详见本章其他小节。
+- **注意**：需要确认环境中是否原来已经安装了mindformers，如果安装了，请使用`pip uninstall mindformers`卸载，确保负载代码的mindformers能正常安装。
 ### rank_table_file准备
-确保`/etc/hccn.conf`文件已经配好（如果没配好，参考[数据中心解决方案/配置训练节点](https://www.hiascend.com/document/detail/zh/Ascend%20Data%20Center%20Solution/22.0.0/install/800_9000/install_800_9000_0029.html)配置）。
+- 确保`/etc/hccn.conf`文件已经配好（如果没配好，参考[数据中心解决方案/配置训练节点](https://www.hiascend.com/document/detail/zh/Ascend%20Data%20Center%20Solution/22.0.0/install/800_9000/install_800_9000_0029.html)配置）。
 
-参考[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md)的“生成RANK_TABLE_FILE(多卡运行必须环节)”和“多机RANK_TABLE_FILE合并(多机多卡必备环节)”章节。
+- 参考[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md)的“生成RANK_TABLE_FILE”(单机多卡情况)和“多机RANK_TABLE_FILE合并”(多机多卡情况)章节。
 
 ### 模型权重下载与转换
-参考[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md)的“模型权重下载与转换”章节；
-直接链接：https://ascend-repo-modelzoo.obs.cn-east-2.myhuaweicloud.com/XFormer_for_mindspore/glm2/glm2_6b.ckpt
-tokenizer直接链接：https://ascend-repo-modelzoo.obs.cn-east-2.myhuaweicloud.com/XFormer_for_mindspore/glm2/tokenizer.model
+- 参考[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md)的“模型权重下载与转换”章节；
+- 资源链接：
+    - [glm2_6b.ckpt](https://ascend-repo-modelzoo.obs.cn-east-2.myhuaweicloud.com/XFormer_for_mindspore/glm2/glm2_6b.ckpt)(点击直接下载)
+    - [tokenizer](https://ascend-repo-modelzoo.obs.cn-east-2.myhuaweicloud.com/XFormer_for_mindspore/glm2/tokenizer.model)(点击直接下载)
+- 下载后建议放至code/code/mindformers/checkpoint_download/glm2目录下(需手动创建checkpoint_download/glm2 如`mkdir -p code/code/mindformers/checkpoint_download/glm2`)
 ### 数据集准备
-参考[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md)的“模型权重下载与转换”章节；
-直接链接：https://cloud.tsinghua.edu.cn/f/b3f119a008264b1cabd1/?dl=1
-
+- 参考[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md)的“微调--数据集准备”章节；
+- 资源链接：
+    - [ADGEN数据集](https://cloud.tsinghua.edu.cn/f/b3f119a008264b1cabd1/?dl=1)(下载后需解压)
+- 下载解压后目录结构为：
+    ```
+    AdvertiseGen
+    ├── train.json
+    └── dev.json
+    ```
+- 建议该目录放到code/code/mindformers/dataset_files/目录下(dataset_files需手动创建，如`mkdir -p code/code/mindformers/dataset_files/`)
 ### 1.4 nodeinfo_file准备（多机多卡训练需要）
 nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）并按照如下格式配置节点信息：
 ```json
@@ -70,10 +79,6 @@ nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）
 `./code/config/config.sh`内容如下：
 ```bash
 #!/bin/bash
-echo "set env of glm2 train"
-# 后续对于相对路径的描述都是相对于负载包中的一级目录，例如 ./ais-bench-stubs表示Stubs主程序
-
-#!/bin/bash
 echo "set env of glm train"
 
 export PYTHON_COMMAND=python3
@@ -82,7 +87,8 @@ export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'
 
 export GLM_RUN_MODE='only_finetune'
 
-# PRETRAIN_DATA_PATH, FINETUNE_DATA_PATH, EVAL_DATASET_PATH 这三个路径是相对mindformers源码的路径, 必须以./mindformers/开头
+# FINETUNE_CKPT_PATH, FINETUNE_DATA_PATH, EVAL_DATASET_PATH 这三个路径是相对mindformers源码的路径, 必须以./mindformers/开头
+# 可以在下载对应数据集完成后，将其复制到code/code/mindformers目录下，比如新建一个dataset_files存放解压后的AdvertiseGen
 export FINETUNE_DATA_PATH=./mindformers/dataset_files/AdvertiseGen/train.json # 微调数据集实际路径
 export EVAL_DATASET_TYPE='ADGEN' # 'ADGEN'
 export EVAL_DATASET_PATH=./mindformers/dataset_files/AdvertiseGen/dev.json # 评测用的数据集路径，必须以./mindformers/开头
@@ -90,7 +96,7 @@ export FINETUNE_CKPT_PATH=./mindformers/checkpoint_download/glm2/glm2_6b.ckpt # 
 export EVAL_DEVICE_ID=0 # 评测用的npu 的device id
 
 export EPOCH_SIZE=1
-export GLM_LAYER_NUM=4 # 7b:32  13b:40
+export GLM_LAYER_NUM=4
 
 export RANK_SIZE=8 # 集群总加速卡数
 export DEVICE_NUM=8 # 集群每个节点的加速卡数
@@ -101,16 +107,85 @@ export MODEL_PARALLEL=1
 export PIPELINE_STAGE=4
 
 # need if rank_size > 1
-export RANK_TABLE_FILE=/home/hccl/hccl_xxxx_8p.json # 配置为实际生成的rank table路径
+export RANK_TABLE_FILE=./hccl_xxxx_8p.json # 配置为生成的rank table路径，是相对于负载仓的code目录的路径，如果不在code目录下需要拷贝到code目录下
 
 # 多机多卡需要配置，单机不能配置
 #export NODEINFO_FILE=/home/lcm/tool/ssh64_66.json
 ```
-请参考`./code/config/config.sh`的注释将第一章准备的资源的路径在`config.sh`中配置好，并且确定好训练相关的参数
---------
-同时将code/run_glm2_6b_finetune.yaml和code/run_glm2_6b_finetune_eval.yaml按照
-[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md)
-的“微调”章节的数据集准备部分修改为实际路径，code/run_glm2_6b_finetune.yaml需要额外把文件开头的load_checkpoint设置为glm2的实际ckpt路径
+
+- 请参考`./code/config/config.sh`的注释将第一章准备的资源的路径在`config.sh`中配置好，
+
+### 2.2 yaml配置
+- 前置声明：所有修改路径均为绝对路径
+- 需要修改code/run_glm2_6b_finetune_eval.yaml:
+```
+train_dataset: &train_dataset
+  data_loader:
+    type: ADGenDataLoader
+    dataset_dir: "/path/to/AdvertiseGen/train.json（需要修改为实际AdvertiseGen/train.json路径）"
+    shuffle: True
+    phase: "train"
+    version: 2
+    origin_columns: ["content", "summary"]
+  tokenizer:
+    type: ChatGLM2Tokenizer
+    vocab_file: "/path/to/tokenizer.model（需要修改为实际tokenizer.model路径）"
+  input_columns: ["input_ids", "labels"]
+  max_source_length: 64
+  max_target_length: 128
+  ignore_pad_token_for_loss: True
+  num_parallel_workers: 8
+  python_multiprocessing: False
+  drop_remainder: True
+  batch_size: 1
+  repeat: 1
+  numa_enable: False
+  prefetch_size: 1
+  seed: 0
+
+train_dataset_task:
+  type: KeyWordGenDataset
+  dataset_config: *train_dataset
+
+eval_dataset: &eval_dataset
+  data_loader:
+    type: ADGenDataLoader
+    dataset_dir: "/path/to/AdvertiseGen/dev.json（需要修改为实际AdvertiseGen/dev.json路径）"
+    shuffle: False
+    phase: "eval"
+    version: 2
+    origin_columns: ["content", "summary"]
+  tokenizer:
+    type: ChatGLM2Tokenizer
+    vocab_file: "/path/to/tokenizer.model（需要修改为实际tokenizer.model路径）"
+  max_source_length: 256
+  max_target_length: 256
+  ignore_pad_token_for_loss: True
+  input_columns: ["input_ids", "labels"]
+  num_parallel_workers: 8
+  python_multiprocessing: False
+  drop_remainder: True
+  batch_size: 1
+  repeat: 1
+  numa_enable: False
+  prefetch_size: 1
+  seed: 0
+
+eval_dataset_task:
+  type: KeyWordGenDataset
+  dataset_config: *eval_dataset
+```
+
+- 修改code/run_glm2_6b_finetune.yaml**同样需要修改上述的部分**，另外把文件开头的load_checkpoint设置为glm2的实际ckpt路径：
+```
+seed: 0
+run_mode: 'train'
+output_dir: './output'  # 当前不支持自定义修改，请勿修改该默认值
+load_checkpoint: 'glm2_6b（修改为实际下载的glm2_6b.ckpt路径）'
+auto_trans_ckpt: False  # If true, auto transform load_checkpoint to load in distributed model
+only_save_strategy: False
+resume_training: False
+```
 ## 3 负载启动
 ### 3.1 在线测试
 执行命令

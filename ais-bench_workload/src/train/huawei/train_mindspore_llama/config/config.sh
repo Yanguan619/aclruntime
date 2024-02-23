@@ -3,8 +3,10 @@ echo "set env of llama train"
 # 后续对于相对路径的描述都是相对于负载包中的一级目录，例如 ./ais-bench-stubs表示Stubs主程序
 
 export PYTHON_COMMAND=python3
-export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # the path of ssh private key path
-export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'
+
+# 以下cluster配置二选一
+export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，通过此私钥管理节点需要能免密访问所有计算节点
+export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'，若为'on' 不需要配置CLUSTER_SSH_KEY_PATH
 
 export LLAMA_MODEL_SCALE='7b' # '7b' 、'13b' 、 '70b'(仅llama2支持)
 export LLAMA_MODEL_TYPE='' # llama : '' ; llama2 : '2'
@@ -15,7 +17,7 @@ export PRETRAIN_DATA_PATH=./mindformers/dataset_files/wikitext-2/wiki2048.mindre
 export FINETUNE_DATA_PATH=./mindformers/dataset_files/alpaca-fastchat2048.mindrecord # 微调数据集
 export EVAL_DATASET_TYPE='wikitext' # 评估数据集名，可选 'wikitext'
 export EVAL_DATASET_PATH=./mindformers/dataset_files/wikitext-2/wiki2048valid.mindrecord # 评测用的数据集路径，必须以./mindformers/开头
-export FINETUNE_CKPT_PATH=open_llama_7b.ckpt # only for 'only_finetune',相对于Ais-Benchmark-Stubs-<arch>/code/目录的路径，权重也要放在code/内
+export FINETUNE_CKPT_PATH=open_llama_7b.ckpt # only for 'only_finetune',相对于train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/code/目录的路径，权重放在code/内将自动分发到计算节点
 export EVAL_DEVICE_ID=0 # 评测用的npu 的device id
 
 export EPOCH_SIZE=1 # 全量遍历数据集的迭代次数
@@ -30,7 +32,7 @@ export MODEL_PARALLEL=1
 export PIPELINE_STAGE=4
 
 # need if rank_size > 1
-export RANK_TABLE_FILE=hccl_xxxx_8p.json # rank_table_file的路径，相对于Ais-Benchmark-Stubs-<arch>/code/目录的路径，rank_table_file需要放在code/内
+export RANK_TABLE_FILE=hccl_xxxx_8p.json # rank_table_file的路径，相对于train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/code/目录的路径，rank_table_file需要放在code/内
 
 # 多机多卡需要配置，单机不能配置
 #export NODEINFO_FILE=/home/lcm/tool/ssh64_66.json

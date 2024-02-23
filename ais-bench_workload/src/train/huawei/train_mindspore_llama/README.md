@@ -25,7 +25,7 @@ The result of multiplication calculation is correct, MindSpore has been installe
 ```
 说明成功。
 ### 单机多卡与多机多卡的区别
-单机多卡执行负载时，管理节点和计算节点是一个环境；多机多卡执行负载时，多机就是多个计算节点，管理节点可以是其中一个计算节点，也可以是单独一个环境。
+单机多卡执行负载时，管理节点和计算节点是一个环境；多机多卡执行负载时，多机就是多个计算节点，管理节点可以是其中一个计算节点，也可以是单独一个环境。<br>
 **多机多卡需注意**
 1. 如果管理节点不是计算节点，管理节点也需要安装与计算节点相同版本的mindspore，也需要安装训练负载包中的mindformers，mindformers的安装方式如下：
 ```bash
@@ -60,7 +60,7 @@ pip install .
 **后续对于相对路径的描述都是相对于负载包中的一级目录，例如 ./ais-bench-stubs表示Stubs主程序**
 ## 资源准备
 ### 前置声明
-运行LLaMA（LLaMA2）训练的MindSpore/mindformers的代码全部在`./code/code`文件夹中，资源的准备参考[LLaMA资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)和[LLaMA2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)，具体资源的参考详见本章其他小节。
+运行LLaMA（LLaMA2）训练的MindSpore/mindformers的代码全部在`./code/code`文件夹中，资源的准备参考[LLaMA资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama.md)或[LLaMA2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/llama2.md)，具体资源的参考详见本章其他小节。<br>
 **注意**：需要确认计算节点中是否原来已经安装了MindFormers，如果安装了，请使用`pip uninstall mindformers`卸载，确保负载代码的MindFormers能正常在计算节点中安装。
 ### rank_table_file准备(llama和llama2通用)
 确保`/etc/hccn.conf`文件已经配好（如果没配好，参考[数据中心解决方案/配置训练节点](https://www.hiascend.com/document/detail/zh/Ascend%20Data%20Center%20Solution/22.0.0/install/800_9000/install_800_9000_0029.html)配置）。
@@ -111,8 +111,10 @@ echo "set env of llama train"
 # 后续对于相对路径的描述都是相对于负载包中的一级目录，例如 ./ais-bench-stubs表示Stubs主程序
 
 export PYTHON_COMMAND=python3
-export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # the path of ssh private key path
-export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'
+# 以下cluster配置二选一
+export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，需要确保管理节点通过此私钥能免密访问所有计算节点
+export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'，若为'on' 不需要配置CLUSTER_SSH_KEY_PATH
+
 
 export LLAMA_MODEL_SCALE='7b' # '7b' 、'13b' 、 '70b'(仅llama2支持)
 export LLAMA_MODEL_TYPE='' # llama : '' ; llama2 : '2'

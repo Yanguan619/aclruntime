@@ -111,8 +111,10 @@ echo "set env of llama train"
 # 后续对于相对路径的描述都是相对于负载包中的一级目录，例如 ./ais-bench-stubs表示Stubs主程序
 
 export PYTHON_COMMAND=python3
-export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # the path of ssh private key path
-export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'
+# 以下cluster配置二选一
+export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，通过此私钥管理节点需要能免密访问所有计算节点
+export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'，若为'on' 不需要配置CLUSTER_SSH_KEY_PATH
+
 
 export LLAMA_MODEL_SCALE='7b' # '7b' 、'13b' 、 '70b'(仅llama2支持)
 export LLAMA_MODEL_TYPE='' # llama : '' ; llama2 : '2'

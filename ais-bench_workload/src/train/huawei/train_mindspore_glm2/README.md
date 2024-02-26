@@ -25,7 +25,7 @@ The result of multiplication calculation is correct, MindSpore has been installe
 ```
 说明成功。
 ### 单机多卡与多机多卡的区别
-单机多卡执行负载时，管理节点和计算节点是一个环境；多机多卡执行负载时，多机就是多个计算节点，管理节点可以是其中一个计算节点，也可以是单独一个环境。<br>
+单机多卡执行负载，只在一个单机环境上部署运行即可；多机多卡执行负载时，多机就是多个计算节点，管理节点可以是其中一个计算节点，也可以是单独一个环境。<br>
 **多机多卡需注意**
 1. 如果管理节点不是计算节点，管理节点也需要安装与计算节点相同版本的mindspore，也需要安装训练负载包中的mindformers，mindformers的安装方式如下：
 ```bash
@@ -116,8 +116,8 @@ nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）
 echo "set env of glm train"
 
 export PYTHON_COMMAND=python3
-export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，确保通过此私钥管理节点能免密访问所有计算节点
-export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'， 若为'on' 不需要配置CLUSTER_SSH_KEY_PATH
+export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，确保通过此私钥管理节点能免密访问所有计算节点(单机场景注释此行)
+export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'， 若为'on' 不需要配置CLUSTER_SSH_KEY_PATH(单机场景注释此行)
 
 export GLM_RUN_MODE='only_finetune'
 
@@ -215,7 +215,7 @@ eval_dataset_task:
 seed: 0
 run_mode: 'train'
 output_dir: './output'  # 当前不支持自定义修改，请勿修改该默认值
-load_checkpoint: 'glm2_6b' # 修改为实际下载的glm2_6b.ckpt路径
+load_checkpoint: 'glm2_6b.ckpt' # 修改为实际下载的glm2_6b.ckpt路径
 auto_trans_ckpt: False  # If true, auto transform load_checkpoint to load in distributed model
 only_save_strategy: False
 resume_training: False

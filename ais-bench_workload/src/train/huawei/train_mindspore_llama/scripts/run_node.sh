@@ -47,7 +47,7 @@ function node_init()
             logger_Info "mindformers exist, won't be installed again"
         else
             cd $WORK_PATH/code
-            bash build.sh || { logger_Warn "mindformers install failed:$?";return $ret_failed; }
+            pip install . || { logger_Warn "mindformers install failed:$?";return $ret_failed; }
             cd $WORK_PATH
         fi
     fi

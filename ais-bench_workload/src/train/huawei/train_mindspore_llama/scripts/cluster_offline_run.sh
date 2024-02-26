@@ -128,14 +128,9 @@ run_train()
 run_eval()
 {
     logger_Info "-------------------------------- eval start --------------------------------"
-    if [ "$NODEINFO_FILE" == "" ];then
-        cmd="$local_env_cmd;
-        bash $WORK_PATH/run_node.sh eval"
-    else
-        cmd="$env_cmd;
-        bash \$WORK_PATH/run_node.sh eval"
-    fi
-    cluster_single_exec "$cmd" || { logger_Error "run eval failed"; return 1; }
+    cmd="$local_env_cmd;
+    bash $WORK_PATH/run_node.sh eval"
+    eval "$cmd" || { logger_Error "run eval failed"; return 1; }
     logger_Info "-------------------------------- eval end --------------------------------"
 }
 

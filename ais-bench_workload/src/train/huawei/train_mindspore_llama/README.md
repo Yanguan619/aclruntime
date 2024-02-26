@@ -25,14 +25,9 @@ The result of multiplication calculation is correct, MindSpore has been installe
 ```
 说明成功。
 ### 单机多卡与多机多卡的区别
-单机多卡执行负载时，管理节点和计算节点是一个环境；多机多卡执行负载时，多机就是多个计算节点，管理节点可以是其中一个计算节点，也可以是单独一个环境。<br>
+单机多卡执行负载时，管理节点和唯一的计算节点是一个环境；多机多卡执行负载时，多机就是多个计算节点，管理节点必须是其中一个计算节点。<br>
 **多机多卡需注意**
-1. 如果管理节点不是计算节点，管理节点也需要安装与计算节点相同版本的mindspore，也需要安装训练负载包中的mindformers，mindformers的安装方式如下：
-```bash
-cd train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/code/code
-pip install .
-```
-2. 为确保能操作计算节点的数据，管理节点需要是root用户
+1. 为确保能操作计算节点的数据，管理节点需要是root用户
 ## 负载包中文件夹主要目录结构
 
 ```

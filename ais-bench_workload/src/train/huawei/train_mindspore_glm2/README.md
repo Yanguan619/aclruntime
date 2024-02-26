@@ -113,7 +113,7 @@ nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）
 `./code/config/config.sh`内容如下：
 ```bash
 #!/bin/bash
-echo "set env of glm train"
+echo "set env of glm2 train"
 
 export PYTHON_COMMAND=python3
 export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，确保通过此私钥管理节点能免密访问所有计算节点(单机场景注释此行)

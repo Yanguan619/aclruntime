@@ -147,7 +147,7 @@ export RANK_TABLE_FILE=./hccl_xxxx_8p.json # 配置为生成的rank table路径�
 #export NODEINFO_FILE=/home/lcm/tool/ssh64_66.json
 ```
 
-- 请参考`./code/config/config.sh`的注释将第一章准备的资源的路径在`config.sh`中配置好，
+- 请参考`./code/config/config.sh`的注释将"资源准备"章节准备的资源的路径在`config.sh`中配置好，
 
 ### 2.2 yaml配置
 - 前置声明：所有修改路径均为绝对路径

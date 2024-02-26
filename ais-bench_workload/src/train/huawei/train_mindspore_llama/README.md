@@ -94,6 +94,7 @@ nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）
     ...
 }
 ```
+**注意**：作为多机多卡时的管理节点的计算节点，work_path必须填写`train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/`目录的绝对路径
 
 ## 负载启动前配置项
 ### 和tester连接的配置（仅在线测试需要）

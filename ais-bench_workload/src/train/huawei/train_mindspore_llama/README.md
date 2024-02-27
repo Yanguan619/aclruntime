@@ -1,5 +1,5 @@
 # 基于MindSpore/mindformers框架的llama大模型训练负载使用指南
-本文主要介绍使用基于LLaMA 或LLaMA2 大模型训练业务代码构建的AISBench的负载包"train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2.tar.gz"，进行服务器性能测试的流程。
+本文主要介绍使用基于LLaMA 或LLaMA2 大模型训练业务代码构建的AISBench的负载包"train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-{arch}-2.0-r2.2.tar.gz"，进行服务器性能测试的流程。
 ## 名词定义
 |名词|定义|
 | --- | --- |
@@ -94,7 +94,7 @@ nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）
     ...
 }
 ```
-**注意**：作为多机多卡时的管理节点的计算节点，work_path必须填写`train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/`目录的绝对路径
+**注意**：作为多机多卡时的管理节点的计算节点，work_path必须填写`train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-{arch}-2.0-r2.2/`目录的绝对路径
 
 ## 负载启动前配置项
 ### 和tester连接的配置（仅在线测试需要）
@@ -121,7 +121,7 @@ export PRETRAIN_DATA_PATH=./mindformers/dataset_files/wikitext-2/wiki2048.mindre
 export FINETUNE_DATA_PATH=./mindformers/dataset_files/alpaca-fastchat2048.mindrecord # 微调数据集
 export EVAL_DATASET_TYPE='wikitext' # 评估数据集名，可选 'wikitext'
 export EVAL_DATASET_PATH=./mindformers/dataset_files/wikitext-2/wiki2048valid.mindrecord # 评测用的数据集路径，必须以./mindformers/开头
-export FINETUNE_CKPT_PATH=../../open_llama_7b.ckpt # only for 'only_finetune',相对于train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/code/目录的路径，权重放在code/内将自动分发到计算节点
+export FINETUNE_CKPT_PATH=../../open_llama_7b.ckpt # only for 'only_finetune',相对于train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-{arch}-2.0-r2.2/code/目录的路径，权重放在code/内将自动分发到计算节点
 export EVAL_DEVICE_ID=0 # 评测用的npu 的device id
 
 export EPOCH_SIZE=1 # 全量遍历数据集的迭代次数
@@ -136,7 +136,7 @@ export MODEL_PARALLEL=1
 export PIPELINE_STAGE=4
 
 # need if rank_size > 1
-export RANK_TABLE_FILE=hccl_xxxx_8p.json # rank_table_file的路径，相对于train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/code/目录的路径，rank_table_file需要放在code/内
+export RANK_TABLE_FILE=hccl_xxxx_8p.json # rank_table_file的路径，相对于train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-{arch}-2.0-r2.2/code/目录的路径，rank_table_file需要放在code/内
 
 # 多机多卡需要配置，单机不需要配置
 #export NODEINFO_FILE=/home/lcm/tool/ssh64_66.json

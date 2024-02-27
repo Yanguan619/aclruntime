@@ -25,7 +25,7 @@ The result of multiplication calculation is correct, MindSpore has been installe
 ```
 说明成功。
 ### 单机多卡与多机多卡的区别
-单机多卡执行负载时，管理节点和唯一的计算节点是一个环境；多机多卡执行负载时，多机就是多个计算节点，管理节点必须是其中一个计算节点。<br>
+单机多卡执行负载时，只在单机环境上部署和运行即可；多机多卡执行负载时，多机就是多个计算节点，管理节点必须是其中一个计算节点。<br>
 **多机多卡需注意**
 1. 为确保能操作计算节点的数据，管理节点需要是root用户
 ## 负载包中文件夹主要目录结构
@@ -107,7 +107,7 @@ echo "set env of llama train"
 # 后续对于相对路径的描述都是相对于负载包中的一级目录，例如 ./ais-bench-stubs表示Stubs主程序
 
 export PYTHON_COMMAND=python3
-# 以下cluster配置二选一
+# 以下cluster配置二选一，仅多机场景需要
 export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，需要确保管理节点通过此私钥能免密访问所有计算节点
 export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'，若为'on' 不需要配置CLUSTER_SSH_KEY_PATH
 
@@ -138,7 +138,7 @@ export PIPELINE_STAGE=4
 # need if rank_size > 1
 export RANK_TABLE_FILE=hccl_xxxx_8p.json # rank_table_file的路径，相对于train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/code/目录的路径，rank_table_file需要放在code/内
 
-# 多机多卡需要配置，单机不能配置
+# 多机多卡需要配置，单机不需要配置
 #export NODEINFO_FILE=/home/lcm/tool/ssh64_66.json
 ```
 请参考`./code/config/config.sh`的注释将第一章准备的资源的路径在`config.sh`中配置好，并且确定好训练相关的参数

@@ -138,21 +138,9 @@ run_eval()
 get_result()
 {
     logger_Info "-------------------------------- get_result start --------------------------------"
-    # if [ "$NODEINFO_FILE" == "" ];then
-    #     cmd="$local_env_cmd;
-    #     mkdir -p $RESULT_PATH"
-    # else
-    #     cmd="$env_cmd;
-    #     mkdir -p \$RESULT_PATH"
-    # fi
-    # cluster_multi_exec "$cmd" serial || { logger_Error "mkdir resultpath failed"; return 1; }
-    # if [ "$NODEINFO_FILE" != "" ];then
-    #     cluster_multi_get "${RELAT_RESULT_PATH}" "${WORK_PATH}" || { logger_Error "get result from ${RELAT_RESULT_PATH} failed"; return 1; }
-    # fi
     source ${CODE_PATH}/config/$CONFIG_FILE
     export PYTHONPATH=${CODE_PATH}/logging:$PYTHONPATH
     ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_llm_result.py ${BASE_PATH}/result ${RANK_SIZE} ${LLAMA_RUN_MODE}
-    # [ -d $BASE_PATH/result ] && cp ${RESULT_PATH}/* -rf  $BASE_PATH/result/
     find $BASE_PATH/result/ "*.ckpt" -type f -delete
     logger_Info "-------------------------------- get_result end --------------------------------"
 }

@@ -4,7 +4,7 @@ echo "set env of llama train"
 
 export PYTHON_COMMAND=python3
 
-# 以下cluster配置二选一
+# 以下cluster配置二选一，仅多机场景需要
 export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，需要确保管理节点通过此私钥能免密访问所有计算节点
 export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'，若为'on' 不需要配置CLUSTER_SSH_KEY_PATH
 

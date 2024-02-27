@@ -1,5 +1,5 @@
 # 基于MindSpore/mindformers框架的llama大模型训练负载使用指南
-本文主要介绍使用基于LLaMA 或LLaMA2 大模型训练业务代码构建的AISBench的负载包"train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2.tar.gz"，进行服务器性能测试的流程。
+本文主要介绍使用基于LLaMA 或LLaMA2 大模型训练业务代码构建的AISBench的负载包"train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-{arch}-2.0-r2.2.tar.gz"，进行服务器性能测试的流程。
 ## 名词定义
 |名词|定义|
 | --- | --- |
@@ -25,14 +25,9 @@ The result of multiplication calculation is correct, MindSpore has been installe
 ```
 说明成功。
 ### 单机多卡与多机多卡的区别
-单机多卡执行负载时，管理节点和计算节点是一个环境；多机多卡执行负载时，多机就是多个计算节点，管理节点可以是其中一个计算节点，也可以是单独一个环境。<br>
+单机多卡执行负载时，只在单机环境上部署和运行即可；多机多卡执行负载时，多机就是多个计算节点，管理节点必须是其中一个计算节点。<br>
 **多机多卡需注意**
-1. 如果管理节点不是计算节点，管理节点也需要安装与计算节点相同版本的mindspore，也需要安装训练负载包中的mindformers，mindformers的安装方式如下：
-```bash
-cd train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/code/code
-pip install .
-```
-2. 为确保能操作计算节点的数据，管理节点需要是root用户
+1. 为确保能操作计算节点的数据，管理节点需要是root用户
 ## 负载包中文件夹主要目录结构
 
 ```
@@ -99,6 +94,7 @@ nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）
     ...
 }
 ```
+**注意**：作为多机多卡时的管理节点的计算节点，work_path必须填写`train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-{arch}-2.0-r2.2/`目录的绝对路径
 
 ## 负载启动前配置项
 ### 和tester连接的配置（仅在线测试需要）
@@ -111,7 +107,7 @@ echo "set env of llama train"
 # 后续对于相对路径的描述都是相对于负载包中的一级目录，例如 ./ais-bench-stubs表示Stubs主程序
 
 export PYTHON_COMMAND=python3
-# 以下cluster配置二选一
+# 以下cluster配置二选一，仅多机场景需要
 export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，需要确保管理节点通过此私钥能免密访问所有计算节点
 export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'，若为'on' 不需要配置CLUSTER_SSH_KEY_PATH
 
@@ -125,7 +121,7 @@ export PRETRAIN_DATA_PATH=./mindformers/dataset_files/wikitext-2/wiki2048.mindre
 export FINETUNE_DATA_PATH=./mindformers/dataset_files/alpaca-fastchat2048.mindrecord # 微调数据集
 export EVAL_DATASET_TYPE='wikitext' # 评估数据集名，可选 'wikitext'
 export EVAL_DATASET_PATH=./mindformers/dataset_files/wikitext-2/wiki2048valid.mindrecord # 评测用的数据集路径，必须以./mindformers/开头
-export FINETUNE_CKPT_PATH=../../open_llama_7b.ckpt # only for 'only_finetune',相对于train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/code/目录的路径，权重放在code/内将自动分发到计算节点
+export FINETUNE_CKPT_PATH=../../open_llama_7b.ckpt # only for 'only_finetune',相对于train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-{arch}-2.0-r2.2/code/目录的路径，权重放在code/内将自动分发到计算节点
 export EVAL_DEVICE_ID=0 # 评测用的npu 的device id
 
 export EPOCH_SIZE=1 # 全量遍历数据集的迭代次数
@@ -140,9 +136,9 @@ export MODEL_PARALLEL=1
 export PIPELINE_STAGE=4
 
 # need if rank_size > 1
-export RANK_TABLE_FILE=hccl_xxxx_8p.json # rank_table_file的路径，相对于train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/code/目录的路径，rank_table_file需要放在code/内
+export RANK_TABLE_FILE=hccl_xxxx_8p.json # rank_table_file的路径，相对于train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-{arch}-2.0-r2.2/code/目录的路径，rank_table_file需要放在code/内
 
-# 多机多卡需要配置，单机不能配置
+# 多机多卡需要配置，单机不需要配置
 #export NODEINFO_FILE=/home/lcm/tool/ssh64_66.json
 ```
 请参考`./code/config/config.sh`的注释将第一章准备的资源的路径在`config.sh`中配置好，并且确定好训练相关的参数

@@ -141,6 +141,6 @@ get_result()
     source ${CODE_PATH}/config/$CONFIG_FILE
     export PYTHONPATH=${CODE_PATH}/logging:$PYTHONPATH
     ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_llm_result.py ${BASE_PATH}/result ${RANK_SIZE} ${LLAMA_RUN_MODE}
-    find $BASE_PATH/result/ "*.ckpt" -type f -delete
+    find $BASE_PATH/result/ -name "*.ckpt" -exec rm {} \;
     logger_Info "-------------------------------- get_result end --------------------------------"
 }

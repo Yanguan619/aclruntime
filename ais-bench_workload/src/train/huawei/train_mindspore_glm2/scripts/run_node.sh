@@ -43,7 +43,7 @@ function node_init()
             logger_Info "mindformers exist, won't be installed again"
         else
             cd $WORK_PATH/code
-            bash build.sh || { logger_Warn "mindformers install failed:$?";return $ret_failed; }
+            pip install . || { logger_Warn "mindformers install failed:$?";return $ret_failed; }
             cd $WORK_PATH
         fi
     fi
@@ -74,7 +74,7 @@ function node_check()
 function ckpt_merge()
 {
     transform_ckpt_path=$WORK_PATH/code/mindformers/tools/transform_ckpt.py
-    result_output_path=$WORK_PATH/result/output
+    result_output_path=$WORK_PATH/../result/output
     cd $WORK_PATH
     # ckpt merge
     $PYTHON_COMMAND $transform_ckpt_path \
@@ -112,7 +112,7 @@ function eval_run()
     eval_processed_yaml=$WORK_PATH/$GLM_EVAL_YAML_NAME
     cp $eval_processed_yaml $eval_yaml_path
     eval_dataset_path=$WORK_PATH/code/$EVAL_DATASET_PATH
-    load_checkpoint_path=$WORK_PATH/result/output/target_ckpt/rank_0/glm2_6b0.ckpt
+    load_checkpoint_path=$WORK_PATH/../result/output/target_ckpt/rank_0/glm2_6b0.ckpt
     if [ "$EVAL_DATASET_TYPE" = "ADGEN" ];then
         echo "run eval using ADGEN"
         eval_script_path=$WORK_PATH/code/run_mindformer.py

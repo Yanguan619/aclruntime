@@ -68,13 +68,17 @@ init()
     rm -rf ${BASE_PATH}/result;mkdir -p ${BASE_PATH}/result
     rm -rf $RESULT_PATH;mkdir -p $RESULT_PATH
     rm -rf $WORK_PATH;mkdir -p $WORK_PATH
+
+    if [ "$NODEINFO_FILE" != "" ];then
+        cmd="rm -rf ${RELAT_WORK_PATH};mkdir -p ${RELAT_WORK_PATH}"
+        cluster_multi_exec "$cmd" serial || { logger_Error "renew workpath failed"; return 1; }
+    fi
+
+    # copy code to node work path
     cp -r $CODE_PATH/* $WORK_PATH # CPU可以执行的都在host节点执行
 
     if [ "$NODEINFO_FILE" != "" ];then
-         # sync data if work_path not exist so new one.节点的work/ 路径是相对于在node_file中指定的work_path
-        cmd="rm -rf ${RELAT_WORK_PATH};mkdir -p ${RELAT_WORK_PATH}"
-        cluster_multi_exec "$cmd" serial || { logger_Error "renew workpath failed"; return 1; }
-         # copy code to node work path
+        # sync data if work_path not exist so new one.节点的work/ 路径是相对于在node_file中指定的work_path
         cluster_multi_put "$WORK_PATH" "./"  || { logger_Error "deploy code to work place failed"; return 1; }
     fi
     cmd="source /etc/profile;
@@ -100,7 +104,7 @@ run_train()
         fi
         cluster_multi_exec "$cmd" || { logger_Error "run train(finetune) failed"; return 1; }
         if [ "$NODEINFO_FILE" != "" ];then
-            cluster_multi_get "$RELAT_RESULT_PATH" "$WORK_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
+            cluster_multi_get "$RELAT_RESULT_PATH" "$BASE_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
         fi
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH
         bash $WORK_PATH/run_node.sh merge || { logger_Error "ckpt merge failed"; return 1; }
@@ -111,35 +115,18 @@ run_train()
 run_eval()
 {
     logger_Info "-------------------------------- eval start --------------------------------"
-    if [ "$NODEINFO_FILE" == "" ];then
-        cmd="$local_env_cmd;
-        bash $WORK_PATH/run_node.sh eval"
-    else
-        cmd="$env_cmd;
-        bash \$WORK_PATH/run_node.sh eval"
-    fi
-    cluster_single_exec "$cmd" || { logger_Error "run eval failed"; return 1; }
+    cmd="$local_env_cmd;
+    bash $WORK_PATH/run_node.sh eval"
+    eval "$cmd" || { logger_Error "run eval failed"; return 1; }
     logger_Info "-------------------------------- eval end --------------------------------"
 }
 
 get_result()
 {
     logger_Info "-------------------------------- get_result start --------------------------------"
-    if [ "$NODEINFO_FILE" == "" ];then
-        cmd="$local_env_cmd;
-        mkdir -p $RESULT_PATH"
-    else
-        cmd="$env_cmd;
-        mkdir -p \$RESULT_PATH"
-    fi
-    cluster_multi_exec "$cmd" serial || { logger_Error "mkdir resultpath failed"; return 1; }
-    if [ "$NODEINFO_FILE" != "" ];then
-        cluster_multi_get "${RELAT_RESULT_PATH}" "${WORK_PATH}" || { logger_Error "get result from ${RELAT_RESULT_PATH} failed"; return 1; }
-    fi
     source ${CODE_PATH}/config/$CONFIG_FILE
     export PYTHONPATH=${CODE_PATH}/logging:$PYTHONPATH
-    ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_glm2_result.py ${RESULT_PATH} ${RANK_SIZE} ${GLM_RUN_MODE}
-    [ -d $BASE_PATH/result ] && cp ${RESULT_PATH}/* -rf  $BASE_PATH/result/
-    find $BASE_PATH/result/ -name "*.ckpt" -type f -delete
+    ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_glm2_result.py ${BASE_PATH}/result ${RANK_SIZE} ${GLM_RUN_MODE}
+    find $BASE_PATH/result/ -name "*.ckpt" -exec rm {} \;
     logger_Info "-------------------------------- get_result end --------------------------------"
 }

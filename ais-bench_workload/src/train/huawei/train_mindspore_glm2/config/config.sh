@@ -2,8 +2,9 @@
 echo "set env of glm train"
 
 export PYTHON_COMMAND=python3
-export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，通过此私钥管理节点能免密访问所有计算节点
-export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'， 若为'on' 不需要配置CLUSTER_SSH_KEY_PATH
+#  以下cluster配置二选一，仅多机场景需要
+export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，确保通过此私钥管理节点能免密访问所有计算节点(单机场景注释此行)
+export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'， 若为'on' 不需要配置CLUSTER_SSH_KEY_PATH(单机场景注释此行)
 
 export GLM_RUN_MODE='only_finetune'
 
@@ -28,5 +29,5 @@ export PIPELINE_STAGE=4
 # need if rank_size > 1
 export RANK_TABLE_FILE=/home/hccl/hccl_xxxx_8p.json
 
-# cluster need for node info
-#export NODEINFO_FILE=/home/lcm/tool/ssh64_66.json
+# 多机多卡需要配置，单机不需要配置
+# export NODEINFO_FILE=/home/lcm/tool/ssh64_66.json

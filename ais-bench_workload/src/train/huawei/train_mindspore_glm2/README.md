@@ -25,7 +25,7 @@ The result of multiplication calculation is correct, MindSpore has been installe
 ```
 说明成功。
 ### 单机多卡与多机多卡的区别
-单机多卡执行负载时，管理节点和计算节点是一个环境；多机多卡执行负载时，多机就是多个计算节点，管理节点可以是其中一个计算节点，也可以是单独一个环境。<br>
+单机多卡执行负载，只在单机环境上部署和运行即可；多机多卡执行负载时，多机就是多个计算节点，管理节点必须是其中一个计算节点。<br>
 **多机多卡需注意**
 1. 如果管理节点不是计算节点，管理节点也需要安装与计算节点相同版本的mindspore，也需要安装训练负载包中的mindformers，mindformers的安装方式如下：
 ```bash
@@ -105,7 +105,7 @@ nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）
     ...
 }
 ```
-
+**注意**：作为多机多卡时的管理节点的计算节点，work_path必须填写`train_huawei_train_mindspore_glm2-Ais-Benchmark-Stubs-{arch}-2.0-r2.2/`目录的绝对路径
 ## 2 负载启动前配置项
 ### 2.0 和tester连接的配置（仅在线测试需要）
 `./config/config.json`和`./config/system.json`请参考《Stubs被测试者接入使用文档》中的“配置与Tester相关的配置文件”章节以及测试机构的要求进行配置。
@@ -113,11 +113,12 @@ nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）
 `./code/config/config.sh`内容如下：
 ```bash
 #!/bin/bash
-echo "set env of glm train"
+echo "set env of glm2 train"
 
 export PYTHON_COMMAND=python3
-export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，确保通过此私钥管理节点能免密访问所有计算节点
-export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'， 若为'on' 不需要配置CLUSTER_SSH_KEY_PATH
+#  以下cluster配置二选一，仅多机场景需要
+export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，确保通过此私钥管理节点能免密访问所有计算节点(单机场景注释此行)
+export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'， 若为'on' 不需要配置CLUSTER_SSH_KEY_PATH(单机场景注释此行)
 
 export GLM_RUN_MODE='only_finetune'
 
@@ -143,11 +144,11 @@ export PIPELINE_STAGE=4
 # need if rank_size > 1
 export RANK_TABLE_FILE=./hccl_xxxx_8p.json # 配置为生成的rank table路径，是相对于负载仓的code目录的路径，如果不在code目录下需要拷贝到code目录下
 
-# 多机多卡需要配置，单机不能配置
+# 多机多卡需要配置，单机不需要配置
 #export NODEINFO_FILE=/home/lcm/tool/ssh64_66.json
 ```
 
-- 请参考`./code/config/config.sh`的注释将第一章准备的资源的路径在`config.sh`中配置好，
+- 请参考`./code/config/config.sh`的注释将"资源准备"章节准备的资源的路径在`config.sh`中配置好，
 
 ### 2.2 yaml配置
 - 前置声明：所有修改路径均为绝对路径
@@ -215,7 +216,7 @@ eval_dataset_task:
 seed: 0
 run_mode: 'train'
 output_dir: './output'  # 当前不支持自定义修改，请勿修改该默认值
-load_checkpoint: 'glm2_6b' # 修改为实际下载的glm2_6b.ckpt路径
+load_checkpoint: 'glm2_6b.ckpt' # 修改为实际下载的glm2_6b.ckpt路径
 auto_trans_ckpt: False  # If true, auto transform load_checkpoint to load in distributed model
 only_save_strategy: False
 resume_training: False

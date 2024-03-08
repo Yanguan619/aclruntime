@@ -14,6 +14,7 @@
 
 import os
 import re
+import subprocess
 import platform
 import logging
 import sys
@@ -141,6 +142,17 @@ def get_cann_path():
 
 get_cann_path()
 
+# 使用Git命令获取最新的提交哈希
+try:
+    git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode('utf-8').strip()
+except Exception:
+    git_hash = ""
+# 使用Git命令获取最新的提交日期和时间
+try:
+    git_date = subprocess.check_output(['git', 'show', '-s', '--format=%cd', 'HEAD']).decode('utf-8').strip()
+except Exception:
+    git_date = ""
+
 ext_modules = [
     Pybind11Extension(
         'aclruntime',
@@ -185,7 +197,8 @@ setup(
     version=STATIC_VERSION,
     author="ais_bench",
     author_email="aclruntime",
-    url="https://xxxxx",
+    url=f"https://gitee.com/ascend/tools/, commit id: {git_hash}, release_date: {git_date}",
+    release_date = git_date,
     description="A test project using pybind11 and aclruntime",
     long_description="",
     ext_modules=ext_modules,

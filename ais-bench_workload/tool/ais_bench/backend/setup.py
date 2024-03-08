@@ -15,7 +15,6 @@
 import os
 import re
 import subprocess
-import datetime
 import platform
 import logging
 import sys
@@ -153,7 +152,6 @@ try:
     git_date = subprocess.check_output(['git', 'show', '-s', '--format=%cd', 'HEAD']).decode('utf-8').strip()
 except Exception:
     git_date = ""
-git_date_str = "" if not git_date else datetime.datetime.strptime(git_date, '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d')
 
 ext_modules = [
     Pybind11Extension(
@@ -200,7 +198,7 @@ setup(
     author="ais_bench",
     author_email="aclruntime",
     url=f"https://gitee.com/ascend/tools/, commit id: {git_hash}",
-    release_time = git_date_str,
+    release_time = git_date,
     description="A test project using pybind11 and aclruntime",
     long_description="",
     ext_modules=ext_modules,

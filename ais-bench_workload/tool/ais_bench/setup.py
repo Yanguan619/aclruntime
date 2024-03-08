@@ -37,7 +37,7 @@ setup(
     version='0.0.2',
     description='ais_bench tool',
     long_description=long_description,
-    url=f"https://gitee.com/ascend/tools/, commit id: {git_hash}",
+    url=f"https://gitee.com/ascend/tools/, commit id: {git_hash}, release_date: {git_date}",
     release_date = git_date,
     packages=find_packages(),
     include_package_data=True,

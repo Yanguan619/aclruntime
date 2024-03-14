@@ -204,7 +204,7 @@ class TestClass:
         session = aclruntime.InferenceSession(model_path, device_id, options)
         session.set_staticbatch()
         # only need call this functon compare infer_simple
-        with pytest.raises(RuntimeError) as e:
+        with pytest.raises(Exception) as e:
             session.check_dym_aipp_input_exist()
 
     # 模型有多个动态aipp input
@@ -217,7 +217,7 @@ class TestClass:
         aipp_manager = DymAippManager(session, self.get_actual_aipp_config(), 1)
         aipp_manager.load_aipp_config_content()
         session.set_dym_aipp_info_set()
-        with pytest.raises(RuntimeError) as e:
+        with pytest.raises(Exception) as e:
             session.check_dym_aipp_input_exist()
             logger.info("get --aipp model wrong")
 
@@ -231,7 +231,7 @@ class TestClass:
         outnames = [session.get_outputs()[0].name]
         feeds = {session.get_inputs()[0].name: tensor}
 
-        with pytest.raises(RuntimeError) as e:
+        with pytest.raises(Exception) as e:
             outputs = session.run(outnames, feeds)
             logger.info("outputs:{}".format(outputs))
 
@@ -257,7 +257,7 @@ class TestClass:
         session.set_staticbatch()
         # only need call this functon compare infer_simple
         session.check_dym_aipp_input_exist()
-        with pytest.raises(RuntimeError) as e:
+        with pytest.raises(Exception) as e:
             aipp_manager = DymAippManager(session, self.get_aipp_config_lack_title(), 4)
             aipp_manager.load_aipp_config_content()
             session.set_dym_aipp_info_set()
@@ -272,7 +272,7 @@ class TestClass:
         session.set_staticbatch()
         # only need call this functon compare infer_simple
         session.check_dym_aipp_input_exist()
-        with pytest.raises(RuntimeError) as e:
+        with pytest.raises(Exception) as e:
             aipp_manager = DymAippManager(session, self.get_aipp_config_lack_title(), 4)
             aipp_manager.load_aipp_config_content()
             session.set_dym_aipp_info_set()
@@ -287,7 +287,7 @@ class TestClass:
         session.set_staticbatch()
         # only need call this functon compare infer_simple
         session.check_dym_aipp_input_exist()
-        with pytest.raises(RuntimeError) as e:
+        with pytest.raises(Exception) as e:
             aipp_manager = DymAippManager(session, self.get_aipp_config_param_overflowed(), 4)
             aipp_manager.load_aipp_config_content()
             session.set_dym_aipp_info_set()

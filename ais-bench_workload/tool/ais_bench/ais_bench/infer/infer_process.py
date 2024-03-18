@@ -31,7 +31,7 @@ import numpy as np
 from tqdm import tqdm
 
 from ais_bench.infer.interface import InferSession, MemorySummary
-from ais_bench.infer.io_oprations import (create_infileslist_from_inputs_list,
+from ais_bench.infer.common.io_operations import (create_infileslist_from_inputs_list,
                                           create_pipeline_fileslist_from_inputs_list,
                                           create_intensors_from_infileslist,
                                           get_narray_from_files_list,
@@ -42,16 +42,16 @@ from ais_bench.infer.io_oprations import (create_infileslist_from_inputs_list,
                                           PURE_INFER_FAKE_FILE, save_tensors_to_file,
                                           get_pure_infer_data)
 from ais_bench.infer.summary import summary
-from ais_bench.infer.miscellaneous import (dymshape_range_run, get_acl_json_path, version_check,
+from ais_bench.infer.common.miscellaneous import (dymshape_range_run, get_acl_json_path, version_check,
                                            get_batchsize, ACL_JSON_CMD_LIST)
-from ais_bench.infer.utils import (get_file_content, get_file_datasize,
+from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
                                    get_fileslist_from_dir, list_split, list_share,
                                    save_data_to_files, create_fake_file_name, logger,
                                    create_tmp_acl_json, move_subdir, convert_helper)
-from ais_bench.infer.path_security_check import is_legal_args_path_string
+from ais_bench.infer.common.path_security_check import is_legal_args_path_string
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.backends import BackendFactory
-from ais_bench.infer.path_security_check import ms_open, MAX_SIZE_LIMITE_CONFIG_FILE
+from ais_bench.infer.common.path_security_check import ms_open, MAX_SIZE_LIMITE_CONFIG_FILE
 
 PERMISSION_DIR = 0o750
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')

@@ -15,7 +15,7 @@
 
 import logging
 from typing import Any, Dict, Iterable, Iterator, Tuple
-from ais_bench.infer.utils import logger
+from ais_bench.infer.common.utils import logger
 
 
 class Registry(Iterable[Tuple[str, Any]]):
@@ -36,7 +36,7 @@ class Registry(Iterable[Tuple[str, Any]]):
             return obj
 
         return lambda x: add(obj, x)
-        
+
     def __init__(self, name: str) -> None:
         """
         Args:

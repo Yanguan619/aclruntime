@@ -1,7 +1,7 @@
 import os
 import re
 import argparse
-from ais_bench.infer.path_security_check import FileStat
+from ais_bench.infer.common.path_security_check import FileStat
 
 OM_MODEL_MAX_SIZE = 10 * 1024 * 1024 * 1024 # 10GB
 ACL_JSON_MAX_SIZE = 8 * 1024 # 8KB

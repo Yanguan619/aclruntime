@@ -19,7 +19,7 @@ import time
 import numpy as np
 
 from ais_bench.infer.summary import summary
-from ais_bench.infer.utils import (
+from ais_bench.infer.common.utils import (
     get_file_content,
     get_file_datasize,
     get_fileslist_from_dir,

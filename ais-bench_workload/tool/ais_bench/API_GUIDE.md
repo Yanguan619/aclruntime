@@ -195,7 +195,7 @@ summary()
 ```
 **返回值**
 
-返回[float]类型的数据。返回的list中按推理执行的先后顺序，保存了每一组数据推理的时间。
+返回[[float, float]]类型的数据。返回的list中按推理执行的先后顺序，保存了每一组数据推理的时间对（开始时间，结束时间）。
 
 <a name="reset_summaryinfo1"></a>
 
@@ -235,7 +235,7 @@ free_resource()
 #### <font color=#DD4466>**finalize函数**</font>
 **功能说明**
 
-用于释放InferSession对应device内InferSession所在进程和AscendCL相关的所有资源。
+用于释放InferSession对应device内InferSession所在进程和AscendCL相关的所有资源。**注意是类方法**，通过`InferSession.finalize()`方式调用，推荐在进程结束前手动调用，调用后在当前进程无法再执行device上的任务。
 
 **函数原型**
 ```python

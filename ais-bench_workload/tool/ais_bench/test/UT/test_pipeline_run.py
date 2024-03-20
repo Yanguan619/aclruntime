@@ -23,7 +23,7 @@ import numpy as np
 import pytest
 from test_common import TestCommonClass
 
-from ais_bench.infer.io_oprations import (
+from ais_bench.infer.common.io_operations import (
     create_pipeline_fileslist_from_inputs_list,
     PURE_INFER_FAKE_FILE_ZERO,
     PURE_INFER_FAKE_FILE_RANDOM,

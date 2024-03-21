@@ -33,6 +33,7 @@ function get_train_cmd()
     chipname=`npu-smi info -t board  -i 0 -c 0 | grep 'Chip Name' | awk {'print $4'}`
     export MS_DISABLE_REF_MODE=1
     export MS_ENABLE_FORMAT_MODE=0
+    export MS_ASCEND_CHECK_OVERFLOW_MODE="SATURATION_MODE"
 }
 
 function get_eval_cmd()

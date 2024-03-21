@@ -802,26 +802,8 @@ ais_bench推理工具执行后，打屏输出结果示例如下：
 
 ### 接口开放
 
-开放ais_bench推理工具推理Python接口。
-
-代码示例参考https://gitee.com/ascend/tools/blob/master/ais-bench_workload/tool/ais_bench/test/interface_sample.py
-
-可以通过如下示例代码完成ais_bench推理工具推理操作：
-
-```python
-def infer_simple():
-  device_id = 0
-  session = InferSession(device_id, model_path)
-
-  *# create new numpy data according inputs info*
-  barray = bytearray(session.get_inputs()[0].realsize)
-  ndata = np.frombuffer(barray)
-
-  outputs = session.infer([ndata])
-  print("outputs:{} type:{}".format(outputs, type(outputs)))
-
-  print("static infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
-```
+开放ais_bench推理工具inferface推理Python接口。
+接口文档参考[API使用说明](API_GUIDE.md)
 
 动态Shape推理：
 

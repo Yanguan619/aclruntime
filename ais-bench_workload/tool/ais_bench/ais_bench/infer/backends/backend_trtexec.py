@@ -24,7 +24,7 @@ from typing import Iterable, List, Dict, Any
 
 from ais_bench.infer.backends import backend, BACKEND_REGISTRY
 from ais_bench.infer.backends.backend import AccuracyResult, PerformanceStats, PerformanceResult, InferenceTrace
-from ais_bench.infer.utils import logger
+from ais_bench.infer.common.utils import logger
 
 
 class TrtexecConfig(object):

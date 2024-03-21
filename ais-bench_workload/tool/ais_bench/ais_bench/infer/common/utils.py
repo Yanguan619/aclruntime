@@ -27,7 +27,7 @@ import shutil
 import shlex
 import subprocess
 import numpy as np
-from ais_bench.infer.path_security_check import (
+from ais_bench.infer.common.path_security_check import (
     ms_open,
     MAX_SIZE_LIMITE_NORMAL_FILE,
     MAX_SIZE_LIMITE_CONFIG_FILE,

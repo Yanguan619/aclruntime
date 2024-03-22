@@ -923,6 +923,167 @@ int main(int argc, char *argv[]) {
 
 
     }
+    if ((strcmp(mode, "multipull") == 0) || (strcmp(mode, "multi") == 0) || (strcmp(mode, "allmulti") == 0)){
+    printf("multithreading pull:%d\n", num_servers);
+    for (int size = start_size; size <= end_size / 2; size *= 2) {
+
+        int udx = -1;
+        pthread_t threads[NUM_THREADS];
+        thread_data data[NUM_THREADS];
+        void *status;
+        for (int round = 0; round < iters; ++round) {
+                for (int i = 0; i < num_qps; ++i) {
+                    data[i].thread_id = i;
+                    data[i].qp = ctx->qp[i];
+                    data[i].cq = ctx->cq[i];
+                    data[i].mr = ctx->mr[i];
+                    data[i].buf = ctx->buf[i];
+                    data[i].msg_size = 32;
+                    data[i].recv_size = end_size;
+                    data[i].send_num = 0;
+                    data[i].recv_num = 1;
+                    data[i].send_flags = ctx->send_flags;
+                }
+                for (int i = 0; i < num_qps; ++i) {
+                    if (pthread_create(&threads[i], NULL, thread_function, (void*)&data[i])) {
+                        printf("Error: pthread create failed\n");
+                        exit(1);
+                    }
+                }
+                pthread_mutex_lock(&mutex);
+                ready = 1;
+                pthread_cond_broadcast(&cond);
+                pthread_mutex_unlock(&mutex);
+                for (int i = 0; i < num_qps; ++i) {
+                    pthread_join(threads[i], &status);
+                    if ((long)status == -1) {
+                        printf("Thread #%d exited with error\n", i);
+                        exit(1);
+                    }
+                }
+                //记录结束时间
+                // clock_gettime(CLOCK_MONOTONIC, &end);
+                struct timespec start = data[0].startimes;
+                for (int i = 1; i < num_qps; ++i) {
+                    if ((data[i].startimes.tv_sec < start.tv_sec) ||
+                        (data[i].startimes.tv_sec == start.tv_sec && data[i].startimes.tv_nsec < start.tv_nsec)) {
+                        start = data[i].startimes;
+                    }
+                }
+
+                struct timespec end = data[0].endtimes;
+                for (int i = 1; i < num_qps; ++i) {
+                    if ((data[i].endtimes.tv_sec > end.tv_sec) ||
+                        (data[i].endtimes.tv_sec == end.tv_sec && data[i].endtimes.tv_nsec > end.tv_nsec)) {
+                        end = data[i].endtimes;
+                    }
+                }
+
+                long seconds, nanoseconds;
+                double microseconds;
+                seconds = end.tv_sec - start.tv_sec;
+                nanoseconds = end.tv_nsec - start.tv_nsec;
+                if (nanoseconds < 0) {
+                    --seconds;
+                    nanoseconds += 1000000000;
+                }
+                microseconds = seconds * 1000000 + nanoseconds / 1000.0;
+                result[++udx] = microseconds;
+
+                // 记录并处理完成时间
+        }
+
+        merge_sort(result, 0, udx);
+        double sum = 0;
+        for (int i = 0; i <= udx; i ++) sum += result[i];
+        printf("Valid Count: %d\n", udx);
+        double avg = sum / (udx + 1);
+        printf("%d bytes  %d iters min:%.3fus\t  50\%:%.3fus\t 99\%:%.3fus\t 999\%:%.3fus\t Max:%.3fus\tAvg:%.3fus\n",
+        size,iters,result[0],result[(udx + 1) / 2], result[(int)((udx + 1) * 0.99)],
+        result[(int)((udx + 1) * 0.999)],result[udx], avg);
+
+    }
+
+
+    }
+    if ((strcmp(mode, "multipush") == 0) || (strcmp(mode, "multi") == 0) || (strcmp(mode, "allmulti") == 0)){
+    printf("multithreading push:%d\n", num_servers);
+    for (int size = start_size; size <= end_size / 2; size *= 2) {
+
+        int udx = -1;
+        pthread_t threads[NUM_THREADS];
+        thread_data data[NUM_THREADS];
+        void *status;
+        for (int round = 0; round < iters; ++round) {
+                // printf("Round:%d\n", round);
+                // 记录开始时间
+                for (int i = 0; i < num_qps; ++i) {
+                    data[i].thread_id = i;
+                    data[i].qp = ctx->qp[i];
+                    data[i].cq = ctx->cq[i];
+                    data[i].mr = ctx->mr[i];
+                    data[i].buf = ctx->buf[i];
+                    data[i].msg_size = size;
+                    data[i].recv_size = end_size;
+                    data[i].send_num = 0;
+                    data[i].recv_num = 1;
+                    data[i].send_flags = ctx->send_flags;
+                }
+                for (int i = 0; i < num_qps; ++i) {
+                    if (pthread_create(&threads[i], NULL, push_thread_function, (void*)&data[i])) {
+                        printf("Error: pthread create failed\n");
+                        exit(1);
+                    }
+                }
+
+                pthread_mutex_lock(&mutex);
+                ready = 1;
+                pthread_cond_broadcast(&cond);
+                pthread_mutex_unlock(&mutex);
+                for (int i = 0; i < num_qps; ++i) {
+                    pthread_join(threads[i], &status);
+                    if ((long)status == -1) {
+                        printf("Thread #%d exited with error\n", i);
+                        exit(1);
+                    }
+                }
+
+                struct timespec start = data[0].startimes;
+                for (int i = 1; i < num_qps; ++i) {
+                    if ((data[i].startimes.tv_sec < start.tv_sec) ||
+                        (data[i].startimes.tv_sec == start.tv_sec && data[i].startimes.tv_nsec < start.tv_nsec)) {
+                        start = data[i].startimes;
+                    }
+                }
+                struct timespec end = data[0].endtimes;
+                for (int i = 1; i < num_qps; ++i) {
+                    if ((data[i].endtimes.tv_sec > end.tv_sec) ||
+                        (data[i].endtimes.tv_sec == end.tv_sec && data[i].endtimes.tv_nsec > end.tv_nsec)) {
+                        end = data[i].endtimes;
+                    }
+                }
+                long seconds, nanoseconds;
+                double microseconds;
+                seconds = end.tv_sec - start.tv_sec;
+                nanoseconds = end.tv_nsec - start.tv_nsec;
+                if (nanoseconds < 0) {
+                    --seconds;
+                    nanoseconds += 1000000000;
+                }
+                microseconds = seconds * 1000000 + nanoseconds / 1000.0;
+                result[++udx] = microseconds;
+
+        }
+        merge_sort(result, 0, udx);
+        double sum = 0;
+        for (int i = 0; i <= udx; i ++) sum += result[i];
+        printf("Valid Count: %d\n", udx);
+        double avg = sum / (udx + 1);
+        printf("%d bytes  %d iters min:%.3fus\t  50\%:%.3fus\t 99\%:%.3fus\t 999\%:%.3fus\t Max:%.3fus\tAvg:%.3fus\n",
+        size,iters,result[0],result[(udx + 1) / 2], result[(int)((udx + 1) * 0.99)],
+        result[(int)((udx + 1) * 0.999)],result[udx], avg);
+    }
+    }
 
     pp_close_ctx(ctx);
     if (ib_devname) {

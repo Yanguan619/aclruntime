@@ -1,8 +1,10 @@
 # multi_devices_perftest工具使用指南
 
 ## 工具的编译
-工具的编译只需要将依赖的so和头文件按照合适的结构进行分布：include存放libibverbs提供的头文件
+工具的编译只需要将依赖的so和头文件按照合适的结构进行分布： 在multi_devices_perftest下新建两个文件夹include与lib64，
+include存放libibverbs提供的头文件
 ，lib64存放依赖的so（要区分x86和aarch64版本）
+
 
 提示：理论上似乎无论是linux还是aarch64上编译好的包都可以在npu中进行测试，
 但目前因为环境限制还未实测

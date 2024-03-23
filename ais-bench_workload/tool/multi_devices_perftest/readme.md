@@ -21,7 +21,8 @@
 
 **参数介绍**
 
-```mermaid
+```
+
 -q, client 到每个 server 建立的连接数量，默认为1
 -p, port 端口号，请保正client端与server端一致，默认为18515
 -a, size_begin, 开始发送的 size，默认为512 KB
@@ -31,8 +32,10 @@
 -d, use IB device <dev> (default first device found)，一般使用hns_0（必选）
 -g, gid-idx local port gid index，一般使用3或者5（必选）
 -r, rx-depth number of receives to post at a time (default 500)
+
 ```
 **工具的命令**
+
 1对1场景下工具只需要两条命令，打开server端与client端即可。
 
 Push操作：
@@ -52,21 +55,11 @@ ipv6组网则直接使用例如6::149，6::150）
 ```
 Pull操作与all操作使用与上相同，将-M后参数改变即可，all操作即先跑完pull再跑push操作，不需要重复建立连接。
 
-**样例**
-Server端
-左边为ipv4，右边为ipv6
-![img.png](img.png)
-
-Client端：
-在命令后添加server端GID，多个server端则以逗号分隔来连接多个server端（上为ipv4，下为ipv6）
-![img_1.png](img_1.png)
-
-带宽的计算（拿32M举例）：33554432 字节 × 8 × 1（server数）/ 1878.581×10-6 s = 142.89Gbps
 
 **FAQ**
 
 
-Q：为什么测试出带宽只有140Gbps？
+Q：为什么1对1出现测试出带宽只有140Gbps？
 A：这里原因有两个：①测出打满带宽是需要设置一定参数的，例如这里可以设置qp连接数为2，即可将带宽打满到180Gbps左右
 ②：将mtu报文设置为8K即以上，因为工具目前使用的是1k的报文传输，报文必结构开销占整个报文的9.5%，实际传输的数据为数据量×1.1左右,即真实测得带宽为180Gbps×1.1≈199Gbps
 
@@ -74,29 +67,7 @@ Q:工具编译报错 /libibverbs.so: undefined reference to ''：？
 A：这个是由于缺少依赖库导致，可以看版本是否匹配，或者换一台机器编译，编译成功后直接拷贝过去或可以查看makefile文件找专家协助。
 
 Q：如何设置报文大小？
-A：目前工具暂不支持报文结构大小设置，可以尝试修改rc_client.c/rc_server.c文件中的mtu入参，全局搜索并修改case 'm':为，：
-```
-enum ibv_mtu pp_mtu_to_enum(int mtu)
-{
-    switch (mtu) {
-    case 256:  return IBV_MTU_256;
-    case 512:  return IBV_MTU_512;
-    case 1024: return IBV_MTU_1024;
-    case 2048: return IBV_MTU_2048;
-    case 4096: return IBV_MTU_4096;
-    default:   return 0;
-    }
-}
-
-case 'm':
-    mtu = pp_mtu_to_enum(strtol(optarg, NULL, 0));
-    if (mtu == 0) {
-        usage(argv[0]);
-        return 1;
-    }
-    break;
-
-```
+A：目前工具暂不支持报文结构大小设置。
 
 Q：如何使用多线程？
 A：多线程需要使用cgroup打开内核才可以使用，-M参数后修改为multipush/multipull/multi既可，建议client使用multi与server使用all对应，多线程旨在在多qp/多机提高cpu瓶颈，对性能提示并不大。

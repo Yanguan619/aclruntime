@@ -21,8 +21,8 @@
 
 **参数介绍**
 
-```
 
+```
 -q, client 到每个 server 建立的连接数量，默认为1
 -p, port 端口号，请保正client端与server端一致，默认为18515
 -a, size_begin, 开始发送的 size，默认为512 KB

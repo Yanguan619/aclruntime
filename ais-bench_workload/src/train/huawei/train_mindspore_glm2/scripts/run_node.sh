@@ -101,7 +101,7 @@ function node_train()
     [ "$NODEINFO_FILE" != "" ] && cmd="$cmd $RANK_SIZE"
     echo "$cmd"
     $cmd || { logger_Warn "node_run failed, rank id range: $RANK_ID_RANGE" ; return $ret_failed; }
-    mv $WORK_PATH/code/output/ $WORK_PATH/result/ || { logger_Warn "move output failed!" ; return $ret_failed; } # store in $WORK_PATH/result/output
+    mv $WORK_PATH/code/output/ $WORK_PATH/../result/ || { logger_Warn "move output failed!" ; return $ret_failed; } # store in $WORK_PATH/../result/output
     return $ret_ok
 }
 

@@ -105,6 +105,8 @@ run_train()
         cluster_multi_exec "$cmd" || { logger_Error "run train(finetune) failed"; return 1; }
         if [ "$NODEINFO_FILE" != "" ];then
             cluster_multi_get "$RELAT_RESULT_PATH" "$BASE_PATH" || { logger_Error "cp result between nodes failed"; return 1; }
+        else
+            cp -r $WORK_PATH/result $BASE_PATH
         fi
         export PYTHONPATH=$WORK_PATH/logging:$PYTHONPATH
         bash $WORK_PATH/run_node.sh merge || { logger_Error "ckpt merge failed"; return 1; }

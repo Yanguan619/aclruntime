@@ -24,16 +24,7 @@ MindSpore version: 版本号
 The result of multiplication calculation is correct, MindSpore has been installed on platform [Ascend] successfully!
 ```
 说明成功。
-### 单机多卡与多机多卡的区别
-单机多卡执行负载，只在单机环境上部署和运行即可；多机多卡执行负载时，多机就是多个计算节点，管理节点必须是其中一个计算节点。<br>
-**多机多卡需注意**
-1. 如果管理节点不是计算节点，管理节点也需要安装与计算节点相同版本的mindspore，也需要安装训练负载包中的mindformers，mindformers的安装方式如下：
-```bash
-cd train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/code/code
-pip install .
-```
-2. 为确保能操作计算节点的数据，管理节点需要是root用户
-3. 需要保证计算节点和管理节点的工作目录路径名相同
+
 ## 负载包中文件夹主要目录结构
 
 ```
@@ -90,23 +81,7 @@ pip install .
     └── dev.json
     ```
 - 建议该目录放到code/code/mindformers/dataset_files/目录下(dataset_files需手动创建，如`mkdir -p code/code/mindformers/dataset_files/`)
-### 1.4 nodeinfo_file准备（多机多卡训练需要）
-nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）并按照如下格式配置节点信息：
-```json
-{
-    "0": { // 节点编号，为用户自定义，非设备实际编号，配置要求：不能重复、必须是0开始的连续整数，例如共有4个节点，节点编号只能取0，1，2，3。若不同节点配置了相同编号，那么只会读取其中一个节点的信息，另一个节点信息则被覆盖，实际运行测试时被覆盖的节点不会被测试。
-        "ip": "xx.xx.xx.xx", // 节点的ip地址 ipv4
-        "user": "user0", // 节点的用户名
-        "port": 12345, // 访问节点的端口
-        "work_path": "/xx/xx/xx/xx"  // 节点的工作路径，管理节点进入节点后处于的路径
-    },
-    "1":{
-        ...
-    }
-    ...
-}
-```
-**注意**：作为多机多卡时的管理节点的计算节点，work_path必须填写`train_huawei_train_mindspore_glm2-Ais-Benchmark-Stubs-{arch}-2.0-r2.2/`目录的绝对路径
+
 ## 2 负载启动前配置项
 ### 2.0 和tester连接的配置（仅在线测试需要）
 `./config/config.json`和`./config/system.json`请参考《Stubs被测试者接入使用文档》中的“配置与Tester相关的配置文件”章节以及测试机构的要求进行配置。
@@ -117,7 +92,7 @@ nodeinfo_file为json文件，需要用户自行创建（如nodeinfo_file.json）
 echo "set env of glm2 train"
 
 export PYTHON_COMMAND=python3
-#  以下cluster配置二选一，仅多机场景需要
+#  以下cluster配置二选一，仅多机场景需要，目前glm2不支持多机，不涉及
 export CLUSTER_SSH_KEY_PATH=~/.ssh/id_rsa # 用户指定的ssh私钥，确保通过此私钥管理节点能免密访问所有计算节点(单机场景注释此行)
 export CLUSTER_AUTO_SET_KEY='on' # 'off' or 'on'， 若为'on' 不需要配置CLUSTER_SSH_KEY_PATH(单机场景注释此行)
 

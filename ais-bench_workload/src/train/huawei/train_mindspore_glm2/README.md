@@ -33,6 +33,7 @@ cd train_huawei_train_mindspore_llama-Ais-Benchmark-Stubs-<arch>-2.0-r2.2/code/c
 pip install .
 ```
 2. 为确保能操作计算节点的数据，管理节点需要是root用户
+3. 需要保证计算节点和管理节点的工作目录路径名相同
 ## 负载包中文件夹主要目录结构
 
 ```

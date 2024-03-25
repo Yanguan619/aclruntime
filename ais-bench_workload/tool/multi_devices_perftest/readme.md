@@ -75,6 +75,6 @@ Q：如何设置报文大小？
 A：目前工具暂不支持报文结构大小设置。
 
 Q：如何使用多线程？
-A：多线程需要使用cgroup打开内核才可以使用，-M参数后修改为multipush/multipull/multi既可，建议client使用multi与server使用all对应，多线程旨在在多qp/多机提高cpu瓶颈，对性能提示并不大。
+A：多线程需要使用cgroup打开内核才可以使用，-M参数后修改为multipush/multipull/multi既可，建议client使用multi与server使用all对应，多线程旨在在多qp/多机提高cpu瓶颈，对性能提升并不大。
 
 

@@ -1,17 +1,8 @@
 # 基于Mindspore/mindformers框架的glm2大模型训练负载使用指南
 本文主要介绍使用基于glm2 大模型训练业务代码构建的AISBench的负载包，进行服务器性能测试的流程。
-## 名词定义
-|名词|定义|
-| --- | --- |
-|管理节点|运行大模型训练负载的环境，只有一个|
-|计算节点|执行训练任务的环境，可以有多个|
 ## 运行环境前置条件
-### 管理节点
 ```
 python >= 3.7
-```
-### 计算节点
-```
 mindspore >= 2.2
 ```
 MindSpore安装参考[MindSpore官网](https://www.mindspore.cn/)MindSpore需要能成功在npu上运行，验证命令：
@@ -54,7 +45,7 @@ The result of multiplication calculation is correct, MindSpore has been installe
 └── STUBS_PACKAGE_INTRO.md # Stubs被测试者接入使用文档
 ```
 - **后续对于相对路径的描述都是相对于负载包中的一级目录，例如 ./ais-bench-stubs表示Stubs主程序**
-- 管理节点安装mindformer需在code/code目录下执行`pip3 install .`
+- 运行环境安装mindformer需在code/code目录下执行`pip3 install .`
 ## 资源准备
 ### 前置声明
 - 运行glm2训练的Mindspore/mindformers的代码全部在`./code/code`文件夹中，资源的准备参考[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md),具体资源的参考详见本章其他小节。
@@ -62,7 +53,7 @@ The result of multiplication calculation is correct, MindSpore has been installe
 ### rank_table_file准备
 - 确保`/etc/hccn.conf`文件已经配好（如果没配好，参考[数据中心解决方案/配置训练节点](https://www.hiascend.com/document/detail/zh/Ascend%20Data%20Center%20Solution/22.0.0/install/800_9000/install_800_9000_0029.html)配置）。
 
-- 参考[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md)的“生成RANK_TABLE_FILE”(单机多卡情况)和“多机RANK_TABLE_FILE合并”(多机多卡情况)章节。
+- 参考[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md)的“生成RANK_TABLE_FILE”(单机多卡情况)章节。
 
 ### 模型权重下载与转换
 - 参考[glm2资源准备](https://gitee.com/mindspore/mindformers/blob/ac5bb9ec8d1ea85fd2021ca5c6f13b6ae821c270/docs/model_cards/glm2.md)的“模型权重下载与转换”章节；
@@ -120,7 +111,7 @@ export PIPELINE_STAGE=4
 # need if rank_size > 1
 export RANK_TABLE_FILE=./hccl_xxxx_8p.json # 配置为生成的rank table路径，是相对于负载仓的code目录的路径，如果不在code目录下需要拷贝到code目录下
 
-# 多机多卡需要配置，单机不需要配置
+# 多机多卡需要配置，单机不需要配置，glm2不涉及
 #export NODEINFO_FILE=/home/lcm/tool/ssh64_66.json
 ```
 

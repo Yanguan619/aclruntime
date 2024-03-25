@@ -1,7 +1,7 @@
 # multi_devices_perftest工具使用指南
 
 ## 工具的编译
-工具的编译可以通过链接 [非执行机编译](https://aisbench.obs.cn-north-4.myhuaweicloud.com/packet/%E9%9D%9E%E6%89%A7%E8%A1%8C%E6%9C%BA%E7%BC%96%E8%AF%91.zip)中获取执行文件或者通过对应的操作系统选择对应的文件进行编译。
+工具的编译可以通过链接 [非执行机编译](https://aisbench.obs.cn-north-4.myhuaweicloud.com/packet/%E9%9D%9E%E6%89%A7%E8%A1%8C%E6%9C%BA%E7%BC%96%E8%AF%91.zip)中获取执行文件ibv_client/ibv_server或者通过对应的操作系统选择对应的文件进行编译。
 
 工具的编译只需要将依赖的so和头文件按照合适的结构进行分布： 执行机上编译需要在multi_devices_perftest下新建两个文件夹include与lib64，
 include存放libibverbs提供的头文件

@@ -16,7 +16,7 @@ get_git_info(){
     local run_type="$2"
 
     # set default branch
-    [[ -z "$branch_args" ]] && { branch_args="r1.5"; }
+    [[ -z "$branch_args" ]] && { branch_args="r2.3"; }
 
     modelzoo_sub_dir="mindspore/model_zoo/official/cv/resnet"
     if [ "$branch_args" == "r1.1" ];then
@@ -86,6 +86,12 @@ get_git_info(){
         branch="master"
         patch_file_name="r2.2"
         commitid="bb9ab4fdfb2fc205ffeb4dd671be77312908ef88"
+        git_url="https://gitee.com/mindspore/models.git"
+        modelzoo_sub_dir="models/official/cv/ResNet"
+     elif [ "$branch_args" == "r2.3" ];then
+        branch="master"
+        patch_file_name="r2.3"
+        commitid="c63fb183e748427c2d59d96e5a79f9543f56844d"
         git_url="https://gitee.com/mindspore/models.git"
         modelzoo_sub_dir="models/official/cv/ResNet"
     else

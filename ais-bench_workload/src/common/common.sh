@@ -48,3 +48,14 @@ check_mindspore_run_ok()
         return 1
     fi
 }
+
+check_mindspore_run_ok_Ascend()
+{
+    local PYTHON_COMMAND=$1
+    ${PYTHON_COMMAND} -c "import mindspore;mindspore.set_context(device_target='Ascend');mindspore.run_check()" >> /dev/null 2>&1
+    ret=$?
+    if [ $ret != 0 ]; then
+        echo "mindspore run not ok"
+        return 1
+    fi
+}

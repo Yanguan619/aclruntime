@@ -13,9 +13,9 @@ ais-bench_workload支持快速构建和标准构建。其中快速构建仅支�
 
 ais-bench_workload构建支持在Windows和Linux系统下进行，要求如下：
 
-- **Windows系统：**Windows7及以上版本；安装git和winrar，版本不限。
+- **Windows系统**：Windows7及以上版本；安装git和winrar，版本不限。
 
-- **Linux系统：**系统版本无限制；安装git和unrar，版本不限。
+- **Linux系统**：系统版本无限制；安装git和unrar，版本不限。
 
   其中git、winrar和unrar的下载与安装，请用户自行完成，本文不详细描述。
 
@@ -45,12 +45,14 @@ ais-bench_workload
 │   ├── build.sh   # 标准构建脚本
 │   └── download_and_build.sh  # 快速构建脚本
 ├── doc
+│   ├── ais_bench推理程序更新说明.md
 │   ├── ais-bench_workload_inference推理负载说明文档.md
 │   ├── ais-bench_workload_train_modelarts训练说明文档.md
 │   ├── ais-bench_workload_train_offline线下训练说明文档.md
 │   ├── ais-bench_workload构建教程.md
 │   ├── ais-bench_workload推理执行容器环境搭建指导.md
-│   └── modelarts_notebook使用入门指导.docx
+│   ├── modelarts_notebook使用入门指导.docx
+│   └── 制作可ssh登录镜像ascend-mindspore-arm的方法.md
 ├── README.md
 ├── src    # 构建测试软件包的模型保存目录
 │   ├── inference # 推理场景
@@ -67,8 +69,12 @@ ais-bench_workload
 │       │   ├── train_mindspore_deeplabv3
 │       │   ├── train_mindspore_deepspeech2
 │       │   ├── train_mindspore_faster_rcnn
+│       │   ├── train_mindspore_glm2
+│       │   ├── train_mindspore_gnmt_v2
+│       │   ├── train_mindspore_llama
 │       │   ├── train_mindspore_pangu_alpha
 │       │   ├── train_mindspore_resnet
+│       │   ├── train_mindspore_ssd
 │       │   ├── train_mindspore_widedeep
 │       │   ├── train_tensorflow_bert_base
 │       │   ├── train_tensorflow_densenet121
@@ -100,10 +106,15 @@ ais-bench_workload
 
 支持构建环境：
 
-- **Windows系统：**git bash--Mircrosoft Windows git命令的模拟终端
-- **Linux系统**
+- **Windows系统**：git bash--Mircrosoft Windows git命令的模拟终端。
 
-要求操作系统处于稳定的联网状态，主要保证能够顺利下载ais-bench stubs基础测试工具包，可以先执行curl http://www.aipubservice.com测试。
+- **Linux系统**：
+
+  要求操作系统处于稳定的联网状态，主要保证能够顺利下载ais-bench stubs基础测试工具包，可以先执行如下命令测试网络是否畅通：
+
+  ```bash
+  curl http://www.aipubservice.com
+  ```
 
 不建议多用户同时执行快速构建操作，可能出现依赖下载失败。
 
@@ -150,7 +161,13 @@ Windows系统需预先安装git软件。在ais-bench_workload工作目录下鼠�
 #### 2.2 约束
 
 - 仅支持在Linux系统下执行构建操作。
-- 要求操作系统处于稳定的联网状态，主要是保证能够顺利下载ais-bench stubs基础测试工具包。可以先执行curl http://www.aipubservice.com测试网络是否畅通。
+
+- 要求操作系统处于稳定的联网状态，主要是保证能够顺利下载ais-bench stubs基础测试工具包。可以先执行如下命令测试网络是否畅通：
+
+  ```bash
+  curl http://www.aipubservice.com
+  ```
+
 - 一次执行只能构建一个模型的性能测试软件包。
 
 #### 2.2.3 构建准备
@@ -168,26 +185,29 @@ ais-bench_workload
 ├── build
     ├── build.sh
     ├── download_and_build.sh
-    ├── Ais-Benchmark-Stubs-aarch64-1.0.tar.gz
-    └── Ais-Benchmark-Stubs-x86_64-1.0.tar.gz
+    ├── Ais-Benchmark-Stubs-aarch64-<package_version>.tar.gz
+    └── Ais-Benchmark-Stubs-x86_64-<package_version>.tar.gz
 ```
 
+<package_version>为软件包版本号。
+
 #### 2.2.4 构建指令
+
 指令格式：./build.sh  {$stubs_file} {mode} {secondary-folder-name} {third-folder-name} {version} {type}
 输出路径：在ais-bench_workload\output目录会生成相应程序包。
 
 | 参数                    | 说明                                                         |
 | ----------------------- | ------------------------------------------------------------ |
-| {stubs_file}            | 选择stubs基础工具包，即选择构建测试软件包使用的aarch64和x86_64平台，必选。取值为Ais-Benchmark-Stubs-aarch64-1.0.tar.gz、Ais-Benchmark-Stubs-x86_64-1.0.tar.gz |
+| {stubs_file}            | 选择stubs基础工具包，即选择构建测试软件包使用的aarch64和x86_64平台，必选。取值为Ais-Benchmark-Stubs-aarch64-<package_version>.tar.gz、Ais-Benchmark-Stubs-x86_64-<package_version>.tar.gz |
 | {mode}                  | 选择构建测试软件包的适用场景，必选。取值为：train(训练场景)、inference(推理场景)。对应ais-bench_workload/src目下以及子目录名称。 |
 | {secondary-folder-name} | 二级子目录名称，对应ais-bench_workload/src目录下二级子目录名称，必选。{mode}配置为inference时，表示选择推理模型分类，取值为：language、vision；{mode}配置为train时，表示选择模型品牌，取值为：huawei、nvidia |
-| {third-folder-name}     | 三级子目录名称，对应ais-bench_workload/src目录下三级子目录名称，必选。<br> {secondary-folder-name}配置为language时，取值为bert;<br> {secondary-folder-name}配置为vision时，取值为classification_and_detection<br>  {secondary-folder-name}配置为huawei时，取值为：train_mindspore_bert、train_mindspore_deeplabv3、train_mindspore_deepspeech2、train_mindspore_faster_rcnn、train-mindspore_pangu_alpha、train_mindspore_resnet、train_mindspore_widedeep、train_tensorflow_bert_base、train_tensorflow_densenet121、train_tensorflow_mobileneetv2、train_tensorflow_nezha_large、train_tensorflow_resnet50、train_tensorflow_resnet101、train_tensorflow_resnext50、train_tensorflow_ssd_resnet34、train_tensorflow_vgg16、train_tensorflow_yolov3;<br> {secondary-folder-name}配置为nvidia时，取值为train_tensorflow_bert、train_tensorflow_resnet |
+| {third-folder-name}     | 三级子目录名称，对应ais-bench_workload/src目录下三级子目录名称，必选。<br> {secondary-folder-name}配置为language时，取值为bert;<br> {secondary-folder-name}配置为vision时，取值为classification_and_detection<br>  {secondary-folder-name}配置为huawei时，取值为：train_mindspore_bert、train_mindspore_deeplabv3、train_mindspore_deepspeech2、train_mindspore_faster_rcnn、train_mindspore_glm2、train_mindspore_gnmt_v2、train_mindspore_llama、train-mindspore_pangu_alpha、train_mindspore_resnet、train_mindspore_ssd、train_mindspore_widedeep、train_tensorflow_bert_base、train_tensorflow_densenet121、train_tensorflow_mobileneetv2、train_tensorflow_nezha_large、train_tensorflow_resnet50、train_tensorflow_resnet101、train_tensorflow_resnext50、train_tensorflow_ssd_resnet34、train_tensorflow_vgg16、train_tensorflow_yolov3;<br> {secondary-folder-name}配置为nvidia时，取值为train_tensorflow_bert、train_tensorflow_resnet |
 | {version}               | 模型框架版本号，仅{mode}配置为train时支持，可选。取值需通过ais-bench_worload工作目录具体模型目录下的版本文件确认支持的模型框架版本号 |
 | {type}                  | 线上或离线环境，仅{mode}配置为train时支持，可选。取值为“modelarts"，表示构建线上环境的性能测试软件包；不配置本参数时，表示构建离线环境的性能测试软件包 |
 
 
 
-##### 2.2.5 构建操作
+#### 2.2.5 构建操作
 
 **训练场景示例如下：**
 
@@ -210,6 +230,28 @@ ais-bench_workload
   ./build.sh ../output/Ais-Benchmark-Stubs-aarch64-1.0.tar.gz inference recommendation widedeep
 + 构建x86_64架构推理场景recommendation分类widedeep模型的性能测试软件包
   ./build.sh ../output/Ais-Benchmark-Stubs-x86_64-1.0.tar.gz inference recommendation widedeep
+
+## FAQ
+
+### 1. Linux环境下执行构建报错：$'\r': command not found
+
+**故障现象**
+
+在Linux环境执行./build.sh构建操作时会出现如下报错：
+
+![faq1](../img/faq1.png)
+
+**故障原因**
+
+build.sh脚本是从Windows环境开发的，Windows的换行符格式与Linux不一致，导致在Linux环境执行报错。
+
+**故障处理**
+
+在Ascend/tools/ais-bench-workload目录下执行如下命令将脚本进行格式化后重新执行构建操作：
+
+```
+find src/train/huawei/train_mindspore_glm2 -type f -name "*.sh" -exec dos2unix {} +
+```
 
 
 

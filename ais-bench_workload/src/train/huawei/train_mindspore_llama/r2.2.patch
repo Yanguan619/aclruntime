@@ -1,0 +1,231 @@
+diff -Nur origin/mindformers/core/callback/callback.py code/mindformers/core/callback/callback.py
+--- origin/mindformers/core/callback/callback.py	2023-12-06 11:50:58.448000000 +0800
++++ code/mindformers/core/callback/callback.py	2023-12-06 11:50:58.540000000 +0800
+@@ -33,7 +33,11 @@
+ from mindformers.tools.register import MindFormerRegister, MindFormerModuleType
+ from mindformers.tools.cloud_adapter.cloud_adapter import Local2ObsMonitor
+ from mindformers.tools.logger import logger
+-from mindformers.tools.utils import get_output_root_path, get_output_subpath, get_remote_save_url, check_in_modelarts
++from mindformers.tools.utils import get_output_root_path, get_output_subpath, get_remote_save_url, check_in_modelarts, save_aisbench_result
++try:
++    import ais_utils
++except Exception:
++    print("ais_utils not find")
+
+ __all__ = ['ObsMonitor', 'MFLossMonitor', 'CheckpointMointor', 'SummaryMonitor', 'ProfileMonitor', 'EvalCallBack']
+
+@@ -551,6 +555,7 @@
+
+         if save_ckpt:
+             logger.info('......Saving ckpt......')
++            save_aisbench_result("model_persistence_start_time", ais_utils.get_datatime().decode('utf-8'))
+             cur_ckpoint_file = self._prefix + "-" + str(cb_params.cur_epoch_num) + "_" \
+                                + str(step_num_in_epoch) + ".ckpt"
+             # update checkpoint file list.
+@@ -629,7 +634,7 @@
+                                     self._config.async_save, {}, self._config.enc_key, self._config.enc_mode)
+
+             save_only_network_params()
+-
++            save_aisbench_result("model_persistence_end_time", ais_utils.get_datatime().decode('utf-8'))
+             self._latest_ckpt_file_name = cur_file
+
+
+diff -Nur origin/mindformers/core/metric/metric.py code/mindformers/core/metric/metric.py
+--- origin/mindformers/core/metric/metric.py	2023-12-06 11:50:58.448000000 +0800
++++ code/mindformers/core/metric/metric.py	2023-12-06 11:50:58.540000000 +0800
+@@ -39,6 +39,11 @@
+
+ from .utils import PerplexityCell
+ from ...dataset.labels import cluener_labels
++from mindformers.tools.utils import save_aisbench_result
++try:
++    import ais_utils
++except Exception:
++    print("ais_utils not find")
+
+ __all__ = ['EntityScore', 'SQuADMetric', 'PerplexityMetric', 'ADGENMetric', 'PromptAccMetric', 'EmF1Metric']
+
+@@ -541,6 +546,12 @@
+             return None
+         avg_loss = float(self.total_loss / self.num_data)
+         result = {"loss": avg_loss, "PPL": math.exp(avg_loss)}
++        result_log="loss: {}, Perplexity: {}".format(avg_loss, math.exp(avg_loss))
++        try:
++            import ais_utils
++            ais_utils.set_result("training", "accuracy", result_log)
++        except Exception:
++            print("ais_utils not find")
+         if self.pipeline_parallel:
+             print("Average Loss and PPL Metric:", result)
+         return result
+diff -Nur origin/mindformers/tools/transform_ckpt.py code/mindformers/tools/transform_ckpt.py
+--- origin/mindformers/tools/transform_ckpt.py	2023-12-06 11:50:58.456000000 +0800
++++ code/mindformers/tools/transform_ckpt.py	2023-12-06 11:50:58.548000000 +0800
+@@ -17,6 +17,11 @@
+ import argparse
+
+ import mindspore as ms
++from mindformers.tools.utils import save_aisbench_result
++try:
++    import ais_utils
++except Exception:
++    print("ais_utils not find")
+
+ def get_strategy(startegy_path, rank_id=None):
+     """Merge strategy if strategy path is dir
+@@ -84,6 +89,8 @@
+     print(f"dst_ckpt_dir: {dst_ckpt_dir}")
+     print(f"prefix: {prefix}")
+
+-    print("......Start transform......")
++    print("......Start transform......") # model_format_start_time
++    ais_utils.set_result("training", "model_format_start_time", ais_utils.get_datatime().decode('utf-8'))
+     ms.transform_checkpoints(src_ckpt_dir, dst_ckpt_dir, prefix, src_ckpt_strategy, dst_ckpt_strategy)
+-    print("......Transform succeed!......")
++    print("......Transform succeed!......") # model_format_end_time
++    ais_utils.set_result("training", "model_format_end_time", ais_utils.get_datatime().decode('utf-8'))
+diff -Nur origin/mindformers/tools/utils.py code/mindformers/tools/utils.py
+--- origin/mindformers/tools/utils.py	2023-12-06 11:50:58.456000000 +0800
++++ code/mindformers/tools/utils.py	2023-12-06 11:50:58.548000000 +0800
+@@ -55,6 +55,28 @@
+ _PROTOCOL = 'obs'
+ _PROTOCOL_S3 = 's3'
+
++AISBENCH_RESULT_PATH=os.getenv('RESULT_PATH')
++
++
++def save_aisbench_result(rt_key:str, rt_value):
++    cur_rank_id = os.getenv("RANK_ID", "0")
++    cur_run_mode = os.getenv("LLAMA_CUR_RUN_MODE", "train")
++    result_file_path = os.path.join(AISBENCH_RESULT_PATH, f"result_rank_{cur_rank_id}.json")
++    if not os.path.exists(result_file_path):
++        with open(result_file_path, "w") as f:
++            init_data = {}
++            json.dump(init_data, f)
++    with open(result_file_path, "r") as result_file:
++        result_log = json.load(result_file)
++    if not cur_run_mode in result_log:
++        result_log[cur_run_mode] = {}
++    if rt_key in result_log[cur_run_mode]:
++        result_log[cur_run_mode][rt_key].append(rt_value)
++    else:
++        result_log[cur_run_mode][rt_key] = [rt_value]
++    with open(result_file_path, "w") as result_file:
++        json.dump(result_log, result_file)
++
+
+ def check_in_modelarts():
+     """Check if the training is on modelarts.
+diff -Nur origin/mindformers/trainer/base_trainer.py code/mindformers/trainer/base_trainer.py
+--- origin/mindformers/trainer/base_trainer.py	2023-12-06 11:50:58.456000000 +0800
++++ code/mindformers/trainer/base_trainer.py	2023-12-06 11:50:58.552000000 +0800
+@@ -42,7 +42,7 @@
+ from mindformers.wrapper import build_wrapper
+ from mindformers.tools.register import MindFormerConfig
+ from mindformers.tools.logger import logger
+-from mindformers.tools.utils import count_params
++from mindformers.tools.utils import count_params, save_aisbench_result
+ from mindformers.auto_class import AutoModel
+ from mindformers.pet import get_pet_model
+ from .config_args import ConfigArguments
+@@ -51,6 +51,10 @@
+ from .optimizer_grouped_parameters import get_optimizer_grouped_parameters
+ from .utils import set_seed, check_train_data_loader_type, \
+     check_eval_data_loader_type, check_optimizer_and_lr_type, check_wrapper_config
++try:
++    import ais_utils
++except Exception:
++    print("ais_utils not find")
+
+ SUPPORT_TASKS = MindFormerBook().get_trainer_support_task_list()
+ SUPPORT_MODEL_NAMES = MindFormerBook().get_model_name_support_list()
+@@ -543,7 +547,8 @@
+             load_resume_context_from_checkpoint(config)
+
+         # build dataset
+-        logger.info(".........Build Dataset For Train..........")
++        logger.info(".........Build Dataset For Train..........") # dataload_start_time
++        save_aisbench_result("dataload_start_time", ais_utils.get_datatime().decode('utf-8'))
+         if dataset is None:
+             dataset = self.create_train_dataset()
+         self.set_train_dataset(dataset)
+@@ -553,10 +558,12 @@
+                                   * config.runner_config.sink_size / dataset.get_dataset_size())
+             # pylint: disable=W0212
+             dataset._dataset_helper = DatasetHelper(dataset, config.runner_config.sink_mode,
+-                                                    config.runner_config.sink_size, epoch_num)
++                                                    config.runner_config.sink_size, epoch_num) # dataload_end_time
++        save_aisbench_result("dataload_end_time", ais_utils.get_datatime().decode('utf-8'))
+
+         # build network
+-        logger.info(".........Build Net For Train..........")
++        logger.info(".........Build Net For Train..........") # train_launch_start_time
++        save_aisbench_result("train_launch_start_time", ais_utils.get_datatime().decode('utf-8'))
+         eval_network = None
+         if network is None and wrapper is None and \
+                 self.model_wrapper is None and self.network is None:
+@@ -651,18 +658,30 @@
+                 step_interval=config.eval_step_interval if config.eval_step_interval else 100,
+                 epoch_interval=config.eval_epoch_interval if config.eval_epoch_interval else -1,
+             )
+-            callbacks.append(eval_callback)
++            callbacks.append(eval_callback) # train_launch_end_time
+
+         logger.info(".........Starting Training Model..........")
+         if int(os.getenv("RANK_ID", '0')) % 8 == 0:
+             pprint(config)
+         logger.info(".........Model Compiling, Please Wait a Moment...........")
++        model.build(dataset, None, sink_size=config.runner_config.sink_size, epoch=config.runner_config.epochs)
++        save_aisbench_result("train_launch_end_time", ais_utils.get_datatime().decode('utf-8'))
++        import time
++        train_start_time = time.time()
++        save_aisbench_result("train_start_time", ais_utils.get_datatime().decode('utf-8')) # train_start_time
+         model.train(config.runner_config.epochs, dataset,
+                     callbacks=callbacks,
+                     dataset_sink_mode=config.runner_config.sink_mode,
+                     sink_size=config.runner_config.sink_size,
+                     initial_epoch=config.runner_config.initial_epoch)
+-        logger.info(".........Training Over!.............")
++        logger.info(".........Training Over!.............") # train_end_time
++        train_end_time = time.time()
++        all_data_sum = int(dataset.get_dataset_size() * config.train_dataset.batch_size / int(os.getenv("RANK_SIZE", '8'))) * \
++             config.runner_config.origin_epochs * config.model.model_config.seq_length
++        throughput_rate = all_data_sum / (train_end_time - train_start_time)
++        save_aisbench_result("train_end_time", ais_utils.get_datatime().decode('utf-8'))
++        save_aisbench_result("throughput_ratio", throughput_rate)
++
+
+     def evaluate_process(
+             self,
+diff -Nur origin/requirements.txt code/requirements.txt
+--- origin/requirements.txt	2023-12-06 11:50:58.396000000 +0800
++++ code/requirements.txt	2023-12-06 11:50:58.492000000 +0800
+@@ -11,4 +11,5 @@
+ pydantic==1.10.11
+ mdtex2html
+ gradio
+-opencv-python-headless
+\ No newline at end of file
++opencv-python-headless
++pyyaml
+\ No newline at end of file
+diff -Nur origin/scripts/run_distribute.sh code/scripts/run_distribute.sh
+--- origin/scripts/run_distribute.sh	2023-12-06 11:50:58.460000000 +0800
++++ code/scripts/run_distribute.sh	2023-12-06 11:50:58.556000000 +0800
+@@ -179,7 +179,14 @@
+   fi
+ fi
+ shopt -u extglob
+-
++wait
++if [ $? -eq 0 ];then
++  echo "all train processes completed successfully!"
++  exit 0
++else
++  echo "one or more train processes exited with a error!"
++  exit 1
++fi
+
+ #cd ./pretrain_parallel${START_DEVICE} || exit
+ #tail -f mindformer.log

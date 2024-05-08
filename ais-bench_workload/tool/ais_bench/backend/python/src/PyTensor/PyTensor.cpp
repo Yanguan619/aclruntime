@@ -1,5 +1,5 @@
 /*
- * Copyright(C) 2021. Huawei Technologies Co.,Ltd. All rights reserved.
+ * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@
 
 #include <map>
 #include <exception>
+#ifdef COMPILE_PYTHON_MODULE
 #include <pybind11/stl.h>
+#endif
 
 #include "Base/Log/Log.h"
 
@@ -46,6 +48,7 @@ const std::map<Base::TensorDataType, uint32_t> DATA_TYPE_TO_BYTE_SIZE_MAP = {
     {Base::TENSOR_DTYPE_BOOL, ONE_BYTE}
 };
 
+#ifdef COMPILE_PYTHON_MODULE
 const std::map<Base::TensorDataType, std::string> DATA_TYPE_TO_FORMAT_MAP = {
     {Base::TENSOR_DTYPE_UINT8, py::format_descriptor<uint8_t>::format()},
     {Base::TENSOR_DTYPE_INT8, py::format_descriptor<int8_t>::format()},
@@ -61,6 +64,7 @@ const std::map<Base::TensorDataType, std::string> DATA_TYPE_TO_FORMAT_MAP = {
     {Base::TENSOR_DTYPE_BOOL, py::format_descriptor<bool>::format()}
 };
 
+
 const std::map<std::string, Base::TensorDataType> FORMAT_TO_DATA_TYPE_MAP = {
     {py::format_descriptor<uint8_t>::format(), Base::TENSOR_DTYPE_UINT8},
     {py::format_descriptor<int8_t>::format(), Base::TENSOR_DTYPE_INT8},
@@ -75,6 +79,7 @@ const std::map<std::string, Base::TensorDataType> FORMAT_TO_DATA_TYPE_MAP = {
     {py::format_descriptor<double>::format(), Base::TENSOR_DTYPE_DOUBLE64},
     {py::format_descriptor<bool>::format(), Base::TENSOR_DTYPE_BOOL}
 };
+#endif
 }
 namespace Base {
 void TensorToHost(TensorBase &tensor)
@@ -101,6 +106,7 @@ void TensorToDvpp(TensorBase &tensor, const int32_t deviceId)
     }
 }
 
+#ifdef COMPILE_PYTHON_MODULE
 TensorBase FromNumpy(py::buffer b)
 {
     py::buffer_info info = b.request();
@@ -117,16 +123,16 @@ TensorBase FromNumpy(py::buffer b)
         bytes = DATA_TYPE_TO_BYTE_SIZE_MAP.find(dataType)->second;
     }
     MemoryData memoryData(info.ptr, info.size * bytes, MemoryData::MemoryType::MEMORY_HOST, -1);
-    TensorBase src(memoryData, true, shape, dataType);
+    TensorBase src(memoryData, true, shape, dataType, 0); // default to be in 0 context
     TensorBase dst(shape, dataType);
     APP_ERROR ret = Base::TensorBase::TensorBaseMalloc(dst);
     if (ret != APP_ERR_OK) {
-        LogError << "TensorBaseMalloc failed. ret=" << ret << std::endl;
+        LOG_ERROR << "TensorBaseMalloc failed. ret=" << ret << std::endl;
         throw std::runtime_error(GetError(ret));
     }
     ret = Base::TensorBase::TensorBaseCopy(dst, src);
     if (ret != APP_ERR_OK) {
-        LogError << "TensorBaseCopy failed. ret=" << ret << std::endl;
+        LOG_ERROR << "TensorBaseCopy failed. ret=" << ret << std::endl;
         throw std::runtime_error(GetError(ret));
     }
     return dst;
@@ -160,19 +166,21 @@ py::buffer_info ToNumpy(const TensorBase &tensor)
     py::buffer_info buf = {tensor.GetBuffer(), bytes, format, (int64_t)shape.size(), shape, strides};
     return buf;
 }
+#endif
 
 TensorBase BatchVector(const std::vector<TensorBase> &tensors, const bool &keepDims)
 {
     TensorBase output = {};
     APP_ERROR ret = TensorBase::BatchVector(tensors, output, keepDims);
     if (ret != APP_ERR_OK) {
-        LogError << "TensorBase::BatchVector failed. ret=" << ret << std::endl;
+        LOG_ERROR << "TensorBase::BatchVector failed. ret=" << ret << std::endl;
         throw std::runtime_error(GetError(ret));
     }
     return output;
 }
 }
 
+#ifdef COMPILE_PYTHON_MODULE
 void RegistPyTensorEnumType(py::module &m)
 {
     auto dtype = py::enum_<Base::TensorDataType>(m, "dtype");
@@ -227,3 +235,4 @@ void RegistPyTensorModule(py::module &m)
     tensor.def_property_readonly("shape", &Base::TensorBase::GetShape);
     RegistPyTensorEnumType(m);
 }
+#endif

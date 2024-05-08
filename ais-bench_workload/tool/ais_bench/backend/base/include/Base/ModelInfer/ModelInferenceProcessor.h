@@ -1,5 +1,5 @@
 /*
- * Copyright(C) 2020. Huawei Technologies Co.,Ltd. All rights reserved.
+ * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,23 +19,27 @@
 
 #include <memory>
 #include <vector>
+#include <string>
+#include <algorithm>
+#include <sys/time.h>
+#include "acl/acl.h"
 #include "Base/ErrorCode/ErrorCode.h"
 #include "Base/Tensor/TensorBase/TensorBase.h"
 
 #include "Base/ModelInfer/SessionOptions.h"
 #include "Base/ModelInfer/model_process.h"
+#include "Base/ModelInfer/DynamicAippConfig.h"
 
 #define CHECK_RET_EQ(func, expect_value) \
-{ \
+do { \
 auto ret = (func); \
-if (ret != expect_value) { \
+if (ret != (expect_value)) { \
     WARN_LOG("Check failed:%s, ret:%d\n", #func, ret); \
     return ret; \
 } \
-}
+} while (0)
 
 namespace Base {
-
 struct BaseTensor {
     void* buf;
     std::vector<int64_t> shape;
@@ -57,8 +61,7 @@ struct BaseTensor {
     }
 };
 
-struct TensorDesc
-{
+struct TensorDesc {
     std::string name;
     TensorDataType datatype;
     size_t format;
@@ -104,7 +107,7 @@ struct DyShapeInfo {
 
 struct DynamicInfo {
     DynamicType dynamicType = STATIC_BATCH;
-    union{
+    union {
         struct {
             uint64_t batchSize;
         }staticBatch;
@@ -126,7 +129,6 @@ struct DynamicInfo {
 };
 
 struct ModelDesc {
-
     std::vector<Base::TensorDesc> inTensorsDesc;   // 所有 intensors信息 不包括dynamic index
     std::vector<Base::TensorDesc> outTensorsDesc;  // 所有out tensors信息
 
@@ -136,7 +138,8 @@ struct ModelDesc {
 };
 
 struct InferSumaryInfo {
-    std::vector<float> execTimeList;
+    std::vector<pair<float, float>> execTimeList;
+    struct timeval zero_point = { 0 };
 };
 
 class ModelInferenceProcessor {
@@ -147,7 +150,8 @@ public:
      * 2.Get input sizes and output sizes
      * @return APP_ERROR error code
      */
-    APP_ERROR Init(const std::string& modelPath, std::shared_ptr<SessionOptions> options, const int32_t &deviceId);
+    APP_ERROR Init(const std::string& modelPath, std::shared_ptr<SessionOptions> options,
+                   const int32_t &deviceId, const size_t contextIndex);
 
     /**
      * @description Unload Model
@@ -161,13 +165,25 @@ public:
      * 2.Execute model infer
      * @return APP_ERROR error code
      */
-    APP_ERROR Inference(const std::vector<TensorBase>& feeds, std::vector<std::string> outputNames, std::vector<TensorBase>& outputTensors);
+    APP_ERROR Inference(const std::vector<TensorBase>& feeds, std::vector<std::string> outputNames,
+        std::vector<TensorBase>& outputTensors);
 
-    APP_ERROR Inference(const std::map<std::string, TensorBase>& feeds, std::vector<std::string> outputNames, std::vector<TensorBase>& outputTensors);
+    APP_ERROR Inference(const std::map<std::string, TensorBase>& feeds, std::vector<std::string> outputNames,
+        std::vector<TensorBase>& outputTensors);
 
-    APP_ERROR Inference(const std::vector<BaseTensor>& feeds, std::vector<std::string> &outputNames, std::vector<TensorBase>& outputTensors);
+    APP_ERROR Inference(const std::vector<BaseTensor>& feeds, std::vector<std::string> &outputNames,
+        std::vector<TensorBase>& outputTensors);
 
-    APP_ERROR ModelInference_Inner(std::vector<BaseTensor> &inputs, std::vector<std::string> outputNames, std::vector<TensorBase>& outputTensors);
+    APP_ERROR FirstInference(const std::vector<BaseTensor>& feeds, std::vector<std::string> &outputNames,
+        std::vector<TensorBase>& outputTensors);
+
+    APP_ERROR RepeatInference(const std::vector<int>& inOutRelation, std::vector<std::string> &outputNames,
+        std::vector<TensorBase>& outputTensors, const bool get_outputs, const bool mem_copy);
+
+    APP_ERROR FirstInferenceInner(std::vector<BaseTensor> &inputs, std::vector<std::string> outputNames,
+        std::vector<TensorBase>& outputTensors);
+    APP_ERROR ModelInference_Inner(std::vector<BaseTensor> &inputs, std::vector<std::string> outputNames,
+        std::vector<TensorBase>& outputTensors);
 
     /**
      * @description get modelDesc
@@ -177,8 +193,10 @@ public:
 
     std::shared_ptr<SessionOptions> GetOptions();
 
+    APP_ERROR InitSumaryInfo();
     APP_ERROR ResetSumaryInfo();
-    const InferSumaryInfo& GetSumaryInfo();
+    const InferSumaryInfo& GetSumaryInfo() const;
+    InferSumaryInfo& GetMutableSumaryInfo();
 
     APP_ERROR SetStaticBatch();
     APP_ERROR SetDynamicBatchsize(int batchsize);
@@ -186,38 +204,67 @@ public:
     APP_ERROR SetDynamicDims(std::string dymdimsStr);
     APP_ERROR SetDynamicShape(std::string dymshapeStr);
     APP_ERROR SetCustomOutTensorsSize(std::vector<size_t> customOutSize);
+
+    uint64_t GetMaxDymBatchsize();
+    int GetDymAIPPInputExist();
+    APP_ERROR CheckDymAIPPInputExist();
+    APP_ERROR SetDymAIPPInfoSet();
+
+    APP_ERROR AippSetMaxBatchSize(uint64_t batchSize);
+    APP_ERROR SetInputFormat(std::string iptFmt);
+    APP_ERROR SetSrcImageSize(std::vector<int> srcImageSize);
+    APP_ERROR SetRbuvSwapSwitch(int rsSwitch);
+    APP_ERROR SetAxSwapSwitch(int asSwitch);
+    APP_ERROR SetCscParams(std::vector<int> cscParams);
+    APP_ERROR SetCropParams(std::vector<int> cropParams);
+    APP_ERROR SetPaddingParams(std::vector<int> padParams);
+    APP_ERROR SetDtcPixelMean(std::vector<int> meanParams);
+    APP_ERROR SetDtcPixelMin(std::vector<float> minParams);
+    APP_ERROR SetPixelVarReci(std::vector<float> reciParams);
+
 private:
 
     APP_ERROR SetDynamicInfo();
 
     APP_ERROR AllocDyIndexMem();
+    APP_ERROR AllocDymAIPPIndexMem();
     APP_ERROR FreeDyIndexMem();
     APP_ERROR FreeDymInfoMem();
+    APP_ERROR FreeDymAIPPMem();
 
     APP_ERROR DestroyOutMemoryData(std::vector<MemoryData>& outputs);
     APP_ERROR CreateOutMemoryData(std::vector<MemoryData>& outputs);
-    APP_ERROR AddOutTensors(std::vector<MemoryData>& outputs, std::vector<std::string> outputNames, std::vector<TensorBase>& outputTensors);
+    APP_ERROR AddOutTensors(std::vector<MemoryData>& outputs, std::vector<std::string> outputNames,
+        std::vector<TensorBase>& outputTensors);
 
     APP_ERROR GetModelDescInfo();
     APP_ERROR DestroyInferCacheData();
 
     APP_ERROR SetInputsData(std::vector<BaseTensor> &inputs);
+    APP_ERROR UpdateInputsData(const std::vector<int> &inOutRelation, const bool mem_copy);
+    APP_ERROR SetAippConfigData();
     APP_ERROR Execute();
     APP_ERROR GetOutputs(std::vector<std::string> outputNames, std::vector<TensorBase> &outputTensors);
 
     APP_ERROR CheckInVectorAndFillBaseTensor(const std::vector<BaseTensor>& feeds, std::vector<BaseTensor> &inputs);
     APP_ERROR CheckInVectorAndFillBaseTensor(const std::vector<TensorBase>& feeds, std::vector<BaseTensor> &inputs);
-    APP_ERROR CheckInMapAndFillBaseTensor(const std::map<std::string, TensorBase>& feeds, std::vector<BaseTensor> &inputs);
+    APP_ERROR CheckInMapAndFillBaseTensor(const std::map<std::string, TensorBase>& feeds,
+        std::vector<BaseTensor> &inputs);
 
 private:
     ModelDesc modelDesc_;
+    std::size_t contextIndex_ = 0;
 
     InferSumaryInfo sumaryInfo_ = {};
     std::shared_ptr<ModelProcess> processModel;
+    std::shared_ptr<DynamicAippConfig> dyAippCfg;
     DynamicInfo dynamicInfo_ = {};
 
     size_t dynamicIndex_ = -1;
     MemoryData dynamicIndexMemory_;
+
+    std::map<size_t, MemoryData> dymAIPPIndexMemory_;
+    std::map<size_t, aclmdlAIPP*> dymAIPPIndexSet_;
 
     size_t dym_gear_count_;
 

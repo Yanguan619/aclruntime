@@ -1,25 +1,26 @@
-/**
-* Copyright 2020 Huawei Technologies Co., Ltd
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+/*
+ * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-* http://www.apache.org/licenses/LICENSE-2.0
-
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-
-#ifndef _UTILS_H_
-#define _UTILS_H_
+#ifndef UTILS_H_
+#define UTILS_H_
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <dirent.h>
+#include <sys/time.h>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -33,11 +34,8 @@
 #include <vector>
 
 #include "Base/Log/Log.h"
-
-// #define INFO_LOG(fmt, args...) fprintf(stdout, "[INFO] " fmt "\n", ##args)
-// #define DEBUG_LOG(fmt, args...) fprintf(stdout, "[DEBUG] " fmt "\n", ##args)
-// #define WARN_LOG(fmt, args...) fprintf(stdout, "[WARN] " fmt "\n", ##args)
-// #define ERROR_LOG(fmt, args...) fprintf(stdout, "[ERROR] " fmt "\n", ##args)
+#include "Base/Tensor/TensorBase/TensorBase.h"
+#include "Base/ModelInfer/cnpy.h"
 
 typedef enum Result {
     SUCCESS = 0,
@@ -67,13 +65,16 @@ public:
 
     static void SplitString(std::string& s, std::vector<std::string>& v, char c);
 
-    static  void SplitStringSimple(std::string str, std::vector<std::string> &out, char split1, char split2, char split3);
+    static  void SplitStringSimple(std::string str, std::vector<std::string> &out, char split1,
+        char split2, char split3);
 
-    static void SplitStringWithSemicolonsAndColons(std::string str, std::vector<std::string> &out, char split1, char split2);
+    static void SplitStringWithSemicolonsAndColons(std::string str, std::vector<std::string> &out,
+        char split1, char split2);
 
     static  void SplitStringWithPunctuation(std::string str, std::vector<std::string> &out, char split);
 
-    static Result SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_str, std::map<string, int64_t> &out_namedimsmul_map);
+    static Result SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_str,
+        std::map<string, int64_t> &out_namedimsmul_map);
 
     static int str2num(char* str);
 
@@ -100,8 +101,16 @@ public:
     static int ToInt(std::string &str);
 
     static Result ReadBinFileToMemory(const std::string fileName,  char *ptr, const size_t size, size_t &offset);
-    static Result FillFileContentToMemory(const std::string file, char* ptr,const size_t size, size_t &offset);
+    static Result FillFileContentToMemory(const std::string file, char* ptr, const size_t size, size_t &offset);
 
+    static std::string MergeStr(std::vector<std::string>& list, const std::string& delimiter);
+    static std::string GetPrefix(const std::string& outputDir, std::string filePath, const std::string& removeTail);
+    static std::string RemoveSlash(const std::string& name);
+    static std::string CreateDynamicShapeDims(const std::string& name, std::vector<size_t>& shapes);
+    static Result TensorToNumpy(const std::string& outputFileName, Base::TensorBase& output);
+    static Result TensorToBin(const std::string& outputFileName, Base::TensorBase& output);
+    static Result TensorToTxt(const std::string& outputFileName, Base::TensorBase& output);
+    static bool TailContain(const std::string& str, const std::string& tail);
 };
 
 #endif

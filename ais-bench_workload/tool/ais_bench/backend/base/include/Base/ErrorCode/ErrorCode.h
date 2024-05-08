@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020.Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,7 +156,7 @@ enum {
     APP_ERR_STREAM_INVALID_CONFIG = APP_ERR_STREAM_BASE + 5,
     APP_ERR_STREAM_INVALID_LINK = APP_ERR_STREAM_BASE + 6,
     APP_ERR_STREAM_LINK_FAILED = APP_ERR_STREAM_BASE + 7,
-    
+
     APP_ERR_STREAM_TRANS_MODE_NOT_MATCHED = APP_ERR_STREAM_BASE + 8,
     APP_ERR_STREAM_TRANS_MODE_INVALID = APP_ERR_STREAM_BASE + 9,
     APP_ERR_STREAM_TIMEOUT = APP_ERR_STREAM_BASE + 10,
@@ -164,7 +164,7 @@ enum {
     APP_ERR_STREAM_ELEMENT_INVALID = APP_ERR_STREAM_BASE + 11,
     APP_ERR_STREAM_ELEMENT_EXIST = APP_ERR_STREAM_BASE + 12,
     APP_ERR_STREAM_ELEMENT_NOT_EXIST = APP_ERR_STREAM_BASE + 13,
-	
+
     APP_ERR_ELEMENT_INVALID_FACTORY = APP_ERR_STREAM_BASE + 14,
     APP_ERR_ELEMENT_INVALID_PROPERTIES = APP_ERR_STREAM_BASE + 15,
     APP_ERR_ELEMENT_PAD_UNLINKED = APP_ERR_STREAM_BASE + 16,
@@ -209,9 +209,9 @@ enum {
 
     // define the error of extra
     APP_ERR_EXTRA_BASE = 100 * RANGE_SIZE,               // Parameter verification failed
-    APP_ERR_INVALID_PARAM = APP_ERR_EXTRA_BASE + 0,     // 
+    APP_ERR_INVALID_PARAM = APP_ERR_EXTRA_BASE + 0,
     APP_ERR_UNINITIALIZE = APP_ERR_EXTRA_BASE + 1,
-    APP_ERR_REPEAT_INITIALIZE = APP_ERR_EXTRA_BASE + 2, 
+    APP_ERR_REPEAT_INITIALIZE = APP_ERR_EXTRA_BASE + 2,
     APP_ERR_INVALID_FILE = APP_ERR_EXTRA_BASE + 3,
     APP_ERR_WRITE_FILE = APP_ERR_EXTRA_BASE + 4,
     APP_ERR_INVALID_FILE_SIZE = APP_ERR_EXTRA_BASE + 5,
@@ -493,13 +493,13 @@ const std::string APP_ERR_EXTRA_STRING[] = {
     [APP_ERR_OP_LOAD_FAILED - APP_ERR_EXTRA_BASE] = "Failed to load a single operator",
     [APP_ERR_UNSUPPORTED_DATA_TYPE - APP_ERR_EXTRA_BASE] = "Unsupported data type",
     [APP_ERR_FORMAT_NOT_MATCH - APP_ERR_EXTRA_BASE] = "The format does not match",
-    [APP_ERR_BIN_SELECTOR_NOT_REGISTERED - APP_ERR_EXTRA_BASE] = 
+    [APP_ERR_BIN_SELECTOR_NOT_REGISTERED - APP_ERR_EXTRA_BASE] =
         "When the operator interface is compiled in binary selection mode, the operator has not registered a selector",
-    [APP_ERR_KERNEL_NOT_FOUND - APP_ERR_EXTRA_BASE] = 
+    [APP_ERR_KERNEL_NOT_FOUND - APP_ERR_EXTRA_BASE] =
         "The operator kernel is not registered during operator compilation",
-    [APP_ERR_BIN_SELECTOR_ALREADY_REGISTERED - APP_ERR_EXTRA_BASE] = 
+    [APP_ERR_BIN_SELECTOR_ALREADY_REGISTERED - APP_ERR_EXTRA_BASE] =
         "When the operator interface is compiled in binary selection mode, the operator is repeatedly registered",
-    [APP_ERR_KERNEL_ALREADY_REGISTERED - APP_ERR_EXTRA_BASE] = 
+    [APP_ERR_KERNEL_ALREADY_REGISTERED - APP_ERR_EXTRA_BASE] =
         "The operator kernel is repeatedly registered during operator compilation",
     [APP_ERR_INVALID_QUEUE_ID - APP_ERR_EXTRA_BASE] = "Invalid queue ID",
     [APP_ERR_REPEAT_SUBSCRIBE - APP_ERR_EXTRA_BASE] = "Repeated subscription",
@@ -508,7 +508,7 @@ const std::string APP_ERR_EXTRA_STRING[] = {
     [APP_ERR_WAIT_CALLBACK_TIMEOUT - APP_ERR_EXTRA_BASE] = "Waiting for callback times out",
     [APP_ERR_REPEAT_FINALIZE - APP_ERR_EXTRA_BASE] = "Repeated Deinitialization",
     [APP_ERR_NOT_STATIC_AIPP - APP_ERR_EXTRA_BASE] = "The AIPP configuration information does not exist",
-   
+
 };
 
 const std::string APP_ERR_INFER_STRING[] = {
@@ -536,7 +536,9 @@ enum ReturnCodeType {
     GST_FLOW_TYPE = 0,
 };
 
+namespace Base {
 std::string GetAppErrCodeInfo(APP_ERROR err);
 std::string GetError(APP_ERROR err, std::string moduleName = "");
 APP_ERROR ConvertReturnCodeToLocal(ReturnCodeType type, int errorCode);
+}
 #endif  // ERROR_CODE_H_

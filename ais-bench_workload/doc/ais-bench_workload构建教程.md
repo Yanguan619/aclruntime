@@ -6,7 +6,7 @@ ais-bench标准化性能测试软件，又称AI Server Benchmark软件，是根�
 ais-bench_workload是ais-bench提供用于构建ais-bench性能测试软件包并进行测试的负载工具。
 
 本文档主要介绍如何**搭建ais-bench_workload构建环境**并在该环境下**构建推理和训练场景的ais-bench性能测试软件包。  **
-ais-bench_workload支持快速构建和标准构建。其中快速构建仅支持mindspore框架的bert和resnet两个典型模型的性能测试软件包构建。通过构建脚本扩展，标准构建能支持当前提供的所有模型的性能测试软件包构建。 
+ais-bench_workload支持快速构建和标准构建。其中快速构建仅支持mindspore框架的bert和resnet两个典型模型的性能测试软件包构建。通过构建脚本扩展，标准构建能支持当前提供的所有模型的性能测试软件包构建。
 
 ## 1. 搭建ais-bench_workload构建环境
 ### 1.1 环境要求
@@ -15,20 +15,20 @@ ais-bench_workload构建支持在Windows和Linux系统下进行，要求如下�
 
 - **Windows系统**：Windows7及以上版本；安装git和winrar，版本不限。
 
-- **Linux系统**：系统版本无限制；安装git和unrar，版本不限。  
+- **Linux系统**：系统版本无限制；安装git和unrar，版本不限。
 
   其中git、winrar和unrar的下载与安装，请用户自行完成，本文不详细描述。
 
 ### 1.2 源码下载
-ais-bench_workload的工作目录保存在ais-bench源码包的tools目录下，可以通过以下两种方式下载ais-bench源码包：  
+ais-bench_workload的工作目录保存在ais-bench源码包的tools目录下，可以通过以下两种方式下载ais-bench源码包：
 
-+ git clone下载[tools](https://gitee.com/ascend/tools)仓库代码  
++ git clone下载[tools](https://gitee.com/ascend/tools)仓库代码
 ```
     git clone https://gitee.com/ascend/tools.git
 ```
 ​       该方式直接下载码云tools仓库master分支源码。
 
-+ 在线下载源码压缩包  
++ 在线下载源码压缩包
   访问tools仓库网页：https://gitee.com/ascend/tools  ， 点击“克隆/下载”按钮，在弹出的窗口中点击“下载ZIP”按钮进行下载。
 
   该方式默认下载的是master分支ais-bench源码包为压缩包tools-master.zip，解压后tools目录默认名字是tools-master 。
@@ -94,7 +94,7 @@ ais-bench_workload
 
 
 ## 2. 构建ais-bench性能测试软件包
-### 2.1 快速构建
+### 2.1 快速构建（仅支持AISBench 1.0）
 
 #### 2.1.1 简介
 
@@ -118,9 +118,9 @@ ais-bench_workload
 
 不建议多用户同时执行快速构建操作，可能出现依赖下载失败。
 
-#### 2.1.3 构建指令  
+#### 2.1.3 构建指令
 
-指令格式：bash ./download_and_build.sh {version} {type}  
+指令格式：bash ./download_and_build.sh {version} {type}
 参数说明：
 
 | 参数      | 说明                                                         |
@@ -136,11 +136,11 @@ ais-bench_workload
 bash ./download_and_build.sh r1.7 modelarts
 ```
 
-Windows系统需预先安装git软件。在ais-bench_workload工作目录下鼠标右键上下文菜单中点击"git bash here"，打开Microsoft Windows git命令行模拟终端，执行构建指令。鼠标右键没有git相关菜单命令时，请在windows右下角的搜索窗口输入"git" ，找到git  bash，并点击进入，执行构建指令。 
+Windows系统需预先安装git软件。在ais-bench_workload工作目录下鼠标右键上下文菜单中点击"git bash here"，打开Microsoft Windows git命令行模拟终端，执行构建指令。鼠标右键没有git相关菜单命令时，请在windows右下角的搜索窗口输入"git" ，找到git  bash，并点击进入，执行构建指令。
 
-#### 2.1.5 构建结果  
-构建指令成功执行后，在ais-bench_workload目录下生成output子目录，构建的性能测试软件包保存在该子目录中。  
-构建结果示例：  
+#### 2.1.5 构建结果
+构建指令成功执行后，在ais-bench_workload目录下生成output子目录，构建的性能测试软件包保存在该子目录中。
+构建结果示例：
 
 ```
 .
@@ -193,7 +193,7 @@ ais-bench_workload
 
 #### 2.2.4 构建指令
 
-指令格式：./build.sh  {$stubs_file} {mode} {secondary-folder-name} {third-folder-name} {version} {type}  
+指令格式：./build.sh  {$stubs_file} {mode} {secondary-folder-name} {third-folder-name} {version} {type}
 输出路径：在ais-bench_workload\output目录会生成相应程序包。
 
 | 参数                    | 说明                                                         |
@@ -211,24 +211,24 @@ ais-bench_workload
 
 **训练场景示例如下：**
 
-+ 构建aarch64架构训练场景huawei mindspore框架r1.7版本resnet模型 离线运行的性能测试软件包  
++ 构建aarch64架构训练场景huawei mindspore框架r1.7版本resnet模型 离线运行的性能测试软件包
   ./build.sh  ./Ais-Benchmark-Stubs-aarch64-1.0.tar.gz train huawei train_mindspore_resnet r1.7
-+ 构建aarch64架构训练场景huawei mindspore框架r1.7版本resnet模型modelarts线上运行的性能测试软件包  
++ 构建aarch64架构训练场景huawei mindspore框架r1.7版本resnet模型modelarts线上运行的性能测试软件包
   ./build.sh  ./Ais-Benchmark-Stubs-aarch64-1.0.tar.gz train huawei train_mindspore_resnet r1.7 modelarts
 
 **推理场景示例如下：**
 
-+ 构建aarch64架构推理场景vision分类classification_and_detection模型的性能测试软件包  
++ 构建aarch64架构推理场景vision分类classification_and_detection模型的性能测试软件包
   ./build.sh ../output/Ais-Benchmark-Stubs-aarch64-1.0.tar.gz inference vision classification_and_detection
-+ 构建x86_64架构推理场景vision分类classification_and_detection模型的性能测试软件包  
++ 构建x86_64架构推理场景vision分类classification_and_detection模型的性能测试软件包
   ./build.sh ../output/Ais-Benchmark-Stubs-x86_64-1.0.tar.gz inference vision classification_and_detection
-+ 构建aarch64架构推理场景language分类bert模型的性能测试软件包  
++ 构建aarch64架构推理场景language分类bert模型的性能测试软件包
   ./build.sh ../output/Ais-Benchmark-Stubs-aarch64-1.0.tar.gz inference language bert
-+ 构建x86_64架构推理场景language分类bert模型的性能测试软件包  
++ 构建x86_64架构推理场景language分类bert模型的性能测试软件包
   ./build.sh ../output/Ais-Benchmark-Stubs-x86_64-1.0.tar.gz inference language bert
-+ 构建aarch64架构推理场景recommendation分类bert模型的性能测试软件包  
++ 构建aarch64架构推理场景recommendation分类bert模型的性能测试软件包
   ./build.sh ../output/Ais-Benchmark-Stubs-aarch64-1.0.tar.gz inference recommendation widedeep
-+ 构建x86_64架构推理场景recommendation分类widedeep模型的性能测试软件包  
++ 构建x86_64架构推理场景recommendation分类widedeep模型的性能测试软件包
   ./build.sh ../output/Ais-Benchmark-Stubs-x86_64-1.0.tar.gz inference recommendation widedeep
 
 ## FAQ

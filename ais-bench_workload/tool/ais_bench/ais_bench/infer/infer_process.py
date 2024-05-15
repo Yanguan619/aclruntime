@@ -656,7 +656,7 @@ def args_rules(args):
         logger.error("parameter --profiler cannot be true at the same time as parameter --dump, please check them!\n")
         raise RuntimeError('error bad parameters --profiler and --dump')
 
-    if not args.output_dirname and args.output_dirname[0] == '/': # abspath is not permitted
+    if args.output_dirname and args.output_dirname[0] == '/': # abspath is not permitted
         raise ValueError("--output_dirname do not support abs path!" )
 
     if (args.profiler or args.dump) and (args.output is None):

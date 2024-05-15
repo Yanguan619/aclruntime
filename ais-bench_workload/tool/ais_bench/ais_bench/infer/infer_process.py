@@ -392,7 +392,7 @@ def get_energy_consumption(npu_id):
     cmd = f"npu-smi info -t power -i {npu_id}"
     get_npu_id = subprocess.run(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if get_npu_id.returncode != 0:
-        raise RuntimeError(f"Invalid npu id:{npu_id}, Error log: {get_npu_id.stderr.decode('utf-8')}")
+        raise RuntimeError(f"Invalid npu id:{npu_id}, exec cmd: 'npu-smi info' to check valid npu_id")
     npu_id = get_npu_id.stdout.decode('gb2312')
     power = []
     npu_id = npu_id.split("\n")

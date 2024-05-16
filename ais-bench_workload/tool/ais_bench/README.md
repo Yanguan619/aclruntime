@@ -5,6 +5,8 @@
 ## 简介
 本文介绍ais_bench推理工具，用来针对指定的推理模型运行推理程序，并能够测试推理模型的性能（包括吞吐率、时延）。
 
+**说明**：当前工具是基于AISBench测试社区的推理工具开发。详见[infer_tool](https://gitee.com/aisbench/inference/tree/master/tools/infer_tool)。
+
 ## 工具安装
 
 ### 环境和依赖

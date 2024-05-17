@@ -11,7 +11,7 @@
 
 ### 环境和依赖
 
-- 请参见《[CANN开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/envdeployment/instg/instg_000002.html)》安装昇腾设备开发或运行环境，即toolkit或nnrt软件包。
+- 请参见《CANN开发工具指南》安装昇腾设备开发或运行环境，即toolkit或nnrt软件包。
 - 安装Python3、Python包模块numpy、tqdm、wheel。
 
 ### 工具安装方式
@@ -170,17 +170,6 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    # 成功安装ais_bench推理程序
    Successfully installed ais_bench-{version}
    ```
-5. 完成ais_bench推理工具安装后，需要执行如下操作，确保工具能够正确运行：
-   执行requirements.txt文件中的依赖安装，执行如下命令：
-
-   ```bash
-   cd ${HOME}ait/ait/components/benchmark/
-   pip3 install -r ./requirements.txt
-   ```
-
-   其中，${HOME}为ais_bench推理工具包所在目录。
-
-   说明：若依赖已安装，忽略此步骤。
 
 
 ### 运行准备

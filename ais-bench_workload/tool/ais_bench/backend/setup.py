@@ -184,7 +184,7 @@ ext_modules = [
         library_dirs=[
             cann_lib_path,
         ],
-        extra_compile_args=['--std=c++11', '-g3', '-fstack-protector-all'],
+        extra_compile_args=['--std=c++11', '-g3', '-fstack-protector-all', '--strip'],
         extra_link_args=['-Wl,-z,relro,-z,now'],
         libraries=['ascendcl', 'acl_dvpp', 'acl_cblas'],
         language='c++',
@@ -197,7 +197,7 @@ setup(
     version=STATIC_VERSION,
     author="ais_bench",
     author_email="aclruntime",
-    url=f"https://gitee.com/ascend/tools/, commit id: {git_hash}, release_date: {git_date}",
+    url=f"commit id: {git_hash}, release_date: {git_date}",
     release_date = git_date,
     description="A test project using pybind11 and aclruntime",
     long_description="",

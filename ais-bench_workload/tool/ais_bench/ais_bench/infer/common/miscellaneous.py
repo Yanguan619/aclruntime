@@ -59,9 +59,7 @@ def version_check(args):
     try:
         aclruntime_version = get_modules_version('aclruntime')
     except Exception:
-        url = 'https://gitee.com/ascend/tools/tree/master/ais-bench_workload/tool/ais_bench'
-        logger.warning(f"can't find aclruntime, please visit {url} to install ais_bench(benchmark)"
-                       "to install")
+        logger.warning(f"can't find aclruntime, please install aclruntime.")
         args.run_mode = "tensor"
     if aclruntime_version != "0.0.2":
         logger.warning(

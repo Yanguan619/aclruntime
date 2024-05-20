@@ -11,7 +11,7 @@
 
 ### 环境和依赖
 
-- 请参见《[CANN开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/envdeployment/instg/instg_000002.html)》安装昇腾设备开发或运行环境，即toolkit或nnrt软件包。
+- 请参见《CANN开发工具指南》安装昇腾设备开发或运行环境，即toolkit或nnrt软件包。
 - 安装Python3、Python包模块numpy、tqdm、wheel。
 
 ### 工具安装方式
@@ -26,6 +26,7 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
 - 本工具安装时需要获取CANN版本，用户可通过设置CANN_PATH环境变量，指定安装的CANN版本路径，例如：export CANN_PATH=/xxx/nnrt/latest/。若不设置，工具默认会从/usr/local/Ascend/nnrt/latest/和/usr/local/Ascend/ascend-toolkit/latest路径分别尝试获取CANN版本。
 
 #### 下载whl包安装
+**注意**：目前出包流水恢复中，whl包非最新版本，不推荐使用whl包安装。
 
 1. 下载如下aclruntime和ais_bench推理程序的whl包。
 
@@ -33,15 +34,15 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
 
    |whl包|commit节点|MD5|SHA256|
    |---|---|---|---|
-   |[aclruntime-0.0.2-cp37-cp37m-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp37-cp37m-linux_x86_64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|E14ACDFBDD52E08F79456D9BC72D589C| F1523E25B714EF51E03D640570E8655A139DB8B9340C8DD6E4DA82D6122B2C01|
-   |[aclruntime-0.0.2-cp37-cp37m-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp37-cp37m-linux_aarch64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e| 9455E267118011CAC764ECECA3B13B64|4C1F7CD1CD767912B597EAF4F4BE296E914D43DE4AF80C6894399B7BF313A80F|
-   |[aclruntime-0.0.2-cp38-cp38-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp38-cp38-linux_x86_64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|CE23FEDB8BAC2917E7238B8E25F8E54D| 63C86CEE2C9F622FAB2F6A1AA4EAB47D2D68622EC12BDC8F74A9F8CED6506D67|
-   |[aclruntime-0.0.2-cp38-cp38-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp38-cp38-linux_aarch64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|52CA43514A7373E50678A890D085C531|20AFB7A24DB774EF67250E062A0F593E419DBC5A1A668B98B60D4BBF8CA87E88|
-   |[aclruntime-0.0.2-cp39-cp39-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp39-cp39-linux_x86_64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|55016F7E2544849E128AA7B5A608893D| 22824F38CAA547805FA76DBAA4889307BE171B79CCDA68AD00FED946762E6EAD|
-   |[aclruntime-0.0.2-cp39-cp39-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp39-cp39-linux_aarch64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|080065E702277C1EE443B02C902B49E6|258CDCFBBA145E200D08F1976C442BC921D68961157BDFD1F0D73985FDC45F24|
-   |[aclruntime-0.0.2-cp310-cp310-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp310-cp310-linux_x86_64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|78242C34E7DB95E6587C47254E309BBB|4F563603FCFF9CBC3FF74322936894C0E01038BF0101E85F03975B8BDDC57E6A|
-   |[aclruntime-0.0.2-cp310-cp310-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp310-cp310-linux_aarch64.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|5988B1565C8136BF17374FA703BE0BC7|185CBC5DDE9C03E26494871FCC0A6F91351DE654CB36F9438DDBF9637C049CB8|
-   |[ais_bench-0.0.2-py3-none-any.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/ais_bench-0.0.2-py3-none-any.whl)|3baadae72c2afd61697fa391f0bb23807e336e9e|1E43A8BE245C015B47C9C5E72EA5F619|D52406D0AC02F9A8EBEFDCE0866736322753827298A4FCB1C23DA98789BF8EFE|
+   |[aclruntime-0.0.2-cp37-cp37m-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp37-cp37m-linux_x86_64.whl)|892cce6d9edc79b97ed47c01cb2467f1e401c44c|E14ACDFBDD52E08F79456D9BC72D589C| F1523E25B714EF51E03D640570E8655A139DB8B9340C8DD6E4DA82D6122B2C01|
+   |[aclruntime-0.0.2-cp37-cp37m-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp37-cp37m-linux_aarch64.whl)|892cce6d9edc79b97ed47c01cb2467f1e401c44c| 9455E267118011CAC764ECECA3B13B64|4C1F7CD1CD767912B597EAF4F4BE296E914D43DE4AF80C6894399B7BF313A80F|
+   |[aclruntime-0.0.2-cp38-cp38-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp38-cp38-linux_x86_64.whl)|892cce6d9edc79b97ed47c01cb2467f1e401c44c|CE23FEDB8BAC2917E7238B8E25F8E54D| 63C86CEE2C9F622FAB2F6A1AA4EAB47D2D68622EC12BDC8F74A9F8CED6506D67|
+   |[aclruntime-0.0.2-cp38-cp38-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp38-cp38-linux_aarch64.whl)|892cce6d9edc79b97ed47c01cb2467f1e401c44c|52CA43514A7373E50678A890D085C531|20AFB7A24DB774EF67250E062A0F593E419DBC5A1A668B98B60D4BBF8CA87E88|
+   |[aclruntime-0.0.2-cp39-cp39-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp39-cp39-linux_x86_64.whl)|892cce6d9edc79b97ed47c01cb2467f1e401c44c|55016F7E2544849E128AA7B5A608893D| 22824F38CAA547805FA76DBAA4889307BE171B79CCDA68AD00FED946762E6EAD|
+   |[aclruntime-0.0.2-cp39-cp39-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp39-cp39-linux_aarch64.whl)|892cce6d9edc79b97ed47c01cb2467f1e401c44c|080065E702277C1EE443B02C902B49E6|258CDCFBBA145E200D08F1976C442BC921D68961157BDFD1F0D73985FDC45F24|
+   |[aclruntime-0.0.2-cp310-cp310-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp310-cp310-linux_x86_64.whl)|892cce6d9edc79b97ed47c01cb2467f1e401c44c|78242C34E7DB95E6587C47254E309BBB|4F563603FCFF9CBC3FF74322936894C0E01038BF0101E85F03975B8BDDC57E6A|
+   |[aclruntime-0.0.2-cp310-cp310-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp310-cp310-linux_aarch64.whl)|892cce6d9edc79b97ed47c01cb2467f1e401c44c|5988B1565C8136BF17374FA703BE0BC7|185CBC5DDE9C03E26494871FCC0A6F91351DE654CB36F9438DDBF9637C049CB8|
+   |[ais_bench-0.0.2-py3-none-any.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/ais_bench-0.0.2-py3-none-any.whl)|892cce6d9edc79b97ed47c01cb2467f1e401c44c|1E43A8BE245C015B47C9C5E72EA5F619|D52406D0AC02F9A8EBEFDCE0866736322753827298A4FCB1C23DA98789BF8EFE|
 
 
 2. 执行如下命令，进行安装。
@@ -170,17 +171,6 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    # 成功安装ais_bench推理程序
    Successfully installed ais_bench-{version}
    ```
-5. 完成ais_bench推理工具安装后，需要执行如下操作，确保工具能够正确运行：
-   执行requirements.txt文件中的依赖安装，执行如下命令：
-
-   ```bash
-   cd ${HOME}ait/ait/components/benchmark/
-   pip3 install -r ./requirements.txt
-   ```
-
-   其中，${HOME}为ais_bench推理工具包所在目录。
-
-   说明：若依赖已安装，忽略此步骤。
 
 
 ### 运行准备
@@ -875,3 +865,15 @@ EZ9999  The error from device(2), serial number is 17, there is an aicore error,
 
 ## FAQ
 [FAQ](FAQ.md)
+### security_error
+#### soft_link_error_log_solution
+参考[soft_link_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/soft_link_error_log_solution)
+#### path_length_overflow_error_log_solution
+参考[path_length_overflow_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/path_length_overflow_error_log_solution)
+#### owner_or_ownergroup_error_log_solution
+参考[owner_or_ownergroup_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/owner_or_ownergroup_error_log_solution)
+#### path_permission_error_log_solution
+参考[path_permission_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/path_permission_error_log_solution)
+#### path_contain_illegal_char_error_log_solution
+参考[path_contain_illegal_char_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/path_contain_illegal_char_error_log_solution)
+

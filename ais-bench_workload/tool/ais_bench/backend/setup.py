@@ -197,7 +197,7 @@ setup(
     version=STATIC_VERSION,
     author="ais_bench",
     author_email="aclruntime",
-    url=f"commit id: {git_hash}, release_date: {git_date}",
+    url=f"gitee repo: Ascend/tools, commit id: {git_hash}, release_date: {git_date}",
     release_date = git_date,
     description="A test project using pybind11 and aclruntime",
     long_description="",

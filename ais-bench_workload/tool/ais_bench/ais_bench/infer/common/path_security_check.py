@@ -41,7 +41,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)
 logger = logging.getLogger(__name__)
 
 
-SOLUTION_BASE_LOC = '\"gitee repo: Ascend/tools, path:tools/ais_bench-workload/tool/ais_bench/README.md' + \
+SOLUTION_BASE_LOC = '\"gitee repo: Ascend/tools, path:tools/ais_bench-workload/tool/ais_bench/README.md, ' + \
     'chapter:'
 SOFT_LINK_SUB_CHAPTER = ' FAQ/security_error/soft_link_error_log_solution\"'
 PATH_LENGTH_SUB_CHAPTER = ' FAQ/security_error/path_length_overflow_error_log_solution\"'

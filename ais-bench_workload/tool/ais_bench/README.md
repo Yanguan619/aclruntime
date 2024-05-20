@@ -864,3 +864,15 @@ EZ9999  The error from device(2), serial number is 17, there is an aicore error,
 
 ## FAQ
 [FAQ](FAQ.md)
+### security_error
+#### soft_link_error_log_solution
+参考[soft_link_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/soft_link_error_log_solution)
+#### path_length_overflow_error_log_solution
+参考[path_length_overflow_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/path_length_overflow_error_log_solution)
+#### owner_or_ownergroup_error_log_solution
+参考[owner_or_ownergroup_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/owner_or_ownergroup_error_log_solution)
+#### path_permission_error_log_solution
+参考[path_permission_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/path_permission_error_log_solution)
+#### path_contain_illegal_char_error_log_solution
+参考[path_contain_illegal_char_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/path_contain_illegal_char_error_log_solution)
+

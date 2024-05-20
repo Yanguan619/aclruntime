@@ -26,6 +26,7 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
 - 本工具安装时需要获取CANN版本，用户可通过设置CANN_PATH环境变量，指定安装的CANN版本路径，例如：export CANN_PATH=/xxx/nnrt/latest/。若不设置，工具默认会从/usr/local/Ascend/nnrt/latest/和/usr/local/Ascend/ascend-toolkit/latest路径分别尝试获取CANN版本。
 
 #### 下载whl包安装
+**注意**：目前出包流水恢复中，whl包非最新版本，不推荐使用whl包安装。
 
 1. 下载如下aclruntime和ais_bench推理程序的whl包。
 

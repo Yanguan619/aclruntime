@@ -62,20 +62,6 @@ def is_legal_args_path_string(path):
     return True
 
 
-# The main interface is through Pybind11Extension.
-# * You can add cxx_std=11/14/17, and then build_ext can be removed.
-# * You can set include_pybind11=false to add the include directory yourself,
-#   say from a submodule.
-#
-# Note:
-#   Sort input source files if you glob sources to ensure bit-for-bit
-#   reproducible builds (https://github.com/pybind/python_example/pull/53)
-
-# Avoid a gcc warning below:
-# cc1plus: warning: command line option ‘-Wstrict-prototypes’ is valid
-# for C/ObjC but not for C++
-
-
 class BuildExt(build_ext):
     def build_extensions(self):
         if '-Wstrict-prototypes' in self.compiler.compiler_so:

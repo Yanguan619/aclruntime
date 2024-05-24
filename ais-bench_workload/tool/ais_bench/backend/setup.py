@@ -126,7 +126,7 @@ def get_cann_path():
     logger.info("find cann path: %s", cann_base_path)
 
 
-# get_cann_path()
+get_cann_path()
 
 # 使用Git命令获取最新的提交哈希
 try:

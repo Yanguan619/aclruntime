@@ -107,6 +107,7 @@ public:
 
     static int Finalize();
     int FreeResource();
+    void SetContext();
 
     Base::ModelInferenceProcessor modelInfer_ = {};
 
@@ -115,7 +116,6 @@ private:
     int Destroy();
 
 private:
-    void SetContext();
     uint32_t deviceId_ = 0;
     Base::ModelDesc modelDesc_ = {};
     bool InitFlag_ = false;

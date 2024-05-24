@@ -138,6 +138,9 @@ class InferSession:
     def set_loop_count(self, loop):
         options = self.session.options()
         options.loop = loop
+    
+    def set_context(self):
+        self.session.set_context()
 
     # 默认设置为静态batch
     def set_staticbatch(self):

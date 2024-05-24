@@ -717,6 +717,7 @@ void RegistInferenceSession(py::module &m)
     model.def("get_inputs", &Base::PyInferenceSession::GetInputs, py::return_value_policy::reference);
     model.def("get_outputs", &Base::PyInferenceSession::GetOutputs, py::return_value_policy::reference);
     model.def("reset_sumaryinfo", &Base::PyInferenceSession::ResetSumaryInfo);
+    model.def("set_context", &Base::PyInferenceSession::SetContext)
     model.def("set_staticbatch", &Base::PyInferenceSession::SetStaticBatch);
     model.def("set_dynamic_batchsize", &Base::PyInferenceSession::SetDynamicBatchsize);
     model.def("set_dynamic_hw", &Base::PyInferenceSession::SetDynamicHW);

@@ -94,7 +94,7 @@ ais-bench_workload
 
 
 ## 2. 构建ais-bench性能测试软件包
-### 2.1 快速构建（仅支持AISBench 1.0）
+### 2.1 快速构建（仅支持AISBench 1.0版本）
 
 #### 2.1.1 简介
 

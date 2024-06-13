@@ -19,6 +19,8 @@ import numpy as np
 import aclruntime
 from ais_bench.infer.common.logger import logger
 from ais_bench.infer.dym_aipp_manager import DymAippManager
+from ais_bench.infer.interface_check import (check_model_path_legality, check_acl_json_path_legality,
+    check_device_range_valid)
 
 TORCH_TENSOR_LIST = [
     'torch.FloatTensor', 'torch.DoubleTensor', 'torch.HalfTensor', 'torch.BFloat16Tensor',
@@ -44,6 +46,9 @@ class InferSession:
             debug: enable debug log.  Default: False
             loop: loop count for one inference. Default: 1
         """
+        check_model_path_legality(model_path)
+        check_acl_json_path_legality(acl_json_path)
+        check_device_range_valid(device_id)
         self.device_id = device_id
         self.model_path = model_path
         self.loop = loop
@@ -101,7 +106,7 @@ class InferSession:
     def set_loop_count(self, loop):
         options = self.session.options()
         options.loop = loop
-    
+
     def set_context(self):
         self.session.set_context()
 
@@ -421,6 +426,8 @@ class InferSession:
 
 class MultiDeviceSession():
     def __init__(self, model_path: str, acl_json_path: str = None, debug: bool = False, loop: int = 1):
+        check_model_path_legality(model_path)
+        check_acl_json_path_legality(acl_json_path)
         self.model_path = model_path
         self.acl_json_path = acl_json_path
         self.debug = debug
@@ -445,6 +452,7 @@ class MultiDeviceSession():
         p = Pool(subprocess_num)
         outputs_queue = Manager().Queue()
         for device_id, feeds in device_feeds.items():
+            check_device_range_valid(device_id)
             for feed in feeds:
                 p.apply_async(
                     self.subprocess_infer,
@@ -479,6 +487,7 @@ class MultiDeviceSession():
         p = Pool(subprocess_num)
         outputs_queue = Manager().Queue()
         for device_id, feeds in device_feeds_list.items():
+            check_device_range_valid(device_id)
             for feed in feeds:
                 p.apply_async(
                     self.subprocess_infer_pipeline,
@@ -513,6 +522,7 @@ class MultiDeviceSession():
         p = Pool(subprocess_num)
         outputs_queue = Manager().Queue()
         for device_id, feeds in device_feeds.items():
+            check_device_range_valid(device_id)
             for feed in feeds:
                 p.apply_async(
                     self.subprocess_infer_iteration,

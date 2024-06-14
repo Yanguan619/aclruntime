@@ -1,2 +1,2 @@
-include ais_bench/evaluate/dataset/download.sh
-include ais_bench/evaluate/dataset/*.json
+exclude backend/__init__.py
+exclude backend/setup.py

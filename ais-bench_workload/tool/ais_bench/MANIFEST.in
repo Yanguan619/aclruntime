@@ -1,2 +1,2 @@
-exclude backend/__init__.py
-exclude backend/setup.py
+global-exclude backend/__init__.py
+global-exclude backend/setup.py

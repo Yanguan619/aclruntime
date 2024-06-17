@@ -32,7 +32,7 @@ try:
 except Exception:
     git_date = ""
 
-packages = find_packages(exclude=['./backend/'])
+packages = find_packages(where=".", exclude=["backend"])
 
 setup(
     name='ais_bench',

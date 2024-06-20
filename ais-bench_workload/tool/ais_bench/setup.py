@@ -32,6 +32,8 @@ try:
 except Exception:
     git_date = ""
 
+packages = find_packages(where=".", exclude=["backend"])
+
 setup(
     name='ais_bench',
     version='0.0.2',
@@ -39,7 +41,7 @@ setup(
     long_description=long_description,
     url=f"gitee repo: Ascend/tools, commit id: {git_hash}, release_date: {git_date}",
     release_date = git_date,
-    packages=find_packages(),
+    packages=packages,
     include_package_data=True,
     keywords='ais_bench tool',
     install_requires=required,

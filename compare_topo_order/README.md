@@ -15,16 +15,15 @@
 ## 工具获取途径<a name="section1265610537259"></a>
 
 图对比工具获取路径：
-
-https://gitee.com/ascend/tools/tree/master/compare_graph
+https://gitee.com/ascend/tools/tree/master/compare_topo_order
 
 # 工具使用<a name="ZH-CN_TOPIC_0000001158843020"></a>
 
 **命令行格式：**  
 
-python3 ./compare\_graph.py --origin_graph=ge_proto_xxxx.txt --compiled_graph=ge_proto_xxx.txt
+python3 ./compare\_topo\_order.py --origin_graph=ge_proto_xxxx.txt --compiled_graph=ge_proto_xxx.txt
 
-python3 ./compare\_graph.py --single_op=kernel_detail_single_op.csv --graph_execute=kernel_detail_graph.csv
+python3 ./compare\_topo\_order.py --single_op=kernel_detail_single_op.csv --graph_execute=kernel_detail_graph.csv
 
 **参数说明：**
 
@@ -35,7 +34,7 @@ python3 ./compare\_graph.py --single_op=kernel_detail_single_op.csv --graph_exec
 
 -   compiled_graph:  CANN框架执行训练或atc模型转换时生成的dump图数据，可以将compiled_graph选取生成的最后一张图，名称里带“PreRunAfterBuild”关键字的txt格式dump图传入。**compiled_graph跟graph_execute二选一**。
 -   single_op:  CANN框架执行训练或者推理时，打开profiling功能落盘的数据，将profiling数据中的xxx_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_detail.csv文件路径传入，single_op选项传入单算子模式下的profiling数据文件。**origin_graph跟single_op二选一**。
--   graph_execute:  CANN框架执行训练或者推理时，打开profiling功能落盘的数据，将profiling数据中的xxx_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_detail.csv文件路径传入，single_op选项传入图模式下的profiling数据文件。**compiled_graph跟graph_execute二选一**。
+-   graph_execute:  CANN框架执行训练或者推理时，打开profiling功能落盘的数据，将profiling数据中的xxx_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_detail.csv文件路径传入，graph_execute选项传入图模式下的profiling数据文件。**compiled_graph跟graph_execute二选一**。
 
 ### 屏显结果分析<a name="section459963816435"></a>
 

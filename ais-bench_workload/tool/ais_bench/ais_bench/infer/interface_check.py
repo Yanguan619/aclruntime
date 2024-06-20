@@ -31,7 +31,7 @@ def check_model_path_legality(value):
 
 def check_acl_json_path_legality(value):
     if not value:
-        return value
+        return
     try:
         file_stat = FileStat(value)
     except Exception as err:
@@ -42,7 +42,6 @@ def check_acl_json_path_legality(value):
         raise RuntimeError(f"acl json path:{value} is illegal. Please check.")
     if not file_stat.is_legal_file_size(ACL_JSON_MAX_SIZE):
         raise RuntimeError(f"acl json path:{value} is illegal. Please check.")
-    return value
 
 
 def check_device_range_valid(value):

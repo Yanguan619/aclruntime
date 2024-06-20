@@ -70,10 +70,10 @@ origin_graph_name.txt/single_op_name.txt
 带name后缀的txt文件中记录下了原始图或者单算子profiling序列的算子名字信息
 
 compiled_graph_type.txt/graph_execute_type.txt
-带type后缀的txt文件中记录下了编译图图或者图模式下profiling序列的算子类型信息
+带type后缀的txt文件中记录下了编译图或者图模式下profiling序列的算子类型信息
 
 compiled_graph_name.txt/graph_execute_name.txt
-带name后缀的txt文件中记录下了编译图图或者图模式下profiling序列的算子名字信息
+带name后缀的txt文件中记录下了编译图或者图模式下profiling序列的算子名字信息
 
 compare_result_sim.txt
 记录下相似度差异以及相似度数据

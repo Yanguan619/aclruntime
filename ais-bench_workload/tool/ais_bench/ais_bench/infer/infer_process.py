@@ -48,7 +48,8 @@ from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
                                    get_fileslist_from_dir, list_split, list_share,
                                    save_data_to_files, create_fake_file_name, logger,
                                    create_tmp_acl_json, move_subdir, convert_helper)
-from ais_bench.infer.common.path_security_check import is_legal_args_path_string, FileStat
+from ais_bench.infer.common.path_security_check import is_legal_args_path_string
+from ais_bench.infer.interface_check import check_output_dir_legality
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.backends import BackendFactory
 from ais_bench.infer.common.path_security_check import ms_open, MAX_SIZE_LIMITE_CONFIG_FILE
@@ -447,8 +448,7 @@ def main(args, index=0, msgq=None, device_list=None):
             if not os.path.exists(output_prefix):
                 os.makedirs(output_prefix, PERMISSION_DIR)
             else:
-                file_stat = FileStat(output_prefix)
-                file_stat.is_basically_legal('read')
+                check_output_dir_legality(output_prefix)
             logger.info(f"output path:{output_prefix}")
         else:
             output_prefix = None
@@ -462,8 +462,7 @@ def main(args, index=0, msgq=None, device_list=None):
             if not os.path.exists(output_prefix):
                 os.makedirs(output_prefix, PERMISSION_DIR)
             else:
-                file_stat = FileStat(output_prefix)
-                file_stat.is_basically_legal('read')
+                check_output_dir_legality(output_prefix)
             logger.info(f"output path:{output_prefix}")
         else:
             output_prefix = None

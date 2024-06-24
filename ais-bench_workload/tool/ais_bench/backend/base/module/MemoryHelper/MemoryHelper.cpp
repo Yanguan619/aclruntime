@@ -146,12 +146,16 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
             }
             break;
         case MemoryData::MEMORY_HOST_MALLOC:
-            free(data.ptrData);
+            if (data.ptrData != nullptr) {
+                free(data.ptrData);
+            }
             ret = APP_ERR_OK;
             break;
         case MemoryData::MEMORY_HOST_NEW:
-            ptrData = (int8_t*)data.ptrData;
-            delete[] ptrData;
+            if (data.ptrData != nullptr) {
+                ptrData = (int8_t*)data.ptrData;
+                delete[] ptrData;
+            }
             ret = APP_ERR_OK;
             break;
         default:

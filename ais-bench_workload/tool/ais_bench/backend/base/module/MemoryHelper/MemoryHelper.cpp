@@ -83,7 +83,13 @@ APP_ERROR MemoryHelper::specificMalloc(MemoryData& data)
             data.free = (MemeoryDataFreeFuncPointer)FreeFuncCFree;
             break;
         case MemoryData::MEMORY_HOST_NEW:
-            data.ptrData = (void*)(new int8_t[data.size]);
+            try {
+                data.ptrData = (void*)(new int8_t[data.size]);
+            } catch (const std::bad_alloc& e) {
+                std::cerr << "new host memory failed!" << e.what() << std::endl;
+                ret = APP_ERR_ACL_BAD_ALLOC;
+                break;
+            }
             if (data.ptrData == nullptr) {
                 ret = APP_ERR_ACL_BAD_ALLOC;
             } else {

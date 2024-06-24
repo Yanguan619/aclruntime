@@ -129,7 +129,7 @@ class TestClass:
                                                      output_file_num)
 
         cmd = f"{TestCommonClass.cmd_prefix} --model {model_path} --device {TestCommonClass.default_device_id} \
-            --output {output_path} --debug True --pipeline {True} --warmup-count {warmup_num}\
+            --output {output_path} --debug True --pipeline {True} --warmup_count {warmup_num}\
             --input {input_path} > {log_path}"
         logger.info(f"run cmd:{cmd}")
         ret = os.system(cmd)

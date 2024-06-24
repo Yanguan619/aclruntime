@@ -142,7 +142,7 @@ def get_acl_json_path(args):
             "dump": {
                 "dump_path": out_dump_path,
                 "dump_mode": "all",
-                "dump_list": [{"model_name": model_name.split('.')[0]}],
+                "dump_list": [{"model_name": model_name[:model_name.rfind('.')]}],
             }
         }
 

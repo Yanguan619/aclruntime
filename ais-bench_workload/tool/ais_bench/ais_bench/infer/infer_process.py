@@ -48,7 +48,8 @@ from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
                                    get_fileslist_from_dir, list_split, list_share,
                                    save_data_to_files, create_fake_file_name, logger,
                                    create_tmp_acl_json, move_subdir, convert_helper)
-from ais_bench.infer.common.path_security_check import is_legal_args_path_string
+from ais_bench.infer.common.path_security_check import is_legal_args_path_string, check_normal_string
+from ais_bench.infer.interface_check import check_output_dir_legality
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.backends import BackendFactory
 from ais_bench.infer.common.path_security_check import ms_open, MAX_SIZE_LIMITE_CONFIG_FILE
@@ -297,10 +298,12 @@ def get_legal_json_content(acl_json_path):
         json_dict = json.load(f)
     profile_dict = json_dict.get("profiler")
     for option_cmd in ACL_JSON_CMD_LIST:
-        if profile_dict.get(option_cmd):
-            if option_cmd == "output" and not is_legal_args_path_string(profile_dict.get(option_cmd)):
+        opt_value = profile_dict.get(option_cmd)
+        check_normal_string(opt_value)
+        if opt_value:
+            if option_cmd == "output" and not is_legal_args_path_string(opt_value):
                 raise Exception(f"output path in acl_json is illegal!")
-            cmd_dict.update({"--" + option_cmd.replace('_', '-'): profile_dict.get(option_cmd)})
+            cmd_dict.update({"--" + option_cmd.replace('_', '-'): opt_value})
             if (option_cmd == "sys_hardware_mem_freq"):
                 cmd_dict.update({"--sys-hardware-mem": "on"})
             if (option_cmd == "sys_interconnection_freq"):
@@ -446,7 +449,8 @@ def main(args, index=0, msgq=None, device_list=None):
                 output_prefix = os.path.join(output_prefix, "device" + str(device_list[index]) + "_" + str(index))
             if not os.path.exists(output_prefix):
                 os.makedirs(output_prefix, PERMISSION_DIR)
-            os.chmod(args.output, PERMISSION_DIR)
+            else:
+                check_output_dir_legality(output_prefix)
             logger.info(f"output path:{output_prefix}")
         else:
             output_prefix = None
@@ -459,7 +463,8 @@ def main(args, index=0, msgq=None, device_list=None):
                 output_prefix = os.path.join(args.output, args.output_dirname)
             if not os.path.exists(output_prefix):
                 os.makedirs(output_prefix, PERMISSION_DIR)
-            os.chmod(args.output, PERMISSION_DIR)
+            else:
+                check_output_dir_legality(output_prefix)
             logger.info(f"output path:{output_prefix}")
         else:
             output_prefix = None

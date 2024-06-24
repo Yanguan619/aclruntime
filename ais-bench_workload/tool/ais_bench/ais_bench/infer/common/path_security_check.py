@@ -296,5 +296,7 @@ def ms_open(file, mode="r", max_size=None, softlink=False, write_permission=PERM
 
 
 def check_normal_string(str_to_check):
+    if not str_to_check:
+        return
     if NORMAL_STR_WHITE_LIST_REGEX.search(str_to_check):
         raise ValueError(f"string: {str_to_check} contain illegal char")

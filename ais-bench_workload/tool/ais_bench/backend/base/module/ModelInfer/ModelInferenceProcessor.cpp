@@ -915,8 +915,9 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
     }
 
     // 如何释放数组 动态
+    aclmdlIODims *dims = nullptr;
     try {
-        aclmdlIODims *dims = new aclmdlIODims[dym_gear_count_];
+        dims = new aclmdlIODims[dym_gear_count_];
     } catch (const std::bad_alloc& e) {
         std::cerr << "new aclmdlIODims failed!" << e.what() << std::endl;
         return APP_ERR_ACL_BAD_ALLOC;

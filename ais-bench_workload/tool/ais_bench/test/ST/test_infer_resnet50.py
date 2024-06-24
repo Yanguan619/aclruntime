@@ -98,7 +98,7 @@ class TestClass:
         if os.path.exists(dirname):
             shutil.rmtree(dirname)
 
-        os.makedirs(dirname)
+        os.makedirs(dirname, 0o750)
 
         i = 1
         for shape in shapes:
@@ -559,7 +559,7 @@ class TestClass:
         output_dir_path = os.path.join(output_path, output_dir_name)
         if os.path.exists(output_dir_path):
             shutil.rmtree(output_dir_path)
-        os.makedirs(output_dir_path)
+        os.makedirs(output_dir_path, 0o750)
         summary_json_path = os.path.join(output_path, "{}_summary.json".format(output_dir_name))
 
         cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {}".format(
@@ -631,7 +631,7 @@ class TestClass:
         output_dir_path = os.path.join(output_path, output_dir_name)
         if os.path.exists(output_dir_path):
             shutil.rmtree(output_dir_path)
-        os.makedirs(output_dir_path)
+        os.makedirs(output_dir_path, 0o750)
         summary_json_path = os.path.join(output_path, "{}_summary.json".format(output_dir_name))
 
         cmd = "{} --model {}  --outputSize {} --dymShape {} --input {} --output {} --output_dirname {}".format(

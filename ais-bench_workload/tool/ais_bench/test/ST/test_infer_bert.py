@@ -116,7 +116,7 @@ class TestClass:
             tmp_output_path = os.path.join(base_output_path, output_dirname)
             if os.path.exists(tmp_output_path):
                 shutil.rmtree(tmp_output_path)
-            os.makedirs(tmp_output_path)
+            os.makedirs(tmp_output_path, 0o750)
             cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {}".format(
                 TestCommonClass.cmd_prefix,
                 model_path,
@@ -161,7 +161,7 @@ class TestClass:
         summary_json_path = os.path.join(output_path, "{}_summary.json".format(output_dir_name))
         if os.path.exists(output_dir_path):
             shutil.rmtree(output_dir_path)
-        os.makedirs(output_dir_path)
+        os.makedirs(output_dir_path, 0o750)
         cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {}".format(
             TestCommonClass.cmd_prefix,
             model_path,
@@ -313,9 +313,9 @@ class TestClass:
             shutil.rmtree(input_mask_path)
         if os.path.exists(segment_ids_path):
             shutil.rmtree(segment_ids_path)
-        os.makedirs(input_ids_path)
-        os.makedirs(input_mask_path)
-        os.makedirs(segment_ids_path)
+        os.makedirs(input_ids_path, 0o750)
+        os.makedirs(input_mask_path, 0o750)
+        os.makedirs(segment_ids_path, 0o750)
 
         batch_size = 1
         static_model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)

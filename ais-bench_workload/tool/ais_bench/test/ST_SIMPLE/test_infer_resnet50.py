@@ -459,7 +459,7 @@ class TestClass:
         output_dir_path = os.path.join(output_path, output_dir_name)
         if os.path.exists(output_dir_path):
             shutil.rmtree(output_dir_path)
-        os.makedirs(output_dir_path)
+        os.makedirs(output_dir_path, 0o750)
         summary_json_path = os.path.join(output_path, "{}_summary.json".format(output_dir_name))
 
         cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {}".format(

@@ -110,7 +110,7 @@ class TestClass:
             tmp_output_path = os.path.join(base_output_path, output_dirname)
             if os.path.exists(tmp_output_path):
                 shutil.rmtree(tmp_output_path)
-            os.makedirs(tmp_output_path)
+            os.makedirs(tmp_output_path, 0o750)
             cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {}".format(
                 TestCommonClass.cmd_prefix,
                 model_path,
@@ -156,7 +156,7 @@ class TestClass:
             tmp_output_path = os.path.join(base_output_path, output_dirname)
             if os.path.exists(tmp_output_path):
                 shutil.rmtree(tmp_output_path)
-            os.makedirs(tmp_output_path)
+            os.makedirs(tmp_output_path, 0o750)
             cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {} --dymBatch {}".format(
                 TestCommonClass.cmd_prefix,
                 model_path,
@@ -202,7 +202,7 @@ class TestClass:
         output_dir_path = os.path.join(output_path, output_dir_name)
         if os.path.exists(output_dir_path):
             shutil.rmtree(output_dir_path)
-        os.makedirs(output_dir_path)
+        os.makedirs(output_dir_path, 0o750)
         summary_json_path = os.path.join(output_path, "{}_summary.json".format(output_dir_name))
         cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {}".format(
             TestCommonClass.cmd_prefix,

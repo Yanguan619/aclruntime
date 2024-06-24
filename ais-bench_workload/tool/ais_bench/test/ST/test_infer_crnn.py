@@ -103,7 +103,7 @@ class TestClass:
             tmp_output_path = os.path.join(base_output_path, output_dirname)
             if os.path.exists(tmp_output_path):
                 shutil.rmtree(tmp_output_path)
-            os.makedirs(tmp_output_path)
+            os.makedirs(tmp_output_path, 0o750)
             output_batchsize_axis = 1
             cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {} --output_batchsize_axis {}".format(
                 TestCommonClass.cmd_prefix,
@@ -151,7 +151,7 @@ class TestClass:
             tmp_output_path = os.path.join(base_output_path, output_dirname)
             if os.path.exists(tmp_output_path):
                 shutil.rmtree(tmp_output_path)
-            os.makedirs(tmp_output_path)
+            os.makedirs(tmp_output_path, 0o750)
             output_batchsize_axis = 1
             cmd = "{} --model {} --device {} --input {} --output {} --output_dirname {} --output_batchsize_axis {} \
                 --dymBatch {}".format(
@@ -200,7 +200,7 @@ class TestClass:
         tmp_output_path = os.path.join(base_output_path, output_dirname)
         if os.path.exists(tmp_output_path):
             shutil.rmtree(tmp_output_path)
-        os.makedirs(tmp_output_path)
+        os.makedirs(tmp_output_path, 0o750)
         output_batchsize_axis = 2
         cmd = (
             "{} --model {} --device {} --input {} --output {} --output_dirname {} --output_batchsize_axis {}"

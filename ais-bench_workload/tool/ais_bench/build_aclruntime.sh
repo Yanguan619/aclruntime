@@ -35,13 +35,13 @@ main()
         name_info="${CUR_DIR}/aclruntime-0.0.2-cp37-cp37m-linux_${arch_info}"
         build_whl "${name_info}.whl" "${name_info}.sha256" || { return $ret_failed; }
     elif [[ "${pip_info}" =~ "3.8" ]]; then
-        name_info="${CUR_DIR}/aclruntime-0.0.2-cp38-cp38m-linux_${arch_info}"
+        name_info="${CUR_DIR}/aclruntime-0.0.2-cp38-cp38-linux_${arch_info}"
         build_whl "${name_info}.whl" "${name_info}.sha256" || { return $ret_failed; }
     elif [[ "${pip_info}" =~ "3.9" ]]; then
-        name_info="${CUR_DIR}/aclruntime-0.0.2-cp39-cp39m-linux_${arch_info}"
+        name_info="${CUR_DIR}/aclruntime-0.0.2-cp39-cp39-linux_${arch_info}"
         build_whl "${name_info}.whl" "${name_info}.sha256" || { return $ret_failed; }
     elif [[ "${pip_info}" =~ "3.10" ]]; then
-        name_info="${CUR_DIR}/aclruntime-0.0.2-cp310-cp310m-linux_${arch_info}"
+        name_info="${CUR_DIR}/aclruntime-0.0.2-cp310-cp310-linux_${arch_info}"
         build_whl "${name_info}.whl" "${name_info}.sha256" || { return $ret_failed; }
     fi
     return $ret_ok

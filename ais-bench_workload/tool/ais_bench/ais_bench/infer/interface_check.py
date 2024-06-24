@@ -55,3 +55,10 @@ def check_device_range_valid(value):
         raise ValueError(f"device:{value} is illegal. legal value range is [{min_value}, {max_value}]")
 
 
+def check_output_dir_legality(value):
+    try:
+        file_stat = FileStat(value)
+    except Exception as err:
+        raise RuntimeError(f"output path:{value} is illegal. Please check.") from err
+    if not file_stat.is_basically_legal('write'):
+        raise RuntimeError(f"output path:{value} is illegal. Please check.")

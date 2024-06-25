@@ -84,9 +84,9 @@ APP_ERROR MemoryHelper::specificMalloc(MemoryData& data)
             break;
         case MemoryData::MEMORY_HOST_NEW:
             try {
-                data.ptrData = (void*)(new int8_t[data.size]);
+                data.ptrData = static_cast<void*>(new int8_t[data.size()]);
             } catch (const std::bad_alloc& e) {
-                std::cerr << "new host memory failed!" << e.what() << std::endl;
+                 std::cerr << "Allocate memory of size " << data.size() << " bytes failed: " << e.what() << std::endl;
                 ret = APP_ERR_ACL_BAD_ALLOC;
                 break;
             }
@@ -152,15 +152,12 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
             }
             break;
         case MemoryData::MEMORY_HOST_MALLOC:
-            if (data.ptrData != nullptr) {
-                free(data.ptrData);
-            }
+            free(data.ptrData);
             ret = APP_ERR_OK;
             break;
         case MemoryData::MEMORY_HOST_NEW:
             if (data.ptrData != nullptr) {
-                ptrData = (int8_t*)data.ptrData;
-                delete[] ptrData;
+                delete[] static_cast<int8_t*>(data.ptrData);
             }
             ret = APP_ERR_OK;
             break;

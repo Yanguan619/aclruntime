@@ -1278,6 +1278,7 @@ Result SaveTensorMemoryToFile(const aclTensorDesc *desc, std::string &prefixName
         cout << aclGetRecentErrMsg() << endl;
         WARN_LOG("exception_cb aclMemcpy failed ret:%d hostaddr:%p devaddr:%p len:%zu",
             ret, hostaddr, devaddr, len);
+        aclrtFreeHost(hostaddr);
         return FAILED;
     }
     std::string fileName = prefixName + "_format_" + std::to_string(format) +
@@ -1286,6 +1287,7 @@ Result SaveTensorMemoryToFile(const aclTensorDesc *desc, std::string &prefixName
              hostaddr, devaddr, len, fileName.c_str());
     ofstream outFile(fileName, ios::out | ios::binary);
     outFile.write((char*)hostaddr, len);
+    aclrtFreeHost(hostaddr);
     return SUCCESS;
 }
 

@@ -84,9 +84,9 @@ APP_ERROR MemoryHelper::specificMalloc(MemoryData& data)
             break;
         case MemoryData::MEMORY_HOST_NEW:
             try {
-                data.ptrData = static_cast<void*>(new int8_t[data.size()]);
+                data.ptrData = static_cast<void*>(new int8_t[data.size]);
             } catch (const std::bad_alloc& e) {
-                 std::cerr << "Allocate memory of size " << data.size() << " bytes failed: " << e.what() << std::endl;
+                std::cerr << "Allocate memory of size " << data.size << " bytes failed: " << e.what() << std::endl;
                 ret = APP_ERR_ACL_BAD_ALLOC;
                 break;
             }
@@ -131,7 +131,6 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
         return APP_ERR_COMM_INVALID_POINTER;
     }
     APP_ERROR ret = APP_ERR_OK;
-    int8_t *ptrData = nullptr;
     switch (data.type) {
         case MemoryData::MEMORY_HOST:
             ret = aclrtFreeHost(data.ptrData);

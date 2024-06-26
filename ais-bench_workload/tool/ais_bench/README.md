@@ -189,7 +189,7 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
 ## 使用方法
 
 ### 工具介绍
-ais_bench推理工具的使用方法主要分为命令行使用和API调用。本章节主要介绍命令行使用，API调用请参考
+ais_bench推理工具的使用方法主要分为命令行使用和API调用。本章节主要介绍命令行使用，API调用请参考《[API_GUIDE](https://gitee.com/ascend/tools/blob/master/ais-bench_workload/tool/ais_bench/API_GUIDE.md)》。
 
  #### 使用入口
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+# Copyright (c) 2023-2024 Huawei Technologies Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,15 +14,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# define error code
 declare -i ret_ok=0
 declare -i ret_failed=1
 declare -i ret_invalid_args=1
+
 CUR_PATH=$(dirname $(readlink -f "$0"))
-. $CUR_PATH/utils.sh
-set -x
-set -e
+
+. $CUR_PATH/utils.sh # 导入通用函数
+source $CUR_PATH/test_config.sh # 导入DT配置
+
+set -x # 打印执行命令
+set -e # 任何一行命令失败shell脚本都会退出
+
+# 其他全局变量
 MSAME_PATH=$CUR_PATH/msame
 SOC_VERSION=""
+ST_LIST=()
+UT_LIST=()
 
 function get_npu_type()
 {
@@ -45,6 +54,25 @@ function data_generate()
     ${py_cmd} $CUR_PATH/generate_pipeline_datasets.py
 }
 
+function get_dt_list()
+{
+    mode=$1
+    if [ $mode == "full" ];then
+        echo "run DT in full mode"
+        UT_LIST=$full_ut_script_list
+        ST_LIST=$full_st_script_list
+    else
+        echo "run DT in simple mode"
+        UT_LIST=$simple_ut_script_list
+        ST_LIST=$simple_st_script_list
+    fi
+}
+
+function run_dt_only()
+{
+
+}
+
 main() {
     chmod_file_data
     # utils.sh func
@@ -57,8 +85,6 @@ main() {
         return $ret_invalid_args
     fi
 
-    export PYTHON_COMMAND=${1:-"python3"}
-    export AISBENCH_INFER_DT_MODE=${2:-"simple"}
     export PYTHONPATH=$CUR_PATH:$PYTHONPATH
     export MSAME_BIN_PATH=$MSAME_PATH
 
@@ -70,15 +96,7 @@ main() {
 
     data_generate $PYTHON_COMMAND
 
-    if [ $BENCKMARK_DT_MODE == "full" ];then
-        echo "run DT in full mode"
-        ${PYTHON_COMMAND} -m pytest -s $CUR_PATH/UT/
-        ${PYTHON_COMMAND} -m pytest -s $CUR_PATH/ST/
-    else
-        echo "run DT in simple mode"
-        ${PYTHON_COMMAND} -m pytest -x $CUR_PATH/UT_SIMPLE/ || { return $ret_failed; }
-        ${PYTHON_COMMAND} -m pytest -x $CUR_PATH/ST_SIMPLE/ || { return $ret_failed; }
-    fi
+    get_dt_list $AISBENCH_INFER_DT_MODE
 
     return $ret_ok
 }

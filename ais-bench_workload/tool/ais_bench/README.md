@@ -63,8 +63,10 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    pip3 install ./ais_bench-{version}-py3-none-any.whl --force-reinstall
    ```
 
-   分别提示如下信息则表示安装成功：
+   须知：使用强制安装会同时将工具涉及的依赖全部更新为最新版本，若只需要更新安装工具，请参见"**卸载和更新**"。
 
+   分别提示如下信息则表示安装成功：
+   
    ```bash
    # 成功安装aclruntime
    Successfully installed aclruntime-{version}
@@ -110,8 +112,10 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    pip3 install -v --force-reinstall 'git+https://gitee.com/ascend/tools.git#egg=ais_bench&subdirectory=ais-bench_workload/tool/ais_bench'
    ```
 
-   提示如下示例信息则表示安装成功：
+   须知：使用强制安装会同时将工具涉及的依赖全部更新为最新版本，若只需要更新安装工具，请参见"**卸载和更新**"。
 
+   提示如下示例信息则表示安装成功：
+   
    ```bash
    Successfully installed ais_bench-{version}
    ```
@@ -163,8 +167,10 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    pip3 install ./ais_bench-{version}-py3-none-any.whl --force-reinstall
    ```
 
-   分别提示如下信息则表示安装成功：
+   须知：使用强制安装会同时将工具涉及的依赖全部更新为最新版本，若只需要更新安装工具，请参见"**卸载和更新**"。
 
+   分别提示如下信息则表示安装成功：
+   
    ```bash
    # 成功安装aclruntime
    Successfully installed aclruntime-{version}
@@ -172,8 +178,34 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    Successfully installed ais_bench-{version}
    ```
 
+#### 卸载和更新
+
+执行如下命令卸载工具：
+
+```bash
+# 安装aclruntime
+pip3 uninstall aclruntime
+# 安装ais_bench推理程序
+pip3 uninstall ais_bench
+```
+
+重新安装工具：
+
+```bash
+# 安装aclruntime
+pip3 install ./aclruntime-{version}-{python_version}-linux_{arch}.whl
+# 安装ais_bench推理程序
+pip3 install ./ais_bench-{version}-py3-none-any.whl
+```
+
+或
+
+```bash
+pip3 install -v 'git+https://gitee.com/ascend/tools.git#egg=ais_bench&subdirectory=ais-bench_workload/tool/ais_bench'
+```
 
 ### 运行准备
+
 1. 设置CANN包的环境变量，执行如下命令：
 
    ```bash
@@ -189,7 +221,7 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
 ## 使用方法
 
 ### 工具介绍
-ais_bench推理工具的使用方法主要分为命令行使用和API调用。本章节主要介绍命令行使用，API调用请参考
+ais_bench推理工具的使用方法主要分为命令行使用和API调用。本章节主要介绍命令行使用，API调用请参考《[API_GUIDE](https://gitee.com/ascend/tools/blob/master/ais-bench_workload/tool/ais_bench/API_GUIDE.md)》。
 
  #### 使用入口
 

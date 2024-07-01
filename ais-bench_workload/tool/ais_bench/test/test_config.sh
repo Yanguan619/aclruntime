@@ -18,7 +18,7 @@ export PYTHON_COMMAND="python3"
 export AISBENCH_INFER_DT_MODE="simple"
 
 full_st_script_list=( \
-
+    ""
 )
 
 full_ut_script_list=( \

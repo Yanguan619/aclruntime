@@ -82,13 +82,13 @@ function run_dt_only()
     # run selected ut list
     for scripts in ${UT_LIST[@]}
     do
-        $PYTHON_COMMAND -m pytest $CUR_PATH/UT/$scripts
+        $PYTHON_COMMAND -m pytest -v -s $CUR_PATH/UT/$scripts
     done
 
     # run selected st list
     for scripts in ${ST_LIST[@]}
     do
-        $PYTHON_COMMAND -m pytest $CUR_PATH/ST/$scripts
+        $PYTHON_COMMAND -m pytest -v -s $CUR_PATH/ST/$scripts
     done
 }
 

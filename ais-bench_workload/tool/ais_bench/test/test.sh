@@ -25,7 +25,7 @@ CUR_PATH=$(dirname $(readlink -f "$0"))
 source $CUR_PATH/test_config.sh # 导入DT配置
 
 set -x # 打印执行命令
-set -e # 任何一行命令失败shell脚本都会退出
+# set -e # 任何一行命令失败shell脚本都会退出
 
 # 其他全局变量
 MSAME_PATH=$CUR_PATH/msame

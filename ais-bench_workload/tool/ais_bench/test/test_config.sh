@@ -19,42 +19,42 @@ export AISBENCH_INFER_DT_MODE="simple"
 export PYTEST_RUN_MODE="run_only" # "show_coverage"
 
 full_st_script_list=( \
-    "test_acl_json_profiling.py"
-    "test_args.py"
-    "test_infer_resnet50_dymshape.py"
-    "test_infer_resnet50_normal.py"
-    "test_result.py"
+    "test_acl_json_profiling.py" \
+    "test_args.py" \
+    "test_infer_resnet50_dymshape.py" \
+    "test_infer_resnet50_normal.py" \
+    "test_result.py" \
 )
 
 full_ut_script_list=( \
-    "test_args.py"
-    "test_dymaipp.py"
-    "test_dymshape.py"
-    "test_inference.py"
-    "test_interface_multidevice_api_dymshape.py"
-    "test_interface_multidevice_api_normal.py"
-    "test_interface_single_session_api_dymshape.py"
-    "test_interface_single_session_api_normal.py"
-    "test_json_convert.py"
-    "test_pipeline_interface.py"
-    "test_pipeline_run_dymshape.py"
-    "test_pipeline_run_normal.py"
+    "test_args.py" \
+    "test_dymaipp.py" \
+    "test_dymshape.py" \
+    "test_inference.py" \
+    "test_interface_multidevice_api_dymshape.py" \
+    "test_interface_multidevice_api_normal.py" \
+    "test_interface_single_session_api_dymshape.py" \
+    "test_interface_single_session_api_normal.py" \
+    "test_json_convert.py" \
+    "test_pipeline_interface.py" \
+    "test_pipeline_run_dymshape.py" \
+    "test_pipeline_run_normal.py" \
 )
 
 simple_st_script_list=( \
-    "test_acl_json_profiling.py"
-    "test_args.py"
-    "test_infer_resnet50_normal.py"
-    "test_result.py"
+    "test_acl_json_profiling.py" \
+    "test_args.py" \
+    "test_infer_resnet50_normal.py" \
+    "test_result.py" \
 )
 
 simple_ut_script_list=( \
-    "test_args.py"
-    "test_dymaipp.py"
-    "test_inference.py"
-    "test_interface_multidevice_api_normal.py"
-    "test_interface_single_session_api_normal.py"
-    "test_json_convert.py"
-    "test_pipeline_interface.py"
-    "test_pipeline_run_normal.py"
+    "test_args.py" \
+    "test_dymaipp.py" \
+    "test_inference.py" \
+    "test_interface_multidevice_api_normal.py" \
+    "test_interface_single_session_api_normal.py" \
+    "test_json_convert.py" \
+    "test_pipeline_interface.py" \
+    "test_pipeline_run_normal.py" \
 )

@@ -30,8 +30,8 @@ set -e # 任何一行命令失败shell脚本都会退出
 # 其他全局变量
 MSAME_PATH=$CUR_PATH/msame
 SOC_VERSION=""
-ST_LIST=()
 UT_LIST=()
+ST_LIST=()
 
 function get_npu_type()
 {
@@ -44,6 +44,12 @@ function chmod_file_data()
 {
     chmod 750 $CUR_PATH/json_for_arg_test.json
     chmod -R 750 $CUR_PATH/aipp_config_files
+}
+
+function env_set()
+{
+    export PYTHONPATH=$CUR_PATH:$PYTHONPATH
+    export MSAME_BIN_PATH=$MSAME_PATH
 }
 
 function data_generate()
@@ -61,8 +67,12 @@ function get_dt_list()
         echo "run DT in full mode"
         UT_LIST=$full_ut_script_list
         ST_LIST=$full_st_script_list
-    else
+    elif [ $mode == "simple" ];then
         echo "run DT in simple mode"
+        UT_LIST=$simple_ut_script_list
+        ST_LIST=$simple_st_script_list
+    else
+        echo "unrecoginized mode: $mode, use default simple mode"
         UT_LIST=$simple_ut_script_list
         ST_LIST=$simple_st_script_list
     fi
@@ -70,33 +80,40 @@ function get_dt_list()
 
 function run_dt_only()
 {
+    # run selected ut list
+    for scripts in ${UT_LIST[@]}
+    do
+        $PYTHON_COMMAND -m pytest $CUR_PATH/UT/$scripts
+    done
 
+    # run selected st list
+    for scripts in ${ST_LIST[@]}
+    do
+        $PYTHON_COMMAND -m pytest $CUR_PATH/ST/$scripts
+    done
 }
 
 main() {
+    # self func
     chmod_file_data
     # utils.sh func
     get_msame_file $MSAME_PATH || { echo "get msame bin file failed";return $ret_failed; }
-    [ -f $MSAME_PATH ] || { echo "not find msame:$MSAME_PATH please check"; return $ret_invalid_args; }
-    chmod 750 $MSAME_PATH
-
-    if [ $# -lt 2 ]; then
-        echo "at least one parameter. for example: bash test.sh Ascend310P3 python3"
-        return $ret_invalid_args
-    fi
-
-    export PYTHONPATH=$CUR_PATH:$PYTHONPATH
-    export MSAME_BIN_PATH=$MSAME_PATH
-
     # utils.sh func
     check_python_package_is_install $PYTHON_COMMAND "aclruntime" || {
         echo "aclruntime package install failed please install or source set_env.sh"
         return $ret_invalid_args
     }
-
+    # self func
+    env_set
+    # self func
     data_generate $PYTHON_COMMAND
-
+    # self func
     get_dt_list $AISBENCH_INFER_DT_MODE
+
+    if [ "$PYTEST_RUN_MODE" == "run_only" ];then
+        # self func
+        run_dt_only
+    fi
 
     return $ret_ok
 }

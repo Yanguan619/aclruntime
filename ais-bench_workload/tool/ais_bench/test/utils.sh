@@ -34,12 +34,16 @@ function get_msame_file()
     if [[ $get_arch =~ "x86_64" ]];then
         echo "arch x86_64"
         local convert_url="https://aisbench.obs.myhuaweicloud.com/packet/msame/x86/msame"
-        wget $convert_url -O $1 --no-check-certificate
+        wget $convert_url -O $1 --no-check-certificate || { echo "wget $convert_url failed!";return $ret_failed; }
     elif [[ $get_arch =~ "aarch64" ]];then
         echo "arch arm64"
         local convert_url="https://aisbench.obs.myhuaweicloud.com/packet/msame/arm/msame"
-        wget $convert_url -O $1 --no-check-certificate
+        wget $convert_url -O $1 --no-check-certificate || { echo "wget $convert_url failed!";return $ret_failed; }
     else
-        echo "unknown!!"l
+        echo "unknown!!"
+        return $ret_failed;
     fi
+    [ -f $1 ] || { echo "not find msame:$1 please check"; return $ret_failed; }
+    chmod 750 $1
+    return $ret_ok
 }

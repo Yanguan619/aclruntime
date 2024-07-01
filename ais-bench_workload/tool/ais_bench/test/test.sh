@@ -94,6 +94,8 @@ function run_dt_only()
 
 main() {
     # self func
+    get_npu_type
+    # self func
     chmod_file_data
     # utils.sh func
     get_msame_file $MSAME_PATH || { echo "get msame bin file failed";return $ret_failed; }

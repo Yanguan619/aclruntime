@@ -254,8 +254,6 @@ convert_multi_dymaipp_om()
 main()
 {
     SOC_VERSION=${1:-"Ascend310P3"}
-    PYTHON_COMMAND=${2:-"python3"}
-    BENCKMARK_DT_MODE=${3:-"simple"}
     TESTDATA_PATH=$CUR_PATH/testdata/resnet50/model
     [ -d $TESTDATA_PATH ] || { mkdir -p $TESTDATA_PATH;chmod 750 $TESTDATA_PATH; }
 

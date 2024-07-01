@@ -54,8 +54,7 @@ function env_set()
 
 function data_generate()
 { # all generated data in $CUR_PATH/testdata
-    py_cmd=$1
-    bash -x $CUR_PATH/get_pth_resnet50_data.sh $SOC_VERSION $py_cmd $AISBENCH_INFER_DT_MODE
+    bash -x $CUR_PATH/get_pth_resnet50_data.sh $SOC_VERSION
     bash -x $CUR_PATH/get_add_model_data.sh
     ${py_cmd} $CUR_PATH/generate_pipeline_datasets.py
 }
@@ -106,7 +105,7 @@ main() {
     # self func
     env_set
     # self func
-    data_generate $PYTHON_COMMAND
+    data_generate
     # self func
     get_dt_list $AISBENCH_INFER_DT_MODE
 

@@ -56,7 +56,7 @@ function data_generate()
 { # all generated data in $CUR_PATH/testdata
     bash -x $CUR_PATH/get_pth_resnet50_data.sh $SOC_VERSION
     bash -x $CUR_PATH/get_add_model_data.sh
-    ${py_cmd} $CUR_PATH/generate_pipeline_datasets.py
+    $PYTHON_COMMAND $CUR_PATH/generate_pipeline_datasets.py
 }
 
 function get_dt_list()

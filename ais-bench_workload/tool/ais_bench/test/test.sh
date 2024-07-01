@@ -64,12 +64,12 @@ function get_dt_list()
     mode=$1
     if [ $mode == "full" ];then
         echo "run DT in full mode"
-        UT_LIST=$full_ut_script_list
-        ST_LIST=$full_st_script_list
+        UT_LIST=(${full_ut_script_list[@]})
+        ST_LIST=(${full_st_script_list[@]})
     elif [ $mode == "simple" ];then
         echo "run DT in simple mode"
-        UT_LIST=$simple_ut_script_list
-        ST_LIST=$simple_st_script_list
+        UT_LIST=(${simple_ut_script_list[@]})
+        ST_LIST=(${simple_st_script_list[@]})
     else
         echo "unrecoginized mode: $mode, use default simple mode"
         UT_LIST=$simple_ut_script_list

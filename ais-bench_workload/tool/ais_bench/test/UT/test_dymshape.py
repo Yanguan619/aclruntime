@@ -201,3 +201,7 @@ class TestClass:
         session.set_dynamic_shape(input_tensor_name + ":8,3,224,224")
         basesize3 = session.get_inputs()[0].realsize
         assert basesize3 == basesize2 * 4
+
+
+if __name__ == '__main__':
+    pytest.main([__file__, '-vs'])

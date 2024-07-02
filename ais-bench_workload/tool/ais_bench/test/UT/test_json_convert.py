@@ -19,7 +19,7 @@ import stat
 import logging
 
 import pytest
-from ais_bench.infer.benchmark_process import get_legal_json_content
+from ais_bench.infer.infer_process import get_legal_json_content
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
@@ -69,4 +69,4 @@ class TestClass:
 
 
 if __name__ == '__main__':
-    pytest.main(['test_json_convert.py', '-vs'])
+    pytest.main([__file__, '-vs'])

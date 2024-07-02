@@ -218,3 +218,7 @@ class TestClass:
         outputs = multi_session.infer_iteration(
             device_feeds, in_out_list=self.in_out_list, iteration_times=self.iteration_times, mode='dymdims'
         )
+
+
+if __name__ == '__main__':
+    pytest.main([__file__, '-vs'])

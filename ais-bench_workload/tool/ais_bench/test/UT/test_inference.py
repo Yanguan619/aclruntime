@@ -248,3 +248,7 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         with pytest.raises(RuntimeError) as e:
             tensor.to_device(device_id + 100)
+
+
+if __name__ == '__main__':
+    pytest.main([__file__, '-vs'])

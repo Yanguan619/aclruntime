@@ -81,3 +81,7 @@ class TestClass:
             out.to_host()
         # summary inference throughput
         logger.info(session.sumary())
+
+
+if __name__ == '__main__':
+    pytest.main([__file__, '-vs'])

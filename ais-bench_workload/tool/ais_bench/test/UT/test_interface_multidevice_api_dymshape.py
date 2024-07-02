@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import pytest
 import numpy as np
 from ais_bench.infer.interface import MultiDeviceSession
 from test_common import TestCommonClass
@@ -95,3 +96,7 @@ class TestClass:
             mode='dymshape',
             custom_sizes=out_size,
         )
+
+
+if __name__ == '__main__':
+    pytest.main([__file__, '-vs'])

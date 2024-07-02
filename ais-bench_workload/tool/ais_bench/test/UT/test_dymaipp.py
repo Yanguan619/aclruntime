@@ -292,3 +292,7 @@ class TestClass:
             aipp_manager.load_aipp_config_content()
             session.set_dym_aipp_info_set()
             logger.info("get --aipp_config wrong")
+
+
+if __name__ == '__main__':
+    pytest.main([__file__, '-vs'])

@@ -361,4 +361,4 @@ class TestClass:
 
 
 if __name__ == '__main__':
-    pytest.main(['test_result.py', '-vs'])
+    pytest.main([__file__, '-vs'])

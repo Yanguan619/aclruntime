@@ -1028,4 +1028,5 @@ class TestClass:
 
 
 if __name__ == '__main__':
-    pytest.main(['test_infer_resnet50.py', '-vs'])
+    pytest.main([__file__, '-vs'])
+

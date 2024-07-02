@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import pytest
 import numpy as np
 from ais_bench.infer.interface import InferSession
 from test_common import TestCommonClass
@@ -94,3 +95,7 @@ class TestClass:
             custom_sizes=out_size,
         )
         session.free_resource()
+
+
+if __name__ == '__main__':
+    pytest.main([__file__, '-vs'])

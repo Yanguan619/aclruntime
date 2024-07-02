@@ -76,7 +76,7 @@ function get_dt_list()
         UT_LIST=(${debug_ut_script_list[@]})
         ST_LIST=(${debug_st_script_list[@]})
     else
-        echo "unrecoginized mode: $mode, use default simple mode"
+        echo "unrecoginized AISBENCH_INFER_DT_MODE: $mode, use default simple mode"
         UT_LIST=$simple_ut_script_list
         ST_LIST=$simple_st_script_list
     fi
@@ -98,6 +98,22 @@ function get_dt_list()
     do
         cp $CUR_PATH/ST/$scripts $SELECTED_TEST_DIR/st
     done
+}
+
+function run_dt()
+{
+    if [ "$PYTEST_RUN_MODE" == "run_only" ];then
+        # self func
+        run_dt_only
+    elif [ "$PYTEST_RUN_MODE" == "csv_report" ];then
+        # self func
+        run_dt_with_csv_report
+    elif [ "$PYTEST_RUN_MODE" == "html_report" ];then
+        # self func
+        run_dt_with_html_report
+    else
+        echo "unrecoginized PYTEST_RUN_MODE: $PYTEST_RUN_MODE, use default run_only"
+    fi
 }
 
 function run_dt_only()
@@ -143,11 +159,8 @@ main() {
     data_generate
     # self func
     get_dt_list $AISBENCH_INFER_DT_MODE
-
-    if [ "$PYTEST_RUN_MODE" == "run_only" ];then
-        # self func
-        run_dt_only
-    fi
+    # self func
+    run_dt
 
     return $ret_ok
 }

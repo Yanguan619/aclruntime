@@ -74,7 +74,6 @@ class TestClass:
         for out in outputs:
             out.to_host()
         logger.info(session.sumary())
-        session.free_resource()
 
     def test_infer_dynamicshape_case1(self):
         device_id = 0
@@ -104,7 +103,6 @@ class TestClass:
         for out in outputs:
             out.to_host()
         logger.info(session.sumary())
-        session.free_resource()
 
     def test_infer_dynamicshape_case2(self):
         device_id = 0
@@ -133,7 +131,6 @@ class TestClass:
         for out in outputs:
             out.to_host()
         logger.info(session.sumary())
-        session.free_resource()
 
     def test_infer_no_set_dynamicshape(self):
         device_id = 0
@@ -157,7 +154,6 @@ class TestClass:
         with pytest.raises(RuntimeError) as e:
             outputs = session.run(outnames, feeds)
             logger.info("outputs:", outputs)
-        session.free_resource()
 
     def test_infer_no_set_outsize(self):
         device_id = 0
@@ -182,7 +178,6 @@ class TestClass:
         with pytest.raises(RuntimeError) as e:
             outputs = session.run(outnames, feeds)
             logger.info("outputs:", outputs)
-        session.free_resource()
 
     def test_get_input_info(self):
         device_id = 0
@@ -206,7 +201,6 @@ class TestClass:
         session.set_dynamic_shape(input_tensor_name + ":8,3,224,224")
         basesize3 = session.get_inputs()[0].realsize
         assert basesize3 == basesize2 * 4
-        session.free_resource()
 
 
 if __name__ == '__main__':

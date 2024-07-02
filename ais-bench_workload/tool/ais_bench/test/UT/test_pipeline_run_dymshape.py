@@ -73,7 +73,6 @@ class TestClass:
         infer_options = aclruntime.infer_options()
         extra_session = []
         session.run_pipeline(infilespath, infer_options, extra_session)
-        session.free_resource()
 
     def test_infer_auto_shape_input_file(self):
         device_id = 0
@@ -89,4 +88,3 @@ class TestClass:
         infer_options.auto_dym_shape = True
         extra_session = []
         session.run_pipeline(infilespath, infer_options, extra_session)
-        session.free_resource()

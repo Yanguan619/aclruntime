@@ -58,7 +58,6 @@ class TestClass:
 
         # in is numpy list and output is numpy list
         outputs = session.infer([ndata], mode='static')
-        session.free_resource()
 
     def test_infer_api_dymbatch(self):
         device_id = 0
@@ -71,7 +70,6 @@ class TestClass:
 
         # in is numpy list and output is numpy list
         outputs = session.infer([ndata], mode='dymbatch')
-        session.free_resource()
 
     def test_infer_api_dymwh(self):
         device_id = 0
@@ -84,7 +82,6 @@ class TestClass:
 
         # in is numpy list and output is numpy list
         outputs = session.infer([ndata], mode='dymhw')
-        session.free_resource()
 
     def test_infer_api_dymdim(self):
         device_id = 0
@@ -97,7 +94,6 @@ class TestClass:
 
         # in is numpy list and output is numpy list
         outputs = session.infer([ndata], mode='dymdims')
-        session.free_resource()
 
     # ====================test single process infer pipeline api==========================
     def test_infer_pipeline_api_static(self):
@@ -112,7 +108,6 @@ class TestClass:
 
         # in is numpy list and output is numpy list
         outputs = session.infer_pipeline(ndata_list, mode='static')
-        session.free_resource()
 
     def test_infer_pipeline_api_dymbatch(self):
         device_id = 0
@@ -126,7 +121,6 @@ class TestClass:
 
         # in is numpy list and output is numpy list
         outputs = session.infer_pipeline(ndata_list, mode='dymbatch')
-        session.free_resource()
 
     def test_infer_pipeline_api_dymwh(self):
         device_id = 0
@@ -140,7 +134,6 @@ class TestClass:
 
         # in is numpy list and output is numpy list
         outputs = session.infer_pipeline(ndata_list, mode='dymhw')
-        session.free_resource()
 
     def test_infer_pipeline_api_dymdim(self):
         device_id = 0
@@ -155,7 +148,6 @@ class TestClass:
         ndata_list = [[ndata1], [ndata2]]
         # in is numpy list and output is numpy list
         outputs = session.infer_pipeline(ndata_list, mode='dymdims')
-        session.free_resource()
 
     # ====================test single process infer iteration api==========================
     def test_infer_iteration_api_static(self):
@@ -171,7 +163,6 @@ class TestClass:
         outputs = session.infer_iteration(
             [ndata, ndata], in_out_list=self.in_out_list, iteration_times=self.iteration_times, mode='static'
         )
-        session.free_resource()
 
     def test_infer_iteration_api_dymbatch(self):
         device_id = 0
@@ -186,7 +177,6 @@ class TestClass:
         outputs = session.infer_iteration(
             [ndata, ndata], in_out_list=self.in_out_list, iteration_times=self.iteration_times, mode='dymbatch'
         )
-        session.free_resource()
 
     def test_infer_iteration_api_dymwh(self):
         device_id = 0
@@ -201,7 +191,6 @@ class TestClass:
         outputs = session.infer_iteration(
             [ndata, ndata], in_out_list=self.in_out_list, iteration_times=self.iteration_times, mode='dymhw'
         )
-        session.free_resource()
 
     def test_infer_iteration_api_dymdim(self):
         device_id = 0
@@ -216,7 +205,6 @@ class TestClass:
         outputs = session.infer_iteration(
             [ndata, ndata], in_out_list=self.in_out_list, iteration_times=self.iteration_times, mode='dymdims'
         )
-        session.free_resource()
 
 
 if __name__ == '__main__':

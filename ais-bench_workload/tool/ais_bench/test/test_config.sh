@@ -20,14 +20,14 @@ export PYTEST_RUN_MODE="run_only" # "show_coverage"
 
 full_st_script_list=( \
     "test_acl_json_profiling.py" \
-    "test_args.py" \
+    "test_args_st.py" \
     "test_infer_resnet50_dymshape.py" \
     "test_infer_resnet50_normal.py" \
     "test_result.py" \
 )
 
 full_ut_script_list=( \
-    "test_args.py" \
+    "test_args_ut.py" \
     "test_dymaipp.py" \
     "test_dymshape.py" \
     "test_inference.py" \
@@ -43,13 +43,13 @@ full_ut_script_list=( \
 
 simple_st_script_list=( \
     "test_acl_json_profiling.py" \
-    "test_args.py" \
+    "test_args_st.py" \
     "test_infer_resnet50_normal.py" \
     "test_result.py" \
 )
 
 simple_ut_script_list=( \
-    "test_args.py" \
+    "test_args_ut.py" \
     "test_dymaipp.py" \
     "test_inference.py" \
     "test_interface_multidevice_api_normal.py" \

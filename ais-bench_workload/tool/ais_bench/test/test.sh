@@ -29,6 +29,7 @@ set -x # 打印执行命令
 
 # 其他全局变量
 MSAME_PATH=$CUR_PATH/msame
+SELECTED_TEST_DIR=$CUR_PATH/test_script_to_run
 SOC_VERSION=""
 UT_LIST=()
 ST_LIST=()
@@ -75,21 +76,28 @@ function get_dt_list()
         UT_LIST=$simple_ut_script_list
         ST_LIST=$simple_st_script_list
     fi
+
+    if [ -d $SELECTED_TEST_DIR ];then
+        rm -rf $SELECTED_TEST_DIR
+    fi
+    mkdir -p $SELECTED_TEST_DIR/ut
+    mkdir -p $SELECTED_TEST_DIR/st
+
+    # copy selected ut list
+    for scripts in ${UT_LIST[@]}
+    do
+        cp $CUR_PATH/UT/$scripts $SELECTED_TEST_DIR/ut
+    done
+    # copy selected st list
+    for scripts in ${ST_LIST[@]}
+    do
+        cp $CUR_PATH/ST/$scripts $SELECTED_TEST_DIR/st
+    done
 }
 
 function run_dt_only()
 {
-    # run selected ut list
-    for scripts in ${UT_LIST[@]}
-    do
-        $PYTHON_COMMAND -m pytest -v -s $CUR_PATH/UT/$scripts
-    done
-
-    # run selected st list
-    for scripts in ${ST_LIST[@]}
-    do
-        $PYTHON_COMMAND -m pytest -v -s $CUR_PATH/ST/$scripts
-    done
+    $PYTHON_COMMAND -m pytest -s $SELECTED_TEST_DIR
 }
 
 main() {

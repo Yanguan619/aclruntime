@@ -128,6 +128,7 @@ class TestClass:
         logger.info("run cmd:{}".format(cmd))
         ret = os.system(cmd)
         assert ret == 0
+        InferSession.free_resource()
 
     def test_inference_normal_dynamic_shape_auto_set_dymshape_mode(self):
         """ "
@@ -199,6 +200,7 @@ class TestClass:
 
         assert int(bin_num2) == num_shape
         shutil.rmtree(output_path)
+        InferSession.free_resource()
 
     def test_general_inference_prformance_comparison_with_msame_dynamic_shape(self):
         dym_shape = "actual_input_1:1,3,224,224"
@@ -272,6 +274,7 @@ class TestClass:
             logger.warning("zero divisoin!")
         os.remove(msame_infer_log_path)
         shutil.rmtree(output_dir_path)
+        InferSession.free_resource()
 
     def test_pure_inference_batchsize_is_none_normal_dynamic_shape(self):
         dym_shapes = [
@@ -330,6 +333,7 @@ class TestClass:
             shutil.rmtree(output_path)
         for summary_path in summary_paths:
             os.remove(summary_path)
+        InferSession.free_resource()
 
     def test_pure_inference_normal_dynamic_shape_range_mode(self):
         dymshape_range = "actual_input_1:1,3,224,224~226"
@@ -369,6 +373,7 @@ class TestClass:
 
         shutil.rmtree(output_path)
         os.remove(summary_json_path)
+        InferSession.free_resource()
 
     def test_pure_inference_normal_dynamic_shape_range_mode_2(self):
         dymshape_range = "actual_input_1:1~2,3,224-300,224-300"
@@ -417,6 +422,7 @@ class TestClass:
 
         shutil.rmtree(output_path)
         os.remove(summary_json_path)
+        InferSession.free_resource()
 
     def test_pure_inference_normal_dynamic_shape_range_mode_3(self):
         range_file_parent_path = os.path.join(self.model_base_path, "input")
@@ -476,6 +482,7 @@ class TestClass:
         shutil.rmtree(output_path)
         os.remove(summary_json_path)
         os.remove(dymshape_range_file)
+        InferSession.free_resource()
 
     def test_pure_inference_abnormal_dynamic_shape_range_mode(self):
         dymshape_range = "actual_input_1:1,3~4,224-300,224"
@@ -518,6 +525,7 @@ class TestClass:
 
         shutil.rmtree(output_path)
         os.remove(summary_json_path)
+        InferSession.free_resource()
 
     def test_general_inference_interface_dynamicshape(self):
         model_path = self.get_dynamic_shape_om_path()
@@ -563,6 +571,7 @@ class TestClass:
             shutil.rmtree(output_path)
             os.remove(summary_path)
             os.remove(infer_dynamicshape_output_path)
+        InferSession.free_resource()
 
     def test_general_inference_interface_dyshape_compare_tensor_npy(self):
         model_path = self.get_dynamic_shape_om_path()
@@ -587,6 +596,7 @@ class TestClass:
 
         os.remove(tensor_infer_result_file_path)
         os.remove(npy_infer_result_file_path)
+        InferSession.free_resource()
 
     def test_general_inference_interface_dyshape_compare_tensor_discontinuous_tensor_continues(self):
         model_path = self.get_dynamic_shape_om_path()
@@ -614,6 +624,7 @@ class TestClass:
 
         os.remove(tensor_infer_result1_path)
         os.remove(tensor_infer_result2_path)
+        InferSession.free_resource()
 
 
 if __name__ == '__main__':

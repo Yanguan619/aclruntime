@@ -25,7 +25,7 @@ import numpy as np
 
 
 class TestCommonClass:
-    default_device_id = 0
+    default_device_id = int(os.getenv("AISBENCH_INFER_DT_DEVICE_ID", 0))
     EPSILON = 1e-6
     epsilon = 1e-6
     cmd_prefix = (

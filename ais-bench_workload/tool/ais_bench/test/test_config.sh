@@ -15,6 +15,7 @@
 # limitations under the License.
 
 export PYTHON_COMMAND="python3"
+export AISBENCH_INFER_DT_DEVICE_ID=7
 export AISBENCH_INFER_DT_MODE="simple"
 export PYTEST_RUN_MODE="run_only" # "show_coverage"
 

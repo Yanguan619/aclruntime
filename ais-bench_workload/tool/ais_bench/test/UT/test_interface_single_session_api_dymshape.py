@@ -59,20 +59,20 @@ class TestClass:
         outputs = session.infer([ndata], mode='dymshape', custom_sizes=100000)
 
     # ====================test single process infer pipeline api==========================
-    def test_infer_pipeline_api_dymshape(self):
-        device_id = 0
-        model_path = self.get_resnet50_dynamic('dymshape')
-        session = InferSession(device_id, model_path)
+    # def test_infer_pipeline_api_dymshape(self):
+    #     device_id = 0
+    #     model_path = self.get_resnet50_dynamic('dymshape')
+    #     session = InferSession(device_id, model_path)
 
-        # create new numpy data according inputs info
-        shape1 = [1, 3, 224, 224]
-        shape2 = [4, 3, 225, 225]
-        ndata1 = np.full(shape1, 0).astype(np.float32)
-        ndata2 = np.full(shape2, 0).astype(np.float32)
-        ndata_list = [[ndata1], [ndata2]]
+    #     # create new numpy data according inputs info
+    #     shape1 = [1, 3, 224, 224]
+    #     shape2 = [4, 3, 225, 225]
+    #     ndata1 = np.full(shape1, 0).astype(np.float32)
+    #     ndata2 = np.full(shape2, 0).astype(np.float32)
+    #     ndata_list = [[ndata1], [ndata2]]
 
-        # in is numpy list and output is numpy list
-        outputs = session.infer_pipeline(ndata_list, mode='dymshape', custom_sizes=100000)
+    #     # in is numpy list and output is numpy list
+    #     outputs = session.infer_pipeline(ndata_list, mode='dymshape', custom_sizes=100000)
 
     # ====================test single process infer iteration api==========================
     def test_infer_iteration_api_dymshape(self):

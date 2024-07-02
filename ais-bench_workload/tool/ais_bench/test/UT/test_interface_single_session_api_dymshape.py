@@ -57,7 +57,6 @@ class TestClass:
 
         # in is numpy list and output is numpy list
         outputs = session.infer([ndata], mode='dymshape', custom_sizes=100000)
-        InferSession.free_resource()
 
     # ====================test single process infer pipeline api==========================
     def test_infer_pipeline_api_dymshape(self):
@@ -74,7 +73,6 @@ class TestClass:
 
         # in is numpy list and output is numpy list
         outputs = session.infer_pipeline(ndata_list, mode='dymshape', custom_sizes=100000)
-        InferSession.free_resource()
 
     # ====================test single process infer iteration api==========================
     def test_infer_iteration_api_dymshape(self):
@@ -94,7 +92,6 @@ class TestClass:
             mode='dymshape',
             custom_sizes=out_size,
         )
-        InferSession.free_resource()
 
 
 if __name__ == '__main__':

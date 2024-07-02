@@ -47,3 +47,9 @@ function get_msame_file()
     chmod 750 $1
     return $ret_ok
 }
+
+function install_pypi_requirements()
+{
+    pip3 install torch torchvision
+    pip3 install pytest pytest-cov pytest-csv pytest-html
+}

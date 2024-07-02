@@ -17,7 +17,14 @@
 export PYTHON_COMMAND="python3"
 export AISBENCH_INFER_DT_DEVICE_ID=7
 export AISBENCH_INFER_DT_MODE="simple"
-export PYTEST_RUN_MODE="run_only" # "show_coverage"
+export PYTEST_RUN_MODE="run_only" # "show_coverage" "debug"
+
+debug_st_script_list=( \
+)
+
+debug_ut_script_list=( \
+    "test_args_ut.py" \
+)
 
 full_st_script_list=( \
     "test_acl_json_profiling.py" \

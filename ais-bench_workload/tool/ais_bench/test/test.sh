@@ -71,6 +71,10 @@ function get_dt_list()
         echo "run DT in simple mode"
         UT_LIST=(${simple_ut_script_list[@]})
         ST_LIST=(${simple_st_script_list[@]})
+    elif [ $mode == "debug" ];then
+        echo "run DT in simple mode"
+        UT_LIST=(${debug_ut_script_list[@]})
+        ST_LIST=(${debug_st_script_list[@]})
     else
         echo "unrecoginized mode: $mode, use default simple mode"
         UT_LIST=$simple_ut_script_list
@@ -78,11 +82,12 @@ function get_dt_list()
     fi
 
     if [ -d $SELECTED_TEST_DIR ];then
-        rm -rf $SELECTED_TEST_DIR
+        rm -r $SELECTED_TEST_DIR
     fi
     mkdir -p $SELECTED_TEST_DIR/ut
     mkdir -p $SELECTED_TEST_DIR/st
 
+    cp -r $CUR_PATH/aipp_config_files $SELECTED_TEST_DIR
     # copy selected ut list
     for scripts in ${UT_LIST[@]}
     do
@@ -100,7 +105,27 @@ function run_dt_only()
     $PYTHON_COMMAND -m pytest -s $SELECTED_TEST_DIR
 }
 
+function run_dt_with_csv_report()
+{
+    csv_path=$CUR_PATH/report.csv
+    if [ -f $csv_path ];then
+        rm $csv_path
+    fi
+    $PYTHON_COMMAND -m pytest --csv $csv_path  -s $SELECTED_TEST_DIR
+}
+
+function run_dt_with_html_report()
+{
+    html_path=$CUR_PATH/report.html
+    if [ -f $html_path ];then
+        rm $html_path
+    fi
+    $PYTHON_COMMAND -m pytest --html $html_path -s $SELECTED_TEST_DIR
+}
+
 main() {
+    # self func
+    install_pypi_requirements
     # self func
     get_npu_type
     # self func

@@ -748,8 +748,7 @@ class TestClass:
     def test_general_inference_interface_dynamic_dims(self):
         model_path = self.get_dynamic_dim_om_path()
         # interface
-        device_id = 0
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         ndata = np.zeros([1, 3, 224, 224], dtype=np.float32)
 
@@ -846,13 +845,12 @@ class TestClass:
 
     def test_pure_inference_session_interface_init(self):
         loop = 100
-        device_id = 0
         exception_num = 0
         batch_size = 1
         model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
         for i in range(loop):
             try:
-                session = InferSession(device_id, model_path)
+                session = InferSession(TestCommonClass.default_device_id, model_path)
                 session.free_resource()
                 del session
             except Exception as e:

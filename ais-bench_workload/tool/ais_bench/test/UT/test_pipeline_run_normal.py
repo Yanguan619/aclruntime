@@ -125,7 +125,7 @@ class TestClass:
         self.model_name = "resnet50"
 
     def test_pure_infer_stc_batch_zero(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_resnet_stcshape_om_path(bs=1)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -140,7 +140,7 @@ class TestClass:
         session.run_pipeline(infileslist, infer_options, extra_session)
 
     def test_pure_infer_stc_batch_random(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_resnet_stcshape_om_path(bs=1)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -155,7 +155,7 @@ class TestClass:
         session.run_pipeline(infileslist, infer_options, extra_session)
 
     def test_infer_stc_batch_input_file(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_resnet_stcshape_om_path(bs=1)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -168,7 +168,7 @@ class TestClass:
         session.run_pipeline(infilespath, infer_options, extra_session)
 
     def test_infer_stc_batch_input_file_out_bin(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_resnet_stcshape_om_path(bs=1)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -187,7 +187,7 @@ class TestClass:
         assert len(bin_files) == 1
 
     def test_infer_stc_batch_input_file_out_npy(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_resnet_stcshape_om_path(bs=1)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -207,7 +207,7 @@ class TestClass:
         assert len(npy_files) == 1
 
     def test_infer_stc_batch_input_dir(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_resnet_stcshape_om_path(bs=1)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -220,7 +220,7 @@ class TestClass:
         session.run_pipeline(infilespath, infer_options, extra_session)
 
     def test_infer_dym_batch_input_file(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_resnet_dymbatch_om_path()
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -234,7 +234,7 @@ class TestClass:
         session.run_pipeline(infilespath, infer_options, extra_session)
 
     def test_infer_dym_hw_input_file(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_resnet_dymhw_om_path()
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -248,7 +248,7 @@ class TestClass:
         session.run_pipeline(infilespath, infer_options, extra_session)
 
     def test_infer_dym_dim_input_file(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         input_tensor_name = self.get_input_tensor_name()
         options = aclruntime.session_options()
         model_path = self.get_resnet_dymdim_om_path()
@@ -263,7 +263,7 @@ class TestClass:
         session.run_pipeline(infilespath, infer_options, extra_session)
 
     def test_infer_auto_dim_input_file(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_resnet_dymdim_om_path()
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -277,7 +277,7 @@ class TestClass:
         session.run_pipeline(infilespath, infer_options, extra_session)
 
     def test_infer_intensor_infile_not_matched(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_resnet_stcshape_om_path(bs=2)
         session = aclruntime.InferenceSession(model_path, device_id, options)

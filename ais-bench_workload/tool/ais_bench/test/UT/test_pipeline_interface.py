@@ -65,7 +65,7 @@ class TestClass:
         return outputs_multi == outputs_single
 
     def init(self):
-        self.device_id = 0
+        self.device_id = TestCommonClass.default_device_id
         self.model_path = TestCommonClass.get_model_static_om_path(1, "resnet50")
 
     def test_runable(self):

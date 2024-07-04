@@ -48,9 +48,8 @@ class TestClass:
 
     # ====================test single process infer api==========================
     def test_infer_api_static(self):
-        device_id = 0
         model_path = self.get_resnet50_static(1)
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape = session.get_inputs()[0].shape
@@ -60,9 +59,8 @@ class TestClass:
         outputs = session.infer([ndata], mode='static')
 
     def test_infer_api_dymbatch(self):
-        device_id = 0
         model_path = self.get_resnet50_dynamic('dymbatch')
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape = [1, 3, 256, 256]
@@ -72,9 +70,8 @@ class TestClass:
         outputs = session.infer([ndata], mode='dymbatch')
 
     def test_infer_api_dymwh(self):
-        device_id = 0
         model_path = self.get_resnet50_dynamic('dymwh')
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape = [1, 3, 224, 224]
@@ -84,9 +81,8 @@ class TestClass:
         outputs = session.infer([ndata], mode='dymhw')
 
     def test_infer_api_dymdim(self):
-        device_id = 0
         model_path = self.get_resnet50_dynamic('dymdim')
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape = [1, 3, 224, 224]
@@ -97,9 +93,8 @@ class TestClass:
 
     # ====================test single process infer pipeline api==========================
     def test_infer_pipeline_api_static(self):
-        device_id = 0
         model_path = self.get_resnet50_static(1)
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape = session.get_inputs()[0].shape
@@ -110,9 +105,8 @@ class TestClass:
         outputs = session.infer_pipeline(ndata_list, mode='static')
 
     def test_infer_pipeline_api_dymbatch(self):
-        device_id = 0
         model_path = self.get_resnet50_dynamic('dymbatch')
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape = [1, 3, 256, 256]
@@ -123,9 +117,8 @@ class TestClass:
         outputs = session.infer_pipeline(ndata_list, mode='dymbatch')
 
     def test_infer_pipeline_api_dymwh(self):
-        device_id = 0
         model_path = self.get_resnet50_dynamic('dymwh')
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape = [1, 3, 224, 224]
@@ -136,9 +129,8 @@ class TestClass:
         outputs = session.infer_pipeline(ndata_list, mode='dymhw')
 
     def test_infer_pipeline_api_dymdim(self):
-        device_id = 0
         model_path = self.get_resnet50_dynamic('dymdim')
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape1 = [1, 3, 224, 224]
@@ -151,9 +143,8 @@ class TestClass:
 
     # ====================test single process infer iteration api==========================
     def test_infer_iteration_api_static(self):
-        device_id = 0
         model_path = self.get_add_model_static(1)
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape = session.get_inputs()[0].shape
@@ -165,9 +156,8 @@ class TestClass:
         )
 
     def test_infer_iteration_api_dymbatch(self):
-        device_id = 0
         model_path = self.get_add_model_dynamic('dymbatch')
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape = [1, 3, 32, 32]
@@ -179,9 +169,8 @@ class TestClass:
         )
 
     def test_infer_iteration_api_dymwh(self):
-        device_id = 0
         model_path = self.get_add_model_dynamic('dymwh')
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape = [1, 3, 32, 32]
@@ -193,9 +182,8 @@ class TestClass:
         )
 
     def test_infer_iteration_api_dymdim(self):
-        device_id = 0
         model_path = self.get_add_model_dynamic('dymdim')
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape = [4, 3, 64, 64]

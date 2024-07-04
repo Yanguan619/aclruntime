@@ -47,9 +47,8 @@ class TestClass:
 
     # ====================test single process infer api==========================
     def test_infer_api_dymshape(self):
-        device_id = 0
         model_path = self.get_resnet50_dynamic('dymshape')
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape = [1, 3, 224, 224]
@@ -60,9 +59,8 @@ class TestClass:
 
     # ====================test single process infer pipeline api==========================
     def test_infer_pipeline_api_dymshape(self):
-        device_id = 0
         model_path = self.get_resnet50_dynamic('dymshape')
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape1 = [1, 3, 224, 224]
@@ -76,9 +74,8 @@ class TestClass:
 
     # ====================test single process infer iteration api==========================
     def test_infer_iteration_api_dymshape(self):
-        device_id = 0
         model_path = self.get_add_model_dynamic('dymshape')
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         # create new numpy data according inputs info
         shape = [4, 3, 32, 32]

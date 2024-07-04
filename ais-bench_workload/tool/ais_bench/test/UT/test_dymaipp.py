@@ -110,7 +110,7 @@ class TestClass:
 
     # 各种测试场景
     def test_infer_dymaipp_staticshape(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_dymaipp_staticshape_om_path()
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -139,7 +139,7 @@ class TestClass:
         logger.info(session.sumary())
 
     def test_infer_dymaipp_dymbatch(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_dymaipp_dymbatch_om_path()
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -168,7 +168,7 @@ class TestClass:
         logger.info(session.sumary())
 
     def test_infer_dymaipp_dymwh(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_dymaipp_dymwh_om_path()
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -198,7 +198,7 @@ class TestClass:
 
     # 模型没有动态aipp input
     def test_infer_no_dymaipp_input(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_without_dymaipp_om_path()
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -209,7 +209,7 @@ class TestClass:
 
     # 模型有多个动态aipp input
     def test_infer_multi_dymaipp_input(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_multi_dymaipp_om_path()
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -237,7 +237,7 @@ class TestClass:
 
     # --aipp_config 包含所有属性参数
     def test_infer_aipp_cfg_all_params(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_dymaipp_staticshape_om_path()
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -250,7 +250,7 @@ class TestClass:
 
     # --aipp_config 缺少[aipp_op]标识
     def test_infer_aipp_cfg_lack_title(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_dymaipp_staticshape_om_path()
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -265,7 +265,7 @@ class TestClass:
 
     # --aipp_config 缺少 必备参数
     def test_infer_aipp_cfg_lack_param(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_dymaipp_staticshape_om_path()
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -280,7 +280,7 @@ class TestClass:
 
     # --aipp_config 参数超出范围限制
     def test_infer_aipp_cfg_param_overflowed(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_dymaipp_staticshape_om_path()
         session = aclruntime.InferenceSession(model_path, device_id, options)

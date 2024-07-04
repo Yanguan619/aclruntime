@@ -59,7 +59,7 @@ class TestClass:
         self.model_name = "resnet50"
 
     def test_infer_dym_shape_input_file(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         input_tensor_name = self.get_input_tensor_name()
         options = aclruntime.session_options()
         model_path = self.get_resnet_dymshape_om_path()
@@ -75,7 +75,7 @@ class TestClass:
         session.run_pipeline(infilespath, infer_options, extra_session)
 
     def test_infer_auto_shape_input_file(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = self.get_resnet_dymshape_om_path()
         session = aclruntime.InferenceSession(model_path, device_id, options)

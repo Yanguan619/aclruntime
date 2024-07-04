@@ -50,6 +50,7 @@ function get_msame_file()
 
 function install_pypi_requirements()
 {
+    pip3 install onnx
     pip3 install torch torchvision
     pip3 install pytest pytest-cov pytest-csv pytest-html
 }

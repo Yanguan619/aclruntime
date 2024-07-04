@@ -47,7 +47,7 @@ class TestClass:
 
     # ====================test multi process infer api==========================
     def test_infer_api_dymshape_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_resnet50_dynamic('dymshape')
         multi_session = MultiDeviceSession(model_path)
 
@@ -61,7 +61,7 @@ class TestClass:
 
     # ====================test multi process infer pipeline api==========================
     def test_infer_pipeline_api_dymshape_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_resnet50_dynamic('dymshape')
         multi_session = MultiDeviceSession(model_path)
 
@@ -78,7 +78,7 @@ class TestClass:
 
     # ====================test multi process infer iteration api==========================
     def test_infer_iteration_api_dymshape_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_add_model_dynamic('dymshape')
         multi_session = MultiDeviceSession(model_path)
 

@@ -48,7 +48,7 @@ class TestClass:
 
     # ====================test multi process infer api==========================
     def test_infer_api_static_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_resnet50_static(1)
         multi_session = MultiDeviceSession(model_path)
 
@@ -61,7 +61,7 @@ class TestClass:
         outputs = multi_session.infer(device_feeds, mode='static')
 
     def test_infer_api_dymbatch_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_resnet50_dynamic('dymbatch')
         multi_session = MultiDeviceSession(model_path)
 
@@ -74,7 +74,7 @@ class TestClass:
         outputs = multi_session.infer(device_feeds, mode='dymbatch')
 
     def test_infer_api_dymwh_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_resnet50_dynamic('dymwh')
         multi_session = MultiDeviceSession(model_path)
 
@@ -87,7 +87,7 @@ class TestClass:
         outputs = multi_session.infer(device_feeds, mode='dymhw')
 
     def test_infer_api_dymdim_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_resnet50_dynamic('dymdim')
         multi_session = MultiDeviceSession(model_path)
 
@@ -101,7 +101,7 @@ class TestClass:
 
     # ====================test multi process infer pipeline api==========================
     def test_infer_pipeline_api_static_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_resnet50_static(1)
         multi_session = MultiDeviceSession(model_path)
 
@@ -115,7 +115,7 @@ class TestClass:
         outputs = multi_session.infer_pipeline(device_feeds, mode='static')
 
     def test_infer_pipeline_api_dymbatch_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_resnet50_dynamic('dymbatch')
         multi_session = MultiDeviceSession(model_path)
 
@@ -129,7 +129,7 @@ class TestClass:
         outputs = multi_session.infer_pipeline(device_feeds, mode='dymbatch')
 
     def test_infer_pipeline_api_dymwh_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_resnet50_dynamic('dymwh')
         multi_session = MultiDeviceSession(model_path)
 
@@ -143,7 +143,7 @@ class TestClass:
         outputs = multi_session.infer_pipeline(device_feeds, mode='dymhw')
 
     def test_infer_pipeline_api_dymdim_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_resnet50_dynamic('dymdim')
         multi_session = MultiDeviceSession(model_path)
 
@@ -160,7 +160,7 @@ class TestClass:
 
     # ====================test multi process infer iteration api==========================
     def test_infer_iteration_api_static_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_add_model_static(1)
         multi_session = MultiDeviceSession(model_path)
 
@@ -175,7 +175,7 @@ class TestClass:
         )
 
     def test_infer_iteration_api_dymbatch_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_add_model_dynamic('dymbatch')
         multi_session = MultiDeviceSession(model_path)
 
@@ -190,7 +190,7 @@ class TestClass:
         )
 
     def test_infer_iteration_api_dymwh_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_add_model_dynamic('dymwh')
         multi_session = MultiDeviceSession(model_path)
 
@@ -205,7 +205,7 @@ class TestClass:
         )
 
     def test_infer_iteration_api_dymdim_multidevice(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = self.get_add_model_dynamic('dymdim')
         multi_session = MultiDeviceSession(model_path)
 

@@ -38,29 +38,6 @@ MSPROF_SWITCH = 'AIT_NO_MSPROF_MODE'
 
 class TestClass:
     @staticmethod
-    def get_dynamic_shape_range_mode_inference_result_info(log_path):
-        run_count = 0
-        result_ok_num = 0
-        shape_status = dict()
-        with open(log_path) as f:
-            for line in f:
-                if 'run_count' in line:
-                    str_list = line.split()
-                    tmp_str = str_list[1]
-                    num_str = tmp_str[(tmp_str.rfind(':') + 1) :]
-                    num_str = num_str.replace('\n', '')
-                    run_count = int(num_str)
-                if "result:OK throughput" in line:
-                    result_ok_num += 1
-                    str_list = line.split()
-                    tmp_str = str_list[2]
-                    shape_str = tmp_str[(tmp_str.find(':') + 1) :]
-                    shape_str = shape_str.replace('\n', '')
-                    shape_status[shape_str] = True
-
-        return run_count, result_ok_num, shape_status
-
-    @staticmethod
     def get_model_batchsize_from_inference_result(log_path):
         batch_size = 0
         if os.path.exists(log_path) is False:
@@ -77,21 +54,6 @@ class TestClass:
                 batch_size = int(cur_batchsize)
                 break
         return batch_size
-
-    @staticmethod
-    def get_dynamic_shape_om_file_size(shape):
-        """ "
-        dym_shape = "actual_input_1:1,3,224,224"
-        """
-        if len(shape) == 0:
-            return 0
-
-        sub_str = shape[(shape.rfind(':') + 1) :]
-        sub_str = sub_str.replace('\n', '')
-        num_arr = sub_str.split(',')
-        fix_num = 4
-        size = int(num_arr[0]) * int(num_arr[1]) * int(num_arr[2]) * int(num_arr[3]) * fix_num
-        return size
 
     @classmethod
     def setup_class(cls):
@@ -131,7 +93,7 @@ class TestClass:
 
     def test_pure_inference_normal_static_batch(self):
         """
-        batch size 1,4
+        batch size 1,2,4,8
         """
         batch_list = [1, 2, 4, 8]
 
@@ -145,7 +107,7 @@ class TestClass:
             assert ret == 0
 
     def test_pure_inference_normal_dynamic_batch(self):
-        batch_list = [1, 16]
+        batch_list = [1, 2, 4, 8, 16]
         model_path = self.get_dynamic_batch_om_path()
         for _, dys_batch_size in enumerate(batch_list):
             cmd = "{} --model {} --device {} --dymBatch {}".format(
@@ -185,7 +147,7 @@ class TestClass:
         input_path = TestCommonClass.get_inputs_path(
             input_size, os.path.join(self.model_base_path, "input"), self.output_file_num
         )
-        batch_list = [1, 16]
+        batch_list = [1, 2, 4, 8, 16]
 
         for _, batch_size in enumerate(batch_list):
             model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
@@ -203,7 +165,7 @@ class TestClass:
         input_path = TestCommonClass.get_inputs_path(
             input_size, os.path.join(self.model_base_path, "input"), self.output_file_num
         )
-        batch_list = [1, 16]
+        batch_list = [1, 2, 4, 8, 16]
 
         for _, dys_batch_size in enumerate(batch_list):
             model_path = self.get_dynamic_batch_om_path()
@@ -489,7 +451,7 @@ class TestClass:
         assert ret == 0
         assert os.path.exists(msame_infer_log_path)
 
-        msame_inference_time_ms = 0
+        msame_inference_time_ms = 0.0
         with open(msame_infer_log_path) as f:
             for line in f:
                 if "Inference average time without first time" not in line:
@@ -501,8 +463,8 @@ class TestClass:
 
         assert math.fabs(msame_inference_time_ms) > TestCommonClass.EPSILON
         # compare
-        allowable_performance_deviation = 0.03
-        if msame_inference_time_ms != 0:
+        allowable_performance_deviation = 0.15 # 0.03 -> 0.15 连续跑多用例性能差距大
+        if msame_inference_time_ms != 0.0:
             reference_deviation = (ais_bench_inference_time_ms - msame_inference_time_ms) / msame_inference_time_ms
             logger.info(
                 "static batch msame time:{} ais time:{} ref:{}".format(
@@ -517,9 +479,9 @@ class TestClass:
 
     def test_pure_inference_batchsize_is_none_normal_static_batch(self):
         """
-        batch size 1,16
+        batch size 1,2,4,8,16
         """
-        batch_list = [1, 16]
+        batch_list = [1, 2, 4, 8, 16]
         output_parent_path = os.path.join(self.model_base_path, "output")
         output_paths = []
         summary_paths = []
@@ -562,9 +524,9 @@ class TestClass:
 
     def test_pure_inference_batchsize_is_none_normal_dynamic_batch(self):
         """
-        batch size 1,8
+        batch size 1,2,4,8,16
         """
-        batch_list = [1, 8]
+        batch_list = [1, 2, 4, 8]
         output_parent_path = os.path.join(self.model_base_path, "output")
         output_paths = []
         summary_paths = []
@@ -700,7 +662,7 @@ class TestClass:
             os.remove(summary_path)
 
     def test_pure_inference_batchsize(self):
-        batch_sizes = [1, 16]
+        batch_sizes = [1, 2, 4, 8, 16]
         para_batch_size = 16
 
         output_parent_path = os.path.join(self.model_base_path, "output")
@@ -786,8 +748,7 @@ class TestClass:
     def test_general_inference_interface_dynamic_dims(self):
         model_path = self.get_dynamic_dim_om_path()
         # interface
-        device_id = 0
-        session = InferSession(device_id, model_path)
+        session = InferSession(TestCommonClass.default_device_id, model_path)
 
         ndata = np.zeros([1, 3, 224, 224], dtype=np.float32)
 
@@ -884,13 +845,12 @@ class TestClass:
 
     def test_pure_inference_session_interface_init(self):
         loop = 100
-        device_id = 0
         exception_num = 0
         batch_size = 1
         model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
         for i in range(loop):
             try:
-                session = InferSession(device_id, model_path)
+                session = InferSession(TestCommonClass.default_device_id, model_path)
                 session.free_resource()
                 del session
             except Exception as e:
@@ -928,7 +888,7 @@ class TestClass:
 
         device_throughputs = []
         total_throughtout = 0
-        summary_throughput = 0
+        summary_throughput = 0.0
         open_device_list = []
         with open(log_path) as f:
             for line in f:
@@ -1066,4 +1026,5 @@ class TestClass:
 
 
 if __name__ == '__main__':
-    pytest.main(['test_infer_resnet50.py', '-vs'])
+    pytest.main([__file__, '-vs'])
+

@@ -44,7 +44,7 @@ class TestClass:
         self.model_name = "resnet50"
 
     def test_infer_runcase_dict(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -67,7 +67,7 @@ class TestClass:
         logger.info(session.sumary())
 
     def test_infer_runcase_list(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -90,7 +90,7 @@ class TestClass:
         logger.info(session.sumary())
 
     def test_infer_runcase_empty_outputname(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -113,7 +113,7 @@ class TestClass:
         logger.info(session.sumary())
 
     def test_infer_runcase_none_outputname(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -133,7 +133,7 @@ class TestClass:
             logger.info("outputs:", outputs)
 
     def test_infer_runcase_split(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -156,7 +156,7 @@ class TestClass:
         logger.info(session.sumary())
 
     def test_infer_runcase_split_list(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -179,7 +179,7 @@ class TestClass:
         logger.info(session.sumary())
 
     def test_infer_invalid_input_size(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -199,7 +199,7 @@ class TestClass:
             logger.info("outputs:", outputs)
 
     def test_infer_invalid_input_type(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -216,7 +216,7 @@ class TestClass:
             logger.info("outputs:", outputs)
 
     def test_infer_invalid_outname(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -236,7 +236,7 @@ class TestClass:
             logger.info("outputs:", outputs)
 
     def test_infer_invalid_device_id(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -248,3 +248,7 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         with pytest.raises(RuntimeError) as e:
             tensor.to_device(device_id + 100)
+
+
+if __name__ == '__main__':
+    pytest.main([__file__, '-vs'])

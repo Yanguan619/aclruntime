@@ -132,4 +132,5 @@ class TestClass:
 
 
 if __name__ == '__main__':
-    pytest.main(['test_acl_json_profiling.py', '-vs'])
+    pytest.main([__file__, '-vs'])
+

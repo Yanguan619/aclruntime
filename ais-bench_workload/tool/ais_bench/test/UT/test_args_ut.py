@@ -20,14 +20,14 @@ import numpy as np
 import pytest
 from test_common import TestCommonClass
 
-logging.basicConfig(stream = sys.stdout, level = logging.INFO, format = '[%(levelname)s] %(message)s')
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
 
 class TestClass:
     @staticmethod
     def test_args_invalid_model_path():
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = "xxx_invalid.om"
         options = aclruntime.session_options()
         with pytest.raises(RuntimeError) as e:
@@ -59,7 +59,7 @@ class TestClass:
     ## 待完善 增加 loopo 和 log_level的校验和判断 当前不完善
 
     def test_args_ok(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         options = aclruntime.session_options()
         session = aclruntime.InferenceSession(model_path, device_id, options)
@@ -81,3 +81,7 @@ class TestClass:
             out.to_host()
         # summary inference throughput
         logger.info(session.sumary())
+
+
+if __name__ == '__main__':
+    pytest.main([__file__, '-vs'])

@@ -48,7 +48,7 @@ class TestClass:
         return os.path.join(TestCommonClass.get_basepath(), self.model_name, "model", "pth_resnet50_dymshape.om")
 
     def test_infer_dynamicshape(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         input_tensor_name = self.get_input_tensor_name()
         model_path = self.get_resnet_dymshape_om_path()
@@ -76,7 +76,7 @@ class TestClass:
         logger.info(session.sumary())
 
     def test_infer_dynamicshape_case1(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         options.log_level = 1
         input_tensor_name = self.get_input_tensor_name()
@@ -105,7 +105,7 @@ class TestClass:
         logger.info(session.sumary())
 
     def test_infer_dynamicshape_case2(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         input_tensor_name = self.get_input_tensor_name()
         model_path = self.get_resnet_dymshape_om_path()
@@ -133,7 +133,7 @@ class TestClass:
         logger.info(session.sumary())
 
     def test_infer_no_set_dynamicshape(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         input_tensor_name = self.get_input_tensor_name()
         model_path = self.get_resnet_dymshape_om_path()
@@ -156,7 +156,7 @@ class TestClass:
             logger.info("outputs:", outputs)
 
     def test_infer_no_set_outsize(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         input_tensor_name = self.get_input_tensor_name()
         model_path = self.get_resnet_dymshape_om_path()
@@ -180,7 +180,7 @@ class TestClass:
             logger.info("outputs:", outputs)
 
     def test_get_input_info(self):
-        device_id = 0
+        device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
         input_tensor_name = self.get_input_tensor_name()
         model_path = self.get_resnet_dymshape_om_path()

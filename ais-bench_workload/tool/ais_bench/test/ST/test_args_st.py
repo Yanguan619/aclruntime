@@ -19,7 +19,6 @@ import stat
 import shutil
 import subprocess
 import fcntl
-
 import pytest
 from test_common import TestCommonClass
 
@@ -28,8 +27,7 @@ OPEN_MODES = stat.S_IWUSR | stat.S_IRUSR
 
 
 class TestClass:
-    def init(self):
-        self.model_name = "resnet50"
+    model_name = "resnet50"
 
     @classmethod
     def setup_class(cls):
@@ -41,6 +39,9 @@ class TestClass:
     @classmethod
     def teardown_class(cls):
         logging.info('\n ---class level teardown_class')
+
+    def init(self):
+        pass
 
     def test_args_invalid_model_path(self):
         model_path = "xxx_invalid.om"
@@ -63,8 +64,8 @@ class TestClass:
         """
         non-existent acl.json file
         """
-        os.environ['AIT_NO_MSPROF_MODE'] = "1"
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
+        os.environ['AIT_NO_MSPROF_MODE'] = "1"
         acl_json_path = "xxx_invalid.json"
         cmd = "{} --model {} --device {} --acl_json_path {} ".format(TestCommonClass.cmd_prefix, model_path,
                                                                      TestCommonClass.default_device_id, acl_json_path)
@@ -78,8 +79,8 @@ class TestClass:
         wrong acl.json file
         """
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
-        os.environ['AIT_NO_MSPROF_MODE'] = "1"
         json_dict = {"profiler": {"wrong": "on", "aicpu": "on", "output": "", "aic_metrics": ""}}
+        os.environ['AIT_NO_MSPROF_MODE'] = "1"
         acl_json_path = os.path.join(TestCommonClass.get_basepath(), "acl.json")
         with os.fdopen(os.open(acl_json_path, OPEN_FLAGS, OPEN_MODES), "w") as f:
             json.dump(json_dict, f, indent=4, separators=(", ", ": "), sort_keys=True)
@@ -219,7 +220,6 @@ class TestClass:
                                          "device_{}/sample_{}_{}.json".format(TestCommonClass.default_device_id, model_name, hash_str))
         assert os.path.isfile(sampale_json_path)
 
-
     def test_args_dump_ok(self):
         """
         dump folder existed. and  a sub-folder named with the format of date and time
@@ -279,16 +279,11 @@ class TestClass:
     def test_args_acljson_ok(self):
         model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         output_path = os.path.join(TestCommonClass.get_basepath(), self.model_name, "output")
-        os.environ['AIT_NO_MSPROF_MODE'] = "1"
         TestCommonClass.prepare_dir(output_path)
         profiler_path = os.path.join(output_path, "profiler")
         TestCommonClass.prepare_dir(profiler_path)
-        output_json_dict = {"profiler": {"switch": "on", "aicpu": "on", "output": "", "aic_metrics": ""}}
-
-        try:
-            output_json_dict["profiler"]["output"] = profiler_path
-        except Exception as e:
-            raise Exception("Visit dict failed".format(e)) from e
+        output_json_dict = {"profiler": {"switch": "on", "aicpu": "on", "output": profiler_path, "aic_metrics": ""}}
+        os.environ['AIT_NO_MSPROF_MODE'] = "1"
         out_json_file_path = os.path.join(TestCommonClass.get_basepath(), "acl.json")
         with os.fdopen(os.open(out_json_file_path, OPEN_FLAGS, OPEN_MODES), "w") as f:
             json.dump(output_json_dict, f, indent=4, separators=(", ", ": "), sort_keys=True)
@@ -370,6 +365,25 @@ class TestClass:
             assert os.path.exists(suffix_file_path)
             shutil.rmtree(result_path)
 
+    def test_args_threads_ok(self):
+        model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
+        log_path = os.path.join(TestCommonClass.get_basepath(), "log.txt")
+        threads = 2
+        cmd = "{} --model {} --device {} --pipeline 1 --threads {} > {}".format(
+            TestCommonClass.cmd_prefix, model_path, TestCommonClass.default_device_id, threads, log_path)
+        logging.info(f"run cmd:{cmd}")
+        ret = os.system(cmd)
+        assert ret == 0
+        cmd = "cat {} |grep 'create model description success' | wc -l".format(log_path)
+
+        try:
+            outval = os.popen(cmd).read()
+        except Exception as e:
+            raise Exception("raise an exception: {}".format(e)) from e
+
+        assert int(outval) == threads
+
 
 if __name__ == '__main__':
-    pytest.main(['test_args.py', '-vs'])
+    pytest.main([__file__, '-vs'])
+

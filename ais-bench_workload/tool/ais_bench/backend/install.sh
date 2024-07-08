@@ -24,7 +24,7 @@ check_python_package_is_install()
     ret=$?
     if [ $ret != 0 ]; then
         echo "python package:$2 not install"
-        return 1
+        return $ret_run_failed
     fi
     return 0
 }

@@ -319,7 +319,7 @@ class InferSession:
                 if reused_index >= len(outputs):
                     raise IndexError(f"in_out_list[{in_out_list}] out of outputs length, length is{len(outputs)}")
                 if reused_index >= 0:
-                     in_out_list[input_index] = outputs[reused_index]
+                     inputs[input_index] = outputs[reused_index]
             outputs = self.session.run(out_names, inputs)
 
         return outputs

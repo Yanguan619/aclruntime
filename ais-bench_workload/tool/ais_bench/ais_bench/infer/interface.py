@@ -283,28 +283,7 @@ class InferSession:
             outputs[i] = self.convert_tensors_to_arrays(output)
         return outputs
 
-    def inner_run(self, in_out_list, get_outputs=False, mem_copy=True):
-        '''
-        Parameters:
-            in_out_list: relation between current input datas and last output datas
-            get_outputs: get outputs from device or not
-            mem_copy: the way inputs get data from outputs
-        '''
-        if (get_outputs):
-            outputs = self.session.inner_run(in_out_list, self.outputs_names, get_outputs, mem_copy)
-            return outputs
-        else:
-            self.session.inner_run(in_out_list, self.outputs_names, get_outputs, mem_copy)
-            outputs = None
-            return outputs
-
-    def first_inner_run(self, feeds, mode='static', custom_sizes=100000):
-        '''
-        Parameters:
-            feeds: input data
-            mode: static dymdims dymshapes ...
-            custom_sizes: must equal to the realsize of outputs
-        '''
+    def _create_device_inputs(self, feeds):
         inputs = []
         shapes = []
         for feed in feeds:
@@ -325,19 +304,25 @@ class InferSession:
                 shapes.append(infer_input.shape)
             else:
                 raise RuntimeError('type:{} invalid'.format(type(feed)))
-            basetensor = aclruntime.BaseTensor(infer_input.__array_interface__['data'][0], infer_input.nbytes)
-            inputs.append(basetensor)
+            acl_tensor = aclruntime.Tensor(infer_input)
+            acl_tensor.to_device(self.device_id)
+            inputs.append(acl_tensor)
+        return inputs, shapes
 
-        if self.infer_mode_switch.get(mode) is not None:
-            self.infer_mode_switch.get(mode)(shapes, custom_sizes)
-        else:
-            raise RuntimeError('wrong infer_mode:{}, only support \"static\",\"dymbatch\",\"dymhw\", \
-                \"dymdims\",\"dymshape\"'.format(mode))
+    def _inner_iteration_run(self, inputs, in_out_list=None, iteration_times=1):
+        out_names = [out_desc.name for out_desc in self.get_outputs()]
+        outputs = self.session.run(out_names, inputs)
+        if iteration_times == 1:
+            return outputs
+        for i in range(int(iteration_times - 1)):
+
 
         return self.session.first_inner_run(self.outputs_names, inputs)
 
+    def _reuse_output
+
     def infer_iteration(self, feeds, in_out_list=None, iteration_times=1, mode='static',
-            custom_sizes=100000, mem_copy=True):
+            custom_sizes=100000):
         '''
         Parameters:
             feeds: input datas
@@ -350,18 +335,21 @@ class InferSession:
             in_out_list = []
         if len(in_out_list) != len(self.get_inputs()):
             raise RuntimeError(f"inputs' amount and length of in_out_list not matched!")
-        if (iteration_times == 1):
-            outputs = self.infer(feeds, mode, custom_sizes)
-            return outputs
-        else:
-            self.first_inner_run(feeds, mode, custom_sizes)
-            for _ in range(iteration_times - 2):
-                self.inner_run(in_out_list, False, mem_copy)
-            outputs = self.inner_run(in_out_list, True, mem_copy)
-            # convert to host tensor
-            self.convert_tensors_to_host(outputs)
-            # convert tensor to narray
-            return self.convert_tensors_to_arrays(outputs)
+        if iteration_times < 1:
+            raise RuntimeError(f"iteration_times: {iteration_times} must be larger than 0!")
+
+        inputs, shapes = self._create_device_inputs(feeds)
+
+        # auto set mode
+        if self.infer_mode_switch.get(mode) is not None:
+            self.infer_mode_switch.get(mode)(shapes, custom_sizes)
+
+        outputs = self._inner_iteration_run(inputs, in_out_list, iteration_times)
+
+        self.convert_tensors_to_host(outputs)
+        # convert tensor to narray
+        return self.convert_tensors_to_arrays(outputs)
+
 
     def summary(self):
         return self.session.sumary()

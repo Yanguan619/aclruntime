@@ -175,7 +175,6 @@ infer_iteration(feeds, in_out_list = None, iteration_times = 1, mode = 'static',
 |**iteration_times**|int，迭代的次数。|否|
 |**mode**|str，指定加载的模型类型，可选'static'(静态模型)、'dymbatch'(动态batch模型)、'dymhw'(动态分辨率模型)、'dymdims'(动态dims模型)、'dymshape'(动态shape模型)|否|
 |**custom_sizes**|int or [int]，动态shape模型需要使用，推理输出数据所占的内存大小(单位byte)。<br><ul> 1、输入为int时，模型的每一个输出都会被预先分配custom_sizes大小的内存。<br> 2、输入为list:[int]时，模型的每一个输出会被预先分配custom_sizes中对应元素大小的内存。|否|
-|**mem_copy**|bool，决定迭代推理中输入数据使用上次推理的输出数据是否采用拷贝的方式。<br><ul> 1、mem_copy == True，采用拷贝，推理结束后底层的acl接口不会报错，推理结果正确。<br> 2、mem_copy == False，采用内存共用，推理结束后底层的acl接口可能会报错(开plog情况下)，推理结果正确，推理端到端时间更短。|否|
 
 - **返回值**
 
@@ -329,7 +328,6 @@ infer_iteration(device_feeds, in_out_list = None, iteration_times = 1, mode = 's
 |**iteration_times**|int，迭代的次数。|否|
 |**mode**|str，指定加载的模型类型，可选'static'(静态模型)、'dymbatch'(动态batch模型)、'dymhw'(动态分辨率模型)、'dymdims'(动态dims模型)、'dymshape'(动态shape模型)|否|
 |**custom_sizes**|int or [int]，动态shape模型需要使用，推理输出数据所占的内存大小(单位byte)。<ul><br> 1、输入为int时，模型的每一个输出都会被预先分配custom_sizes大小的内存。<br> 2、输入为list:[int]时，模型的每一个输出会被预先分配custom_sizes中对应元素大小的内存。|否|
-|**mem_copy**|bool，决定迭代推理中输入数据使用上次推理的输出数据是否采用拷贝的方式。<ul><br> 1、mem_copy == True，采用拷贝，推理结束后底层的acl接口不会报错，推理结果正确。<br>2、mem_copy == False，采用内存共用，推理结束后底层的acl接口可能会报错(开plog情况下)，推理结果正确，推理端到端时间更短。|否|
 
 **返回值**
 

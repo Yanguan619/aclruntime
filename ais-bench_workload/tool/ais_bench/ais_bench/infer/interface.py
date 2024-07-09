@@ -314,12 +314,15 @@ class InferSession:
         outputs = self.session.run(out_names, inputs)
         if iteration_times == 1:
             return outputs
-        for i in range(int(iteration_times - 1)):
+        for _ in range(int(iteration_times - 1)):
+            for input_index, reused_index in enumerate(in_out_list):
+                if reused_index >= len(outputs):
+                    raise IndexError(f"in_out_list[{in_out_list}] out of outputs length, length is{len(outputs)}")
+                if reused_index >= 0:
+                     in_out_list[input_index] = outputs[reused_index]
+            outputs = self.session.run(out_names, inputs)
 
-
-        return self.session.first_inner_run(self.outputs_names, inputs)
-
-    def _reuse_output
+        return outputs
 
     def infer_iteration(self, feeds, in_out_list=None, iteration_times=1, mode='static',
             custom_sizes=100000):
@@ -499,7 +502,7 @@ class MultiDeviceSession():
                 logger.info(f"device {ret[0]}, start_time:{ret[2]}, end_time:{ret[3]}")
         return outputs_dict
 
-    def infer_iteration(self, device_feeds:dict, in_out_list=None, iteration_times=1, mode='static', custom_sizes=None, mem_copy=True):
+    def infer_iteration(self, device_feeds:dict, in_out_list=None, iteration_times=1, mode='static', custom_sizes=None):
         '''
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
@@ -514,7 +517,7 @@ class MultiDeviceSession():
             for feed in feeds:
                 p.apply_async(
                     self.subprocess_infer_iteration,
-                    args=(outputs_queue, device_id, feed, in_out_list, iteration_times, mode, custom_sizes, mem_copy),
+                    args=(outputs_queue, device_id, feed, in_out_list, iteration_times, mode, custom_sizes),
                     error_callback=self.print_subprocess_run_error
                 )
         p.close()
@@ -563,7 +566,7 @@ class MultiDeviceSession():
         return
 
     def subprocess_infer_iteration(self, outputs_queue, device_id, feeds, in_out_list=None,
-            iteration_times=1, mode='static', custom_sizes=None, mem_copy=True):
+            iteration_times=1, mode='static', custom_sizes=None):
         sub_session = InferSession(
             device_id=device_id,
             model_path=self.model_path,
@@ -572,7 +575,7 @@ class MultiDeviceSession():
             loop=self.loop
         )
         start_time = time.time()
-        outputs = sub_session.infer_iteration(feeds, in_out_list, iteration_times, mode, custom_sizes, mem_copy)
+        outputs = sub_session.infer_iteration(feeds, in_out_list, iteration_times, mode, custom_sizes)
         end_time = time.time()
         outputs_queue.put([device_id, outputs, start_time, end_time])
         return

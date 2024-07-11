@@ -915,7 +915,7 @@ class TestClass:
         os.remove(log_path)
 
     def test_general_inference_interface_same_multi_device_0(self):
-        """ "device 0,0"""
+        """ device 0,0"""
         devices = "0,0"
         batch_size = 1
         static_model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
@@ -932,7 +932,7 @@ class TestClass:
         assert ret == 0
 
     def test_general_inference_interface_abnormal_invalid_device(self):
-        """ "类似device 1,2,200. 2个device ID正确,1个不正确,但在可能的取值范围[0,255]内"""
+        """ device 1,2,255. legal"""
         device_count, ret = acl.rt.get_device_count()
         assert device_count > 0
         devices = "1,2," + str(255)
@@ -951,7 +951,7 @@ class TestClass:
         assert ret != 0
 
     def test_general_inference_interface_abnormal_invalid_device_2(self):
-        """ "device 500.不在可能的取值范围[0,255]"""
+        """ device 500. illegal"""
         devices = "500"
         batch_size = 1
         static_model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)

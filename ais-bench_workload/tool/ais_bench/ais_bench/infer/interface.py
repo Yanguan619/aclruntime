@@ -329,7 +329,8 @@ class InferSession:
         '''
         Parameters:
             feeds: input datas
-            in_out_list: relation between current input datas and last output datas
+            in_out_list: relation between current input datas and last output datas.
+                [-1, 0, 1] means inputs[1] uses last outputs[0], inputs[2] uses last outputs[1].
             iteration_times: inner iteration infer loop times
             mode: static dymdims dymshape ...
             custom_sizes: only dymshape needs

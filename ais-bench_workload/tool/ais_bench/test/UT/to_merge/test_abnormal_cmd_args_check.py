@@ -37,8 +37,36 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+class FakeFile:
+    NOT_READABLE_ACL_JSON = "not_read_acl.json"
+    SUFFIX_WRONG_ACL_JSON = "acl.test_json"
+    NOT_EXIST_ACL_JSON = "not_exist_acl.json"
+
 
 class TestClass:
+    @staticmethod
+    def _touch_file(file_path, permission=0o750):
+        with open(file_path, "w"):
+            pass
+        os.chmod(file_path, permission)
+
+    @classmethod
+    def _check_illegal_fake_path_case(cls, func_to_test, fake_value, permission=0o750, is_exist=True):
+        fake_path = cls._get_abs_path(fake_value)
+        if is_exist:
+            if os.path.exists(fake_path):
+                os.remove(fake_path)
+            if os.path.isfile(fake_path):
+                cls._touch_file(fake_path, permission)
+            else:
+                os.mkdir(fake_path, permission)
+
+        with pytest.raises(Exception):
+            func_to_test(fake_path)
+
+        if is_exist:
+            os.remove(fake_path)
+
     @classmethod
     def setup_class(cls):
         """
@@ -51,35 +79,40 @@ class TestClass:
         logger.info('\n ---class level teardown_class')
 
     @classmethod
+    def _get_abs_path(cls, name):
+        return os.path.join(cls.cur_dir, name)
+
+    @classmethod
     def test_check_batchsize_valid(cls):
         value = None
-        check_batchsize_valid(value)
+        assert check_batchsize_valid(value) == value
         value = -1
         with pytest.raises(Exception):
             check_batchsize_valid(value)
 
     @classmethod
     def test_check_acl_json_path_legality(cls):
-        value = ""
-        check_acl_json_path_legality(value)
-        current_directory = os.getcwd()
-        value = os.path.join(current_directory, "testdata/not_read_acl.json")
-        with open(value, "w"):
-            pass
-        os.chmod(value, 0)
-        with pytest.raises(Exception):
-            check_acl_json_path_legality(value)
-        os.remove(value)
-        value = os.path.join(current_directory, "testdata/acl.test_json")
-        with open(value, "w"):
-            pass
-        os.chmod(value, 0o777)
-        with pytest.raises(Exception):
-            check_acl_json_path_legality(value)
-        os.remove(value)
-        value = os.path.join(current_directory, "testdata/not_exist_acl.json")
-        with pytest.raises(Exception):
-            check_acl_json_path_legality(value)
+        assert check_acl_json_path_legality("") == ""
+
+
+        cls._check_illegal_fake_path_case(
+            func_to_test=check_acl_json_path_legality,
+            fake_value=FakeFile.NOT_READABLE_ACL_JSON,
+            permission=0o100
+        )
+
+        cls._check_illegal_fake_path_case(
+            func_to_test=check_acl_json_path_legality,
+            fake_value=FakeFile.SUFFIX_WRONG_ACL_JSON,
+            permission=0o750
+        )
+
+        cls._check_illegal_fake_path_case(
+            func_to_test=check_acl_json_path_legality,
+            fake_value=FakeFile.SUFFIX_WRONG_ACL_JSON,
+            is_exist=False
+        )
+
 
     @classmethod
     def test_check_aipp_config_path_legality(cls):
@@ -227,7 +260,7 @@ class TestClass:
             str2bool(value)
 
     def init(self):
-        self.model_name = "resnet50"
+        self.cur_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 

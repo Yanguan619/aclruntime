@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import shutil
 import sys
 import logging
 import pytest
@@ -70,7 +69,7 @@ class TestClass:
                 cls._touch_file(fake_path, permission)
             else:
                 if os.path.exists(fake_path):
-                    shutil.rmtree(fake_path)
+                    os.rmdir(fake_path)
                 os.mkdir(fake_path, permission)
 
         with pytest.raises(Exception):
@@ -80,7 +79,7 @@ class TestClass:
             if os.path.isfile(fake_path):
                 os.remove(fake_path)
             else:
-                shutil.rmtree(fake_path)
+                os.rmdir(fake_path)
 
     @classmethod
     def setup_class(cls):

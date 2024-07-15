@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import shutil
 import sys
 import logging
 import pytest
@@ -41,6 +42,15 @@ class FakeFile:
     NOT_READABLE_ACL_JSON = "not_read_acl.json"
     SUFFIX_WRONG_ACL_JSON = "acl.test_json"
     NOT_EXIST_ACL_JSON = "not_exist_acl.json"
+    NOT_READABLE_AIPP_CONFIG = "not_read_test_aipp_conf.config"
+    SUFFIX_WRONG_AIPP_CONFIG = "test_aipp_conf.test_config"
+    NOT_EXIST_AIPP_CONFIG = "not_exist_test_aipp_conf.config"
+    NOT_READABLE_INPUT_DIR = "not_read_input"
+    NOT_EXIST_INPUT_DIR = "not_exist_input"
+    NOT_READABLE_MODEL = "not_read_model.om"
+    SUFFIX_WRONG_MODEL = "model.onnx"
+    NOT_EXIST_MODEL = "not_exist_model.om"
+    NOT_WRITABLE_OUTPUT_DIR = "not_write_output"
 
 
 class TestClass:
@@ -54,18 +64,23 @@ class TestClass:
     def _check_illegal_fake_path_case(cls, func_to_test, fake_value, permission=0o750, is_exist=True):
         fake_path = cls._get_abs_path(fake_value)
         if is_exist:
-            if os.path.exists(fake_path):
-                os.remove(fake_path)
             if os.path.isfile(fake_path):
+                if os.path.exists(fake_path):
+                    os.remove(fake_path)
                 cls._touch_file(fake_path, permission)
             else:
+                if os.path.exists(fake_path):
+                    shutil.rmtree(fake_path)
                 os.mkdir(fake_path, permission)
 
         with pytest.raises(Exception):
             func_to_test(fake_path)
 
         if is_exist:
-            os.remove(fake_path)
+            if os.path.isfile(fake_path):
+                os.remove(fake_path)
+            else:
+                shutil.rmtree(fake_path)
 
     @classmethod
     def setup_class(cls):
@@ -94,7 +109,6 @@ class TestClass:
     def test_check_acl_json_path_legality(cls):
         assert check_acl_json_path_legality("") == ""
 
-
         cls._check_illegal_fake_path_case(
             func_to_test=check_acl_json_path_legality,
             fake_value=FakeFile.NOT_READABLE_ACL_JSON,
@@ -109,79 +123,71 @@ class TestClass:
 
         cls._check_illegal_fake_path_case(
             func_to_test=check_acl_json_path_legality,
-            fake_value=FakeFile.SUFFIX_WRONG_ACL_JSON,
+            fake_value=FakeFile.NOT_EXIST_ACL_JSON,
             is_exist=False
         )
 
 
     @classmethod
     def test_check_aipp_config_path_legality(cls):
-        value = ""
-        check_aipp_config_path_legality(value)
-        current_directory = os.getcwd()
-        value = os.path.join(
-            current_directory, "testdata/not_read_test_aipp_conf.config"
+        assert check_aipp_config_path_legality("") == ""
+
+        cls._check_illegal_fake_path_case(
+            func_to_test=check_aipp_config_path_legality,
+            fake_value=FakeFile.NOT_READABLE_AIPP_CONFIG,
+            permission=0o100
         )
-        with open(value, "w"):
-            pass
-        os.chmod(value, 0)
-        with pytest.raises(Exception):
-            check_aipp_config_path_legality(value)
-        os.remove(value)
-        value = os.path.join(current_directory, "testdata/test_aipp_conf.test_config")
-        with open(value, "w"):
-            pass
-        os.chmod(value, 0o777)
-        with pytest.raises(Exception):
-            check_aipp_config_path_legality(value)
-        os.remove(value)
-        value = os.path.join(
-            current_directory, "testdata/not_exist_test_aipp_conf.config"
+
+        cls._check_illegal_fake_path_case(
+            func_to_test=check_aipp_config_path_legality,
+            fake_value=FakeFile.SUFFIX_WRONG_AIPP_CONFIG,
+            permission=0o750
         )
-        with pytest.raises(Exception):
-            check_aipp_config_path_legality(value)
+
+        cls._check_illegal_fake_path_case(
+            func_to_test=check_aipp_config_path_legality,
+            fake_value=FakeFile.NOT_EXIST_AIPP_CONFIG,
+            is_exist=False
+        )
 
     @classmethod
     def test_device_range_valid(cls):
         value = "1,-1"
         with pytest.raises(Exception):
             check_device_range_valid(value)
-        value = "3000"
+        value = "256"
         with pytest.raises(Exception):
             check_device_range_valid(value)
 
     @classmethod
     def test_check_dym_range_string(cls):
-        value = None
-        check_dym_range_string(value)
+        assert check_dym_range_string("") == ""
         value = "**"
         with pytest.raises(Exception):
             check_dym_range_string(value)
 
     @classmethod
     def test_check_dym_string(cls):
-        value = None
-        check_dym_string(value)
+        assert check_dym_string("") == ""
         value = "**"
         with pytest.raises(Exception):
             check_dym_string(value)
 
     @classmethod
     def test_check_input_path_legality(cls):
-        value = ""
-        check_input_path_legality(value)
-        current_directory = os.getcwd()
-        value = os.path.join(current_directory, "/testdata/resnet50/not_read_input")
-        os.makedirs(value)
-        os.chmod(value, 0)
-        with pytest.raises(Exception):
-            check_input_path_legality(value)
-        os.rmdir(value)
-        value = os.path.join(
-            current_directory, "/testdata/resnet50/model/not_exist_input"
+        assert check_input_path_legality("") == ""
+
+        cls._check_illegal_fake_path_case(
+            func_to_test=check_input_path_legality,
+            fake_value=FakeFile.NOT_READABLE_INPUT_DIR,
+            permission=0o100
         )
-        with pytest.raises(Exception):
-            check_input_path_legality(value)
+
+        cls._check_illegal_fake_path_case(
+            func_to_test=check_input_path_legality,
+            fake_value=FakeFile.NOT_EXIST_INPUT_DIR,
+            is_exist=False
+        )
 
     @classmethod
     def test_check_nonnegative_integer(cls):
@@ -194,76 +200,61 @@ class TestClass:
         value = "1,-1"
         with pytest.raises(Exception):
             check_npu_id_range_vaild(value)
-        value = "3000"
+        value = "2049"
         with pytest.raises(Exception):
             check_npu_id_range_vaild(value)
 
     @classmethod
     def test_check_number_list(cls):
-        value = None
-        check_number_list(value)
+        assert check_number_list(None) == None
         value = "**"
         with pytest.raises(Exception):
             check_number_list(value)
 
     @classmethod
     def test_check_om_path_legality(cls):
-        current_directory = os.getcwd()
-        value = os.path.join(
-            current_directory, "testdata/resnet50/model/not_read_pth_resnet50_bs1.om"
+        cls._check_illegal_fake_path_case(
+            func_to_test=check_om_path_legality,
+            fake_value=FakeFile.NOT_READABLE_MODEL,
+            permission=0o100
         )
-        with open(value, "w"):
-            pass
-        os.chmod(value, 0)
-        with pytest.raises(Exception):
-            check_om_path_legality(value)
-        os.remove(value)
-        value = os.path.join(
-            current_directory, "testdata/resnet50/model/pth_resnet50_bs1.onnx"
+
+        cls._check_illegal_fake_path_case(
+            func_to_test=check_om_path_legality,
+            fake_value=FakeFile.SUFFIX_WRONG_MODEL,
+            permission=0o750
         )
-        with pytest.raises(Exception):
-            check_om_path_legality(value)
-        value = os.path.join(
-            current_directory, "testdata/resnet50/model/not_exist_pth_resnet50_bs1.om"
+
+        cls._check_illegal_fake_path_case(
+            func_to_test=check_om_path_legality,
+            fake_value=FakeFile.NOT_EXIST_MODEL,
+            is_exist=False
         )
-        with pytest.raises(Exception):
-            check_om_path_legality(value)
 
     @classmethod
     def test_check_output_path_legality(cls):
-        value = ""
-        check_output_path_legality(value)
-        current_directory = os.getcwd()
-        value = os.path.join(current_directory, "testdata/resnet50/not_write_output")
-        if not os.path.exists(value):
-            os.mkdir(value)
-        os.chmod(value, 0)
-        check_output_path_legality(value)
-        os.rmdir(value)
-        value = os.path.join(current_directory, "testdata/resnet50/not_exist_path")
-        check_output_path_legality(value)
+        assert check_output_path_legality("") == ""
+        cls._check_illegal_fake_path_case(
+            func_to_test=check_output_path_legality,
+            fake_value=FakeFile.NOT_WRITABLE_OUTPUT_DIR,
+            permission=0o400
+        )
 
     @classmethod
     def test_check_positive_integer(cls):
-        value = -1
+        value = 0
         with pytest.raises(Exception):
             check_positive_integer(value)
 
     @classmethod
     def test_str2bool(cls):
-        value = "yes"
-        str2bool(value)
-        value = "no"
-        str2bool(value)
-        value = "a test"
+        assert str2bool("yes") == True
+        assert str2bool("no") == False
         with pytest.raises(Exception):
-            str2bool(value)
+            str2bool("input_no_in_options")
 
     def init(self):
         self.cur_dir = os.path.dirname(os.path.abspath(__file__))
-
-
-
 
 
 if __name__ == "__main__":

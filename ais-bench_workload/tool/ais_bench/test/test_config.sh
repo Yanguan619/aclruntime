@@ -16,14 +16,14 @@
 
 export PYTHON_COMMAND="python3"
 export AISBENCH_INFER_DT_DEVICE_ID=7
-export AISBENCH_INFER_DT_MODE="simple" # "full" "simple" "debug"
+export AISBENCH_INFER_DT_MODE="debug" # "full" "simple" "debug"
 export PYTEST_RUN_MODE="run_only" # "run_only" "csv_report" "html_report"
 
 debug_st_script_list=( \
 )
 
 debug_ut_script_list=( \
-    "test_args_ut.py" \
+    "to_merge/test_abnormal_cmd_args_check.py" \
 )
 
 full_st_script_list=( \

@@ -59,12 +59,16 @@ class TestClass:
             pass
         os.chmod(file_path, permission)
 
+    @staticmethod
+    def rmforce(path):
+        os.system(f"rm -rf {path}") # 这里之所以不用shutil.rmtree ，os.remove之类的是考虑到服务器会询问是否删除，干脆直接rm -rf了。
+
     @classmethod
     def _check_illegal_fake_path_case(cls, func_to_test, fake_value, permission=0o750, is_exist=True):
         fake_path = cls._get_abs_path(fake_value)
         if is_exist:
             if os.path.exists(fake_path):
-                os.system(f"rm -rf {fake_path}") # 这里之所以不用shutil.rmtree ，os.remove之类的是考虑到服务器会询问是否删除，干脆直接rm -rf了，下同。
+                cls.rmforce(fake_path)
             if os.path.isfile(fake_path):
                 cls._touch_file(fake_path, permission)
             else:
@@ -74,7 +78,7 @@ class TestClass:
             func_to_test(fake_path)
 
         if is_exist:
-            os.system(f"rm -rf {fake_path}")
+            cls.rmforce(fake_path)
 
     @classmethod
     def setup_class(cls):

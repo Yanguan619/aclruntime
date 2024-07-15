@@ -18,6 +18,7 @@ import logging
 import os
 import pytest
 from ais_bench.infer.backends.backend_trtexec import TrtexecConfig, BackendTRTExec
+from test_common import TestCommonClass
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.INFO, format="[%(levelname)s] %(message)s"
@@ -44,33 +45,37 @@ class TestClass:
     backend_trtexec.config = trtextcconfig
     backend_trtexec.convert_config(config)
 
+    @staticmethod
+    def rmforce(path):
+        os.system(f"rm -rf {path}")
+
     def test_name(self):
-        name = self.backend_trtexec.name
+        assert self.backend_trtexec.name == "trtexec"
 
     def test_model_extension(self):
-        model_extension = self.backend_trtexec.model_extension
+        assert self.backend_trtexec.model_extension == "plan"
 
     def test_BackendTRTExec_load(self):
-        current_dir = os.getcwd()
         model = os.path.join(
-            current_dir, "../testdata/resnet50/model/pth_resnet50_bs1.om"
+            TestCommonClass.base_path, "resnet50/model/pth_resnet50_bs1.om"
         )
-        input = list(os.path.join(current_dir, "../testdata/resnet50/input"))
-        output = os.path.join(current_dir, "../testdata/resnet50/output")
+        self.backend_trtexec.load(model)
+        assert self.backend_trtexec.model == model
+
+        not_exist_model = os.path.join(
+            TestCommonClass.base_path, "resnet50/model/not_exist_model.om"
+        )
+        if os.path.exists(not_exist_model):
+            self.rmforce(not_exist_model)
         with pytest.raises(Exception):
-            self.backend_trtexec.load("/not_exist", input, output)
+            self.backend_trtexec.load(not_exist_model)
 
     def test_parse_log(self):
-        log = "Throughput: 100\n"
-        self.backend_trtexec.parse_log(log)
-        log = "H2D Latency= 1 H2D Latency= 1 H2D Latency= 1 H2D Latency= 1 H2D Latency= 1\n"
-        self.backend_trtexec.parse_log(log)
-        log = "GPU Compute Time= 1 GPU Compute Time= 1 GPU Compute Time= 1 GPU Compute Time= 1 GPU Compute Time= 1"
-        self.backend_trtexec.parse_log(log)
-        log = "D2H Latency= 1 D2H Latency= 1 D2H Latency= 1 D2H Latency= 1 D2H Latency= 1\n"
-        self.backend_trtexec.parse_log(log)
-        log = "Total Host Walltime: 100\n"
-        self.backend_trtexec.parse_log(log)
+        assert self.backend_trtexec.parse_log("Throughput: 100.1\n") == 100.1
+        self.backend_trtexec.parse_log("H2D Latency= 1 H2D Latency= 1 H2D Latency= 1 H2D Latency= 1 H2D Latency= 1\n")
+        self.backend_trtexec.parse_log("GPU Compute Time= 1 GPU Compute Time= 1 GPU Compute Time= 1 GPU Compute Time= 1 GPU Compute Time= 1")
+        self.backend_trtexec.parse_log("D2H Latency= 1 D2H Latency= 1 D2H Latency= 1 D2H Latency= 1 D2H Latency= 1\n")
+        self.backend_trtexec.parse_log("Total Host Walltime: 100\n")
 
     def test_warm_up(self):
         self.backend_trtexec.warm_up([], 100)

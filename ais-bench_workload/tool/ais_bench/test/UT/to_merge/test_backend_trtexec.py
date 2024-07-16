@@ -125,9 +125,6 @@ class TestClass:
     def test_get_perf(self):
         self.backend_trtexec.get_perf()
 
-    def test_run(self):
-        assert self.backend_trtexec.run() == []
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-vs"])

@@ -59,8 +59,7 @@ class TestClass:
         model = os.path.join(
             TestCommonClass.base_path, "resnet50/model/pth_resnet50_bs1.om"
         )
-        self.backend_trtexec.load(model)
-        assert self.backend_trtexec.model == model
+        assert self.backend_trtexec.load(model) == self.backend_trtexec
 
         not_exist_model = os.path.join(
             TestCommonClass.base_path, "resnet50/model/not_exist_model.om"

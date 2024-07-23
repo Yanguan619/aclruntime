@@ -13,10 +13,12 @@
 # limitations under the License.
 
 #lzy
+import os
 import sys
 import logging
 import unittest
 import json
+import shutil
 from unittest.mock import Mock, patch
 
 import pytest
@@ -44,6 +46,9 @@ logger = logging.getLogger(__name__)
 
 DUMP_STR = "dump"
 
+class FakeModelInput:
+    shape = "1,3,224,224"
+
 
 class TestClass(unittest.TestCase):
     args = TestCommonClass.get_legal_args()
@@ -56,7 +61,7 @@ class TestClass(unittest.TestCase):
     @patch("pkg_resources.get_distribution")
     def test_version_check_with_old_version(self, mock_get_distribution):
         mock_distribution = Mock()
-        mock_distribution.version = "0.0.1"
+        mock_distribution.aclruntime_version = "0.0.1"
         mock_get_distribution.return_value = mock_distribution
         args = Mock()
         version_check(args)
@@ -73,20 +78,104 @@ class TestClass(unittest.TestCase):
             data = json.load(file)
         data[DUMP_STR] = {}
         data[DUMP_STR]["dump_list"] = [{"model": get_model_name(self.args.model)}]
-        data[DUMP_STR]["dump_path"] = self.args.output_dirname
+        data[DUMP_STR]["dump_path"] = self.args.output
         with open(self.args.acl_json_path, "w+") as file:
             json.dump(data, file, indent=4)
         check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
 
-    def test_get_acl_json_path(self):
-        get_acl_json_path(self.args)
-        self.args.profiler = True
-        get_acl_json_path(self.args)
-        self.args.profiler = False
-        self.args.dump = True
-        get_acl_json_path(self.args)
+    def test_acl_json_content_wrong_model_name(self):
+        with open(self.args.acl_json_path, "r") as file:
+            data = json.load(file)
+        data[DUMP_STR] = {}
+        data[DUMP_STR]["dump_list"] = [{"model": "invalid_model_name"}]
+        data[DUMP_STR]["dump_path"] = self.args.output
+        with open(self.args.acl_json_path, "w+") as file:
+            json.dump(data, file, indent=4)
+        with pytest.raises(ValueError) as e:
+            check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
+            assert "'model_name' is not set or set" in e
+
+    def test_acl_json_content_missing_dump_list(self):
+        with open(self.args.acl_json_path, "r") as file:
+            data = json.load(file)
+        data[DUMP_STR] = {}
+        data[DUMP_STR]["dump_path"] = self.args.output
+        with open(self.args.acl_json_path, "w+") as file:
+            json.dump(data, file, indent=4)
+        with pytest.raises(KeyError) as e:
+            check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
+            assert "need to set 'dump_list' attribute" in e
+
+    def test_acl_json_content_dump_path_illegal(self):
+        with open(self.args.acl_json_path, "r") as file:
+            data = json.load(file)
+        data[DUMP_STR] = {}
+        data[DUMP_STR]["dump_list"] = [{"model": get_model_name(self.args.model)}]
+        data[DUMP_STR]["dump_path"] = self.args.output
+        with open(self.args.acl_json_path, "w+") as file:
+            json.dump(data, file, indent=4)
+        os.chmod(self.args.acl_json_path, 0o500) # r x ok, w not ok
+        with pytest.raises(ValueError) as e:
+            check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
+            assert "has no read/write permission" in e
+
+    def test_acl_json_content_dump_op_switch_illegal(self):
+        with open(self.args.acl_json_path, "r") as file:
+            data = json.load(file)
+        data[DUMP_STR] = {}
+        data[DUMP_STR]["dump_list"] = [{"model": "invalid_model_name"}]
+        data[DUMP_STR]["dump_path"] = self.args.output
+        data[DUMP_STR]["dump_op_switch"] = "none"
+        with open(self.args.acl_json_path, "w+") as file:
+            json.dump(data, file, indent=4)
+        with pytest.raises(ValueError) as e:
+            check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
+            assert "'dump_op_switch' need to be" in e
+
+    def test_acl_json_content_dump_mode_illegal(self):
+        with open(self.args.acl_json_path, "r") as file:
+            data = json.load(file)
+        data[DUMP_STR] = {}
+        data[DUMP_STR]["dump_list"] = [{"model": "invalid_model_name"}]
+        data[DUMP_STR]["dump_path"] = self.args.output
+        data[DUMP_STR]["dump_mode"] = "none"
+        with open(self.args.acl_json_path, "w+") as file:
+            json.dump(data, file, indent=4)
+        with pytest.raises(ValueError) as e:
+            check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
+            assert "'dump_mode' need to be set" in e
+
+    def test_get_acl_json_path_normal(self, monkeypatch):
+        def mock_check_acl_json(prompt):
+            return
+        monkeypatch.setattr(
+            ais_bench.infer.common.miscellaneous,
+            "check_valid_acl_json_for_dump",
+            mock_check_acl_json
+        )
+        assert get_acl_json_path(self.args) == self.args.acl_json_path
+
+    def test_get_acl_json_path_with_profiler(self):
+        tmp_args = self.args
+        tmp_args.acl_json_path = None
+        tmp_args.profiler = True
+        profiler_dir = os.path.join(tmp_args.output, "profiler")
+        shutil.rmtree(profiler_dir)
+        get_acl_json_path(tmp_args)
+        assert os.path.exists(profiler_dir)
+
+    def test_get_acl_json_path_with_dump(self):
+        tmp_args = self.args
+        tmp_args.acl_json_path = None
+        tmp_args.dump = True
+        dump_dir = os.path.join(tmp_args.output, "dump")
+        shutil.rmtree(dump_dir)
+        get_acl_json_path(tmp_args)
+        assert os.path.exists(dump_dir)
 
     def test_get_batchsize(self):
+        mock_distribution = Mock()
+        mock_distribution.intensors_desc = [FakeModelInput]
         with pytest.raises(Exception):
             get_batchsize(None, self.args)
 

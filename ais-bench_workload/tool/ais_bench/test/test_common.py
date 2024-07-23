@@ -145,7 +145,7 @@ class TestCommonClass:
         )
         input_path = os.path.join(current_directory, "resnet50/input")
         output = os.path.join(current_directory, "resnet50/output")
-        output_dirname = os.path.join(current_directory, "resnet50/output")
+        output_dirname = "subdir"
         outfmt = "BIN"
         loop = 1
         debug = False
@@ -161,7 +161,7 @@ class TestCommonClass:
         pure_data_type = "zero"
         profiler = False
         dump = False
-        acl_json_path = os.path.join(current_directory, "acl.json")
+        acl_json_path = os.path.join(current_directory, "acl_sample.json")
         json_data = {"test": {"data": "data"}}
         with open(acl_json_path, "w") as file:
             json.dump(json_data, file)

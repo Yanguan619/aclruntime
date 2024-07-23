@@ -23,7 +23,6 @@ from ais_bench.infer.args_check import (
     check_dym_string,
     check_dym_range_string,
     check_number_list,
-    check_positive_integer,
     str2bool,
     check_batchsize_valid,
     check_nonnegative_integer,
@@ -130,20 +129,20 @@ class TestClass:
 
     def test_args_check(self):
         args = self.get_args()
-        agrs_dict = args.get_all_args_dict()
-        check_dym_string(args.dym_dims)
-        check_dym_range_string(args.dym_shape_range)
-        check_number_list(args.output_size)
-        str2bool(args.auto_set_dymdims_mode)
-        check_batchsize_valid(args.batchsize)
-        check_nonnegative_integer(args.output_batchsize_axis)
-        check_npu_id_range_vaild(args.npu_id)
-        check_device_range_valid(args.device)
-        check_om_path_legality(args.model)
-        check_input_path_legality(args.input)
-        check_output_path_legality(args.output)
-        check_acl_json_path_legality(args.acl_json_path)
-        check_aipp_config_path_legality(args.aipp_config)
+        args_dict = args.get_all_args_dict()
+        assert check_dym_string(args.dym_dims) == args.dym_dims
+        assert check_dym_range_string(args.dym_shape_range) == args.dym_shape_range
+        assert check_number_list(args.output_size) == args.output_size
+        assert str2bool(args.auto_set_dymdims_mode) == False
+        assert check_batchsize_valid(args.batchsize) == args.batchsize
+        assert check_nonnegative_integer(args.output_batchsize_axis) == args.output_batchsize_axis
+        assert check_npu_id_range_vaild(args.npu_id) == args.npu_id
+        check_device_range_valid(args.device) # 没返回值
+        assert check_om_path_legality(args.model) == args.model
+        assert check_input_path_legality(args.input) == args.input
+        assert check_output_path_legality(args.output) == args.output
+        assert check_acl_json_path_legality(args.acl_json_path) == args.acl_json_path
+        assert check_aipp_config_path_legality(args.aipp_config) == args.aipp_config
 
 
 if __name__ == "__main__":

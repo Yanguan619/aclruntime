@@ -33,6 +33,7 @@ from ais_bench.infer.common.miscellaneous import (
     regenerate_dymshape_cmd,
     dymshape_range_run,
 )
+from test_common import TestCommonClass
 from test_args_check import TestClass as get_args_class
 
 

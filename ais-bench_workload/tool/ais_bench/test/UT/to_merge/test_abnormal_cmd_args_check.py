@@ -96,60 +96,56 @@ class TestClass:
         return os.path.join(cls.cur_dir, name)
 
     @classmethod
-    def test_check_batchsize_valid(cls):
+    def test_check_batchsize_valid(self):
         value = None
         assert check_batchsize_valid(value) == value
         value = -1
         with pytest.raises(Exception):
             check_batchsize_valid(value)
 
-    @classmethod
-    def test_check_acl_json_path_legality(cls):
+    def test_check_acl_json_path_legality(self):
         assert check_acl_json_path_legality("") == ""
 
-        cls._check_illegal_fake_path_case(
+        self._check_illegal_fake_path_case(
             func_to_test=check_acl_json_path_legality,
             fake_value=FakeFile.NOT_READABLE_ACL_JSON,
             permission=0o100
         )
 
-        cls._check_illegal_fake_path_case(
+        self._check_illegal_fake_path_case(
             func_to_test=check_acl_json_path_legality,
             fake_value=FakeFile.SUFFIX_WRONG_ACL_JSON,
             permission=0o750
         )
 
-        cls._check_illegal_fake_path_case(
+        self._check_illegal_fake_path_case(
             func_to_test=check_acl_json_path_legality,
             fake_value=FakeFile.NOT_EXIST_ACL_JSON,
             is_exist=False
         )
 
-
-    @classmethod
-    def test_check_aipp_config_path_legality(cls):
+    def test_check_aipp_config_path_legality(self):
         assert check_aipp_config_path_legality("") == ""
 
-        cls._check_illegal_fake_path_case(
+        self._check_illegal_fake_path_case(
             func_to_test=check_aipp_config_path_legality,
             fake_value=FakeFile.NOT_READABLE_AIPP_CONFIG,
             permission=0o100
         )
 
-        cls._check_illegal_fake_path_case(
+        self._check_illegal_fake_path_case(
             func_to_test=check_aipp_config_path_legality,
             fake_value=FakeFile.SUFFIX_WRONG_AIPP_CONFIG,
             permission=0o750
         )
 
-        cls._check_illegal_fake_path_case(
+        self._check_illegal_fake_path_case(
             func_to_test=check_aipp_config_path_legality,
             fake_value=FakeFile.NOT_EXIST_AIPP_CONFIG,
             is_exist=False
         )
 
-    @classmethod
-    def test_device_range_valid(cls):
+    def test_device_range_valid(self):
         value = "1,-1"
         with pytest.raises(Exception):
             check_device_range_valid(value)
@@ -157,44 +153,39 @@ class TestClass:
         with pytest.raises(Exception):
             check_device_range_valid(value)
 
-    @classmethod
-    def test_check_dym_range_string(cls):
+    def test_check_dym_range_string(self):
         assert check_dym_range_string("") == ""
         value = "**"
         with pytest.raises(Exception):
             check_dym_range_string(value)
 
-    @classmethod
-    def test_check_dym_string(cls):
+    def test_check_dym_string(self):
         assert check_dym_string("") == ""
         value = "**"
         with pytest.raises(Exception):
             check_dym_string(value)
 
-    @classmethod
-    def test_check_input_path_legality(cls):
+    def test_check_input_path_legality(self):
         assert check_input_path_legality("") == ""
 
-        cls._check_illegal_fake_path_case(
+        self._check_illegal_fake_path_case(
             func_to_test=check_input_path_legality,
             fake_value=FakeFile.NOT_READABLE_INPUT_DIR,
             permission=0o100
         )
 
-        cls._check_illegal_fake_path_case(
+        self._check_illegal_fake_path_case(
             func_to_test=check_input_path_legality,
             fake_value=FakeFile.NOT_EXIST_INPUT_DIR,
             is_exist=False
         )
 
-    @classmethod
-    def test_check_nonnegative_integer(cls):
+    def test_check_nonnegative_integer(self):
         value = -1
         with pytest.raises(Exception):
             check_nonnegative_integer(value)
 
-    @classmethod
-    def test_check_npu_id_range_vaild(cls):
+    def test_check_npu_id_range_vaild(self):
         value = "1,-1"
         with pytest.raises(Exception):
             check_npu_id_range_vaild(value)
@@ -202,50 +193,45 @@ class TestClass:
         with pytest.raises(Exception):
             check_npu_id_range_vaild(value)
 
-    @classmethod
-    def test_check_number_list(cls):
+    def test_check_number_list(self):
         assert check_number_list(None) == None
         value = "**"
         with pytest.raises(Exception):
             check_number_list(value)
 
-    @classmethod
-    def test_check_om_path_legality(cls):
-        cls._check_illegal_fake_path_case(
+    def test_check_om_path_legality(self):
+        self._check_illegal_fake_path_case(
             func_to_test=check_om_path_legality,
             fake_value=FakeFile.NOT_READABLE_MODEL,
             permission=0o100
         )
 
-        cls._check_illegal_fake_path_case(
+        self._check_illegal_fake_path_case(
             func_to_test=check_om_path_legality,
             fake_value=FakeFile.SUFFIX_WRONG_MODEL,
             permission=0o750
         )
 
-        cls._check_illegal_fake_path_case(
+        self._check_illegal_fake_path_case(
             func_to_test=check_om_path_legality,
             fake_value=FakeFile.NOT_EXIST_MODEL,
             is_exist=False
         )
 
-    @classmethod
-    def test_check_output_path_legality(cls):
+    def test_check_output_path_legality(self):
         assert check_output_path_legality("") == ""
-        cls._check_illegal_fake_path_case(
+        self._check_illegal_fake_path_case(
             func_to_test=check_output_path_legality,
             fake_value=FakeFile.NOT_WRITABLE_OUTPUT_DIR,
             permission=0o400
         )
 
-    @classmethod
-    def test_check_positive_integer(cls):
+    def test_check_positive_integer(self):
         value = 0
         with pytest.raises(Exception):
             check_positive_integer(value)
 
-    @classmethod
-    def test_str2bool(cls):
+    def test_str2bool(self):
         assert str2bool("yes") == True
         assert str2bool("no") == False
         with pytest.raises(Exception):

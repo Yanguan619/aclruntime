@@ -18,7 +18,9 @@ import os
 import random
 import shutil
 import sys
+import json
 from fileinput import filename
+from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 
 import aclruntime
 import numpy as np
@@ -134,3 +136,88 @@ class TestCommonClass:
     def get_model_static_om_path(cls, batchsize, modelname):
         base_path = cls.get_basepath()
         return os.path.join(base_path, "{}/model".format(modelname), "pth_{}_bs{}.om".format(modelname, batchsize))
+
+    @classmethod
+    def get_legal_args(cls):
+        current_directory = cls.get_basepath()
+        model = os.path.join(
+            current_directory, "resnet50/model/pth_resnet50_bs1.om"
+        )
+        input_path = os.path.join(current_directory, "resnet50/input")
+        output = os.path.join(current_directory, "resnet50/output")
+        output_dirname = os.path.join(current_directory, "resnet50/output")
+        outfmt = "BIN"
+        loop = 1
+        debug = False
+        device = "100"
+        dym_batch = 2
+        dym_hw = "300,500"
+        dym_dims = "data:1,600;img_info:1,600"
+        dym_shape = "data:1,600:img_info:1,600"
+        output_size = "10"
+        auto_set_dymshape_mode = False
+        auto_set_dymdims_mode = False
+        batchsize = 10
+        pure_data_type = "zero"
+        profiler = False
+        dump = False
+        acl_json_path = os.path.join(current_directory, "acl.json")
+        json_data = {"test": {"data": "data"}}
+        with open(acl_json_path, "w") as file:
+            json.dump(json_data, file)
+        output_batchsize_axis = 1
+        run_mode = "array"
+        display_all_summary = False
+        warmup_count = 1
+        dym_shape_range = "data:1,600~700;img_info:1,600-700"
+        aipp_config = os.path.join(current_directory, "test_aipp_conf.config")
+        with open(aipp_config, "w"):
+            pass
+        energy_consumption = False
+        npu_id = "1,2,3"
+        backend = "trtexec"
+        perf = False
+        pipeline = False
+        profiler_rename = True
+        dump_npy = False
+        divide_input = False
+        threads = 1
+
+        args = AISBenchInferArgsAdapter(
+            model,
+            input_path,
+            output,
+            output_dirname,
+            outfmt,
+            loop,
+            debug,
+            device,
+            dym_batch,
+            dym_hw,
+            dym_dims,
+            dym_shape,
+            output_size,
+            auto_set_dymshape_mode,
+            auto_set_dymdims_mode,
+            batchsize,
+            pure_data_type,
+            profiler,
+            dump,
+            acl_json_path,
+            output_batchsize_axis,
+            run_mode,
+            display_all_summary,
+            warmup_count,
+            dym_shape_range,
+            aipp_config,
+            energy_consumption,
+            npu_id,
+            backend,
+            perf,
+            pipeline,
+            profiler_rename,
+            dump_npy,
+            divide_input,
+            threads,
+        )
+        return args

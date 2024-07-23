@@ -56,15 +56,15 @@ class TestClass:
         assert check_om_path_legality(args.model) == args.model
         assert check_input_path_legality(args.input) == args.input
         assert check_output_path_legality(args.output) == args.output
-        self._create_acl_json()
+        self._create_acl_json(args)
         assert check_acl_json_path_legality(args.acl_json_path) == args.acl_json_path
         assert check_aipp_config_path_legality(args.aipp_config) == args.aipp_config
 
-    def _create_acl_json(self):
-        if not os.path.exists(self.args.acl_json_path):
-            with open(self.args.acl_json_path, "w+") as file:
+    def _create_acl_json(self, args):
+        if not os.path.exists(args.acl_json_path):
+            with open(args.acl_json_path, "w+") as file:
                 json.dump({}, file, indent=4)
-        os.chmod(self.args.acl_json_path, 0o750)
+        os.chmod(args.acl_json_path, 0o750)
 
 
 if __name__ == "__main__":

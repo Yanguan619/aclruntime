@@ -46,18 +46,21 @@ DUMP_STR = "dump"
 
 
 class TestClass(unittest.TestCase):
-    args = get_args_class.get_args()
+    args = TestCommonClass.get_legal_args()
 
-    def test_version_check_with_correct_version(self):
-        version_check(self.args)
+    def test_version_check_with_cur_version(self):
+        tmp_args = self.args
+        version_check(tmp_args)
+        assert  tmp_args.run_mode != "tensor"
 
     @patch("pkg_resources.get_distribution")
-    def test_version_check_with_correct_version(self, mock_get_distribution):
+    def test_version_check_with_old_version(self, mock_get_distribution):
         mock_distribution = Mock()
         mock_distribution.version = "0.0.1"
         mock_get_distribution.return_value = mock_distribution
         args = Mock()
         version_check(args)
+        assert args.run_mode == "tensor"
 
     @patch("pkg_resources.get_distribution", side_effect=Exception("importerror"))
     def test_get_version_not_found(self, mock_get_distribution):

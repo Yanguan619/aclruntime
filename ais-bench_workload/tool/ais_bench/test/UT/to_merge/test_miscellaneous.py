@@ -22,6 +22,7 @@ import shutil
 from unittest.mock import Mock, patch
 
 import pytest
+from ais_bench.infer.interface import InferSession
 from ais_bench.infer.common.miscellaneous import (
     get_modules_version,
     version_check,
@@ -33,7 +34,6 @@ from ais_bench.infer.common.miscellaneous import (
     get_dymshape_list,
     get_throughtput_from_log,
     regenerate_dymshape_cmd,
-    dymshape_range_run,
 )
 from test_common import TestCommonClass
 from test_args_check import TestClass as get_args_class
@@ -46,32 +46,50 @@ logger = logging.getLogger(__name__)
 
 DUMP_STR = "dump"
 
-class FakeModelInput:
-    shape = "1,3,224,224"
+class TestClass:
+    @classmethod
+    def setup_class(cls):
+        """
+        class level setup_class
+        """
+        cls.init(TestClass)
 
+    @classmethod
+    def teardown_class(cls):
+        logger.info('\n ---class level teardown_class')
 
-class TestClass(unittest.TestCase):
-    args = TestCommonClass.get_legal_args()
+    def init(self):
+        self.args = TestCommonClass.get_legal_args()
 
     def test_version_check_with_cur_version(self):
         tmp_args = self.args
         version_check(tmp_args)
-        assert  tmp_args.run_mode != "tensor"
+        assert tmp_args.run_mode != "tensor"
 
-    @patch("pkg_resources.get_distribution")
-    def test_version_check_with_old_version(self, mock_get_distribution):
-        mock_distribution = Mock()
-        mock_distribution.aclruntime_version = "0.0.1"
-        mock_get_distribution.return_value = mock_distribution
-        args = Mock()
-        version_check(args)
-        assert args.run_mode == "tensor"
+    def test_version_check_with_old_version(self, monkeypatch):
+        tmp_args = self.args
+        def mock_get_version(prompt):
+            return "0.0.1"
+        monkeypatch.setattr(
+            "ais_bench.infer.common.miscellaneous",
+            "get_modules_version",
+            mock_get_version
+        )
+        version_check(tmp_args)
+        assert tmp_args.run_mode == "tensor"
 
-    @patch("pkg_resources.get_distribution", side_effect=Exception("importerror"))
-    def test_get_version_not_found(self, mock_get_distribution):
-        args = Mock()
-        with self.assertRaises(Exception):
-            version_check(args)
+    def test_get_version_not_found(self, monkeypatch):
+        tmp_args = self.args
+        def mock_get_version(prompt):
+            raise Exception
+        monkeypatch.setattr(
+            "ais_bench.infer.common.miscellaneous",
+            "get_modules_version",
+            mock_get_version
+        )
+        with self.assertRaises(Exception) as e:
+            version_check(tmp_args)
+            assert "can't find aclruntime" in e
 
     def test_check_valid_acl_json_for_dump(self):
         with open(self.args.acl_json_path, "r") as file:
@@ -149,7 +167,7 @@ class TestClass(unittest.TestCase):
         def mock_check_acl_json(prompt):
             return
         monkeypatch.setattr(
-            ais_bench.infer.common.miscellaneous,
+            "ais_bench.infer.common.miscellaneous",
             "check_valid_acl_json_for_dump",
             mock_check_acl_json
         )
@@ -173,26 +191,117 @@ class TestClass(unittest.TestCase):
         get_acl_json_path(tmp_args)
         assert os.path.exists(dump_dir)
 
-    def test_get_batchsize(self):
-        mock_distribution = Mock()
-        mock_distribution.intensors_desc = [FakeModelInput]
-        with pytest.raises(Exception):
-            get_batchsize(None, self.args)
+    def test_get_batchsize_auto(self, monkeypatch):
+        fake_shape = [1, 3, 4]
+        def mock_get_inputs(prompt):
+            return fake_shape
+        monkeypatch.setattr(
+            "ais_bench.infer.interface.InferSession",
+            "get_inputs",
+            mock_get_inputs
+        )
+        def mock_init_session(prompt):
+            return
+        monkeypatch.setattr(
+            "ais_bench.infer.interface.InferSession",
+            "__init__",
+            mock_init_session
+        )
+        session = InferSession(self.args.model)
+        tmp_args = self.args
+        tmp_args.dym_batch = 0
+        tmp_args.dym_dims = None
+        tmp_args.dym_shape = None
+        assert get_batchsize(session, tmp_args) == fake_shape[0]
+
+    def test_get_batchsize_dym_batch(self, monkeypatch):
+        fake_shape = [1, 3, 4]
+        def mock_get_inputs(prompt):
+            return fake_shape
+        monkeypatch.setattr(
+            "ais_bench.infer.interface.InferSession",
+            "get_inputs",
+            mock_get_inputs
+        )
+        def mock_init_session(prompt):
+            return
+        monkeypatch.setattr(
+            "ais_bench.infer.interface.InferSession",
+            "__init__",
+            mock_init_session
+        )
+        session = InferSession(self.args.model)
+        tmp_args = self.args
+        tmp_args.dym_batch = 2
+        tmp_args.dym_dims = None
+        tmp_args.dym_shape = None
+        assert get_batchsize(session, tmp_args) == tmp_args.dym_batch
+
+    def test_get_batchsize_dym_dims(self, monkeypatch):
+        fake_shape = [1, 3, 4]
+        def mock_get_inputs(prompt):
+            return fake_shape
+        monkeypatch.setattr(
+            "ais_bench.infer.interface.InferSession",
+            "get_inputs",
+            mock_get_inputs
+        )
+        def mock_init_session(prompt):
+            return
+        monkeypatch.setattr(
+            "ais_bench.infer.interface.InferSession",
+            "__init__",
+            mock_init_session
+        )
+
+        session = InferSession(self.args.model)
+        bs = 3
+        tmp_args = self.args
+        tmp_args.dym_batch = 0
+        tmp_args.dym_dims = f"data:{bs},600"
+        tmp_args.dym_shape = None
+        assert get_batchsize(session, tmp_args) == bs
+
+    def test_get_batchsize_dym_shapes(self, monkeypatch):
+        fake_shape = [1, 3, 4]
+        def mock_get_inputs(prompt):
+            return fake_shape
+        monkeypatch.setattr(
+            "ais_bench.infer.InferSession",
+            "get_inputs",
+            mock_get_inputs
+        )
+        def mock_init_session(prompt):
+            return
+        monkeypatch.setattr(
+            "ais_bench.infer.InferSession",
+            "__init__",
+            mock_init_session
+        )
+
+        session = InferSession(self.args.model)
+        bs = 3
+        tmp_args = self.args
+        tmp_args.dym_batch = 0
+        tmp_args.dym_dims = None
+        tmp_args.dym_shape = f"data:{bs},600"
+        assert get_batchsize(session, tmp_args) == bs
 
     def test_get_range_list(self):
-        ranges = "a:1-3,5;b:2,4-6"
-        get_range_list(ranges)
-
-    def test_get_dymshape_list(self):
-        get_dymshape_list(self.args.input)
+        ranges = "a:1-3,5;b:2,4~6"
+        range_list = get_range_list(ranges)
+        assert len(range_list) == 6
 
     def test_get_throughtput_from_log(self):
-        out_log = "throughput 1\n"
-        get_throughtput_from_log(out_log)
+        out_log = "throughput 1.01\n"
+        ret, throughput = get_throughtput_from_log(out_log)
+        assert ret == "OK"
+        assert abs(throughput - 1.01) < 1e-5
 
     def test_regenerate_dymshape_cmd(self):
-        regenerate_dymshape_cmd(self.args, self.args.dym_shape)
+        cmd_list = regenerate_dymshape_cmd(self.args, self.args.dym_shape)
+        assert "--dymShape_range" not in cmd_list
 
 
 if __name__ == "__main__":
-    unittest.main()
+    pytest.main([__file__, "-vs"])

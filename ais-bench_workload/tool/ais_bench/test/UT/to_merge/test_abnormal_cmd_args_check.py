@@ -103,6 +103,9 @@ class TestClass:
         with pytest.raises(Exception):
             check_batchsize_valid(value)
 
+    def init(self):
+        self.cur_dir = os.path.dirname(os.path.abspath(__file__))
+
     def test_check_acl_json_path_legality(self):
         assert check_acl_json_path_legality("") == ""
 
@@ -236,9 +239,6 @@ class TestClass:
         assert str2bool("no") == False
         with pytest.raises(Exception):
             str2bool("input_no_in_options")
-
-    def init(self):
-        self.cur_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 if __name__ == "__main__":

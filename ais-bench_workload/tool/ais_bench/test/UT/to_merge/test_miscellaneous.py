@@ -124,7 +124,7 @@ class TestClass:
             if not "need to set 'dump_list' attribute" in str(e):
                 pytest.fail("do not catch expected err!")
 
-    def test_acl_json_content_dump_path_illegal(self):
+    def test_acl_json_content_dump_path_illegal(self, monkeypatch):
         with open(self.args.acl_json_path, "r") as file:
             data = json.load(file)
         data[DUMP_STR] = {}
@@ -133,10 +133,9 @@ class TestClass:
         with open(self.args.acl_json_path, "w+") as file:
             json.dump(data, file, indent=4)
         os.chmod(self.args.acl_json_path, 0o750)
-        os.chmod(self.args.output, 0o500) # r x ok, w not ok
+        monkeypatch.setattr("os.access", lambda: False)
         with pytest.raises(ValueError) as e:
             check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
-            os.chmod(self.args.output, 0o750)
             if not "has no read/write permission" in str(e):
                 pytest.fail("do not catch expected err!")
 

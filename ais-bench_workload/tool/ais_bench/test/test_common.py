@@ -163,8 +163,11 @@ class TestCommonClass:
         dump = False
         acl_json_path = os.path.join(current_directory, "acl_sample.json")
         json_data = {"test": {"data": "data"}}
+        if os.path.exists(acl_json_path):
+            os.remove(acl_json_path)
         with open(acl_json_path, "w") as file:
             json.dump(json_data, file)
+        os.chmod(acl_json_path, 0o750)
         output_batchsize_axis = 1
         run_mode = "array"
         display_all_summary = False

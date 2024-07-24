@@ -132,10 +132,11 @@ class TestClass:
         data[DUMP_STR]["dump_path"] = self.args.output
         with open(self.args.acl_json_path, "w+") as file:
             json.dump(data, file, indent=4)
-        os.chmod(self.args.acl_json_path, 0o500) # r x ok, w not ok
+        os.chmod(self.args.acl_json_path, 0o750)
+        os.chmod(self.args.output, 0o500) # r x ok, w not ok
         with pytest.raises(ValueError) as e:
             check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
-            os.chmod(self.args.acl_json_path, 0o750)
+            os.chmod(self.args.output, 0o750)
             if not "has no read/write permission" in str(e):
                 pytest.fail("do not catch expected err!")
 

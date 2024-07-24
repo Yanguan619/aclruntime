@@ -212,18 +212,9 @@ class TestClass:
 
     def test_get_batchsize_dym_batch(self, monkeypatch):
         fake_shape = [1, 3, 4]
-        def mock_get_inputs(prompt):
-            return fake_shape
-        monkeypatch.setattr(
-            "ais_bench.infer.interface.InferSession.get_inputs",
-            mock_get_inputs
-        )
-        def mock_init_session(prompt):
-            return
-        monkeypatch.setattr(
-            "ais_bench.infer.interface.InferSession.__init__",
-            mock_init_session
-        )
+        fake_in_desc = FakeInputDesc(fake_shape)
+        monkeypatch.setattr("ais_bench.infer.interface.InferSession.__init__", lambda *args: None)
+        monkeypatch.setattr("ais_bench.infer.interface.InferSession.get_inputs", lambda *args: [fake_in_desc])
         session = InferSession(self.args.model)
         self.args.dym_batch = 2
         self.args.dym_dims = None
@@ -232,19 +223,9 @@ class TestClass:
 
     def test_get_batchsize_dym_dims(self, monkeypatch):
         fake_shape = [1, 3, 4]
-        def mock_get_inputs(prompt):
-            return fake_shape
-        monkeypatch.setattr(
-            "ais_bench.infer.interface.InferSession.get_inputs",
-            mock_get_inputs
-        )
-        def mock_init_session(prompt):
-            return
-        monkeypatch.setattr(
-            "ais_bench.infer.interface.InferSession.__init__",
-            mock_init_session
-        )
-
+        fake_in_desc = FakeInputDesc(fake_shape)
+        monkeypatch.setattr("ais_bench.infer.interface.InferSession.__init__", lambda *args: None)
+        monkeypatch.setattr("ais_bench.infer.interface.InferSession.get_inputs", lambda *args: [fake_in_desc])
         session = InferSession(self.args.model)
         bs = 3
         self.args.dym_batch = 0
@@ -254,19 +235,9 @@ class TestClass:
 
     def test_get_batchsize_dym_shapes(self, monkeypatch):
         fake_shape = [1, 3, 4]
-        def mock_get_inputs(prompt):
-            return fake_shape
-        monkeypatch.setattr(
-            "ais_bench.infer.InferSession.get_inputs",
-            mock_get_inputs
-        )
-        def mock_init_session(prompt):
-            return
-        monkeypatch.setattr(
-            "ais_bench.infer.InferSession.__init__",
-            mock_init_session
-        )
-
+        fake_in_desc = FakeInputDesc(fake_shape)
+        monkeypatch.setattr("ais_bench.infer.interface.InferSession.__init__", lambda *args: None)
+        monkeypatch.setattr("ais_bench.infer.interface.InferSession.get_inputs", lambda *args: [fake_in_desc])
         session = InferSession(self.args.model)
         bs = 3
         self.args.dym_batch = 0

@@ -69,8 +69,7 @@ class TestClass:
         def mock_get_version(prompt):
             return "0.0.1"
         monkeypatch.setattr(
-            "ais_bench.infer.common.miscellaneous",
-            "get_modules_version",
+            "ais_bench.infer.common.miscellaneous.get_modules_version",
             mock_get_version
         )
         version_check(tmp_args)
@@ -81,8 +80,7 @@ class TestClass:
         def mock_get_version(prompt):
             raise Exception
         monkeypatch.setattr(
-            "ais_bench.infer.common.miscellaneous",
-            "get_modules_version",
+            "ais_bench.infer.common.miscellaneous.get_modules_version",
             mock_get_version
         )
         with self.assertRaises(Exception) as e:
@@ -165,8 +163,7 @@ class TestClass:
         def mock_check_acl_json(prompt):
             return
         monkeypatch.setattr(
-            "ais_bench.infer.common.miscellaneous",
-            "check_valid_acl_json_for_dump",
+            "ais_bench.infer.common.miscellaneous.check_valid_acl_json_for_dump",
             mock_check_acl_json
         )
         assert get_acl_json_path(self.args) == self.args.acl_json_path
@@ -194,15 +191,13 @@ class TestClass:
         def mock_get_inputs(prompt):
             return fake_shape
         monkeypatch.setattr(
-            "ais_bench.infer.interface.InferSession",
-            "get_inputs",
+            "ais_bench.infer.interface.InferSession.get_inputs",
             mock_get_inputs
         )
         def mock_init_session(prompt):
             return
         monkeypatch.setattr(
-            "ais_bench.infer.interface.InferSession",
-            "__init__",
+            "ais_bench.infer.interface.InferSession.__init__",
             mock_init_session
         )
         session = InferSession(self.args.model)
@@ -217,15 +212,13 @@ class TestClass:
         def mock_get_inputs(prompt):
             return fake_shape
         monkeypatch.setattr(
-            "ais_bench.infer.interface.InferSession",
-            "get_inputs",
+            "ais_bench.infer.interface.InferSession.get_inputs",
             mock_get_inputs
         )
         def mock_init_session(prompt):
             return
         monkeypatch.setattr(
-            "ais_bench.infer.interface.InferSession",
-            "__init__",
+            "ais_bench.infer.interface.InferSession.__init__",
             mock_init_session
         )
         session = InferSession(self.args.model)
@@ -240,15 +233,13 @@ class TestClass:
         def mock_get_inputs(prompt):
             return fake_shape
         monkeypatch.setattr(
-            "ais_bench.infer.interface.InferSession",
-            "get_inputs",
+            "ais_bench.infer.interface.InferSession.get_inputs",
             mock_get_inputs
         )
         def mock_init_session(prompt):
             return
         monkeypatch.setattr(
-            "ais_bench.infer.interface.InferSession",
-            "__init__",
+            "ais_bench.infer.interface.InferSession.__init__",
             mock_init_session
         )
 
@@ -265,15 +256,13 @@ class TestClass:
         def mock_get_inputs(prompt):
             return fake_shape
         monkeypatch.setattr(
-            "ais_bench.infer.InferSession",
-            "get_inputs",
+            "ais_bench.infer.InferSession.get_inputs",
             mock_get_inputs
         )
         def mock_init_session(prompt):
             return
         monkeypatch.setattr(
-            "ais_bench.infer.InferSession",
-            "__init__",
+            "ais_bench.infer.InferSession.__init__",
             mock_init_session
         )
 

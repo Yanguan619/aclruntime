@@ -133,7 +133,7 @@ class TestClass:
         with open(self.args.acl_json_path, "w+") as file:
             json.dump(data, file, indent=4)
         os.chmod(self.args.acl_json_path, 0o750)
-        monkeypatch.setattr("os.access", lambda: False)
+        monkeypatch.setattr("os.access", lambda path, perm: False)
         with pytest.raises(ValueError) as e:
             check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
             if not "has no read/write permission" in str(e):

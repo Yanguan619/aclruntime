@@ -196,7 +196,7 @@ class TestClass:
     def test_get_batchsize_auto(self, monkeypatch):
         fake_shape = [1, 3, 4]
         monkeypatch.setattr("ais_bench.infer.interface.InferSession.__init__", lambda *args: None)
-        monkeypatch.setattr("ais_bench.infer.interface.InferSession.get_inputs", lambda: fake_shape)
+        monkeypatch.setattr("ais_bench.infer.interface.InferSession.get_inputs", lambda *args: fake_shape)
         session = InferSession(self.args.model)
         self.args.dym_batch = 0
         self.args.dym_dims = None

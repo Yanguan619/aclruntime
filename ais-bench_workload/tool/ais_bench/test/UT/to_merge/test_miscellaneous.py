@@ -16,10 +16,8 @@
 import os
 import sys
 import logging
-import unittest
 import json
 import shutil
-from unittest.mock import Mock, patch
 
 import pytest
 from ais_bench.infer.interface import InferSession

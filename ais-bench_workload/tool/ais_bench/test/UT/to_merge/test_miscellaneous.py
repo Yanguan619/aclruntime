@@ -170,11 +170,9 @@ class TestClass:
                 pytest.fail("do not catch expected err!")
 
     def test_get_acl_json_path_normal(self, monkeypatch):
-        def mock_check_acl_json(prompt):
-            return
         monkeypatch.setattr(
             "ais_bench.infer.common.miscellaneous.check_valid_acl_json_for_dump",
-            mock_check_acl_json
+            lambda x, y: None
         )
         assert get_acl_json_path(self.args) == self.args.acl_json_path
 

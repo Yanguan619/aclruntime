@@ -93,7 +93,7 @@ class TestClass:
         with open(self.args.acl_json_path, "r") as file:
             data = json.load(file)
         data[DUMP_STR] = {}
-        data[DUMP_STR]["dump_list"] = [{"model": get_model_name(self.args.model)}]
+        data[DUMP_STR]["dump_list"] = [{"model_name": get_model_name(self.args.model)}]
         data[DUMP_STR]["dump_path"] = self.args.output
         with open(self.args.acl_json_path, "w+") as file:
             json.dump(data, file, indent=4)
@@ -103,7 +103,7 @@ class TestClass:
         with open(self.args.acl_json_path, "r") as file:
             data = json.load(file)
         data[DUMP_STR] = {}
-        data[DUMP_STR]["dump_list"] = [{"model": "invalid_model_name"}]
+        data[DUMP_STR]["dump_list"] = [{"model_name": "invalid_model_name"}]
         data[DUMP_STR]["dump_path"] = self.args.output
         with open(self.args.acl_json_path, "w+") as file:
             json.dump(data, file, indent=4)
@@ -126,7 +126,7 @@ class TestClass:
         with open(self.args.acl_json_path, "r") as file:
             data = json.load(file)
         data[DUMP_STR] = {}
-        data[DUMP_STR]["dump_list"] = [{"model": get_model_name(self.args.model)}]
+        data[DUMP_STR]["dump_list"] = [{"model_name": get_model_name(self.args.model)}]
         data[DUMP_STR]["dump_path"] = self.args.output
         with open(self.args.acl_json_path, "w+") as file:
             json.dump(data, file, indent=4)
@@ -139,7 +139,7 @@ class TestClass:
         with open(self.args.acl_json_path, "r") as file:
             data = json.load(file)
         data[DUMP_STR] = {}
-        data[DUMP_STR]["dump_list"] = [{"model": "invalid_model_name"}]
+        data[DUMP_STR]["dump_list"] = [{"model_name": "invalid_model_name"}]
         data[DUMP_STR]["dump_path"] = self.args.output
         data[DUMP_STR]["dump_op_switch"] = "none"
         with open(self.args.acl_json_path, "w+") as file:
@@ -152,7 +152,7 @@ class TestClass:
         with open(self.args.acl_json_path, "r") as file:
             data = json.load(file)
         data[DUMP_STR] = {}
-        data[DUMP_STR]["dump_list"] = [{"model": "invalid_model_name"}]
+        data[DUMP_STR]["dump_list"] = [{"model_name": "invalid_model_name"}]
         data[DUMP_STR]["dump_path"] = self.args.output
         data[DUMP_STR]["dump_mode"] = "none"
         with open(self.args.acl_json_path, "w+") as file:

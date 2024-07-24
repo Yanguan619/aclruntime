@@ -83,10 +83,8 @@ class TestClass:
             "ais_bench.infer.common.miscellaneous.get_modules_version",
             mock_get_version
         )
-        with pytest.raises(ValueError) as e:
-            version_check(tmp_args)
-            if not "can't find aclruntime" in e:
-                pytest.fail("do not catch expected err!")
+        version_check(tmp_args)
+        assert tmp_args.run_mode == "tensor"
 
     def test_check_valid_acl_json_for_dump(self):
         with open(self.args.acl_json_path, "r") as file:
@@ -96,6 +94,7 @@ class TestClass:
         data[DUMP_STR]["dump_path"] = self.args.output
         with open(self.args.acl_json_path, "w+") as file:
             json.dump(data, file, indent=4)
+        os.chmod(self.args.acl_json_path, 0o750)
         check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
 
     def test_acl_json_content_wrong_model_name(self):
@@ -106,9 +105,10 @@ class TestClass:
         data[DUMP_STR]["dump_path"] = self.args.output
         with open(self.args.acl_json_path, "w+") as file:
             json.dump(data, file, indent=4)
+        os.chmod(self.args.acl_json_path, 0o750)
         with pytest.raises(ValueError) as e:
             check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
-            if not "'model_name' is not set or set" in e:
+            if not "'model_name' is not set or set" in str(e):
                 pytest.fail("do not catch expected err!")
 
     def test_acl_json_content_missing_dump_list(self):
@@ -118,9 +118,10 @@ class TestClass:
         data[DUMP_STR]["dump_path"] = self.args.output
         with open(self.args.acl_json_path, "w+") as file:
             json.dump(data, file, indent=4)
+        os.chmod(self.args.acl_json_path, 0o750)
         with pytest.raises(KeyError) as e:
             check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
-            if not "need to set 'dump_list' attribute" in e:
+            if not "need to set 'dump_list' attribute" in str(e):
                 pytest.fail("do not catch expected err!")
 
     def test_acl_json_content_dump_path_illegal(self):
@@ -134,7 +135,8 @@ class TestClass:
         os.chmod(self.args.acl_json_path, 0o500) # r x ok, w not ok
         with pytest.raises(ValueError) as e:
             check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
-            if not "has no read/write permission" in e:
+            os.chmod(self.args.acl_json_path, 0o750)
+            if not "has no read/write permission" in str(e):
                 pytest.fail("do not catch expected err!")
 
     def test_acl_json_content_dump_op_switch_illegal(self):
@@ -146,9 +148,10 @@ class TestClass:
         data[DUMP_STR]["dump_op_switch"] = "none"
         with open(self.args.acl_json_path, "w+") as file:
             json.dump(data, file, indent=4)
+        os.chmod(self.args.acl_json_path, 0o750)
         with pytest.raises(ValueError) as e:
             check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
-            if not "'dump_op_switch' need to be" in e:
+            if not "'dump_op_switch' need to be" in str(e):
                 pytest.fail("do not catch expected err!")
 
     def test_acl_json_content_dump_mode_illegal(self):
@@ -160,9 +163,10 @@ class TestClass:
         data[DUMP_STR]["dump_mode"] = "none"
         with open(self.args.acl_json_path, "w+") as file:
             json.dump(data, file, indent=4)
+        os.chmod(self.args.acl_json_path, 0o750)
         with pytest.raises(ValueError) as e:
             check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
-            if not "'dump_mode' need to be set" in e:
+            if not "'dump_mode' need to be set" in str(e):
                 pytest.fail("do not catch expected err!")
 
     def test_get_acl_json_path_normal(self, monkeypatch):

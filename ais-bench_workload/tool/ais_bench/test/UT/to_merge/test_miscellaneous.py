@@ -60,31 +60,28 @@ class TestClass:
         self.args = TestCommonClass.get_legal_args()
 
     def test_version_check_with_cur_version(self):
-        tmp_args = self.args
-        version_check(tmp_args)
-        assert tmp_args.run_mode != "tensor"
+        version_check(self.args)
+        assert self.args.run_mode != "tensor"
 
     def test_version_check_with_old_version(self, monkeypatch):
-        tmp_args = self.args
         def mock_get_version(prompt):
             return "0.0.1"
         monkeypatch.setattr(
             "ais_bench.infer.common.miscellaneous.get_modules_version",
             mock_get_version
         )
-        version_check(tmp_args)
-        assert tmp_args.run_mode == "tensor"
+        version_check(self.args)
+        assert self.args.run_mode == "tensor"
 
     def test_get_version_not_found(self, monkeypatch):
-        tmp_args = self.args
         def mock_get_version(prompt):
             raise Exception
         monkeypatch.setattr(
             "ais_bench.infer.common.miscellaneous.get_modules_version",
             mock_get_version
         )
-        version_check(tmp_args)
-        assert tmp_args.run_mode == "tensor"
+        version_check(self.args)
+        assert self.args.run_mode == "tensor"
 
     def test_check_valid_acl_json_for_dump(self):
         with open(self.args.acl_json_path, "r") as file:
@@ -177,23 +174,23 @@ class TestClass:
         assert get_acl_json_path(self.args) == self.args.acl_json_path
 
     def test_get_acl_json_path_with_profiler(self):
-        tmp_args = self.args
-        tmp_args.acl_json_path = None
-        tmp_args.profiler = True
-        profiler_dir = os.path.join(tmp_args.output, "profiler")
+        self.args.acl_json_path = None
+        self.args.profiler = True
+        self.args.dump = False
+        profiler_dir = os.path.join(self.args.output, "profiler")
         if os.path.exists(profiler_dir):
             shutil.rmtree(profiler_dir)
-        get_acl_json_path(tmp_args)
+        get_acl_json_path(self.args)
         assert os.path.exists(profiler_dir)
 
     def test_get_acl_json_path_with_dump(self):
-        tmp_args = self.args
-        tmp_args.acl_json_path = None
-        tmp_args.dump = True
-        dump_dir = os.path.join(tmp_args.output, "dump")
+        self.args.acl_json_path = None
+        self.args.profiler = False
+        self.args.dump = True
+        dump_dir = os.path.join(self.args.output, "dump")
         if os.path.exists(dump_dir):
             shutil.rmtree(dump_dir)
-        get_acl_json_path(tmp_args)
+        get_acl_json_path(self.args)
         assert os.path.exists(dump_dir)
 
     def test_get_batchsize_auto(self, monkeypatch):
@@ -211,11 +208,10 @@ class TestClass:
             mock_init_session
         )
         session = InferSession(self.args.model)
-        tmp_args = self.args
-        tmp_args.dym_batch = 0
-        tmp_args.dym_dims = None
-        tmp_args.dym_shape = None
-        assert get_batchsize(session, tmp_args) == fake_shape[0]
+        self.args.dym_batch = 0
+        self.args.dym_dims = None
+        self.args.dym_shape = None
+        assert get_batchsize(session, self.args) == fake_shape[0]
 
     def test_get_batchsize_dym_batch(self, monkeypatch):
         fake_shape = [1, 3, 4]
@@ -232,11 +228,10 @@ class TestClass:
             mock_init_session
         )
         session = InferSession(self.args.model)
-        tmp_args = self.args
-        tmp_args.dym_batch = 2
-        tmp_args.dym_dims = None
-        tmp_args.dym_shape = None
-        assert get_batchsize(session, tmp_args) == tmp_args.dym_batch
+        self.args.dym_batch = 2
+        self.args.dym_dims = None
+        self.args.dym_shape = None
+        assert get_batchsize(session, self.args) == self.args.dym_batch
 
     def test_get_batchsize_dym_dims(self, monkeypatch):
         fake_shape = [1, 3, 4]
@@ -255,11 +250,10 @@ class TestClass:
 
         session = InferSession(self.args.model)
         bs = 3
-        tmp_args = self.args
-        tmp_args.dym_batch = 0
-        tmp_args.dym_dims = f"data:{bs},600"
-        tmp_args.dym_shape = None
-        assert get_batchsize(session, tmp_args) == bs
+        self.args.dym_batch = 0
+        self.args.dym_dims = f"data:{bs},600"
+        self.args.dym_shape = None
+        assert get_batchsize(session, self.args) == bs
 
     def test_get_batchsize_dym_shapes(self, monkeypatch):
         fake_shape = [1, 3, 4]
@@ -278,11 +272,10 @@ class TestClass:
 
         session = InferSession(self.args.model)
         bs = 3
-        tmp_args = self.args
-        tmp_args.dym_batch = 0
-        tmp_args.dym_dims = None
-        tmp_args.dym_shape = f"data:{bs},600"
-        assert get_batchsize(session, tmp_args) == bs
+        self.args.dym_batch = 0
+        self.args.dym_dims = None
+        self.args.dym_shape = f"data:{bs},600"
+        assert get_batchsize(session, self.args) == bs
 
     def test_get_range_list(self):
         ranges = "a:1-3,5;b:2,4~6"

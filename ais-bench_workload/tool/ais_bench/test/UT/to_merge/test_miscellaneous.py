@@ -181,7 +181,8 @@ class TestClass:
         tmp_args.acl_json_path = None
         tmp_args.profiler = True
         profiler_dir = os.path.join(tmp_args.output, "profiler")
-        shutil.rmtree(profiler_dir)
+        if os.path.exists(profiler_dir):
+            shutil.rmtree(profiler_dir)
         get_acl_json_path(tmp_args)
         assert os.path.exists(profiler_dir)
 
@@ -190,7 +191,8 @@ class TestClass:
         tmp_args.acl_json_path = None
         tmp_args.dump = True
         dump_dir = os.path.join(tmp_args.output, "dump")
-        shutil.rmtree(dump_dir)
+        if os.path.exists(dump_dir):
+            shutil.rmtree(dump_dir)
         get_acl_json_path(tmp_args)
         assert os.path.exists(dump_dir)
 

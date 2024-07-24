@@ -58,6 +58,7 @@ class TestClass:
         assert check_output_path_legality(args.output) == args.output
         self._create_acl_json(args)
         assert check_acl_json_path_legality(args.acl_json_path) == args.acl_json_path
+
         assert check_aipp_config_path_legality(args.aipp_config) == args.aipp_config
 
     def _create_acl_json(self, args):

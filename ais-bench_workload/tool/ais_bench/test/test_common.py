@@ -173,6 +173,7 @@ class TestCommonClass:
         aipp_config = os.path.join(current_directory, "test_aipp_conf.config")
         with open(aipp_config, "w"):
             pass
+        os.chmod(aipp_config, 0o750)
         energy_consumption = False
         npu_id = "1,2,3"
         backend = "trtexec"

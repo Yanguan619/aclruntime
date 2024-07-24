@@ -36,8 +36,6 @@ from ais_bench.infer.common.miscellaneous import (
     regenerate_dymshape_cmd,
 )
 from test_common import TestCommonClass
-from test_args_check import TestClass as get_args_class
-
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.INFO, format="[%(levelname)s] %(message)s"

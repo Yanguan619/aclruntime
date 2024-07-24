@@ -46,8 +46,9 @@ DUMP_STR = "dump"
 
 
 class FakeInputDesc:
-    def __init__(self, shape):
+    def __init__(self, shape, name="df"):
         self.shape = shape
+        self.name = name
 
 
 class TestClass:
@@ -223,26 +224,28 @@ class TestClass:
 
     def test_get_batchsize_dym_dims(self, monkeypatch):
         fake_shape = [1, 3, 4]
-        fake_in_desc = FakeInputDesc(fake_shape)
+        fake_name = "data"
+        fake_in_desc = FakeInputDesc(fake_shape, fake_name)
         monkeypatch.setattr("ais_bench.infer.interface.InferSession.__init__", lambda *args: None)
         monkeypatch.setattr("ais_bench.infer.interface.InferSession.get_inputs", lambda *args: [fake_in_desc])
         session = InferSession(self.args.model)
         bs = 3
         self.args.dym_batch = 0
-        self.args.dym_dims = f"data:{bs},600"
+        self.args.dym_dims = f"{fake_name}:{bs},600"
         self.args.dym_shape = None
         assert get_batchsize(session, self.args) == bs
 
     def test_get_batchsize_dym_shapes(self, monkeypatch):
         fake_shape = [1, 3, 4]
-        fake_in_desc = FakeInputDesc(fake_shape)
+        fake_name = "data"
+        fake_in_desc = FakeInputDesc(fake_shape, fake_name)
         monkeypatch.setattr("ais_bench.infer.interface.InferSession.__init__", lambda *args: None)
         monkeypatch.setattr("ais_bench.infer.interface.InferSession.get_inputs", lambda *args: [fake_in_desc])
         session = InferSession(self.args.model)
         bs = 3
         self.args.dym_batch = 0
         self.args.dym_dims = None
-        self.args.dym_shape = f"data:{bs},600"
+        self.args.dym_shape = f"{fake_name}:{bs},600"
         assert get_batchsize(session, self.args) == bs
 
     def test_get_range_list(self):

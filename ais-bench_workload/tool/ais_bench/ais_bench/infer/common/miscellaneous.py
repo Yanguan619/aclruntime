@@ -64,6 +64,7 @@ def version_check(args):
                 "from gitee repo: Ascend/tools, path: tools/ais_bench-workload/tool/ais_bench."
         )
         args.run_mode = "tensor"
+        return
     if aclruntime_version != "0.0.2":
         logger.warning(
             f"aclruntime{aclruntime_version} version is lower, please update " + \

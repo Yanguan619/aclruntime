@@ -44,6 +44,12 @@ logger = logging.getLogger(__name__)
 
 DUMP_STR = "dump"
 
+
+class FakeInputDesc:
+    def __init__(self, shape):
+        self.shape = shape
+
+
 class TestClass:
     @classmethod
     def setup_class(cls):
@@ -195,8 +201,9 @@ class TestClass:
 
     def test_get_batchsize_auto(self, monkeypatch):
         fake_shape = [1, 3, 4]
+        fake_in_desc = FakeInputDesc(fake_shape)
         monkeypatch.setattr("ais_bench.infer.interface.InferSession.__init__", lambda *args: None)
-        monkeypatch.setattr("ais_bench.infer.interface.InferSession.get_inputs", lambda *args: fake_shape)
+        monkeypatch.setattr("ais_bench.infer.interface.InferSession.get_inputs", lambda *args: [fake_in_desc])
         session = InferSession(self.args.model)
         self.args.dym_batch = 0
         self.args.dym_dims = None

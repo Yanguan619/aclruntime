@@ -24,6 +24,7 @@ from ais_bench.infer.common.path_security_check import ms_open, MAX_SIZE_LIMITE_
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 
 PERMISSION_DIR = 0o750
+DYMSHAPE_RANGE_TIMEOUT = 600
 
 ACL_JSON_CMD_LIST = [
     "output",
@@ -258,7 +259,7 @@ def dymshape_range_run(args: AISBenchInferArgsAdapter):
         result = {"dymshape": dymshape, "cmd": cmd, "result": "Failed", "throughput": 0}
         logger.debug("cmd:{}".format(cmd))
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, _ = p.communicate(timeout=10)
+        stdout, _ = p.communicate(timeout=DYMSHAPE_RANGE_TIMEOUT)
         out_log = stdout.decode('utf-8')
         print(out_log)  # show original log of cmd
         result["result"], result["throughput"] = get_throughtput_from_log(out_log)

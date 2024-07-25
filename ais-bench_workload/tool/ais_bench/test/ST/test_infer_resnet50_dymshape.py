@@ -86,6 +86,7 @@ class TestClass:
             file_name = 'input_shape_{}'.format(i)
             file = os.path.join(dirname, "{}.npy".format(file_name))
             np.save(file, x)
+            os.chmod(file, 0o640)
             i += 1
 
     @classmethod

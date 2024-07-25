@@ -28,7 +28,7 @@ debug_ut_script_list=( \
     "utils_file/test_backend_trtexec.py" \
     "utils_file/test_miscellaneous.py" \
     "utils_file/test_summary.py" \
-    "test_argparser.py"
+    "test_argparser.py" \
 )
 
 full_st_script_list=( \
@@ -45,6 +45,7 @@ full_ut_script_list=( \
     "utils_file/test_backend_trtexec.py" \
     "utils_file/test_miscellaneous.py" \
     "utils_file/test_summary.py" \
+    "test_argparser.py" \
     "test_args_ut.py" \
     "test_dymaipp.py" \
     "test_dymshape.py" \

@@ -44,27 +44,27 @@ class TestClass:
         self.list_info = ListInfo()
 
     def test_get_list_info_merged(self):
-        intervals_list = [[0, 1.0], [1.0, 2.0], [3.0, 5.0], [4.0, 6.0], [8.0, 9.0]]
+        intervals_list = [[0, 1], [1, 2], [3, 5], [4, 6], [8, 13]]
         list_info = self.summary.get_list_info(
             work_list=intervals_list,
             percentile_scale=90,
             merge=True
         )
-        assert abs(list_info.mean - 1.2) <= 1e-5
+        assert list_info.mean == 2
 
     def test_get_list_info_not_merged(self):
 
-        work_list = [1.0, 2.0, 3.0, 4.0, 5.0]
+        work_list = [1, 2, 3, 4, 5]
         list_info = self.summary.get_list_info(
             work_list=work_list,
             percentile_scale=60,
             merge=True
         )
-        assert abs(list_info.min - 1.0) <= 1e-5
-        assert abs(list_info.max - 5.0) <= 1e-5
-        assert abs(list_info.median - 3.0) <= 1e-5
-        assert abs(list_info.mean - 3.0) <= 1e-5
-        assert abs(list_info.percentile - 3.0) <= 1e-5
+        assert list_info.min == 1
+        assert list_info.max == 5
+        assert list_info.median == 3
+        assert list_info.mean == 3
+        assert list_info.percentile == 3
 
     def test_add_batchsize(self):
         bs = 4
@@ -178,10 +178,10 @@ class TestClass:
         self.summary._batchsizes = [1]
 
     def _init_list_info(self):
-        self.list_info.min = 1.0
-        self.list_info.max = 5.0
-        self.list_info.mean = 3.0
-        self.list_info.median = 3.0
-        self.list_info.percentile = 3.0
+        self.list_info.min = 1
+        self.list_info.max = 5
+        self.list_info.mean = 3
+        self.list_info.median = 3
+        self.list_info.percentile = 3
 if __name__ == "__main__":
     pytest.main([__file__, "-vs"])

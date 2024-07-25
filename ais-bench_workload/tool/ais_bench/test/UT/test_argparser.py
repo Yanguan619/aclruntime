@@ -97,7 +97,10 @@ class TestClass:
                 args.display_all_summary, args.warmup_count, args.dym_shape_range, args.aipp_config,
                 args.energy_consumption, args.npu_id, args.backend, args.perf, args.pipeline, args.profiler_rename,
                 args.dump_npy, args.divide_input, args.threads)
-
-            assert f"{args.get_all_args_dict().get(arg_name)}" == value
+            result = args.get_all_args_dict().get(arg_name)
+            if isinstance(result, bool):
+                assert result
+            else:
+                assert f"{result}" == value
 
 

@@ -57,7 +57,7 @@ class TestClass:
         work_list = [1, 2, 3, 4, 5]
         list_info = self.summary.get_list_info(
             work_list=work_list,
-            percentile_scale=60,
+            percentile_scale=50,
             merge=False
         )
         assert list_info.min == 1

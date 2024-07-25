@@ -81,7 +81,20 @@ class TestClass:
         return
 
     def test_argparser_args(self, monkeypatch):
-        self._init_monked_func(monkeypatch)
+        monkeypatch.setattr("ais_bench.infer.args_check.check_dym_string", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.args_check.check_dym_range_string", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.args_check.check_number_list", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.args_check.str2bool", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.args_check.check_batchsize_valid", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.args_check.check_nonnegative_integer", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.args_check.check_npu_id_range_vaild", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.args_check.check_device_range_valid", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.args_check.check_om_path_legality", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.args_check.check_input_path_legality", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.args_check.check_output_path_legality", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.args_check.check_acl_json_path_legality", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.args_check.check_aipp_config_path_legality", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.args_check.check_dym_string", lambda value: value)
         for arg_name, value in ARGS_VALUE_DICT.items():
             monkeypatch.setattr('sys.argv', ["python3", arg_name, value])
             monkeypatch.setattr(f'ais_bench.infer.__main__', lambda *args, **kwargs: (args, kwargs))
@@ -97,18 +110,4 @@ class TestClass:
 
             assert args.get_all_args_dict().get(arg_name) == value
 
-    def _init_monked_func(self, monkeypatch):
-        monkeypatch.setattr("ais_bench.infer.args_check.check_dym_string", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_dym_range_string", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_number_list", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.str2bool", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_batchsize_valid", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_nonnegative_integer", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_npu_id_range_vaild", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_device_range_valid", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_om_path_legality", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_input_path_legality", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_output_path_legality", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_acl_json_path_legality", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_aipp_config_path_legality", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_dym_string", lambda value: value)
+

@@ -98,6 +98,6 @@ class TestClass:
                 args.energy_consumption, args.npu_id, args.backend, args.perf, args.pipeline, args.profiler_rename,
                 args.dump_npy, args.divide_input, args.threads)
 
-            assert args.get_all_args_dict().get(arg_name) == value
+            assert f"{args.get_all_args_dict().get(arg_name)}" == value
 
 

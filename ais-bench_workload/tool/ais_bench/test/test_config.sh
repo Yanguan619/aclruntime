@@ -17,7 +17,7 @@
 export PYTHON_COMMAND="python3"
 export AISBENCH_INFER_DT_DEVICE_ID=7
 export AISBENCH_INFER_DT_MODE="debug" # "full" "simple" "debug"
-export PYTEST_RUN_MODE="run_only" # "run_only" "csv_report" "html_report"
+export PYTEST_RUN_MODE="show_coverage" # "run_only" "csv_report" "html_report" "show_coverage"
 
 debug_st_script_list=( \
 )
@@ -39,6 +39,11 @@ full_st_script_list=( \
 )
 
 full_ut_script_list=( \
+    "utils_file/test_abnormal_cmd_args_check.py" \
+    "utils_file/test_cmd_args_check.py" \
+    "utils_file/test_backend_trtexec.py" \
+    "utils_file/test_miscellaneous.py" \
+    "utils_file/test_summary.py" \
     "test_args_ut.py" \
     "test_dymaipp.py" \
     "test_dymshape.py" \
@@ -61,6 +66,11 @@ simple_st_script_list=( \
 )
 
 simple_ut_script_list=( \
+    "utils_file/test_abnormal_cmd_args_check.py" \
+    "utils_file/test_cmd_args_check.py" \
+    "utils_file/test_backend_trtexec.py" \
+    "utils_file/test_miscellaneous.py" \
+    "utils_file/test_summary.py" \
     "test_args_ut.py" \
     "test_dymaipp.py" \
     "test_inference.py" \

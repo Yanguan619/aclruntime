@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import os
 import sys
 import logging
 
@@ -26,8 +26,9 @@ from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
+
 ARGS_VALUE_DICT = {
-    "--model": "xx.om",
+    "--model": os.path.join(TestCommonClass.base_path, "resnet50/model/pth_resnet50_bs1.om"),
     "--input": "xx.bin",
     "--output": "xx/",
     "--output_dirname": "xx/",
@@ -81,20 +82,9 @@ class TestClass:
         return
 
     def test_argparser_args(self, monkeypatch):
-        monkeypatch.setattr("ais_bench.infer.args_check.check_dym_string", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_dym_range_string", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_number_list", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.str2bool", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_batchsize_valid", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_nonnegative_integer", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_npu_id_range_vaild", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_device_range_valid", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_om_path_legality", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_input_path_legality", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_output_path_legality", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_acl_json_path_legality", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_aipp_config_path_legality", lambda value: value)
-        monkeypatch.setattr("ais_bench.infer.args_check.check_dym_string", lambda value: value)
+        monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_basically_legal", lambda *arg: True)
+        monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_legal_file_type", lambda *arg: True)
+        monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_legal_file_size", lambda *arg: True)
         for arg_name, value in ARGS_VALUE_DICT.items():
             monkeypatch.setattr('sys.argv', ["python3", arg_name, value])
             monkeypatch.setattr(f'ais_bench.infer.__main__', lambda *args, **kwargs: (args, kwargs))

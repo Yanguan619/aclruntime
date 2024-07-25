@@ -42,9 +42,6 @@ class TestClass:
         self.summary = Summary()
         self.result = Result()
         self.list_info = ListInfo()
-        self.result.d2h_latency = self.listInfo
-        self.result.npu_compute_time = self.listInfo
-        self.result.h2d_latency = self.listInfo
 
     def test_get_list_info_merged(self):
         intervals_list = [[0, 1.0], [1.0, 2.0], [3.0, 5.0], [4.0, 6.0], [8.0, 9.0]]

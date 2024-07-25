@@ -86,7 +86,7 @@ class TestClass:
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_legal_file_type", lambda *arg: True)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_legal_file_size", lambda *arg: True)
         for arg_name, value in ARGS_VALUE_DICT.items():
-            monkeypatch.setattr('sys.argv', ["python3", arg_name, value])
+            monkeypatch.setattr('sys.argv', ["python3", "--model", "xx.om"] + [arg_name, value])
             monkeypatch.setattr(f'ais_bench.infer.__main__', lambda *args, **kwargs: (args, kwargs))
             args = get_args()
             args = AISBenchInferArgsAdapter(args.model, args.input, args.output,

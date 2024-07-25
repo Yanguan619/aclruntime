@@ -23,7 +23,11 @@ debug_st_script_list=( \
 )
 
 debug_ut_script_list=( \
-    "to_merge/test_abnormal_cmd_args_check.py" \
+    "utils_file/test_abnormal_cmd_args_check.py" \
+    "utils_file/test_cmd_args_check.py" \
+    "utils_file/test_backend_trtexec.py" \
+    "utils_file/test_miscellaneous.py" \
+    "utils_file/test_summary.py" \
 )
 
 full_st_script_list=( \

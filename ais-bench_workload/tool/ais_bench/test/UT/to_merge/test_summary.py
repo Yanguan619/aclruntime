@@ -41,7 +41,7 @@ class TestClass:
     def init(self):
         self.summary = Summary()
         self.result = Result()
-        self.listInfo = ListInfo()
+        self.list_info = ListInfo()
         self.result.d2h_latency = self.listInfo
         self.result.npu_compute_time = self.listInfo
         self.result.h2d_latency = self.listInfo
@@ -132,23 +132,30 @@ class TestClass:
         self.summary.display(self.result, diaplay_all_summary=False, multi_threads=True)
         self.summary.display(self.result, diaplay_all_summary=True, multi_threads=True)
 
-    def test_report(self):
-        batchsize = 1
-        work_list = [[1, 2], [1, 3], [3, 4], [5, 6], [6, 7]]
-        output_prefix = TestCommonClass.base_path
-        self.summary.npu_compute_time_list = work_list
-        self.summary.npu_compute_time_interval_list = work_list
-        display_all_summary = False
-        multi_threads = False
-        with pytest.raises(Exception):
-            self.summary.report(
-                batchsize, output_prefix, display_all_summary, multi_threads
-            )
-        self.summary.npu_compute_time_list = []
-        self.summary.npu_compute_time_interval_list = work_list
-        self.summary.report(
-            batchsize, output_prefix, display_all_summary, multi_threads
+    def test_report(self, monkeypatch):
+        self._init_summary()
+        self._init_list_info()
+        monkeypatch.setattr(
+            "ais_bench.infer.summary.Summary.get_list_info",
+            lambda x, y: self.list_info
         )
+        monkeypatch.setattr(
+            "ais_bench.infer.summary.Summary.display",
+            lambda x, y, z: None
+        )
+        output_prefix = TestCommonClass.base_path + "/test"
+        bs = 3
+
+        # expect Exception,pipeline format list and normal list can't exist both
+        with pytest.raises(Exception):
+            self.summary.report(batchsize=bs, output_prefix=output_prefix)
+
+        self.summary.npu_compute_time_interval_list = []
+        out_summary_json_path = output_prefix + "_summary.json"
+        if os.path.exists(out_summary_json_path):
+            os.remove(out_summary_json_path)
+        self.summary.report(batchsize=bs, output_prefix=output_prefix)
+        assert os.path.exists(out_summary_json_path)
 
     def _init_result_normal(self):
         time_list = [1, 2, 3]
@@ -166,6 +173,18 @@ class TestClass:
         self.result.h2d_latency = self.summary.get_list_info(time_list, scale, True)
         self.result.d2h_latency = self.summary.get_list_info(time_list, scale, True)
 
+    def _init_summary(self):
+        self.summary.h2d_latency_list = [1]
+        self.summary.d2h_latency_list = [1]
+        self.summary.npu_compute_time_list = [1]
+        self.summary.npu_compute_time_interval_list = [1]
+        self.summary._batchsizes = [1]
 
+    def _init_list_info(self):
+        self.list_info.min = 1.0
+        self.list_info.max = 5.0
+        self.list_info.mean = 3.0
+        self.list_info.median = 3.0
+        self.list_info.percentile = 3.0
 if __name__ == "__main__":
     pytest.main([__file__, "-vs"])

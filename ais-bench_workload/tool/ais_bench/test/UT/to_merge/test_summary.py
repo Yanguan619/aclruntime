@@ -58,7 +58,7 @@ class TestClass:
         list_info = self.summary.get_list_info(
             work_list=work_list,
             percentile_scale=60,
-            merge=True
+            merge=False
         )
         assert list_info.min == 1
         assert list_info.max == 5
@@ -91,12 +91,6 @@ class TestClass:
         fake_args = "arg1"
         self.summary.add_args(args=fake_args)
         assert self.summary.infodict.get("args") == fake_args
-
-    def test_record_normal(self):
-        multi_threads = True
-        self.summary.record(self.result, multi_threads)
-        multi_threads = False
-        self.summary.record(self.result, multi_threads)
 
     def test_record_normal(self):
         target_time_list_size = 6

@@ -87,6 +87,7 @@ class AISBenchInferArgsAdapter():
         args_dict.update({'--aipp_config':self.aipp_config})
         args_dict.update({'--energy_consumption':self.energy_consumption})
         args_dict.update({'--npu_id':self.npu_id})
+        args_dict.update({'--backend':self.backend})
         args_dict.update({'--perf':self.perf})
         args_dict.update({'--pipeline':self.pipeline})
         args_dict.update({'--profiler_rename':self.profiler_rename})

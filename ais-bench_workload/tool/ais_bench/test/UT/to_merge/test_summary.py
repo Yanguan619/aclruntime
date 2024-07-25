@@ -97,42 +97,42 @@ class TestClass:
         self.summary.reset()
         self._init_result_normal()
         self.summary.record(self.result, multi_threads=False)
-        assert len(self.summary.infodict.get('NPU_compute_time')) == target_time_list_size
-        assert len(self.summary.infodict.get('H2D_latency')) == target_time_list_size
-        assert len(self.summary.infodict.get('D2H_latency')) == target_time_list_size
-        assert self.summary.infodict.get('npu_compute_time_list') == self.summary.npu_compute_time_interval_list
-        assert self.summary.infodict.get('throughput') is not None
-        assert self.summary.infodict.get('pid') is not None
+        assert len(self.summary.infodict.get("NPU_compute_time")) == target_time_list_size
+        assert len(self.summary.infodict.get("H2D_latency")) == target_time_list_size
+        assert len(self.summary.infodict.get("D2H_latency")) == target_time_list_size
+        assert self.summary.infodict.get("npu_compute_time_list") == self.summary.npu_compute_time_interval_list
+        assert self.summary.infodict.get("throughput") is not None
+        assert self.summary.infodict.get("pid") is not None
 
     def test_record_multi_thread(self):
         target_time_list_size = 2
         self.summary.reset()
         self._init_result_multi_threads()
         self.summary.record(self.result, multi_threads=True)
-        assert len(self.summary.infodict.get('NPU_compute_time')) == target_time_list_size
-        assert len(self.summary.infodict.get('H2D_latency')) == target_time_list_size
-        assert len(self.summary.infodict.get('D2H_latency')) == target_time_list_size
-        assert self.summary.infodict.get('npu_compute_time_list') == self.summary.npu_compute_time_interval_list
+        assert len(self.summary.infodict.get("NPU_compute_time")) == target_time_list_size
+        assert len(self.summary.infodict.get("H2D_latency")) == target_time_list_size
+        assert len(self.summary.infodict.get("D2H_latency")) == target_time_list_size
+        assert self.summary.infodict.get("npu_compute_time_list") == self.summary.npu_compute_time_interval_list
 
     def test_display(self):
         self.summary.reset()
         self._init_result_normal()
-        self.summary.display(self.result, diaplay_all_summary=False, multi_threads=False)
-        self.summary.display(self.result, diaplay_all_summary=True, multi_threads=False)
+        self.summary.display(self.result, display_all_summary=False, multi_threads=False)
+        self.summary.display(self.result, display_all_summary=True, multi_threads=False)
         self._init_result_multi_threads()
-        self.summary.display(self.result, diaplay_all_summary=False, multi_threads=True)
-        self.summary.display(self.result, diaplay_all_summary=True, multi_threads=True)
+        self.summary.display(self.result, display_all_summary=False, multi_threads=True)
+        self.summary.display(self.result, display_all_summary=True, multi_threads=True)
 
     def test_report(self, monkeypatch):
         self._init_summary()
         self._init_list_info()
         monkeypatch.setattr(
             "ais_bench.infer.summary.Summary.get_list_info",
-            lambda x, y: self.list_info
+            lambda *args: self.list_info
         )
         monkeypatch.setattr(
             "ais_bench.infer.summary.Summary.display",
-            lambda x, y, z: None
+            lambda *args: None
         )
         output_prefix = TestCommonClass.base_path + "/test"
         bs = 3
@@ -154,8 +154,8 @@ class TestClass:
         self.result.npu_compute_time = self.summary.get_list_info(time_list, scale)
         self.result.h2d_latency = self.summary.get_list_info(time_list, scale)
         self.result.d2h_latency = self.summary.get_list_info(time_list, scale)
-        self.throughput = 10.0
-        self.batchsize = 1
+        self.result.throughput = 10.0
+        self.result.batchsize = 1
 
     def _init_result_multi_threads(self):
         time_list = [[0, 1], [2, 3], [3, 4]]

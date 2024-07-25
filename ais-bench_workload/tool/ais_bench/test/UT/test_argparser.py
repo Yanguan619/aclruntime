@@ -71,13 +71,6 @@ class TestClass:
         """
         class level setup_class
         """
-        cls.init(TestClass, monkeypatch)
-
-    @classmethod
-    def teardown_class(cls):
-        logger.info('\n ---class level teardown_class')
-
-    def init(self, monkeypatch):
         monkeypatch.setattr("ais_bench.infer.args_check.check_dym_string", lambda value: value)
         monkeypatch.setattr("ais_bench.infer.args_check.check_dym_range_string", lambda value: value)
         monkeypatch.setattr("ais_bench.infer.args_check.check_number_list", lambda value: value)
@@ -91,8 +84,14 @@ class TestClass:
         monkeypatch.setattr("ais_bench.infer.args_check.check_acl_json_path_legality", lambda value: value)
         monkeypatch.setattr("ais_bench.infer.args_check.check_aipp_config_path_legality", lambda value: value)
         monkeypatch.setattr("ais_bench.infer.args_check.check_dym_string", lambda value: value)
+        cls.init(TestClass)
 
+    @classmethod
+    def teardown_class(cls):
+        logger.info('\n ---class level teardown_class')
 
+    def init(self):
+        return
 
     def test_argparser_args(self, monkeypatch):
         for arg_name, value in ARGS_VALUE_DICT.items():
@@ -109,3 +108,4 @@ class TestClass:
                 args.dump_npy, args.divide_input, args.threads)
 
             assert args.get_all_args_dict().get(arg_name) == value
+

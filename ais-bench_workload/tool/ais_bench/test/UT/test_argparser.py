@@ -67,11 +67,11 @@ ARGS_VALUE_DICT = {
 
 class TestClass:
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls, monkeypatch):
         """
         class level setup_class
         """
-        cls.init(TestClass)
+        cls.init(TestClass, monkeypatch)
 
     @classmethod
     def teardown_class(cls):

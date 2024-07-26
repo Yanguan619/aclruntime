@@ -84,11 +84,11 @@ class TestClass:
 
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.is_legal_path_length", lambda *arg: False)
         assert is_legal_args_path_string("") == False
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.is_match_path_white_list", lambda *arg: False)
         assert is_legal_args_path_string("") == False
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         assert is_legal_args_path_string("/home") == True
 
@@ -123,7 +123,7 @@ class TestClass:
             lambda *arg: True
         )
         assert file_stat.is_basically_legal()
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.is_platform", lambda *arg: False)
         monkeypatch.setattr(
@@ -136,27 +136,27 @@ class TestClass:
         file_stat = FileStat(self.standard_file_path)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_exists", lambda *arg: False)
         assert not file_stat.check_linux_permission(perm="read")
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_softlink", lambda *arg: True)
         assert not file_stat.check_linux_permission(perm="write")
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.permission", lambda *arg: 0o770)
         assert not file_stat.check_linux_permission(perm="read")
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         monkeypatch.setattr("os.access", lambda *arg: False)
         assert not file_stat.check_linux_permission(perm="read")
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.permission", lambda *arg: 0o755)
         assert not file_stat.check_linux_permission(perm="write")
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         monkeypatch.setattr("os.access", lambda *arg: False)
         assert not file_stat.check_linux_permission(perm="write")
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         assert file_stat.check_windows_permission(perm="read")
 
@@ -164,11 +164,11 @@ class TestClass:
         file_stat = FileStat(self.standard_file_path)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_exists", lambda *arg: False)
         assert not file_stat.check_windows_permission(perm="read")
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_softlink", lambda *arg: True)
         assert not file_stat.check_windows_permission(perm="write")
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         assert file_stat.check_windows_permission(perm="read")
 
@@ -176,7 +176,7 @@ class TestClass:
         file_stat = FileStat(self.standard_file_path)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_file", lambda *arg: False)
         assert not file_stat.is_legal_file_size(1)
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         assert not file_stat.is_legal_file_size(1)
 
@@ -187,7 +187,7 @@ class TestClass:
         file_stat = FileStat(self.standard_file_path)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_file", lambda *arg: False)
         assert not file_stat.is_legal_file_type([])
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         assert file_stat.is_legal_file_type(["om"])
 
@@ -214,7 +214,7 @@ class TestClass:
             ms_open(self.standard_file_path, mode="r")
             if not "No such file or directory" in str(e):
                 pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="r")
@@ -232,7 +232,7 @@ class TestClass:
             ms_open(self.standard_file_path, mode="w")
             if not "file owner is inconsistent" in str(e):
                 pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         monkeypatch.setattr("os.remove", lambda *arg: None)
         ms_open(self.standard_file_path, mode="w")
@@ -243,7 +243,7 @@ class TestClass:
             ms_open(self.standard_file_path, mode="a")
             if not "file owner is inconsistent" in str(e):
                 pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
-        monkeypatch.stopall()
+        monkeypatch.undo()
 
         monkeypatch.setattr("os.chmod", lambda *arg: None)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.permission", lambda *arg: 0o100)

@@ -140,15 +140,15 @@ class TestClass:
 
     def test_check_linux_permission(self, monkeypatch):
         file_stat = FileStat(self.standard_file_path)
-        monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_exists", lambda *arg: False)
+        monkeypatch.setattr(file_stat, "is_exists", False)
         assert not file_stat.check_linux_permission(perm="read")
         monkeypatch.undo()
 
-        monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_softlink", lambda *arg: True)
+        monkeypatch.setattr(file_stat, "is_softlink", True)
         assert not file_stat.check_linux_permission(perm="write")
         monkeypatch.undo()
 
-        monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.permission", lambda *arg: 0o770)
+        monkeypatch.setattr(file_stat, "permission", 0o770)
         assert not file_stat.check_linux_permission(perm="read")
         monkeypatch.undo()
 
@@ -156,7 +156,7 @@ class TestClass:
         assert not file_stat.check_linux_permission(perm="read")
         monkeypatch.undo()
 
-        monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.permission", lambda *arg: 0o755)
+        monkeypatch.setattr(file_stat, "permission", 0o755)
         assert not file_stat.check_linux_permission(perm="write")
         monkeypatch.undo()
 

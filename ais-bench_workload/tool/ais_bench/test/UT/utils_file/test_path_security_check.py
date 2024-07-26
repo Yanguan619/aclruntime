@@ -256,7 +256,7 @@ class TestClass:
 
         monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         monkeypatch.setattr("os.chmod", lambda *arg: None)
-        monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.permission", lambda *arg: int(0o100))
+        monkeypatch.setattr("stat.S_IMODE", lambda *arg: 0o100)
         assert ms_open(self.standard_file_path, mode="a") == self.end_label
 
     def test_ms_open_normal(self, monkeypatch):

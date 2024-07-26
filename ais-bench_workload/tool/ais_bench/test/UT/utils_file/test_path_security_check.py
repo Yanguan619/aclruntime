@@ -168,11 +168,11 @@ class TestClass:
 
     def test_check_windows_permission(self, monkeypatch):
         file_stat = FileStat(self.standard_file_path)
-        monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_exists", lambda *arg: False)
+        file_stat.is_file_exist = False
         assert not file_stat.check_windows_permission(perm="read")
-        monkeypatch.undo()
 
-        monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_softlink", lambda *arg: True)
+        file_stat = FileStat(self.standard_file_path)
+        monkeypatch.setattr("os.path.islink", lambda *arg: True)
         assert not file_stat.check_windows_permission(perm="write")
         monkeypatch.undo()
 
@@ -180,7 +180,7 @@ class TestClass:
 
     def test_is_legal_file_size(self, monkeypatch):
         file_stat = FileStat(self.standard_file_path)
-        monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_file", lambda *arg: False)
+        monkeypatch.setattr("stat.S_ISREG", lambda *arg: False)
         assert not file_stat.is_legal_file_size(1)
         monkeypatch.undo()
 
@@ -191,11 +191,11 @@ class TestClass:
 
     def test_is_legal_file_type(self, monkeypatch):
         file_stat = FileStat(self.standard_file_path)
-        monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_file", lambda *arg: False)
+        monkeypatch.setattr("stat.S_ISREG", lambda *arg: False)
         assert not file_stat.is_legal_file_type([])
         monkeypatch.undo()
 
-        assert file_stat.is_legal_file_type(["jspn"])
+        assert file_stat.is_legal_file_type(["json"])
 
         assert file_stat.is_legal_file_type(["invalid"])
 
@@ -236,6 +236,7 @@ class TestClass:
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_owner", lambda *arg: False)
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="w")
+            print(e)
             if not "file owner is inconsistent" in str(e):
                 pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
         monkeypatch.undo()

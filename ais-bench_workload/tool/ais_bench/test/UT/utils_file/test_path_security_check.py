@@ -234,7 +234,7 @@ class TestClass:
 
     def test_ms_open_write(self, monkeypatch):
         monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
-        monkeypatch.setattr("hasattr", lambda *arg: False)
+        monkeypatch.setattr("os.stat", lambda *arg: None)
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="w")
             if not "file owner is inconsistent" in str(e):
@@ -247,7 +247,7 @@ class TestClass:
 
     def test_ms_open_add(self, monkeypatch):
         monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
-        monkeypatch.setattr("hasattr", lambda *arg: False)
+        monkeypatch.setattr("os.stat", lambda *arg: None)
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="a")
             if not "file owner is inconsistent" in str(e):

@@ -195,6 +195,8 @@ class TestClass:
         assert file_stat.is_legal_file_type(["invalid"])
 
     def test_ms_open_exist_dir(self, monkeypatch):
+        monkeypatch.setattr("os.open", lambda *arg: None)
+        monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_exists", lambda *arg: True)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_dir", lambda *arg: True)
         with pytest.raises(Exception) as e:
@@ -203,6 +205,8 @@ class TestClass:
                 pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
     def test_ms_open_softlink(self, monkeypatch):
+        monkeypatch.setattr("os.open", lambda *arg: None)
+        monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_softlink", lambda *arg: True)
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="r")
@@ -210,6 +214,8 @@ class TestClass:
                 pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
     def test_ms_open_read(self, monkeypatch):
+        monkeypatch.setattr("os.open", lambda *arg: None)
+        monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_exists", lambda *arg: False)
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="r")
@@ -217,17 +223,23 @@ class TestClass:
                 pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
         monkeypatch.undo()
 
+        monkeypatch.setattr("os.open", lambda *arg: None)
+        monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="r")
             if not "must have a size limit" in str(e):
                 pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
+        monkeypatch.setattr("os.open", lambda *arg: None)
+        monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="r", max_size=1)
             if not "The file size has exceeded" in str(e):
                 pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
     def test_ms_open_write(self, monkeypatch):
+        monkeypatch.setattr("os.open", lambda *arg: None)
+        monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_owner", lambda *arg: False)
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="w")
@@ -235,12 +247,14 @@ class TestClass:
                 pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
         monkeypatch.undo()
 
-        monkeypatch.setattr("os.chmod", lambda *arg: None)
+        monkeypatch.setattr("os.open", lambda *arg: None)
         monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         monkeypatch.setattr("os.remove", lambda *arg: None)
         assert ms_open(self.standard_file_path, mode="w") ==self.end_label
 
     def test_ms_open_add(self, monkeypatch):
+        monkeypatch.setattr("os.open", lambda *arg: None)
+        monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_owner", lambda *arg: False)
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="a")
@@ -248,9 +262,9 @@ class TestClass:
                 pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
         monkeypatch.undo()
 
-        monkeypatch.setattr("os.chmod", lambda *arg: None)
         monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         monkeypatch.setattr("os.open", lambda *arg: None)
+        monkeypatch.setattr("os.chmod", lambda *arg: None)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.permission", lambda *arg: 0o100)
         assert ms_open(self.standard_file_path, mode="a") == self.end_label
 

@@ -255,6 +255,9 @@ def ms_open(file, mode="r", max_size=None, softlink=False, write_permission=PERM
     if file_stat.is_exists and file_stat.is_dir:
         raise OpenException(f"Expecting a file, but it's a folder. {file}")
 
+    if not softlink and file_stat.is_softlink:
+        raise OpenException(f"Softlink is not allowed to be opened. {file}")
+
     if "r" in mode:
         if not file_stat.is_exists:
             raise OpenException(f"No such file or directory {file}")
@@ -270,9 +273,6 @@ def ms_open(file, mode="r", max_size=None, softlink=False, write_permission=PERM
             )
         if file_stat.is_exists:
             os.remove(file)
-
-    if not softlink and file_stat.is_softlink:
-        raise OpenException(f"Softlink is not allowed to be opened. {file}")
 
     if "a" in mode:
         if not file_stat.is_owner:

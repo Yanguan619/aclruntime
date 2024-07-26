@@ -28,6 +28,7 @@ debug_ut_script_list=( \
     "utils_file/test_backend_trtexec.py" \
     "utils_file/test_miscellaneous.py" \
     "utils_file/test_summary.py" \
+    "utils_file/test_path_security_check.py" \
     "test_argparser.py" \
 )
 
@@ -45,6 +46,7 @@ full_ut_script_list=( \
     "utils_file/test_backend_trtexec.py" \
     "utils_file/test_miscellaneous.py" \
     "utils_file/test_summary.py" \
+    "utils_file/test_path_security_check.py" \
     "test_argparser.py" \
     "test_args_ut.py" \
     "test_dymaipp.py" \
@@ -73,6 +75,8 @@ simple_ut_script_list=( \
     "utils_file/test_backend_trtexec.py" \
     "utils_file/test_miscellaneous.py" \
     "utils_file/test_summary.py" \
+    "utils_file/test_path_security_check.py" \
+    "test_argparser.py" \
     "test_args_ut.py" \
     "test_dymaipp.py" \
     "test_inference.py" \

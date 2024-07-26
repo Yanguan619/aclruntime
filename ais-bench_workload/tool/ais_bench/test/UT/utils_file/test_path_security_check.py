@@ -197,7 +197,7 @@ class TestClass:
 
         assert file_stat.is_legal_file_type(["json"])
 
-        assert file_stat.is_legal_file_type(["invalid"])
+        assert not file_stat.is_legal_file_type(["invalid"])
 
     def test_ms_open_exist_dir(self, monkeypatch):
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_exists", lambda *arg: True)
@@ -233,13 +233,11 @@ class TestClass:
                 pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
     def test_ms_open_write(self, monkeypatch):
-        monkeypatch.setattr("os.open", lambda *arg: None)
         monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         monkeypatch.setattr("os.remove", lambda *arg: None)
         assert ms_open(self.standard_file_path, mode="w") ==self.end_label
 
     def test_ms_open_add(self, monkeypatch):
-        monkeypatch.setattr("os.open", lambda *arg: None)
         monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_owner", lambda *arg: False)
         with pytest.raises(Exception) as e:
@@ -249,14 +247,12 @@ class TestClass:
         monkeypatch.undo()
 
         monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
-        monkeypatch.setattr("os.open", lambda *arg: None)
         monkeypatch.setattr("os.chmod", lambda *arg: None)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.permission", lambda *arg: 0o100)
         assert ms_open(self.standard_file_path, mode="a") == self.end_label
 
     def test_ms_open_normal(self, monkeypatch):
         monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
-        monkeypatch.setattr("os.open", lambda *arg: None)
         monkeypatch.setattr("os.chmod", lambda *arg: None)
         monkeypatch.setattr("os.remove", lambda *arg: None)
 

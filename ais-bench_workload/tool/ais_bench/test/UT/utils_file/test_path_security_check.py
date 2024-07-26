@@ -43,7 +43,12 @@ class TestClass:
         logger.info('\n ---class level teardown_class')
 
     def init(self):
-        self.standard_file_path = os.path.join(TestCommonClass.base_path, "resnet50/model/pth_resnet50_bs1.om")
+        self.standard_file_path = os.path.join(TestCommonClass.base_path, "resnet50/fake_model.json")
+        if os.path.exists(self.standard_file_path):
+            os.remove(self.standard_file_path)
+        with open(self.standard_file_path, "w") as file:
+            json.dump({"key": "value"}, file)
+        os.chmod(self.standard_file_path, 0o600)
         self.end_label = "end"
 
     def test_is_legal_path_length_linux(self, monkeypatch):
@@ -190,7 +195,7 @@ class TestClass:
         assert not file_stat.is_legal_file_type([])
         monkeypatch.undo()
 
-        assert file_stat.is_legal_file_type(["om"])
+        assert file_stat.is_legal_file_type(["jspn"])
 
         assert file_stat.is_legal_file_type(["invalid"])
 

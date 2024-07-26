@@ -111,7 +111,7 @@ class TestClass:
         with pytest.raises(ValueError) as e:
             check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
             if not "'model_name' is not set or set" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {e}")
+                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
     def test_acl_json_content_missing_dump_list(self):
         with open(self.args.acl_json_path, "r") as file:
@@ -124,7 +124,7 @@ class TestClass:
         with pytest.raises(KeyError) as e:
             check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
             if not "need to set 'dump_list' attribute" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {e}")
+                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
     def test_acl_json_content_dump_path_illegal(self, monkeypatch):
         with open(self.args.acl_json_path, "r") as file:
@@ -139,7 +139,7 @@ class TestClass:
         with pytest.raises(ValueError) as e:
             check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
             if not "has no read/write permission" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {e}")
+                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
     def test_acl_json_content_dump_op_switch_illegal(self):
         with open(self.args.acl_json_path, "r") as file:
@@ -154,7 +154,7 @@ class TestClass:
         with pytest.raises(ValueError) as e:
             check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
             if not "'dump_op_switch' need to be" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {e}")
+                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
     def test_acl_json_content_dump_mode_illegal(self):
         with open(self.args.acl_json_path, "r") as file:
@@ -169,7 +169,7 @@ class TestClass:
         with pytest.raises(ValueError) as e:
             check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
             if not "'dump_mode' need to be set" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {e}")
+                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
     def test_get_acl_json_path_normal(self, monkeypatch):
         monkeypatch.setattr(

@@ -46,7 +46,7 @@ class TestClass:
         self.standard_file_path = os.path.join(TestCommonClass.base_path, "resnet50/model/pth_resnet50_bs1.om")
 
     def test_is_legal_path_length_linux(self, monkeypatch):
-        monkeypatch.setattr("sys.platform.startswith", lambda *arg: False)
+        monkeypatch.setattr("ais_bench.infer.common.path_security_check.is_platform", lambda *arg: False)
         path = ""
         for _ in range(4097):
             path = path + "x"
@@ -61,19 +61,19 @@ class TestClass:
         assert is_legal_path_length(path) == True
 
     def test_is_legal_path_length_windows(self, monkeypatch):
-        monkeypatch.setattr("sys.platform.startswith", lambda *arg: True)
+        monkeypatch.setattr("ais_bench.infer.common.path_security_check.is_platform", lambda *arg: True)
         path = ""
         for _ in range(261):
             path = path + "x"
         assert is_legal_path_length(path) == False
 
     def test_is_match_path_white_list_linux(self, monkeypatch):
-        monkeypatch.setattr("sys.platform.startswith", lambda *arg: False)
+        monkeypatch.setattr("ais_bench.infer.common.path_security_check.is_platform", lambda *arg: False)
         path = "/home&*/"
         assert is_match_path_white_list(path) == False
 
     def test_is_match_path_white_list_windows(self, monkeypatch):
-        monkeypatch.setattr("sys.platform.startswith", lambda *arg: True)
+        monkeypatch.setattr("ais_bench.infer.common.path_security_check.is_platform", lambda *arg: True)
         path = "D:\home&"
         assert is_match_path_white_list(path) == False
         path = "D:\home"
@@ -98,7 +98,7 @@ class TestClass:
         with pytest.raises(KeyError) as e:
             FileStat(self.standard_file_path)
             if not "create FileStat failed" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {e}")
+                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
     def test_file_stat_property(self):
         file_stat = FileStat(self.standard_file_path)
@@ -117,7 +117,7 @@ class TestClass:
 
     def test_is_basically_legal(self, monkeypatch):
         file_stat = FileStat(self.standard_file_path)
-        monkeypatch.setattr("sys.platform.startswith", lambda *arg: True)
+        monkeypatch.setattr("ais_bench.infer.common.path_security_check.is_platform", lambda *arg: True)
         monkeypatch.setattr(
             "ais_bench.infer.common.path_security_check.FileStat.check_windows_permission",
             lambda *arg: True
@@ -125,7 +125,7 @@ class TestClass:
         assert file_stat.is_basically_legal()
         monkeypatch.stopall()
 
-        monkeypatch.setattr("sys.platform.startswith", lambda *arg: False)
+        monkeypatch.setattr("ais_bench.infer.common.path_security_check.is_platform", lambda *arg: False)
         monkeypatch.setattr(
             "ais_bench.infer.common.path_security_check.FileStat.check_windows_permission",
             lambda *arg: True
@@ -199,39 +199,39 @@ class TestClass:
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path)
             if not "but it's a folder" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {e}")
+                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
     def test_ms_open_softlink(self, monkeypatch):
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_softlink", lambda *arg: True)
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="r")
             if not "Softlink is not allowed" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {e}")
+                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
     def test_ms_open_read(self, monkeypatch):
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_exists", lambda *arg: False)
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="r")
             if not "No such file or directory" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {e}")
+                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
         monkeypatch.stopall()
 
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="r")
             if not "must have a size limit" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {e}")
+                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="r", max_size=1)
             if not "The file size has exceeded" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {e}")
+                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
 
     def test_ms_open_write(self, monkeypatch):
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_owner", lambda *arg: False)
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="w")
             if not "file owner is inconsistent" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {e}")
+                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
         monkeypatch.stopall()
 
         monkeypatch.setattr("os.remove", lambda *arg: None)
@@ -242,7 +242,7 @@ class TestClass:
         with pytest.raises(Exception) as e:
             ms_open(self.standard_file_path, mode="a")
             if not "file owner is inconsistent" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {e}")
+                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
         monkeypatch.stopall()
 
         monkeypatch.setattr("os.chmod", lambda *arg: None)
@@ -251,7 +251,7 @@ class TestClass:
 
     def test_ms_open_normal(self, monkeypatch):
         end_label = "end"
-        monkeypatch.setattr("os.fdopen", lambda *arg: end_label)
+        monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: end_label)
         monkeypatch.setattr("os.open", lambda *arg: None)
         monkeypatch.setattr("os.chmod", lambda *arg: None)
         monkeypatch.setattr("os.remove", lambda *arg: None)

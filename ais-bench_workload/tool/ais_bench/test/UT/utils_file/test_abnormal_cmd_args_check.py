@@ -54,7 +54,7 @@ class FakeFile:
 
 class TestClass:
     @staticmethod
-    def _touch_file(file_path, permission=0o750):
+    def touch_file(file_path, permission=0o750):
         with open(file_path, "w"):
             pass
         os.chmod(file_path, permission)
@@ -64,13 +64,13 @@ class TestClass:
         os.system(f"rm -rf {path}") # 这里之所以不用shutil.rmtree ，os.remove之类的是考虑到服务器会询问是否删除，干脆直接rm -rf了。
 
     @classmethod
-    def _check_illegal_fake_path_case(cls, func_to_test, fake_value, permission=0o750, is_exist=True):
+    def check_illegal_fake_path_case(cls, func_to_test, fake_value, permission=0o750, is_exist=True):
         fake_path = cls._get_abs_path(fake_value)
         if is_exist:
             if os.path.exists(fake_path):
                 cls.rmforce(fake_path)
             if os.path.isfile(fake_path):
-                cls._touch_file(fake_path, permission)
+                cls.touch_file(fake_path, permission)
             else:
                 os.mkdir(fake_path, permission)
 
@@ -109,19 +109,19 @@ class TestClass:
     def test_check_acl_json_path_legality(self):
         assert check_acl_json_path_legality("") == ""
 
-        self._check_illegal_fake_path_case(
+        self.check_illegal_fake_path_case(
             func_to_test=check_acl_json_path_legality,
             fake_value=FakeFile.NOT_READABLE_ACL_JSON,
             permission=0o100
         )
 
-        self._check_illegal_fake_path_case(
+        self.check_illegal_fake_path_case(
             func_to_test=check_acl_json_path_legality,
             fake_value=FakeFile.SUFFIX_WRONG_ACL_JSON,
             permission=0o750
         )
 
-        self._check_illegal_fake_path_case(
+        self.check_illegal_fake_path_case(
             func_to_test=check_acl_json_path_legality,
             fake_value=FakeFile.NOT_EXIST_ACL_JSON,
             is_exist=False
@@ -130,19 +130,19 @@ class TestClass:
     def test_check_aipp_config_path_legality(self):
         assert check_aipp_config_path_legality("") == ""
 
-        self._check_illegal_fake_path_case(
+        self.check_illegal_fake_path_case(
             func_to_test=check_aipp_config_path_legality,
             fake_value=FakeFile.NOT_READABLE_AIPP_CONFIG,
             permission=0o100
         )
 
-        self._check_illegal_fake_path_case(
+        self.check_illegal_fake_path_case(
             func_to_test=check_aipp_config_path_legality,
             fake_value=FakeFile.SUFFIX_WRONG_AIPP_CONFIG,
             permission=0o750
         )
 
-        self._check_illegal_fake_path_case(
+        self.check_illegal_fake_path_case(
             func_to_test=check_aipp_config_path_legality,
             fake_value=FakeFile.NOT_EXIST_AIPP_CONFIG,
             is_exist=False
@@ -171,13 +171,13 @@ class TestClass:
     def test_check_input_path_legality(self):
         assert check_input_path_legality("") == ""
 
-        self._check_illegal_fake_path_case(
+        self.check_illegal_fake_path_case(
             func_to_test=check_input_path_legality,
             fake_value=FakeFile.NOT_READABLE_INPUT_DIR,
             permission=0o100
         )
 
-        self._check_illegal_fake_path_case(
+        self.check_illegal_fake_path_case(
             func_to_test=check_input_path_legality,
             fake_value=FakeFile.NOT_EXIST_INPUT_DIR,
             is_exist=False
@@ -203,19 +203,19 @@ class TestClass:
             check_number_list(value)
 
     def test_check_om_path_legality(self):
-        self._check_illegal_fake_path_case(
+        self.check_illegal_fake_path_case(
             func_to_test=check_om_path_legality,
             fake_value=FakeFile.NOT_READABLE_MODEL,
             permission=0o100
         )
 
-        self._check_illegal_fake_path_case(
+        self.check_illegal_fake_path_case(
             func_to_test=check_om_path_legality,
             fake_value=FakeFile.SUFFIX_WRONG_MODEL,
             permission=0o750
         )
 
-        self._check_illegal_fake_path_case(
+        self.check_illegal_fake_path_case(
             func_to_test=check_om_path_legality,
             fake_value=FakeFile.NOT_EXIST_MODEL,
             is_exist=False
@@ -223,7 +223,7 @@ class TestClass:
 
     def test_check_output_path_legality(self):
         assert check_output_path_legality("") == ""
-        self._check_illegal_fake_path_case(
+        self.check_illegal_fake_path_case(
             func_to_test=check_output_path_legality,
             fake_value=FakeFile.NOT_WRITABLE_OUTPUT_DIR,
             permission=0o400

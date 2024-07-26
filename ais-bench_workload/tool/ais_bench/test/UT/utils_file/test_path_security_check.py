@@ -44,6 +44,7 @@ class TestClass:
 
     def init(self):
         self.standard_file_path = os.path.join(TestCommonClass.base_path, "resnet50/model/pth_resnet50_bs1.om")
+        self.end_label = "end"
 
     def test_is_legal_path_length_linux(self, monkeypatch):
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.is_platform", lambda *arg: False)
@@ -234,8 +235,10 @@ class TestClass:
                 pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
         monkeypatch.undo()
 
+        monkeypatch.setattr("os.chmod", lambda *arg: None)
+        monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         monkeypatch.setattr("os.remove", lambda *arg: None)
-        ms_open(self.standard_file_path, mode="w")
+        assert ms_open(self.standard_file_path, mode="w") ==self.end_label
 
     def test_ms_open_add(self, monkeypatch):
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.is_owner", lambda *arg: False)
@@ -246,19 +249,20 @@ class TestClass:
         monkeypatch.undo()
 
         monkeypatch.setattr("os.chmod", lambda *arg: None)
+        monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
+        monkeypatch.setattr("os.open", lambda *arg: None)
         monkeypatch.setattr("ais_bench.infer.common.path_security_check.FileStat.permission", lambda *arg: 0o100)
-        ms_open(self.standard_file_path, mode="a")
+        assert ms_open(self.standard_file_path, mode="a") == self.end_label
 
     def test_ms_open_normal(self, monkeypatch):
-        end_label = "end"
-        monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: end_label)
+        monkeypatch.setattr("os.fdopen", lambda *arg, **kwargs: self.end_label)
         monkeypatch.setattr("os.open", lambda *arg: None)
         monkeypatch.setattr("os.chmod", lambda *arg: None)
         monkeypatch.setattr("os.remove", lambda *arg: None)
 
-        # assert ms_open(self.standard_file_path, mode="+") == end_label
-        # assert ms_open(self.standard_file_path, mode="w") == end_label
-        # assert ms_open(self.standard_file_path, mode="a") == end_label
+        assert ms_open(self.standard_file_path, mode="+") == self.end_label
+        assert ms_open(self.standard_file_path, mode="w") == self.end_label
+        assert ms_open(self.standard_file_path, mode="a") == self.end_label
 
 
 

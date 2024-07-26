@@ -111,6 +111,9 @@ function run_dt()
     elif [ "$PYTEST_RUN_MODE" == "html_report" ];then
         # self func
         run_dt_with_html_report
+    elif [ "$PYTEST_RUN_MODE" == "show_coverage" ];then
+        # slef func
+        run_dt_with_coverage
     else
         echo "unrecoginized PYTEST_RUN_MODE: $PYTEST_RUN_MODE, use default run_only"
     fi
@@ -137,6 +140,11 @@ function run_dt_with_html_report()
         rm $html_path
     fi
     $PYTHON_COMMAND -m pytest --html $html_path -s $SELECTED_TEST_DIR
+}
+
+function run_dt_with_coverage()
+{
+    $PYTHON_COMMAND -m pytest --cov=ais_bench -s $SELECTED_TEST_DIR
 }
 
 main() {

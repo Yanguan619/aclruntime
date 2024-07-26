@@ -24,6 +24,7 @@ from ais_bench.infer.common.path_security_check import ms_open, MAX_SIZE_LIMITE_
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 
 PERMISSION_DIR = 0o750
+DYMSHAPE_RANGE_TIMEOUT = 600
 
 ACL_JSON_CMD_LIST = [
     "output",
@@ -64,6 +65,7 @@ def version_check(args):
                 "from gitee repo: Ascend/tools, path: tools/ais_bench-workload/tool/ais_bench."
         )
         args.run_mode = "tensor"
+        return
     if aclruntime_version != "0.0.2":
         logger.warning(
             f"aclruntime{aclruntime_version} version is lower, please update " + \
@@ -87,29 +89,29 @@ def check_valid_acl_json_for_dump(acl_json_path, model):
         dump_list_val = acl_json_dict["dump"].get("dump_list")
         if dump_list_val is not None:
             if dump_list_val == [] or dump_list_val[0].get("model_name") != model_name_correct:
-                logger.warning(
-                    "dump failed, 'model_name' is not set or set incorrectly. correct"
+                raise ValueError(
+                    "dump failed, 'model_name' is not set or set incorrectly. correct" +
                     "'model_name' should be {}".format(model_name_correct)
                 )
         else:
-            logger.warning("dump failed, acl.json need to set 'dump_list' attribute")
+            raise KeyError("dump failed, acl.json need to set 'dump_list' attribute")
         # check validity of dump_path
         dump_path_val = acl_json_dict["dump"].get("dump_path")
         if dump_path_val is not None:
             if os.path.isdir(dump_path_val) and os.access(dump_path_val, os.R_OK) and os.access(dump_path_val, os.W_OK):
                 pass
             else:
-                logger.warning("dump failed, 'dump_path' not exists or has no read/write permission")
+                raise ValueError("dump failed, 'dump_path' not exists or has no read/write permission")
         else:
-            logger.warning("dump failed, acl.json need to set 'dump_path' attribute")
+            raise KeyError("dump failed, acl.json need to set 'dump_path' attribute")
         # check validity of dump_op_switch
         dump_op_switch_val = acl_json_dict["dump"].get("dump_op_switch")
         if dump_op_switch_val is not None and dump_op_switch_val not in {"on", "off"}:
-            logger.warning("dump failed, 'dump_op_switch' need to be set as 'on' or 'off'")
+            raise ValueError("dump failed, 'dump_op_switch' need to be set as 'on' or 'off'")
         # check validity of dump_mode
         dump_mode_val = acl_json_dict["dump"].get("dump_mode")
         if dump_mode_val is not None and dump_mode_val not in {"input", "output", "all"}:
-            logger.warning("dump failed, 'dump_mode' need to be set as 'input', 'output' or 'all'")
+            raise ValueError("dump failed, 'dump_mode' need to be set as 'input', 'output' or 'all'")
     return
 
 
@@ -257,7 +259,7 @@ def dymshape_range_run(args: AISBenchInferArgsAdapter):
         result = {"dymshape": dymshape, "cmd": cmd, "result": "Failed", "throughput": 0}
         logger.debug("cmd:{}".format(cmd))
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, _ = p.communicate(timeout=10)
+        stdout, _ = p.communicate(timeout=DYMSHAPE_RANGE_TIMEOUT)
         out_log = stdout.decode('utf-8')
         print(out_log)  # show original log of cmd
         result["result"], result["throughput"] = get_throughtput_from_log(out_log)

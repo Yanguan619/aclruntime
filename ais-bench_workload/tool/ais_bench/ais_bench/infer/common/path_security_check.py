@@ -59,13 +59,17 @@ def solution_log_win(content):
     logger.log(SOLUTION_LEVEL_WIN, f"visit {content} for detailed solution")
 
 
+def is_platform(platform: str):
+    return sys.platform.startswith(platform)
+
+
 def is_legal_path_length(path):
-    if len(path) > 4096 and not sys.platform.startswith("win"):  # linux total path length limit
+    if len(path) > 4096 and not is_platform("win"):  # linux total path length limit
         logger.error(f"file total path{path} length out of range (4096), please check the file(or directory) path")
         solution_log(SOLUTION_BASE_LOC + PATH_LENGTH_SUB_CHAPTER)
         return False
 
-    if len(path) > 260 and sys.platform.startswith("win"):  # windows total path length limit
+    if len(path) > 260 and is_platform("win"):  # windows total path length limit
         logger.error(f"file total path{path} length out of range (260), please check the file(or directory) path")
         solution_log_win(SOLUTION_BASE_LOC + PATH_LENGTH_SUB_CHAPTER)
         return False
@@ -80,11 +84,11 @@ def is_legal_path_length(path):
 
 
 def is_match_path_white_list(path):
-    if PATH_WHITE_LIST_REGEX.search(path) and not sys.platform.startswith("win"):
+    if PATH_WHITE_LIST_REGEX.search(path) and not is_platform("win"):
         logger.error(f"path:{path} contains illegal char, legal chars include A-Z a-z 0-9 _ - / .")
         solution_log(SOLUTION_BASE_LOC + ILLEGAL_CHAR_SUB_CHAPTER)
         return False
-    if PATH_WHITE_LIST_REGEX_WIN.search(path) and sys.platform.startswith("win"):
+    if PATH_WHITE_LIST_REGEX_WIN.search(path) and is_platform("win"):
         logger.error(f"path:{path} contains illegal char, legal chars include A-Z a-z 0-9 _ - / . : \\")
         solution_log_win(SOLUTION_BASE_LOC + ILLEGAL_CHAR_SUB_CHAPTER)
         return False
@@ -167,7 +171,7 @@ class FileStat:
         return self.is_owner and self.is_group_owner
 
     def is_basically_legal(self, perm='none'):
-        if sys.platform.startswith("win"):
+        if is_platform("win"):
             return self.check_windows_permission(perm)
         else:
             return self.check_linux_permission(perm)
@@ -255,6 +259,9 @@ def ms_open(file, mode="r", max_size=None, softlink=False, write_permission=PERM
     if file_stat.is_exists and file_stat.is_dir:
         raise OpenException(f"Expecting a file, but it's a folder. {file}")
 
+    if not softlink and file_stat.is_softlink:
+        raise OpenException(f"Softlink is not allowed to be opened. {file}")
+
     if "r" in mode:
         if not file_stat.is_exists:
             raise OpenException(f"No such file or directory {file}")
@@ -270,9 +277,6 @@ def ms_open(file, mode="r", max_size=None, softlink=False, write_permission=PERM
             )
         if file_stat.is_exists:
             os.remove(file)
-
-    if not softlink and file_stat.is_softlink:
-        raise OpenException(f"Softlink is not allowed to be opened. {file}")
 
     if "a" in mode:
         if not file_stat.is_owner:

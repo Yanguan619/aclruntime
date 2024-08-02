@@ -14,5 +14,21 @@
 
 
 import os
-cur_path = os.path.dirname(os.path.realpath(__file__))
-exec(open(os.path.join(cur_path, "infer/__main__.py")).read())
+from ais_bench.infer.utils import get_args
+from ais_bench.infer.infer_process import infer_process
+from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
+
+
+if __name__ == "__main__":
+    args = get_args()
+
+    args = AISBenchInferArgsAdapter(args.model, args.input, args.output,
+                args.output_dirname, args.outfmt, args.loop, args.debug, args.device,
+                args.dym_batch, args.dym_hw, args.dym_dims, args.dym_shape, args.output_size,
+                args.auto_set_dymshape_mode, args.auto_set_dymdims_mode, args.batchsize, args.pure_data_type,
+                args.profiler, args.dump, args.acl_json_path, args.output_batchsize_axis, args.run_mode,
+                args.display_all_summary, args.warmup_count, args.dym_shape_range, args.aipp_config,
+                args.energy_consumption, args.npu_id, args.backend, args.perf, args.pipeline, args.profiler_rename,
+                args.dump_npy, args.divide_input, args.threads)
+    ret = infer_process(args)
+    exit(ret)

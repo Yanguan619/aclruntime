@@ -23,86 +23,6 @@ namespace {
 bool g_isDevice = true;
 }
 
-void* Utils::ReadBinFile(std::string fileName, uint32_t& fileSize)
-{
-    std::ifstream binFile(fileName, std::ifstream::binary);
-    if (binFile.is_open() == false) {
-        ERROR_LOG("open file %s failed", fileName.c_str());
-        return nullptr;
-    }
-
-    binFile.seekg(0, binFile.end);
-    uint32_t binFileBufferLen = binFile.tellg();
-    if (binFileBufferLen == 0) {
-        ERROR_LOG("binfile is empty, filename is %s", fileName.c_str());
-        binFile.close();
-        return nullptr;
-    }
-
-    binFile.seekg(0, binFile.beg);
-
-    void* binFileBufferData = nullptr;
-    aclError ret = ACL_SUCCESS;
-    if (!g_isDevice) {
-        ret = aclrtMallocHost(&binFileBufferData, binFileBufferLen);
-        if (binFileBufferData == nullptr) {
-            cout << aclGetRecentErrMsg() << endl;
-            ERROR_LOG("malloc binFileBufferData failed");
-            binFile.close();
-            return nullptr;
-        }
-    } else {
-        ret = aclrtMalloc(&binFileBufferData, binFileBufferLen, ACL_MEM_MALLOC_HUGE_FIRST);
-        if (ret != ACL_SUCCESS) {
-            cout << aclGetRecentErrMsg() << endl;
-            ERROR_LOG("malloc device buffer failed. size is %u", binFileBufferLen);
-            binFile.close();
-            return nullptr;
-        }
-    }
-
-    binFile.read(static_cast<char*>(binFileBufferData), binFileBufferLen);
-    binFile.close();
-    fileSize = binFileBufferLen;
-    return binFileBufferData;
-}
-
-void* Utils::GetDeviceBufferOfFile(std::string fileName, uint32_t& fileSize)
-{
-    uint32_t inputHostBuffSize = 0;
-    void* inputHostBuff = Utils::ReadBinFile(fileName, inputHostBuffSize);
-    if (inputHostBuff == nullptr) {
-        return nullptr;
-    }
-    if (!g_isDevice) {
-        void* inBufferDev = nullptr;
-        uint32_t inBufferSize = inputHostBuffSize;
-        aclError ret = aclrtMalloc(&inBufferDev, inBufferSize, ACL_MEM_MALLOC_HUGE_FIRST);
-        if (ret != ACL_SUCCESS) {
-            cout << aclGetRecentErrMsg() << endl;
-            ERROR_LOG("malloc device buffer failed. size is %u", inBufferSize);
-            aclrtFreeHost(inputHostBuff);
-            return nullptr;
-        }
-
-        ret = aclrtMemcpy(inBufferDev, inBufferSize, inputHostBuff, inputHostBuffSize, ACL_MEMCPY_HOST_TO_DEVICE);
-        if (ret != ACL_SUCCESS) {
-            cout << aclGetRecentErrMsg() << endl;
-            ERROR_LOG("memcpy failed. device buffer size is %u, input host buffer size is %u",
-                inBufferSize, inputHostBuffSize);
-            aclrtFree(inBufferDev);
-            aclrtFreeHost(inputHostBuff);
-            return nullptr;
-        }
-        aclrtFreeHost(inputHostBuff);
-        fileSize = inBufferSize;
-        return inBufferDev;
-    } else {
-        fileSize = inputHostBuffSize;
-        return inputHostBuff;
-    }
-}
-
 void Utils::SplitString(std::string& s, std::vector<std::string>& v, char c)
 {
     std::string::size_type pos1;
@@ -224,31 +144,6 @@ double Utils::printDiffTime(time_t begin, time_t end)
     return diffT * sec_to_msec;
 }
 
-double Utils::InferenceTimeAverage(double* x, int len)
-{
-    double sum = 0;
-    for (int i = 0; i < len; i++)
-        sum += x[i];
-    if (len != 0) {
-        return sum / len;
-    }
-    printf("Inference Time Can't divide zero!");
-    return -1;
-}
-
-double Utils::InferenceTimeAverageWithoutFirst(double* x, int len)
-{
-    double sum = 0;
-    for (int i = 0; i < len; i++)
-        if (i != 0) {
-            sum += x[i];
-        }
-    if (len != 1) {
-        return sum / (len - 1);
-    }
-    printf("Inference Time Can't divide zero!");
-    return -1;
-}
 
 void Utils::ProfilerJson(bool isprof, map<char, string>& params)
 {
@@ -303,23 +198,6 @@ void Utils::DumpJson(bool isdump, map<char, string>& params)
     }
 }
 
-int Utils::ScanFiles(std::vector<std::string> &fileList, std::string inputDirectory)
-{
-    const char* str = inputDirectory.c_str();
-    DIR* dir = opendir(str);
-    struct dirent* p = NULL;
-    while ((p = readdir(dir)) != NULL) {
-        if (p->d_name[0] != '.') {
-            string name = string(p->d_name);
-            fileList.push_back(name);
-        }
-    }
-    closedir(dir);
-    if (fileList.size() == 0) {
-        printf("[ERROR] No file in the directory[%s]", str);
-    }
-    return fileList.size();
-}
 
 void Utils::SplitStringSimple(string str, vector<string> &out, char split1, char split2, char split3)
 {
@@ -433,6 +311,11 @@ Result Utils::ReadBinFileToMemory(const std::string fileName, char *ptr, const s
 
     binFile.seekg(0, binFile.beg);
 
+    if (ptr == nullptr) {
+        ERROR_LOG("ptr is %p", ptr);
+        binFile.close();
+        return FAILED;
+    }
     DEBUG_LOG("Readbin file:%s ptr:%p offset:%zu len:%zu\n", fileName.c_str(), ptr, offset, binFileBufferLen);
     binFile.read(static_cast<char*>(ptr + offset), binFileBufferLen);
     binFile.close();

@@ -47,21 +47,6 @@ typedef enum Result {
 */
 class Utils {
 public:
-    /**
-    * @brief create device buffer of file
-    * @param [in] fileName: file name
-    * @param [out] fileSize: size of file
-    * @return device buffer of file
-    */
-    static void* GetDeviceBufferOfFile(std::string fileName, uint32_t& fileSize);
-
-    /**
-    * @brief create buffer of file
-    * @param [in] fileName: file name
-    * @param [out] fileSize: size of file
-    * @return buffer of pic
-    */
-    static void* ReadBinFile(std::string fileName, uint32_t& fileSize);
 
     static void SplitString(std::string& s, std::vector<std::string>& v, char c);
 
@@ -88,15 +73,9 @@ public:
 
     static double printDiffTime(time_t begin, time_t end);
 
-    static double InferenceTimeAverage(double* x, int len);
-
-    static double InferenceTimeAverageWithoutFirst(double* x, int len);
-
     static void ProfilerJson(bool isprof, std::map<char, std::string>& params);
 
     static void DumpJson(bool isdump, std::map<char, std::string>& params);
-
-    static int ScanFiles(std::vector<std::string> &fileList, std::string inputDirectory);
 
     static int ToInt(std::string &str);
 

@@ -514,7 +514,7 @@ atc --framework=5 --model=./resnet18.onnx --output=resnet18_bs4_dym_aipp --input
 - dym_aipp_conf.aippconfig的内容(下同)为：
 ```
 aipp_op{
-    related_input_rank ： 0
+    related_input_rank : 0
     aipp_mode : dynamic
     max_src_image_size : 4000000
 }

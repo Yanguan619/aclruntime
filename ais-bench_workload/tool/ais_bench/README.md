@@ -40,8 +40,10 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    |[aclruntime-0.0.2-cp38-cp38-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp38-cp38-linux_aarch64.whl)|[aclruntime-0.0.2-cp38-cp38-linux_aarch64.sha256](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/hash_info/aclruntime-0.0.2-cp38-cp38-linux_aarch64.sha256)|
    |[aclruntime-0.0.2-cp39-cp39-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp39-cp39-linux_x86_64.whl)|[aclruntime-0.0.2-cp39-cp39-linux_x86_64.sha256](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/hash_info/aclruntime-0.0.2-cp39-cp39-linux_x86_64.sha256)|
    |[aclruntime-0.0.2-cp39-cp39-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp39-cp39-linux_aarch64.whl)|[aclruntime-0.0.2-cp39-cp39-linux_aarch64.sha256](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/hash_info/aclruntime-0.0.2-cp39-cp39-linux_aarch64.sha256)|
-   |[aclruntime-0.0.2-cp310-cp310-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp310-cp310-linux_x86_64.whl)|[aclruntime-0.0.2-cp37-cp37m-linux_x86_64.sha256](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/hash_info/aclruntime-0.0.2-cp37-cp37m-linux_x86_64.sha256)|
+   |[aclruntime-0.0.2-cp310-cp310-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp310-cp310-linux_x86_64.whl)|[aclruntime-0.0.2-cp310-cp310-linux_x86_64.sha256](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/hash_info/aclruntime-0.0.2-cp310-cp310-linux_x86_64.sha256)|
    |[aclruntime-0.0.2-cp310-cp310-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp310-cp310-linux_aarch64.whl)|[aclruntime-0.0.2-cp310-cp310-linux_aarch64.sha256](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/hash_info/aclruntime-0.0.2-cp310-cp310-linux_aarch64.sha256)|
+   |[aclruntime-0.0.2-cp311-cp311-linux_x86_64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp311-cp311-linux_x86_64.whl)|[aclruntime-0.0.2-cp311-cp311-linux_x86_64.sha256](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/hash_info/aclruntime-0.0.2-cp311-cp311-linux_x86_64.sha256)|
+   |[aclruntime-0.0.2-cp311-cp311-linux_aarch64.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/aclruntime-0.0.2-cp311-cp311-linux_aarch64.whl)|[aclruntime-0.0.2-cp311-cp311-linux_aarch64.sha256](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/hash_info/aclruntime-0.0.2-cp311-cp311-linux_aarch64.sha256)|
    |[ais_bench-0.0.2-py3-none-any.whl](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/ais_bench-0.0.2-py3-none-any.whl)|[ais_bench-0.0.2-py3-none-any.sha256](https://aisbench.obs.myhuaweicloud.com/packet/ais_bench_infer/0.0.2/ait/hash_info/ais_bench-0.0.2-py3-none-any.sha256)|
 
 
@@ -66,7 +68,7 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    须知：使用强制安装会同时将工具涉及的依赖全部更新为最新版本，若只需要更新安装工具，请参见"**卸载和更新**"。
 
    分别提示如下信息则表示安装成功：
-   
+
    ```bash
    # 成功安装aclruntime
    Successfully installed aclruntime-{version}
@@ -115,7 +117,7 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    须知：使用强制安装会同时将工具涉及的依赖全部更新为最新版本，若只需要更新安装工具，请参见"**卸载和更新**"。
 
    提示如下示例信息则表示安装成功：
-   
+
    ```bash
    Successfully installed ais_bench-{version}
    ```
@@ -170,7 +172,7 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    须知：使用强制安装会同时将工具涉及的依赖全部更新为最新版本，若只需要更新安装工具，请参见"**卸载和更新**"。
 
    分别提示如下信息则表示安装成功：
-   
+
    ```bash
    # 成功安装aclruntime
    Successfully installed aclruntime-{version}
@@ -514,7 +516,7 @@ atc --framework=5 --model=./resnet18.onnx --output=resnet18_bs4_dym_aipp --input
 - dym_aipp_conf.aippconfig的内容(下同)为：
 ```
 aipp_op{
-    related_input_rank ： 0
+    related_input_rank : 0
     aipp_mode : dynamic
     max_src_image_size : 4000000
 }

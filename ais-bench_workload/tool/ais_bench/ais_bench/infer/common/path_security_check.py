@@ -276,7 +276,10 @@ def ms_open(file, mode="r", max_size=None, softlink=False, write_permission=PERM
                 f"The file owner is inconsistent with the current process user and is not allowed to write. {file}"
             )
         if file_stat.is_exists:
-            os.remove(file)
+            try:
+                os.remove(file)
+            except Exception as err:
+                raise PermissionError(f"current user have no permission to remove {file}!") from err
 
     if "a" in mode:
         if not file_stat.is_owner:

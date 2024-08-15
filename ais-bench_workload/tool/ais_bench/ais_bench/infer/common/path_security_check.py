@@ -315,10 +315,10 @@ def check_normal_string(str_to_check):
         raise ValueError(f"string: {str_to_check} contain illegal char")
 
 
-def check_file_path_legality(file, perm=FILE_PERM_CHOICE.WRITE):
+def check_path_legality(path, perm=FILE_PERM_CHOICE.WRITE):
     try:
-        file_stat = FileStat(file)
+        file_stat = FileStat(path)
     except Exception as err:
-        raise ValueError(f"The format of file:{file} is illegal. Please check.") from err
+        raise ValueError(f"The format of path:{path} is illegal. Please check.") from err
     if not file_stat.is_basically_legal(perm):
-        raise ValueError(f"file path:{file} is illegal. Please check.")
+        raise ValueError(f"The path:{path} is illegal. Please check.")

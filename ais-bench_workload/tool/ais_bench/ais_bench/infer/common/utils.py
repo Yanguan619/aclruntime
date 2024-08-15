@@ -33,6 +33,7 @@ from ais_bench.infer.common.path_security_check import (
     MAX_SIZE_LIMITE_CONFIG_FILE,
     FileStat,
     is_legal_args_path_string,
+    FILE_PERM_CHOICE,
 )
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
@@ -80,7 +81,7 @@ def get_fileslist_from_dir(dir_):
     for f in os.listdir(dir_):
         f_true_path = os.path.join(dir_, f)
         f_stat = FileStat(f_true_path)
-        if not f_stat.is_basically_legal('read'):
+        if not f_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
             raise RuntimeError(f'input data:{f_true_path} is illegal')
         if f_stat.is_dir:
             continue

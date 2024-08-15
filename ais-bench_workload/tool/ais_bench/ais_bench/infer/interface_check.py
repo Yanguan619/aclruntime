@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from ais_bench.infer.args_check import OM_MODEL_MAX_SIZE,  ACL_JSON_MAX_SIZE
-from ais_bench.infer.common.path_security_check import FileStat
+from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE
 
 
 def check_model_path_legality(value):
@@ -23,7 +23,7 @@ def check_model_path_legality(value):
         file_stat = FileStat(value)
     except Exception as err:
         raise RuntimeError(f"om path:{value} is illegal. Please check.") from err
-    if not file_stat.is_basically_legal('read'):
+    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
         raise RuntimeError(f"om path:{value} is illegal. Please check.")
     if not file_stat.is_legal_file_size(OM_MODEL_MAX_SIZE):
         raise RuntimeError(f"om path:{value} is illegal. Please check.")
@@ -36,7 +36,7 @@ def check_acl_json_path_legality(value):
         file_stat = FileStat(value)
     except Exception as err:
         raise RuntimeError(f"acl json path:{value} is illegal. Please check.") from err
-    if not file_stat.is_basically_legal('read'):
+    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
         raise RuntimeError(f"acl json path:{value} is illegal. Please check.")
     if not file_stat.is_legal_file_type(["json"]):
         raise RuntimeError(f"acl json path:{value} is illegal. Please check.")
@@ -60,5 +60,5 @@ def check_output_dir_legality(value):
         file_stat = FileStat(value)
     except Exception as err:
         raise RuntimeError(f"output path:{value} is illegal. Please check.") from err
-    if not file_stat.is_basically_legal('write'):
+    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
         raise RuntimeError(f"output path:{value} is illegal. Please check.")

@@ -48,7 +48,9 @@ from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
                                    get_fileslist_from_dir, list_split, list_share,
                                    save_data_to_files, create_fake_file_name, logger,
                                    create_tmp_acl_json, move_subdir, convert_helper)
-from ais_bench.infer.common.path_security_check import is_legal_args_path_string, check_normal_string
+from ais_bench.infer.common.path_security_check import (
+    is_legal_args_path_string, check_normal_string, FILE_PERM_CHOICE, check_file_path_legality
+)
 from ais_bench.infer.interface_check import check_output_dir_legality
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.backends import BackendFactory
@@ -380,10 +382,16 @@ def msprof_run_profiling(args, msprof_bin):
         model_name = os.path.basename(args.model).split(".")[0]
         for file in file_name:
             real_file = os.path.splitext(file)[0]
-            os.rename(file, real_file + "_" + model_name + "_" + hash_str + ".csv")
+            try:
+                os.rename(file, real_file + "_" + model_name + "_" + hash_str + ".csv")
+            except Exception as err:
+                raise PermissionError(f"Can't rename file: {file}!") from err
         for file in file_name_json:
             real_file = os.path.splitext(file)[0]
-            os.rename(file, real_file + "_" + model_name + "_" + hash_str + ".json")
+            try:
+                os.rename(file, real_file + "_" + model_name + "_" + hash_str + ".json")
+            except Exception as err:
+                raise PermissionError(f"Can't rename file: {file}!") from err
         ret = 0
     else:
         ret = subprocess.call(msprof_cmd_list, shell=False)

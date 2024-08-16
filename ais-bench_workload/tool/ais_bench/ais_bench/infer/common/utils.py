@@ -172,7 +172,7 @@ def make_dirs(path):
     ret = 0
     if not os.path.exists(path):
         try:
-            os.makedirs(path, PERMISSION_DIR)
+            os.mkdir(path, PERMISSION_DIR)
         except Exception as e:
             logger.warning(f"make dir {path} failed")
             ret = -1

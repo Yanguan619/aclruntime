@@ -433,7 +433,7 @@ def convert(tmp_acl_json_path, real_dump_path, tmp_dump_path):
         try:
             os.remove(tmp_acl_json_path)
         except Exception as err: # if tmp_acl_json_path be used, may failed.
-            raise RuntimeError(f"rm tmp_acl_json_pathh:{tmp_acl_json_path} failed!") from err
+            raise RuntimeError(f"rm tmp_acl_json_path:{tmp_acl_json_path} failed!") from err
 
 def main(args, index=0, msgq=None, device_list=None):
     # if msgq is not None,as subproces run

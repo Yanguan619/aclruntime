@@ -421,15 +421,15 @@ def convert(tmp_acl_json_path, real_dump_path, tmp_dump_path):
         output_dir, timestamp = move_subdir(tmp_dump_path, real_dump_path)
         convert_helper(output_dir, timestamp)
 
-    check_path_legality(tmp_dump_path, FILE_PERM_CHOICE.WRITE) # if not exist, won't except
     if tmp_dump_path is not None:
+        check_path_legality(tmp_dump_path, FILE_PERM_CHOICE.WRITE) # if not exist, won't except
         try:
             shutil.rmtree(tmp_dump_path)
         except Exception as err: # if tmp_dump_path be used, may failed.
             raise RuntimeError(f"rmtree tmp_dump_path:{tmp_dump_path} failed!") from err
 
-    check_path_legality(tmp_acl_json_path, FILE_PERM_CHOICE.WRITE) # if not exist, won't except
     if tmp_acl_json_path is not None:
+        check_path_legality(tmp_acl_json_path, FILE_PERM_CHOICE.WRITE) # if not exist, won't except
         try:
             os.remove(tmp_acl_json_path)
         except Exception as err: # if tmp_acl_json_path be used, may failed.

@@ -74,10 +74,6 @@ public:
 
     static double printDiffTime(time_t begin, time_t end);
 
-    static void ProfilerJson(bool isprof, std::map<char, std::string>& params);
-
-    static void DumpJson(bool isdump, std::map<char, std::string>& params);
-
     static int ToInt(std::string &str);
 
     static Result ReadBinFileToMemory(const std::string fileName,  char *ptr, const size_t size, size_t &offset);

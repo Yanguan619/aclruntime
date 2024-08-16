@@ -144,61 +144,6 @@ double Utils::printDiffTime(time_t begin, time_t end)
     return diffT * sec_to_msec;
 }
 
-
-void Utils::ProfilerJson(bool isprof, map<char, string>& params)
-{
-    mode_t mod = 0750;
-    if (isprof) {
-        std::string out_path = params['o'].c_str();
-        std::string out_profiler_path = out_path + "/profiler";
-        ofstream outstr("acl.json", ios::out);
-        outstr << "{\n\"profiler\": {\n    \"switch\": \"on\",\n";
-        outstr << "\"aicpu\": \"on\",\n";
-        outstr << "\"output\": \"" << out_profiler_path << "\",\n    ";
-        outstr << "\"aic_metrics\": \"\"}\n}";
-        outstr.close();
-
-        // mkdir profiler output dir
-        const char* temp_s = out_path.c_str();
-        if (NULL == opendir(temp_s)) {
-            mkdir(temp_s, mod);
-        }
-        const char* temp_s1 = out_profiler_path.c_str();
-        if (NULL == opendir(temp_s1)) {
-            mkdir(temp_s1, mod);
-        }
-    }
-}
-
-void Utils::DumpJson(bool isdump, map<char, string>& params)
-{
-    mode_t mod = 0750;
-    if (isdump) {
-        std::string modelPath = params['m'].c_str();
-        std::string modelName = Utils::modelName(modelPath);
-        std::string out_path = params['o'].c_str();
-        std::string out_dump_path = out_path + "/dump";
-        ofstream outstr("acl.json", ios::out);
-        outstr << "{\n\"dump\": {\n    \"dump_path\": \"";
-        outstr << out_dump_path << "\",\n    ";
-        outstr << "\"dump_mode\": \"output\",\n    \"dump_list\": [{\n    ";
-        outstr << "        \"model_name\": \"" << modelName << "\"\n        }]\n";
-        outstr << "    }\n}";
-        outstr.close();
-
-        // mkdir dump output dir
-        const char* temp_s = out_path.c_str();
-        if (NULL == opendir(temp_s)) {
-            mkdir(temp_s, mod);
-        }
-        const char* temp_s1 = out_dump_path.c_str();
-        if (NULL == opendir(temp_s1)) {
-            mkdir(temp_s1, mod);
-        }
-    }
-}
-
-
 void Utils::SplitStringSimple(string str, vector<string> &out, char split1, char split2, char split3)
 {
     istringstream block(str);
@@ -312,11 +257,11 @@ Result Utils::ReadBinFileToMemory(const std::string fileName, char *ptr, const s
     binFile.seekg(0, binFile.beg);
 
     if (ptr == nullptr) {
-        ERROR_LOG("ptr is %p", ptr);
+        ERROR_LOG("ptr is nullptr");
         binFile.close();
         return FAILED;
     }
-    DEBUG_LOG("Readbin file:%s ptr:%p offset:%zu len:%zu\n", fileName.c_str(), ptr, offset, binFileBufferLen);
+    DEBUG_LOG("Readbin file:%s offset:%zu len:%zu\n", fileName.c_str(), offset, binFileBufferLen);
     binFile.read(static_cast<char*>(ptr + offset), binFileBufferLen);
     binFile.close();
     offset += binFileBufferLen;
@@ -427,7 +372,15 @@ Result Utils::TensorToBin(const std::string& outputFileName, Base::TensorBase& o
         ERROR_LOG("TensorToBin: existing file %s cannot be removed", outputFileName.c_str());
         return FAILED;
     }
+    if (!File::CheckFile(outputFileName, 64 * 1024 * 1024, 640)) {
+        ERROR_LOG("TensorToBin: open file %s is not safe.", outputFileName.c_str());
+        return FAILED;
+    }
     int fd = open(outputFileName.c_str(), O_EXCL | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP);
+    if (fd == -1) {
+        ERROR_LOG("TensorToBin: open file %s failed.", outputFileName.c_str());
+        return FAILED;
+    }
     close(fd);
     std::ofstream outfile(outputFileName, std::ios::out | std::ios::binary);
     if (!outfile) {
@@ -462,7 +415,15 @@ Result Utils::TensorToTxt(const std::string& outputFileName, Base::TensorBase& o
         ERROR_LOG("TensorToTxt: existing file %s cannot be removed", outputFileName.c_str());
         return FAILED;
     }
+    if (!File::CheckFile(outputFileName, 64 * 1024 * 1024, 640)) {
+        ERROR_LOG("TensorToBin: open file %s is not safe.", outputFileName.c_str());
+        return FAILED;
+    }
     int fd = open(outputFileName.c_str(), O_EXCL | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP);
+    if (fd == -1) {
+        ERROR_LOG("TensorToBin: open file %s failed.", outputFileName.c_str());
+        return FAILED;
+    }
     close(fd);
     std::ofstream outFile(outputFileName);
     if (!outFile) {

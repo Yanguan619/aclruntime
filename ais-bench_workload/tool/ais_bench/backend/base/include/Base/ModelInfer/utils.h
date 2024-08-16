@@ -36,6 +36,7 @@
 #include "Base/Log/Log.h"
 #include "Base/Tensor/TensorBase/TensorBase.h"
 #include "Base/ModelInfer/cnpy.h"
+#include "File.h"
 
 typedef enum Result {
     SUCCESS = 0,

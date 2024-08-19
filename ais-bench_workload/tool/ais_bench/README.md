@@ -223,7 +223,7 @@ pip3 install -v 'git+https://gitee.com/ascend/tools.git#egg=ais_bench&subdirecto
 ## 使用方法
 
 ### 工具介绍
-ais_bench推理工具的使用方法主要分为命令行使用和API调用。本章节主要介绍命令行使用，API调用请参考《[API_GUIDE](https://gitee.com/ascend/tools/blob/master/ais-bench_workload/tool/ais_bench/API_GUIDE.md)》。
+ais_bench推理工具的使用方法主要分为命令行使用和API调用。本章节主要介绍命令行使用，API调用请参见《[API_GUIDE](https://gitee.com/ascend/tools/blob/master/ais-bench_workload/tool/ais_bench/API_GUIDE.md)》。
 
  #### 使用入口
 
@@ -271,8 +271,8 @@ ais_bench推理工具可以通过配置不同的参数，来应对各种测试�
 | --dymBatch               | 动态Batch参数，指定模型输入的实际Batch。 <br>如ATC模型转换时，设置--input_shape="data:-1,600,600,3;img_info:-1,3" --dynamic_batch_size="1,2,4,8"，dymBatch参数可设置为：--dymBatch 2。 | 否       |
 | --dymHW                  | 动态分辨率参数，指定模型输入的实际H、W。 <br>如ATC模型转换时，设置--input_shape="data:8,3,-1,-1;img_info:8,4,-1,-1" --dynamic_image_size="300,500;600,800"，dymHW参数可设置为：--dymHW 300,500。 | 否       |
 | --dymDims                | 动态维度参数，指定模型输入的实际Shape。 <br>如ATC模型转换时，设置 --input_shape="data:1,-1;img_info:1,-1" --dynamic_dims="224,224;600,600"，dymDims参数可设置为：--dymDims "data:1,600;img_info:1,600"。 | 否       |
-| --dymShape               | 动态Shape参数，指定模型输入的实际Shape。 <br>如ATC模型转换时，设置--input_shape_range="input1:\[8\~20,3,5,-1\];input2:\[5,3\~9,10,-1\]"，dymShape参数可设置为：--dymShape "input1:8,3,5,10;input2:5,3,10,10"。<br>动态Shape场景下，获取模型的输出size通常为0（即输出数据占内存大小未知），建议设置--outputSize参数。<br/>例如：--dymShape "input1:8,3,5,10;input2:5,3,10,10" --outputSize "10000,10000" | 否       |
-| --dymShape_range         | 动态Shape的阈值范围。如果设置该参数，那么将根据参数中所有的Shape列表进行依次推理，得到汇总推理信息。<br/>配置格式为：name1:1,3,200\~224,224-230;name2:1,300。其中，name为模型输入名，“\~”表示范围，“-”表示某一位的取值。<br/>也可以指定动态Shape的阈值范围配置文件*.info，该文件中记录动态Shape的阈值范围。 | 否       |
+| --dymShape               | 动态Shape参数，指定模型输入的实际Shape。 <br>如ATC模型转换时，设置--dymShape_range="input1:8\~20,3,5,-1;input2:5,3\~9,10,-1"，dymShape参数可设置为：--dymShape "input1:8,3,5,10;input2:5,3,10,10"。<br>动态Shape场景下，获取模型的输出size通常为0（即输出数据占内存大小未知），建议设置--outputSize参数。<br/>例如：--dymShape "input1:8,3,5,10;input2:5,3,10,10" --outputSize "10000,10000" | 否       |
+| --dymShape_range<br/> | 动态Shape的阈值范围。如果设置该参数，那么将根据参数中所有的Shape列表进行依次推理，得到汇总推理信息。<br/>对于单输入模型，配置格式为：name:1,3,200\~224,224-300或"name:1,3,200\~224,224-300"。例如：--dymShape_range name:1,3,200\~224,224-300或--dymShape_range "name:1,3,200\~224,224-300"。<br/>对于多输入模型，配置格式为："name1:1,3,200\~224,224-300;name2:1\~4,3,224,224"。例如：--dymShape_range "name1:1,3,200\~224,224-300;name2:1\~4,3,224,224"。<br/>其中，name为模型输入名，“\~”表示范围，“-”表示某一位的取值。<br/>通过命令行配置动态Shape范围时，仅支持配置一组动态范围。若存在多个模型输入，各输入用英文分号进行分隔。为确保参数的正确识别，请将整个配置字符串置于双引号内。<br/>当使用info文件进行配置时，可配置多组动态Shape范围。在*.info文件内，每组配置应单独放置在一行且无需使用引号。请注意，各配置行之间避免不必要的空行，以防止配置错误。info文件的格式如下：<br/>x1:1,3,32,32;x2:1\~4,3,32,32<br/>x1:1\~4,3,32,32;x2:1,3,32,32 | 否       |
 | --outputSize             | 指定模型的输出数据所占内存大小，多个输出时，需要为每个输出设置一个值，多个值之间用“,”隔开。<br>动态Shape场景下，获取模型的输出size通常为0（即输出数据占内存大小未知），需要根据输入的Shape，预估一个较合适的大小，配置输出数据占内存大小。<br>例如：--dymShape "input1:8,3,5,10;input2:5,3,10,10" --outputSize "10000,10000" | 否       |
 | --auto_set_dymdims_mode  | 自动设置动态Dims模式。1或true（开启）、0或false（关闭），默认关闭。<br/>针对动态档位Dims模型，根据输入的文件的信息，自动设置Shape参数，注意输入数据只能为npy文件，因为bin文件不能读取Shape信息。<br/>配合input参数使用，单独使用无效。<br/>例如：--input 1.npy --auto_set_dymdims_mode 1 | 否       |
 | --auto_set_dymshape_mode | 自动设置动态Shape模式。取值为：1或true（开启）、0或false（关闭），默认关闭。<br>针对动态Shape模型，根据输入的文件的信息，自动设置Shape参数，注意输入数据只能为npy文件，因为bin文件不能读取Shape信息。<br>配合input参数使用，单独使用无效。<br/>例如：--input 1.npy --auto_set_dymshape_mode 1 | 否       |
@@ -476,7 +476,7 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
 ```
 
 #### 动态AIPP场景
-- 动态AIPP的介绍参考[ATC模型转换](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/63RC1alpha002/download)中"6.1 AIPP使能"章节。
+- 动态AIPP的介绍参见[ATC模型转换_AIPP使能](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasatc_16_0016.html)章节。
 - 目前benchmark工具只支持单个input的带有动态AIPP配置的模型，只支持静态shape、动态batch、动态宽高三种场景，不支持动态shape场景。
 ##### --aipp_config 输入的.config文件模板
 以resnet18模型所对应的一种aipp具体配置为例(actual_aipp_conf.config)：
@@ -505,7 +505,7 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
 	  var_reci_chn_1 : 0.0175070028011204
 	  var_reci_chn_2 : 0.0174291938997821
 ```
-- .config文件`[aipp_op]`下的各字段名称及其取值范围参考[ATC模型转换](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/63RC1alpha002/download)中"6.1.9 配置文件模板"章节中"静态AIPP需设置，动态AIPP无需设置"部分，其中字段取值为为true、false的字段，在.config文件中取值对应为1、0。
+- .config文件`[aipp_op]`下的各字段名称及其取值范围参见[ATC模型转换_配置文件模板](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasatc_16_0025.html)中"静态AIPP需设置，动态AIPP无需设置"部分，其中字段取值为为true、false的字段，在.config文件中取值对应为1、0。
 - .config文件`[aipp_op]`下的`input_format`、`src_image_size_w`、`src_image_size_h`字段是必填字段。
 - .config文件中字段的具体取值是否适配对应的模型，benchmark本身不会检测，在推理时acl接口报错不属于benchmark的问题
 ##### 静态shape场景示例，以resnet18模型为例
@@ -548,7 +548,7 @@ python3 -m ais_bench --model resnet18_dym_image_aipp.om --aipp_config actual_aip
 
 ais_bench支持onnx模型推理（集成trtexec）,trtexec为NVIDIA TensorRT自带工具。用户使用ais_bench拉起trtexec工具进行推理性能测试，测试过程中实时输出trtexec日志，打印在控制台，推理性能测试完成后，将性能数据输出在控制台。
 ##### 前置条件
-推理性能测试环境需要配置有GPU，安装CANN、CUDA及TensorRT，并且trtexec可以通过命令行调用到，安装方式可参考[TensorRT](https://github.com/NVIDIA/TensorRT)。
+推理性能测试环境需要配置有GPU，安装CANN、CUDA及TensorRT，并且trtexec可以通过命令行调用到，安装方式可参见[TensorRT](https://github.com/NVIDIA/TensorRT)。
 
 示例命令如下：
 
@@ -603,7 +603,7 @@ python3 -m ais_bench --model pth_resnet50.onnx --backend trtexec --perf 1
     }
     ```
 
-    更多性能参数配置请依据CANN包种类（商用版或社区版）分别参见《[CANN 商用版：开发工具指南/性能数据采集（acl.json配置文件方式）](https://www.hiascend.com/document/detail/zh/canncommercial/63RC1/devtools/auxiliarydevtool/atlasprofiling_16_0086.html)》和《[CANN 社区版：开发工具指南/性能数据采集（acl.json配置文件方式）](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/63RC1alpha002/developmenttools/devtool/atlasprofiling_16_0086.html)》中的参数配置详细描述
+    更多性能参数配置请依据CANN包种类（商用版或社区版）分别参见[CANN 商用版：开发工具指南_使用acl.json配置文件采集](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0059.html)和[CANN 社区版：开发工具指南_使用acl.json配置文件采集](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC3alpha001/devaids/auxiliarydevtool/atlasprofiling_16_0060.html)中的参数配置详细描述。
 
   + dump
 
@@ -621,10 +621,10 @@ python3 -m ais_bench --model pth_resnet50.onnx --backend trtexec --perf 1
     }
     ```
 
-    更多dump配置请参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“精度比对工具>比对数据准备>推理场景数据准备>准备离线模型dump数据文件”章节。
+    更多dump配置请参见[CANN 开发工具指南_准备离线模型dump数据文件](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasaccuracy_16_0018.html)章节。
 
-- 通过该方式进行profiler采集时，如果配置了环境变量`export AIT_NO_MSPROF_MODE=1`，输出的性能数据文件需要参见《[CANN 开发工具指南/数据解析与导出/Profiling数据导出](https://www.hiascend.com/document/detail/zh/canncommercial/63RC1/devtools/auxiliarydevtool/atlasprofiling_16_0100.html)》，将性能数据解析并导出为可视化的timeline和summary文件。
-- 通过该方式进行profiler采集时，如果**没有**配置环境变量`AIT_NO_MSPROF_MODE=1`，benchmark会将acl.json中与profiler相关的参数解析成msprof命令，调用msprof采集性能数据，结果默认带有可视化的timeline和summary文件，msprof输出的文件含义参考[性能数据采集（msprof命令行方式）](https://www.hiascend.com/document/detail/zh/canncommercial/63RC1/devtools/auxiliarydevtool/atlasprofiling_16_0040.html)。
+- 通过该方式进行profiler采集时，如果配置了环境变量`export AIT_NO_MSPROF_MODE=1`，输出的性能数据文件需要参见[CANN 开发工具指南_导出性能数据](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0027.html)章节，将性能数据解析并导出为可视化的timeline和summary文件。
+- 通过该方式进行profiler采集时，如果**没有**配置环境变量`AIT_NO_MSPROF_MODE=1`，benchmark会将acl.json中与profiler相关的参数解析成msprof命令，调用msprof采集性能数据，结果默认带有可视化的timeline和summary文件，msprof输出的文件含义参见[CANN 开发工具指南_性能数据文件参考](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0062.html)。
 - 如果acl.json文件中同时配置了profiler和dump参数，需要要配置环境变量`export AIT_NO_MSPROF_MODE=1`保证同时采集
 
 + profiler为固化到程序中的一组性能数据采集配置，生成的性能数据保存在--output参数指定的目录下的profiler文件夹内。
@@ -642,9 +642,9 @@ python3 -m ais_bench --model pth_resnet50.onnx --backend trtexec --perf 1
   - 若命令不存在，则msprof层面会报错，benchmark层面不检查命令内容合法性。
   - 若环境配置了AIT_NO_MSPROF_MODE=1，则使用--profiler参数采集性能数据时调用的是acl.json文件。
 
-  msprof命令不存在或环境配置了AIT_NO_MSPROF_MODE=1情况下，采集的性能数据文件未自动解析，需要参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>数据解析与导出”章节，将性能数据解析并导出为可视化的timeline和summary文件。
+  msprof命令不存在或环境配置了AIT_NO_MSPROF_MODE=1情况下，采集的性能数据文件未自动解析，需要参见[CANN 开发工具指南_导出性能数据](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0027.html)章节，将性能数据解析并导出为可视化的timeline和summary文件。
 
-  更多性能数据采集参数介绍请参见《[CANN 开发工具指南](https://www.hiascend.com/document/detail/zh/canncommercial/60RC1/devtools/auxiliarydevtool/auxiliarydevtool_0002.html)》中的“性能分析工具>高级功能>性能数据采集（msprof命令行方式）”章节。
+  更多性能数据采集参数介绍请参见[CANN 开发工具指南_msprof命令行工具](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0010.html)章节。
 
 + acl_json_path优先级高于profiler和dump，同时设置时以acl_json_path为准。
 
@@ -830,7 +830,7 @@ ais_bench推理工具执行后，打屏输出结果示例如下：
 ### 接口开放
 
 开放ais_bench推理工具inferface推理Python接口。
-接口文档参考[API使用说明](API_GUIDE.md)
+接口文档参见[API使用说明](API_GUIDE.md)。
 
 动态Shape推理：
 
@@ -901,13 +901,13 @@ EZ9999  The error from device(2), serial number is 17, there is an aicore error,
 [FAQ](FAQ.md)
 ### security_error
 #### soft_link_error_log_solution
-参考[soft_link_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/soft_link_error_log_solution)
+参见[soft_link_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/soft_link_error_log_solution)
 #### path_length_overflow_error_log_solution
-参考[path_length_overflow_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/path_length_overflow_error_log_solution)
+参见[path_length_overflow_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/path_length_overflow_error_log_solution)
 #### owner_or_ownergroup_error_log_solution
-参考[owner_or_ownergroup_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/owner_or_ownergroup_error_log_solution)
+参见[owner_or_ownergroup_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/owner_or_ownergroup_error_log_solution)
 #### path_permission_error_log_solution
-参考[path_permission_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/path_permission_error_log_solution)
+参见[path_permission_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/path_permission_error_log_solution)
 #### path_contain_illegal_char_error_log_solution
-参考[path_contain_illegal_char_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/path_contain_illegal_char_error_log_solution)
+参见[path_contain_illegal_char_error_log_solution](https://gitee.com/ascend/ait/wikis/ait_security_error_log_solution/path_contain_illegal_char_error_log_solution)
 

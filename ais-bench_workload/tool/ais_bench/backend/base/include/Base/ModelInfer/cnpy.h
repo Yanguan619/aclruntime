@@ -35,9 +35,8 @@
 #include <numeric>
 #include <cstdlib>
 #include <ctime>
-
-#include "Base/Log/Log.h"
 #include "File.h"
+#include "Base/Log/Log.h"
 
 namespace cnpy {
 struct NpyArray {
@@ -147,7 +146,7 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
         trueDataShape[0] += shape[0];
     } else {
         if (!File::CheckFile(fname, 64 * 1024 * 1024, 640)) {
-            ERROR_LOG("opening file %s is not safe.", fname.c_str());
+            ERROR_LOG("Opening file %s is not safe.", fname.c_str());
             throw std::runtime_error("NpySave: fopen failed");
         }
         fp = fopen(fname.c_str(), "wb");

@@ -32,11 +32,11 @@
 #include <sys/types.h>
 #include <time.h>
 #include <vector>
-
-#include "Base/Log/Log.h"
-#include "Base/Tensor/TensorBase/TensorBase.h"
-#include "Base/ModelInfer/cnpy.h"
 #include "File.h"
+#include "Base/Log/Log.h"
+#include "Base/ModelInfer/cnpy.h"
+#include "Base/Tensor/TensorBase/TensorBase.h"
+
 
 typedef enum Result {
     SUCCESS = 0,

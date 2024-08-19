@@ -1666,7 +1666,7 @@ Result ModelProcess::SetAIPPRbuvSwapSwitch(
     aclmdlAIPP* aippDynamicSet
 )
 {
-    DEBUG_LOG("aclmdlSetAIPPRbuvSwapSwitch paras: rbuvSwapSwitch: %d",
+    DEBUG_LOG("aclmdlSetAIPPRbuvSwapSwitch params: rbuvSwapSwitch: %d",
         dyAippCfg->GetRbuvSwapSwitch());
     aclError ret = aclmdlSetAIPPRbuvSwapSwitch(aippDynamicSet, dyAippCfg->GetRbuvSwapSwitch());
     if (ret != ACL_ERROR_NONE) {
@@ -1684,7 +1684,7 @@ Result ModelProcess::SetAIPPAxSwapSwitch(
     aclmdlAIPP* aippDynamicSet
 )
 {
-    DEBUG_LOG("aclmdlSetAIPPAxSwapSwitch paras: axSwapSwitch: %d",
+    DEBUG_LOG("aclmdlSetAIPPAxSwapSwitch params: axSwapSwitch: %d",
         dyAippCfg->GetAxSwapSwitch());
     aclError ret = aclmdlSetAIPPAxSwapSwitch(aippDynamicSet, dyAippCfg->GetAxSwapSwitch());
     if (ret != ACL_ERROR_NONE) {

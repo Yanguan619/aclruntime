@@ -23,6 +23,8 @@ namespace {
 bool g_isDevice = true;
 const uint16_t OPEN_FILE_MODE = 640;
 const uint32_t MAX_OPEN_FILES_SIZE = 64 * 1024 * 1024;
+const mode_t OPNE_OR_CREATE_MODE = O_EXCL | O_CREAT;
+const mode_t CREATE_FILE_MODE = S_IRUSR | S_IWUSR | S_IRGRP;
 }
 
 void Utils::SplitString(std::string& s, std::vector<std::string>& v, char c)
@@ -378,7 +380,7 @@ Result Utils::TensorToBin(const std::string& outputFileName, Base::TensorBase& o
         ERROR_LOG("TensorToBin: open file %s is not safe.", outputFileName.c_str());
         return FAILED;
     }
-    int fd = open(outputFileName.c_str(), O_EXCL | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP);
+    int fd = open(outputFileName.c_str(), OPNE_OR_CREATE_MODE, CREATE_FILE_MODE);
     if (fd == -1) {
         ERROR_LOG("TensorToBin: open file %s failed.", outputFileName.c_str());
         return FAILED;
@@ -421,7 +423,7 @@ Result Utils::TensorToTxt(const std::string& outputFileName, Base::TensorBase& o
         ERROR_LOG("TensorToBin: open file %s is not safe.", outputFileName.c_str());
         return FAILED;
     }
-    int fd = open(outputFileName.c_str(), O_EXCL | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP);
+    int fd = open(outputFileName.c_str(), OPNE_OR_CREATE_MODE, CREATE_FILE_MODE);
     if (fd == -1) {
         ERROR_LOG("TensorToBin: open file %s failed.", outputFileName.c_str());
         return FAILED;

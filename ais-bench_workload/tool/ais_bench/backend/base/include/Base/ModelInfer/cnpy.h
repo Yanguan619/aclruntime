@@ -36,6 +36,7 @@
 #include <cstdlib>
 #include <ctime>
 #include "File.h"
+#include "utils.h"
 #include "Base/Log/Log.h"
 
 namespace cnpy {
@@ -145,7 +146,7 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
         }
         trueDataShape[0] += shape[0];
     } else {
-        if (!File::CheckFile(fname, 64 * 1024 * 1024, 640)) {
+        if (!File::CheckFile(fname, MAX_OPEN_FILES_SIZE, OPEN_FILE_MODE)) {
             ERROR_LOG("Opening file %s is not safe.", fname.c_str());
             throw std::runtime_error("NpySave: fopen failed");
         }

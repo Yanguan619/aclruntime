@@ -33,6 +33,8 @@ from ais_bench.infer.common.path_security_check import (
     MAX_SIZE_LIMITE_CONFIG_FILE,
     FileStat,
     is_legal_args_path_string,
+    check_path_legality,
+    FILE_PERM_CHOICE,
 )
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
@@ -80,7 +82,7 @@ def get_fileslist_from_dir(dir_):
     for f in os.listdir(dir_):
         f_true_path = os.path.join(dir_, f)
         f_stat = FileStat(f_true_path)
-        if not f_stat.is_basically_legal('read'):
+        if not f_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
             raise RuntimeError(f'input data:{f_true_path} is illegal')
         if f_stat.is_dir:
             continue
@@ -170,7 +172,7 @@ def make_dirs(path):
     ret = 0
     if not os.path.exists(path):
         try:
-            os.makedirs(path, PERMISSION_DIR)
+            os.mkdir(path, PERMISSION_DIR)
         except Exception as e:
             logger.warning(f"make dir {path} failed")
             ret = -1
@@ -259,6 +261,7 @@ def move_subdir(src_dir, dest_dir):
               |--2023***1--...  (bin file移动到新的目录下)
     '''
     res_dest, res_subdir = None, None
+    check_path_legality(src_dir, FILE_PERM_CHOICE.READ)
     subdirs = os.listdir(src_dir)
     if len(subdirs) != 1:
         logger.error(
@@ -266,9 +269,17 @@ def move_subdir(src_dir, dest_dir):
             src_dir,
         )
     else:
-        if os.path.exists(os.path.join(dest_dir, subdirs[0])):
-            logger.error("move_subdir failed: dest dir %s exists" % os.path.join(dest_dir, subdirs[0]))
+        abs_dest_subdir = os.path.join(dest_dir, subdirs[0])
+        check_path_legality(abs_dest_subdir, FILE_PERM_CHOICE.WRITE) # if not exist, won't raise exception
+        abs_src_subdir = os.path.join(src_dir, subdirs[0])
+        check_path_legality(abs_src_subdir, FILE_PERM_CHOICE.READ)
+
+        if os.path.exists(abs_dest_subdir):
+            logger.error("move_subdir failed: dest dir %s exists" % abs_dest_subdir)
         else:
-            shutil.move(os.path.join(src_dir, subdirs[0]), os.path.join(dest_dir, subdirs[0]))
+            try:
+                shutil.move(abs_src_subdir, abs_dest_subdir)
+            except Exception as err: # if abs_src_subdir be opened, may failed.
+                raise RuntimeError(f"Move src_dir:{abs_src_subdir} to dest_dir:{abs_dest_subdir} failed!") from err
             res_dest, res_subdir = dest_dir, subdirs[0]
     return res_dest, res_subdir

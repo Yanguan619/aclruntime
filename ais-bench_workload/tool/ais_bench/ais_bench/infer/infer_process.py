@@ -48,7 +48,9 @@ from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
                                    get_fileslist_from_dir, list_split, list_share,
                                    save_data_to_files, create_fake_file_name, logger,
                                    create_tmp_acl_json, move_subdir, convert_helper)
-from ais_bench.infer.common.path_security_check import is_legal_args_path_string, check_normal_string
+from ais_bench.infer.common.path_security_check import (
+    is_legal_args_path_string, check_normal_string, FILE_PERM_CHOICE, check_path_legality
+)
 from ais_bench.infer.interface_check import check_output_dir_legality
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.backends import BackendFactory
@@ -380,10 +382,16 @@ def msprof_run_profiling(args, msprof_bin):
         model_name = os.path.basename(args.model).split(".")[0]
         for file in file_name:
             real_file = os.path.splitext(file)[0]
-            os.rename(file, real_file + "_" + model_name + "_" + hash_str + ".csv")
+            try:
+                os.rename(file, real_file + "_" + model_name + "_" + hash_str + ".csv")
+            except Exception as err:
+                raise PermissionError(f"Can't rename file: {file}!") from err
         for file in file_name_json:
             real_file = os.path.splitext(file)[0]
-            os.rename(file, real_file + "_" + model_name + "_" + hash_str + ".json")
+            try:
+                os.rename(file, real_file + "_" + model_name + "_" + hash_str + ".json")
+            except Exception as err:
+                raise PermissionError(f"Can't rename file: {file}!") from err
         ret = 0
     else:
         ret = subprocess.call(msprof_cmd_list, shell=False)
@@ -408,14 +416,24 @@ def get_energy_consumption(npu_id):
 
 
 def convert(tmp_acl_json_path, real_dump_path, tmp_dump_path):
+    # check real_dump_path and tmp_dump_path in move_subdir
     if real_dump_path is not None and tmp_dump_path is not None:
         output_dir, timestamp = move_subdir(tmp_dump_path, real_dump_path)
         convert_helper(output_dir, timestamp)
-    if tmp_dump_path is not None:
-        shutil.rmtree(tmp_dump_path)
-    if tmp_acl_json_path is not None:
-        os.remove(tmp_acl_json_path)
 
+    if tmp_dump_path is not None:
+        check_path_legality(tmp_dump_path, FILE_PERM_CHOICE.WRITE) # if not exist, won't except
+        try:
+            shutil.rmtree(tmp_dump_path)
+        except Exception as err: # if tmp_dump_path be used, may failed.
+            raise RuntimeError(f"rmtree tmp_dump_path:{tmp_dump_path} failed!") from err
+
+    if tmp_acl_json_path is not None:
+        check_path_legality(tmp_acl_json_path, FILE_PERM_CHOICE.WRITE) # if not exist, won't except
+        try:
+            os.remove(tmp_acl_json_path)
+        except Exception as err: # if tmp_acl_json_path be used, may failed.
+            raise RuntimeError(f"rm tmp_acl_json_path:{tmp_acl_json_path} failed!") from err
 
 def main(args, index=0, msgq=None, device_list=None):
     # if msgq is not None,as subproces run

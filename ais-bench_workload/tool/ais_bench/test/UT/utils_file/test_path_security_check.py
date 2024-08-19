@@ -22,7 +22,7 @@ import pytest
 from test_common import TestCommonClass
 from ais_bench.infer.common.path_security_check import (
     is_legal_path_length, is_match_path_white_list, is_legal_args_path_string,
-    FileStat, ms_open, check_normal_string,
+    FileStat, ms_open, check_normal_string, FILE_PERM_CHOICE
 )
 
 logging.basicConfig(
@@ -141,42 +141,42 @@ class TestClass:
     def test_check_linux_permission(self, monkeypatch):
         file_stat = FileStat(self.standard_file_path)
         file_stat.is_file_exist = False
-        assert not file_stat.check_linux_permission(perm="read")
+        assert not file_stat.check_linux_permission(perm=FILE_PERM_CHOICE.READ)
 
         file_stat = FileStat(self.standard_file_path)
         monkeypatch.setattr("os.path.islink", lambda *arg: True)
-        assert not file_stat.check_linux_permission(perm="write")
+        assert not file_stat.check_linux_permission(perm=FILE_PERM_CHOICE.WRITE)
         monkeypatch.undo()
 
         monkeypatch.setattr("stat.S_IMODE", lambda *arg: 0o770)
-        assert not file_stat.check_linux_permission(perm="read")
+        assert not file_stat.check_linux_permission(perm=FILE_PERM_CHOICE.READ)
         monkeypatch.undo()
 
         monkeypatch.setattr("os.access", lambda *arg: False)
-        assert not file_stat.check_linux_permission(perm="read")
+        assert not file_stat.check_linux_permission(perm=FILE_PERM_CHOICE.READ)
         monkeypatch.undo()
 
         monkeypatch.setattr("stat.S_IMODE", lambda *arg: 0o755)
-        assert not file_stat.check_linux_permission(perm="write")
+        assert not file_stat.check_linux_permission(perm=FILE_PERM_CHOICE.WRITE)
         monkeypatch.undo()
 
         monkeypatch.setattr("os.access", lambda *arg: False)
-        assert not file_stat.check_linux_permission(perm="write")
+        assert not file_stat.check_linux_permission(perm=FILE_PERM_CHOICE.WRITE)
         monkeypatch.undo()
 
-        assert file_stat.check_windows_permission(perm="read")
+        assert file_stat.check_windows_permission(perm=FILE_PERM_CHOICE.READ)
 
     def test_check_windows_permission(self, monkeypatch):
         file_stat = FileStat(self.standard_file_path)
         file_stat.is_file_exist = False
-        assert not file_stat.check_windows_permission(perm="read")
+        assert not file_stat.check_windows_permission(perm=FILE_PERM_CHOICE.READ)
 
         file_stat = FileStat(self.standard_file_path)
         monkeypatch.setattr("os.path.islink", lambda *arg: True)
-        assert not file_stat.check_windows_permission(perm="write")
+        assert not file_stat.check_windows_permission(perm=FILE_PERM_CHOICE.WRITE)
         monkeypatch.undo()
 
-        assert file_stat.check_windows_permission(perm="read")
+        assert file_stat.check_windows_permission(perm=FILE_PERM_CHOICE.READ)
 
     def test_is_legal_file_size(self, monkeypatch):
         file_stat = FileStat(self.standard_file_path)

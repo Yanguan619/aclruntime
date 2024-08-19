@@ -51,6 +51,12 @@ PERMISSION_SUB_CHAPTER = ' FAQ/security_error/path_permission_error_log_solution
 ILLEGAL_CHAR_SUB_CHAPTER = ' FAQ/security_error/path_contain_illegal_char_error_log_solution\"'
 
 
+class FILE_PERM_CHOICE:
+    WRITE = "write"
+    READ = "read"
+    NONE = "none"
+
+
 def solution_log(content):
     logger.log(SOLUTION_LEVEL, f"visit \033[1;32m {content} \033[0m for detailed solution")  # green content
 
@@ -170,14 +176,14 @@ class FileStat:
     def is_user_and_group_owner(self):
         return self.is_owner and self.is_group_owner
 
-    def is_basically_legal(self, perm='none'):
+    def is_basically_legal(self, perm=FILE_PERM_CHOICE.NONE):
         if is_platform("win"):
             return self.check_windows_permission(perm)
         else:
             return self.check_linux_permission(perm)
 
-    def check_linux_permission(self, perm='none'):
-        if not self.is_exists and perm != 'write':
+    def check_linux_permission(self, perm=FILE_PERM_CHOICE.NONE):
+        if not self.is_exists and perm != FILE_PERM_CHOICE.WRITE:
             logger.error(f"path: {self.file} not exist, please check if file or dir is exist")
             return False
         if self.is_softlink:
@@ -190,7 +196,7 @@ class FileStat:
             )
             solution_log(SOLUTION_BASE_LOC + OWNER_SUB_CHAPTER)
             return False
-        if perm == 'read':
+        if perm == FILE_PERM_CHOICE.READ:
             if self.permission & READ_FILE_NOT_PERMITTED_STAT > 0:
                 logger.error(
                     f"The file {self.file} is group writable, or is others writable, as import file(or directory), "
@@ -205,7 +211,7 @@ class FileStat:
                 )
                 solution_log(SOLUTION_BASE_LOC + PERMISSION_SUB_CHAPTER)
                 return False
-        elif perm == 'write' and self.is_exists:
+        elif perm == FILE_PERM_CHOICE.WRITE and self.is_exists:
             if self.permission & WRITE_FILE_NOT_PERMITTED_STAT > 0:
                 logger.error(
                     f"The file {self.file} is group writable, or is others writable, as export file(or directory), "
@@ -222,8 +228,8 @@ class FileStat:
                 return False
         return True
 
-    def check_windows_permission(self, perm='none'):
-        if not self.is_exists and perm != 'write':
+    def check_windows_permission(self, perm=FILE_PERM_CHOICE.NONE):
+        if not self.is_exists and perm != FILE_PERM_CHOICE.WRITE:
             logger.error(f"path: {self.file} not exist, please check if file or dir is exist")
             return False
         if self.is_softlink:
@@ -276,7 +282,10 @@ def ms_open(file, mode="r", max_size=None, softlink=False, write_permission=PERM
                 f"The file owner is inconsistent with the current process user and is not allowed to write. {file}"
             )
         if file_stat.is_exists:
-            os.remove(file)
+            try:
+                os.remove(file)
+            except Exception as err:
+                raise PermissionError(f"current user can't remove {file}!") from err
 
     if "a" in mode:
         if not file_stat.is_owner:
@@ -296,7 +305,7 @@ def ms_open(file, mode="r", max_size=None, softlink=False, write_permission=PERM
         flags = flags | os.O_TRUNC | os.O_CREAT
     if "a" in mode:
         flags = flags | os.O_APPEND | os.O_CREAT
-    return os.fdopen(os.open(file, flags, mode=write_permission), mode, **kwargs)
+    return os.fdopen(os.open(file, flags, mode=write_permission), mode, **kwargs) # ms_open函数中，file在之前已经完成校验了
 
 
 def check_normal_string(str_to_check):
@@ -304,3 +313,14 @@ def check_normal_string(str_to_check):
         return
     if NORMAL_STR_WHITE_LIST_REGEX.search(str_to_check):
         raise ValueError(f"string: {str_to_check} contain illegal char")
+
+
+def check_path_legality(path, perm=FILE_PERM_CHOICE.WRITE, max_size=MAX_SIZE_LIMITE_CONFIG_FILE):
+    try:
+        file_stat = FileStat(path)
+    except Exception as err:
+        raise ValueError(f"The format of path:{path} is illegal. Please check.") from err
+    if not file_stat.is_basically_legal(perm):
+        raise ValueError(f"The path:{path} is illegal. Please check.")
+    if file_stat.is_file and not file_stat.is_legal_file_size(max_size):
+        raise ValueError(f"The file:{path} size is larger than {max_size}. Please check.")

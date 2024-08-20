@@ -32,10 +32,11 @@
 #include <sys/types.h>
 #include <time.h>
 #include <vector>
-
+#include "File.h"
 #include "Base/Log/Log.h"
-#include "Base/Tensor/TensorBase/TensorBase.h"
 #include "Base/ModelInfer/cnpy.h"
+#include "Base/Tensor/TensorBase/TensorBase.h"
+
 
 typedef enum Result {
     SUCCESS = 0,
@@ -72,10 +73,6 @@ public:
     static void printHelpLetter();
 
     static double printDiffTime(time_t begin, time_t end);
-
-    static void ProfilerJson(bool isprof, std::map<char, std::string>& params);
-
-    static void DumpJson(bool isdump, std::map<char, std::string>& params);
 
     static int ToInt(std::string &str);
 

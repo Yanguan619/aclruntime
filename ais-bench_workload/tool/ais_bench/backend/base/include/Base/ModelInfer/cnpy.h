@@ -35,7 +35,8 @@
 #include <numeric>
 #include <cstdlib>
 #include <ctime>
-
+#include "File.h"
+#include "utils.h"
 #include "Base/Log/Log.h"
 
 namespace cnpy {
@@ -95,7 +96,7 @@ NpyArray BinLoad(std::string fname);
 template <typename T> std::vector<char> &operator += (std::vector<char> &lhs, const T rhs)
 {
     for (size_t byte = 0; byte < sizeof(T); byte++) {
-        char val = *((char*)(&rhs) + byte);
+        char val = *(static_cast<char*>(&rhs) + byte);
         lhs.push_back(val);
     }
     return lhs;
@@ -145,7 +146,15 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
         }
         trueDataShape[0] += shape[0];
     } else {
+        if (!File::CheckFile(fname, MAX_OPEN_FILES_SIZE, OPEN_FILE_MODE)) {
+            ERROR_LOG("Opening file %s is not safe.", fname.c_str());
+            throw std::runtime_error("NpySave: fopen failed");
+        }
         fp = fopen(fname.c_str(), "wb");
+        if (fp == NULL) {
+            ERROR_LOG("Error opening file: %s", fname);
+            throw std::runtime_error("NpySave: fopen failed");
+        }
         trueDataShape = shape;
     }
     std::vector<char> header = CreateNpyHeader<T>(trueDataShape);

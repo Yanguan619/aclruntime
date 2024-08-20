@@ -120,7 +120,15 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
     }
     if (mode == "a") {
         chmod(fname.c_str(), S_IRUSR | S_IWUSR | S_IRGRP);
+        if (!File::CheckFile(fname, MAX_OPEN_FILES_SIZE, OPEN_FILE_MODE)) {
+            ERROR_LOG("Opening file %s is not safe.", fname.c_str());
+            throw std::runtime_error("NpySave: fopen failed");
+        }
         fp = fopen(fname.c_str(), "r+b");
+        if (fp == NULL) {
+            ERROR_LOG("Error opening file: %s", fname.c_str());
+            throw std::runtime_error("NpySave: fopen failed");
+        }
     }
     if (fp) {
         size_t wordSize;
@@ -152,20 +160,35 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
         }
         fp = fopen(fname.c_str(), "wb");
         if (fp == NULL) {
-            ERROR_LOG("Error opening file: %s", fname);
+            ERROR_LOG("Error opening file: %s", fname.c_str());
             throw std::runtime_error("NpySave: fopen failed");
         }
         trueDataShape = shape;
     }
     std::vector<char> header = CreateNpyHeader<T>(trueDataShape);
     size_t nels = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<size_t>());
-    if (fseek(fp, 0, SEEK_SET) != 0) { throw std::runtime_error("NpySave: fseek failed"); }
+    if (fseek(fp, 0, SEEK_SET) != 0) { 
+        fclose(fp);
+        throw std::runtime_error("NpySave: fseek failed"); 
+    }
     if (fwrite(&header[0], sizeof(char), header.size(), fp) != header.size()) {
+        fclose(fp);
         throw std::runtime_error("NpySave: fwrite failed");
     }
-    if (fseek(fp, 0, SEEK_END) != 0) { throw std::runtime_error("NpySave: fseek failed"); }
-    if (fwrite(data, sizeof(T), nels, fp) != nels) { throw std::runtime_error("NpySave: fwrite failed"); }
-    if (fclose(fp) != 0) { throw std::runtime_error("NpySave: fclose failed"); }
+    if (fseek(fp, 0, SEEK_END) != 0) { 
+        fclose(fp);
+        throw std::runtime_error("NpySave: fseek failed"); 
+    }
+    if (fwrite(data, sizeof(T), nels, fp) != nels) { 
+        fclose(fp);
+        throw std::runtime_error("NpySave: fwrite failed"); 
+    }
+    if (fclose(fp) != 0) { 
+        throw std::runtime_error("NpySave: fclose failed"); 
+    }
+    if(fp) {
+        fclose(fp);
+    }
 }
 
 template <typename T> void NpySave(std::string fname, const std::vector<T> data, std::string mode = "w")

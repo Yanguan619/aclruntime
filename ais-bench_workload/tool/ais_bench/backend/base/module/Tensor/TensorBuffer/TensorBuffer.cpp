@@ -105,8 +105,18 @@ APP_ERROR TensorBuffer::CopyBetweenHost(TensorBuffer &dst, const TensorBuffer &s
         LOG_ERROR << "CheckCopyValid failed. ret=" << ret << std::endl;
         return ret;
     }
-
-    std::copy((uint8_t*) src.data.get(), (uint8_t*)src.data.get() + src.size, (uint8_t*)dst.data.get());
+    try {
+        std::copy((uint8_t*) src.data.get(), (uint8_t*)src.data.get() + src.size, (uint8_t*)dst.data.get());
+    } catch (const std::bad_alloc& e) {
+        std::cerr << "copy Error occurred. " << e.what() << std::endl;
+        return APP_ERR_ACL_BAD_COPY;
+    } catch (const std::length_error& e) {
+        std::cerr << "Error: Input sequence has zero length. " << e.what() << std::endl;
+        return APP_ERR_ACL_BAD_COPY;
+    } catch (const std::exception& e) {
+        std::cerr << "Unexpected error occurred: " << e.what() << std::endl;
+        return APP_ERR_ACL_BAD_COPY;
+    }
     return APP_ERR_OK;
 }
 APP_ERROR TensorBuffer::CopyBetweenHostDevice(TensorBuffer &dst, const TensorBuffer &src)

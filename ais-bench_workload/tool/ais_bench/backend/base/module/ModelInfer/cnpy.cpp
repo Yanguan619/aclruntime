@@ -31,7 +31,7 @@ constexpr int RET_SUCCESS = 0;
 char cnpy::BigEndianTest()
 {
     int x = 1;
-    return (((char*)(&x))[0]) ? '<' : '>';
+    return ((static_cast<char*>(&x))[0]) ? '<' : '>';
 }
 
 char cnpy::MapType(const std::type_info &t)

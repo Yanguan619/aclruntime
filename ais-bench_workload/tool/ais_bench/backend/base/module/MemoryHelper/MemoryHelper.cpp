@@ -21,11 +21,11 @@
 #include "Base/Log/Log.h"
 
 namespace Base {
-using MemeoryDataFreeFuncPointer = APP_ERROR (*)(void*);
+using MemeoryDataFreeFuncPointer = APP_ERROR (*)(void*); // 此处是使用void*作为函数传参，使用该函数的场所已保证传入参数是void*
 
 APP_ERROR FreeFuncDelete(void* ptr)
 {
-    delete[] (int8_t*)ptr;
+    delete[] static_cast<int8_t*>ptr;
     return APP_ERR_OK;
 }
 

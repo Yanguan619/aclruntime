@@ -1,5 +1,5 @@
 # aclruntime API使用指南
-## benchmark API简介
+## API简介
 
 AISBench通过在基于昇腾硬件的离线模型（.om模型）上运行推理功能，进行模型推理性能测试。用户可以通过[命令行前端](https://gitee.com/ascend/tools/tree/master/ais-bench_workload/tool/ais_bench#%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95)以及[Python API接口](https://gitee.com/ascend/tools/blob/master/ais-bench_workload/tool/ais_bench/API_GUIDE.md)执行模型的推理过程。这两种方法主要使用了Python端封装的类InferSession，调用其中封装的参数设置、模型推理函数，获得推理结果和性能测试情况。
 

@@ -402,7 +402,7 @@ session.set_dynamic_shape(dyshapes)
 
 **功能说明**
 
-设定模型推理时输入数据的维度
+设定模型推理时输入数据的shape
 
 **参数说明**
 

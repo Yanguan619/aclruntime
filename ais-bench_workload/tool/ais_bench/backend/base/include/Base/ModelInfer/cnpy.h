@@ -168,7 +168,6 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
     std::vector<char> header = CreateNpyHeader<T>(trueDataShape);
     size_t nels = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<size_t>());
     if (fseek(fp, 0, SEEK_SET) != 0) { 
-        fclose(fp);
         throw std::runtime_error("NpySave: fseek failed"); 
     }
     if (fwrite(&header[0], sizeof(char), header.size(), fp) != header.size()) {

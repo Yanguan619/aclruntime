@@ -487,9 +487,9 @@ void PyInferenceSession::InferPipeline(std::vector<std::vector<std::string>>& in
         prepareThreadGroup.emplace_back(FuncPrepare, std::ref(h2dQueues[i]), session, std::ref(infilesList),
             inferOption, numThreads, i);
         h2dThreadGroup.emplace_back(FuncH2d, std::ref(h2dQueues[i]), std::ref(computeQueues[i]), session);
-        if (inferSummary == nullptr) {
-            throw std::runtime_error("InferPipeline failed: inferSummary pointer is null");
-        }
+        // if (inferSummary == nullptr) {
+        //     throw std::runtime_error("InferPipeline failed: inferSummary pointer is null");
+        // }
         computeThreadGroup.emplace_back(FuncCompute, std::ref(computeQueues[i]), std::ref(d2hQueues[i]),
             session, inferSummary);
         d2hThreadGroup.emplace_back(FuncD2h, std::ref(d2hQueues[i]), std::ref(saveQueues[i]), session);

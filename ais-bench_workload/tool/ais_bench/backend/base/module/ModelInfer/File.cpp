@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <filesystem>
+#include <cstring>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unordered_map>
@@ -260,7 +261,7 @@ bool File::CheckOwner(const std::string &path)
     return true;
 }
 
-File::std::string GetAbsPath(const std::string &path)
+std::string File::GetAbsPath(const std::string &path)
 {
-    return std::fileystem::abssolute(path);
+    return std::filesystem::absolute(path);
 }

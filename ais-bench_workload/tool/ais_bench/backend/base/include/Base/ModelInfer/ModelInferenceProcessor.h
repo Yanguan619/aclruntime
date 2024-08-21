@@ -50,9 +50,9 @@ struct BaseTensor {
 
     BaseTensor(int64_t buf, int64_t size, int64_t len=0)
     {
-        this->buf = static_cast<void*>buf;
-        this->size = static_cast<size_t>size;
-        this->len = static_cast<size_t>len;
+        this->buf = reinterpret_cast<void*>(buf);
+        this->size = static_cast<size_t>(size);
+        this->len = static_cast<size_t>(len);
     }
 
     BaseTensor(void* buf, size_t size, size_t len=0)

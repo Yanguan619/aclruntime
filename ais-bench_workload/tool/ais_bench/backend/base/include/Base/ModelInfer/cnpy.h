@@ -40,6 +40,8 @@
 #include "Base/Log/Log.h"
 
 namespace cnpy {
+const uint16_t OPEN_FILE_MODE = 640;
+const uint32_t MAX_OPEN_FILES_SIZE = 64 * 1024 * 1024;
 struct NpyArray {
     NpyArray(const std::vector<size_t> &shape, size_t wordSize, bool fortranOrder)
         : shape(shape), wordSize(wordSize), fortranOrder(fortranOrder), numVals(1)
@@ -96,7 +98,7 @@ NpyArray BinLoad(std::string fname);
 template <typename T> std::vector<char> &operator += (std::vector<char> &lhs, const T rhs)
 {
     for (size_t byte = 0; byte < sizeof(T); byte++) {
-        char val = *(static_cast<char*>(&rhs) + byte);
+        char val = *((&rhs) + byte);
         lhs.push_back(val);
     }
     return lhs;

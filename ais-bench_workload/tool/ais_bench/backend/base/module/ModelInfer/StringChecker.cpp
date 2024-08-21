@@ -34,7 +34,7 @@ bool StringChecker::HasInvalidChar(const std::string &text)
     return false;
 }
 
-std::vecotr<std::string> StringChecker::Split(const std::string &str, const std::string &delimiter)
+std::vector<std::string> StringChecker::Split(const std::string &str, const std::string &delimiter)
 {
     std::vector<std::string> res;
     if (delimiter.empty()) {

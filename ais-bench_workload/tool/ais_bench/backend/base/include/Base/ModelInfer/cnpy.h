@@ -122,10 +122,10 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
     }
     if (mode == "a") {
         chmod(fname.c_str(), S_IRUSR | S_IWUSR | S_IRGRP);
-        if (!File::CheckFile(fname, MAX_OPEN_FILES_SIZE, OPEN_FILE_MODE)) {
-            ERROR_LOG("Opening file %s is not safe.", fname.c_str());
-            throw std::runtime_error("NpySave: fopen failed");
-        }
+        // if (!File::CheckFile(fname, MAX_OPEN_FILES_SIZE, OPEN_FILE_MODE)) {
+        //     ERROR_LOG("Opening file %s is not safe.", fname.c_str());
+        //     throw std::runtime_error("NpySave: fopen failed");
+        // }
         fp = fopen(fname.c_str(), "r+b");
         // if (fp == NULL) {
         //     ERROR_LOG("Error opening file: %s", fname.c_str());
@@ -156,10 +156,10 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
         }
         trueDataShape[0] += shape[0];
     } else {
-        if (!File::CheckFile(fname, MAX_OPEN_FILES_SIZE, OPEN_FILE_MODE)) {
-            ERROR_LOG("Opening file %s is not safe.", fname.c_str());
-            throw std::runtime_error("NpySave: fopen failed");
-        }
+        // if (!File::CheckFile(fname, MAX_OPEN_FILES_SIZE, OPEN_FILE_MODE)) {
+        //     ERROR_LOG("Opening file %s is not safe.", fname.c_str());
+        //     throw std::runtime_error("NpySave: fopen failed");
+        // }
         fp = fopen(fname.c_str(), "wb");
         // if (fp == NULL) {
         //     ERROR_LOG("Error opening file: %s", fname.c_str());

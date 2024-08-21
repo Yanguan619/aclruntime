@@ -479,9 +479,9 @@ void PyInferenceSession::InferPipeline(std::vector<std::vector<std::string>>& in
         if (i != 0) {
             session = extraSession[i-1].get();
             inferSummary = &(summaryInfoGroup[i-1]);
-            if (session == nullptr) {
-                throw std::runtime_error("InferPipeline failed: session pointer is null");
-            }
+            // if (session == nullptr) {
+            //     throw std::runtime_error("InferPipeline failed: session pointer is null");
+            // }
             session->modelInfer_.GetMutableSumaryInfo().zero_point = this->GetSumaryInfo().zero_point;
         }
         prepareThreadGroup.emplace_back(FuncPrepare, std::ref(h2dQueues[i]), session, std::ref(infilesList),

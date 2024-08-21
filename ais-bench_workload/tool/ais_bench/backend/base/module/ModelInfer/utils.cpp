@@ -376,15 +376,7 @@ Result Utils::TensorToBin(const std::string& outputFileName, Base::TensorBase& o
         ERROR_LOG("TensorToBin: existing file %s cannot be removed", outputFileName.c_str());
         return FAILED;
     }
-    // if (!File::CheckFile(outputFileName, MAX_OPEN_FILES_SIZE, OPEN_FILE_MODE)) {
-    //     ERROR_LOG("TensorToBin: open file %s is not safe.", outputFileName.c_str());
-    //     return FAILED;
-    // }
     int fd = open(outputFileName.c_str(), OPNE_OR_CREATE_MODE, CREATE_FILE_MODE);
-    // if (fd == -1) {
-    //     ERROR_LOG("TensorToBin: open file %s failed.", outputFileName.c_str());
-    //     return FAILED;
-    // }
     close(fd);
     std::ofstream outfile(outputFileName, std::ios::out | std::ios::binary);
     if (!outfile) {
@@ -419,15 +411,7 @@ Result Utils::TensorToTxt(const std::string& outputFileName, Base::TensorBase& o
         ERROR_LOG("TensorToTxt: existing file %s cannot be removed", outputFileName.c_str());
         return FAILED;
     }
-    // if (!File::CheckFile(outputFileName, MAX_OPEN_FILES_SIZE, OPEN_FILE_MODE)) {
-    //     ERROR_LOG("TensorToBin: open file %s is not safe.", outputFileName.c_str());
-    //     return FAILED;
-    // }
     int fd = open(outputFileName.c_str(), OPNE_OR_CREATE_MODE, CREATE_FILE_MODE);
-    // if (fd == -1) {
-    //     ERROR_LOG("TensorToBin: open file %s failed.", outputFileName.c_str());
-    //     return FAILED;
-    // }
     close(fd);
     std::ofstream outFile(outputFileName);
     if (!outFile) {

@@ -265,7 +265,7 @@ std::string File::GetAbsPath(const std::string &path)
 {
     char buffer[MAX_PATH_SIZE];
     char* result = realpath(path.c_str(), buffer);
-    if (result == nullptr0) {
+    if (result == nullptr) {
         ERROR_LOG("convert absPath error");
         return "";
     }

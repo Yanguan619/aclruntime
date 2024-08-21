@@ -127,10 +127,10 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
             throw std::runtime_error("NpySave: fopen failed");
         }
         fp = fopen(fname.c_str(), "r+b");
-        if (fp == NULL) {
-            ERROR_LOG("Error opening file: %s", fname.c_str());
-            throw std::runtime_error("NpySave: fopen failed");
-        }
+        // if (fp == NULL) {
+        //     ERROR_LOG("Error opening file: %s", fname.c_str());
+        //     throw std::runtime_error("NpySave: fopen failed");
+        // }
     }
     if (fp) {
         size_t wordSize;
@@ -161,10 +161,10 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
             throw std::runtime_error("NpySave: fopen failed");
         }
         fp = fopen(fname.c_str(), "wb");
-        if (fp == NULL) {
-            ERROR_LOG("Error opening file: %s", fname.c_str());
-            throw std::runtime_error("NpySave: fopen failed");
-        }
+        // if (fp == NULL) {
+        //     ERROR_LOG("Error opening file: %s", fname.c_str());
+        //     throw std::runtime_error("NpySave: fopen failed");
+        // }
         trueDataShape = shape;
     }
     std::vector<char> header = CreateNpyHeader<T>(trueDataShape);

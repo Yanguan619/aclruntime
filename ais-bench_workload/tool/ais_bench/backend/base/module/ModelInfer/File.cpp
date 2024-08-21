@@ -263,5 +263,11 @@ bool File::CheckOwner(const std::string &path)
 
 std::string File::GetAbsPath(const std::string &path)
 {
-    return std::filesystem::absolute(path);
+    char buffer[MAX_PATH_SIZE];
+    char* result = realpath(path.c_str(), buffer);
+    if (result == nullptr0) {
+        ERROR_LOG("convert absPath error");
+        return "";
+    }
+    return std::string(buffer);
 }

@@ -38,16 +38,16 @@ std::vecotr<std::string> StringChecker::Split(const std::string &str, const std:
 {
     std::vector<std::string> res;
     if (delimiter.empty()) {
-        res.emplac_back(str);
+        res.emplace_back(str);
         return res;
     }
     size_t start = 0;
     size_t end;
-    while ((end = str.find(delimiter, start)) != st::string::npos) {
-        res.emplac_back(str.substr(start, end - start));
+    while ((end = str.find(delimiter, start)) != std::string::npos) {
+        res.emplace_back(str.substr(start, end - start));
         start = end + delimiter.length();
     }
-    res.emplac_back(str.substr(start));
+    res.emplace_back(str.substr(start));
     return res;
 }
 

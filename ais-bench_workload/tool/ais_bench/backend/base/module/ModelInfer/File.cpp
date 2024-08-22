@@ -15,7 +15,7 @@
  */
 
 #include <iostream>
-#include <filesystem>
+#include <cstring>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unordered_map>
@@ -260,7 +260,13 @@ bool File::CheckOwner(const std::string &path)
     return true;
 }
 
-File::std::string GetAbsPath(const std::string &path)
+std::string File::GetAbsPath(const std::string &path)
 {
-    return std::fileystem::abssolute(path);
+    char buffer[MAX_PATH_SIZE];
+    char* result = realpath(path.c_str(), buffer);
+    if (result == nullptr) {
+        ERROR_LOG("convert absPath error");
+        return "";
+    }
+    return std::string(buffer);
 }

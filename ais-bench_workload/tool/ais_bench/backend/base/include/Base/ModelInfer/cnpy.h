@@ -40,6 +40,8 @@
 #include "Base/Log/Log.h"
 
 namespace cnpy {
+const uint16_t OPEN_FILE_MODE = 640;
+const uint32_t MAX_OPEN_FILES_SIZE = 64 * 1024 * 1024;
 struct NpyArray {
     NpyArray(const std::vector<size_t> &shape, size_t wordSize, bool fortranOrder)
         : shape(shape), wordSize(wordSize), fortranOrder(fortranOrder), numVals(1)
@@ -96,7 +98,7 @@ NpyArray BinLoad(std::string fname);
 template <typename T> std::vector<char> &operator += (std::vector<char> &lhs, const T rhs)
 {
     for (size_t byte = 0; byte < sizeof(T); byte++) {
-        char val = *(static_cast<char*>(&rhs) + byte);
+        char val = *((&rhs) + byte);
         lhs.push_back(val);
     }
     return lhs;
@@ -120,15 +122,7 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
     }
     if (mode == "a") {
         chmod(fname.c_str(), S_IRUSR | S_IWUSR | S_IRGRP);
-        if (!File::CheckFile(fname, MAX_OPEN_FILES_SIZE, OPEN_FILE_MODE)) {
-            ERROR_LOG("Opening file %s is not safe.", fname.c_str());
-            throw std::runtime_error("NpySave: fopen failed");
-        }
         fp = fopen(fname.c_str(), "r+b");
-        if (fp == NULL) {
-            ERROR_LOG("Error opening file: %s", fname.c_str());
-            throw std::runtime_error("NpySave: fopen failed");
-        }
     }
     if (fp) {
         size_t wordSize;
@@ -154,15 +148,7 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
         }
         trueDataShape[0] += shape[0];
     } else {
-        if (!File::CheckFile(fname, MAX_OPEN_FILES_SIZE, OPEN_FILE_MODE)) {
-            ERROR_LOG("Opening file %s is not safe.", fname.c_str());
-            throw std::runtime_error("NpySave: fopen failed");
-        }
         fp = fopen(fname.c_str(), "wb");
-        if (fp == NULL) {
-            ERROR_LOG("Error opening file: %s", fname.c_str());
-            throw std::runtime_error("NpySave: fopen failed");
-        }
         trueDataShape = shape;
     }
     std::vector<char> header = CreateNpyHeader<T>(trueDataShape);
@@ -172,22 +158,16 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
         throw std::runtime_error("NpySave: fseek failed"); 
     }
     if (fwrite(&header[0], sizeof(char), header.size(), fp) != header.size()) {
-        fclose(fp);
         throw std::runtime_error("NpySave: fwrite failed");
     }
     if (fseek(fp, 0, SEEK_END) != 0) { 
-        fclose(fp);
         throw std::runtime_error("NpySave: fseek failed"); 
     }
     if (fwrite(data, sizeof(T), nels, fp) != nels) { 
-        fclose(fp);
         throw std::runtime_error("NpySave: fwrite failed"); 
     }
     if (fclose(fp) != 0) { 
         throw std::runtime_error("NpySave: fclose failed"); 
-    }
-    if(fp) {
-        fclose(fp);
     }
 }
 

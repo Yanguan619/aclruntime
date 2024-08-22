@@ -25,7 +25,7 @@ using MemeoryDataFreeFuncPointer = APP_ERROR (*)(void*); // 此处是使用void*
 
 APP_ERROR FreeFuncDelete(void* ptr)
 {
-    delete[] static_cast<int8_t*>ptr;
+    delete[] static_cast<int8_t*>(ptr);
     return APP_ERR_OK;
 }
 

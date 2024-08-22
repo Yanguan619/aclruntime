@@ -160,7 +160,7 @@ Result ModelProcess::GetDynamicIndex(size_t &dymindex)
     for (size_t i = 0; i < numInputs; i++) {
         inputname = aclmdlGetInputNameByIndex(modelDesc_, i);
         std::string inputname_str = inputname;
-        int ret_cmp = inputname_str.compare(ACL_DYNAMIC_TENSOR_NAME)
+        int ret_cmp = inputname_str.compare(ACL_DYNAMIC_TENSOR_NAME);
         if (ret_cmp == 0) {
             dynamicIndex_exist = true;
         }
@@ -943,7 +943,7 @@ Result ModelProcess::CreateOutput()
 void ModelProcess::print_float_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
 {
     for (size_t i = 1; i <= len / sizeof(float); i++) {
-        float out = *(static_cast<float*>outData + i - 1);
+        float out = *(static_cast<float*>(outData) + i - 1);
         outstr << out << " ";
         vector<int64_t>::iterator it;
         for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
@@ -980,7 +980,7 @@ void ModelProcess::print_aclFloat16_info(
 void ModelProcess::print_int8_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
 {
     for (size_t i = 1; i <= len / sizeof(int8_t); i++) {
-        int8_t out = *(static_cast<int8_t*>outData + i - 1);
+        int8_t out = *(static_cast<int8_t*>(outData) + i - 1);
         outstr << out << " ";
         vector<int64_t>::iterator it;
         for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
@@ -996,7 +996,7 @@ void ModelProcess::print_int8_info(size_t len, std::ofstream& outstr, void* outD
 void ModelProcess::print_int_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
 {
     for (size_t i = 1; i <= len / sizeof(int); i++) {
-        int out = *(static_cast<int*>outData + i - 1);
+        int out = *(static_cast<int*>(outData) + i - 1);
         outstr << out << " ";
         vector<int64_t>::iterator it;
         for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
@@ -1012,7 +1012,7 @@ void ModelProcess::print_int_info(size_t len, std::ofstream& outstr, void* outDa
 void ModelProcess::print_uint8_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
 {
     for (size_t i = 1; i <= len / sizeof(uint8_t); i++) {
-        uint8_t out = *(static_cast<uint8_t*>outData + i - 1);
+        uint8_t out = *(static_cast<uint8_t*>(outData) + i - 1);
         outstr << out << " ";
         vector<int64_t>::iterator it;
         for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
@@ -1028,7 +1028,7 @@ void ModelProcess::print_uint8_info(size_t len, std::ofstream& outstr, void* out
 void ModelProcess::print_int16_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
 {
     for (size_t i = 1; i <= len / sizeof(int16_t); i++) {
-        int16_t out = *(static_cast<int16_t*>outData + i - 1);
+        int16_t out = *(static_cast<int16_t*>(outData) + i - 1);
         outstr << out << " ";
         vector<int64_t>::iterator it;
         for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
@@ -1044,7 +1044,7 @@ void ModelProcess::print_int16_info(size_t len, std::ofstream& outstr, void* out
 void ModelProcess::print_uint16_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
 {
     for (size_t i = 1; i <= len / sizeof(uint16_t); i++) {
-        uint16_t out = *(static_cast<uint16_t*>outData + i - 1);
+        uint16_t out = *(static_cast<uint16_t*>(outData) + i - 1);
         outstr << out << " ";
         vector<int64_t>::iterator it;
         for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
@@ -1060,7 +1060,7 @@ void ModelProcess::print_uint16_info(size_t len, std::ofstream& outstr, void* ou
 void ModelProcess::print_uint32_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
 {
     for (size_t i = 1; i <= len / sizeof(uint32_t); i++) {
-        uint32_t out = *(static_cast<uint32_t*>outData + i - 1);
+        uint32_t out = *(static_cast<uint32_t*>(outData) + i - 1);
         outstr << out << " ";
         vector<int64_t>::iterator it;
         for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
@@ -1076,7 +1076,7 @@ void ModelProcess::print_uint32_info(size_t len, std::ofstream& outstr, void* ou
 void ModelProcess::print_int64_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
 {
     for (size_t i = 1; i <= len / sizeof(int64_t); i++) {
-        int64_t out = *(static_cast<int64_t*>outData + i - 1);
+        int64_t out = *(static_cast<int64_t*>(outData) + i - 1);
         outstr << out << " ";
         vector<int64_t>::iterator it;
         for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {
@@ -1092,7 +1092,7 @@ void ModelProcess::print_int64_info(size_t len, std::ofstream& outstr, void* out
 void ModelProcess::print_uint64_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul)
 {
     for (size_t i = 1; i <= len / sizeof(uint64_t); i++) {
-        uint64_t out = *(static_cast<uint64_t*>outData + i - 1);
+        uint64_t out = *(static_cast<uint64_t*>(outData) + i - 1);
         outstr << out << " ";
         vector<int64_t>::iterator it;
         for (it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++) {

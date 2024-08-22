@@ -41,7 +41,7 @@ public:
     // 删除字符串开头结尾的空格
     static std::string Trim(const std::string &text);
     // 将str字符串按delimiter的类型进行切割，切割结果以vector形式返回
-    static std::vecotr<std::string> Split(const std::string &str, const std::string &delimiter);
+    static std::vector<std::string> Split(const std::string &str, const std::string &delimiter);
 };
 
 #endif //MS_SAFE_CHECK_BASE_STRINGCHECKER_H

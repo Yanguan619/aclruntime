@@ -32,7 +32,7 @@ struct DeviceContext {
         IDLE = 0,  // idle status
         USING      // running status
     } devStatus = IDLE;
-    int32_t devId = DEFAULT_VALUE;
+    int32_t devId = static_cast<int32_t>(DEFAULT_VALUE);
 };
 
 class DeviceManager {

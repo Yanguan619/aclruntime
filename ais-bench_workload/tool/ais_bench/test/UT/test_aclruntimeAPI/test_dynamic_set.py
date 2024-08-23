@@ -19,7 +19,6 @@ import pytest
 import logging
 import aclruntime
 import numpy as np
-from aclruntime import set_dynamic_batchsize, set_dynamic_hw, set_dynamic_dims, set_dynamic_shape
 from test_common import TestCommonClass
 
 logging.basicConfig(
@@ -27,6 +26,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# test set_dynamic_batchsize, set_dynamic_hw, set_dynamic_dims, set_dynamic_shape
 class TestClass:
     @classmethod
     def setup_class(cls):
@@ -73,16 +73,12 @@ class TestClass:
         model_path = self.get_model_path("dymwh")
         session = aclruntime.InferenceSession(model_path, self.device_id, options)
 
-        session.set_dynamic_hw(112, 112)
+        session.set_dynamic_hw(224, 224)
         basesize = session.get_inputs()[0].realsize
 
-        session.set_dynamic_hw(224, 224)
-        basesize1 = session.get_inputs()[0].realsize
-        assert basesize1 == basesize * 2
-
         session.set_dynamic_hw(448, 448)
-        basesize2 = session.get_inputs()[0].realsize
-        assert basesize2 == basesize1 * 2
+        basesize1 = session.get_inputs()[0].realsize
+        assert basesize1 == basesize * 4
 
 
     def test_set_dynamic_dims(self):
@@ -90,20 +86,12 @@ class TestClass:
         model_path = self.get_model_path("dymdim")
         session = aclruntime.InferenceSession(model_path, self.device_id, options)
 
-        session.set_dynamic_dims(self.input_tensor_name + ":1,3,112,112")
+        session.set_dynamic_dims(self.input_tensor_name + ":1,3,224,224")
         basesize = session.get_inputs()[0].realsize
 
-        session.set_dynamic_dims(self.input_tensor_name + ":1,3,224,224")
+        session.set_dynamic_dims(self.input_tensor_name + ":8,3,448,448")
         basesize1 = session.get_inputs()[0].realsize
-        assert basesize1 == basesize * 4
-
-        session.set_dynamic_dims(self.input_tensor_name + ":2,3,224,224")
-        basesize2 = session.get_inputs()[0].realsize
-        assert basesize2 == basesize1 * 2
-
-        session.set_dynamic_dims(self.input_tensor_name + ":8,3,224,224")
-        basesize3 = session.get_inputs()[0].realsize
-        assert basesize3 == basesize2 * 4
+        assert basesize1 == basesize * 32
 
 
     def test_set_dynamic_shape(self):

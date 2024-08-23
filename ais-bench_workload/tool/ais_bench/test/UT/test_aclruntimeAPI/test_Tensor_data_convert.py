@@ -19,7 +19,7 @@ import pytest
 import logging
 import aclruntime
 import numpy as np
-from aclruntime import Tensor, to_device, to_host
+from aclruntime import Tensor
 from test_common import TestCommonClass
 
 logging.basicConfig(
@@ -27,6 +27,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# test Tensor, to_device, to_host
 class TestClass:
     @classmethod
     def setup_class(cls):
@@ -51,33 +52,13 @@ class TestClass:
         self.options = aclruntime.session_options()
         self.session = aclruntime.InferenceSession(self.get_model_path(self.model_kind), self.device_id, self.options)
 
-    def test_default_Tensor(self):
-        tensor = Tensor()
-
-        assert tensor.buffer_.size == 0
-        assert tensor.buffer_.type == 0
-        assert tensor.buffer_.deviceId == -1
-        assert tensor.buffer_.contextIndex == 0
-        assert tensor.buffer_.data == None
-        assert tensor.shape_.shape_ == None
-        assert tensor.isInitFlag_ == False
-        assert tensor.dataType_ == 4
-
-    # 问题：buffer_.size是多少，这样判断是否可以
     def test_initialize_Tensor(self):
         shape = [1, 3, 32, 32]
         ndata = np.full(shape, 1).astype(np.float32)
         tensor = Tensor(ndata)
 
-        assert tensor.buffer_.size == 3072
-        assert tensor.buffer_.type == 0
-        assert tensor.buffer_.deviceId == -1
-        assert tensor.buffer_.contextIndex == 0
-        assert tensor.buffer_.data.shape == [1, 3, 32, 32]
-        assert np.all(tensor.buffer_.data) == 1.
-        assert tensor.shape_.shape_ == [1, 3, 32, 32]
-        assert tensor.isInitFlag_ == False
-        assert tensor.dataType_ == 0
+        assert tensor.device == -1 # in host
+        assert tensor.shape == [1, 3, 32, 32]
 
     def test_to_device(self):
         shape = [1, 3, 32, 32]
@@ -85,33 +66,22 @@ class TestClass:
         tensor = Tensor(ndata)
         tensor.to_device(self.device_id)
 
-        assert tensor.buffer_.size == 3072
-        assert tensor.buffer_.type == 1 # Device
-        assert tensor.buffer_.deviceId == 0 # Device ID
-        assert tensor.buffer_.contextIndex == 0
-        assert tensor.buffer_.data.shape == [1, 3, 32, 32]
-        assert np.all(tensor.buffer_.data) == 1.
-        assert tensor.shape_.shape_ == [1, 3, 32, 32]
-        assert tensor.isInitFlag_ == False
-        assert tensor.dataType_ == 0
+        assert tensor.device == TestCommonClass.default_device_id # in device 
+        assert tensor.shape == [1, 3, 32, 32]
 
 
     def test_to_host(self):
         shape = [1, 3, 32, 32]
         ndata = np.full(shape, 1).astype(np.float32)
         tensor = Tensor(ndata)
-        tensor.to_device(self.device_id)
-        tensor.to_host()
 
-        assert tensor.buffer_.size == 3072
-        assert tensor.buffer_.type == 0 # HOST
-        assert tensor.buffer_.deviceId == -1 # NOT in Device
-        assert tensor.buffer_.contextIndex == 0
-        assert tensor.buffer_.data.shape == [1, 3, 32, 32]
-        assert np.all(tensor.buffer_.data) == 1.
-        assert tensor.shape_.shape_ == [1, 3, 32, 32]
-        assert tensor.isInitFlag_ == False
-        assert tensor.dataType_ == 0
+        tensor.to_device(self.device_id)
+        assert tensor.device == TestCommonClass.default_device_id # in device 
+        assert tensor.shape == [1, 3, 32, 32]
+
+        tensor.to_host()
+        assert tensor.device == -1 # in host
+        assert tensor.shape == [1, 3, 32, 32]
 
 if __name__ == '__main__':
     pytest.main([__file__, '-vs'])

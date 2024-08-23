@@ -45,7 +45,7 @@ class TestClass:
 
     def init(self):
         self.model_name = "resnet50"
-        self.device_id = 0
+        self.device_id = TestCommonClass.default_device_id
         self.input_tensor_name = "actual_input_1"
         
     def test_set_dynamic_batchsize(self):

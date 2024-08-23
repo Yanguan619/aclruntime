@@ -46,7 +46,7 @@ class TestClass:
 
     def init(self):
         self.model_name = "resnet50"
-        self.device_id = 0
+        self.device_id = TestCommonClass.default_device_id
         self.input_tensor_name = "actual_input_1"
 
     def test_static_run(self):
@@ -54,8 +54,8 @@ class TestClass:
         model_path = self.get_model_path("bs1")
         session = InferenceSession(model_path, self.device_id, options)
 
-        shape = session.get_inputs()[0].shape
-        ndata = np.full(shape, 0).astype(np.float32)
+        barray = bytearray(session.get_inputs()[0].realsize)
+        ndata = np.frombuffer(barray)
         tensor = aclruntime.Tensor(ndata)
         tensor.to_device(self.device_id)
 
@@ -96,7 +96,7 @@ class TestClass:
         model_path = self.get_model_path("dymwh")
         session = InferenceSession(model_path, self.device_id, options)
 
-        session.set_dynamic_hw(112, 112)
+        session.set_dynamic_hw(224, 224)
         barray = bytearray(session.get_inputs()[0].realsize)
         ndata = np.frombuffer(barray)
         tensor = aclruntime.Tensor(ndata)
@@ -139,6 +139,7 @@ class TestClass:
         session = InferenceSession(model_path, self.device_id, options)
 
         session.set_dynamic_shape(self.input_tensor_name + ":1,3,224,224")
+        session.set_custom_outsize([10000])
         barray = bytearray(session.get_inputs()[0].realsize)
         ndata = np.frombuffer(barray)
         tensor = aclruntime.Tensor(ndata)

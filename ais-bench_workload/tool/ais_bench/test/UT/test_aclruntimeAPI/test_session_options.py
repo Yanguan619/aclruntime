@@ -40,23 +40,22 @@ class TestClass:
         logger.info('\n ---class level teardown_class')
 
     def init(self):
+        options = session_options()
         pass
 
-    def test_default_session_options():
-        options = session_options()
-        assert options.log_level == 2
-        assert options.loop == 1
-        assert options.acl_json_path == ""
+    def test_default_session_options(self):
+        assert self.options.log_level == 2
+        assert self.options.loop == 1
+        assert self.options.acl_json_path == ""
 
-    def test_custom_session_options():
-        options = session_options()
-        options.log_level = 1
-        options.loop = 10
-        options.acl_json_path = "/path/to/acl.json"
+    def test_initialize_session_options(self):
+        self.options.log_level = 1
+        self.options.loop = 10
+        self.options.acl_json_path = "/path/to/acl.json"
 
-        assert options.log_level == 1
-        assert options.loop == 10
-        assert options.acl_json_path == "/path/to/acl.json"
+        assert self.options.log_level == 1
+        assert self.options.loop == 10
+        assert self.options.acl_json_path == "/path/to/acl.json"
 
 if __name__ == '__main__':
     pytest.main([__file__, '-vs'])

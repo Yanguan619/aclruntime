@@ -41,11 +41,10 @@ class TestClass:
 
     @classmethod
     def get_model_path(cls, kind : str):
-        return os.path.join(cls.model_path, cls.model_name, "model", f"pth_resnet50_{kind}.om")
+        return os.path.join(TestCommonClass.base_path, cls.model_name, "model", f"pth_resnet50_{kind}.om")
 
     def init(self):
         self.model_name = "resnet50"
-        self.model_path = "../../testdata/"
         self.device_id = 0
         self.input_tensor_name = "actual_input_1"
         

@@ -41,11 +41,10 @@ class TestClass:
 
     @classmethod
     def get_model_path(cls, kind: str):
-        return os.path.join(cls.model_path, cls.model_name, "model", f"{cls.model_name}_{kind}.om")
+        return os.path.join(TestCommonClass.base_path, cls.model_name, "model", f"{cls.model_name}_{kind}.om")
 
     def init(self):
         self.model_name = "add_model"
-        self.model_path = "../../testdata/"
         self.model_kind = "bs1"
         self.TensorDataType = [-1,0,1,2,3,4,6,7,8,9,10,11]
         self.device_id = 0

@@ -40,7 +40,7 @@ class TestClass:
         logger.info('\n ---class level teardown_class')
 
     def init(self):
-        options = session_options()
+        self.options = session_options()
         pass
 
     def test_default_session_options(self):

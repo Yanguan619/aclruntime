@@ -41,16 +41,16 @@ def aclruntime_api_dymbatch():
     tensor1.to_device(device_id)
     feeds.append(tensor1)
 
-    # set dynamic shape
+    # set dynamic batch
     indesc = session.get_inputs()
     for i, shape in enumerate(shapes):
-        for j, dim in enumerate(shape):
+        for j, batchsize in enumerate(shape):
             if (indesc[i].shape[j] < 0):
-                session.set_dynamic_batchsize(dim)
-                print("input datas and intensors dim matched")
+                session.set_dynamic_batchsize(batchsize)
+                print("input datas and intensors batchsize matched")
                 break
-            if (indesc[i].shape[j] != dim):
-                raise RuntimeError("input datas and intensors dim not matched!")
+            if (indesc[i].shape[j] != batchsize):
+                raise RuntimeError("input datas and intensors batchsize not matched!")
 
     # inference
     outnames = [meta.name for meta in session.get_outputs()]

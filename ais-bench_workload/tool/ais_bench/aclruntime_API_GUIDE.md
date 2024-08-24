@@ -34,7 +34,7 @@ tensor.to_device(device_id)
 ```
 
 ### 执行模型推理
-建立好模型推理的实例session后，准备outnames，表示模型输入结果的名称。在npu芯片上的数据和配置都已经设定完成，调用session的成员函数接口进行模型推理，接口返回值就是推理结果。
+建立好模型推理的实例session后，准备outnames，表示模型输出结果的名称。在npu芯片上的数据和配置都已经设定完成，调用session的成员函数接口进行模型推理，接口返回值就是推理结果。
 ```python
 # outnames表示模型推理结果输出的名称
 outnames = [meta.name for meta in session.get_outputs()]
@@ -277,13 +277,13 @@ print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
 # set dynamic batch
 indesc = session.get_inputs()
 for i, shape in enumerate(shapes):
-    for j, dim in enumerate(shape):
+    for j, batchsize in enumerate(shape):
         if (indesc[i].shape[j] < 0):
-            session.set_dynamic_batchsize(dim)
-            print("input datas and intensors dim matched")
+            session.set_dynamic_batchsize(batchsize)
+            print("input datas and intensors batchsize matched")
             break
-        if (indesc[i].shape[j] != dim):
-            raise RuntimeError("input datas and intensors dim not matched!")
+        if (indesc[i].shape[j] != batchsize):
+            raise RuntimeError("input datas and intensors batchsize not matched!")
 ```
 
 #### set_dynamic_batchsize函数

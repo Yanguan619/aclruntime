@@ -30,6 +30,7 @@ debug_ut_script_list=( \
     "utils_file/test_summary.py" \
     "utils_file/test_path_security_check.py" \
     "test_argparser.py" \
+    "test_aclruntimeAPI/test_dynamic_run.py" \
 )
 
 full_st_script_list=( \
@@ -60,6 +61,11 @@ full_ut_script_list=( \
     "test_pipeline_interface.py" \
     "test_pipeline_run_dymshape.py" \
     "test_pipeline_run_normal.py" \
+    "test_aclruntimeAPI/test_dynamic_run.py" \
+    "test_aclruntimeAPI/test_dynamic_set.py" \
+    "test_aclruntimeAPI/test_get_inputs_outputs.py" \
+    "test_aclruntimeAPI/test_session_options.py" \
+    "test_aclruntimeAPI/test_Tensor_data_convert.py" \
 )
 
 simple_st_script_list=( \

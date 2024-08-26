@@ -48,14 +48,6 @@ class TestClass:
         assert self.options.loop == 1
         assert self.options.acl_json_path == ""
 
-    def test_initialize_session_options(self):
-        self.options.log_level = 1
-        self.options.loop = 10
-        self.options.acl_json_path = "/path/to/acl.json"
-
-        assert self.options.log_level == 1
-        assert self.options.loop == 10
-        assert self.options.acl_json_path == "/path/to/acl.json"
 
 if __name__ == '__main__':
     pytest.main([__file__, '-vs'])

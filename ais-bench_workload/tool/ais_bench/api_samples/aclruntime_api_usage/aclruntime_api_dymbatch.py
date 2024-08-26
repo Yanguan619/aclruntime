@@ -15,9 +15,9 @@
 import aclruntime
 import numpy as np
 
-def aclruntime_api_dymhw():
+def aclruntime_api_dymbatch():
     device_id = 0
-    model_path = "../../testdata/add_model/model/add_model_dymwh.om"
+    model_path = "../sampledata/add_model/model/add_model_dymbatch.om"
 
     # create session of om model for inference
     options = aclruntime.session_options()
@@ -26,9 +26,9 @@ def aclruntime_api_dymhw():
     shapes = []
     feeds = []
     #create new numpy data according inputs info
-    shape0 = [1, 3, 32, 32]
+    shape0 = [4, 3, 32, 32]
     ndata0 = np.full(shape0, 1).astype(np.float32)
-    shape1 = [1, 3, 32, 32]
+    shape1 = [4, 3, 32, 32]
     ndata1 = np.full(shape1, 1).astype(np.float32)
     shapes.append(shape0)
     shapes.append(shape1)
@@ -41,12 +41,16 @@ def aclruntime_api_dymhw():
     tensor1.to_device(device_id)
     feeds.append(tensor1)
 
-    # set dynamic HW
+    # set dynamic batch
     indesc = session.get_inputs()
     for i, shape in enumerate(shapes):
-        if (indesc[i].shape[2] < 0 and indesc[i].shape[3] < 0):
-            session.set_dynamic_hw(shape[2], shape[3])
-            break
+        for j, batchsize in enumerate(shape):
+            if (indesc[i].shape[j] < 0):
+                session.set_dynamic_batchsize(batchsize)
+                print("input datas and intensors batchsize matched")
+                break
+            if (indesc[i].shape[j] != batchsize):
+                raise RuntimeError("input datas and intensors batchsize not matched!")
 
     # inference
     outnames = [meta.name for meta in session.get_outputs()]
@@ -63,4 +67,4 @@ def aclruntime_api_dymhw():
     # summay inference throughput
     print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
 
-aclruntime_api_dymhw()
+aclruntime_api_dymbatch()

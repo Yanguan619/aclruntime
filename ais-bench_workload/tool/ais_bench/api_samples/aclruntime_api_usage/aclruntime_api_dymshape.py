@@ -15,20 +15,23 @@
 import aclruntime
 import numpy as np
 
-def aclruntime_api_static():
+def aclruntime_api_dymshape():
     device_id = 0
-    model_path = "../../testdata/add_model/model/add_model_bs1.om"
+    model_path = "../sampledata/add_model/model/add_model_dymshape.om"
 
     # create session of om model for inference
     options = aclruntime.session_options()
     session = aclruntime.InferenceSession(model_path, device_id, options)
 
-    #create new numpy data according inputs info
-    shape0 = session.get_inputs()[0].shape
-    ndata0 = np.full(shape0, 1).astype(np.float32)
-    shape1 = session.get_inputs()[1].shape
-    ndata1 = np.full(shape1, 1).astype(np.float32)
+    shapes = []
     feeds = []
+    #create new numpy data according inputs info
+    shape0 = [4, 3, 32, 32]
+    ndata0 = np.full(shape0, 1).astype(np.float32)
+    shape1 = [4, 3, 32, 32]
+    ndata1 = np.full(shape1, 1).astype(np.float32)
+    shapes.append(shape0)
+    shapes.append(shape1)
 
     # move data to device
     tensor0 = aclruntime.Tensor(ndata0)
@@ -37,6 +40,22 @@ def aclruntime_api_static():
     tensor1 = aclruntime.Tensor(ndata1)
     tensor1.to_device(device_id)
     feeds.append(tensor1)
+
+    # set dynamic shape
+    dym_list = []
+    indesc = session.get_inputs()
+    for i, shape in enumerate(shapes):
+        str_shape = [str(val) for val in shape]
+        dyshape = "{}:{}".format(indesc[i].name, ",".join(str_shape))
+        dym_list.append(dyshape)
+    dyshapes = ';'.join(dym_list)
+    session.set_dynamic_shape(dyshapes)
+
+    # set custom size
+    outdesc = session.get_outputs()
+    custom_sizes = 100000
+    custom_sizes = [custom_sizes] * len(outdesc)
+    session.set_custom_outsize(custom_sizes)
 
     # inference
     outnames = [meta.name for meta in session.get_outputs()]
@@ -53,4 +72,4 @@ def aclruntime_api_static():
     # summay inference throughput
     print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
 
-aclruntime_api_static()
+aclruntime_api_dymshape()

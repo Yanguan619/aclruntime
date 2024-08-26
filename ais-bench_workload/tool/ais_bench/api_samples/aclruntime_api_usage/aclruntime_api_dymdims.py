@@ -17,7 +17,7 @@ import numpy as np
 
 def aclruntime_api_dymdims():
     device_id = 0
-    model_path = "../../testdata/add_model/model/add_model_dymdim.om"
+    model_path = "../sampledata/add_model/model/add_model_dymdims.om"
 
     # create session of om model for inference
     options = aclruntime.session_options()

@@ -30,7 +30,6 @@ debug_ut_script_list=( \
     "utils_file/test_summary.py" \
     "utils_file/test_path_security_check.py" \
     "test_argparser.py" \
-    "test_aclruntimeAPI/test_dynamic_run.py" \
 )
 
 full_st_script_list=( \

@@ -39,6 +39,7 @@ full_st_script_list=( \
     "test_infer_resnet50_dymshape.py" \
     "test_infer_resnet50_normal.py" \
     "test_result.py" \
+    "test_aclruntimeAPI/test_dynamic_run.py" \
 )
 
 full_ut_script_list=( \
@@ -61,7 +62,6 @@ full_ut_script_list=( \
     "test_pipeline_interface.py" \
     "test_pipeline_run_dymshape.py" \
     "test_pipeline_run_normal.py" \
-    "test_aclruntimeAPI/test_dynamic_run.py" \
     "test_aclruntimeAPI/test_dynamic_set.py" \
     "test_aclruntimeAPI/test_get_inputs_outputs.py" \
     "test_aclruntimeAPI/test_session_options.py" \

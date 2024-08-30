@@ -53,11 +53,11 @@ class TestClass:
 
     @classmethod
     def get_resnet50_static_output_dir_npy(cls):
-        return os.path.realpath(os.path.join(TestCommonClass.get_basepath(), "resnet50", "output", "npy_out"))
+        return os.path.realpath(os.path.join(TestCommonClass.get_basepath(), "resnet50", "output", "npy_static_out"))
 
     @classmethod
     def get_resnet50_dymshape_output_dir_npy(cls):
-        return os.path.realpath(os.path.join(TestCommonClass.get_basepath(), "resnet50", "output", "npy_out"))
+        return os.path.realpath(os.path.join(TestCommonClass.get_basepath(), "resnet50", "output", "npy_dymshape_out"))
 
     @classmethod
     def get_resnet50_om_path(cls, kind:str):

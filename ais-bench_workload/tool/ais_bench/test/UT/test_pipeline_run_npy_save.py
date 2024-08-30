@@ -46,35 +46,37 @@ class TestClass:
         logger.info('\n ---class level teardown_class')
 
     @classmethod
-    def get_resnet50_output_dir_npy(cls):
+    def get_input_datas_file_npy_nor(cls):
+        return os.path.realpath(
+            os.path.join(TestCommonClass.get_basepath(), "resnet50", "input", "fake_dataset_npy_nor/1.npy")
+        )
+
+    @classmethod
+    def get_resnet50_static_output_dir_npy(cls):
         return os.path.realpath(os.path.join(TestCommonClass.get_basepath(), "resnet50", "output", "npy_out"))
-    
-    @classmethod
-    def get_add_model_output_dir_npy(cls):
-        return os.path.realpath(os.path.join(TestCommonClass.get_basepath(), "add_model", "output", "npy_out"))
 
     @classmethod
-    def get_resnet50_stcshape_om_path(cls):
-        return os.path.join(TestCommonClass.get_basepath(), "resnet50", "model", "pth_resnet50_bs1.om")
+    def get_resnet50_dymshape_output_dir_npy(cls):
+        return os.path.realpath(os.path.join(TestCommonClass.get_basepath(), "resnet50", "output", "npy_out"))
 
     @classmethod
-    def get_add_model_stcshape_om_path(cls):
-        return os.path.join(TestCommonClass.get_basepath(), "add_model", "model", "add_model_bs1.om")
+    def get_resnet50_om_path(cls, kind:str):
+        return os.path.join(TestCommonClass.get_basepath(), "resnet50", "model", f"pth_resnet50_{kind}.om")
 
     def init(self):
         pass
 
-    def test_resnet50_pure_infer_stc_shape_random(self):
+    def test_pure_infer_stc_shape_random(self):
         device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
-        model_path = self.get_resnet50_stcshape_om_path()
+        model_path = self.get_resnet50_om_path("bs1")
         session = aclruntime.InferenceSession(model_path, device_id, options)
         intensors_desc = session.get_inputs()
         infileslist = [[]]
         pure_file = PURE_INFER_FAKE_FILE_RANDOM
         for _ in intensors_desc:
             infileslist[0].append(pure_file)
-        output_dir = self.get_resnet50_output_dir_npy()
+        output_dir = self.get_resnet50_static_output_dir_npy()
         if not os.path.exists(output_dir):
             os.makedirs(output_dir, 0o755)
         infer_options = aclruntime.infer_options()
@@ -85,20 +87,21 @@ class TestClass:
         session.run_pipeline(infileslist, infer_options, extra_session)
         npy_files = glob.glob(os.path.join(output_dir, "*.npy"))
         assert len(npy_files) == 1
+        out_data = np.load(npy_files[0])
+        assert out_data.shape == [1, 1000]
         
-    def test_add_model_pure_infer_stc_shape_random(self):
+    def test_pure_infer_dym_shape(self):
         device_id = TestCommonClass.default_device_id
         options = aclruntime.session_options()
-        model_path = self.get_add_model_stcshape_om_path()
+        model_path = self.get_resnet50_om_path("dymshape")
         session = aclruntime.InferenceSession(model_path, device_id, options)
-        # shape = session.get_inputs()[0].shape
-        # ndata = np.full(shape, 0).astype(np.float32)
+        session.set_dynamic_shape("actual_input_1:1,3,224,224")
+        session.set_custom_outsize([10000])
         intensors_desc = session.get_inputs()
-        infileslist = [[]]
-        pure_file = PURE_INFER_FAKE_FILE_RANDOM
-        for _ in intensors_desc:
-            infileslist[0].append(pure_file)
-        output_dir = self.get_add_model_output_dir_npy()
+        infilespath = create_pipeline_fileslist_from_inputs_list(
+            self.get_input_datas_file_npy_nor().split(','), intensors_desc
+        )
+        output_dir = self.get_resnet50_dymshape_output_dir_npy()
         if not os.path.exists(output_dir):
             os.makedirs(output_dir, 0o755)
         infer_options = aclruntime.infer_options()
@@ -106,9 +109,11 @@ class TestClass:
         infer_options.out_format = 'NPY'
         infer_options.pure_infer_mode = True
         extra_session = []
-        session.run_pipeline(infileslist, infer_options, extra_session)
+        session.run_pipeline(infilespath, infer_options, extra_session)
         npy_files = glob.glob(os.path.join(output_dir, "*.npy"))
         assert len(npy_files) == 1
+        out_data = np.load(npy_files[0])
+        assert out_data.shape == [1, 10000]
 
 if __name__ == '__main__':
     pytest.main([__file__, '-vs'])

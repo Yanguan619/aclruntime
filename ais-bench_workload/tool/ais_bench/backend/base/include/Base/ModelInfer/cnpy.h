@@ -98,7 +98,7 @@ NpyArray BinLoad(std::string fname);
 template <typename T> std::vector<char> &operator += (std::vector<char> &lhs, const T rhs)
 {
     for (size_t byte = 0; byte < sizeof(T); byte++) {
-        char val = *((&rhs) + byte);
+        char val = *(reinterpret_cast<const char*>(&rhs) + byte);
         lhs.push_back(val);
     }
     return lhs;

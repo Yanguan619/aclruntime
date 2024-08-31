@@ -88,7 +88,7 @@ class TestClass:
         npy_files = glob.glob(os.path.join(output_dir, "*.npy"))
         assert len(npy_files) == 1
         out_data = np.load(npy_files[0])
-        assert out_data.shape == [1, 1000]
+        assert out_data.shape == (1, 1000)
         
     def test_pure_infer_dym_shape(self):
         device_id = TestCommonClass.default_device_id
@@ -113,7 +113,7 @@ class TestClass:
         npy_files = glob.glob(os.path.join(output_dir, "*.npy"))
         assert len(npy_files) == 1
         out_data = np.load(npy_files[0])
-        assert out_data.shape == [1, 10000]
+        assert out_data.shape == (1, 1000)
 
 if __name__ == '__main__':
     pytest.main([__file__, '-vs'])

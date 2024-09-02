@@ -310,7 +310,7 @@ chmod 750 get_sample_datas.sh
 #### aclruntime API static
 
 静态场景下，模型进行固定形式的输入，运行推理，产生输出。以**add_model**模型为例。在该场景下，仅需要构建模型所需shape的数据，将其迁移至npu上，然后输入到模型推理接口，即可运行模型的推理，获取模型推理结果，也可以查看模型推理的性能信息。
-样例可执行文件在[aclruntime_api_static.py](api_samples\aclruntime_api_usage\aclruntime_api_static.py)
+样例可执行文件在[aclruntime_api_static.py](api_samples/aclruntime_api_usage/aclruntime_api_static.py)
 
 **配置信息**
 ```python
@@ -361,7 +361,7 @@ print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
 
 #### aclruntime API dymbatch
 
-动态batch场景，设定模型的batchsize，将输入数据按照设定的batchsize组batch，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymbatch.py](api_samples\aclruntime_api_usage\aclruntime_api_dymbatch.py)
+动态batch场景，设定模型的batchsize，将输入数据按照设定的batchsize组batch，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymbatch.py](api_samples/aclruntime_api_usage/aclruntime_api_dymbatch.py)
 
 模型的**配置信息**、**数据准备**、**数据迁移**、**模型推理**以及**结果查看**都与[aclruntime API static](#aclruntime-api-static)场景一致。
 
@@ -400,7 +400,7 @@ for i, shape in enumerate(shapes):
 
 #### aclruntime API dymhw
 
-动态分辨率场景，设定模型输入数据的分辨率，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymhw.py](api_samples\aclruntime_api_usage\aclruntime_api_dymhw.py)
+动态分辨率场景，设定模型输入数据的分辨率，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymhw.py](api_samples/aclruntime_api_usage/aclruntime_api_dymhw.py)
 
 模型的**配置信息**、**数据准备**、**数据迁移**、**模型推理**以及**结果查看**都与[aclruntime API static](#aclruntime-api-static)场景一致。
 
@@ -436,7 +436,7 @@ for i, shape in enumerate(shapes):
 
 #### aclruntime API dymdims
 
-动态维度场景，设定模型输入数据的维度，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymdims.py](api_samples\aclruntime_api_usage\aclruntime_api_dymdims.py)
+动态维度场景，设定模型输入数据的维度，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymdims.py](api_samples/aclruntime_api_usage/aclruntime_api_dymdims.py)
 
 模型的**配置信息**、**数据准备**、**数据迁移**、**模型推理**以及**结果查看**都与[aclruntime API static](#aclruntime-api-static)场景一致。
 
@@ -476,7 +476,7 @@ shape格式样例（不同shape间使用`;`分割；一个shape中name和shape�
 
 #### aclruntime API dymshape
 
-动态shape场景，设定模型输入数据的shape，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymshape.py](api_samples\aclruntime_api_usage\aclruntime_api_dymshape.py)
+动态shape场景，设定模型输入数据的shape，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymshape.py](api_samples/aclruntime_api_usage/aclruntime_api_dymshape.py)
 
 模型的**配置信息**、**数据准备**、**数据迁移**、**模型推理**以及**结果查看**都与[aclruntime API static](#aclruntime-api-static)场景一致。
 

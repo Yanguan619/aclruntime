@@ -54,6 +54,8 @@ exec_time = session.summary().exec_time_list[-1]
 
 ### 通用函数说明
 
+下面将介绍aclruntime API中通用的一些函数接口。这些函数接口会在各种场景中基本都会被使用，用来初始化模型、构造推理输入、配置参数等功能。
+
 #### session_options函数
 
 **使用示例**

@@ -61,6 +61,7 @@ full_ut_script_list=( \
     "test_pipeline_interface.py" \
     "test_pipeline_run_dymshape.py" \
     "test_pipeline_run_normal.py" \
+    "test_pipeline_run_npy_save.py" \
     "test_aclruntimeAPI/test_dynamic_set.py" \
     "test_aclruntimeAPI/test_get_inputs_outputs.py" \
     "test_aclruntimeAPI/test_session_options.py" \

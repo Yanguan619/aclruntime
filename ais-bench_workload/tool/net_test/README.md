@@ -4,7 +4,7 @@
 | ---- | ---- |
 |操作节点|启动本工具的节点，也是集群中root rank所在的节点（master 节点）|
 ## 简介
-本文介绍AISBench通信测评工具，此工具可快速部署在服务器单机或集群上，用于测试HCCL（Huawei Collective Communication Library）集合通信的功能正确性以及性能，同时在未来会提供更多快速定位集合通信的功能。
+本文介绍AISBench通信测评工具，此工具可快速部署在服务器单机或集群上，用于测试集合通信的功能正确性以及性能，当前对接了HCCL（Huawei Collective Communication Library）。在未来本工具会提供更多快速定位集合通信的功能。
 **注意**: 工具处于早期测试版本，源码不正式在本仓库开放。
 
 ## 工具安装&前置准备

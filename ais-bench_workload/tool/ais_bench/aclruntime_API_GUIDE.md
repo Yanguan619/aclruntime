@@ -51,26 +51,10 @@ exec_time = session.summary().exec_time_list[-1]
 
 ## aclruntime API 使用场景
 介绍利用aclruntime API推理使用频率最多的五种基本场景
-### API场景说明
-|编号<td rowspan='1'>**模型**<td rowspan='1'>**场景**</td><td rowspan='1'>**样例**</td><td rowspan='1'>**说明**</td>|
-|----|
-|1<td rowspan='5'>add_model</td><td rowspan='1'>static静态模型</td><td rowspan='1'>[aclruntime_api_static](#aclruntime-api-static)</td><td rowspan='1'>基本场景</td>|
-|2<td rowspan='1'>dymbatch动态batch模型</td><td rowspan='1'>[aclruntime_api_dymbatch](#aclruntime-api-dymbatch)</td><td rowspan='1'>动态Batch，指定模型输入的实际Batch</td>|
-|3<td rowspan='1'>dymhw动态分辨率模型</td><td rowspan='1'>[aclruntime_api_dymhw](#aclruntime-api-dymhw)</td><td rowspan='1'>动态分辨率，指定模型输入的实际H、W</td>|
-|4<td rowspan='1'>dymdims动态维度模型</td><td rowspan='1'>[aclruntime_api_dymdims](#aclruntime-api-dymdims)</td><td rowspan='1'>动态维度，指定模型输入的实际shape</td>|
-|5<td rowspan='1'>dymshape动态shape模型</td><td rowspan='1'>[aclruntime_api_dymshape](#aclruntime-api-dymshape)</td><td rowspan='1'>动态Shape，指定模型输入的实际shape</td>|
-
-**add_model模型**：仅有一个加法算子的模型，获得两个tensor数据相加的结果。
-
-如果要执行使用样例add_model，需要在linux环境下载AISBench的源码，进入使用样例目录下, 执行以下命令生成样例执行所需的模型。
-
-```python
-chmod 750 get_sample_datas.sh
-./get_sample_datas.sh
-```
-
 
 ### 通用函数说明
+
+下面将介绍aclruntime API中通用的一些函数接口。这些函数接口会在各种场景中基本都会被使用，用来初始化模型、构造推理输入、配置参数等功能。
 
 #### session_options函数
 
@@ -307,18 +291,36 @@ session.sumary()
 
 返回[[float, float]]类型数据。返回的list中按推理执行的先后顺序，保存了每一组数据推理的时间对（开始时间，结束时间）。
 
+### API场景说明
+|编号<td rowspan='1'>**模型**<td rowspan='1'>**场景**</td><td rowspan='1'>**样例**</td><td rowspan='1'>**说明**</td>|
+|----|
+|1<td rowspan='5'>add_model</td><td rowspan='1'>static静态模型</td><td rowspan='1'>[aclruntime_api_static](#aclruntime-api-static)</td><td rowspan='1'>基本场景</td>|
+|2<td rowspan='1'>dymbatch动态batch模型</td><td rowspan='1'>[aclruntime_api_dymbatch](#aclruntime-api-dymbatch)</td><td rowspan='1'>动态Batch，指定模型输入的实际Batch</td>|
+|3<td rowspan='1'>dymhw动态分辨率模型</td><td rowspan='1'>[aclruntime_api_dymhw](#aclruntime-api-dymhw)</td><td rowspan='1'>动态分辨率，指定模型输入的实际H、W</td>|
+|4<td rowspan='1'>dymdims动态维度模型</td><td rowspan='1'>[aclruntime_api_dymdims](#aclruntime-api-dymdims)</td><td rowspan='1'>动态维度，指定模型输入的实际shape</td>|
+|5<td rowspan='1'>dymshape动态shape模型</td><td rowspan='1'>[aclruntime_api_dymshape](#aclruntime-api-dymshape)</td><td rowspan='1'>动态Shape，指定模型输入的实际shape</td>|
 
-### aclruntime API static
+**add_model模型**：仅有一个加法算子的模型，获得两个tensor数据相加的结果。
+
+如果要执行使用样例add_model，需要在linux环境下载AISBench的源码，进入使用样例目录下, 执行以下命令生成样例执行所需的模型。
+
+```python
+chmod 750 get_sample_datas.sh
+./get_sample_datas.sh
+```
+
+#### aclruntime API static
 
 静态场景下，模型进行固定形式的输入，运行推理，产生输出。以**add_model**模型为例。在该场景下，仅需要构建模型所需shape的数据，将其迁移至npu上，然后输入到模型推理接口，即可运行模型的推理，获取模型推理结果，也可以查看模型推理的性能信息。
+样例可执行文件在[aclruntime_api_static.py](api_samples/aclruntime_api_usage/aclruntime_api_static.py)
 
-#### 配置信息
+**配置信息**
 ```python
 device_id = 0 # 模型推理的device ID
 model_path = "../xxx/add_model.om" # om模型
 ```
 
-#### 数据准备
+**数据准备**
 ```python
 shape0 = session.get_inputs()[0].shape
 ndata0 = np.full(shape0, 1).astype(np.float32)
@@ -326,7 +328,7 @@ shape1 = session.get_inputs()[1].shape
 ndata1 = np.full(shape1, 1).astype(np.float32)
 ```
 
-#### 数据迁移
+**数据迁移**
 ```python
 # 将数据迁移到对应编号的npu上
 feeds = []
@@ -338,13 +340,13 @@ tensor1.to_device(device_id)
 feeds.append(tensor1)
 ```
 
-#### 模型推理
+**模型推理**
 ```python
 outnames = [meta.name for meta in session.get_outputs()]
 outputs = session.run(outnames, feeds)
 ```
 
-#### 结果查看
+**结果查看**
 ```python
 print(f"outputs: {outputs}")
 outarray = []
@@ -359,15 +361,15 @@ print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
 ```
 
 
-### aclruntime API dymbatch
+#### aclruntime API dymbatch
 
-动态batch场景，设定模型的batchsize，将输入数据按照设定的batchsize组batch，运行模型推理，产生输出。以add_model模型为例。
+动态batch场景，设定模型的batchsize，将输入数据按照设定的batchsize组batch，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymbatch.py](api_samples/aclruntime_api_usage/aclruntime_api_dymbatch.py)
 
 模型的**配置信息**、**数据准备**、**数据迁移**、**模型推理**以及**结果查看**都与[aclruntime API static](#aclruntime-api-static)场景一致。
 
 若模型推理时包含动态Batch特性，在模型推理时，要设置模型推理时需使用的batch size，模型支持的batch size已提前在构建模型时配置（使用ATC工具的dynamic_batch_size参数）。在动态batch的场景下，自行设定batchsize，根据该batchsize组成batch，运行模型推理。示例代码中，调用`set_dynamic_batchsize()`执行设定batch的操作。
 
-#### 设定batch
+**设定batch**
 ```python
 # set dynamic batch
 indesc = session.get_inputs()
@@ -381,7 +383,7 @@ for i, shape in enumerate(shapes):
             raise RuntimeError("input datas and intensors batchsize not matched!")
 ```
 
-#### set_dynamic_batchsize函数
+##### set_dynamic_batchsize函数
 
 **功能说明**
 
@@ -398,15 +400,15 @@ for i, shape in enumerate(shapes):
 无
 
 
-### aclruntime API dymhw
+#### aclruntime API dymhw
 
-动态分辨率场景，设定模型输入数据的分辨率，运行模型推理，产生输出。以add_model模型为例。
+动态分辨率场景，设定模型输入数据的分辨率，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymhw.py](api_samples/aclruntime_api_usage/aclruntime_api_dymhw.py)
 
 模型的**配置信息**、**数据准备**、**数据迁移**、**模型推理**以及**结果查看**都与[aclruntime API static](#aclruntime-api-static)场景一致。
 
 若模型推理时包含动态分辨率特性，在模型推理时，要设置模型推理时需使用的分辨率，模型支持的分辨率已提前在构建模型时配置（使用ATC工具的dynamic_image_size参数）。在动态分辨率的场景下，自行设定h、w，运行模型推理。示例代码中，调用`set_dynamic_hw()`执行设定分辨率的操作。
 
-#### 设定分辨率
+**设定分辨率**
 ```python
 # set dynamic HW
 indesc = session.get_inputs()
@@ -416,7 +418,7 @@ for i, shape in enumerate(shapes):
         break
 ```
 
-#### set_dynamic_hw函数
+##### set_dynamic_hw函数
 
 **功能说明**
 
@@ -434,15 +436,15 @@ for i, shape in enumerate(shapes):
 无
 
 
-### aclruntime API dymdims
+#### aclruntime API dymdims
 
-动态维度场景，设定模型输入数据的维度，运行模型推理，产生输出。以add_model模型为例。
+动态维度场景，设定模型输入数据的维度，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymdims.py](api_samples/aclruntime_api_usage/aclruntime_api_dymdims.py)
 
 模型的**配置信息**、**数据准备**、**数据迁移**、**模型推理**以及**结果查看**都与[aclruntime API static](#aclruntime-api-static)场景一致。
 
 若模型推理时包含动态维度特性，在模型推理时，要设置模型推理时需使用的维度值，模型支持哪些维度值已提前在构建模型时配置（使用ATC工具的dynamic_dims参数）。在动态维度的场景下，自行设定维度，运行模型推理。示例代码中，调用`set_dynamic_dims()`执行设定维度的操作。
 
-#### 设定维度
+**设定维度**
 ```python
 # set dynamic dims
 dym_list = []
@@ -455,7 +457,7 @@ dyshapes = ';'.join(dym_list)
 session.set_dynamic_dims(dyshapes)
 ```
 
-#### set_dynamic_dims函数
+##### set_dynamic_dims函数
 
 **功能说明**
 
@@ -474,15 +476,15 @@ shape格式样例（不同shape间使用`;`分割；一个shape中name和shape�
 无
 
 
-### aclruntime API dymshape
+#### aclruntime API dymshape
 
-动态shape场景，设定模型输入数据的shape，运行模型推理，产生输出。以add_model模型为例。
+动态shape场景，设定模型输入数据的shape，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymshape.py](api_samples/aclruntime_api_usage/aclruntime_api_dymshape.py)
 
 模型的**配置信息**、**数据准备**、**数据迁移**、**模型推理**以及**结果查看**都与[aclruntime API static](#aclruntime-api-static)场景一致。
 
 若模型推理时包含动态shape的特性，在模型推理时，需要设置模型推理时固定的shape，模型支持的shape情况，已提前在构建模型时配置（使用ATC工具，通过input_shape参数设置输入Shape范围）。在动态shape场景下，设定模型输入数据的shape，根据该shape输入数据，并运行模型推理。示例代码中，调用`set_dynamic_shape`执行设定shape的操作。
 
-#### 设定维度
+**设定shape**
 ```python
 # set dynamic shape
 dym_list = []
@@ -495,7 +497,7 @@ dyshapes = ';'.join(dym_list)
 session.set_dynamic_shape(dyshapes)
 ```
 
-#### set_dynamic_shape函数
+##### set_dynamic_shape函数
 
 **功能说明**
 

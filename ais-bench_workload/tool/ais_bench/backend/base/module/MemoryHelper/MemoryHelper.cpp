@@ -44,7 +44,7 @@ struct MemorySummary* GetMemorySummaryPtr()
 
 void MemoryHelper::LogErrorInfo()
 {
-    LOG_ERROR << GetError(APP_ERR_ACL_BAD_ALLOC)<< "The module type is not defined.";
+    ERROR_LOG("%sThe module type is not defined.", GetError(APP_ERR_ACL_BAD_ALLOC));
     return;
 }
 
@@ -56,21 +56,21 @@ APP_ERROR MemoryHelper::specificMalloc(MemoryData& data)
             ret = aclrtMallocHost(&(data.ptrData), data.size);
             data.free = aclrtFreeHost;
             if (ret != APP_ERR_OK) {
-                cout << aclGetRecentErrMsg() << endl;
+                ACLERR_LOG(aclGetRecentErrMsg());
             }
             break;
         case MemoryData::MEMORY_DEVICE:
             ret = aclrtMalloc(&(data.ptrData), data.size, ACL_MEM_MALLOC_HUGE_FIRST);
             data.free = aclrtFree;
             if (ret != APP_ERR_OK) {
-                cout << aclGetRecentErrMsg() << endl;
+                ACLERR_LOG(aclGetRecentErrMsg());
             }
             break;
         case MemoryData::MEMORY_DVPP:
             ret = acldvppMalloc(&(data.ptrData), data.size);
             data.free = acldvppFree;
             if (ret != APP_ERR_OK) {
-                cout << aclGetRecentErrMsg() << endl;
+                ACLERR_LOG(aclGetRecentErrMsg());
             }
             break;
         case MemoryData::MEMORY_HOST_MALLOC:
@@ -86,7 +86,7 @@ APP_ERROR MemoryHelper::specificMalloc(MemoryData& data)
             try {
                 data.ptrData = static_cast<void*>(new int8_t[data.size]);
             } catch (const std::bad_alloc& e) {
-                std::cerr << "Allocate memory of size " << data.size << " bytes failed: " << e.what() << std::endl;
+                ERROR_LOG("Allocate memory of size %d bytes failed: %s", data.size, e.what());
                 ret = APP_ERR_ACL_BAD_ALLOC;
                 break;
             }
@@ -113,7 +113,7 @@ APP_ERROR MemoryHelper::Malloc(MemoryData& data)
     }
     ret = specificMalloc(data);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << GetError(ret) << "Malloc ptrData failed.";
+        ERROR_LOG("%sMalloc ptrData failed.", GetError(ret));
         data.ptrData = nullptr;
         return APP_ERR_ACL_BAD_ALLOC;
     }
@@ -126,8 +126,7 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
         return APP_ERR_OK;
     }
     if (data.ptrData == nullptr) {
-        LOG_ERROR << GetError(APP_ERR_COMM_INVALID_POINTER)
-                 << "Free failed, ptrData is nullptr.";
+        ERROR_LOG("%sFree failed, ptrData is nullptr.", GetError(APP_ERR_COMM_INVALID_POINTER));
         return APP_ERR_COMM_INVALID_POINTER;
     }
     APP_ERROR ret = APP_ERR_OK;
@@ -135,19 +134,19 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
         case MemoryData::MEMORY_HOST:
             ret = aclrtFreeHost(data.ptrData);
             if (ret != APP_ERR_OK) {
-                cout << aclGetRecentErrMsg() << endl;
+                ACLERR_LOG(aclGetRecentErrMsg());
             }
             break;
         case MemoryData::MEMORY_DEVICE:
             ret = aclrtFree(data.ptrData);
             if (ret != APP_ERR_OK) {
-                cout << aclGetRecentErrMsg() << endl;
+                ACLERR_LOG(aclGetRecentErrMsg());
             }
             break;
         case MemoryData::MEMORY_DVPP:
             ret = acldvppFree(data.ptrData);
             if (ret != APP_ERR_OK) {
-                cout << aclGetRecentErrMsg() << endl;
+                ACLERR_LOG(aclGetRecentErrMsg());
             }
             break;
         case MemoryData::MEMORY_HOST_MALLOC:
@@ -161,12 +160,11 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
             ret = APP_ERR_OK;
             break;
         default:
-            LOG_ERROR << GetError(APP_ERR_ACL_BAD_FREE)
-                     << "Free failed, the module type is not defined, data type:" << data.type;
+            ERROR_LOG("%sFree failed, the module type is not defined, data type:%d", GetError(APP_ERR_ACL_BAD_FREE), data.type);
             return APP_ERR_ACL_BAD_FREE;
     }
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << GetError(ret) << "Free ptrData failed.";
+        ERROR_LOG("%sFree ptrData failed.", GetError(ret));
         return APP_ERR_ACL_BAD_FREE;
     }
     data.ptrData = nullptr;
@@ -176,14 +174,13 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
 APP_ERROR MemoryHelper::Memset(MemoryData& data, int32_t value, size_t count)
 {
     if (data.ptrData == nullptr) {
-        LOG_ERROR << GetError(APP_ERR_COMM_INVALID_POINTER)
-                 << "Memset failed, ptrData is nullptr.";
+        ERROR_LOG("%sMemset failed, ptrData is nullptr.", GetError(APP_ERR_COMM_INVALID_POINTER));
         return APP_ERR_COMM_INVALID_POINTER;
     }
     APP_ERROR ret = aclrtMemset(data.ptrData, data.size, value, count);
     if (ret != APP_ERR_OK) {
-        cout << aclGetRecentErrMsg() << endl;
-        LOG_ERROR << GetError(ret) << "Memset ptrData failed.";
+        ACLERR_LOG(aclGetRecentErrMsg());
+        ERROR_LOG("%sMemset ptrData failed.", GetError(ret));
     }
     return ret;
 }
@@ -204,8 +201,7 @@ APP_ERROR MemoryHelper::Memcpy(MemoryData& dest, const MemoryData& src, size_t c
         return APP_ERR_OK;
     }
     if (dest.ptrData == nullptr || src.ptrData == nullptr) {
-        LOG_ERROR << GetError(APP_ERR_COMM_INVALID_POINTER)
-                 << "Memcpy failed, ptrData is nullptr.";
+        ERROR_LOG("%sMemcpy failed, ptrData is nullptr.", GetError(APP_ERR_COMM_INVALID_POINTER));
         return APP_ERR_COMM_INVALID_POINTER;
     }
     APP_ERROR ret = APP_ERR_OK;
@@ -231,8 +227,8 @@ APP_ERROR MemoryHelper::Memcpy(MemoryData& dest, const MemoryData& src, size_t c
         AddCostTime(costTime, "h2d");
     }
     if (ret != APP_ERR_OK) {
-        cout << aclGetRecentErrMsg() << endl;
-        LOG_ERROR << GetError(ret) << "Memcpy ptrData failed.";
+        ACLERR_LOG(aclGetRecentErrMsg());
+        ERROR_LOG("%sMemcpy ptrData failed.", GetError(ret));
         return APP_ERR_ACL_BAD_COPY;
     }
     return ret;
@@ -241,23 +237,22 @@ APP_ERROR MemoryHelper::Memcpy(MemoryData& dest, const MemoryData& src, size_t c
 APP_ERROR MemoryHelper::MxbsMallocAndCopy(MemoryData& dest, const MemoryData& src)
 {
     if (src.ptrData == nullptr) {
-        LOG_ERROR << GetError(APP_ERR_COMM_INVALID_POINTER)
-                 << "Memcpy failed, ptrData of src is nullptr.";
+        ERROR_LOG("%sMemcpy failed, ptrData of src is nullptr.", GetError(APP_ERR_COMM_INVALID_POINTER));
         return APP_ERR_COMM_INVALID_POINTER;
     }
 
     APP_ERROR ret = MemoryHelper::Malloc(dest);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << GetError(ret) << "MxbsMallocAndCopy function malloc ptrData failed.";
+        ERROR_LOG("%sMxbsMallocAndCopy function malloc ptrData failed.", GetError(ret));
         return ret;
     }
 
     ret = MemoryHelper::Memcpy(dest, src, src.size);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << GetError(ret) << "MxbsMallocAndCopy function memcpy failed.";
+        ERROR_LOG("%sMxbsMallocAndCopy function memcpy failed.", GetError(ret));
         ret = dest.free(dest.ptrData);
         if (ret != APP_ERR_OK) {
-            LOG_ERROR << GetError(ret) << "MxbsMallocAndCopy function free failed.";
+            ERROR_LOG("%sMxbsMallocAndCopy function free failed.", GetError(ret));
         }
         dest.ptrData = nullptr;
         return APP_ERR_ACL_BAD_COPY;

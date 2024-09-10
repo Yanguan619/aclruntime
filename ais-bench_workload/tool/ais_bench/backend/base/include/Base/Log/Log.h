@@ -24,16 +24,12 @@
 #include <ostream>
 #include <iostream>
 #include <csignal>
+#include <cstdarg>
 #include <execinfo.h>
 
 using namespace std;
 
 #define FILELINE __FILE__, __FUNCTION__, __LINE__
-#define LOG_DEBUG  cout  // LOG(INFO)   // VLOG_EVERY_N(Base::LOG_LEVEL_DEBUG, Base::Log::logFlowControlFrequency_)
-#define LOG_INFO   cout       // LOG(INFO)        //LOG_EVERY_N(INFO, Base::Log::logFlowControlFrequency_)
-#define LOG_WARN   cout  // LOG(WARNING)    //LOG_EVERY_N(WARNING, Base::Log::logFlowControlFrequency_)
-#define LOG_ERROR  cout     // LOG(ERROR)    // LOG_EVERY_N(ERROR, Base::Log::logFlowControlFrequency_)
-#define LOG_FATAL  cout      // LOG(FATAL)    //LOG_EVERY_N(FATAL, Base::Log::logFlowControlFrequency_)
 
 #define LOG_DEBUG_LEVEL 1
 #define LOG_INFO_LEVEL 2
@@ -41,18 +37,24 @@ using namespace std;
 #define LOG_ERROR_LEVEL 4
 
 extern int g_frizyLogLevel;
+const int LOG_BUFFER_SIZE = 1024
 
 namespace Base {
 void SETLOGLEVEL(int level);
 }
 
+bool validate_log(char* log_buffer);
+void log_print(const char* fmt, ...);
+
 #define DEBUG_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_DEBUG_LEVEL) \
-    { fprintf(stdout, "[DEBUG] " fmt "\n", ##args); } else {} } while (0)
+    { log_print("[DEBUG] " fmt "\n", ##args); } else {} } while (0)
 #define INFO_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_INFO_LEVEL) \
-    { fprintf(stdout, "[INFO] " fmt "\n", ##args); } else {} } while (0)
+    { log_print("[INFO] " fmt "\n", ##args); } else {} } while (0)
 #define WARN_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_WARNING_LEVEL) \
-    { fprintf(stdout, "[WARN] " fmt "\n", ##args); } else {} } while (0)
+    { log_print("[WARN] " fmt "\n", ##args); } else {} } while (0)
 #define ERROR_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_ERROR_LEVEL) \
-    { fprintf(stdout, "[ERROR] " fmt "\n", ##args); } else {} } while (0)
+    { log_print("[ERROR] " fmt "\n", ##args); } else {} } while (0)
+#define ACLERR_LOG(ErrMsg) fprintf(stdout, "[ACL ERROR] %s\n", ErrMsg)
+#define MSG_LOG(fmt, args...) log_print(fmt, ##args)
 
 #endif  // CORE_LOG_H

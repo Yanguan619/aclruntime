@@ -107,7 +107,7 @@ APP_ERROR ConvertReturnCodeToLocal(ReturnCodeType type, int err)
         if (GST_RETURN_CODE_MAP.find(err) != GST_RETURN_CODE_MAP.end()) {
             return GST_RETURN_CODE_MAP[err];
         } else {
-            LOG_DEBUG << "type(GST_FLOW_TYPE) can not find error code(" << err << ").";
+            DEBUG_LOG("type(GST_FLOW_TYPE) can not find error code(%d).", err);
         }
     }
     return APP_ERR_OK;

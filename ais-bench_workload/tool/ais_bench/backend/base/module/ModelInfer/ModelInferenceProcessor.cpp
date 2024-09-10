@@ -919,7 +919,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
     try {
         dims = new aclmdlIODims[dym_gear_count_];
     } catch (const std::bad_alloc& e) {
-        std::cerr << "new aclmdlIODims failed!" << e.what() << std::endl;
+        ERROR_LOG("new aclmdlIODims failed!%s", e.what());
         return APP_ERR_ACL_BAD_ALLOC;
     }
 

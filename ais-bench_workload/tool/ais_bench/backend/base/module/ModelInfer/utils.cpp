@@ -113,32 +113,6 @@ std::string Utils::printCurrentTime()
              std::to_string(p->tm_sec) + "_" + std::to_string(tv.tv_usec);
     return pi;
 }
-void Utils::printHelpLetter()
-{
-    cout << endl;
-    cout << "Usage:" << endl;
-    cout << "generate offline model inference output file example:" << endl;
-    cout << "./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin \
-    --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2" << endl << endl;
-
-    cout << "arguments explain:" << endl;
-    cout << "  --model       Model file path" << endl;
-    cout << "  --input	Input data path(only accept binary data file) 	\
-    If there are several file, please seprate by ','" << endl;
-    cout << "  --output	Output path(User needs to have permission to create directories)" << endl;
-    cout << "  --outfmt	Output file format (TXT or BIN)" << endl;
-    cout << "  --loop 	loop time(must in 1 to 100)" << endl;
-    cout << "  --dump	Enable dump (true or false)" << endl;
-    cout << "  --profiler	Enable profiler (true or false)" << endl;
-    cout << "  --device      Designated the device ID(must in 0 to 255)" << endl;
-    cout << "  --debug       Debug switch,print model information (true or false)" << endl;
-    cout << "  --outputSize  Set model output size, such as --outputSize \"10000,10000\"" << endl;
-    cout << "  --dymBatch    dynamic batch size param，such as --dymBatch 2" << endl;
-    cout << "  --dymHW       dynamic image size param, such as --dymHW \"300,500\"" << endl;
-    cout << "  --dymDims 	dynamic dims param, such as --dymDims \"data:1,600;img_info:1,600\"" << endl;
-    cout << "  --dymShape 	dynamic hape param, such as --dymShape \
-        \"data:1,600;img_info:1,600\"" << endl << endl << endl;
-}
 
 double Utils::printDiffTime(time_t begin, time_t end)
 {

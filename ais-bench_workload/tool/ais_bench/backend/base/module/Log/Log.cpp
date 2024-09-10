@@ -24,3 +24,19 @@ void SETLOGLEVEL(int level)
     g_frizyLogLevel = level;
 }
 }
+
+bool validate_log(char* log_buffer) {
+    // valid
+    return true;
+}
+
+void log_print(const char* fmt, ...) {
+    char log_buffer[LOG_BUFFER_SIZE];
+    valist args;
+    va_start(args, fmt);
+    vsnprintf(log_buffer, sizeof(log_buffer), fmt, args);
+    va_end(args);
+    if (validate_log(log_buffer)) {
+        fprintf(stdout, "%s", log_buffer);
+    }
+}

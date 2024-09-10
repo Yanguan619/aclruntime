@@ -70,8 +70,6 @@ public:
 
     static std::string printCurrentTime();
 
-    static void printHelpLetter();
-
     static double printDiffTime(time_t begin, time_t end);
 
     static int ToInt(std::string &str);

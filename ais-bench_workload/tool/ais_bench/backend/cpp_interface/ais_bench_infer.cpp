@@ -39,7 +39,7 @@ int CreatePureInputTensors(std::vector<Base::TensorDesc> descs,
         Base::TensorBase tensor(i32shape, desc.datatype);
         APP_ERROR ret = Base::TensorBase::TensorBaseMalloc(tensor);
         if (ret != APP_ERR_OK) {
-            std::cout << "TensorBaseMalloc failed. ret=" << ret << std::endl;
+            ERROR_LOG("TensorBaseMalloc failed. ret=%d", ret);
             throw std::runtime_error(GetError(ret));
         }
         ret = tensor.ToDevice(deviceId);

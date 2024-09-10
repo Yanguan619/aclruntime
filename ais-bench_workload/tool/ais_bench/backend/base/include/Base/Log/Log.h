@@ -37,7 +37,7 @@ using namespace std;
 #define LOG_ERROR_LEVEL 4
 
 extern int g_frizyLogLevel;
-const int LOG_BUFFER_SIZE = 1024
+const int LOG_BUFFER_SIZE = 1024;
 
 namespace Base {
 void SETLOGLEVEL(int level);

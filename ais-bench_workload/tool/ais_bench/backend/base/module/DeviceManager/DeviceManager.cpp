@@ -24,7 +24,7 @@ DeviceManager::~DeviceManager()
 {
     std::lock_guard<std::mutex> lock(mtx_);
     if (initCounter_ != 0) {
-        ERROR_LOG("DeviceManager Acl Resource is not released.");
+        DEBUG_LOG("DeviceManager Acl Resource is not released.");
         return;
     }
 }

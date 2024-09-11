@@ -19,7 +19,7 @@ function parallel_run()
         cd $CUR_DIR
         return $ret_failed
     fi
-    rank_id_max=($device_count - 1)
+    rank_id_max=$(($device_count - 1))
 
     for i in {0..$rank_id_max}; do
         echo "rank: $i started"

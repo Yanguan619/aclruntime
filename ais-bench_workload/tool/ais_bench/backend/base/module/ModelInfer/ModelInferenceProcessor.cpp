@@ -515,7 +515,7 @@ APP_ERROR ModelInferenceProcessor::RepeatInference(
         }
     }
     if (loopTimes > 1) {
-        MSG_LOG("\n")
+        MSG_LOG("\n");
     }
     if (get_outputs) {
         ret = GetOutputs(outputNames, outputTensors);

@@ -92,25 +92,23 @@ int main(int argc, char **argv)
 
     CreatePureInputTensors(indescs, deviceId, intensors);
     for (const auto& tensor : intensors) {
-        printf("in tensor type:%d size:%lld isDevice:%d\n",
-            tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
+        MSG_LOG("in tensor type:%d size:%lld isDevice:%d\n", tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
     }
     if (input.size() != 0) {
         std::vector<std::string> fileName_vec;
         std::vector<std::vector<std::vector<std::string>>> infilesList;
-        printf("lcm debug ignore\n");
+        MSG_LOG("lcm debug ignore\n");
     } else {
         std::vector<Base::TensorBase> outtensors = session->InferVector(output_names, intensors);
         for (const auto& tensor : outtensors) {
-            printf("out tensor type:%d size:%lld isDevice:%d\n",
-                tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
+            MSG_LOG("out tensor type:%d size:%lld isDevice:%d\n", tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
         }
     }
 
     Base::InferSumaryInfo sumary = session->GetSumaryInfo();
     float sum = std::accumulate(std::begin(sumary.execTimeList), std::end(sumary.execTimeList), 0.0);
     float mean =  sum / sumary.execTimeList.size(); // 均值
-    printf("lcm debug avg:%f count:%d\n", mean, sumary.execTimeList.size());
+    MSG_LOG("lcm debug avg:%f count:%d\n", mean, sumary.execTimeList.size());
     return 0;
 }
 } // namespace

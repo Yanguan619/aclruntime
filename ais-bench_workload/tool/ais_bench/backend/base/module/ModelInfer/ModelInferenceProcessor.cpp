@@ -510,12 +510,12 @@ APP_ERROR ModelInferenceProcessor::RepeatInference(
             return ret;
         }
         if (loopTimes > 1) {
-            printf("\rloop inference exec: (%d/%d)", i + 1, loopTimes);
+            MSG_LOG("\rloop inference exec: (%d/%d)", i + 1, loopTimes);
             fflush(stdout);
         }
     }
     if (loopTimes > 1) {
-        printf("\n");
+        MSG_LOG("\n")
     }
     if (get_outputs) {
         ret = GetOutputs(outputNames, outputTensors);
@@ -545,7 +545,7 @@ APP_ERROR ModelInferenceProcessor::FirstInferenceInner(
             return ret;
         }
         if (options_->loop > 1) {
-            printf("\n");
+            MSG_LOG("\n");
         }
     }
     processModel->InitReuseOutput();
@@ -556,12 +556,12 @@ APP_ERROR ModelInferenceProcessor::FirstInferenceInner(
             return ret;
         }
         if (options_->loop > 1) {
-            printf("\rloop inference exec: (%d/%d)", i + 1, options_->loop);
+            MSG_LOG("\rloop inference exec: (%d/%d)", i + 1, options_->loop);
             fflush(stdout);
         }
     }
     if (options_->loop > 1) {
-        printf("\n");
+        MSG_LOG("\n");
     }
     return APP_ERR_OK;
 }
@@ -584,7 +584,7 @@ APP_ERROR ModelInferenceProcessor::ModelInference_Inner(
             return ret;
         }
         if (options_->loop > 1) {
-            printf("\n");
+            MSG_LOG("\n");
         }
     }
     for (int i = 0; i < options_->loop; i++) {
@@ -594,12 +594,12 @@ APP_ERROR ModelInferenceProcessor::ModelInference_Inner(
             return ret;
         }
         if (options_->loop > 1) {
-            printf("\rloop inference exec: (%d/%d)", i + 1, options_->loop);
+            MSG_LOG("\rloop inference exec: (%d/%d)", i + 1, options_->loop);
             fflush(stdout);
         }
     }
     if (options_->loop > 1) {
-        printf("\n");
+        MSG_LOG("\n");
     }
     ret = GetOutputs(outputNames, outputTensors);
     if (ret != APP_ERR_OK) {
@@ -926,7 +926,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
     Utils::SplitStringSimple(dymdimsStr, dynamicInfo_.dyDims.pDims->dym_dims, ';', ':', ',');
 
     if (dym_gear_count_ <= 0) {
-        printf("the dynamic_dims parameter is not specified for model conversion");
+        MSG_LOG("the dynamic_dims parameter is not specified for model conversion");
         delete [] dims;
         free(dynamicInfo_.dyDims.pDims);
         return APP_ERR_ACL_FAILURE;

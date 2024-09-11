@@ -118,7 +118,7 @@ double Utils::printDiffTime(time_t begin, time_t end)
 {
     double diffT = difftime(begin, end);
     const double sec_to_msec = 1000;
-    printf("The inference time is: %f millisecond\n", sec_to_msec * diffT);
+    MSG_LOG("The inference time is: %f millisecond\n", sec_to_msec * diffT);
     return diffT * sec_to_msec;
 }
 

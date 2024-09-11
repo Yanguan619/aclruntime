@@ -16,6 +16,7 @@ import sys
 import stat
 import subprocess
 import json
+import logging
 import itertools
 import numpy as np
 
@@ -46,6 +47,17 @@ ACL_JSON_CMD_LIST = [
     "msproftx",
 ]
 
+def logger_out(out_log):
+    loggerOutput = logging.getLogger("logger_out")
+    loggerOutput.propagate = False
+    if not loggerOutput.handlers:
+        loggerOutput.setLevel(logging.INFO)
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(message)s')
+        handler.setFormatter(formatter)
+        loggerOutput.addHandler(handler)
+    loggerOutput.info(out_log)
+    handler.flush()
 
 def get_modules_version(name):
     try:
@@ -261,7 +273,7 @@ def dymshape_range_run(args: AISBenchInferArgsAdapter):
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, _ = p.communicate(timeout=DYMSHAPE_RANGE_TIMEOUT)
         out_log = stdout.decode('utf-8')
-        print(out_log)  # show original log of cmd
+        logger_out(out_log)  # show original log of cmd
         result["result"], result["throughput"] = get_throughtput_from_log(out_log)
         logger.info("dymshape:{} end run result:{}".format(dymshape, result["result"]))
         results.append(result)

@@ -61,16 +61,8 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)
 logger = logging.getLogger(__name__)
 
 def logger_print(logger_msg):
-    loggerPrint = logging.getLogger('logger_print')
-    loggerPrint.propagate = False
-    if not loggerPrint.handlers:
-        loggerPrint.setLevel(logging.INFO)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter('%(message)s')
-        handler.setFormatter(formatter)
-        handler.terminator = ""
-        loggerPrint.addHandler(handler)
-    loggerPrint.info(logger_msg)
+    # todo validate
+    print(f'{logger_msg}', flush=True, end="")
 
 def set_session_options(session, args):
     # 增加校验

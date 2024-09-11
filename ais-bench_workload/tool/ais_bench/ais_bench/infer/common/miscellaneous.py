@@ -48,15 +48,8 @@ ACL_JSON_CMD_LIST = [
 ]
 
 def logger_out(out_log):
-    loggerOutput = logging.getLogger("logger_out")
-    loggerOutput.propagate = False
-    if not loggerOutput.handlers:
-        loggerOutput.setLevel(logging.INFO)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter('%(message)s')
-        handler.setFormatter(formatter)
-        loggerOutput.addHandler(handler)
-    loggerOutput.info(out_log)
+    # todo validate
+    print(out_log)
 
 def get_modules_version(name):
     try:

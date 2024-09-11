@@ -53,6 +53,10 @@ main()
 {
     test_different_device_count_run
     test_different_op_task_run
+    return $ret_ok
 }
+
+main "$@"
+exit $?
 
 

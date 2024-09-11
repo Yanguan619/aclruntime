@@ -139,7 +139,7 @@ void HcclCommunicater::ServerGather(
         while (recv(clientSkt, &clientRank, sizeof(int), 0) <= 0) {sleep(RETRY_INTERVAL);}
         while (recv(clientSkt, singleData, dataLen, 0) <= 0) {sleep(RETRY_INTERVAL);}
         if (clientRank >= listLen) {
-            WARN("clientRank: %d is over max rankID: %d, won't recv!", m_rankID, listLen - 1);
+            WARN("clientRank: %d is over max rankID: %zu, won't recv!", m_rankID, listLen - 1);
             continue;
         }
         memcpy(static_cast<char*>(dataList) + clientRank * dataLen, singleData, dataLen);

@@ -1,10 +1,13 @@
 #ifndef __HCCL_OPBASE_ROOTINFO_BASE_H_
 #define __HCCL_OPBASE_ROOTINFO_BASE_H_
 #include "hccl_test_common.h"
+#ifdef MPI_SUPPORT
 #include "mpi.h"
+#endif
 #include "hccl_check_common.h"
 #include <hccl/hccl_types.h>
 #include "hccl_check_buf_init.h"
+#include "hccl_test_logger.h"
 
 namespace hccl
 {

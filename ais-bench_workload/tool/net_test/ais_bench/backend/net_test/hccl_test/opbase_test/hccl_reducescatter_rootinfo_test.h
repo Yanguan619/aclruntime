@@ -1,9 +1,13 @@
 #ifndef __HCCL_REDUCESCATTER_ROOTINFO_TEST_H_
 #define __HCCL_REDUCESCATTER_ROOTINFO_TEST_H_
 #include "hccl_test_common.h"
+#ifdef MPI_SUPPORT
 #include "mpi.h"
+#endif
 #include "hccl_check_common.h"
 #include "hccl_opbase_rootinfo_base.h"
+#include "hccl_test_logger.h"
+
 namespace hccl
 {
     HcclTest* init_opbase_ptr(HcclTest* opbase);

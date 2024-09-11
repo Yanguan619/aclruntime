@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <chrono>
 #include <vector>
+#include <memory>
 #include <string>
 #include <cmath>
 #include <cstdint>

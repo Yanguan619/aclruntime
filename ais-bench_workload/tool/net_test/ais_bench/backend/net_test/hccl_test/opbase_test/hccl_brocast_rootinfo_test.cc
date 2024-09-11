@@ -30,7 +30,7 @@ namespace hccl
 {
 HcclOpBaseBrocastTest::HcclOpBaseBrocastTest() : HcclOpBaseTest()
 {
-    
+
     host_buf = nullptr;
     recv_buff_temp = nullptr;
     check_buf = nullptr;
@@ -92,7 +92,7 @@ int HcclOpBaseBrocastTest::check_buf_result()
             break;
         default:
             ret++;
-            printf("no match datatype\n");
+            ERROR("no match datatype\n");
             break;
     }
     if(ret != 0)
@@ -123,7 +123,7 @@ int HcclOpBaseBrocastTest::destory_check_buf()
 int HcclOpBaseBrocastTest::hccl_op_base_test() //主函数
 {
     if (op_flag != 0 && rank_id == root_rank) {
-        printf("Warning: The -o,--op <sum/prod/min/max> option does not take effect. Check the cmd parameter.\n");
+        WARN("Warning: The -o,--op <sum/prod/min/max> option does not take effect. Check the cmd parameter.\n");
     }
     // 获取数据量和数据类型
     init_data_count();

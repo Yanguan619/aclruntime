@@ -6,12 +6,15 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <vector>
+#include <memory>
 #include "hccl/hccl.h"
 #include <hccl/hccl_types.h>
 #include <limits.h>
 #include <ctype.h>
 #include "acl/acl.h"
 #include "acl/acl_prof.h"
+#include "hccl_test_communicate.h"
+#include "hccl_test_logger.h"
 
 #undef INT_MAX
 #define INT_MAX __INT_MAX__
@@ -40,7 +43,7 @@ const int SERVER_MAX_DEV_NUM = 8;
 #define ACLCHECK(ret) do { \
     if(ret != ACL_SUCCESS)\
     {\
-        printf("acl interface return err %s:%d, retcode: %d \n", __FILE__, __LINE__, ret);\
+        ERROR("acl interface return err %s:%d, retcode: %d \n", __FILE__, __LINE__, ret);\
         return ret;\
     }\
 } while(0)
@@ -48,7 +51,7 @@ const int SERVER_MAX_DEV_NUM = 8;
 #define HCCLCHECK(ret) do {  \
     if(ret != HCCL_SUCCESS) \
     {   \
-        printf("hccl interface return errreturn err %s:%d, retcode: %d \n", __FILE__, __LINE__, ret); \
+        ERROR("hccl interface return errreturn err %s:%d, retcode: %d \n", __FILE__, __LINE__, ret); \
         return ret;\
     } \
 } while(0)
@@ -56,7 +59,7 @@ const int SERVER_MAX_DEV_NUM = 8;
 #define HCCLROOTRANKCHECK(ret) do {  \
     if(ret != HCCL_SUCCESS && ret != HCCL_E_PARA) \
     {   \
-        printf("hccl interface return errreturn err %s:%d, retcode: %d \n", __FILE__, __LINE__, ret); \
+        ERROR("hccl interface return errreturn err %s:%d, retcode: %d \n", __FILE__, __LINE__, ret); \
         return ret;\
     } \
 } while(0)
@@ -92,12 +95,16 @@ public:
 
     int get_env_resource();
     int release_env_resource();
+    int InitCommunicater();
 
 
 private:
     int set_device_sat_mode();
 
 public:
+    std::shared_ptr<hccl::HcclCommunicater> communicater = nullptr;
+    std::string server_ip = "";
+    int server_port = -1;
     DataSize *data;
     long data_parsed_begin = 64*1024*1024;
     long data_parsed_end = 64*1024*1024;

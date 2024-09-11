@@ -94,7 +94,7 @@ void HcclOpBaseTest::no_verification()
 {
     check = 0; //不进行校验
     if (rank_id == root_rank && print_dump) {
-        printf("Warning: The calculation result overflows, No verification is performed.\n");
+        WARN("Warning: The calculation result overflows, No verification is performed.\n");
         print_dump = false;
     }
     return;
@@ -126,12 +126,14 @@ void HcclOpBaseTest::is_data_overflow()
 
 void HcclOpBaseTest::print_execution_time(double average_time_us, double algorithm_bandwith_GBytes_s)
 {
+    setvbuf(stdout, NULL, _IOLBF, 0); // 设置printf的缓冲区大小
     //不开启结果校验场景
     if (check == 0)
     {
         if (rank_id == root_rank) {
             if (print_header)
             {
+                INFO("Test result without check is:");
                 printf("%-15s | %-12s | %-18s | %s\n", data_size, aveg_time, alg_bandwidth, verification_result);
                 print_header = false;
             }
@@ -145,26 +147,35 @@ void HcclOpBaseTest::print_execution_time(double average_time_us, double algorit
     if (check_err != 0)
     {
         check_result[rank_id] = false; // 结果校验失败
-        printf("rank id %d, check result failed\n", rank_id);
+        ERROR("rank id %d, check result failed\n", rank_id);
     } else {
         check_result[rank_id] = true; // 结果校验成功
     }
 
+    #ifdef MPI_SUPPORT
     MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, check_result, sizeof(bool), MPI_BYTE, MPI_COMM_WORLD);
+    #endif
 
-    bool result = true;
-    for (int p = 0; p < rank_size; p++)
-    {
-        if (check_result[p] == false)
-        {
-            result = false;
-            break;
-        }
-    }
+    #ifndef MPI_SUPPORT
+    bool curResuult = check_result[rank_id];
+    communicater->AllGatherInfoToRoot(&check_result, &curResuult, sizeof(bool));
+    #endif
+
+
     if (rank_id == root_rank)
     {
+        bool result = true;
+        for (int p = 0; p < rank_size; p++)
+        {
+            if (check_result[p] == false)
+            {
+                result = false;
+                break;
+            }
+        }
         if (print_header)
         {
+            INFO("Test result with check is:");
             printf("%-15s | %-12s | %-18s | %s\n", data_size, aveg_time, alg_bandwidth, verification_result);
             print_header = false;
         }

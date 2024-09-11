@@ -30,7 +30,7 @@ namespace hccl
 {
 HcclOpBaseAllreduceTest::HcclOpBaseAllreduceTest() : HcclOpBaseTest()
 {
-    
+
     host_buf = nullptr;
     recv_buff_temp = nullptr;
     check_buf = nullptr;
@@ -85,7 +85,7 @@ int HcclOpBaseAllreduceTest::check_buf_result()
             break;
         default:
             ret++;
-            printf("no match datatype\n");
+            ERROR("no match datatype\n");
             break;
     }
     if(ret != 0)

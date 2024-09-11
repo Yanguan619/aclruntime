@@ -28,7 +28,7 @@ void delete_opbase_ptr(HcclTest* opbase)
 namespace hccl {
 HcclOpBaseReducescatterTest::HcclOpBaseReducescatterTest() : HcclOpBaseTest()
 {
-    
+
     host_buf = nullptr;
     recv_buff_temp = nullptr;
     check_buf = nullptr;
@@ -95,7 +95,7 @@ int HcclOpBaseReducescatterTest::check_buf_result()
             break;
         default:
             ret++;
-            printf("no match datatype\n");
+            ERROR("no match datatype\n");
             break;
     }
     if(ret != 0)

@@ -29,7 +29,7 @@ void delete_opbase_ptr(HcclTest* opbase)
 namespace hccl {
 HcclOpBaseAlltoallvTest::HcclOpBaseAlltoallvTest() : HcclOpBaseTest()
 {
-    
+
     host_buf = nullptr;
     recv_buff_temp = nullptr;
     send_buff = nullptr;
@@ -117,7 +117,7 @@ int HcclOpBaseAlltoallvTest::destory_check_buf()
 int HcclOpBaseAlltoallvTest::hccl_op_base_test() //主函数
 {
     if (op_flag != 0 && rank_id == root_rank) {
-        printf("Warning: The -o,--op <sum/prod/min/max> option does not take effect. Check the cmd parameter.\n");
+        WARN("Warning: The -o,--op <sum/prod/min/max> option does not take effect. Check the cmd parameter.\n");
     }
     // 获取数据量和数据类型
     init_data_count();

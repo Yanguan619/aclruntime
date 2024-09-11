@@ -29,7 +29,7 @@ function parallel_run()
             --rank_id $i \
             -p $device_count \
             -b 8K \
-            -e 16M \
+            -e 8M \
             -f 2 \
             -d fp32 \
             -o sum &
@@ -40,14 +40,21 @@ function parallel_run()
 
 function test_different_device_count_run()
 {
-    parallel_run "all_reduce_test" 8
+    device_count_list=(1 2 4 8)
+    for count in ${device_count_list[@]}; do
+        parallel_run "all_reduce_test" $count
+    done
 }
 
 function test_different_op_task_run()
 {
-    echo "test_1s_8p_all_reduce finished"
-}
+    op_task_list=("all_gather_test" "all_reduce_test" "alltoall_test" "alltoallv_test" \
+        "broadcast_test" "reduce_scatter_test" "reduce_test")
 
+    for op_task in ${op_task_list[@]}; do
+        parallel_run $op_task 2
+    done
+}
 
 main()
 {

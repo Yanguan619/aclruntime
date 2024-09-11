@@ -38,5 +38,6 @@ void log_print(const char* fmt, ...) {
     va_end(args);
     if (validate_log(log_buffer)) {
         fprintf(stdout, "%s", log_buffer);
+        fflush(stdout);
     }
 }

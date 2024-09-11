@@ -41,11 +41,12 @@ void HcclCommunicater::SynchronizeRootInfo(
 void HcclCommunicater::AllGatherInfoToRoot(
     void *dataList,
     void *dataBuffer,
-    const size_t dataLen
+    const size_t dataLen,
+    const size_t listLen
 )
 {
     if (m_rankID == m_rootRank) {
-        ServerGather(dataList, dataBuffer, dataLen);
+        ServerGather(dataList, dataBuffer, dataLen, listLen);
     } else {
         ClientBcast(dataBuffer, dataLen); // databuffer 暂时未知
     }
@@ -112,7 +113,8 @@ void HcclCommunicater::ClientRecv(
 void HcclCommunicater::ServerGather(
     void *dataList,
     void *dataBuffer,
-    const size_t dataLen
+    const size_t dataLen,
+    const size_t listLen
 )
 {
     ServerPreset();
@@ -131,26 +133,22 @@ void HcclCommunicater::ServerGather(
             WARN("rank: %d, accepting client connection failed!", m_rankID);
             continue;
         }
-        DEBUG("rank: %d, Client connected from %s, accepted clientSkt: %d", m_rankID, inet_ntoa(clientAddr.sin_addr), clientSkt);
-
-        while (send(clientSkt, &connectedClientCount, sizeof(int), 0) <= 0) {
-            sleep(RETRY_INTERVAL);
+        DEBUG("rank: %d, Client connected from %s, accepted clientSkt: %d",
+            m_rankID, inet_ntoa(clientAddr.sin_addr), clientSkt);
+        while (send(clientSkt, &connectedClientCount, sizeof(int), 0) <= 0) {sleep(RETRY_INTERVAL);}
+        while (recv(clientSkt, &clientRank, sizeof(int), 0) <= 0) {sleep(RETRY_INTERVAL);}
+        while (recv(clientSkt, singleData, dataLen, 0) <= 0) {sleep(RETRY_INTERVAL);}
+        if (clientRank >= listLen) {
+            WARN("clientRank: %d is over max rankID: %d, won't recv!", m_rankID, listLen - 1);
+            continue;
         }
-
-        while (recv(clientSkt, &clientRank, sizeof(int), 0) <= 0) {
-            sleep(RETRY_INTERVAL);
-        }
-
-        while (recv(clientSkt, singleData, dataLen, 0) <= 0) {
-            sleep(RETRY_INTERVAL);
-        }
-
         memcpy(static_cast<char*>(dataList) + clientRank * dataLen, singleData, dataLen);
         close(clientSkt);
         ++connectedClientCount;
     }
-    close(m_serverSkt);
 
+    free(singleData);
+    close(m_serverSkt);
     DEBUG("rank: %d, Server gather stopped after serving %d clients.", m_rankID, m_rankSize - 1);
 }
 

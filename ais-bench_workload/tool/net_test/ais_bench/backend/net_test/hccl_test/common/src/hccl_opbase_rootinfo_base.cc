@@ -158,7 +158,7 @@ void HcclOpBaseTest::print_execution_time(double average_time_us, double algorit
 
     #ifndef MPI_SUPPORT
     bool curResuult = check_result[rank_id];
-    communicater->AllGatherInfoToRoot(&check_result, &curResuult, sizeof(bool));
+    communicater->AllGatherInfoToRoot(&check_result, &curResuult, sizeof(bool), rank_size);
     #endif
 
 

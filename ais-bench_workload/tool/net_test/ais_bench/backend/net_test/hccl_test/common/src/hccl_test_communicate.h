@@ -45,7 +45,8 @@ public:
     void AllGatherInfoToRoot(
         void *dataList,
         void *dataBuffer,
-        const size_t dataLen
+        const size_t dataLen,
+        const size_t listLen
     );
 
 private:
@@ -62,7 +63,8 @@ private:
     void ServerGather(
         void *dataList,
         void *dataBuffer,
-        const size_t dataLen
+        const size_t dataLen,
+        const size_t listLen
     );
 
     void ClientBcast(

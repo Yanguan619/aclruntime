@@ -57,7 +57,6 @@ def logger_out(out_log):
         handler.setFormatter(formatter)
         loggerOutput.addHandler(handler)
     loggerOutput.info(out_log)
-    handler.flush()
 
 def get_modules_version(name):
     try:

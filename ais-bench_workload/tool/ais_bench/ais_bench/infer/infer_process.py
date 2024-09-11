@@ -71,7 +71,6 @@ def logger_print(logger_msg):
         handler.terminator = ""
         loggerPrint.addHandler(handler)
     loggerPrint.info(logger_msg)
-    handler.flush()
 
 def set_session_options(session, args):
     # 增加校验

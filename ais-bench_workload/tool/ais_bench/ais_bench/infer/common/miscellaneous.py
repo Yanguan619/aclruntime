@@ -48,7 +48,7 @@ ACL_JSON_CMD_LIST = [
 ]
 
 def logger_out(out_log):
-    # todo validate
+    
     print(out_log)
 
 def get_modules_version(name):

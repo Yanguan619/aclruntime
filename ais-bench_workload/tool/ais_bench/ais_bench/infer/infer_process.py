@@ -61,7 +61,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)
 logger = logging.getLogger(__name__)
 
 def logger_print(logger_msg):
-    # todo validate
+    
     print(f'{logger_msg}', flush=True, end="")
 
 def set_session_options(session, args):

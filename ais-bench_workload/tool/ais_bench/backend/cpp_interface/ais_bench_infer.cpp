@@ -97,7 +97,7 @@ int main(int argc, char **argv)
     if (input.size() != 0) {
         std::vector<std::string> fileName_vec;
         std::vector<std::vector<std::vector<std::string>>> infilesList;
-        MSG_LOG("lcm debug ignore\n");
+        MSG_LOG("debug ignore\n");
     } else {
         std::vector<Base::TensorBase> outtensors = session->InferVector(output_names, intensors);
         for (const auto& tensor : outtensors) {
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
     Base::InferSumaryInfo sumary = session->GetSumaryInfo();
     float sum = std::accumulate(std::begin(sumary.execTimeList), std::end(sumary.execTimeList), 0.0);
     float mean =  sum / sumary.execTimeList.size(); // 均值
-    MSG_LOG("lcm debug avg:%f count:%d\n", mean, sumary.execTimeList.size());
+    MSG_LOG("debug avg:%f count:%d\n", mean, sumary.execTimeList.size());
     return 0;
 }
 } // namespace

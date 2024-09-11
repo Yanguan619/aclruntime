@@ -676,7 +676,7 @@ APP_ERROR ModelInferenceProcessor::AllocDymAIPPIndexMem()
         memdata.size = info.size;
         memdata.type = MemoryData::MemoryType::MEMORY_DEVICE;
         memdata.deviceId = deviceId_;
-        DEBUG_LOG("lcm debug aipp config index:%d allow size:%d\n", int(index), int(info.size));
+        DEBUG_LOG("debug aipp config index:%d allow size:%d\n", int(index), int(info.size));
         auto ret = MemoryHelper::MxbsMalloc(memdata);
         if (ret != APP_ERR_OK) {
             ERROR_LOG("MemoryHelper::MxbsMalloc failed. ret=%d", ret);

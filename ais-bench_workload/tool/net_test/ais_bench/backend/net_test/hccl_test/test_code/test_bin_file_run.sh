@@ -31,8 +31,7 @@ function parallel_run()
             -b 8K \
             -e 8M \
             -f 2 \
-            -d fp32 \
-            -o sum &
+            -d fp32 &
     done
     wait
     cd $CUR_DIR

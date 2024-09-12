@@ -35,7 +35,7 @@ function parallel_run()
             --rank_id $i \
             -p $device_count \
             -b 8K \
-            -e 8M \
+            -e 1M \
             -f 2 \
             -d fp32 &
     done

@@ -7,8 +7,8 @@ server_ip=$1
 port=$2
 
 error_handler() {
-    echo "test_case failed! $1"
-    exit 1
+    echo "\033[31mFAILED\033[0m test_case failed! $1"
+    exit $ret_failed
 }
 
 function parallel_run()
@@ -17,14 +17,12 @@ function parallel_run()
     device_count=$2
 
     cd $CUR_DIR/../bin
-    if [ -f $exec_file ];then
-        echo "${exec_file} exist!"
-    else
+    if [ ! -f $exec_file ];then
         echo "${exec_file} not exist!"
         cd $CUR_DIR
         return $ret_failed
     fi
-    test_case="op task:${exec_file}, device_count:${device_count}"
+    test_case="op task:${exec_file}, device_count:${device_count} start running ..."
     echo "[test case] ${test_case}"
     for ((i=0; i<device_count; i++)); do
         set -e
@@ -42,6 +40,7 @@ function parallel_run()
     done
     wait
     cd $CUR_DIR
+    echo "\033[31mPASS\033[0m"
 }
 
 function test_different_device_count_run()

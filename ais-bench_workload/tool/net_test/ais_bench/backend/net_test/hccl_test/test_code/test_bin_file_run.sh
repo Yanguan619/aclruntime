@@ -7,7 +7,8 @@ server_ip=$1
 port=$2
 
 error_handler() {
-    echo "\033[31mFAILED\033[0m test_case failed! $1"
+    echo -e "\033[31mFAILED\033[0m"
+    echo "test_case failed! $1"
     exit $ret_failed
 }
 
@@ -40,7 +41,7 @@ function parallel_run()
     done
     wait
     cd $CUR_DIR
-    echo "\033[31mPASS\033[0m"
+    echo -e "\033[31mPASS\033[0m"
 }
 
 function test_different_device_count_run()

@@ -6,6 +6,11 @@ CUR_DIR=$(dirname $(readlink -f "$0"))
 server_ip=$1
 port=$2
 
+error_handler() {
+    echo "test_case failed! $1"
+    exit 1
+}
+
 function parallel_run()
 {
     exec_file=$1
@@ -19,9 +24,11 @@ function parallel_run()
         cd $CUR_DIR
         return $ret_failed
     fi
-
+    test_case="op task:${exec_file}, device_count:${device_count}"
+    echo "[test case] ${test_case}"
     for ((i=0; i<device_count; i++)); do
-        echo "rank: $i started"
+        set -e
+        trap 'error_handler ${test_case}' ERR
         ./${exec_file} \
             --server_ip ${server_ip} \
             --server_port ${port} \

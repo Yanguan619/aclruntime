@@ -41,7 +41,7 @@ function parallel_run()
     done
     wait
     cd $CUR_DIR
-    echo -e "\033[31mPASS\033[0m"
+    echo -e "\033[32mPASS\033[0m"
 }
 
 function test_different_device_count_run()

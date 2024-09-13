@@ -6,7 +6,8 @@ from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOIC
 OM_MODEL_MAX_SIZE = 10 * 1024 * 1024 * 1024 # 10GB
 ACL_JSON_MAX_SIZE = 8 * 1024 # 8KB
 AIPP_CONFIG_MAX_SIZE = 12.5 * 1024 # 12.5KB
-
+CPP_INT_MAX_SIZE = 2147483647 # 2^31 - 1
+INPUT_LIST_MAX_SIZE = 1024
 
 def check_dym_string(value):
     if not value:
@@ -50,9 +51,13 @@ def str2bool(v):
 
 
 def check_positive_integer(value):
+    if not value.isdigit():
+        raise argparse.ArgumentTypeError("%s contains special characters other than numbers." % value)
     ivalue = int(value)
     if ivalue <= 0:
         raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
+    if ivalue >= CPP_INT_MAX_SIZE:
+        raise argparse.ArgumentError("%s is an invalid cpp int value" % value)
     return ivalue
 
 
@@ -66,9 +71,13 @@ def check_batchsize_valid(value):
 
 
 def check_nonnegative_integer(value):
+    if not value.isdigit():
+        raise argparse.ArgumentTypeError("%s contains special characters other than numbers." % value)
     ivalue = int(value)
     if ivalue < 0:
         raise argparse.ArgumentTypeError("%s is an invalid nonnegative int value" % value)
+    if ivalue >= CPP_INT_MAX_SIZE:
+        raise argparse.ArgumentError("%s is an invalid cpp int value" % value)
     return ivalue
 
 
@@ -107,6 +116,8 @@ def check_device_range_valid(value):
             return ilist
         else:
             # default as single int value
+            if not value.isdigit():
+                raise argparse.ArgumentTypeError("%s contains special characters other than numbers." % value)
             ivalue = int(value)
             if ivalue < min_value or ivalue > max_value:
                 raise argparse.ArgumentTypeError("device:{} is invalid. valid value range is [{}, {}]".format(
@@ -137,6 +148,8 @@ def check_input_path_legality(value):
     if not value:
         return value
     inputs_list = value.split(',')
+    if len(inputs_list) > INPUT_LIST_MAX_SIZE:
+        raise argparse.ArgumentError(f"input list:{inputs_list} has too many input. Please check.")
     for input_path in inputs_list:
         try:
             file_stat = FileStat(input_path)

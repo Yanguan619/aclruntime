@@ -206,7 +206,7 @@ def get_args():
     )
     parser.add_argument(
         "--npu_id",
-        type=check_nonnegative_integer,
+        type=check_device_range_valid,
         default=0,
         help="The NPU ID to use.valid value range is [0, 255]"
     )

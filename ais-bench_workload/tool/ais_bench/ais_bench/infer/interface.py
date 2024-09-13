@@ -20,7 +20,7 @@ import aclruntime
 from ais_bench.infer.common.logger import logger
 from ais_bench.infer.dym_aipp_manager import DymAippManager
 from ais_bench.infer.interface_check import (check_model_path_legality, check_acl_json_path_legality,
-    check_device_range_valid)
+    check_device_range_valid, check_positive_integer, check_size_t_integer, check_bool_value)
 
 TORCH_TENSOR_LIST = [
     'torch.FloatTensor', 'torch.DoubleTensor', 'torch.HalfTensor', 'torch.BFloat16Tensor',
@@ -49,6 +49,7 @@ class InferSession:
         check_model_path_legality(model_path)
         check_acl_json_path_legality(acl_json_path)
         check_device_range_valid(device_id)
+        check_positive_integer(loop)
         self.device_id = device_id
         self.model_path = model_path
         self.loop = loop
@@ -192,6 +193,8 @@ class InferSession:
         '''
         inputs = []
         shapes = []
+        check_bool_value(out_array)
+        check_size_t_integer(custom_sizes)
         for feed in feeds:
             if type(feed) is np.ndarray:
                 infer_input = feed
@@ -233,6 +236,7 @@ class InferSession:
             feeds_list: input data list
             mode: static dymdims dymshape...
         '''
+        check_positive_integer(custom_sizes)
         inputs_list = []
         shapes_list = []
         for feeds in feeds_list:
@@ -316,8 +320,10 @@ class InferSession:
             return outputs
         for _ in range(int(iteration_times - 1)):
             for input_index, reused_index in enumerate(in_out_list):
-                if reused_index >= len(outputs):
-                    raise IndexError(f"in_out_list[{in_out_list}] out of outputs length, length is{len(outputs)}")
+                if not isinstance(reused_index, int):
+                    raise TypeError(f"in_out_list reused_index:{reused_index} is not a integer!")
+                if reused_index < -1 or reused_index >= len(outputs):
+                    raise IndexError(f"in_out_list[{in_out_list}] out of range, length range is (-1, {len(outputs)})")
                 if reused_index >= 0:
                      inputs[input_index] = outputs[reused_index]
             outputs = self.session.run(out_names, inputs)
@@ -335,12 +341,12 @@ class InferSession:
             mode: static dymdims dymshape ...
             custom_sizes: only dymshape needs
         '''
+        check_size_t_integer(custom_sizes)
+        check_positive_integer(iteration_times)
         if not in_out_list:
             in_out_list = []
         if len(in_out_list) != len(self.get_inputs()):
             raise RuntimeError(f"inputs' amount and length of in_out_list not matched!")
-        if iteration_times < 1:
-            raise RuntimeError(f"iteration_times: {iteration_times} must be larger than 0!")
 
         inputs, shapes = self._create_device_inputs(feeds)
 
@@ -420,6 +426,7 @@ class MultiDeviceSession():
     def __init__(self, model_path: str, acl_json_path: str = None, debug: bool = False, loop: int = 1):
         check_model_path_legality(model_path)
         check_acl_json_path_legality(acl_json_path)
+        check_positive_integer(loop)
         self.model_path = model_path
         self.acl_json_path = acl_json_path
         self.debug = debug
@@ -438,6 +445,7 @@ class MultiDeviceSession():
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
         '''
+        check_size_t_integer(custom_sizes)
         subprocess_num = 0
         for _, device in device_feeds.items():
             subprocess_num += len(device)
@@ -473,6 +481,7 @@ class MultiDeviceSession():
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
         '''
+        check_size_t_integer(custom_sizes)
         subprocess_num = 0
         for _, device in device_feeds_list.items():
             subprocess_num += len(device)
@@ -508,6 +517,9 @@ class MultiDeviceSession():
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
         '''
+        if not custom_sizes:
+            check_size_t_integer(custom_sizes)
+        check_positive_integer(iteration_times)
         subprocess_num = 0
         for _, device in device_feeds.items():
             subprocess_num += len(device)

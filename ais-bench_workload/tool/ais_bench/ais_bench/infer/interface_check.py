@@ -15,6 +15,8 @@
 from ais_bench.infer.args_check import OM_MODEL_MAX_SIZE,  ACL_JSON_MAX_SIZE
 from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE
 
+CPP_INT_MAX_SIZE = 2147483647 # 2^31 - 1
+SIZE_T_MAX_SIZE = 4294967295 # 2^32 - 1
 
 def check_model_path_legality(value):
     if not value:
@@ -62,3 +64,20 @@ def check_output_dir_legality(value):
         raise RuntimeError(f"output path:{value} is illegal. Please check.") from err
     if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
         raise RuntimeError(f"output path:{value} is illegal. Please check.")
+    
+def check_positive_integer(value):
+    if not isinstance(value, int):
+        raise TypeError(f"value:{value} is not a integer!")
+    if value <= 0 or value >= CPP_INT_MAX_SIZE:
+        raise ValueError(f"input value:{value} is out of range. Please check.")
+
+
+def check_size_t_integer(value):
+    if not isinstance(value, int):
+        raise TypeError(f"value:{value} is not a integer!")
+    if value <= 0 or value >= SIZE_T_MAX_SIZE:
+        raise ValueError(f"input value:{value} is out of range. Please check.")
+
+def check_bool_value(value):
+    if not isinstance(value, bool):
+        raise TypeError(f"value:{value} is not a bool!")

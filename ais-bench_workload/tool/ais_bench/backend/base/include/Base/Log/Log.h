@@ -37,7 +37,6 @@ using namespace std;
 #define LOG_ERROR_LEVEL 4
 
 extern int g_frizyLogLevel;
-const int LOG_BUFFER_SIZE = 1024;
 
 namespace Base {
 void SETLOGLEVEL(int level);
@@ -47,14 +46,14 @@ bool validate_log(char* log_buffer);
 void log_print(const char* fmt, ...);
 
 #define DEBUG_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_DEBUG_LEVEL) \
-    { log_print("[DEBUG] " fmt "\n", ##args); } else {} } while (0)
+    { log_print("[DEBUG] " fmt "\n", ##args); } } while (0)
 #define INFO_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_INFO_LEVEL) \
-    { log_print("[INFO] " fmt "\n", ##args); } else {} } while (0)
+    { log_print("[INFO] " fmt "\n", ##args); } } while (0)
 #define WARN_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_WARNING_LEVEL) \
-    { log_print("[WARN] " fmt "\n", ##args); } else {} } while (0)
+    { log_print("[WARN] " fmt "\n", ##args); } } while (0)
 #define ERROR_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_ERROR_LEVEL) \
-    { log_print("[ERROR] " fmt "\n", ##args); } else {} } while (0)
-#define ACLERR_LOG(ErrMsg) fprintf(stdout, "[ACL ERROR] %s\n", ErrMsg)
-#define MSG_LOG(fmt, args...) log_print(fmt, ##args)
+    { log_print("[ERROR] " fmt "\n", ##args); } } while (0)
+#define ACLERR_LOG(ErrMsg) printf("[ACL ERROR] %s\n", ErrMsg)
+#define PROMPT_MSG(fmt, args...) log_print(fmt, ##args)
 
 #endif  // CORE_LOG_H

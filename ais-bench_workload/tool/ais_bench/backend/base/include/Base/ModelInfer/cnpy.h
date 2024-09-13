@@ -132,17 +132,17 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
             throw std::runtime_error("NpySave: fortranOrder wrong");
         }
         if (wordSize != sizeof(T)) {
-            ERROR_LOG("libnpy error: %s has word size %zu but NpySave appending data sized %zu\n",
+            ERROR_LOG("libnpy error: %s has word size %zu but saving npy appending data sized %zu\n",
                       fname.c_str(), wordSize, sizeof(T));
             throw std::runtime_error("NpySave: wordSize not matching");
         }
         if (trueDataShape.size() != shape.size()) {
-            ERROR_LOG("libnpy error: NpySave attempting to append misdimensioned data to %s\n", fname.c_str());
+            ERROR_LOG("libnpy error: saving npy attempting to append misdimensioned data to %s\n", fname.c_str());
             throw std::runtime_error("NpySave: dimension not matching");
         }
         for (size_t i = 1; i < shape.size(); i++) {
             if (shape[i] != trueDataShape[i]) {
-                ERROR_LOG("libnpy error: NpySave attempting to append misshaped data to %s", fname.c_str());
+                ERROR_LOG("libnpy error: saving npy attempting to append misshaped data to %s", fname.c_str());
                 throw std::runtime_error("NpySave: shape not matching");
             }
         }

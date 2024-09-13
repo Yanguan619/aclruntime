@@ -87,6 +87,7 @@ APP_ERROR MemoryHelper::specificMalloc(MemoryData& data)
                 data.ptrData = static_cast<void*>(new int8_t[data.size]);
             } catch (const std::bad_alloc& e) {
                 ERROR_LOG("Allocate memory of size %d bytes failed: %s", data.size, e.what());
+                fflush(stdout);
                 ret = APP_ERR_ACL_BAD_ALLOC;
                 break;
             }
@@ -243,16 +244,16 @@ APP_ERROR MemoryHelper::MxbsMallocAndCopy(MemoryData& dest, const MemoryData& sr
 
     APP_ERROR ret = MemoryHelper::Malloc(dest);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("%sMxbsMallocAndCopy function malloc ptrData failed.", GetError(ret));
+        ERROR_LOG("%smemory data malloc and copy error: malloc ptrData failed.", GetError(ret));
         return ret;
     }
 
     ret = MemoryHelper::Memcpy(dest, src, src.size);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("%sMxbsMallocAndCopy function memcpy failed.", GetError(ret));
+        ERROR_LOG("%smemory data malloc and copy error: memcpy failed.", GetError(ret));
         ret = dest.free(dest.ptrData);
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("%sMxbsMallocAndCopy function free failed.", GetError(ret));
+            ERROR_LOG("%smemory data malloc and copy error: free failed.", GetError(ret));
         }
         dest.ptrData = nullptr;
         return APP_ERR_ACL_BAD_COPY;

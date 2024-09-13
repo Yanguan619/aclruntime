@@ -31,7 +31,7 @@ TensorContext::TensorContext()
     if (!DeviceManager::GetInstance()->IsInitDevices()) {
         APP_ERROR ret = DeviceManager::GetInstance()->InitDevices();
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("DeviceManager InitDevices failed. ret=%d", ret);
+            ERROR_LOG("DeviceManager init devices failed. ret=%d", ret);
             return;
         }
         InitDeviceFlag_ = true;
@@ -43,7 +43,7 @@ APP_ERROR TensorContext::Finalize()
     if (InitDeviceFlag_) {
         APP_ERROR ret = DeviceManager::GetInstance()->DestroyDevices();
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("DeviceManager DestroyDevices failed. ret=%d", ret);
+            ERROR_LOG("DeviceManager destroy devices failed. ret=%d", ret);
             return ret;
         }
         InitDeviceFlag_ = false;
@@ -62,7 +62,7 @@ APP_ERROR TensorContext::CreateContext(const uint32_t &deviceId, size_t& context
     device.devId = deviceId;
     APP_ERROR ret = DeviceManager::GetInstance()->CreateContext(device, contextIndex);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("CreateContext failed. ret=%d", ret);
+        ERROR_LOG("create context failed. ret=%d", ret);
         return ret;
     }
     return APP_ERR_OK;
@@ -72,7 +72,7 @@ APP_ERROR TensorContext::DestroyContext(const uint32_t &deviceId, const size_t& 
 {
     APP_ERROR ret = DeviceManager::GetInstance()->DestroyContext(deviceId, contextIndex);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("DestroyContext failed. ret=%d", ret);
+        ERROR_LOG("destroy context failed. ret=%d", ret);
         return ret;
     }
     return APP_ERR_OK;
@@ -84,7 +84,7 @@ APP_ERROR TensorContext::SetContext(const uint32_t &deviceId, const size_t conte
     device.devId = deviceId;
     APP_ERROR ret = DeviceManager::GetInstance()->SetContext(device, contextIndex);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("SetContext failed. ret=%d", ret);
+        ERROR_LOG("set context failed. ret=%d", ret);
         return ret;
     }
     return APP_ERR_OK;

@@ -39,7 +39,7 @@ int CreatePureInputTensors(std::vector<Base::TensorDesc> descs,
         Base::TensorBase tensor(i32shape, desc.datatype);
         APP_ERROR ret = Base::TensorBase::TensorBaseMalloc(tensor);
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("TensorBaseMalloc failed. ret=%d", ret);
+            ERROR_LOG("malloc TensorBase failed. ret=%d", ret);
             throw std::runtime_error(GetError(ret));
         }
         ret = tensor.ToDevice(deviceId);
@@ -92,23 +92,23 @@ int main(int argc, char **argv)
 
     CreatePureInputTensors(indescs, deviceId, intensors);
     for (const auto& tensor : intensors) {
-        MSG_LOG("in tensor type:%d size:%lld isDevice:%d\n", tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
+        PROMPT_MSG("in tensor type:%d size:%lld isDevice:%d\n", tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
     }
     if (input.size() != 0) {
         std::vector<std::string> fileName_vec;
         std::vector<std::vector<std::vector<std::string>>> infilesList;
-        MSG_LOG("debug ignore\n");
+        PROMPT_MSG("debug ignore\n");
     } else {
         std::vector<Base::TensorBase> outtensors = session->InferVector(output_names, intensors);
         for (const auto& tensor : outtensors) {
-            MSG_LOG("out tensor type:%d size:%lld isDevice:%d\n", tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
+            PROMPT_MSG("out tensor type:%d size:%lld isDevice:%d\n", tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
         }
     }
 
     Base::InferSumaryInfo sumary = session->GetSumaryInfo();
     float sum = std::accumulate(std::begin(sumary.execTimeList), std::end(sumary.execTimeList), 0.0);
     float mean =  sum / sumary.execTimeList.size(); // 均值
-    MSG_LOG("debug avg:%f count:%d\n", mean, sumary.execTimeList.size());
+    PROMPT_MSG("debug avg:%f count:%d\n", mean, sumary.execTimeList.size());
     return 0;
 }
 } // namespace

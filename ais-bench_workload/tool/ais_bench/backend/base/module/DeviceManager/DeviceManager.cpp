@@ -143,17 +143,17 @@ APP_ERROR DeviceManager::DestroyContext(uint32_t deviceId, std::size_t contextIn
     }
     APP_ERROR ret;
     if (contexts_.find(deviceId) == contexts_.end()) {
-        ERROR_LOG("DestroyContext failed: device id %u cannot be find", deviceId);
+        ERROR_LOG("destroy context failed: device id %u cannot be find", deviceId);
         return APP_ERR_OK;
     }
     if (contexts_[deviceId].find(contextIndex) == contexts_[deviceId].end()) {
-        ERROR_LOG("DestroyContext failed: context id %lu cannot be find", contextIndex);
+        ERROR_LOG("destroy context failed: context id %lu cannot be find", contextIndex);
         return APP_ERR_OK;
     }
     ret = aclrtDestroyContext(contexts_[deviceId][contextIndex]);
     if (ret != APP_ERR_OK) {
         ACLERR_LOG(aclGetRecentErrMsg());
-        ERROR_LOG("DestroyContext failed: destroy context failed");
+        ERROR_LOG("destroy context failed: destroy context failed");
         return ret;
     }
     contexts_[deviceId].erase(contextIndex);
@@ -184,7 +184,7 @@ APP_ERROR DeviceManager::GetCurrentDevice(DeviceContext& device)
     APP_ERROR ret = aclrtGetCurrentContext(&currentContext);
     if (ret != APP_ERR_OK) {
         ACLERR_LOG(aclGetRecentErrMsg());
-        ERROR_LOG("aclrtGetCurrentContext failed. ret=%d", ret);
+        ERROR_LOG("acl get current context failed. ret=%d", ret);
         return ret;
     }
     DeviceContext currentDevice = {};
@@ -249,13 +249,13 @@ APP_ERROR DeviceManager::SetContext(DeviceContext device, std::size_t contextInd
     auto deviceId = device.devId;
     if (contexts_.find(deviceId) == contexts_.end() ||
         contexts_[deviceId].find(contextIndex) == contexts_[deviceId].end()) {
-        ERROR_LOG("SetContext failed: device %d is not set or context %lu is not created.", deviceId, contextIndex);
+        ERROR_LOG("set context failed: device %d is not set or context %lu is not created.", deviceId, contextIndex);
         return APP_ERR_ACL_INVALID_PARAM;
     }
     APP_ERROR ret = aclrtSetCurrentContext(contexts_[deviceId][contextIndex]);
     if (ret != APP_ERR_OK) {
         ACLERR_LOG(aclGetRecentErrMsg());
-        ERROR_LOG("acl set curcontext failed");
+        ERROR_LOG("acl set current context failed");
         return ret;
     }
     return APP_ERR_OK;
@@ -284,7 +284,7 @@ APP_ERROR DeviceManager::CheckDeviceId(int32_t deviceId)
     }
 
     if (deviceId > (int32_t)deviceCount_ - 1) {
-        ERROR_LOG("deviceId(%d) is bigger than deviceCount(%d)", deviceId, deviceCount_);
+        ERROR_LOG("deviceId(%d) is bigger than or equal to deviceCount(%d)", deviceId, deviceCount_);
         return APP_ERR_COMM_INVALID_PARAM;
     }
     return APP_ERR_OK;

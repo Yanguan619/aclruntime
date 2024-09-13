@@ -162,7 +162,7 @@ APP_ERROR ModelInferenceProcessor::CreateOutMemoryData(std::vector<MemoryData>& 
         Base::MemoryData memorydata(size, MemoryData::MemoryType::MEMORY_DEVICE, deviceId_);
         auto ret = MemoryHelper::MxbsMalloc(memorydata);
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("MemoryHelper::MxbsMalloc failed.i:%zu name:%s size:%zu ret:%d", \
+            ERROR_LOG("memory data malloc failed.i:%zu name:%s size:%zu ret:%d", \
                       i, modelDesc_.outTensorsDesc[i].name.c_str(), size, ret);
             return ret;
         }
@@ -218,7 +218,7 @@ APP_ERROR ModelInferenceProcessor::CheckInVectorAndFillBaseTensor(
         baseTensor.buf = feeds[i].buf;
         baseTensor.size = feeds[i].size;
         if (baseTensor.size != modelDesc_.inTensorsDesc[i].realsize) {
-            ERROR_LOG("Check i:%zu name:%s in size:%zu needsize:%zu not match",
+            ERROR_LOG("check i:%zu name:%s in size:%zu needsize:%zu not match",
                 i, modelDesc_.inTensorsDesc[i].name.c_str(), baseTensor.size, modelDesc_.inTensorsDesc[i].realsize);
             return APP_ERR_ACL_FAILURE;
         }
@@ -238,7 +238,7 @@ APP_ERROR ModelInferenceProcessor::Inference(
     std::vector<BaseTensor> inputs;
     ret = CheckInVectorAndFillBaseTensor(feeds, inputs);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("Check InVector failed ret:%d", ret);
+        ERROR_LOG("check input vector failed ret:%d", ret);
         return ret;
     }
     ret = ModelInference_Inner(inputs, outputNames, outputTensors);
@@ -257,7 +257,7 @@ APP_ERROR ModelInferenceProcessor::FirstInference(
     std::vector<BaseTensor> inputs;
     ret = CheckInVectorAndFillBaseTensor(feeds, inputs);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("Check InVector failed ret:%d", ret);
+        ERROR_LOG("check input vector failed ret:%d", ret);
         return ret;
     }
     ret = FirstInferenceInner(inputs, outputNames, outputTensors);
@@ -309,7 +309,7 @@ APP_ERROR ModelInferenceProcessor::Inference(
     std::vector<BaseTensor> inputs;
     ret = CheckInMapAndFillBaseTensor(feeds, inputs);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("Check InVector failed ret:%d", ret);
+        ERROR_LOG("check input vector failed ret:%d", ret);
         return ret;
     }
     ret = ModelInference_Inner(inputs, outputNames, outputTensors);
@@ -346,7 +346,7 @@ APP_ERROR ModelInferenceProcessor::Inference(
     std::vector<BaseTensor> inputs;
     ret = CheckInVectorAndFillBaseTensor(feeds, inputs);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("Check InVector failed ret:%d", ret);
+        ERROR_LOG("check input vector failed ret:%d", ret);
         return ret;
     }
     ret = ModelInference_Inner(inputs, outputNames, outputTensors);
@@ -370,7 +370,7 @@ APP_ERROR ModelInferenceProcessor::UpdateInputsData(const std::vector<int> &inOu
         result = processModel->UpdateInputsReuse(inOutRelation);
     }
     if (result != SUCCESS) {
-        ERROR_LOG("create inputdataset failed:%d", result);
+        ERROR_LOG("create input dataset failed:%d", result);
         return APP_ERR_ACL_FAILURE;
     }
     return APP_ERR_OK;
@@ -420,7 +420,7 @@ APP_ERROR ModelInferenceProcessor::SetInputsData(std::vector<BaseTensor> &inputs
     for (const auto& tensor : inputs) {
         auto result = processModel->CreateInput(tensor.buf, tensor.size);
         if (result != SUCCESS) {
-            ERROR_LOG("create inputdataset failed:%d", result);
+            ERROR_LOG("create input dataset failed:%d", result);
             return APP_ERR_ACL_FAILURE;
         }
     }
@@ -429,7 +429,7 @@ APP_ERROR ModelInferenceProcessor::SetInputsData(std::vector<BaseTensor> &inputs
     for (const auto& tensor : outputsMemDataQue_) {
         auto result = processModel->CreateOutput(tensor.ptrData, tensor.size);
         if (result != SUCCESS) {
-            ERROR_LOG("create outputdataset failed:%d", result);
+            ERROR_LOG("create output dataset failed:%d", result);
             return APP_ERR_ACL_FAILURE;
         }
     }
@@ -452,14 +452,14 @@ APP_ERROR ModelInferenceProcessor::SetAippConfigData()
         for (auto& aippSetIt : dymAIPPIndexSet_) {
             Result result = processModel->SetInputAIPP(aippSetIt.first, aippSetIt.second);
             if (result != SUCCESS) {
-                ERROR_LOG("ModelProcess::SetInputAIPP failed. index:%d result:%d ", int(aippSetIt.first), result);
+                ERROR_LOG("Set input AIPP failed. index:%d result:%d ", int(aippSetIt.first), result);
                 return APP_ERR_ACL_FAILURE;
             }
         }
         DEBUG_LOG("SetInputAIPP successfully");
     } else if ((!dyAippCfg->IsActivated()) && dyAippCfg->ModelIsLegal()) {
         // 模型有一个动态aipp输入，但是没有读取到合法的配置文件
-        ERROR_LOG("model with dynamic aipp input can't find config file.");
+        ERROR_LOG("model with dynamic AIPP input can't find config file.");
         return APP_ERR_ACL_FAILURE;
     }
     return APP_ERR_OK;
@@ -494,7 +494,7 @@ APP_ERROR ModelInferenceProcessor::RepeatInference(
 {
     APP_ERROR ret = UpdateInputsData(inOutRelation, mem_copy);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("UpdateInputsData failed ret:%d", ret);
+        ERROR_LOG("update inputs data failed ret:%d", ret);
         return ret;
     }
     int loopTimes;
@@ -510,12 +510,12 @@ APP_ERROR ModelInferenceProcessor::RepeatInference(
             return ret;
         }
         if (loopTimes > 1) {
-            MSG_LOG("\rloop inference exec: (%d/%d)", i + 1, loopTimes);
+            PROMPT_MSG("\rloop inference exec: (%d/%d)", i + 1, loopTimes);
             fflush(stdout);
         }
     }
     if (loopTimes > 1) {
-        MSG_LOG("\n");
+        PROMPT_MSG("\n");
     }
     if (get_outputs) {
         ret = GetOutputs(outputNames, outputTensors);
@@ -535,17 +535,17 @@ APP_ERROR ModelInferenceProcessor::FirstInferenceInner(
 {
     APP_ERROR ret = SetInputsData(inputs);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("Set InputsData failed ret:%d", ret);
+        ERROR_LOG("set inputs data failed ret:%d", ret);
         return ret;
     }
     if (dyAippCfg->ModelIsLegal()) {
         ret = SetAippConfigData();
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("Set AippConfigData failed ret:%d", ret);
+            ERROR_LOG("set AIPP config data failed ret:%d", ret);
             return ret;
         }
         if (options_->loop > 1) {
-            MSG_LOG("\n");
+            PROMPT_MSG("\n");
         }
     }
     processModel->InitReuseOutput();
@@ -556,12 +556,12 @@ APP_ERROR ModelInferenceProcessor::FirstInferenceInner(
             return ret;
         }
         if (options_->loop > 1) {
-            MSG_LOG("\rloop inference exec: (%d/%d)", i + 1, options_->loop);
+            PROMPT_MSG("\rloop inference exec: (%d/%d)", i + 1, options_->loop);
             fflush(stdout);
         }
     }
     if (options_->loop > 1) {
-        MSG_LOG("\n");
+        PROMPT_MSG("\n");
     }
     return APP_ERR_OK;
 }
@@ -574,17 +574,17 @@ APP_ERROR ModelInferenceProcessor::ModelInference_Inner(
 {
     APP_ERROR ret = SetInputsData(inputs);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("Set InputsData failed ret:%d", ret);
+        ERROR_LOG("set inputs data failed ret:%d", ret);
         return ret;
     }
     if (dyAippCfg->ModelIsLegal()) {
         ret = SetAippConfigData();
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("Set AippConfigData failed ret:%d", ret);
+            ERROR_LOG("set AIPP config data failed ret:%d", ret);
             return ret;
         }
         if (options_->loop > 1) {
-            MSG_LOG("\n");
+            PROMPT_MSG("\n");
         }
     }
     for (int i = 0; i < options_->loop; i++) {
@@ -594,12 +594,12 @@ APP_ERROR ModelInferenceProcessor::ModelInference_Inner(
             return ret;
         }
         if (options_->loop > 1) {
-            MSG_LOG("\rloop inference exec: (%d/%d)", i + 1, options_->loop);
+            PROMPT_MSG("\rloop inference exec: (%d/%d)", i + 1, options_->loop);
             fflush(stdout);
         }
     }
     if (options_->loop > 1) {
-        MSG_LOG("\n");
+        PROMPT_MSG("\n");
     }
     ret = GetOutputs(outputNames, outputTensors);
     if (ret != APP_ERR_OK) {
@@ -633,7 +633,7 @@ APP_ERROR ModelInferenceProcessor::Execute()
 APP_ERROR ModelInferenceProcessor::InitSumaryInfo()
 {
     if (gettimeofday(&sumaryInfo_.zero_point, nullptr) == -1) {
-        ERROR_LOG("InitSumaryInfo failed: gettimeofday return -1");
+        ERROR_LOG("init sumary info failed: get time of day with -1");
         return APP_ERR_ACL_FAILURE;
     }
     return APP_ERR_OK;
@@ -679,7 +679,7 @@ APP_ERROR ModelInferenceProcessor::AllocDymAIPPIndexMem()
         DEBUG_LOG("debug aipp config index:%d allow size:%d\n", int(index), int(info.size));
         auto ret = MemoryHelper::MxbsMalloc(memdata);
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("MemoryHelper::MxbsMalloc failed. ret=%d", ret);
+            ERROR_LOG("memory data malloc failed. ret=%d", ret);
             return ret;
         }
         dymAIPPIndexMemory_[index] = memdata;
@@ -716,7 +716,7 @@ APP_ERROR ModelInferenceProcessor::AllocDyIndexMem()
     dynamicIndexMemory_.deviceId = deviceId_;
     auto ret = MemoryHelper::MxbsMalloc(dynamicIndexMemory_);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("MemoryHelper::MxbsMalloc failed. ret=%d", ret);
+        ERROR_LOG("memory data malloc failed. ret=%d", ret);
         return ret;
     }
     return APP_ERR_OK;
@@ -769,7 +769,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicBatchsize(int batchsize)
     CHECK_RET_EQ(processModel->CheckDynamicBatchSize(batchsize, is_dymbatch), SUCCESS);
     CHECK_RET_EQ(processModel->GetMaxBatchSize(dynamicInfo_.dyBatch.maxbatchsize), SUCCESS);
     if (dynamicInfo_.dyBatch.maxbatchsize == 0) {
-        ERROR_LOG("SetDynamicBatchsize failed: max batch size equals to 0");
+        ERROR_LOG("set dynamic batch size failed: max batch size equals to 0");
         return APP_ERR_ACL_INVALID_PARAM;
     }
 
@@ -885,7 +885,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicHW(int width, int height)
     CHECK_RET_EQ(processModel->CheckDynamicHWSize(dynamicHW, is_dymHW), SUCCESS);
     CHECK_RET_EQ(processModel->GetMaxDynamicHWSize(dynamicInfo_.dyHW.maxHWSize), SUCCESS);
     if (dynamicInfo_.dyHW.maxHWSize == 0) {
-        ERROR_LOG("SetDynamicHW failed: max hw size equals to 0");
+        ERROR_LOG("set dynamicHW failed: max hw size equals to 0");
         return APP_ERR_ACL_INVALID_PARAM;
     }
 
@@ -919,14 +919,15 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
     try {
         dims = new aclmdlIODims[dym_gear_count_];
     } catch (const std::bad_alloc& e) {
-        ERROR_LOG("new aclmdlIODims failed!%s", e.what());
+        ERROR_LOG("create acl IO dims failed!%s", e.what());
+        fflush(stdout);
         return APP_ERR_ACL_BAD_ALLOC;
     }
 
     Utils::SplitStringSimple(dymdimsStr, dynamicInfo_.dyDims.pDims->dym_dims, ';', ':', ',');
 
     if (dym_gear_count_ <= 0) {
-        MSG_LOG("the dynamic_dims parameter is not specified for model conversion");
+        PROMPT_MSG("the dynamic_dims parameter is not specified for model conversion");
         delete [] dims;
         free(dynamicInfo_.dyDims.pDims);
         return APP_ERR_ACL_FAILURE;
@@ -1024,12 +1025,12 @@ APP_ERROR ModelInferenceProcessor::SetDymAIPPInfoSet()
 {
     dyAippCfg->ActivateConfig(); // config文件确定合法
     uint64_t MaxBS = dyAippCfg->GetMaxBatchSize();
-    DEBUG_LOG("debug now set aipp index list size:%d\n", int(dymAIPPIndexSet_.size()));
+    DEBUG_LOG("set AIPP index list size:%d\n", int(dymAIPPIndexSet_.size()));
     for (auto& aippSetIt : dymAIPPIndexSet_) {
         Result ret = processModel->GetDymAIPPConfigSet(dyAippCfg, aippSetIt.second, MaxBS);
-        DEBUG_LOG("debug get aipp config set index:%d\n", int(aippSetIt.first));
+        DEBUG_LOG("AIPP config set index:%d\n", int(aippSetIt.first));
         if (ret != SUCCESS) {
-            ERROR_LOG("ModelProcess::SetDynamicAippConfig failed.index: %d ret %d", int(aippSetIt.first), ret);
+            ERROR_LOG("set dynamic AIPP config failed. index: %d ret %d", int(aippSetIt.first), ret);
             return APP_ERR_FAILURE;
         }
     }

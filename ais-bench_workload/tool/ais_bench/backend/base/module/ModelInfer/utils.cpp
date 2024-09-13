@@ -118,7 +118,7 @@ double Utils::printDiffTime(time_t begin, time_t end)
 {
     double diffT = difftime(begin, end);
     const double sec_to_msec = 1000;
-    MSG_LOG("The inference time is: %f millisecond\n", sec_to_msec * diffT);
+    PROMPT_MSG("The inference time is: %f millisecond\n", sec_to_msec * diffT);
     return diffT * sec_to_msec;
 }
 
@@ -223,7 +223,7 @@ Result Utils::ReadBinFileToMemory(const std::string fileName, char *ptr, const s
     binFile.seekg(0, binFile.end);
     uint64_t binFileBufferLen = binFile.tellg();
     if (binFileBufferLen == 0) {
-        ERROR_LOG("binfile is empty, filename is %s", fileName.c_str());
+        ERROR_LOG("bin file is empty, filename is %s", fileName.c_str());
         binFile.close();
         return FAILED;
     }
@@ -250,7 +250,7 @@ Result Utils::FillFileContentToMemory(const std::string file, char* ptr, const s
 {
     auto ret = Utils::ReadBinFileToMemory(file, ptr, size, offset);
     if (ret != SUCCESS) {
-        ERROR_LOG("ReadBinFile ToMemory failed ret:%d", ret);
+        ERROR_LOG("read bin file to memory failed ret:%d", ret);
         return ret;
     }
     return SUCCESS;
@@ -338,7 +338,7 @@ Result Utils::TensorToNumpy(const std::string& outputFileName, Base::TensorBase&
     } else if (output.GetDataType() == Base::TENSOR_DTYPE_BOOL) {
         cnpy::NpySave(outputFileName, (bool*)output.GetBuffer(), shape);
     } else {
-        ERROR_LOG("TensorToNumpy: output data type unrecognized.");
+        ERROR_LOG("Tensor to numpy: output data type unrecognized.");
         return FAILED;
     }
     return SUCCESS;
@@ -347,14 +347,14 @@ Result Utils::TensorToNumpy(const std::string& outputFileName, Base::TensorBase&
 Result Utils::TensorToBin(const std::string& outputFileName, Base::TensorBase& output)
 {
     if (access(outputFileName.c_str(), F_OK) == 0 && remove(outputFileName.c_str()) != 0) {
-        ERROR_LOG("TensorToBin: existing file %s cannot be removed", outputFileName.c_str());
+        ERROR_LOG("Tensor to bin: existing file %s cannot be removed", outputFileName.c_str());
         return FAILED;
     }
     int fd = open(outputFileName.c_str(), OPNE_OR_CREATE_MODE, CREATE_FILE_MODE);
     close(fd);
     std::ofstream outfile(outputFileName, std::ios::out | std::ios::binary);
     if (!outfile) {
-        ERROR_LOG("TensorToBin: open file %s failed.", outputFileName.c_str());
+        ERROR_LOG("Tensor to bin: open file %s failed.", outputFileName.c_str());
         return FAILED;
     }
 
@@ -382,14 +382,14 @@ static void SaveTxt(std::ofstream& outFile, const T* p, size_t size, size_t rowC
 Result Utils::TensorToTxt(const std::string& outputFileName, Base::TensorBase& output)
 {
     if (access(outputFileName.c_str(), F_OK) == 0 && remove(outputFileName.c_str()) != 0) {
-        ERROR_LOG("TensorToTxt: existing file %s cannot be removed", outputFileName.c_str());
+        ERROR_LOG("Tensor to txt: existing file %s cannot be removed", outputFileName.c_str());
         return FAILED;
     }
     int fd = open(outputFileName.c_str(), OPNE_OR_CREATE_MODE, CREATE_FILE_MODE);
     close(fd);
     std::ofstream outFile(outputFileName);
     if (!outFile) {
-        ERROR_LOG("TensorToTxt: open file %s failed.", outputFileName.c_str());
+        ERROR_LOG("Tensor to txt: open file %s failed.", outputFileName.c_str());
         return FAILED;
     }
     size_t size = output.GetSize();
@@ -420,7 +420,7 @@ Result Utils::TensorToTxt(const std::string& outputFileName, Base::TensorBase& o
     } else if (output.GetDataType() == Base::TENSOR_DTYPE_BOOL) {
         SaveTxt(outFile, (bool*)output.GetBuffer(), size, rowCount);
     } else {
-        ERROR_LOG("TensorToBin: output data type unrecognized.");
+        ERROR_LOG("Tensor to bin: output data type unrecognized.");
         return FAILED;
     }
     return SUCCESS;

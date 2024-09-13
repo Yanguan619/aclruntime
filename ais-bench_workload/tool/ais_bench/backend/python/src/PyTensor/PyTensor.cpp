@@ -127,12 +127,12 @@ TensorBase FromNumpy(py::buffer b)
     TensorBase dst(shape, dataType);
     APP_ERROR ret = Base::TensorBase::TensorBaseMalloc(dst);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("TensorBaseMalloc failed. ret=%d", ret);
+        ERROR_LOG("TensorBase malloc failed. ret=%d", ret);
         throw std::runtime_error(GetError(ret));
     }
     ret = Base::TensorBase::TensorBaseCopy(dst, src);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("TensorBaseCopy failed. ret=%d", ret);
+        ERROR_LOG("TensorBase copy failed. ret=%d", ret);
         throw std::runtime_error(GetError(ret));
     }
     return dst;
@@ -173,7 +173,7 @@ TensorBase BatchVector(const std::vector<TensorBase> &tensors, const bool &keepD
     TensorBase output = {};
     APP_ERROR ret = TensorBase::BatchVector(tensors, output, keepDims);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("TensorBase::BatchVector failed. ret=%d", ret);
+        ERROR_LOG("TensorBase concat batch vector failed. ret=%d", ret);
         throw std::runtime_error(GetError(ret));
     }
     return output;

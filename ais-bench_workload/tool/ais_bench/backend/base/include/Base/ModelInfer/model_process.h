@@ -309,20 +309,6 @@ private:
     Result check_ret(aclError ret, size_t buffer_size_zero);
     Result check_create_buffer(aclDataBuffer* inputData, void* inBufferDev);
     Result check_add_buffer(aclError ret, void* inBufferDev, aclDataBuffer* inputData);
-    void print_aclFloat16_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul);
-    void print_float_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul);
-    void print_int8_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul);
-    void print_int_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul);
-    void print_uint8_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul);
-    void print_int16_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul);
-    void print_uint16_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul);
-    void print_uint32_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul);
-    void print_int64_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul);
-    void print_uint64_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul);
-    void print_double_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul);
-    void print_bool_info(size_t len, std::ofstream& outstr, void* outData, vector<int64_t> curOutputDimsMul);
-    void print_data_log(aclDataType datatype, size_t len, std::ofstream& outstr,
-        void* outData, vector<int64_t> curOutputDimsMul);
     Result Free_Host_Try(aclError ret, void*& outHostData);
     void print_error_log(aclError ret);
 };

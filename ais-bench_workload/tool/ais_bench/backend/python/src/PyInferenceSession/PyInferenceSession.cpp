@@ -51,12 +51,12 @@ int PyInferenceSession::Destroy()
     }
     APP_ERROR ret = TensorContext::GetInstance()->SetContext(deviceId_, contextIndex_);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("TensorContext::SetContext failed. ret=%d", ret);
+        ERROR_LOG("set context failed. ret=%d", ret);
         return ret;
     }
     ret = modelInfer_.DeInit();
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("ModelInfer Deinit failed. ret=%d", ret);
+        ERROR_LOG("deinit free memory failed. ret=%d", ret);
         return ret;
     }
     DEBUG_LOG("PyInferSession DestroySession successfully!");
@@ -68,7 +68,7 @@ int PyInferenceSession::Finalize()
 {
     APP_ERROR ret = TensorContext::GetInstance()->Finalize();
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("TensorContext::Finalize failed. ret=%d", ret);
+        ERROR_LOG("context finalize failed. ret=%d", ret);
         return ret;
     }
     DEBUG_LOG("PyInferSession Finalize successfully!");
@@ -79,18 +79,18 @@ int PyInferenceSession::FreeResource()
 {
     APP_ERROR ret = TensorContext::GetInstance()->SetContext(deviceId_, contextIndex_);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("TensorContext::SetContext failed. ret=%d", ret);
+        ERROR_LOG("set context failed. ret=%d", ret);
         return ret;
     }
 
     ret = Destroy();
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("Destroy failed. ret=%d", ret);
+        ERROR_LOG("destroy failed. ret=%d", ret);
         return ret;
     }
     ret = TensorContext::GetInstance()->DestroyContext(deviceId_, contextIndex_);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("TensorContext::DestroyContext. ret=%d", ret);
+        ERROR_LOG("destroy context. ret=%d", ret);
         return ret;
     }
     DEBUG_LOG("PyInferSession FreeResource successfully!");
@@ -458,7 +458,7 @@ void PyInferenceSession::InferPipeline(std::vector<std::vector<std::string>>& in
 {
     SetContext();
     if (!CheckExtraSession(contextIndex_, extraSession)) {
-        ERROR_LOG("InferPipeline failed: cannot have session in same context");
+        ERROR_LOG("infer wiht pipeline failed: cannot have session in same context");
         return;
     }
     size_t numThreads = extraSession.size() + 1;
@@ -625,7 +625,7 @@ TensorBase PyInferenceSession::CreateTensorFromFilesList(Base::TensorDesc &dstTe
         MemoryData::MemoryType::MEMORY_HOST, -1);
     APP_ERROR ret = Base::TensorBase::TensorBaseMalloc(dstTensor);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("TensorBaseMalloc failed ret:%d", ret);
+        ERROR_LOG("TensorBase malloc failed ret:%d", ret);
         throw std::runtime_error(GetError(ret));
     }
     // copy
@@ -634,7 +634,7 @@ TensorBase PyInferenceSession::CreateTensorFromFilesList(Base::TensorDesc &dstTe
     for (uint32_t i = 0; i < filesList.size(); i++) {
         Result ret = Utils::FillFileContentToMemory(filesList[i], ptr, dstTensor.GetByteSize(), offset);
         if (ret != SUCCESS) {
-            ERROR_LOG("TensorBaseMalloc i:%d file:%s failed ret:%d", i, filesList[i].c_str(), ret);
+            ERROR_LOG("TensorBase malloc i:%d file:%s failed ret:%d", i, filesList[i].c_str(), ret);
             throw std::runtime_error(GetError(ret));
         }
     }

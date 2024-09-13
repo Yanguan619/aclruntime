@@ -60,6 +60,9 @@ PERMISSION_DIR = 0o750
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
+def logger_print(logger_msg):
+    
+    print(f'{logger_msg}', flush=True, end="")
 
 def set_session_options(session, args):
     # 增加校验
@@ -369,7 +372,7 @@ def msprof_run_profiling(args, msprof_bin):
                 get_path_flag = False
                 start_index = line.find("PROF_")
                 sub_str = line[start_index:(start_index + 46)] # PROF_XXXX的目录长度为46
-            print(f'{line}', flush=True, end="")
+            logger_print(line)
         p.stdout.close()
         p.wait()
 

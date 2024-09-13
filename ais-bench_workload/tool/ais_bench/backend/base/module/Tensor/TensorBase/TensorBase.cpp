@@ -157,7 +157,7 @@ APP_ERROR TensorBase::TensorBaseMalloc(TensorBase &tensor)
 {
     APP_ERROR ret = TensorBuffer::TensorBufferMalloc(*tensor.buffer_);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << "TensorBufferMalloc failed. ret=" << ret << std::endl;
+        ERROR_LOG("Tensor malloc buffer failed. ret=%d", ret);
         return ret;
     }
     return APP_ERR_OK;
@@ -167,7 +167,7 @@ APP_ERROR TensorBase::TensorBaseCopy(TensorBase &dst, const TensorBase &src)
 {
     APP_ERROR ret = TensorBuffer::TensorBufferCopy(*dst.buffer_, *src.buffer_);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << "TensorBufferCopy failed. ret=" << ret << std::endl;
+        ERROR_LOG("Tensor copy buffer failed. ret=%d", ret);
         return ret;
     }
     return APP_ERR_OK;
@@ -210,12 +210,12 @@ APP_ERROR TensorBase::ToDevice(int32_t deviceId)
     TensorBuffer newBuffer(buffer_->size, MemoryData::MemoryType::MEMORY_DEVICE, deviceId);
     ret = TensorBuffer::TensorBufferMalloc(newBuffer);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << "TensorBuffer::TensorBufferMalloc failed. ret=" << ret << std::endl;
+        ERROR_LOG("Tensor malloc buffer failed. ret=%d", ret);
         return ret;
     }
     ret = TensorBuffer::TensorBufferCopy(newBuffer, *buffer_);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << "TensorBuffer::TensorBufferCopy failed. ret=" << ret << std::endl;
+        ERROR_LOG("Tensor copy buffer failed. ret=%d", ret);
         return ret;
     }
     *buffer_ = newBuffer;
@@ -241,12 +241,12 @@ APP_ERROR TensorBase::ToDvpp(int32_t deviceId)
     TensorBuffer newBuffer(buffer_->size, MemoryData::MemoryType::MEMORY_DVPP, deviceId);
     ret = TensorBuffer::TensorBufferMalloc(newBuffer);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << "TensorBuffer::TensorBufferMalloc failed. ret=" << ret << std::endl;
+        ERROR_LOG("Tensor malloc buffer failed. ret=%d", ret);
         return ret;
     }
     ret = TensorBuffer::TensorBufferCopy(newBuffer, *buffer_);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << "TensorBuffer::TensorBufferCopy failed. ret=" << ret << std::endl;
+        ERROR_LOG("Tensor copy buffer failed. ret=%d", ret);
         return ret;
     }
     *buffer_ = newBuffer;
@@ -265,13 +265,13 @@ APP_ERROR TensorBase::ToHost()
     TensorBuffer host(buffer_->size);
     APP_ERROR ret = TensorBuffer::TensorBufferMalloc(host);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << "TensorBuffer::TensorBufferMalloc failed. ret=" << ret << std::endl;
+        ERROR_LOG("Tensor malloc buffer failed. ret=%d", ret);
         return ret;
     }
 
     ret = TensorBuffer::TensorBufferCopy(host, *buffer_);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << "TensorBuffer::TensorBufferCopy failed. ret=" << ret << std::endl;
+        ERROR_LOG("Tensor copy buffer failed. ret=%d", ret);
         return ret;
     }
     *buffer_ = host;
@@ -348,23 +348,19 @@ APP_ERROR TensorBase::CheckBatchTensors(const std::vector<TensorBase> &inputs, c
 {
     auto checkFunc = [checkFirstDim] (const TensorBase &t1, const TensorBase &t2) {
         if (t1.GetShape().size() != t2.GetShape().size()) {
-            LOG_ERROR << "dimension is not match (" << t1.GetShape().size() << ") vs (" << t2.GetShape().size()
-                << ")" << std::endl;
+            ERROR_LOG("dimension is not match (%d) vs (%d)", t1.GetShape().size(), t2.GetShape().size());
             return false;
         }
         if (t1.GetDeviceId() != t2.GetDeviceId()) {
-            LOG_ERROR << "deviceId is not match (" << t1.GetDeviceId() << ") vs (" << t2.GetDeviceId() << ")"
-                << std::endl;
+            ERROR_LOG("deviceId is not match (%d) vs (%d)", t1.GetDeviceId(), t2.GetDeviceId());
             return false;
         }
         if (t1.GetDataType() != t2.GetDataType()) {
-            LOG_ERROR << "data type is not match (" << t1.GetDataType() << ") vs (" << t2.GetDataType() << ")"
-                << std::endl;
+            ERROR_LOG("data type is not match (%d) vs (%d)", t1.GetDataType(), t2.GetDataType());
             return false;
         }
         if (t1.GetTensorType() != t2.GetTensorType()) {
-            LOG_ERROR << "memory type is not match (" << t1.GetTensorType() << ") vs (" << t2.GetTensorType() << ")"
-                << std::endl;
+            ERROR_LOG("memory type is not match (%d) vs (%d)", t1.GetTensorType(), t2.GetTensorType());
             return false;
         }
         uint32_t startIndex = checkFirstDim ? 0 : 1;
@@ -382,7 +378,7 @@ APP_ERROR TensorBase::CheckBatchTensors(const std::vector<TensorBase> &inputs, c
                 shapeStr1[shapeStr1.size() - 1] = ')';
                 shapeStr2[shapeStr2.size() - 1] = ')';
             }
-            LOG_ERROR << "tensor shape is not match " << shapeStr1 << " vs " << shapeStr2 << std::endl;
+            ERROR_LOG("tensor shape is not match %s vs %s", shapeStr1, shapeStr2);
             return false;
         }
         return true;
@@ -399,13 +395,13 @@ APP_ERROR TensorBase::BatchConcat(const std::vector<TensorBase> &inputs, TensorB
 {
     // check input size
     if (inputs.size() == 0) {
-        LOG_ERROR << "input size(" << std::to_string(inputs.size()) << ")" << std::endl;
+        ERROR_LOG("input size(%s)", std::to_string(inputs.size()));
         return APP_ERR_COMM_INVALID_PARAM;
     }
     // check
     APP_ERROR ret = CheckBatchTensors(inputs, false);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << "CheckBatchTensors failed. ret=" << ret << std::endl;
+        ERROR_LOG("check Tensors batch failed. ret=%d", ret);
         return ret;
     }
     uint32_t batch = 0;
@@ -421,7 +417,7 @@ APP_ERROR TensorBase::BatchConcat(const std::vector<TensorBase> &inputs, TensorB
     output = TensorBase(batchShape, inputs[0].GetDataType(), inputs[0].GetTensorType(), inputs[0].GetDeviceId());
     ret = TensorBaseMalloc(output);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << "TensorBaseMalloc failed. ret=" << ret << std::endl;
+        ERROR_LOG("malloc TensorBase failed. ret=%d", ret);
         return ret;
     }
     // copy
@@ -433,7 +429,7 @@ APP_ERROR TensorBase::BatchConcat(const std::vector<TensorBase> &inputs, TensorB
         patch.type = inputs[i].GetTensorType();
         APP_ERROR ret = TensorBuffer::TensorBufferCopy(patch, *inputs[i].buffer_);
         if (ret != APP_ERR_OK) {
-            LOG_ERROR << "TensorBuffer::TensorBufferCopy failed. ret=" << ret << std::endl;
+            ERROR_LOG("Tensor copy buffer failed. ret=%d", ret);
             return ret;
         }
     }
@@ -444,13 +440,13 @@ APP_ERROR TensorBase::BatchStack(const std::vector<TensorBase> &inputs, TensorBa
 {
     // check
     if (inputs.size() == 0) {
-        LOG_ERROR << "input size(" << std::to_string(inputs.size()) << ")" << std::endl;
+        ERROR_LOG("input size(%s)", std::to_string(inputs.size()));
         return APP_ERR_COMM_INVALID_PARAM;
     }
     // check shape and device
     APP_ERROR ret = CheckBatchTensors(inputs, true);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << "CheckBatchTensors failed. ret=" << ret << std::endl;
+        ERROR_LOG("check batch Tensors failed. ret=%d", ret);
         return ret;
     }
     std::vector<uint32_t> batchShape = {};
@@ -462,7 +458,7 @@ APP_ERROR TensorBase::BatchStack(const std::vector<TensorBase> &inputs, TensorBa
     output = TensorBase(batchShape, inputs[0].GetDataType(), inputs[0].GetTensorType(), inputs[0].GetDeviceId());
     ret = TensorBaseMalloc(output);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << "TensorBaseMalloc failed. ret=" << ret << std::endl;
+        ERROR_LOG("malloc TensorBase failed. ret=%d", ret);
         return ret;
     }
     // copy
@@ -474,7 +470,7 @@ APP_ERROR TensorBase::BatchStack(const std::vector<TensorBase> &inputs, TensorBa
         patch.type = inputs[i].GetTensorType();
         APP_ERROR ret = TensorBuffer::TensorBufferCopy(patch, *inputs[i].buffer_);
         if (ret != APP_ERR_OK) {
-            LOG_ERROR << "TensorBuffer::TensorBufferCopy failed. ret=" << ret << std::endl;
+            ERROR_LOG("Tensor copy buffer failed. ret=%d", ret);
             return ret;
         }
     }
@@ -486,13 +482,13 @@ APP_ERROR TensorBase::BatchVector(const std::vector<TensorBase> &inputs, TensorB
     if (keepDims) {
         APP_ERROR ret = BatchConcat(inputs, output);
         if (ret != APP_ERR_OK) {
-            LOG_ERROR << "BatchConcat failed. ret=" << ret << std::endl;
+            ERROR_LOG("concat batch failed. ret=%d", ret);
             return ret;
         }
     } else {
         APP_ERROR ret = BatchStack(inputs, output);
         if (ret != APP_ERR_OK) {
-            LOG_ERROR << "BatchConcat failed. ret=" << ret << std::endl;
+            ERROR_LOG("concat batch failed. ret=%d", ret);
             return ret;
         }
     }
@@ -522,12 +518,12 @@ MemoryData CopyMemory2DeviceMemory(void *ptr, uint64_t size, int32_t deviceId)
     Base::MemoryData dst(size, MemoryData::MemoryType::MEMORY_DEVICE, deviceId);
     auto ret = MemoryHelper::MxbsMalloc(dst);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("MemoryHelper::MxbsMalloc failed device size:%zu ret:%d", size, ret);
+        ERROR_LOG("memory data malloc failed device size:%zu ret:%d", size, ret);
         return ret;
     }
     ret = MemoryHelper::MxbsMemcpy(dst, src, dst.size);
     if (ret != APP_ERR_OK) {
-        LOG_ERROR << "MemoryHelper::MxbsMemcpy failed. ret=" << ret << std::endl;
+        ERROR_LOG("memory memcpy failed. ret=%d", ret);
         return ret;
     }
     return dst;

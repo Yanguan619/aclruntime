@@ -61,18 +61,18 @@ bool StringChecker::IsNumber(const std::string &text)
 bool StringChecker::StrToU64(uint64_t &dest, const std::string &numStr)
 {
     if (!IsNumber(numStr)) {
-        ERROR_LOG("numStr is not number");
+        ERROR_LOG("str is not number");
         return false;
     }
     size_t pos = 0;
     try {
         dest = std::stoull(numStr, &pos);
     } catch (...) {
-        ERROR_LOG("str to u64 failed");
+        ERROR_LOG("str to uint64_t failed");
         return false;
     }
     if (pos != numStr.size()) {
-        ERROR_LOG("str to u64 failed");
+        ERROR_LOG("str to uint64_t failed");
         return false;
     }
     return true;

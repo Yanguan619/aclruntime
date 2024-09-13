@@ -16,11 +16,29 @@
 
 #include "Base/Log/Log.h"
 
-int g_frizyLogLevel;
+int g_frizyLogLevel = 2;
+const int LOG_BUFFER_SIZE = 1024;
 
 namespace Base {
 void SETLOGLEVEL(int level)
 {
     g_frizyLogLevel = level;
 }
+}
+
+bool validate_log(char* log_buffer) {
+    
+    return true;
+}
+
+void log_print(const char* fmt, ...) {
+    char log_buffer[LOG_BUFFER_SIZE] = {0};
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(log_buffer, sizeof(log_buffer), fmt, args);
+    va_end(args);
+    if (validate_log(log_buffer)) {
+        printf(log_buffer);
+        fflush(stdout);
+    }
 }

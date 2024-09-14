@@ -94,7 +94,7 @@ void HcclOpBaseTest::no_verification()
 {
     check = 0; //不进行校验
     if (rank_id == root_rank && print_dump) {
-        WARN("Warning: The calculation result overflows, No verification is performed.");
+        WARN("The calculation result overflows, No verification is performed.");
         print_dump = false;
     }
     return;
@@ -134,10 +134,10 @@ void HcclOpBaseTest::print_execution_time(double average_time_us, double algorit
             if (print_header)
             {
                 INFO("Test result without check is:");
-                INFO("%-15s | %-12s | %-18s | %s", data_size, aveg_time, alg_bandwidth, verification_result);
+                INFO(" %-15s | %-12s | %-18s | %s", data_size, aveg_time, alg_bandwidth, verification_result);
                 print_header = false;
             }
-            INFO("%-17llu | %-14.2f | %-20.5f | NULL", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
+            INFO(" %-17llu | %-14.2f | %-20.5f | NULL", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
         }
         return;
     }
@@ -176,15 +176,15 @@ void HcclOpBaseTest::print_execution_time(double average_time_us, double algorit
         if (print_header)
         {
             INFO("Test result with check is:");
-            INFO("%-15s | %-12s | %-18s | %s", data_size, aveg_time, alg_bandwidth, verification_result);
+            INFO(" %-15s | %-12s | %-18s | %s", data_size, aveg_time, alg_bandwidth, verification_result);
             print_header = false;
         }
 
         if (!result)
         {
-            INFO("%-17llu | %-14.2f | %-20.5f | failed", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
+            INFO(" %-17llu | %-14.2f | %-20.5f | failed", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
         } else {
-            INFO("%-17llu | %-14.2f | %-20.5f | success", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
+            INFO(" %-17llu | %-14.2f | %-20.5f | success", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
         }
     }
     return;

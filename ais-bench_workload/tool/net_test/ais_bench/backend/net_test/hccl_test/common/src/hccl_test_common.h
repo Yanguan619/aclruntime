@@ -43,7 +43,7 @@ const int SERVER_MAX_DEV_NUM = 8;
 #define ACLCHECK(ret) do { \
     if(ret != ACL_SUCCESS)\
     {\
-        ERROR("acl interface return err %s:%d, retcode: %d \n", __FILE__, __LINE__, ret);\
+        ERROR("acl interface return err %s:%d, retcode: %d ", __FILE__, __LINE__, ret);\
         return ret;\
     }\
 } while(0)
@@ -51,7 +51,7 @@ const int SERVER_MAX_DEV_NUM = 8;
 #define HCCLCHECK(ret) do {  \
     if(ret != HCCL_SUCCESS) \
     {   \
-        ERROR("hccl interface return errreturn err %s:%d, retcode: %d \n", __FILE__, __LINE__, ret); \
+        ERROR("hccl interface return errreturn err %s:%d, retcode: %d ", __FILE__, __LINE__, ret); \
         return ret;\
     } \
 } while(0)
@@ -59,7 +59,7 @@ const int SERVER_MAX_DEV_NUM = 8;
 #define HCCLROOTRANKCHECK(ret) do {  \
     if(ret != HCCL_SUCCESS && ret != HCCL_E_PARA) \
     {   \
-        ERROR("hccl interface return errreturn err %s:%d, retcode: %d \n", __FILE__, __LINE__, ret); \
+        ERROR("hccl interface return errreturn err %s:%d, retcode: %d ", __FILE__, __LINE__, ret); \
         return ret;\
     } \
 } while(0)

@@ -65,7 +65,8 @@ void HcclCommunicater::ServerBcast(
         socklen_t clientAddrlen = sizeof(clientAddr);
         int clientSkt = accept(m_serverSkt, reinterpret_cast<sockaddr*>(&clientAddr), &clientAddrlen);
         if (clientSkt == -1) {
-            WARN("rank: %d, accepting client connection failed!", m_rankID);
+            DEBUG("rank: %d, accepting client connection failed! Retry after %d sec", m_rankID, RETRY_INTERVAL);
+            sleep(RETRY_INTERVAL);
             continue;
         }
         DEBUG("rank: %d, Client connected from %s", m_rankID, inet_ntoa(clientAddr.sin_addr));
@@ -202,14 +203,14 @@ bool HcclCommunicater::ServerPreset()
     // 服务器套接字校验
     m_serverSkt = socket(AF_INET, SOCK_STREAM, 0);
     if (m_serverSkt == -1) {
-        ERROR("rank: %d, Error creating socket.", m_rankID);
+        ERROR("rank: %d, create socket failed.", m_rankID);
         return false;
     }
     DEBUG("rank: %d, serverSkt: %d", m_rankID, m_serverSkt);
 
     int reuse = 1;
     if (setsockopt(m_serverSkt, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) == -1) {
-        ERROR("rank: %d, Error setting socket options.", m_rankID);
+        ERROR("rank: %d, setsocket options failed.", m_rankID);
         close(m_serverSkt);
         return false;
     }
@@ -245,13 +246,13 @@ bool HcclCommunicater::ClientPreset()
     // 服务器套接字校验
     m_clientSkt = socket(AF_INET, SOCK_STREAM, 0);
     if (m_clientSkt == -1) {
-        ERROR("rank: %d, Error creating socket.", m_rankID);
+        ERROR("rank: %d, create socket failed.", m_rankID);
         return false;
     }
     DEBUG("rank: %d, , clientSkt: %d", m_rankID, m_clientSkt);
     int reuse = 1;
     if (setsockopt(m_clientSkt, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) == -1) {
-        ERROR("rank: %d, Error setting socket options.", m_rankID);
+        ERROR("rank: %d, set socket options failed.", m_rankID);
         close(m_clientSkt);
         return false;
     }

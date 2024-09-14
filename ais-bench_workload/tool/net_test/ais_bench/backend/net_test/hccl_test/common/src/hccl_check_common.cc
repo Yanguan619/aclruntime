@@ -36,10 +36,10 @@ int check_buf_result_float(const void *result_buf, const void *check_buf, u64 co
     }
 
     if (err > 0) {
-        ERROR("check buf[%llu] error, exp:%f, act:%f \n", first_err_pos, c_buf[first_err_pos], result[first_err_pos]);
+        ERROR("check buf[%llu] error, exp:%f, act:%f ", first_err_pos, c_buf[first_err_pos], result[first_err_pos]);
     }
     if (err > 0) {
-        ERROR("total err is %d\n", err);
+        ERROR("total err is %d", err);
     }
     return err;
 }
@@ -61,11 +61,11 @@ int check_buf_result_int8(const void *result_buf, const void *check_buf, u64 cou
     }
 
     if (err > 0) {
-        ERROR("result buf[%llu] is not right,exp: %d, act:%d \n", first_err_pos, c_buf[first_err_pos],
+        ERROR("result buf[%llu] is not right,exp: %d, act:%d ", first_err_pos, c_buf[first_err_pos],
             result[first_err_pos]);
     }
     if (err > 0) {
-        ERROR("total err is %d\n", err);
+        ERROR("total err is %d", err);
     }
     return err;
 }
@@ -88,11 +88,11 @@ int check_buf_result_half(const void *result_buf, const void *check_buf, u64 cou
     }
 
     if (err > 0) {
-        ERROR("result buf[%llu] is not right,exp: %u, act:%u \n", first_err_pos, s[first_err_pos],
+        ERROR("result buf[%llu] is not right,exp: %u, act:%u ", first_err_pos, s[first_err_pos],
             result[first_err_pos]);
     }
     if (err > 0) {
-        ERROR("total err is %d\n", err);
+        ERROR("total err is %d", err);
     }
     return err;
 }
@@ -114,11 +114,11 @@ int check_buf_result_int32(const void *result_buf, const void *check_buf, u64 co
     }
 
     if (err > 0) {
-        ERROR("result buf[%llu] is not right,exp: %d, act:%d \n", first_err_pos, c_buf[first_err_pos],
+        ERROR("result buf[%llu] is not right,exp: %d, act:%d ", first_err_pos, c_buf[first_err_pos],
             result[first_err_pos]);
     }
     if (err > 0) {
-        ERROR("total err is %d\n", err);
+        ERROR("total err is %d", err);
     }
     return err;
 }
@@ -140,11 +140,11 @@ int check_buf_result_int64(const void *result_buf, const void *check_buf, u64 co
     }
 
     if (err > 0) {
-        ERROR("result buf[%llu] is not right,exp: %lld, act:%lld \n", first_err_pos, c_buf[first_err_pos],
+        ERROR("result buf[%llu] is not right,exp: %lld, act:%lld ", first_err_pos, c_buf[first_err_pos],
             result[first_err_pos]);
     }
     if (err > 0) {
-        ERROR("total err is %d\n", err);
+        ERROR("total err is %d", err);
     }
 
     return err;
@@ -167,12 +167,12 @@ int check_buf_result_u64(const void *result_buf, const void *check_buf, u64 coun
     }
 
     if (err > 0) {
-        ERROR("result buf[%llu] is not right,exp: %llu, act:%llu \n", first_err_pos, c_buf[first_err_pos],
+        ERROR("result buf[%llu] is not right,exp: %llu, act:%llu ", first_err_pos, c_buf[first_err_pos],
             result[first_err_pos]);
     }
 
     if (err > 0) {
-        ERROR("total err is %d\n", err);
+        ERROR("total err is %d", err);
     }
 
     return err;

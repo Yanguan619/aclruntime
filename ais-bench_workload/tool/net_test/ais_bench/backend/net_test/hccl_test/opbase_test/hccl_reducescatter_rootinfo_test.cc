@@ -95,7 +95,7 @@ int HcclOpBaseReducescatterTest::check_buf_result()
             break;
         default:
             ret++;
-            ERROR("no match datatype\n");
+            ERROR("no match datatype.");
             break;
     }
     if(ret != 0)

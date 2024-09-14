@@ -20,7 +20,8 @@ import aclruntime
 from ais_bench.infer.common.logger import logger
 from ais_bench.infer.dym_aipp_manager import DymAippManager
 from ais_bench.infer.interface_check import (check_model_path_legality, check_acl_json_path_legality,
-    check_device_range_valid, check_positive_integer, check_custom_size, check_bool_value, check_in_out_list)
+    check_device_range_valid, check_positive_integer, check_custom_size, check_bool_value, 
+    check_in_out_list, check_loop_size)
 
 TORCH_TENSOR_LIST = [
     'torch.FloatTensor', 'torch.DoubleTensor', 'torch.HalfTensor', 'torch.BFloat16Tensor',
@@ -49,7 +50,7 @@ class InferSession:
         check_model_path_legality(model_path)
         check_acl_json_path_legality(acl_json_path)
         check_device_range_valid(device_id)
-        check_positive_integer(loop)
+        check_loop_size(loop)
         self.device_id = device_id
         self.model_path = model_path
         self.loop = loop
@@ -422,7 +423,7 @@ class MultiDeviceSession():
     def __init__(self, model_path: str, acl_json_path: str = None, debug: bool = False, loop: int = 1):
         check_model_path_legality(model_path)
         check_acl_json_path_legality(acl_json_path)
-        check_positive_integer(loop)
+        check_loop_size(loop)
         self.model_path = model_path
         self.acl_json_path = acl_json_path
         self.debug = debug

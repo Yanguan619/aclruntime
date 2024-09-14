@@ -28,11 +28,18 @@
 #include "Base/Log/Log.h"
 #include "Base/ModelInfer/pipeline.h"
 
+const int LOOP_MAX_SIZE = 100000;
+const size_t CUSTOME_SIZE_MAX_SIZE = 64 * 1024 * 1024 * 1024; // 64GB
+
 namespace Base {
 PyInferenceSession::PyInferenceSession(const std::string &modelPath, const uint32_t &deviceId,
     std::shared_ptr<SessionOptions> options)
     : deviceId_(deviceId), modelPath_(modelPath)
 {
+    if (options->loop <= 0 || options->loop > LOOP_MAX_SIZE) {
+        ERROR_LOG("loop size out of range: loop must be greater than 0 and less than or equal to 100000.");
+        throw std::runtime_error("loop num out of range. Please check.");
+    }
     Init(modelPath, options);
 }
 
@@ -329,6 +336,12 @@ int PyInferenceSession::SetDynamicShape(std::string dymshapeStr)
 
 int PyInferenceSession::SetCustomOutTensorsSize(std::vector<size_t> customOutSize)
 {
+    for (size_t outSize : customOutSize) {
+        if (outSize <= 0 || outSize > CUSTOME_SIZE_MAX_SIZE) {
+            ERROR_LOG("custom size out of range: custom size must be greater than 0 and less than or equal to 64GB.");
+            throw std::runtime_error("custom size num out of range. Please check.");
+        }
+    }
     SetContext();
     APP_ERROR ret = modelInfer_.SetCustomOutTensorsSize(customOutSize);
     if (ret != APP_ERR_OK) {

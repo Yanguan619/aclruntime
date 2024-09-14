@@ -8,6 +8,7 @@ ACL_JSON_MAX_SIZE = 8 * 1024 # 8KB
 AIPP_CONFIG_MAX_SIZE = 12.5 * 1024 # 12.5KB
 CPP_INT_MAX_SIZE = 2147483647 # 2^31 - 1
 INPUT_LIST_MAX_SIZE = 1024
+LOOP_MAX_SIZE = 100000
 
 def check_dym_string(value):
     if not value:
@@ -63,6 +64,16 @@ def check_positive_integer(value):
         raise argparse.ArgumentError("%s is an invalid cpp int value" % value)
     return ivalue
 
+def check_loop_size(value):
+    if not value.isdigit():
+        raise argparse.ArgumentTypeError("%s contains special characters other than numbers." % value)
+    try :
+        ivalue = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value))
+    if ivalue <= 0 or ivalue > LOOP_MAX_SIZE:
+        raise argparse.ArgumentTypeError("%s is an invalid loop size value" % value)
+    return ivalue
 
 def check_batchsize_valid(value):
     # default value is None

@@ -17,6 +17,8 @@ from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOIC
 
 CPP_INT_MAX_SIZE = 2147483647 # 2^31 - 1
 SIZE_T_MAX_SIZE = 4294967295 # 2^32 - 1
+LOOP_MAX_SIZE = 100000
+CUSTOME_SIZE_MAX_SIZE = 64 * 1024 * 1024 * 1024 # 64 GB
 
 def check_model_path_legality(value):
     if not value:
@@ -87,7 +89,13 @@ def check_custom_size(value):
         ivalue = value
     if not isinstance(ivalue, int):
         raise TypeError(f"value:{value} is not a integer!")
-    if ivalue <= 0 or ivalue >= SIZE_T_MAX_SIZE:
+    if ivalue <= 0 or ivalue >= CUSTOME_SIZE_MAX_SIZE:
+        raise ValueError(f"input value:{value} is out of range. Please check.")
+
+def check_loop_size(value):
+    if not isinstance(value, int):
+        raise TypeError(f"value:{value} is not a integer!")
+    if value <= 0 or value >= LOOP_MAX_SIZE:
         raise ValueError(f"input value:{value} is out of range. Please check.")
 
 def check_bool_value(value):

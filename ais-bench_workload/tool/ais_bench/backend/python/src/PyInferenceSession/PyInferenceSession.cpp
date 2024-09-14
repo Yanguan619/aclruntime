@@ -33,10 +33,6 @@ PyInferenceSession::PyInferenceSession(const std::string &modelPath, const uint3
     std::shared_ptr<SessionOptions> options)
     : deviceId_(deviceId), modelPath_(modelPath)
 {
-    if (options->loop <= 0 || options->loop >= INT_MAX) {
-        ERROR_LOG("loop:%d must be greater than 0 and less than INT_MAX.", options->loop);
-        throw std::runtime_error("loop num out of INT range. Please check.");
-    }
     Init(modelPath, options);
 }
 
@@ -333,12 +329,6 @@ int PyInferenceSession::SetDynamicShape(std::string dymshapeStr)
 
 int PyInferenceSession::SetCustomOutTensorsSize(std::vector<size_t> customOutSize)
 {
-    for (size_t outSize : customOutSize) {
-        if (outSize <= 0 || outSize > SIZE_MAX) {
-            ERROR_LOG("customOutSize out of range.");
-            throw std::runtime_error("customOutSize out of size_t range.");
-        }
-    }
     SetContext();
     APP_ERROR ret = modelInfer_.SetCustomOutTensorsSize(customOutSize);
     if (ret != APP_ERR_OK) {

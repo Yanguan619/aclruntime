@@ -29,7 +29,7 @@
 #include "Base/ModelInfer/pipeline.h"
 
 const int LOOP_MAX_SIZE = 100000;
-const size_t CUSTOME_SIZE_MAX_SIZE = 64 * 1024 * 1024 * 1024; // 64GB
+const size_t CUSTOME_SIZE_MAX_SIZE = 68719476736; // 64GB
 
 namespace Base {
 PyInferenceSession::PyInferenceSession(const std::string &modelPath, const uint32_t &deviceId,

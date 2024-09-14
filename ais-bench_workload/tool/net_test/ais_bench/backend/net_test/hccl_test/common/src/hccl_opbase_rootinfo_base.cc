@@ -134,10 +134,10 @@ void HcclOpBaseTest::print_execution_time(double average_time_us, double algorit
             if (print_header)
             {
                 INFO("Test result without check is:");
-                printf("%-15s | %-12s | %-18s | %s\n", data_size, aveg_time, alg_bandwidth, verification_result);
+                INFO("%-15s | %-12s | %-18s | %s\n", data_size, aveg_time, alg_bandwidth, verification_result);
                 print_header = false;
             }
-            printf("%-17llu | %-14.2f | %-20.5f | NULL\n", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
+            INFO("%-17llu | %-14.2f | %-20.5f | NULL\n", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
         }
         return;
     }
@@ -176,15 +176,15 @@ void HcclOpBaseTest::print_execution_time(double average_time_us, double algorit
         if (print_header)
         {
             INFO("Test result with check is:");
-            printf("%-15s | %-12s | %-18s | %s\n", data_size, aveg_time, alg_bandwidth, verification_result);
+            INFO("%-15s | %-12s | %-18s | %s\n", data_size, aveg_time, alg_bandwidth, verification_result);
             print_header = false;
         }
 
         if (!result)
         {
-            printf("%-17llu | %-14.2f | %-20.5f | failed\n", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
+            INFO("%-17llu | %-14.2f | %-20.5f | failed\n", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
         } else {
-            printf("%-17llu | %-14.2f | %-20.5f | success\n", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
+            INFO("%-17llu | %-14.2f | %-20.5f | success\n", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
         }
     }
     return;

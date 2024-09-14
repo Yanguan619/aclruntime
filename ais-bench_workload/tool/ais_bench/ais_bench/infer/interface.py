@@ -20,7 +20,7 @@ import aclruntime
 from ais_bench.infer.common.logger import logger
 from ais_bench.infer.dym_aipp_manager import DymAippManager
 from ais_bench.infer.interface_check import (check_model_path_legality, check_acl_json_path_legality,
-    check_device_range_valid, check_positive_integer, check_custom_size, check_bool_value)
+    check_device_range_valid, check_positive_integer, check_custom_size, check_bool_value, check_in_out_list)
 
 TORCH_TENSOR_LIST = [
     'torch.FloatTensor', 'torch.DoubleTensor', 'torch.HalfTensor', 'torch.BFloat16Tensor',
@@ -236,7 +236,7 @@ class InferSession:
             feeds_list: input data list
             mode: static dymdims dymshape...
         '''
-        check_positive_integer(custom_sizes)
+        check_custom_size(custom_sizes)
         inputs_list = []
         shapes_list = []
         for feeds in feeds_list:
@@ -320,12 +320,8 @@ class InferSession:
             return outputs
         for _ in range(int(iteration_times - 1)):
             for input_index, reused_index in enumerate(in_out_list):
-                if not isinstance(reused_index, int):
-                    raise TypeError(f"in_out_list reused_index:{reused_index} is not a integer!")
-                if reused_index < -1 or reused_index >= len(outputs):
-                    raise IndexError(f"in_out_list[{in_out_list}] out of range, length range is (-1, {len(outputs)})")
                 if reused_index >= 0:
-                     inputs[input_index] = outputs[reused_index]
+                    inputs[input_index] = outputs[reused_index]
             outputs = self.session.run(out_names, inputs)
 
         return outputs
@@ -345,8 +341,8 @@ class InferSession:
         check_positive_integer(iteration_times)
         if not in_out_list:
             in_out_list = []
-        if len(in_out_list) != len(self.get_inputs()):
-            raise RuntimeError(f"inputs' amount and length of in_out_list not matched!")
+        if in_out_list is not None:
+            check_in_out_list(in_out_list, self.get_inputs(), self.get_outputs())
 
         inputs, shapes = self._create_device_inputs(feeds)
 
@@ -587,6 +583,8 @@ class MultiDeviceSession():
             debug=self.debug,
             loop=self.loop
         )
+        if in_out_list is not None:
+            check_in_out_list(in_out_list, sub_session.get_inputs(), sub_session.get_outputs())
         start_time = time.time()
         outputs = sub_session.infer_iteration(feeds, in_out_list, iteration_times, mode, custom_sizes)
         end_time = time.time()

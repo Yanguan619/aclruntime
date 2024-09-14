@@ -71,6 +71,15 @@ def check_positive_integer(value):
     if value <= 0 or value >= CPP_INT_MAX_SIZE:
         raise ValueError(f"input value:{value} is out of range. Please check.")
 
+def check_in_out_list(in_out_list, inputs, outputs):
+    if len(in_out_list) != len(inputs):
+        raise RuntimeError(f"inputs' amount and length of in_out_list not matched!")
+    for _, reused_index in enumerate(in_out_list):
+        if not isinstance(reused_index, int):
+            raise TypeError(f"in_out_list reused_index:{reused_index} is not a integer!")
+        if reused_index < -1 or reused_index >= len(outputs):
+            raise IndexError(f"in_out_list[{in_out_list}] out of range, length range is (-1, {len(outputs)})")
+
 def check_custom_size(value):
     if type(value) == list:
         ivalue = value[0]

@@ -51,6 +51,8 @@ def str2bool(v):
 
 
 def check_positive_integer(value):
+    if not value.isdigit():
+        raise argparse.ArgumentTypeError("%s contains special characters other than numbers." % value)
     try :
         ivalue = int(value)
     except ValueError:
@@ -72,6 +74,8 @@ def check_batchsize_valid(value):
 
 
 def check_nonnegative_integer(value):
+    if not value.isdigit():
+        raise argparse.ArgumentTypeError("%s contains special characters other than numbers." % value)
     try :
         ivalue = int(value)
     except ValueError:

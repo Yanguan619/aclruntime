@@ -147,17 +147,17 @@ class TestCommonClass:
         output = os.path.join(current_directory, "resnet50/output")
         output_dirname = "subdir"
         outfmt = "BIN"
-        loop = 1
+        loop = "1"
         debug = False
         device = "100"
-        dym_batch = 2
+        dym_batch = "2"
         dym_hw = "300,500"
         dym_dims = "data:1,600;img_info:1,600"
         dym_shape = "data:1,600:img_info:1,600"
         output_size = "10"
         auto_set_dymshape_mode = False
         auto_set_dymdims_mode = False
-        batchsize = 10
+        batchsize = "10"
         pure_data_type = "zero"
         profiler = False
         dump = False
@@ -168,10 +168,10 @@ class TestCommonClass:
         with open(acl_json_path, "w") as file:
             json.dump(json_data, file)
         os.chmod(acl_json_path, 0o750)
-        output_batchsize_axis = 1
+        output_batchsize_axis = "1"
         run_mode = "array"
         display_all_summary = False
-        warmup_count = 1
+        warmup_count = "1"
         dym_shape_range = "data:1,600~700;img_info:1,600-700"
         aipp_config = os.path.join(current_directory, "test_aipp_conf.config")
         with open(aipp_config, "w"):
@@ -185,7 +185,7 @@ class TestCommonClass:
         profiler_rename = True
         dump_npy = False
         divide_input = False
-        threads = 1
+        threads = "1"
 
         args = AISBenchInferArgsAdapter(
             model,

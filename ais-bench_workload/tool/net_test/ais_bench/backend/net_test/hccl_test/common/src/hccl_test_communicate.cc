@@ -21,11 +21,6 @@ HcclCommunicater::~HcclCommunicater()
     close(m_serverSkt);
 }
 
-void HcclCommunicater::SetRootRank(const int rootRank)
-{
-    m_rootRank = rootRank;
-}
-
 void HcclCommunicater::SynchronizeRootInfo(
     void *dataBuffer,
     const size_t dataLen

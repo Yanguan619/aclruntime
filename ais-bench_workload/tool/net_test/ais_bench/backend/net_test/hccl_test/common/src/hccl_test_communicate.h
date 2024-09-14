@@ -35,8 +35,6 @@ public:
 
     virtual ~HcclCommunicater();
 
-    void SetRootRank(const int rootRank);
-
     void SynchronizeRootInfo(
         void *dataBuffer,
         const size_t dataLen

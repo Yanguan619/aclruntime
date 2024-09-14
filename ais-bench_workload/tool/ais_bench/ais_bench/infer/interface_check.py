@@ -71,11 +71,14 @@ def check_positive_integer(value):
     if value <= 0 or value >= CPP_INT_MAX_SIZE:
         raise ValueError(f"input value:{value} is out of range. Please check.")
 
-
-def check_size_t_integer(value):
-    if not isinstance(value, int):
+def check_custom_size(value):
+    if type(value) == list:
+        ivalue = value
+    else:
+        ivalue = value
+    if not isinstance(ivalue, int):
         raise TypeError(f"value:{value} is not a integer!")
-    if value <= 0 or value >= SIZE_T_MAX_SIZE:
+    if ivalue <= 0 or ivalue >= SIZE_T_MAX_SIZE:
         raise ValueError(f"input value:{value} is out of range. Please check.")
 
 def check_bool_value(value):

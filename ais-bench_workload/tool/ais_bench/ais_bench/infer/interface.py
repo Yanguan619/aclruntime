@@ -20,7 +20,7 @@ import aclruntime
 from ais_bench.infer.common.logger import logger
 from ais_bench.infer.dym_aipp_manager import DymAippManager
 from ais_bench.infer.interface_check import (check_model_path_legality, check_acl_json_path_legality,
-    check_device_range_valid, check_positive_integer, check_size_t_integer, check_bool_value)
+    check_device_range_valid, check_positive_integer, check_custom_size, check_bool_value)
 
 TORCH_TENSOR_LIST = [
     'torch.FloatTensor', 'torch.DoubleTensor', 'torch.HalfTensor', 'torch.BFloat16Tensor',
@@ -194,7 +194,7 @@ class InferSession:
         inputs = []
         shapes = []
         check_bool_value(out_array)
-        check_size_t_integer(custom_sizes)
+        check_custom_size(custom_sizes)
         for feed in feeds:
             if type(feed) is np.ndarray:
                 infer_input = feed
@@ -341,7 +341,7 @@ class InferSession:
             mode: static dymdims dymshape ...
             custom_sizes: only dymshape needs
         '''
-        check_size_t_integer(custom_sizes)
+        check_custom_size(custom_sizes)
         check_positive_integer(iteration_times)
         if not in_out_list:
             in_out_list = []
@@ -445,7 +445,7 @@ class MultiDeviceSession():
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
         '''
-        check_size_t_integer(custom_sizes)
+        check_custom_size(custom_sizes)
         subprocess_num = 0
         for _, device in device_feeds.items():
             subprocess_num += len(device)
@@ -481,7 +481,7 @@ class MultiDeviceSession():
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
         '''
-        check_size_t_integer(custom_sizes)
+        check_custom_size(custom_sizes)
         subprocess_num = 0
         for _, device in device_feeds_list.items():
             subprocess_num += len(device)
@@ -517,8 +517,8 @@ class MultiDeviceSession():
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
         '''
-        if not custom_sizes:
-            check_size_t_integer(custom_sizes)
+        if custom_sizes is not None:
+            check_custom_size(custom_sizes)
         check_positive_integer(iteration_times)
         subprocess_num = 0
         for _, device in device_feeds.items():

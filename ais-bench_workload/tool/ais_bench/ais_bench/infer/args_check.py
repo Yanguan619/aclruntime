@@ -51,9 +51,10 @@ def str2bool(v):
 
 
 def check_positive_integer(value):
-    if not value.isdigit():
-        raise argparse.ArgumentTypeError("%s contains special characters other than numbers." % value)
-    ivalue = int(value)
+    try :
+        ivalue = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value))
     if ivalue <= 0:
         raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
     if ivalue >= CPP_INT_MAX_SIZE:
@@ -71,9 +72,10 @@ def check_batchsize_valid(value):
 
 
 def check_nonnegative_integer(value):
-    if not value.isdigit():
-        raise argparse.ArgumentTypeError("%s contains special characters other than numbers." % value)
-    ivalue = int(value)
+    try :
+        ivalue = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value))
     if ivalue < 0:
         raise argparse.ArgumentTypeError("%s is an invalid nonnegative int value" % value)
     if ivalue >= CPP_INT_MAX_SIZE:

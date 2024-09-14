@@ -73,7 +73,7 @@ def check_positive_integer(value):
 
 def check_custom_size(value):
     if type(value) == list:
-        ivalue = value
+        ivalue = value[0]
     else:
         ivalue = value
     if not isinstance(ivalue, int):

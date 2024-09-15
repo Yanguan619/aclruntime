@@ -89,7 +89,7 @@ def check_dump_path(dump_path):
         file_stat = FileStat(dump_path)
     except Exception as err:
         raise ValueError(f"weight path:{dump_path} is illegal. Please check.") from err
-    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.WRITE) and not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
+    if not (file_stat.is_basically_legal(FILE_PERM_CHOICE.WRITE) and file_stat.is_basically_legal(FILE_PERM_CHOICE.READ)):
         raise ValueError(f"output path:{dump_path} is illegal. Please check.")
 
 def check_valid_acl_json_for_dump(acl_json_path, model):

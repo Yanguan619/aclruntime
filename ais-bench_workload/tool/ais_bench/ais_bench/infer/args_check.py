@@ -60,7 +60,7 @@ def check_positive_integer(value):
         raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value))
     if ivalue <= 0:
         raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
-    if ivalue >= CPP_INT_MAX_SIZE:
+    if ivalue > CPP_INT_MAX_SIZE:
         raise argparse.ArgumentError("%s is an invalid cpp int value" % value)
     return ivalue
 
@@ -93,7 +93,7 @@ def check_nonnegative_integer(value):
         raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value))
     if ivalue < 0:
         raise argparse.ArgumentTypeError("%s is an invalid nonnegative int value" % value)
-    if ivalue >= CPP_INT_MAX_SIZE:
+    if ivalue > CPP_INT_MAX_SIZE:
         raise argparse.ArgumentError("%s is an invalid cpp int value" % value)
     return ivalue
 

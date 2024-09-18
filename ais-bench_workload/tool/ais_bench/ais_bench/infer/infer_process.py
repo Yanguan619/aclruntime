@@ -54,7 +54,7 @@ from ais_bench.infer.common.path_security_check import (
 from ais_bench.infer.interface_check import check_output_dir_legality
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.backends import BackendFactory
-from ais_bench.infer.common.path_security_check import ms_open, MAX_SIZE_LIMITE_CONFIG_FILE
+from ais_bench.infer.common.path_security_check import ms_open, MAX_SIZE_LIMITED_CONFIG_FILE
 
 PERMISSION_DIR = 0o750
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
@@ -299,7 +299,7 @@ def get_file_name(file_path: str, suffix: str, res_file_path: list) -> list:
 
 def get_legal_json_content(acl_json_path):
     cmd_dict = {}
-    with ms_open(acl_json_path, mode="r", max_size=MAX_SIZE_LIMITE_CONFIG_FILE) as f:
+    with ms_open(acl_json_path, mode="r", max_size=MAX_SIZE_LIMITED_CONFIG_FILE) as f:
         json_dict = json.load(f)
     profile_dict = json_dict.get("profiler")
     for option_cmd in ACL_JSON_CMD_LIST:
@@ -715,7 +715,7 @@ def acl_json_base_check(args):
         return args
     json_path = args.acl_json_path
     try:
-        with ms_open(json_path, mode="r", max_size=MAX_SIZE_LIMITE_CONFIG_FILE) as f:
+        with ms_open(json_path, mode="r", max_size=MAX_SIZE_LIMITED_CONFIG_FILE) as f:
             json_dict = json.load(f)
     except Exception as err:
         logger.error(f"can't read acl_json_path:{json_path}")

@@ -233,7 +233,7 @@ def convert_helper(output_dir, timestamp):  # convert bin file in src path and o
         logger.error("convert bin file failed: msaccucmp.py is not found. NPY file transfer failed.")
         return
     if dump_relative_paths == []:
-        logger.error("convert bin file failed: dump_relative_paths is empty. NPY file transfer failed.")
+        logger.error("convert bin file failed: relative dump paths is empty. NPY file transfer failed.")
         return
     for dump_relative_path in dump_relative_paths:
         dump_npy_path = os.path.join(output_dir, timestamp + "_npy", dump_relative_path)
@@ -280,6 +280,6 @@ def move_subdir(src_dir, dest_dir):
             try:
                 shutil.move(abs_src_subdir, abs_dest_subdir)
             except Exception as err: # if abs_src_subdir be opened, may failed.
-                raise RuntimeError(f"Move source directory:{abs_src_subdir} to destination directory:{abs_dest_subdir} failed!") from err
+                raise RuntimeError(f"move source directory:{abs_src_subdir} to destination directory:{abs_dest_subdir} failed!") from err
             res_dest, res_subdir = dest_dir, subdirs[0]
     return res_dest, res_subdir

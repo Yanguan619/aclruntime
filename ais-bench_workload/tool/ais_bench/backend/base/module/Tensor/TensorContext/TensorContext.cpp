@@ -31,7 +31,7 @@ TensorContext::TensorContext()
     if (!DeviceManager::GetInstance()->IsInitDevices()) {
         APP_ERROR ret = DeviceManager::GetInstance()->InitDevices();
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("DeviceManager init devices failed. ret=%d", ret);
+            ERROR_LOG("device manager init devices failed. ret=%d", ret);
             return;
         }
         InitDeviceFlag_ = true;
@@ -43,7 +43,7 @@ APP_ERROR TensorContext::Finalize()
     if (InitDeviceFlag_) {
         APP_ERROR ret = DeviceManager::GetInstance()->DestroyDevices();
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("DeviceManager destroy devices failed. ret=%d", ret);
+            ERROR_LOG("device manager destroy devices failed. ret=%d", ret);
             return ret;
         }
         InitDeviceFlag_ = false;

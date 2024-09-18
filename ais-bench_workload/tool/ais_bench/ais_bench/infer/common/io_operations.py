@@ -234,7 +234,7 @@ def create_infileslist_from_inputs_list(inputs_list, intensors_desc, no_combine_
 
     infileslist = create_infileslist_from_fileslist(fileslist, intensors_desc, no_combine_tensor_mode)
     if len(infileslist) == 0:
-        logger.error('create_infileslist_from_fileslist return infileslist size: {}'.format(len(infileslist)))
+        logger.error('create input fileslist from fileslist, input fileslist size: {}'.format(len(infileslist)))
         raise RuntimeError()
 
     return infileslist

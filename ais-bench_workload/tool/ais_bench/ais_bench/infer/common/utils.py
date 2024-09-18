@@ -265,7 +265,7 @@ def move_subdir(src_dir, dest_dir):
     subdirs = os.listdir(src_dir)
     if len(subdirs) != 1:
         logger.error(
-            "move subdirectory failed: multiple or none directory under src dir %s. " "The reason might be dump failed.",
+            "move subdirectory failed: multiple or none directory under source directory %s. " "The reason might be dump failed.",
             src_dir,
         )
     else:
@@ -275,11 +275,11 @@ def move_subdir(src_dir, dest_dir):
         check_path_legality(abs_src_subdir, FILE_PERM_CHOICE.READ)
 
         if os.path.exists(abs_dest_subdir):
-            logger.error("move subdirectory failed: dest dir %s exists" % abs_dest_subdir)
+            logger.error("move subdirectory failed: destination directory %s exists" % abs_dest_subdir)
         else:
             try:
                 shutil.move(abs_src_subdir, abs_dest_subdir)
             except Exception as err: # if abs_src_subdir be opened, may failed.
-                raise RuntimeError(f"Move src directory:{abs_src_subdir} to dest directory:{abs_dest_subdir} failed!") from err
+                raise RuntimeError(f"Move source directory:{abs_src_subdir} to destination directory:{abs_dest_subdir} failed!") from err
             res_dest, res_subdir = dest_dir, subdirs[0]
     return res_dest, res_subdir

@@ -288,7 +288,7 @@ APP_ERROR ModelInferenceProcessor::CheckInMapAndFillBaseTensor(
         baseTensor.buf = iter->second.GetBuffer();
         baseTensor.size = iter->second.GetByteSize();
         if (baseTensor.size != modelDesc_.inTensorsDesc[i].realsize) {
-            ERROR_LOG("Check i:%zu name:%s in size:%zu needsize:%zu not match",
+            ERROR_LOG("check i:%zu name:%s in size:%zu needsize:%zu not match",
                 i, modelDesc_.inTensorsDesc[i].name.c_str(), baseTensor.size, modelDesc_.inTensorsDesc[i].realsize);
             return APP_ERR_ACL_FAILURE;
         }
@@ -326,7 +326,7 @@ APP_ERROR ModelInferenceProcessor::CheckInVectorAndFillBaseTensor(
         baseTensor.buf = feeds[i].GetBuffer();
         baseTensor.size = feeds[i].GetByteSize();
         if (baseTensor.size != modelDesc_.inTensorsDesc[i].realsize) {
-            ERROR_LOG("Check i:%zu name:%s in size:%zu needsize:%zu not match",
+            ERROR_LOG("check i:%zu name:%s in size:%zu needsize:%zu not match",
                 i, modelDesc_.inTensorsDesc[i].name.c_str(), baseTensor.size, modelDesc_.inTensorsDesc[i].realsize);
             return APP_ERR_ACL_FAILURE;
         }
@@ -452,7 +452,7 @@ APP_ERROR ModelInferenceProcessor::SetAippConfigData()
         for (auto& aippSetIt : dymAIPPIndexSet_) {
             Result result = processModel->SetInputAIPP(aippSetIt.first, aippSetIt.second);
             if (result != SUCCESS) {
-                ERROR_LOG("Set input AIPP failed. index:%d result:%d ", int(aippSetIt.first), result);
+                ERROR_LOG("set input AIPP failed. index:%d result:%d ", int(aippSetIt.first), result);
                 return APP_ERR_ACL_FAILURE;
             }
         }
@@ -506,7 +506,7 @@ APP_ERROR ModelInferenceProcessor::RepeatInference(
     for (int i = 0; i < loopTimes; i++) {
         ret = Execute();
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("Execute Infer failed ret:%d", ret);
+            ERROR_LOG("execute Infer failed ret:%d", ret);
             return ret;
         }
         if (loopTimes > 1) {
@@ -520,7 +520,7 @@ APP_ERROR ModelInferenceProcessor::RepeatInference(
     if (get_outputs) {
         ret = GetOutputs(outputNames, outputTensors);
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("Get OutTensors failed ret:%d", ret);
+            ERROR_LOG("get OutTensors failed ret:%d", ret);
             return ret;
         }
     }
@@ -552,7 +552,7 @@ APP_ERROR ModelInferenceProcessor::FirstInferenceInner(
     for (int i = 0; i < options_->loop; i++) {
         ret = Execute();
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("Execute Infer failed ret:%d", ret);
+            ERROR_LOG("execute Infer failed ret:%d", ret);
             return ret;
         }
         if (options_->loop > 1) {
@@ -590,7 +590,7 @@ APP_ERROR ModelInferenceProcessor::ModelInference_Inner(
     for (int i = 0; i < options_->loop; i++) {
         ret = Execute();
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("Execute Infer failed ret:%d", ret);
+            ERROR_LOG("execute Infer failed ret:%d", ret);
             return ret;
         }
         if (options_->loop > 1) {
@@ -603,7 +603,7 @@ APP_ERROR ModelInferenceProcessor::ModelInference_Inner(
     }
     ret = GetOutputs(outputNames, outputTensors);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("Get OutTensors failed ret:%d", ret);
+        ERROR_LOG("get OutTensors failed ret:%d", ret);
         return ret;
     }
     return APP_ERR_OK;

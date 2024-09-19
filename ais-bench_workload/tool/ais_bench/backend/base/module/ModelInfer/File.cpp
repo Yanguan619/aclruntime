@@ -199,7 +199,7 @@ bool File::RemoveDir(const std::string &path, int depth)
         if (S_ISDIR(st.st_mode)) {
             if (!RemoveDir(subPath, depth + 1)) {
                 closedir(dir);
-                ERROR_LOG("rm child dir error");
+                ERROR_LOG("remove child dir error");
                 return false;
             }
             rmdir(subPath.c_str());

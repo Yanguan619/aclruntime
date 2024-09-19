@@ -227,13 +227,13 @@ def convert_helper(output_dir, timestamp):  # convert bin file in src path and o
     msaccucmp_path = get_msaccucmp_path()
     python_path = sys.executable
     if python_path is None:
-        logger.error("convert_helper failed: python executable is not found. NPY file transfer failed.")
+        logger.error("convert bin file failed: python executable is not found. NPY file transfer failed.")
         return
     if msaccucmp_path is None:
-        logger.error("convert_helper failed: msaccucmp.py is not found. NPY file transfer failed.")
+        logger.error("convert bin file failed: msaccucmp.py is not found. NPY file transfer failed.")
         return
     if dump_relative_paths == []:
-        logger.error("convert_helper failed: dump_relative_paths is empty. NPY file transfer failed.")
+        logger.error("convert bin file failed: relative dump paths is empty. NPY file transfer failed.")
         return
     for dump_relative_path in dump_relative_paths:
         dump_npy_path = os.path.join(output_dir, timestamp + "_npy", dump_relative_path)
@@ -242,7 +242,7 @@ def convert_helper(output_dir, timestamp):  # convert bin file in src path and o
         convert_cmd_list = shlex.split(convert_cmd)
         ret = subprocess.call(convert_cmd_list, shell=False)
         if ret != 0:
-            logger.error(f"convert_helper failed: cmd {convert_cmd} execute failed")
+            logger.error(f"convert bin file failed: cmd {convert_cmd} execute failed")
 
 
 def move_subdir(src_dir, dest_dir):
@@ -265,7 +265,7 @@ def move_subdir(src_dir, dest_dir):
     subdirs = os.listdir(src_dir)
     if len(subdirs) != 1:
         logger.error(
-            "move_subdir failed: multiple or none directory under src dir %s. " "The reason might be dump failed.",
+            "move subdirectory failed: multiple or none directory under source directory %s. " "The reason might be dump failed.",
             src_dir,
         )
     else:
@@ -275,11 +275,11 @@ def move_subdir(src_dir, dest_dir):
         check_path_legality(abs_src_subdir, FILE_PERM_CHOICE.READ)
 
         if os.path.exists(abs_dest_subdir):
-            logger.error("move_subdir failed: dest dir %s exists" % abs_dest_subdir)
+            logger.error("move subdirectory failed: destination directory %s exists" % abs_dest_subdir)
         else:
             try:
                 shutil.move(abs_src_subdir, abs_dest_subdir)
             except Exception as err: # if abs_src_subdir be opened, may failed.
-                raise RuntimeError(f"Move src_dir:{abs_src_subdir} to dest_dir:{abs_dest_subdir} failed!") from err
+                raise RuntimeError(f"move source directory:{abs_src_subdir} to destination directory:{abs_dest_subdir} failed!") from err
             res_dest, res_subdir = dest_dir, subdirs[0]
     return res_dest, res_subdir

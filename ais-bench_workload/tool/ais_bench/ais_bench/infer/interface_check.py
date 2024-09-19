@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ais_bench.infer.args_check import OM_MODEL_MAX_SIZE,  ACL_JSON_MAX_SIZE
+from ais_bench.infer.args_check import OM_MODEL_MAX_SIZE, ACL_JSON_MAX_SIZE, LOOP_MAX_SIZE, CPP_INT_MAX_SIZE
 from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE
 
+CUSTOME_SIZE_MAX_SIZE = 64 * 1024 * 1024 * 1024 # 64 GB
 
 def check_model_path_legality(value):
     if not value:
@@ -62,3 +63,38 @@ def check_output_dir_legality(value):
         raise RuntimeError(f"output path:{value} is illegal. Please check.") from err
     if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
         raise RuntimeError(f"output path:{value} is illegal. Please check.")
+    
+def check_positive_integer(value):
+    if not isinstance(value, int):
+        raise TypeError(f"value:{value} is not a integer!")
+    if value <= 0 or value > CPP_INT_MAX_SIZE:
+        raise ValueError(f"input value:{value} is out of range. Please check.")
+
+def check_in_out_list(in_out_list, inputs, outputs):
+    if len(in_out_list) != len(inputs):
+        raise RuntimeError(f"inputs' amount and length of in_out_list not matched!")
+    for _, reused_index in enumerate(in_out_list):
+        if not isinstance(reused_index, int):
+            raise TypeError(f"in_out_list reused_index:{reused_index} is not a integer!")
+        if reused_index < -1 or reused_index >= len(outputs):
+            raise IndexError(f"in_out_list[{in_out_list}] out of range, length range is (-1, {len(outputs)})")
+
+def check_custom_size(value):
+    if type(value) == list:
+        ivalue = value[0]
+    else:
+        ivalue = value
+    if not isinstance(ivalue, int):
+        raise TypeError(f"value:{value} is not a integer!")
+    if ivalue <= 0 or ivalue > CUSTOME_SIZE_MAX_SIZE:
+        raise ValueError(f"input value:{value} is out of range. Please check.")
+
+def check_loop_size(value):
+    if not isinstance(value, int):
+        raise TypeError(f"value:{value} is not a integer!")
+    if value <= 0 or value > LOOP_MAX_SIZE:
+        raise ValueError(f"input value:{value} is out of range. Please check.")
+
+def check_bool_value(value):
+    if not isinstance(value, bool):
+        raise TypeError(f"value:{value} is not a bool!")

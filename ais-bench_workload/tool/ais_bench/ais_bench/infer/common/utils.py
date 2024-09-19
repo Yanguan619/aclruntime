@@ -29,8 +29,8 @@ import subprocess
 import numpy as np
 from ais_bench.infer.common.path_security_check import (
     ms_open,
-    MAX_SIZE_LIMITE_NORMAL_FILE,
-    MAX_SIZE_LIMITE_CONFIG_FILE,
+    MAX_SIZE_LIMITED_NORMAL_FILE,
+    MAX_SIZE_LIMITED_CONFIG_FILE,
     FileStat,
     is_legal_args_path_string,
     check_path_legality,
@@ -108,7 +108,7 @@ def get_file_content(file_path):
     if file_path.endswith(".NPY") or file_path.endswith(".npy"):
         return np.load(file_path)
     else:
-        with ms_open(file_path, mode="rb", max_size=MAX_SIZE_LIMITE_NORMAL_FILE) as fd:
+        with ms_open(file_path, mode="rb", max_size=MAX_SIZE_LIMITED_NORMAL_FILE) as fd:
             barray = fd.read()
             return np.frombuffer(barray, dtype=np.int8)
 
@@ -180,7 +180,7 @@ def make_dirs(path):
 
 
 def create_tmp_acl_json(acl_json_path):
-    with ms_open(acl_json_path, mode="r", max_size=MAX_SIZE_LIMITE_CONFIG_FILE) as f:
+    with ms_open(acl_json_path, mode="r", max_size=MAX_SIZE_LIMITED_CONFIG_FILE) as f:
         acl_json_dict = json.load(f)
     tmp_acl_json_path, real_dump_path, tmp_dump_path = None, None, None
 

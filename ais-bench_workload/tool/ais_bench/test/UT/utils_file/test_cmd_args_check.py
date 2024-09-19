@@ -49,8 +49,8 @@ class TestClass:
         assert check_dym_range_string(args.dym_shape_range) == args.dym_shape_range
         assert check_number_list(args.output_size) == args.output_size
         assert str2bool(args.auto_set_dymdims_mode) == False
-        assert check_batchsize_valid(args.batchsize) == args.batchsize
-        assert check_nonnegative_integer(args.output_batchsize_axis) == args.output_batchsize_axis
+        assert check_batchsize_valid(str(args.batchsize)) == args.batchsize
+        assert check_nonnegative_integer(str(args.output_batchsize_axis)) == args.output_batchsize_axis
         assert check_npu_id_range_vaild(args.npu_id) == [1, 2, 3]
         check_device_range_valid(args.device) # 没返回值
         assert check_om_path_legality(args.model) == args.model

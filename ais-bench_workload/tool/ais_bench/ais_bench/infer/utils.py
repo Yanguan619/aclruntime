@@ -18,7 +18,7 @@ from ais_bench.infer.args_check import (
     check_dym_string, check_dym_range_string, check_number_list, str2bool, check_positive_integer,
     check_batchsize_valid, check_nonnegative_integer, check_device_range_valid, check_om_path_legality,
     check_input_path_legality, check_output_path_legality, check_acl_json_path_legality,
-    check_aipp_config_path_legality
+    check_aipp_config_path_legality, check_loop_size
 )
 
 
@@ -65,7 +65,7 @@ def get_args():
     parser.add_argument(
         "--loop",
         "-l",
-        type=check_positive_integer,
+        type=check_loop_size,
         default=1,
         help="The round of the PureInfer."
     )
@@ -206,7 +206,7 @@ def get_args():
     )
     parser.add_argument(
         "--npu_id",
-        type=check_nonnegative_integer,
+        type=check_device_range_valid,
         default=0,
         help="The NPU ID to use.valid value range is [0, 255]"
     )

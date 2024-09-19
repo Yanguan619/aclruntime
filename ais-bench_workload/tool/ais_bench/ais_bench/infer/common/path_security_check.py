@@ -20,10 +20,10 @@ import re
 import logging
 
 
-MAX_SIZE_UNLIMITE = -1  # 不限制，必须显式表示不限制，读取必须传入
-MAX_SIZE_LIMITE_CONFIG_FILE = 10 * 1024 * 1024  # 10M 普通配置文件，可以根据实际要求变更
-MAX_SIZE_LIMITE_NORMAL_FILE = 4 * 1024 * 1024 * 1024  # 4G 普通模型文件，可以根据实际要求变更
-MAX_SIZE_LIMITE_MODEL_FILE = 100 * 1024 * 1024 * 1024  # 100G 超大模型文件，需要确定能处理大文件，可以根据实际要求变更
+MAX_SIZE_UNLIMITED = -1  # 不限制，必须显式表示不限制，读取必须传入
+MAX_SIZE_LIMITED_CONFIG_FILE = 10 * 1024 * 1024  # 10M 普通配置文件，可以根据实际要求变更
+MAX_SIZE_LIMITED_NORMAL_FILE = 4 * 1024 * 1024 * 1024  # 4G 普通模型文件，可以根据实际要求变更
+MAX_SIZE_LIMITED_MODEL_FILE = 100 * 1024 * 1024 * 1024  # 100G 超大模型文件，需要确定能处理大文件，可以根据实际要求变更
 
 PATH_WHITE_LIST_REGEX_WIN = re.compile(r"[^_:\\A-Za-z0-9/.-]")
 PATH_WHITE_LIST_REGEX = re.compile(r"[^_A-Za-z0-9/.-]")
@@ -273,7 +273,7 @@ def ms_open(file, mode="r", max_size=None, softlink=False, write_permission=PERM
             raise OpenException(f"No such file or directory {file}")
         if max_size is None:
             raise OpenException(f"Reading files must have a size limit control. {file}")
-        if max_size != MAX_SIZE_UNLIMITE and max_size < file_stat.file_size:
+        if max_size != MAX_SIZE_UNLIMITED and max_size < file_stat.file_size:
             raise OpenException(f"The file size has exceeded the specifications and cannot be read. {file}")
 
     if "w" in mode:
@@ -315,7 +315,7 @@ def check_normal_string(str_to_check):
         raise ValueError(f"string: {str_to_check} contain illegal char")
 
 
-def check_path_legality(path, perm=FILE_PERM_CHOICE.WRITE, max_size=MAX_SIZE_LIMITE_CONFIG_FILE):
+def check_path_legality(path, perm=FILE_PERM_CHOICE.WRITE, max_size=MAX_SIZE_LIMITED_CONFIG_FILE):
     try:
         file_stat = FileStat(path)
     except Exception as err:

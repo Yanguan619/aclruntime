@@ -21,7 +21,7 @@ import itertools
 import numpy as np
 
 from ais_bench.infer.common.utils import logger
-from ais_bench.infer.common.path_security_check import ms_open, MAX_SIZE_LIMITE_CONFIG_FILE, MAX_SIZE_LIMITE_NORMAL_FILE
+from ais_bench.infer.common.path_security_check import ms_open, FileStat, FILE_PERM_CHOICE,  MAX_SIZE_LIMITED_CONFIG_FILE, MAX_SIZE_LIMITED_NORMAL_FILE
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 
 PERMISSION_DIR = 0o750
@@ -84,8 +84,16 @@ def get_model_name(model):
     return path_list[-1][:-3]
 
 
+def check_dump_path(dump_path):
+    try:
+        file_stat = FileStat(dump_path)
+    except Exception as err:
+        raise ValueError(f"weight path:{dump_path} is illegal. Please check.") from err
+    if not (file_stat.is_basically_legal(FILE_PERM_CHOICE.WRITE) and file_stat.is_basically_legal(FILE_PERM_CHOICE.READ)):
+        raise ValueError(f"output path:{dump_path} is illegal. Please check.")
+
 def check_valid_acl_json_for_dump(acl_json_path, model):
-    with ms_open(acl_json_path, mode="r", max_size=MAX_SIZE_LIMITE_CONFIG_FILE) as f:
+    with ms_open(acl_json_path, mode="r", max_size=MAX_SIZE_LIMITED_CONFIG_FILE) as f:
         acl_json_dict = json.load(f)
     model_name_correct = get_model_name(model)
     if acl_json_dict.get("dump") is not None:
@@ -102,10 +110,7 @@ def check_valid_acl_json_for_dump(acl_json_path, model):
         # check validity of dump_path
         dump_path_val = acl_json_dict["dump"].get("dump_path")
         if dump_path_val is not None:
-            if os.path.isdir(dump_path_val) and os.access(dump_path_val, os.R_OK) and os.access(dump_path_val, os.W_OK):
-                pass
-            else:
-                raise ValueError("dump failed, 'dump_path' not exists or has no read/write permission")
+            check_dump_path(dump_path_val)
         else:
             raise KeyError("dump failed, acl.json need to set 'dump_path' attribute")
         # check validity of dump_op_switch
@@ -215,7 +220,7 @@ def get_range_list(ranges):
 def get_dymshape_list(input_ranges):
     ranges_list = []
     if os.path.isfile(input_ranges):
-        with ms_open(input_ranges, mode="rt", max_size=MAX_SIZE_LIMITE_NORMAL_FILE, encoding='utf-8') as finfo:
+        with ms_open(input_ranges, mode="rt", max_size=MAX_SIZE_LIMITED_NORMAL_FILE, encoding='utf-8') as finfo:
             line = finfo.readline()
             while line:
                 line = line.rstrip('\n')

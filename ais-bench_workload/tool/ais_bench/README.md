@@ -185,26 +185,13 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
 执行如下命令卸载工具：
 
 ```bash
-# 安装aclruntime
+# 卸载aclruntime
 pip3 uninstall aclruntime
-# 安装ais_bench推理程序
+# 卸载ais_bench推理程序
 pip3 uninstall ais_bench
 ```
 
-重新安装工具：
-
-```bash
-# 安装aclruntime
-pip3 install ./aclruntime-{version}-{python_version}-linux_{arch}.whl
-# 安装ais_bench推理程序
-pip3 install ./ais_bench-{version}-py3-none-any.whl
-```
-
-或
-
-```bash
-pip3 install -v 'git+https://gitee.com/ascend/tools.git#egg=ais_bench&subdirectory=ais-bench_workload/tool/ais_bench'
-```
+更新安装需要先将已安装的工具卸载后重新安装新的软件包。
 
 ### 运行准备
 
@@ -232,7 +219,7 @@ ais_bench推理工具可以通过ais_bench可执行文件方式启动模型测�
 ```bash
 python3 -m ais_bench --model *.om
 ```
-其中，*为OM离线模型文件名。
+其中，*为OM离线模型文件名。OM离线模型文件是通过ATC工具将TensorFlow、PyTorch、ONNX等框架的模型文件转换生成，详细介绍请参见《[ATC工具使用指南](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasatc_16_0001.html)》。
 
 #### 参数说明
 
@@ -252,13 +239,13 @@ ais_bench推理工具可以通过配置不同的参数，来应对各种测试�
 | --model               | 需要进行推理的OM离线模型文件。                               | 是       |
 | --input               | 模型需要的输入。可指定输入文件所在目录或直接指定输入文件。支持输入文件格式为“NPY”、“BIN”。可输入多个文件或目录，文件或目录之间用“,”隔开。具体输入文件请根据模型要求准备。  若不配置该参数，会自动构造输入数据，输入数据类型由--pure_data_type参数决定。 | 否       |
 | --pure_data_type      | 纯推理数据类型。取值为：“zero”、“random”，默认值为"zero"。 未配置模型输入文件时，工具自动构造输入数据。设置为zero时，构造全为0的纯推理数据；设置为random时，为每一个输入生成一组随机数据。 | 否       |
-| --output              | 推理结果保存目录。配置后会创建“日期+时间”的子目录，保存输出结果。如果指定output_dirname参数，输出结果将保存到子目录output_dirname下。不配置输出目录时，仅打印输出结果，不保存输出结果。 | 否       |
-| --output_dirname      | 推理结果保存子目录。设置该值时输出结果将保存到*output/output_dirname*目录下。  配合output参数使用，单独使用无效。 例如：--output */output* --output_dirname *output_dirname* | 否       |
-| --outfmt              | 输出数据的格式。取值为：“NPY”、“BIN”、“TXT”，默认为”BIN“。  配合output参数使用，单独使用无效。 例如：--output */output* --outfmt NPY。 | 否       |
+| --output              | 推理结果保存目录。配置后会创建“日期+时间”的子目录，保存输出结果。如果指定--output_dirname参数，输出结果将保存到子目录output_dirname下。不配置输出目录时，仅打印输出结果，不保存输出结果。 | 否       |
+| --output_dirname      | 推理结果保存子目录。设置该值时输出结果将保存到*output/output_dirname*目录下。  配合--output参数使用，单独使用无效。 例如：--output */output* --output_dirname *output_dirname* | 否       |
+| --outfmt              | 输出数据的格式。取值为：“NPY”、“BIN”、“TXT”，默认为”BIN“。  配合--output参数使用，单独使用无效。 例如：--output */output* --outfmt NPY。 | 否       |
 | --debug               | 调试开关。可打印model的desc信息和其他详细执行信息。1或true（开启）、0或false（关闭），默认关闭。 | 否       |
 | --run_mode | 推理执行前的数据加载方式：可取值：array（将数据转换成host侧的ndarray，再调用推理接口推理），files（将文件直接加载进device内，再调用推理接口推理），tensor（将数据加载进device内，再调用推理接口推理），full（将数据转换成host侧的ndarray，再将ndarray格式数据加载进device内，再调用推理接口推理），默认为array。 | 否 |
 | --display_all_summary | 是否显示所有的汇总信息，包含h2d和d2h信息。1或true（开启）、0或false（关闭），默认关闭。 | 否       |
-| --loop                | 推理次数。默认值为1，取值范围为大于0的正整数。  profiler参数配置为true时，推荐配置为1。 | 否       |
+| --loop                | 推理次数。默认值为1，取值范围为大于0的正整数。--profiler参数配置为true时，推荐配置为1。 | 否       |
 | --warmup_count        | 推理预热次数。默认值为1，取值范围为大于等于0的整数。配置为0则表示不预热。 | 否       |
 | --device              | 指定运行设备。根据设备实际的Device ID指定，默认值为0。多Device场景下，可以同时指定多个Device进行推理测试，例如：--device 0,1,2,3。 | 否       |
 | --divide_input | 输入数据集切分开关，1或true（开启）、0或false（关闭），默认关闭。多Device场景下，打开时，工具会将数据集平分给这些Device进行推理。| 否 |
@@ -268,10 +255,10 @@ ais_bench推理工具可以通过配置不同的参数，来应对各种测试�
 
 | 参数名                   | 说明                                                         | 是否必选 |
 | ------------------------ | ------------------------------------------------------------ | -------- |
-| --dymBatch               | 动态Batch参数，指定模型输入的实际Batch。 <br>如ATC模型转换时，设置--input_shape="data:-1,600,600,3;img_info:-1,3" --dynamic_batch_size="1,2,4,8"，dymBatch参数可设置为：--dymBatch 2。 | 否       |
-| --dymHW                  | 动态分辨率参数，指定模型输入的实际H、W。 <br>如ATC模型转换时，设置--input_shape="data:8,3,-1,-1;img_info:8,4,-1,-1" --dynamic_image_size="300,500;600,800"，dymHW参数可设置为：--dymHW 300,500。 | 否       |
-| --dymDims                | 动态维度参数，指定模型输入的实际Shape。 <br>如ATC模型转换时，设置 --input_shape="data:1,-1;img_info:1,-1" --dynamic_dims="224,224;600,600"，dymDims参数可设置为：--dymDims "data:1,600;img_info:1,600"。 | 否       |
-| --dymShape               | 动态Shape参数，指定模型输入的实际Shape。 <br>如ATC模型转换时，设置--dymShape_range="input1:8\~20,3,5,-1;input2:5,3\~9,10,-1"，dymShape参数可设置为：--dymShape "input1:8,3,5,10;input2:5,3,10,10"。<br>动态Shape场景下，获取模型的输出size通常为0（即输出数据占内存大小未知），建议设置--outputSize参数。<br/>例如：--dymShape "input1:8,3,5,10;input2:5,3,10,10" --outputSize "10000,10000" | 否       |
+| --dymBatch               | 动态Batch参数，指定模型输入的实际Batch。 <br>如ATC模型转换时，设置--input_shape="data:-1,600,600,3;img_info:-1,3" --dynamic_batch_size="1,2,4,8"，--dymBatch参数可设置为：--dymBatch 2。 | 否       |
+| --dymHW                  | 动态分辨率参数，指定模型输入的实际H、W。 <br>如ATC模型转换时，设置--input_shape="data:8,3,-1,-1;img_info:8,4,-1,-1" --dynamic_image_size="300,500;600,800"，--dymHW参数可设置为：--dymHW 300,500。 | 否       |
+| --dymDims                | 动态维度参数，指定模型输入的实际Shape。 <br>如ATC模型转换时，设置--input_shape="data:1,-1;img_info:1,-1" --dynamic_dims="224,224;600,600"，--dymDims参数可设置为：--dymDims "data:1,600;img_info:1,600"。 | 否       |
+| --dymShape               | 动态Shape参数，指定模型输入的实际Shape。 <br>如ATC模型转换时，设置--input_shape_range="input1:8\~20,3,5,-1;input2:5,3\~9,10,-1"，--dymShape参数可设置为：--dymShape "input1:8,3,5,10;input2:5,3,10,10"。<br>动态Shape场景下，获取模型的输出size通常为0（即输出数据占内存大小未知），建议设置--outputSize参数。<br/>例如：--dymShape "input1:8,3,5,10;input2:5,3,10,10" --outputSize "10000,10000" | 否       |
 | --dymShape_range<br/> | 动态Shape的阈值范围。如果设置该参数，那么将根据参数中所有的Shape列表进行依次推理，得到汇总推理信息。<br/>对于单输入模型，配置格式为：name:1,3,200\~224,224-300或"name:1,3,200\~224,224-300"。例如：--dymShape_range name:1,3,200\~224,224-300或--dymShape_range "name:1,3,200\~224,224-300"。<br/>对于多输入模型，配置格式为："name1:1,3,200\~224,224-300;name2:1\~4,3,224,224"。例如：--dymShape_range "name1:1,3,200\~224,224-300;name2:1\~4,3,224,224"。<br/>其中，name为模型输入名，“\~”表示范围，“-”表示某一位的取值。<br/>通过命令行配置动态Shape范围时，仅支持配置一组动态范围。若存在多个模型输入，各输入用英文分号进行分隔。为确保参数的正确识别，请将整个配置字符串置于双引号内。<br/>当使用info文件进行配置时，可配置多组动态Shape范围。在*.info文件内，每组配置应单独放置在一行且无需使用引号。请注意，各配置行之间避免不必要的空行，以防止配置错误。info文件的格式如下：<br/>x1:1,3,32,32;x2:1\~4,3,32,32<br/>x1:1\~4,3,32,32;x2:1,3,32,32 | 否       |
 | --outputSize             | 指定模型的输出数据所占内存大小，多个输出时，需要为每个输出设置一个值，多个值之间用“,”隔开。<br>动态Shape场景下，获取模型的输出size通常为0（即输出数据占内存大小未知），需要根据输入的Shape，预估一个较合适的大小，配置输出数据占内存大小。<br>例如：--dymShape "input1:8,3,5,10;input2:5,3,10,10" --outputSize "10000,10000" | 否       |
 | --auto_set_dymdims_mode  | 自动设置动态Dims模式。1或true（开启）、0或false（关闭），默认关闭。<br/>针对动态档位Dims模型，根据输入的文件的信息，自动设置Shape参数，注意输入数据只能为npy文件，因为bin文件不能读取Shape信息。<br/>配合input参数使用，单独使用无效。<br/>例如：--input 1.npy --auto_set_dymdims_mode 1 | 否       |
@@ -345,7 +332,7 @@ python3 -m ais_bench --model ./resnet50_v1_bs1_fp32.om --input "./1.bin,./2.bin,
 
  #### 文件夹输入场景
 
-使用input参数指定模型输入文件所在目录，多个目录之间通过“,”进行分隔。
+使用--input参数指定模型输入文件所在目录，多个目录之间通过“,”进行分隔。
 
 本场景会根据文件输入size和模型实际输入size进行组Batch。
 
@@ -359,14 +346,12 @@ python3 -m ais_bench --model ./resnet50_v1_bs1_fp32.om --input "./"
 模型输入参数的信息可以通过开启调试模式查看，bert模型的三个输入依次为input_ids、 input_mask、 segment_ids，所以依次传入三个文件夹：
 
 - 第一个文件夹“./data/SQuAD1.1/input_ids"，对应模型第一个参数"input_ids"的输入
-- 第二个文件夹"./data/SQuAD1.1/input_mask"，对应第二个输入"input_mask"的输入
-- 第三个文件夹"./data/SQuAD1.1/segment_ids"，对应第三个输入"segment_ids"的输入
+- 第二个文件夹"./data/SQuAD1.1/input_mask"，对应模型第二个参数"input_mask"的输入
+- 第三个文件夹"./data/SQuAD1.1/segment_ids"，对应模型第三个参数"segment_ids"的输入
 
 ```bash
 python3 -m ais_bench --model ./save/model/BERT_Base_SQuAD_BatchSize_1.om --input ./data/SQuAD1.1/input_ids,./data/SQuAD1.1/input_mask,./data/SQuAD1.1/segment_ids
 ```
-
-
 
 #### 多Device场景
 
@@ -407,7 +392,7 @@ i:1 device_2 throughput:276.54867008654026 start_time:1676875630.8043878 end_tim
 
  #### 动态分档场景
 
-主要包含动态Batch、动态HW（宽高）、动态Dims三种场景，需要分别传入dymBatch、dymHW、dymDims指定实际档位信息。
+主要包含动态Batch、动态HW（宽高）、动态Dims三种场景，需要分别传入--dymBatch、--dymHW、--dymDims指定实际档位信息。
 
 ##### 动态Batch
 
@@ -435,7 +420,7 @@ python3 -m ais_bench --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --
 
 ##### 自动设置Dims模式（动态Dims模型）
 
-动态Dims模型输入数据的Shape可能是不固定的，比如一个输入文件Shape为1,3,224,224，另一个输入文件Shape为 1,3,300,300。若两个文件同时推理，则需要设置两次动态Shape参数，当前不支持该操作。针对该场景，增加auto_set_dymdims_mode模式，可以根据输入文件的Shape信息，自动设置模型的Shape参数。
+动态Dims模型输入数据的Shape可能是不固定的，比如一个输入文件Shape为1,3,224,224，另一个输入文件Shape为 1,3,300,300。若两个文件同时推理，则需要设置两次动态Shape参数，当前不支持该操作。针对该场景，增加动态Dims模式，可以根据输入文件的Shape信息，自动设置模型的Shape参数。
 
 ```bash
 python3 -m ais_bench --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --auto_set_dymdims_mode 1
@@ -449,7 +434,7 @@ python3 -m ais_bench --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --
 
 以ATC设置[1\~8,3,200\~300,200\~300]，设置档位1,3,224,224为例，本程序将获取实际模型输入组Batch。
 
-动态Shape的输出大小通常为0，建议通过outputSize参数设置对应输出的内存大小。
+动态Shape的输出大小通常为0，建议通过--outputSize参数设置对应输出的内存大小。
 
 ```bash
 python3 -m ais_bench --model resnet50_v1_dynamicshape_fp32.om --dymShape actual_input_1:1,3,224,224 --outputSize 10000
@@ -457,7 +442,7 @@ python3 -m ais_bench --model resnet50_v1_dynamicshape_fp32.om --dymShape actual_
 
 ##### 自动设置Shape模式（动态Shape模型）
 
-动态Shape模型输入数据的Shape可能是不固定的，比如一个输入文件Shape为1,3,224,224 另一个输入文件Shape为 1,3,300,300。若两个文件同时推理，则需要设置两次动态Shape参数，当前不支持该操作。针对该场景，增加auto_set_dymshape_mode模式，可以根据输入文件的Shape信息，自动设置模型的Shape参数。
+动态Shape模型输入数据的Shape可能是不固定的，比如一个输入文件Shape为1,3,224,224 另一个输入文件Shape为 1,3,300,300。若两个文件同时推理，则需要设置两次动态Shape参数，当前不支持该操作。针对该场景，增加动态Shape模式，可以根据输入文件的Shape信息，自动设置模型的Shape参数。
 
 ```bash
 python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --auto_set_dymshape_mode 1  --input ./dymdata
@@ -477,7 +462,7 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
 
 #### 动态AIPP场景
 - 动态AIPP的介绍参见[ATC模型转换_AIPP使能](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasatc_16_0016.html)章节。
-- 目前benchmark工具只支持单个input的带有动态AIPP配置的模型，只支持静态shape、动态batch、动态宽高三种场景，不支持动态shape场景。
+- 目前ais_bench工具只支持单个input的带有动态AIPP配置的模型，只支持静态shape、动态batch、动态宽高三种场景，不支持动态shape场景。
 ##### --aipp_config 输入的.config文件模板
 以resnet18模型所对应的一种aipp具体配置为例(actual_aipp_conf.config)：
 ```cfg
@@ -507,7 +492,7 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
 ```
 - .config文件`[aipp_op]`下的各字段名称及其取值范围参见[ATC模型转换_配置文件模板](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasatc_16_0025.html)中"静态AIPP需设置，动态AIPP无需设置"部分，其中字段取值为为true、false的字段，在.config文件中取值对应为1、0。
 - .config文件`[aipp_op]`下的`input_format`、`src_image_size_w`、`src_image_size_h`字段是必填字段。
-- .config文件中字段的具体取值是否适配对应的模型，benchmark本身不会检测，在推理时acl接口报错不属于benchmark的问题
+- .config文件中字段的具体取值是否适配对应的模型，ais_bench本身不会检测，在推理时acl接口报错不属于ais_bench的问题
 ##### 静态shape场景示例，以resnet18模型为例
 ###### atc命令转换出带动态aipp配置的静态shape模型
 ```
@@ -521,7 +506,7 @@ aipp_op{
     max_src_image_size : 4000000
 }
 ```
-###### benchmark命令
+###### ais_bench命令
 ```
 python3 -m ais_bench --model resnet18_bs4_dym_aipp.om --aipp_config actual_aipp_conf.config
 ```
@@ -530,7 +515,7 @@ python3 -m ais_bench --model resnet18_bs4_dym_aipp.om --aipp_config actual_aipp_
 ```
 atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_batch_aipp --input_format=NCHW --input_shape="image:-1,3,224,224" --dynamic_batch_size "1,2" --soc_version=Ascend310 --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
 ```
-###### benchmark命令
+###### ais_bench命令
 ```
 python3 -m ais_bench --model resnet18_dym_batch_aipp.om --aipp_config actual_aipp_conf.config --dymBatch 1
 ```
@@ -539,7 +524,7 @@ python3 -m ais_bench --model resnet18_dym_batch_aipp.om --aipp_config actual_aip
 ```
 atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_image_aipp --input_format=NCHW --input_shape="image:4,3,-1,-1" --dynamic_image_size "112,112;224,224" --soc_version=Ascend310 --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
 ```
-###### benchmark命令
+###### ais_bench命令
 ```
 python3 -m ais_bench --model resnet18_dym_image_aipp.om --aipp_config actual_aipp_conf.config --dymHW 112,112
 ```
@@ -590,7 +575,7 @@ python3 -m ais_bench --model pth_resnet50.onnx --backend trtexec --perf 1
 #### profiler或dump场景
 
 支持以--acl_json_path、--profiler、--dump参数形式实现：
-+ acl_json_path参数指定acl.json文件，可以在该文件中对应的profiler或dump参数。示例代码如下：
++ --acl_json_path参数指定acl.json文件，可以在该文件中对应的profiler或dump参数。示例代码如下：
 
   + profiler
 
@@ -623,34 +608,29 @@ python3 -m ais_bench --model pth_resnet50.onnx --backend trtexec --perf 1
 
     更多dump配置请参见[CANN 开发工具指南_准备离线模型dump数据文件](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasaccuracy_16_0018.html)章节。
 
-- 通过该方式进行profiler采集时，如果配置了环境变量`export AIT_NO_MSPROF_MODE=1`，输出的性能数据文件需要参见[CANN 开发工具指南_导出性能数据](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0027.html)章节，将性能数据解析并导出为可视化的timeline和summary文件。
-- 通过该方式进行profiler采集时，如果**没有**配置环境变量`AIT_NO_MSPROF_MODE=1`，benchmark会将acl.json中与profiler相关的参数解析成msprof命令，调用msprof采集性能数据，结果默认带有可视化的timeline和summary文件，msprof输出的文件含义参见[CANN 开发工具指南_性能数据文件参考](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0062.html)。
+- 通过该方式进行profiler采集时，如果配置了环境变量`export AIT_NO_MSPROF_MODE=1`，输出的性能数据文件需要参见[CANN 开发工具指南_导出性能数据](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0027.html)章节，将性能数据解析并导出为可视化的性能数据文件。
+- 通过该方式进行profiler采集时，如果**没有**配置环境变量`AIT_NO_MSPROF_MODE=1`，ais_bench会将acl.json中与profiler相关的参数解析成msprof命令，调用msprof采集性能数据，结果默认带有可视化的性能数据文件，msprof输出的文件含义参见[CANN 开发工具指南_性能数据文件参考](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0062.html)。
 - 如果acl.json文件中同时配置了profiler和dump参数，需要要配置环境变量`export AIT_NO_MSPROF_MODE=1`保证同时采集
 
 + profiler为固化到程序中的一组性能数据采集配置，生成的性能数据保存在--output参数指定的目录下的profiler文件夹内。
 
-  该参数是通过调用ais_bench/infer/__main__.py中的msprof_run_profiling函数来拉起msprof命令进行性能数据采集的。若需要修改性能数据采集参数，可根据实际情况修改msprof_run_profiling函数中的msprof_cmd参数。示例如下：
-
-  ```bash
-  msprof_cmd="{} --output={}/profiler --application=\"{}\" --model-execution=on --sys-hardware-mem=on --sys-cpu-profiling=off --sys-profiling=off --sys-pid-profiling=off --dvpp-profiling=on --runtime-api=on --task-time=on --aicpu=on".format(
-          msprof_bin, args.output, cmd)
-  ```
+  该参数通过拉起msprof命令进行性能数据采集。
 
   该方式进行性能数据采集时，首先检查是否存在msprof命令：
-
-  - 若命令存在，则使用该命令进行性能数据采集、解析并导出为可视化的timeline和summary文件。
-  - 若命令不存在，则msprof层面会报错，benchmark层面不检查命令内容合法性。
+  
+  - 若命令存在，则使用该命令进行性能数据采集、解析并导出为可视化的性能数据文件。
+  - 若命令不存在，则msprof层面会报错，ais_bench层面不检查命令内容合法性。
   - 若环境配置了AIT_NO_MSPROF_MODE=1，则使用--profiler参数采集性能数据时调用的是acl.json文件。
-
-  msprof命令不存在或环境配置了AIT_NO_MSPROF_MODE=1情况下，采集的性能数据文件未自动解析，需要参见[CANN 开发工具指南_导出性能数据](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0027.html)章节，将性能数据解析并导出为可视化的timeline和summary文件。
-
+  
+  msprof命令不存在或环境配置了AIT_NO_MSPROF_MODE=1情况下，采集的性能数据文件未自动解析，需要参见[CANN 开发工具指南_导出性能数据](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0027.html)章节，将性能数据解析并导出为可视化的性能数据文件。
+  
   更多性能数据采集参数介绍请参见[CANN 开发工具指南_msprof命令行工具](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0010.html)章节。
+  
++ --acl_json_path优先级高于--profiler和--dump，同时设置时以--acl_json_path为准。
 
-+ acl_json_path优先级高于profiler和dump，同时设置时以acl_json_path为准。
++ --profiler参数和--dump参数，必须要增加--output参数，指示输出路径。
 
-+ profiler参数和dump参数，必须要增加output参数，指示输出路径。
-
-+ profiler和dump可以分别使用，但不能同时启用。
++ --profiler和--dump可以分别使用，但不能同时启用。
 
 示例命令如下：
 
@@ -666,7 +646,7 @@ python3 -m ais_bench  --model /home/model/resnet50_v1.om --output ./ --profiler 
 
 | 文件/目录                                | 说明                                                         |
 | ---------------------------------------- | ------------------------------------------------------------ |
-| {文件名}.bin、{文件名}.npy或{文件名}.txt | 模型推理输出结果文件。<br/>文件命名格式：名称_输出序号.后缀。不指定input时（纯推理），名称固定为“pure_infer_data”；指定input时，名称以第一个输入的第一个名称命名；输出的序号从0开始按输出先后顺序排列；文件名后缀由--outfmt参数控制。<br/>默认情况下，会在--output参数指定的目录下创建“日期+时间”的目录，并将结果文件保存在该目录下；当指定了--output_dirname时，结果文件将直接保存在--output_dirname参数指定的目录下。<br/>指定--output_dirname参数时，多次执行工具推理会导致结果文件因同名而覆盖。 |
+| {文件名}.bin、{文件名}.npy或{文件名}.txt | 模型推理输出结果文件。<br/>文件命名格式：名称_输出序号.后缀。不指定--input时（纯推理），名称固定为“pure_infer_data”；指定--input时，名称以第一个输入的第一个名称命名；输出的序号从0开始按输出先后顺序排列；文件名后缀由--outfmt参数控制。<br/>默认情况下，会在--output参数指定的目录下创建“日期+时间”的目录，并将结果文件保存在该目录下；当指定了--output_dirname时，结果文件将直接保存在--output_dirname参数指定的目录下。<br/>指定--output_dirname参数时，多次执行工具推理会导致结果文件因同名而覆盖。 |
 | xx_summary.json                          | 工具输出模型性能结果数据。默认情况下，“xx”以“日期+时间”命名；当指定了--output_dirname时，“xx”以--output_dirname指定的目录名称命名。<br/>指定--output_dirname参数时，多次执行工具推理会导致结果文件因同名而覆盖。 |
 | dump                                     | dump数据文件目录。使用--dump开启dump时，在--output参数指定的目录下创建dump目录，保存dump数据文件。 |
 | profiler                                 | Profiler采集性能数据文件目录。使用--profiler开启性能数据采集时，在--output参数指定的目录下创建profiler目录，保存性能数据文件。 |
@@ -789,7 +769,7 @@ python3 -m ais_bench  --model /home/model/resnet50_v1.om --output ./ --profiler 
 
 ais_bench推理工具执行后，打屏输出结果示例如下：
 
-- display_all_summary=False时，打印如下：
+- --display_all_summary=false时，打印如下：
 
   ```bash
   [INFO] -----------------Performance Summary------------------
@@ -798,7 +778,7 @@ ais_bench推理工具执行后，打屏输出结果示例如下：
   [INFO] ------------------------------------------------------
   ```
 
-- display_all_summary=True时，打印如下：
+- --display_all_summary=true时，打印如下：
 
   ```bash
   [INFO] -----------------Performance Summary------------------
@@ -829,8 +809,10 @@ ais_bench推理工具执行后，打屏输出结果示例如下：
 
 ### 接口开放
 
-开放ais_bench推理工具inferface推理Python接口。
-接口文档参见[API使用说明](API_GUIDE.md)。
+- 开放ais_bench推理工具inferface推理Python接口。接口文档参见[API_GUIDE](API_GUIDE.md)。
+
+- 开放aclruntime API。接口文档参见[aclruntime_API_GUIDE](aclruntime_API_GUIDE.md)。
+
 
 动态Shape推理：
 

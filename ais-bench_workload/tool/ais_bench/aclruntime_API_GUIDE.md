@@ -5,11 +5,14 @@ AISBench通过在基于昇腾硬件的离线模型（.om模型）上运行推理
 
 aclruntime绑定了Python前端InferSession类和C++后端PyInferenceSession类，直接开放aclruntime推理API，使用户可以直接调用aclruntime模块，用Python函数代码直接调用模型推理后端的C++函数，减少了在Python端的一些操作，提升模型推理和开发的效率。
 
-使用ais_bench推理工具提供的API需要安装`ais_bench`和`aclruntime`包。安装方法参考[ais_bench推理工具使用指南](https://gitee.com/ascend/tools/blob/master/ais-bench_workload/tool/ais_bench/README.md)的“工具安装”章节。
+使用aclruntime API需要安装`aclruntime`包。安装方法参考[ais_bench推理工具使用指南](https://gitee.com/ascend/tools/blob/master/ais-bench_workload/tool/ais_bench/README.md)的“工具安装”章节。
 
 ## aclruntime API 基本流程
 
 ### 导入依赖包
+
+使用aclruntime API前需要导入如下依赖：
+
 ```python
 import aclruntime
 ```
@@ -29,7 +32,7 @@ aclruntime API直接调用后端C++函数，在该过程中需要数据在npu上
 # ndata是一个Numpy数组，它的shape是模型输入所需的
 # 利用aclruntime.Tensor将数据转化为适合模型推理的类型
 tensor = aclruntime.Tensor(ndata)
-# 将数据放至npu上
+# 将数据放至device上
 tensor.to_device(device_id)
 ```
 
@@ -46,12 +49,10 @@ outputs = session.run(outnames, feeds)
 推理结束，推理的性能数据也保存在session中，可以通过session的接口获取性能数据。
 ```python
 # exec_time_list 按先后顺序保留了所有session在执行推理的时间。
-exec_time = session.summary().exec_time_list[-1]
+ssession.sumary().exec_time_list
 ```
 
-## aclruntime API 使用场景
-介绍利用aclruntime API推理使用频率最多的五种基本场景
-
+## aclruntime API 详细介绍
 ### 通用函数说明
 
 下面将介绍aclruntime API中通用的一些函数接口。这些函数接口会在各种场景中基本都会被使用，用来初始化模型、构造推理输入、配置参数等功能。
@@ -61,7 +62,6 @@ exec_time = session.summary().exec_time_list[-1]
 **使用示例**
 
 ```python
-import aclruntime
 # 初始化包含日志等级log_level表示记录信息的程度，默认值是2；循环推理次数loop，表示模型推理需要循环的次数，默认值是1；
 # 以及配置文件地址aclJsonPath，默认值为空字符串，可以后续设定。
 options = aclruntime.session_options()
@@ -85,7 +85,6 @@ options = aclruntime.session_options()
 **使用示例**
 
 ```python
-import aclruntime
 # 输入模型地址，推理npu的id，以及配置信息对象。
 session = aclruntime.InferenceSession(model_path, device_id, options)
 ```
@@ -112,7 +111,6 @@ session = aclruntime.InferenceSession(model_path, device_id, options)
 **使用示例**
 
 ```python
-import aclruntime
 session = aclruntime.InferenceSession(model_path, device_id, options)
 input_desc = session.get_inputs()
 ```
@@ -127,8 +125,8 @@ input_desc = session.get_inputs()
 
 **输出说明**
 
-输出list[aclruntime.TensorDesc]类型数据，包括输入数据属性信息。
-TensorDesc:C++后端侧代码，结构体。存放name、TensorDataType、输入数据shapes、输入数据size等类型信息。
+输出list[aclruntime.TensorDesc]类型数据，包括输入数据的属性信息。
+TensorDesc:C++后端侧代码，结构体。存放name、TensorDataType、输入的shapes、输入的size等类型信息。
 
 
 #### get_outputs函数
@@ -136,7 +134,6 @@ TensorDesc:C++后端侧代码，结构体。存放name、TensorDataType、输入
 **使用示例**
 
 ```python
-import aclruntime
 session = aclruntime.InferenceSession(model_path, device_id, options)
 output_desc = session.get_outputs()
 ```
@@ -159,7 +156,6 @@ output_desc = session.get_outputs()
 **使用示例**
 
 ```python
-import aclruntime
 # 创建一个shape形状的numpy数组
 ndata = np.full(shape, 1).astype(np.float32)
 # 使用numpy数组构建aclruntime的Tensor类对象
@@ -168,7 +164,7 @@ tensor = aclruntime.Tensor(ndata)
 
 **功能说明**
 
-使用aclruntime.Tensor()调用。根据numpy类型的数据构造TensorBase类对象，存储模型推理所需的数据和信息。
+使用aclruntime.Tensor()调用。根据ndarray类型的数据构造TensorBase类对象，存储模型推理所需的数据和信息。
 TensorBase：C++后端侧代码，类。存放buffer_(存放数据以及其信息)、shape_（存放数据的shape信息）以及TensorDataType等信息。
 
 **参数说明**
@@ -187,7 +183,6 @@ TensorBase类型对象，存储着模型推理的输入数据以及shape等信�
 **使用示例**
 
 ```python
-import aclruntime
 device_id = 0
 # 使用numpy数组构建aclruntime的Tensor类对象
 tensor = aclruntime.Tensor(ndata)
@@ -203,7 +198,7 @@ TensorBase类函数。将数据从host侧移动到device侧，或者在不同dev
 
 |**参数**|**类型**|**说明**|
 |--------|--------|--------|
-|device_id|int|模型推理npu的ID|
+|device_id|int|用于模型推理的Device的ID|
 
 **输出说明**
 
@@ -215,12 +210,6 @@ TensorBase类函数。将数据从host侧移动到device侧，或者在不同dev
 **使用示例**
 
 ```python
-import aclruntime
-device_id = 0
-# 使用numpy数组构建aclruntime的Tensor类对象
-tensor = aclruntime.Tensor(ndata)
-# 将tensor数据放至device侧
-tensor.to_device(device_id)
 # 将tensor数据由device侧放至host侧
 tensor.to_host()
 ```
@@ -243,7 +232,6 @@ TensorBase类函数。将数据从device侧移动到host侧。
 **使用示例**
 
 ```python
-import aclruntime
 session = aclruntime.InferenceSession(model_path, device_id, options)
 # feeds是一个list，表示存储着模型推理输入所需的Tensor()构建的数据对象
 # 构建模型推理所需的输出数据名称的list
@@ -264,7 +252,7 @@ aclruntime.InferenceSession()实例对象运行模型推理的函数。
 
 **输出说明**
 
-模型推理的结果，TenSorBase类型数据。
+模型推理的结果，TensorBase类型数据。
 
 
 #### sumary函数
@@ -272,7 +260,6 @@ aclruntime.InferenceSession()实例对象运行模型推理的函数。
 **使用示例**
 
 ```python
-import aclruntime
 session = aclruntime.InferenceSession(model_path, device_id, options)
 outputs = session.run(outnames, feeds)
 # 模型推理完成后，调用函数，可输出模型推理性能情况
@@ -292,6 +279,9 @@ session.sumary()
 返回[[float, float]]类型数据。返回的list中按推理执行的先后顺序，保存了每一组数据推理的时间对（开始时间，结束时间）。
 
 ### API场景说明
+
+介绍利用aclruntime API推理使用频率最多的五种基本场景。
+
 |编号<td rowspan='1'>**模型**<td rowspan='1'>**场景**</td><td rowspan='1'>**样例**</td><td rowspan='1'>**说明**</td>|
 |----|
 |1<td rowspan='5'>add_model</td><td rowspan='1'>static静态模型</td><td rowspan='1'>[aclruntime_api_static](#aclruntime-api-static)</td><td rowspan='1'>基本场景</td>|
@@ -302,7 +292,7 @@ session.sumary()
 
 **add_model模型**：仅有一个加法算子的模型，获得两个tensor数据相加的结果。
 
-如果要执行使用样例add_model，需要在linux环境下载AISBench的源码，进入使用样例目录下, 执行以下命令生成样例执行所需的模型。
+如果要执行使用样例add_model，需要在linux环境下载[ais-bench_workload](https://gitee.com/ascend/tools/tree/master/ais-bench_workload)的源码，进入[使用样例目录](https://gitee.com/ascend/tools/tree/master/ais-bench_workload/tool/ais_bench/api_samples)下，执行以下命令生成样例执行所需的模型。
 
 ```python
 chmod 750 get_sample_datas.sh
@@ -311,65 +301,15 @@ chmod 750 get_sample_datas.sh
 
 #### aclruntime API static
 
-静态场景下，模型进行固定形式的输入，运行推理，产生输出。以**add_model**模型为例。在该场景下，仅需要构建模型所需shape的数据，将其迁移至npu上，然后输入到模型推理接口，即可运行模型的推理，获取模型推理结果，也可以查看模型推理的性能信息。
-样例可执行文件在[aclruntime_api_static.py](api_samples/aclruntime_api_usage/aclruntime_api_static.py)
-
-**配置信息**
-```python
-device_id = 0 # 模型推理的device ID
-model_path = "../xxx/add_model.om" # om模型
-```
-
-**数据准备**
-```python
-shape0 = session.get_inputs()[0].shape
-ndata0 = np.full(shape0, 1).astype(np.float32)
-shape1 = session.get_inputs()[1].shape
-ndata1 = np.full(shape1, 1).astype(np.float32)
-```
-
-**数据迁移**
-```python
-# 将数据迁移到对应编号的npu上
-feeds = []
-tensor0 = aclruntime.Tensor(ndata0)
-tensor0.to_device(device_id)
-feeds.append(tensor0)
-tensor1 = aclruntime.Tensor(ndata1)
-tensor1.to_device(device_id)
-feeds.append(tensor1)
-```
-
-**模型推理**
-```python
-outnames = [meta.name for meta in session.get_outputs()]
-outputs = session.run(outnames, feeds)
-```
-
-**结果查看**
-```python
-print(f"outputs: {outputs}")
-outarray = []
-for out in outputs:
-    # 将acltenor移动到host侧
-    out.to_host()
-    # 将acltenor转换为ndarray数据
-    outarray.append(np.array(out))
-print(outarray)
-# 模型推理吞吐量
-print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
-```
+静态场景，以add_model模型为例，样例可执行文件在[aclruntime_api_static.py](api_samples/aclruntime_api_usage/aclruntime_api_static.py)。
 
 
 #### aclruntime API dymbatch
 
-动态batch场景，设定模型的batchsize，将输入数据按照设定的batchsize组batch，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymbatch.py](api_samples/aclruntime_api_usage/aclruntime_api_dymbatch.py)
-
-模型的**配置信息**、**数据准备**、**数据迁移**、**模型推理**以及**结果查看**都与[aclruntime API static](#aclruntime-api-static)场景一致。
-
-若模型推理时包含动态Batch特性，在模型推理时，要设置模型推理时需使用的batch size，模型支持的batch size已提前在构建模型时配置（使用ATC工具的dynamic_batch_size参数）。在动态batch的场景下，自行设定batchsize，根据该batchsize组成batch，运行模型推理。示例代码中，调用`set_dynamic_batchsize()`执行设定batch的操作。
+动态batch场景，须自行设定batchsize。以add_model模型为例，样例可执行文件在[aclruntime_api_dymbatch.py](api_samples/aclruntime_api_usage/aclruntime_api_dymbatch.py)，示例代码中，调用`set_dynamic_batchsize()`执行设定batch的操作。
 
 **设定batch**
+
 ```python
 # set dynamic batch
 indesc = session.get_inputs()
@@ -393,7 +333,7 @@ for i, shape in enumerate(shapes):
 
 |**参数**|**类型**|**说明**|
 |--------|--------|--------|
-|batchsize|int|表示模型推理的batchsize，根据该batchsize对输入数据组batch|
+|batchsize|int|表示模型推理的batchsize，根据该batchsize，对输入数据组batch|
 
 **输出说明**
 
@@ -402,13 +342,10 @@ for i, shape in enumerate(shapes):
 
 #### aclruntime API dymhw
 
-动态分辨率场景，设定模型输入数据的分辨率，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymhw.py](api_samples/aclruntime_api_usage/aclruntime_api_dymhw.py)
-
-模型的**配置信息**、**数据准备**、**数据迁移**、**模型推理**以及**结果查看**都与[aclruntime API static](#aclruntime-api-static)场景一致。
-
-若模型推理时包含动态分辨率特性，在模型推理时，要设置模型推理时需使用的分辨率，模型支持的分辨率已提前在构建模型时配置（使用ATC工具的dynamic_image_size参数）。在动态分辨率的场景下，自行设定h、w，运行模型推理。示例代码中，调用`set_dynamic_hw()`执行设定分辨率的操作。
+动态分辨率场景，须自行设定自行设定分辨率（h、w）。以add_model模型为例，样例可执行文件在[aclruntime_api_dymhw.py](api_samples/aclruntime_api_usage/aclruntime_api_dymhw.py)，示例代码中，调用`set_dynamic_hw()`执行设定分辨率的操作。
 
 **设定分辨率**
+
 ```python
 # set dynamic HW
 indesc = session.get_inputs()
@@ -422,29 +359,25 @@ for i, shape in enumerate(shapes):
 
 **功能说明**
 
-设定模型推理时输入数据的分辨率
+设定模型推理时输入的分辨率。
 
 **参数说明**
 
 |**参数**|**类型**|**说明**|
 |--------|--------|--------|
-|width|int|设定模型输入数据的imageSize的width|
-|height|int|设定模型输入数据的imageSize的height|
+|width|int|设定模型输入的imageSize的width|
+|height|int|设定模型输入的imageSize的height|
 
 **输出说明**
 
 无
 
-
 #### aclruntime API dymdims
 
-动态维度场景，设定模型输入数据的维度，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymdims.py](api_samples/aclruntime_api_usage/aclruntime_api_dymdims.py)
-
-模型的**配置信息**、**数据准备**、**数据迁移**、**模型推理**以及**结果查看**都与[aclruntime API static](#aclruntime-api-static)场景一致。
-
-若模型推理时包含动态维度特性，在模型推理时，要设置模型推理时需使用的维度值，模型支持哪些维度值已提前在构建模型时配置（使用ATC工具的dynamic_dims参数）。在动态维度的场景下，自行设定维度，运行模型推理。示例代码中，调用`set_dynamic_dims()`执行设定维度的操作。
+动态维度场景，须自行设定维度。以add_model模型为例，样例可执行文件在[aclruntime_api_dymdims.py](api_samples/aclruntime_api_usage/aclruntime_api_dymdims.py)，示例代码中，调用`set_dynamic_dims()`执行设定维度的操作。
 
 **设定维度**
+
 ```python
 # set dynamic dims
 dym_list = []
@@ -461,30 +394,34 @@ session.set_dynamic_dims(dyshapes)
 
 **功能说明**
 
-设定模型推理时输入数据的维度
+设定模型推理时输入的维度。
 
 **参数说明**
 
 |**参数**|**类型**|**说明**|
 |--------|--------|--------|
-|dymdims|string|表示输入数据的维度信息，可设定输入数据的shape|
+|dymdims|string|表示输入的维度信息，可设定输入的shape|
 
-shape格式样例（不同shape间使用`;`分割；一个shape中name和shape使用`:`分割；shape的具体大小之间使用`,`分割）：inputs1:1,3,32,32;inputs2:4,3,32,32
+shape格式样例：
+
+- 单输入
+
+  inputs1:1,3,32,32
+
+- 多输入
+
+  inputs1:1,3,32,32;inputs2:4,3,32,32
 
 **输出说明**
 
 无
 
-
 #### aclruntime API dymshape
 
-动态shape场景，设定模型输入数据的shape，运行模型推理，产生输出。以add_model模型为例。样例可执行文件在[aclruntime_api_dymshape.py](api_samples/aclruntime_api_usage/aclruntime_api_dymshape.py)
-
-模型的**配置信息**、**数据准备**、**数据迁移**、**模型推理**以及**结果查看**都与[aclruntime API static](#aclruntime-api-static)场景一致。
-
-若模型推理时包含动态shape的特性，在模型推理时，需要设置模型推理时固定的shape，模型支持的shape情况，已提前在构建模型时配置（使用ATC工具，通过input_shape参数设置输入Shape范围）。在动态shape场景下，设定模型输入数据的shape，根据该shape输入数据，并运行模型推理。示例代码中，调用`set_dynamic_shape`执行设定shape的操作。
+动态shape场景，须自行设定模型输入的shape。以add_model模型为例，样例可执行文件在[aclruntime_api_dymshape.py](api_samples/aclruntime_api_usage/aclruntime_api_dymshape.py)，示例代码中，调用`set_dynamic_shape`执行设定shape的操作。
 
 **设定shape**
+
 ```python
 # set dynamic shape
 dym_list = []
@@ -501,13 +438,13 @@ session.set_dynamic_shape(dyshapes)
 
 **功能说明**
 
-设定模型推理时输入数据的shape
+设定模型推理时输入的shape
 
 **参数说明**
 
 |**参数**|**类型**|**说明**|
 |--------|--------|--------|
-|dymshape|string|表示输入数据的shape信息，可设定输入数据的shape|
+|dymshape|string|表示输入的shape信息，可设定输入的shape|
 
 shape格式样例（不同shape间使用`;`分割；一个shape中name和shape使用`:`分割；shape的具体大小之间使用`,`分割）：inputs1:1,3,32,32;inputs2:4,3,32,32
 

@@ -158,7 +158,11 @@ void HcclOpBaseTest::print_execution_time(double average_time_us, double algorit
 
     #ifndef MPI_SUPPORT
     bool curResuult = check_result[rank_id];
-    communicater->AllGatherInfoToRoot(&check_result, &curResuult, sizeof(bool), rank_size);
+    int ret = communicater->AllGatherInfoToRoot(&check_result, &curResuult, sizeof(bool), rank_size);
+    if (ret != 0) {
+        ERROR("rank: %d run all gather root info failed!", rank_id);
+        throw(std::runtime_error("print execution time failed!"));
+    }
     #endif
 
 

@@ -35,12 +35,12 @@ public:
 
     virtual ~HcclCommunicater();
 
-    void SynchronizeRootInfo(
+    int SynchronizeRootInfo(
         void *dataBuffer,
         const size_t dataLen
     );
 
-    void AllGatherInfoToRoot(
+    int AllGatherInfoToRoot(
         void *dataList,
         void *dataBuffer,
         const size_t dataLen,
@@ -48,24 +48,24 @@ public:
     );
 
 private:
-    void ServerBcast(
+    int ServerBcast(
         void *dataBuffer,
         const size_t dataLen
     );
 
-    void ClientRecv(
+    int ClientRecv(
         void *dataBuffer,
         const size_t dataLen
     );
 
-    void ServerGather(
+    int ServerGather(
         void *dataList,
         void *dataBuffer,
         const size_t dataLen,
         const size_t listLen
     );
 
-    void ClientBcast(
+    int ClientBcast(
         void *dataBuffer,
         const size_t dataLen
     );

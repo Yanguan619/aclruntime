@@ -600,7 +600,11 @@ int HcclTest::init_hcclComm()
     #endif
 
     #ifndef MPI_SUPPORT
-    communicater->SynchronizeRootInfo(&comm_id, HCCL_ROOT_INFO_BYTES);
+    ret = communicater->SynchronizeRootInfo(&comm_id, HCCL_ROOT_INFO_BYTES);
+    if (ret != 0) {
+        ERROR("rank: %d run synchronize root info failed!", rank_id);
+        return ret;
+    }
     #endif
 
     std::string rootInfoContent = "";

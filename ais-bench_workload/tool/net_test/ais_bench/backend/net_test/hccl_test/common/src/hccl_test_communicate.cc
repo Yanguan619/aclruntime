@@ -4,6 +4,7 @@ namespace hccl
 {
 const int RETRY_COUNT = 10;
 const int RETRY_INTERVAL = 1; // second
+const int RETRY_TIMES = 5;
 
 HcclCommunicater::HcclCommunicater(
     const std::string serverIP,
@@ -21,19 +22,19 @@ HcclCommunicater::~HcclCommunicater()
     close(m_serverSkt);
 }
 
-void HcclCommunicater::SynchronizeRootInfo(
+int HcclCommunicater::SynchronizeRootInfo(
     void *dataBuffer,
     const size_t dataLen
 )
 {
     if (m_rankID == m_rootRank) {
-        ServerBcast(dataBuffer, dataLen);
+        return ServerBcast(dataBuffer, dataLen);
     } else {
-        ClientRecv(dataBuffer, dataLen);
+        return ClientRecv(dataBuffer, dataLen);
     }
 }
 
-void HcclCommunicater::AllGatherInfoToRoot(
+int HcclCommunicater::AllGatherInfoToRoot(
     void *dataList,
     void *dataBuffer,
     const size_t dataLen,
@@ -41,13 +42,13 @@ void HcclCommunicater::AllGatherInfoToRoot(
 )
 {
     if (m_rankID == m_rootRank) {
-        ServerGather(dataList, dataBuffer, dataLen, listLen);
+        return ServerGather(dataList, dataBuffer, dataLen, listLen);
     } else {
-        ClientBcast(dataBuffer, dataLen); // databuffer 暂时未知
+        return ClientBcast(dataBuffer, dataLen); // databuffer 暂时未知
     }
 }
 
-void HcclCommunicater::ServerBcast(
+int HcclCommunicater::ServerBcast(
     void *dataBuffer,
     const size_t dataLen
 )
@@ -55,7 +56,15 @@ void HcclCommunicater::ServerBcast(
     ServerPreset();
     DEBUG("rank: %d, Server Bcast listening on port: %d ......", m_rankID, m_serverPort);
     int connectedClientCount = 0;
+    int tryConnectCount = 0;
+    int clientRank = -1;
     while (connectedClientCount < m_rankSize - 1) {
+        tryConnectCount++;
+        if (tryConnectCount >= m_rankSize * RETRY_TIMES) {
+            close(m_serverSkt);
+            ERROR("root rank: %d, Server broadcast stopped after try %d times.", m_rankID, tryConnectCount);
+            return -1;
+        }
         struct sockaddr_in clientAddr;
         socklen_t clientAddrlen = sizeof(clientAddr);
         int clientSkt = accept(m_serverSkt, reinterpret_cast<sockaddr*>(&clientAddr), &clientAddrlen);
@@ -66,20 +75,26 @@ void HcclCommunicater::ServerBcast(
         }
         DEBUG("rank: %d, Client connected from %s", m_rankID, inet_ntoa(clientAddr.sin_addr));
         for (int i = 0; i < RETRY_COUNT; i++) {
-            if (send(clientSkt, static_cast<char*>(dataBuffer), dataLen, 0) <= 0) {
-                sleep(RETRY_INTERVAL);
-            } else {
-                break;
-            }
+            if (send(clientSkt, static_cast<char*>(dataBuffer), dataLen, 0) <= 0) {continue;}
+            DEBUG("server rank: %d, send rootInfo to client success!", m_rankID);
+            if (recv(clientSkt, &clientRank, sizeof(int), 0) <= 0) {continue;}
+            DEBUG("server rank: %d recv rank: %d from client success!", m_rankID, clientRank);
+            break;
+        }
+        if (clientRank >= m_rankSize) {
+            WARN("clientRank: %d is over max rankID: %d, won't recv!", m_rankID, m_rankSize - 1);
+            close(clientSkt);
+            continue;
         }
         ++connectedClientCount;
         close(clientSkt);
     }
     close(m_serverSkt);
-    DEBUG("rank: %d, Server broadcast stopped after serving %d clients.", m_rankID, m_rankSize - 1);
+    DEBUG("root rank: %d, Server broadcast stopped after serving %d clients.", m_rankID, m_rankSize - 1);
+    return 0;
 }
 
-void HcclCommunicater::ClientRecv(
+int HcclCommunicater::ClientRecv(
     void *dataBuffer,
     const size_t dataLen
 )
@@ -90,23 +105,31 @@ void HcclCommunicater::ClientRecv(
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = inet_addr(m_serverIP.c_str());
     serverAddr.sin_port = htons(m_serverPort);
-    while (true) {
-        if (connect(m_clientSkt, reinterpret_cast<sockaddr*>(&serverAddr), sizeof(serverAddr)) == -1) {
-            sleep(RETRY_INTERVAL);
-            continue;
+    for (int i = 0; i < RETRY_COUNT; i++) {
+        while (true) {
+            if (connect(m_clientSkt, reinterpret_cast<sockaddr*>(&serverAddr), sizeof(serverAddr)) == -1) {
+                sleep(RETRY_INTERVAL);
+                continue;
+            }
+            break;
         }
-        DEBUG("rank: %d, connect server success! ", m_rankID);
-        if (recv(m_clientSkt, static_cast<char*>(dataBuffer), dataLen, 0) <= 0) {
-            sleep(RETRY_INTERVAL);
-            continue;
+        DEBUG("rank: %d, Client Recv connect server success! ", m_rankID);
+        for (int j = 0; j < RETRY_COUNT; j++) {
+            if (recv(m_clientSkt, static_cast<char*>(dataBuffer), dataLen, 0) <= 0) {continue;}
+            DEBUG("rank: %d, recv from rootInfo from server success! ", m_rankID);
+            if (send(m_clientSkt, &m_rankID, sizeof(int), 0) <= 0) {continue;}
+            DEBUG("rank: %d, reply rank to server success! ", m_rankID);
+            close(m_clientSkt);
+            DEBUG("rank: %d, client received from server success!", m_rankID);
+            return 0;
         }
-        break;
+
     }
-    close(m_clientSkt);
-    DEBUG("rank: %d, client received from server success!", m_rankID);
+    ERROR("rank: %d, client received from server failed!", m_rankID);
+    return -1;
 }
 
-void HcclCommunicater::ServerGather(
+int HcclCommunicater::ServerGather(
     void *dataList,
     void *dataBuffer,
     const size_t dataLen,
@@ -116,39 +139,52 @@ void HcclCommunicater::ServerGather(
     ServerPreset();
     DEBUG("rank: %d, Server Gather start listening on port: %d", m_rankID, m_serverPort);
     int connectedClientCount = 0;
+    int tryConnectCount = 0;
     int clientRank = -1;
     char* singleData = nullptr;
     singleData = static_cast<char*>(malloc(dataLen * sizeof(char)));
     memcpy(static_cast<char*>(dataList), static_cast<char*>(dataBuffer), dataLen); // copy root rank data
-
     while (connectedClientCount < m_rankSize - 1) {
+        tryConnectCount++;
+        if (tryConnectCount >= m_rankSize * RETRY_TIMES) {
+            free(singleData);
+            close(m_serverSkt);
+            ERROR("root rank: %d, Server broadcast stopped after try %d times.", m_rankID, tryConnectCount);
+            return -1;
+        }
         struct sockaddr_in clientAddr;
         socklen_t clientAddrlen = sizeof(clientAddr);
         int clientSkt = accept(m_serverSkt, reinterpret_cast<sockaddr*>(&clientAddr), &clientAddrlen);
         if (clientSkt == -1) {
-            WARN("rank: %d, accepting client connection failed!", m_rankID);
+            DEBUG("rank: %d, accepting client connection failed!", m_rankID);
             continue;
         }
         DEBUG("rank: %d, Client connected from %s, accepted clientSkt: %d",
             m_rankID, inet_ntoa(clientAddr.sin_addr), clientSkt);
-        while (send(clientSkt, &connectedClientCount, sizeof(int), 0) <= 0) {sleep(RETRY_INTERVAL);}
-        while (recv(clientSkt, &clientRank, sizeof(int), 0) <= 0) {sleep(RETRY_INTERVAL);}
-        while (recv(clientSkt, singleData, dataLen, 0) <= 0) {sleep(RETRY_INTERVAL);}
+        if (recv(clientSkt, &clientRank, sizeof(int), 0) <= 0) {continue;}
         if (clientRank >= listLen) {
-            WARN("clientRank: %d is over max rankID: %zu, won't recv!", m_rankID, listLen - 1);
+            DEBUG("clientRank: %d is over max rankID: %zu, won't recv!", m_rankID, listLen - 1);
             continue;
         }
+        DEBUG("server recv client rank: %d success!", m_rankID);
+        for (int i = 0; i < RETRY_COUNT; i++) {
+            if (recv(clientSkt, singleData, dataLen, 0) <= 0) {continue;}
+            DEBUG("server recv data from rank: %d success!", m_rankID);
+            break;
+        }
+        if (send(clientSkt, &clientRank, sizeof(int), 0) <= 0) {continue;}
+        DEBUG("server reply rank %d to client success!", clientRank);
         memcpy(static_cast<char*>(dataList) + clientRank * dataLen, singleData, dataLen);
-        close(clientSkt);
         ++connectedClientCount;
+        close(clientSkt);
     }
-
     free(singleData);
     close(m_serverSkt);
     DEBUG("rank: %d, Server gather stopped after serving %d clients.", m_rankID, m_rankSize - 1);
+    return 0;
 }
 
-void HcclCommunicater::ClientBcast(
+int HcclCommunicater::ClientBcast(
     void *dataBuffer,
     const size_t dataLen
 )
@@ -161,36 +197,32 @@ void HcclCommunicater::ClientBcast(
     serverAddr.sin_addr.s_addr = inet_addr(m_serverIP.c_str());
     serverAddr.sin_port = htons(m_serverPort);
     int connectedClientCount = -1;
-    while (true) {
-        if (connect(m_clientSkt, reinterpret_cast<sockaddr*>(&serverAddr), sizeof(serverAddr)) == -1) {
-            sleep(RETRY_INTERVAL);
-            continue;
-        }
-        DEBUG("rank: %d,  connect server success! ", m_rankID);
-        if (recv(m_clientSkt, &connectedClientCount, sizeof(int), 0) <= 0) {
-            sleep(RETRY_INTERVAL);
-            continue;
-        }
-        break;
-    }
-
+    int retInfo = -1;
     for (int i = 0; i < RETRY_COUNT; i++) {
-        if (send(m_clientSkt, &m_rankID, sizeof(int), 0) <= 0) {
-            sleep(RETRY_INTERVAL);
-        } else {
+        while (true) {
+            if (connect(m_clientSkt, reinterpret_cast<sockaddr*>(&serverAddr), sizeof(serverAddr)) == -1) {
+                sleep(RETRY_INTERVAL);
+                continue;
+            }
+            DEBUG("rank: %d, Client Bcast connect server success! ", m_rankID);
             break;
         }
-    }
-
-    for (int i = 0; i < RETRY_COUNT; i++) {
-        if (send(m_clientSkt, static_cast<char*>(dataBuffer), dataLen, 0) <= 0) {
-            sleep(RETRY_INTERVAL);
-        } else {
-            break;
+        if (send(m_clientSkt, &m_rankID, sizeof(int), 0) <= 0) {continue;}
+        DEBUG("rank: %d, client send rank info success! ", m_rankID);
+        if (send(m_clientSkt, static_cast<char*>(dataBuffer), dataLen, 0) <= 0) {continue;}
+        DEBUG("rank: %d, client send data success! ", m_rankID);
+        for (int i = 0; i < RETRY_COUNT; i++) {
+            if (recv(m_clientSkt, &retInfo, sizeof(int), 0) <= 0) {continue;}
+            DEBUG("rank: %d, recv retInfo %d success! ", m_rankID, retInfo);
+            if (retInfo != m_rankID) {break;}
+            close(m_clientSkt);
+            DEBUG("client rank: %d, broadcast success!", m_rankID);
+            return 0;
         }
     }
     close(m_clientSkt);
-    DEBUG("client rank: %d, broadcast success!", m_rankID);
+    DEBUG("client rank: %d, broadcast failed!", m_rankID);
+    return -1;
 }
 
 bool HcclCommunicater::ServerPreset()

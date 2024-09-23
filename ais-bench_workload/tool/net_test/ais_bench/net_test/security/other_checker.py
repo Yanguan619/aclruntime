@@ -17,7 +17,6 @@ import zipfile
 import tarfile
 import shutil
 from ais_bench.net_test.security.standard_consts import ZIP_DECOMPRESSED_RATIO_LIMIT
-from ais_bench.net_test.common.consts import INT_LIMIT, LENGTH_LIMIT, STRING_PATTERN
 
 
 def is_disk_space_enough(path, need_size):
@@ -54,19 +53,3 @@ def _get_zip_basic_info(file_obj):
         filename = file_obj.filename
         return filename, total_size
     return "", 0
-
-
-def check_positive_integer_str(value):
-    if value is None:
-        return
-    if not isinstance(value, str):
-        raise ValueError(f"{value} is not a string")
-    if not value:
-        return
-    if len(value) > LENGTH_LIMIT.MAX_UINT64_STR_LENGTH:
-        raise ValueError(f"{value} is an invalid positive int value")
-    if not value.isdigit():
-        raise ValueError(f"{value} is an invalid positive int value")
-    ivalue = int(value)
-    if ivalue == 0:
-        raise ValueError("%s is an invalid positive int value" % value)

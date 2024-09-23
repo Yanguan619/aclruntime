@@ -112,207 +112,45 @@ class FileChecker:
         return False
 
 
-def check_linux_writable_file(
-        file: str,
+def check_linux_file_path(
+        file_path: str,
         max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
         perm_forbid=PermForbid.USER_MAIN_DIR,
-        perm_need=PermNeed.WRITE_FILE,
-        legal_suffixs=[""],
-        need_exists=False,
+        perm_need=PermNeed.READ_FILE,
+        legal_suffixs=[],
 ):
-    file_checker = FileChecker(file)
+    file_checker = FileChecker(file_path)
     if not file_checker.is_exists():
-        logger.error("path not exist.")
-        return not need_exists
+        raise ValueError("path not exist.")
     if not file_checker.is_file():
-        logger.error("path is not a file.")
-        return False
+        raise ValueError("path is not a file.")
     if not file_checker.is_not_softlink():
-        logger.error("path is a softlink.")
-        return False
+        raise ValueError("path is a softlink.")
     if not file_checker.is_user_or_group_owner():
-        logger.error("path is not belong to current user or user group.")
-        return False
+        raise ValueError("path is not belong to current user or user group.")
     if not file_checker.is_permission_legal(perm_need=perm_need, perm_forbid=perm_forbid):
-        logger.error("path's permission is illegal.")
-        return False
+        raise ValueError("path's permission is illegal.")
     if not file_checker.is_size_legal(max_size=max_size):
-        logger.error(f"file size over max size: {max_size}.")
-        return False
+        raise ValueError(f"file size over max size: {max_size}.")
     if not file_checker.is_suffix_legal(legal_suffixs=legal_suffixs):
-        logger.error(f"file suffix is not in : {legal_suffixs}.")
-        return False
-    return True
+        raise ValueError(f"file suffix is not in : {legal_suffixs}.")
 
 
 def check_linux_readable_file(
-        file: str,
+        file_path: str,
         max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
         perm_forbid=PermForbid.USER_MAIN_DIR,
-        perm_need=PermNeed.READ_FILE,
-        legal_suffixs=[""],
+        legal_suffixs=[],
 ):
-    file_checker = FileChecker(file)
-    if not file_checker.is_exists():
-        logger.error("path not exist.")
-        return False
-    if not file_checker.is_file():
-        logger.error("path is not a file.")
-        return False
-    if not file_checker.is_not_softlink():
-        logger.error("path is a softlink.")
-        return False
-    if not file_checker.is_user_or_group_owner():
-        logger.error("path is not belong to current user or user group.")
-        return False
-    if not file_checker.is_permission_legal(perm_need=perm_need, perm_forbid=perm_forbid):
-        logger.error("path's permission is illegal.")
-        return False
-    if not file_checker.is_size_legal(max_size=max_size):
-        logger.error(f"file size over max size: {max_size}.")
-        return False
-    if not file_checker.is_suffix_legal(legal_suffixs=legal_suffixs):
-        logger.error(f"file suffix is not in : {legal_suffixs}.")
-        return False
-    return True
+    check_linux_file_path(file_path, max_size=max_size, perm_forbid=perm_forbid, perm_need=PermNeed.READ_FILE,
+                          legal_suffixs=legal_suffixs)
 
 
 def check_linux_executable_file(
-        file: str,
+        file_path: str,
         max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
         perm_forbid=PermForbid.USER_MAIN_DIR,
-        perm_need=PermNeed.EXEC_FILE,
-        legal_suffixs=[""],
+        legal_suffixs=[],
 ):
-    file_checker = FileChecker(file)
-    if not file_checker.is_exists():
-        logger.error("path not exist.")
-        return False
-    if not file_checker.is_file():
-        logger.error("path is not a file.")
-        return False
-    if not file_checker.is_not_softlink():
-        logger.error("path is a softlink.")
-        return False
-    if not file_checker.is_user_or_group_owner():
-        logger.error("path is not belong to current user or user group.")
-        return False
-    if not file_checker.is_permission_legal(perm_need=perm_need, perm_forbid=perm_forbid):
-        logger.error("path's permission is illegal.")
-        return False
-    if not file_checker.is_size_legal(max_size=max_size):
-        logger.error(f"file size over max size: {max_size}.")
-        return False
-    if not file_checker.is_suffix_legal(legal_suffixs=legal_suffixs):
-        logger.error(f"file suffix is not in : {legal_suffixs}.")
-        return False
-    return True
-
-
-def check_linux_writable_dir(
-        file: str,
-        perm_forbid=PermForbid.USER_MAIN_DIR,
-        perm_need=PermNeed.WRITE_FILE,
-        need_exists=False,
-):
-    file_checker = FileChecker(file)
-    if not file_checker.is_exists():
-        logger.error("path not exist.")
-        return not need_exists
-    if not file_checker.is_dir():
-        logger.error("path is not a directory.")
-        return False
-    if not file_checker.is_not_softlink():
-        logger.error("path is a softlink.")
-        return False
-    if not file_checker.is_user_or_group_owner():
-        logger.error("path is not belong to current user or user group.")
-        return False
-    if not file_checker.is_permission_legal(perm_need=perm_need, perm_forbid=perm_forbid):
-        logger.error("path's permission is illegal.")
-        return False
-    return True
-
-
-def check_linux_readable_dir(
-        file: str,
-        perm_forbid=PermForbid.USER_MAIN_DIR,
-        perm_need=PermNeed.READ_FILE,
-):
-    file_checker = FileChecker(file)
-    if not file_checker.is_exists():
-        logger.error("path not exist.")
-        return False
-    if not file_checker.is_dir():
-        logger.error("path is not a directory.")
-        return False
-    if not file_checker.is_not_softlink():
-        logger.error("path is a softlink.")
-        return False
-    if not file_checker.is_user_or_group_owner():
-        logger.error("path is not belong to current user or user group.")
-        return False
-    if not file_checker.is_permission_legal(perm_need=perm_need, perm_forbid=perm_forbid):
-        logger.error("path's permission is illegal.")
-        return False
-    return True
-
-
-def check_linux_executable_dir(
-        file: str,
-        perm_forbid=PermForbid.USER_MAIN_DIR,
-        perm_need=PermNeed.EXEC_FILE,
-):
-    file_checker = FileChecker(file)
-    if not file_checker.is_exists():
-        logger.error("path not exist.")
-        return False
-    if not file_checker.is_dir():
-        logger.error("path is not a directory.")
-        return False
-    if not file_checker.is_not_softlink():
-        logger.error("path is a softlink.")
-        return False
-    if not file_checker.is_user_or_group_owner():
-        logger.error("path is not belong to current user or user group.")
-        return False
-    if not file_checker.is_permission_legal(perm_need=perm_need, perm_forbid=perm_forbid):
-        logger.error("path's permission is illegal.")
-        return False
-    return True
-
-
-def check_win_file(
-        file: str,
-        max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
-        legal_suffixs=[""],
-        need_exists=False,
-):
-    file_checker = FileChecker(file)
-    if not file_checker.is_exists():
-        logger.error("path not exist.")
-        return not need_exists
-    if not file_checker.is_file():
-        logger.error("path is not a file.")
-        return False
-    if not file_checker.is_size_legal(max_size=max_size):
-        logger.error(f"file size over max size: {max_size}.")
-        return False
-    if not file_checker.is_suffix_legal(legal_suffixs=legal_suffixs):
-        logger.error(f"file suffix is not in : {legal_suffixs}.")
-        return False
-    return True
-
-
-def check_win_dir(
-        file: str,
-        need_exists=False,
-):
-    file_checker = FileChecker(file)
-    if not file_checker.is_exists():
-        logger.error("path not exist.")
-        return not need_exists
-    if not file_checker.is_dir():
-        logger.error("path is not a directory.")
-        return False
-    return True
+    check_linux_file_path(file_path, max_size=max_size, perm_forbid=perm_forbid, perm_need=PermNeed.EXEC_FILE,
+                          legal_suffixs=legal_suffixs)

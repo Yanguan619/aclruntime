@@ -35,6 +35,7 @@ class REMOTE_NODE_INFO_NAME:
 
 class INT_LIMIT:
     PORT_MAX = 65535  # linux端口最大取值限制
+    UINT64_MAX = (2 << 6) - 1
 
 
 class LENGTH_LIMIT:
@@ -44,11 +45,14 @@ class LENGTH_LIMIT:
     MAX_UINT32_STR_LENGTH = 10  # 2^64的数字字符串长度
     MAX_BYTES_STR_LENGTH = MAX_UINT32_STR_LENGTH + 1
     MIN_BYTES_STR_LENGTH = 2
+    MAX_LINUX_USERNAME_LENGTH = 30  # linux 用户名长度限制
 
 
 class STRING_PATTERN:
     LEGAL_IPV4_PATTERN = r'^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
     GET_DEVICE_COUNT_PER_NPU_PATTERN = r'Chip Count\s*:\s*(\d+)'
+    LEGAL_LINUX_USERNAME_PATTERN = r'^[a-zA-Z_][a-zA-Z0-9_-]*[a-zA-Z0-9_]+$'
+    LEGAL_BYTES_FORMAT_PATTERN = r'^[0-9]{1,30}(k|m|g|K|M|G)$'
 
 
 class OTHERS:
@@ -56,6 +60,7 @@ class OTHERS:
     NODE_INFO_MIN_COUNT = 2
     NODE_INFO_MAX_COUNT = 4
     DAVINCI_DEVICE_PATTERN = r'davinci(\d+)'
+    MAX_HOST_LINE_COUNT = 1000_0000
 
 
 class RET:

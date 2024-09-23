@@ -34,7 +34,7 @@ class StringChecker:
         if get_platform() == PlatformSupport.LINUX:
             return self._is_legal_path_linux
         if get_platform() == PlatformSupport.WINDOWS:
-            return self._is_legal_path_win
+            raise RuntimeError('Not supported for windows yet!')
         return False
 
     def is_length_legal(self, max_length: int):
@@ -106,18 +106,6 @@ class StringChecker:
         if re.compile(StrWhitePattern.ABS_PATH_LINUX).search(abs_path):
             return False
         sub_names = abs_path.split("/")
-        for name in sub_names:
-            if len(name) > PathLengthLimit.SINGLE_NAME_LENGTH:
-                return False
-        return True
-
-    def _is_legal_path_win(self):
-        abs_path = os.path.abspath(self.this_str)
-        if len(abs_path) > PathLengthLimit.WIN_TOTAL_LENGTH:
-            return False
-        if re.compile(StrWhitePattern.ABS_PATH_WIN).search(abs_path):
-            return False
-        sub_names = abs_path.split("\\")
         for name in sub_names:
             if len(name) > PathLengthLimit.SINGLE_NAME_LENGTH:
                 return False

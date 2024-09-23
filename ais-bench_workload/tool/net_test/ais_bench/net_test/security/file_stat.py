@@ -115,7 +115,7 @@ class FileStat:
         '''
         文件后缀名，以'.'开头，如“.py”
         '''
-        if self.file_stat and self.is_dir:
+        if self.file_stat and self.is_file:
             _, suffix = os.path.splitext(self.file)
             return suffix
         else:

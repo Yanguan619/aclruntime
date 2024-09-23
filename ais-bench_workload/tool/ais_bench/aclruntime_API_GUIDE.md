@@ -284,7 +284,7 @@ session.sumary()
 **使用示例**
 
 ```python
-# 动态shape模型需要使用，推理输出数据所占的内存大小(单位byte)
+# 动态shape模型场景下，设定推理输出数据所占的内存大小(单位byte)
 custom_sizes = 100000
 custom_sizes = [custom_sizes] * len(outdesc)
 session.set_custom_outsize(custom_sizes)

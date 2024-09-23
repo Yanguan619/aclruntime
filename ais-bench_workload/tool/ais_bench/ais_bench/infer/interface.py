@@ -195,7 +195,7 @@ class InferSession:
         inputs = []
         shapes = []
         check_bool_value(out_array)
-        check_custom_size(custom_sizes)
+        check_custom_size(custom_sizes, mode)
         for feed in feeds:
             if type(feed) is np.ndarray:
                 infer_input = feed
@@ -237,7 +237,7 @@ class InferSession:
             feeds_list: input data list
             mode: static dymdims dymshape...
         '''
-        check_custom_size(custom_sizes)
+        check_custom_size(custom_sizes, mode)
         inputs_list = []
         shapes_list = []
         for feeds in feeds_list:
@@ -338,7 +338,7 @@ class InferSession:
             mode: static dymdims dymshape ...
             custom_sizes: only dymshape needs
         '''
-        check_custom_size(custom_sizes)
+        check_custom_size(custom_sizes, mode)
         check_positive_integer(iteration_times)
         if not in_out_list:
             in_out_list = []
@@ -442,7 +442,7 @@ class MultiDeviceSession():
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
         '''
-        check_custom_size(custom_sizes)
+        check_custom_size(custom_sizes, mode)
         subprocess_num = 0
         for _, device in device_feeds.items():
             subprocess_num += len(device)
@@ -478,7 +478,7 @@ class MultiDeviceSession():
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
         '''
-        check_custom_size(custom_sizes)
+        check_custom_size(custom_sizes, mode)
         subprocess_num = 0
         for _, device in device_feeds_list.items():
             subprocess_num += len(device)
@@ -514,8 +514,7 @@ class MultiDeviceSession():
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
         '''
-        if custom_sizes is not None:
-            check_custom_size(custom_sizes)
+        check_custom_size(custom_sizes, mode)
         check_positive_integer(iteration_times)
         subprocess_num = 0
         for _, device in device_feeds.items():

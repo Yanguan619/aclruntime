@@ -278,6 +278,32 @@ session.sumary()
 
 返回[[float, float]]类型数据。返回的list中按推理执行的先后顺序，保存了每一组数据推理的时间对（开始时间，结束时间）。
 
+
+#### set_custom_outsize函数
+
+**使用示例**
+
+```python
+# 动态shape模型需要使用，推理输出数据所占的内存大小(单位byte)
+custom_sizes = 100000
+custom_sizes = [custom_sizes] * len(outdesc)
+session.set_custom_outsize(custom_sizes)
+```
+
+**功能说明**
+
+动态shape场景所必须的函数，为模型推理输出数据预先分配custom_sizes中对应元素大小的内存。
+
+**参数说明**
+
+|**参数**|**类型**|**说明**|
+|--------|--------|--------|
+|custom_sizes|list[int]|每个模型输出预先分配的内存大小|
+
+**输出说明**
+
+无
+
 ### API场景说明
 
 介绍利用aclruntime API推理使用频率最多的五种基本场景。

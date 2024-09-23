@@ -1,6 +1,6 @@
-# ait benchmark interface python API使用指南
-## benchmark API简介
-  benchmark提供的python API可供使能基于昇腾硬件的离线模型(.om模型)推理。<br>
+# ais_bench interface python API使用指南
+## API简介
+ais_bench提供的python API可供使能基于昇腾硬件的离线模型(.om模型)推理。<br>
 
 使用ais_bench推理工具提供的api需要安装`ais_bench`和`aclruntime`包。安装方法参考[ais_bench推理工具使用指南](https://gitee.com/ascend/tools/blob/master/ais-bench_workload/tool/ais_bench/README.md)的“工具安装”章节。
 
@@ -164,7 +164,7 @@ infer_pipeline(feeds_list, mode = 'static', custom_sizes = 100000)
 
 **函数原型**
 ```python
-infer_iteration(feeds, in_out_list = None, iteration_times = 1, mode = 'static', custom_sizes = 100000, mem_copy = True)
+infer_iteration(feeds, in_out_list = None, iteration_times = 1, mode = 'static', custom_sizes = 100000)
 ```
 
 **参数说明**
@@ -317,7 +317,7 @@ infer_pipeline(devices_feeds_list, mode = 'static', custom_sizes = 100000)
 
 **函数原型**
 ```python
-infer_iteration(device_feeds, in_out_list = None, iteration_times = 1, mode = 'static', custom_sizes = None, mem_copy = True)
+infer_iteration(device_feeds, in_out_list = None, iteration_times = 1, mode = 'static', custom_sizes = None)
 ```
 
 **参数说明**
@@ -418,15 +418,15 @@ reset()
 - property <font color=#DD4466>**name**</font>:str
     + 节点名称。
 - property <font color=#DD4466>**datatype**</font>:[aclruntime.dtype](#acl_dtype)
-    + 节点接受tensor的数据类型
+    + tensor的数据类型
 - property <font color=#DD4466>**format**</font>:int
-    + 节点接受tensor格式，0表示NCHW格式，1表示NHWC格式。
+    + tensor格式，0表示NCHW格式，1表示NHWC格式。
 - property <font color=#DD4466>**shape**</font>:list [int]
-    + 节点接受的tensor的shape。
+    + tensor的shape。
 - property <font color=#DD4466>**size**</font>:int
-    + 节点接受的tensor的大小。
+    + tensor的大小。
 - property <font color=#DD4466>**realsize**</font>:int
-    + 节点接受的tensor的真实大小，针对动态shape 动态分档场景 实际需要的大小。
+    + tensor的真实大小，针对动态shape、动态分档场景，实际需要的大小。
 
 <a name="acl_dtype"></a>
 
@@ -440,7 +440,7 @@ reset()
 - device侧保存tensor的方式，在host侧无法直接访问
 
 ## interface python API 使用样例
-- 如果要执行使用样例，需要在linux环境下载[ait](https://gitee.com/ascend/tools)的源码，进入[使用样例目录](https://gitee.com/ascend/tools/ais-bench_workload/tool/ais_bench/api_samples)下, 执行以下命令生成样例执行所需的模型（仅支持在310系列的推理卡上生成，不支持在910系列的训练卡上生成）。
+- 如果要执行使用样例，需要在linux环境下载[ais-bench_workload](https://gitee.com/ascend/tools/tree/master/ais-bench_workload)的源码，进入[使用样例目录](https://gitee.com/ascend/tools/tree/master/ais-bench_workload/tool/ais_bench/api_samples)下，执行以下命令生成样例执行所需的模型（仅支持在310系列的推理卡上生成，不支持在910系列的训练卡上生成）。
   ```cmd
   chmod 750 get_sample_datas.sh
   ```
@@ -462,7 +462,7 @@ reset()
 |样例|说明|
 | ---- | ---- |
 |[infer_pipeline_api_static.py](api_samples/interface_api_usage/api_infer_pipeline/infer_pipeline_api_static.py)|调用InferSession的infer_pipeline接口推理静态模型|
-|[infer_pipeline_api_dymbatch.py](/api_samples/interface_api_usage/api_infer_pipeline/infer_pipeline_api_dymbatch.py)|调用InferSession的infer_pipeline接口推理动态batch模型|
+|[infer_pipeline_api_dymbatch.py](api_samples/interface_api_usage/api_infer_pipeline/infer_pipeline_api_dymbatch.py)|调用InferSession的infer_pipeline接口推理动态batch模型|
 |[infer_pipeline_api_dymhw.py](api_samples/interface_api_usage/api_infer_pipeline/infer_pipeline_api_dymhw.py)|调用InferSession的infer_pipeline接口推理动态分辨率模型|
 |[infer_pipeline_api_dymdims.py](api_samples/interface_api_usage/api_infer_pipeline/infer_pipeline_api_dymdims.py)|调用InferSession的infer_pipeline接口推理动态dims模型|
 |[infer_pipeline_api_dymshape.py](api_samples/interface_api_usage/api_infer_pipeline/infer_pipeline_api_dymshape.py)|调用InferSession的infer_pipeline接口推理动态shape模型|
@@ -481,5 +481,5 @@ reset()
 | ---- | ---- |
 |[multidevice_infer_api.py](api_samples/interface_api_usage/multidevice_api/multidevice_infer_api.py)|调用MultiDeviceSession的infer接口推理静态模型|
 |[multidevice_infer_pipeline_api.py](api_samples/interface_api_usage/multidevice_api/multidevice_infer_pipeline_api.py)|调用MultiDeviceSession的infer_pipeline接口推理静态模型|
-|[multidevice_infer_iteration_api.py](benchmark/api_samples/interface_api_usage/multidevice_api/multidevice_infer_iteration_api.py)|调用MultiDeviceSession的infer_iteration接口推理静态模型|
+|[multidevice_infer_iteration_api.py](api_samples/interface_api_usage/multidevice_api/multidevice_infer_iteration_api.py)|调用MultiDeviceSession的infer_iteration接口推理静态模型|
 

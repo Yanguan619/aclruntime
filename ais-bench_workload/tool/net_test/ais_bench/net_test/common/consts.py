@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 class PACKAGE_INFO:
-    version="0.0.3"
+    version = "0.0.3"
 
 
 class SUB_MODULE_NAME:
-    RUN = "run" # 正常运行模式
-    INSTALL = "install" # 分布式安装模式
+    RUN = "run"  # 正常运行模式
+    INSTALL = "install"  # 分布式安装模式
 
 
 class RUN_MODE_NAME:
@@ -34,14 +34,14 @@ class REMOTE_NODE_INFO_NAME:
 
 
 class INT_LIMIT:
-    PORT_MAX = 65535 # linux端口最大取值限制
+    PORT_MAX = 65535  # linux端口最大取值限制
 
 
 class LENGTH_LIMIT:
-    MAX_IPV4_LENGTH = 15 # ipv4 格式IP最长限制
-    MAX_PORT_STR_LENGTH = 6 # port 字符串长度限制
-    MAX_UINT64_STR_LENGTH = 20 # 2^64的数字字符串长度
-    MAX_UINT32_STR_LENGTH = 10 # 2^64的数字字符串长度
+    MAX_IPV4_LENGTH = 15  # ipv4 格式IP最长限制
+    MAX_PORT_STR_LENGTH = 6  # port 字符串长度限制
+    MAX_UINT64_STR_LENGTH = 20  # 2^64的数字字符串长度
+    MAX_UINT32_STR_LENGTH = 10  # 2^64的数字字符串长度
     MAX_BYTES_STR_LENGTH = MAX_UINT32_STR_LENGTH + 1
     MIN_BYTES_STR_LENGTH = 2
 
@@ -57,6 +57,7 @@ class OTHERS:
     NODE_INFO_MAX_COUNT = 4
     DAVINCI_DEVICE_PATTERN = r'davinci(\d+)'
 
+
 class RET:
     SUCCESS = 0
     FAILED = 1
@@ -68,13 +69,13 @@ OP_TASK = [
 ]
 
 OP_CMD_HELP_INFO = "[-b,--minbytes <min size in bytes>] \n\t" + \
-    "[-e,--maxbytes <max size in bytes>] \n\t" + \
-    "[-i,--stepbytes <increment size>] \n\t" + \
-    "[-f,--stepfactor <increment factor>] \n\t" + \
-    "[-n,--iters <iteration count>] \n\t" + \
-    "[-o,--op <sum/prod/min/max>] \n\t" + \
-    "[-d,--datatype <int8/int16/int/fp16/fp32/int64/uint64/uint8/uint16/uint32/fp64/bfp16>] \n\t" + \
-    "[-r,--root <root>] \n\t" + \
-    "[-w,--warmup_iters <warmup iteration count>] \n\t" + \
-    "[-c,--check <result verification> 0:disabled 1:enabled.] \n\t" + \
-    "[-p,--npus <npus used for one node>] \n\t"
+                   "[-e,--maxbytes <max size in bytes>] \n\t" + \
+                   "[-i,--stepbytes <increment size>] \n\t" + \
+                   "[-f,--stepfactor <increment factor>] \n\t" + \
+                   "[-n,--iters <iteration count>] \n\t" + \
+                   "[-o,--op <sum/prod/min/max>] \n\t" + \
+                   "[-d,--datatype <int8/int16/int/fp16/fp32/int64/uint64/uint8/uint16/uint32/fp64/bfp16>] \n\t" + \
+                   "[-r,--root <root>] \n\t" + \
+                   "[-w,--warmup_iters <warmup iteration count>] \n\t" + \
+                   "[-c,--check <result verification> 0:disabled 1:enabled.] \n\t" + \
+                   "[-p,--npus <npus used for one node>] \n\t"

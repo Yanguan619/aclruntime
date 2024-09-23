@@ -16,6 +16,7 @@ from ais_bench.net_test.security.file_stat import FileStat
 from ais_bench.net_test.security.standard_consts import PermForbid, PermNeed, FileSizeLimite
 from ais_bench.net_test.common.logger import logger
 
+
 class FileChecker:
     def __init__(self, file: str):
         self.file_stat = FileStat(file)
@@ -50,7 +51,7 @@ class FileChecker:
         '''
         return self.file_stat.is_exists
 
-    def is_not_softlink(self): # only linux
+    def is_not_softlink(self):  # only linux
         '''
         校验路径是否不是软链接。
         Paramters:
@@ -61,10 +62,10 @@ class FileChecker:
         return not self.file_stat.is_softlink
 
     def is_permission_legal(
-        self,
-        perm_need=PermNeed.READ_FILE,
-        perm_forbid=PermForbid.USER_MAIN_DIR,
-    ): # only linux
+            self,
+            perm_need=PermNeed.READ_FILE,
+            perm_forbid=PermForbid.USER_MAIN_DIR,
+    ):  # only linux
         '''
         路径权限是否合法。
         Paramters:
@@ -80,16 +81,16 @@ class FileChecker:
             return False
         return True
 
-    def is_user_and_group_owner(self): # only linux
+    def is_user_and_group_owner(self):  # only linux
         return self.file_stat.is_owner and self.file_stat.is_group_owner
 
-    def is_user_or_group_owner(self): # only linux
+    def is_user_or_group_owner(self):  # only linux
         return self.file_stat.is_owner or self.file_stat.is_group_owner
 
     def is_size_legal(self, max_size: int = FileSizeLimite.UNLIMITE):
         if max_size == FileSizeLimite.UNLIMITE:
             return True
-        if self.file_stat.is_dir: # 文件夹不校验
+        if self.file_stat.is_dir:  # 文件夹不校验
             return True
         if self.file_stat.file_size > max_size:
             return False
@@ -101,7 +102,7 @@ class FileChecker:
         '''
         if not legal_suffixs:
             return True
-        if self.file_stat.is_dir: # 文件夹不校验
+        if self.file_stat.is_dir:  # 文件夹不校验
             return True
 
         cur_suffix = self.file_stat.suffix
@@ -112,12 +113,12 @@ class FileChecker:
 
 
 def check_linux_writable_file(
-    file: str,
-    max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
-    perm_forbid=PermForbid.USER_MAIN_DIR,
-    perm_need=PermNeed.WRITE_FILE,
-    legal_suffixs=[""],
-    need_exists=False,
+        file: str,
+        max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
+        perm_forbid=PermForbid.USER_MAIN_DIR,
+        perm_need=PermNeed.WRITE_FILE,
+        legal_suffixs=[""],
+        need_exists=False,
 ):
     file_checker = FileChecker(file)
     if not file_checker.is_exists():
@@ -145,11 +146,11 @@ def check_linux_writable_file(
 
 
 def check_linux_readable_file(
-    file: str,
-    max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
-    perm_forbid=PermForbid.USER_MAIN_DIR,
-    perm_need=PermNeed.READ_FILE,
-    legal_suffixs=[""],
+        file: str,
+        max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
+        perm_forbid=PermForbid.USER_MAIN_DIR,
+        perm_need=PermNeed.READ_FILE,
+        legal_suffixs=[""],
 ):
     file_checker = FileChecker(file)
     if not file_checker.is_exists():
@@ -177,11 +178,11 @@ def check_linux_readable_file(
 
 
 def check_linux_executable_file(
-    file: str,
-    max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
-    perm_forbid=PermForbid.USER_MAIN_DIR,
-    perm_need=PermNeed.EXEC_FILE,
-    legal_suffixs=[""],
+        file: str,
+        max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
+        perm_forbid=PermForbid.USER_MAIN_DIR,
+        perm_need=PermNeed.EXEC_FILE,
+        legal_suffixs=[""],
 ):
     file_checker = FileChecker(file)
     if not file_checker.is_exists():
@@ -209,10 +210,10 @@ def check_linux_executable_file(
 
 
 def check_linux_writable_dir(
-    file: str,
-    perm_forbid=PermForbid.USER_MAIN_DIR,
-    perm_need=PermNeed.WRITE_FILE,
-    need_exists=False,
+        file: str,
+        perm_forbid=PermForbid.USER_MAIN_DIR,
+        perm_need=PermNeed.WRITE_FILE,
+        need_exists=False,
 ):
     file_checker = FileChecker(file)
     if not file_checker.is_exists():
@@ -234,9 +235,9 @@ def check_linux_writable_dir(
 
 
 def check_linux_readable_dir(
-    file: str,
-    perm_forbid=PermForbid.USER_MAIN_DIR,
-    perm_need=PermNeed.READ_FILE,
+        file: str,
+        perm_forbid=PermForbid.USER_MAIN_DIR,
+        perm_need=PermNeed.READ_FILE,
 ):
     file_checker = FileChecker(file)
     if not file_checker.is_exists():
@@ -258,9 +259,9 @@ def check_linux_readable_dir(
 
 
 def check_linux_executable_dir(
-    file: str,
-    perm_forbid=PermForbid.USER_MAIN_DIR,
-    perm_need=PermNeed.EXEC_FILE,
+        file: str,
+        perm_forbid=PermForbid.USER_MAIN_DIR,
+        perm_need=PermNeed.EXEC_FILE,
 ):
     file_checker = FileChecker(file)
     if not file_checker.is_exists():
@@ -282,10 +283,10 @@ def check_linux_executable_dir(
 
 
 def check_win_file(
-    file: str,
-    max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
-    legal_suffixs=[""],
-    need_exists=False,
+        file: str,
+        max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
+        legal_suffixs=[""],
+        need_exists=False,
 ):
     file_checker = FileChecker(file)
     if not file_checker.is_exists():
@@ -304,8 +305,8 @@ def check_win_file(
 
 
 def check_win_dir(
-    file: str,
-    need_exists=False,
+        file: str,
+        need_exists=False,
 ):
     file_checker = FileChecker(file)
     if not file_checker.is_exists():

@@ -16,7 +16,7 @@ import os
 import re
 from ais_bench.net_test.security.utils import get_platform
 from ais_bench.net_test.security.standard_consts import (PlatformSupport, PathLengthLimit, StrWhitePattern,
-    StrBlackPattern, CommandBlackList)
+                                                         StrBlackPattern, CommandBlackList)
 
 
 class StringChecker:

@@ -29,7 +29,7 @@ def is_disk_space_enough(path, need_size):
 
 def is_memory_enough(need_size):
     available_memory = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_AVPHYS_PAGES')
-    return  available_memory >= need_size
+    return available_memory >= need_size
 
 
 def is_zip_boom(zip_file, max_size=0):

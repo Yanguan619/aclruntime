@@ -35,7 +35,7 @@ class REMOTE_NODE_INFO_NAME:
 
 class INT_LIMIT:
     PORT_MAX = 65535  # linux端口最大取值限制
-    UINT64_MAX = (2 << 6) - 1
+    UINT64_MAX = (1 << 64) - 1
 
 
 class LENGTH_LIMIT:
@@ -51,7 +51,7 @@ class LENGTH_LIMIT:
 class STRING_PATTERN:
     LEGAL_IPV4_PATTERN = r'^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
     GET_DEVICE_COUNT_PER_NPU_PATTERN = r'Chip Count\s*:\s*(\d+)'
-    LEGAL_LINUX_USERNAME_PATTERN = r'^[a-zA-Z_][a-zA-Z0-9_-]*[a-zA-Z0-9_]+$'
+    LEGAL_LINUX_USERNAME_PATTERN = r'^[a-zA-Z_]([a-zA-Z0-9_-]*[a-zA-Z0-9_]+)*$'
     LEGAL_BYTES_FORMAT_PATTERN = r'^[0-9]{1,30}(k|m|g|K|M|G)$'
 
 

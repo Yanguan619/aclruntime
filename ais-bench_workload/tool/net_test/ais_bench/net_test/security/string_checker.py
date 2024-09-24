@@ -32,7 +32,7 @@ class StringChecker:
             bool (True:路径规范, False:路径不规范)
         '''
         if get_platform() == PlatformSupport.LINUX:
-            return self._is_legal_path_linux
+            return self._is_legal_path_linux()  # todo, 有错误bug
         if get_platform() == PlatformSupport.WINDOWS:
             raise RuntimeError('Not supported for windows yet!')
         return False

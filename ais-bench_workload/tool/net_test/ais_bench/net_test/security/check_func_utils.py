@@ -24,13 +24,13 @@ from ais_bench.net_test.security.standard_consts import FileSizeLimite, PermForb
 
 def check_str_length(s: str, MIN_LEN: int = 0, MAX_LEN: int = LENGTH_LIMIT.MAX_UINT64_STR_LENGTH):
     if len(s) < MIN_LEN or len(s) > MAX_LEN:
-        raise ValueError('The length of string:{} is not between [{}, {}]'.format(s, MIN_LEN, MAX_LEN))
+        raise ValueError('The length of input string is not between [{}, {}]'.format(MIN_LEN, MAX_LEN))
 
 
 def check_int_string(x: str, X_MIN: int = 0, X_MAX: int = INT_LIMIT.UINT64_MAX):
     check_str_length(x, MIN_LEN=1, MAX_LEN=LENGTH_LIMIT.MAX_UINT64_STR_LENGTH)
     if not x.isdigit():
-        raise ValueError(f"{x} is an invalid positive int value")
+        raise ValueError(f"Input x is an invalid positive int value")
 
     x_int = int(x)
     if x_int < X_MIN or x_int > X_MAX:
@@ -54,21 +54,21 @@ def is_regex_fullmatch(string: str, pattern: str):
 
 def check_ipv4_string(value: str):
     if len(value) > LENGTH_LIMIT.MAX_IPV4_LENGTH:
-        raise (
+        raise ValueError(
             f"The length of ipv4_string is over MAX_IPV4_LENGTH {LENGTH_LIMIT.MAX_IPV4_LENGTH}!"
         )
     if not is_regex_fullmatch(value, STRING_PATTERN.LEGAL_IPV4_PATTERN):
-        raise ValueError(f"The format of ipv4_string:{value} is illegal!")
+        raise ValueError("The format of ipv4_string is illegal!")
     return value
 
 
 def check_bytes_format(value: str):
     if len(value) > LENGTH_LIMIT.MAX_BYTES_STR_LENGTH:
-        raise (
+        raise ValueError(
             f"The length of bytes_string is over MAX_BYTES_STR_LENGTH {LENGTH_LIMIT.MAX_BYTES_STR_LENGTH}!"
         )
     if not is_regex_fullmatch(value, STRING_PATTERN.LEGAL_BYTES_FORMAT_PATTERN):
-        raise ValueError(f"The format of bytes_string:{value} is illegal!")
+        raise ValueError("The format of bytes_string is illegal!")
 
     value_int = value[:-1]
     check_positive_int_string(value_int)
@@ -78,9 +78,9 @@ def check_bytes_format(value: str):
 def check_linux_username(value: str):
     if len(value) > LENGTH_LIMIT.MAX_LINUX_USERNAME_LENGTH or len(value) <= 0:
         raise ValueError(
-            'username: {} length must be in the range [1, {}]!'.format(value, LENGTH_LIMIT.MAX_LINUX_USERNAME_LENGTH))
+            'The linux username length must be in the range [1, {}]!'.format(LENGTH_LIMIT.MAX_LINUX_USERNAME_LENGTH))
     if not is_regex_fullmatch(value, STRING_PATTERN.LEGAL_LINUX_USERNAME_PATTERN):
-        raise ValueError('username: {} is not valid!'.format(value))
+        raise ValueError('The linux username format is not valid!'.format(value))
     return value
 
 
@@ -98,7 +98,8 @@ def transform_hostfile_line(line: str):
     info_list[1] = int(info_list[1])  # device_count,
     info_list[2] = info_list[2] if info_list[2] else "root"  # user, default is root
     check_linux_username(info_list[2])
-    info_list[3] = check_positive_int_string(info_list[3]) if info_list[3] else 22  # port, default is 22
+    # port, default is 22
+    info_list[3] = check_int_string(info_list[3], X_MIN=1, X_MAX=INT_LIMIT.PORT_MAX) if info_list[3] else 22
     return tuple(info_list)
 
 

@@ -31,7 +31,7 @@ def is_memory_enough(need_size):
     return available_memory >= need_size
 
 
-def is_zip_boom(zip_file, max_size=0):
+def is_zip_boom(zip_file, max_size=0):  # todo, 未使用
     file_name, total_size = _get_zip_basic_info(zip_file)
     file_size = os.stat(file_name).st_size
     max_decompressed_size = file_size * ZIP_DECOMPRESSED_RATIO_LIMIT

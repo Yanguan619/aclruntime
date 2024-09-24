@@ -21,7 +21,7 @@ class FileChecker:
     def __init__(self, file: str):
         self.file_stat = FileStat(file)
 
-    def is_file(self):
+    def is_file(self):  # todo, 是否需要加上@property, 感觉和file_stat不统一
         '''
         校验路径是否是文件。
         Paramters:

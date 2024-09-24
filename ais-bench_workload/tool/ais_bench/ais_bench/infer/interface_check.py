@@ -80,6 +80,8 @@ def check_in_out_list(in_out_list, inputs, outputs):
             raise IndexError(f"in_out_list[{in_out_list}] out of range, length range is (-1, {len(outputs)})")
 
 def check_custom_size(value, mode):
+    if mode not in ["static", "dymbatch", "dymhw", "dymdims", "dymshape"]:
+        raise ValueError(f"{mode} is illegal, Please check.")
     if mode in ["static", "dymbatch", "dymhw", "dymdims"] and value == None:
         return
     if mode == "dymshape" and value == None:

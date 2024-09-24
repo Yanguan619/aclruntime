@@ -588,7 +588,7 @@ Result ModelProcess::PrintDesc()
     if (dynamicHW.hwCount != 0) {
         DEBUG_LOG("DynamicHW:");
         for (size_t i = 0; i < dynamicHW.hwCount; i++) {
-            PROMPT_MSG("%d,%d ", dynamicHW.hw[i][0], dynamicHW.hw[i][1]);
+            PROMPT_MSG("%ld,%ld ", dynamicHW.hw[i][0], dynamicHW.hw[i][1]);
         }
         PROMPT_MSG("\n");
     }

@@ -44,14 +44,14 @@ void SETLOGLEVEL(int level);
 
 
 #define DEBUG_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_DEBUG_LEVEL) \
-    { fprintf(stdout, "[DEBUG] " fmt "\n", ##args); } } while (0)
+    { printf("[DEBUG] " fmt "\n", ##args); } } while (0)
 #define INFO_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_INFO_LEVEL) \
-    { fprintf(stdout, "[INFO] " fmt "\n", ##args); } } while (0)
+    { printf("[INFO] " fmt "\n", ##args); } } while (0)
 #define WARN_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_WARNING_LEVEL) \
-    { fprintf(stdout, "[WARN] " fmt "\n", ##args); } } while (0)
+    { printf("[WARN] " fmt "\n", ##args); } } while (0)
 #define ERROR_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_ERROR_LEVEL) \
-    { fprintf(stdout, "[ERROR] " fmt "\n", ##args); } } while (0)
-#define ACLERR_LOG(ErrMsg) fprintf(stdout, "[ACL ERROR] %s\n", ErrMsg)
-#define PROMPT_MSG(fmt, args...) fprintf(stdout, fmt, ##args)
+    { printf("[ERROR] " fmt "\n", ##args); } } while (0)
+#define ACLERR_LOG(ErrMsg) printf("[ACL ERROR] %s\n", ErrMsg)
+#define PROMPT_MSG(fmt, args...) printf(fmt, ##args)
 
 #endif  // CORE_LOG_H

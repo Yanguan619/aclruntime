@@ -348,7 +348,7 @@ APP_ERROR TensorBase::CheckBatchTensors(const std::vector<TensorBase> &inputs, c
 {
     auto checkFunc = [checkFirstDim] (const TensorBase &t1, const TensorBase &t2) {
         if (t1.GetShape().size() != t2.GetShape().size()) {
-            ERROR_LOG("dimension is not match (%d) vs (%d)", t1.GetShape().size(), t2.GetShape().size());
+            ERROR_LOG("dimension is not match (%ld) vs (%ld)", t1.GetShape().size(), t2.GetShape().size());
             return false;
         }
         if (t1.GetDeviceId() != t2.GetDeviceId()) {
@@ -378,7 +378,7 @@ APP_ERROR TensorBase::CheckBatchTensors(const std::vector<TensorBase> &inputs, c
                 shapeStr1[shapeStr1.size() - 1] = ')';
                 shapeStr2[shapeStr2.size() - 1] = ')';
             }
-            ERROR_LOG("tensor shape is not match %s vs %s", shapeStr1, shapeStr2);
+            ERROR_LOG("tensor shape is not match %s vs %s", shapeStr1.c_str(), shapeStr2.c_str());
             return false;
         }
         return true;
@@ -395,7 +395,7 @@ APP_ERROR TensorBase::BatchConcat(const std::vector<TensorBase> &inputs, TensorB
 {
     // check input size
     if (inputs.size() == 0) {
-        ERROR_LOG("input size(%s)", std::to_string(inputs.size()));
+        ERROR_LOG("input size(%zu)", inputs.size());
         return APP_ERR_COMM_INVALID_PARAM;
     }
     // check
@@ -440,7 +440,7 @@ APP_ERROR TensorBase::BatchStack(const std::vector<TensorBase> &inputs, TensorBa
 {
     // check
     if (inputs.size() == 0) {
-        ERROR_LOG("input size(%s)", std::to_string(inputs.size()));
+        ERROR_LOG("input size(%zu)", inputs.size());
         return APP_ERR_COMM_INVALID_PARAM;
     }
     // check shape and device

@@ -74,7 +74,7 @@ APP_ERROR DeviceManager::InitDevices(std::string configFilePath)
         initCounter_ = 0;
         aclFinalize();
         ACLERR_LOG(aclGetRecentErrMsg());
-        ERROR_LOG("Failed to get all devices count: %s.", GetAppErrCodeInfo(ret));
+        ERROR_LOG("Failed to get all devices count: %s.", GetAppErrCodeInfo(ret).c_str());
         return ret;
     }
     return APP_ERR_OK;

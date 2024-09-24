@@ -24,7 +24,7 @@ APP_ERROR TensorBuffer::SetContext() const
     if (IsDevice()) {
         APP_ERROR ret = TensorContext::GetInstance()->SetContext(deviceId, contextIndex);
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("set context failed. ret=%s", ret);
+            ERROR_LOG("set context failed. ret=%d", ret);
             return ret;
         }
     }
@@ -36,7 +36,7 @@ APP_ERROR TensorBuffer::TensorBufferMalloc(TensorBuffer &buffer)
     // SetContext
     APP_ERROR ret = buffer.SetContext();
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("set context failed. ret=%s", ret);
+        ERROR_LOG("set context failed. ret=%d", ret);
         return ret;
     }
 
@@ -44,7 +44,7 @@ APP_ERROR TensorBuffer::TensorBufferMalloc(TensorBuffer &buffer)
     Base::MemoryData memorydata(buffer.size, buffer.type, buffer.deviceId);
     ret = MemoryHelper::MxbsMalloc(memorydata);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("memory data malloc failed. ret=%s", ret);
+        ERROR_LOG("memory data malloc failed. ret=%d", ret);
         return ret;
     }
     const TensorBuffer buf = buffer;
@@ -60,7 +60,7 @@ APP_ERROR TensorBuffer::TensorBufferMalloc(TensorBuffer &buffer)
 APP_ERROR TensorBuffer::CheckCopyValid(const TensorBuffer &buffer1, const TensorBuffer &buffer2)
 {
     if (buffer1.size != buffer2.size) {
-        ERROR_LOG("param1 data size(%d) not match to param2 size(%d)", buffer1.size, buffer2.size);
+        ERROR_LOG("param1 data size(%ld) not match to param2 size(%ld)", buffer1.size, buffer2.size);
         return APP_ERR_COMM_INVALID_PARAM;
     }
 

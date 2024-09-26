@@ -244,6 +244,10 @@ Result ModelProcess::SetDynamicShape(
     aclError ret;
     const char *name;
     size_t  input_num = dym_shape_map.size();
+    if (dims_num.size() != input_num) {
+        ERROR_LOG("dims num size: %zu not equal to input num %zu", dims_num.size(), input_num);
+        return FAILED;
+    }
     aclTensorDesc *inputDesc;
     for (size_t i = 0; i < input_num; i++) {
         name = aclmdlGetInputNameByIndex(modelDesc_, i);

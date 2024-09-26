@@ -137,10 +137,16 @@ namespace Base {
         for (const auto &desc: session->GetInputs()) {
             inputNames.emplace_back(desc.name);
         }
+        if (inputsList.size() != shapesList.size()) {
+            throw std::runtime_error("input list len not equal to shapes list len");
+        }
         for (size_t i = 0; i < inputsList.size(); i++) {
             auto feeds = std::make_shared<Feeds>();
             feeds->inputs = std::make_shared<std::vector<Base::BaseTensor>>(inputsList[i]);
             feeds->outputNames = std::make_shared<std::vector<std::string>>(outputNames);
+            if (inputNames.size() != shapesList[i].size()) {
+                throw std::runtime_error("input name count not equal to shapes count");
+            }
             for (size_t j = 0; j < inputNames.size(); j++) {
                 if (autoDymShape) {
                     AutoSetDym(feeds, "shape", inputNames[j], shapesList[i][j], j == (inputNames.size() - 1));

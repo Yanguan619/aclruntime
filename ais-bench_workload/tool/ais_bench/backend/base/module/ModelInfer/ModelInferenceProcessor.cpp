@@ -217,6 +217,11 @@ APP_ERROR ModelInferenceProcessor::CheckInVectorAndFillBaseTensor(
     std::vector<BaseTensor> &inputs
 )
 {
+    if (feeds.size() != modelDesc_.inTensorsDesc.size()) {
+        ERROR_LOG("feeds size: %zu not equal to model tensor desc size: %zu",
+            feeds.size(), modelDesc_.inTensorsDesc.size());
+        return APP_ERR_ACL_RT_FAILURE;
+    }
     for (size_t i = 0; i < feeds.size(); ++i) {
         BaseTensor baseTensor = {};
         baseTensor.buf = feeds[i].buf;

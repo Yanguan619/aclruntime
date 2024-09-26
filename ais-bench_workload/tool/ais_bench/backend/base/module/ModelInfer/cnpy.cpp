@@ -146,6 +146,10 @@ void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape
     std::smatch sm;
     shape.clear();
 
+    if ( loc2 <= loc1) {
+        throw std::runtime_error("')' is not bebind '(' in npy file header");
+    }
+
     std::string strShape = header.substr(loc1 + 1, loc2 - loc1 - 1);
     while (std::regex_search(strShape, sm, numRegex)) {
         shape.push_back(std::stoi(sm[0].str()));

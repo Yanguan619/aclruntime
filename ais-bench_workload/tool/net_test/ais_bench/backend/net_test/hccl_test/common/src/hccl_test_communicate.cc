@@ -24,33 +24,33 @@ HcclCommunicater::~HcclCommunicater()
 
 int HcclCommunicater::SynchronizeRootInfo(
     void *dataBuffer,
-    const size_t dataLen
+    const size_t bufferSize
 )
 {
     if (m_rankID == m_rootRank) {
-        return ServerBcast(dataBuffer, dataLen);
+        return ServerBcast(dataBuffer, bufferSize);
     } else {
-        return ClientRecv(dataBuffer, dataLen);
+        return ClientRecv(dataBuffer, bufferSize);
     }
 }
 
 int HcclCommunicater::AllGatherInfoToRoot(
     void *dataList,
     void *dataBuffer,
-    const size_t dataLen,
+    const size_t bufferSize,
     const size_t listLen
 )
 {
     if (m_rankID == m_rootRank) {
-        return ServerGather(dataList, dataBuffer, dataLen, listLen);
+        return ServerGather(dataList, dataBuffer, bufferSize, listLen);
     } else {
-        return ClientBcast(dataBuffer, dataLen); // databuffer 暂时未知
+        return ClientBcast(dataBuffer, bufferSize); // databuffer 暂时未知
     }
 }
 
 int HcclCommunicater::ServerBcast(
     void *dataBuffer,
-    const size_t dataLen
+    const size_t bufferSize
 )
 {
     ServerPreset();
@@ -75,7 +75,7 @@ int HcclCommunicater::ServerBcast(
         }
         DEBUG("rank: %d, Client connected from %s", m_rankID, inet_ntoa(clientAddr.sin_addr));
         for (int i = 0; i < RETRY_COUNT; i++) {
-            if (send(clientSkt, static_cast<char*>(dataBuffer), dataLen, 0) <= 0) {continue;}
+            if (send(clientSkt, static_cast<char*>(dataBuffer), bufferSize, 0) <= 0) {continue;}
             DEBUG("server rank: %d, send rootInfo to client success!", m_rankID);
             if (recv(clientSkt, &clientRank, sizeof(int), 0) <= 0) {continue;}
             DEBUG("server rank: %d recv rank: %d from client success!", m_rankID, clientRank);
@@ -96,7 +96,7 @@ int HcclCommunicater::ServerBcast(
 
 int HcclCommunicater::ClientRecv(
     void *dataBuffer,
-    const size_t dataLen
+    const size_t bufferSize
 )
 {
     ClientPreset();
@@ -115,7 +115,7 @@ int HcclCommunicater::ClientRecv(
         }
         DEBUG("rank: %d, Client Recv connect server success! ", m_rankID);
         for (int j = 0; j < RETRY_COUNT; j++) {
-            if (recv(m_clientSkt, static_cast<char*>(dataBuffer), dataLen, 0) <= 0) {continue;}
+            if (recv(m_clientSkt, static_cast<char*>(dataBuffer), bufferSize, 0) <= 0) {continue;}
             DEBUG("rank: %d, recv from rootInfo from server success! ", m_rankID);
             if (send(m_clientSkt, &m_rankID, sizeof(int), 0) <= 0) {continue;}
             DEBUG("rank: %d, reply rank to server success! ", m_rankID);
@@ -132,7 +132,7 @@ int HcclCommunicater::ClientRecv(
 int HcclCommunicater::ServerGather(
     void *dataList,
     void *dataBuffer,
-    const size_t dataLen,
+    const size_t bufferSize,
     const size_t listLen
 )
 {
@@ -142,8 +142,8 @@ int HcclCommunicater::ServerGather(
     int tryConnectCount = 0;
     int clientRank = -1;
     char* singleData = nullptr;
-    singleData = static_cast<char*>(malloc(dataLen * sizeof(char)));
-    memcpy(static_cast<char*>(dataList), static_cast<char*>(dataBuffer), dataLen); // copy root rank data
+    singleData = static_cast<char*>(malloc(bufferSize * sizeof(char)));
+    memcpy(static_cast<char*>(dataList), static_cast<char*>(dataBuffer), bufferSize); // copy root rank data
     while (connectedClientCount < m_rankSize - 1) {
         tryConnectCount++;
         if (tryConnectCount >= m_rankSize * RETRY_TIMES) {
@@ -168,13 +168,13 @@ int HcclCommunicater::ServerGather(
         }
         DEBUG("server recv client rank: %d success!", m_rankID);
         for (int i = 0; i < RETRY_COUNT; i++) {
-            if (recv(clientSkt, singleData, dataLen, 0) <= 0) {continue;}
+            if (recv(clientSkt, singleData, bufferSize, 0) <= 0) {continue;}
             DEBUG("server recv data from rank: %d success!", m_rankID);
             break;
         }
         if (send(clientSkt, &clientRank, sizeof(int), 0) <= 0) {continue;}
         DEBUG("server reply rank %d to client success!", clientRank);
-        memcpy(static_cast<char*>(dataList) + clientRank * dataLen, singleData, dataLen);
+        memcpy(static_cast<char*>(dataList) + clientRank * bufferSize, singleData, bufferSize);
         ++connectedClientCount;
         close(clientSkt);
     }
@@ -186,7 +186,7 @@ int HcclCommunicater::ServerGather(
 
 int HcclCommunicater::ClientBcast(
     void *dataBuffer,
-    const size_t dataLen
+    const size_t bufferSize
 )
 {
     ClientPreset();
@@ -209,7 +209,7 @@ int HcclCommunicater::ClientBcast(
         }
         if (send(m_clientSkt, &m_rankID, sizeof(int), 0) <= 0) {continue;}
         DEBUG("rank: %d, client send rank info success! ", m_rankID);
-        if (send(m_clientSkt, static_cast<char*>(dataBuffer), dataLen, 0) <= 0) {continue;}
+        if (send(m_clientSkt, static_cast<char*>(dataBuffer), bufferSize, 0) <= 0) {continue;}
         DEBUG("rank: %d, client send data success! ", m_rankID);
         for (int i = 0; i < RETRY_COUNT; i++) {
             if (recv(m_clientSkt, &retInfo, sizeof(int), 0) <= 0) {continue;}

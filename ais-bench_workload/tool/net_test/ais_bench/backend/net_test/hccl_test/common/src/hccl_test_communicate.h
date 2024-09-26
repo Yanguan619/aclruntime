@@ -37,37 +37,37 @@ public:
 
     int SynchronizeRootInfo(
         void *dataBuffer,
-        const size_t dataLen
+        const size_t bufferSize
     );
 
     int AllGatherInfoToRoot(
         void *dataList,
         void *dataBuffer,
-        const size_t dataLen,
+        const size_t bufferSize,
         const size_t listLen
     );
 
 private:
     int ServerBcast(
         void *dataBuffer,
-        const size_t dataLen
+        const size_t bufferSize
     );
 
     int ClientRecv(
         void *dataBuffer,
-        const size_t dataLen
+        const size_t bufferSize
     );
 
     int ServerGather(
         void *dataList,
         void *dataBuffer,
-        const size_t dataLen,
+        const size_t bufferSize,
         const size_t listLen
     );
 
     int ClientBcast(
         void *dataBuffer,
-        const size_t dataLen
+        const size_t bufferSize
     );
 
     bool ServerPreset();

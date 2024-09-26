@@ -472,7 +472,10 @@ session.set_dynamic_shape(dyshapes)
 |--------|--------|--------|
 |dymshape|string|表示输入的shape信息，可设定输入的shape|
 
-shape格式样例（不同shape间使用`;`分割；一个shape中name和shape使用`:`分割；shape的具体大小之间使用`,`分割）：inputs1:1,3,32,32;inputs2:4,3,32,32
+shape格式样例：
+
+- 单输入：inputs1:1,3,32,32
+- 多输入：inputs1:1,3,32,32;inputs2:4,3,32,32
 
 **输出说明**
 

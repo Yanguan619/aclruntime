@@ -186,6 +186,10 @@ APP_ERROR ModelInferenceProcessor::AddOutTensors(
         std::vector<int64_t> i64shape;
         std::vector<uint32_t> u32shape;
         realLen = processModel->GetOutTensorLen(index, is_dymshape);
+        if (index >= modelDesc_.outTensorsDesc.size() || index >= outputs.size()) {
+            ERROR_LOG("index: %zu of output name: %s should be smaller than outputs size!", index, name.c_str());
+            return APP_ERR_ACL_RT_FAILURE;
+        }
         if (processModel->GetCurOutputShape(index, is_dymshape, i64shape) != SUCCESS) {
             // 针对于动态shape场景 如果无法获取真实的输出shape 先填写一个一维的值 以便后续内存可以导出
             auto tmpDataType = static_cast<aclDataType>(modelDesc_.outTensorsDesc[index].datatype);

@@ -91,6 +91,10 @@ void cnpy::ParseNpyHeader(unsigned char *buffer, size_t &wordSize, std::vector<s
     loc1 = header.find("(");
     loc2 = header.find(")");
 
+    if ( loc2 <= loc1) {
+        throw std::runtime_error("')' is not bebind '(' in npy file header");
+    }
+
     std::regex numRegex("[0-9][0-9]*");
     std::smatch sm;
     shape.clear();

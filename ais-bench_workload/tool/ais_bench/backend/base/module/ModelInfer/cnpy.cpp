@@ -123,6 +123,9 @@ void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape
         throw std::runtime_error("ParseNpyHeader: failed fread");
     }
     std::string header = fgets(buffer, 256, fp);
+    if (header.size() == 0) {
+        throw std::runtime_error("npy header is empty");
+    }
     if (header[header.size() - 1] != '\n') {
         throw std::runtime_error("ParseNpyHeader: the ending of header should be \n.");
     }

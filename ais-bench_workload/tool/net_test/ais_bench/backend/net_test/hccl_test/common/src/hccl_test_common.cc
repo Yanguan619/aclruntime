@@ -244,7 +244,7 @@ int HcclTest::check_data_count()
     data->max_bytes = (u64)data_parsed_end;
 
     if (stepbytes_flag != 0 && temp_step_bytes < 0) {
-        ERROR("Error: [-i,--stepbytes] must be greater than or equal to 0.");
+        ERROR("[-i,--stepbytes] must be greater than or equal to 0.");
         return -1;
     }
 
@@ -287,64 +287,64 @@ int HcclTest::check_cmd_line()
 
     if (dtype == -1)
     {
-        ERROR("Error: [-d,--datatype] is invalid, Use [-h,--help] to check the correct input parameter.\n");
+        ERROR("[-d,--datatype] is invalid, Use [-h,--help] to check the correct input parameter.\n");
         return -1;
     }
 
     if (op_type == -1)
     {
-        ERROR("Error: [-o,--op] is invalid, Use [-h,--help] to check the correct input parameter.");
+        ERROR("[-o,--op] is invalid, Use [-h,--help] to check the correct input parameter.");
         return -1;
     }
 
     if (warmup_iters < 0) {
-        ERROR("Error: [-w,--warmup_iters] is invalid, warmup_iters must be greater than or equal to 0.");
+        ERROR("[-w,--warmup_iters] is invalid, warmup_iters must be greater than or equal to 0.");
         return -1;
     }
 
     if (iters < 0) {
-        ERROR("Error: [-n,--iters] is invalid, iters must be greater than or equal to 0.");
+        ERROR("[-n,--iters] is invalid, iters must be greater than or equal to 0.");
         return -1;
     }
 
     if (hccl_root >= rank_size || hccl_root < 0) //如果指定的root rank大于等于rank_size
     {
-        ERROR("Error: [-r,--root <root>] is invalid, root rank must be greater than or equal to 0 and less than or equal to %d.", rank_size - 1);
+        ERROR("[-r,--root <root>] is invalid, root rank must be greater than or equal to 0 and less than or equal to %d.", rank_size - 1);
         return -1;
     }
 
     if (check != 1 && check != 0)
     {
-        ERROR("Error: [-c,--check] is invalid, check should be 0 or 1");
+        ERROR("[-c,--check] is invalid, check should be 0 or 1");
         return -1;
     }
 
     if (dev_count == 0)
     {
-        ERROR("Error: The number of device is 0.Check whether the package is correct.");
+        ERROR("The number of device is 0.Check whether the package is correct.");
         return -1;
     }
 
     if (npus < 1 || npus > dev_count)
     {
-        ERROR("Error: [-p,--npus <npus used for one node>] is invalid, npus must be greater than or equal to 1 and less than or equal to %d.", dev_count);
+        ERROR("[-p,--npus <npus used for one node>] is invalid, npus must be greater than or equal to 1 and less than or equal to %d.", dev_count);
         return -1;
     }
 
     #ifndef MPI_SUPPORT
     if (server_ip == "")
     {
-        ERROR("Error: [-a,--server_ip <ip of root rank>] is invalid.");
+        ERROR("[-a,--server_ip <ip of root rank>] is invalid.");
         return -1;
     }
     if (server_port == -1)
     {
-        ERROR("Error: [-a,--server_port <port of root rank>] is invalid.");
+        ERROR("[-a,--server_port <port of root rank>] is invalid.");
         return -1;
     }
     if (rank_id >= rank_size)
     {
-        ERROR("Error: rank_id shouldn't be larger than rank_size.");
+        ERROR("rank_id shouldn't be larger than rank_size.");
         return -1;
     }
     #endif

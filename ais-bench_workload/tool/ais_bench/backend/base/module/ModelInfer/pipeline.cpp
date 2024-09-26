@@ -56,6 +56,12 @@ namespace Base {
         std::shared_ptr<Feeds> &feeds, bool autoDymShape,
         bool autoDymDims, const bool pure_infer, std::vector<std::string> &inputNames)
     {
+        if (files.size() != inputNames.size()) {
+            throw std::runtime_error("files not equal to input names count while prepare input data in pipeline.");
+        }
+        if (files.size() != session->GetInputs().size()) {
+            throw std::runtime_error("files not equal to model inputs count while prepare input data in pipeline.");
+        }
         for (size_t i = 0; i < files.size(); i++) {
             if (pure_infer) {
                 auto array = std::make_shared<cnpy::NpyArray>(CreatePureInferArray(files[i], session->GetInputs()[i]));

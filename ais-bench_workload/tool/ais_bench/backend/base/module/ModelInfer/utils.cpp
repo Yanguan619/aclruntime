@@ -87,6 +87,9 @@ std::string Utils::modelName(string& s)
         position1 = position1 + 1;
     }
     position2 = s.find_last_of(".");
+    if (position1 > position2) {
+        throw std::runtime_error("illegal model name string.");
+    }
     std::string modelName = s.substr(position1, position2 - position1);
     return modelName;
 }

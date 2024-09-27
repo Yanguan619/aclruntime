@@ -105,5 +105,5 @@ bool StringChecker::Endswith(const std::string &text, const std::string word)
         ERROR_LOG("word length longer than text");
         return false;
     }
-    return (text.compare(text.size() - 5, 5, word) == 0);
+    return (text.compare(text.size() - word.size(), word.size(), word) == 0);
 }

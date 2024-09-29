@@ -1345,6 +1345,11 @@ Result ModelProcess::GetAIPPIndexList(std::vector<size_t> &dataNeedDynamicAipp)
     const char *inputName = nullptr;
     for (size_t index = 0; index < aclmdlGetNumInputs(modelDesc_); ++index) {
         inputName = aclmdlGetInputNameByIndex(modelDesc_, index);
+        if (inputName == nullptr) {
+            ACLERR_LOG(aclGetRecentErrMsg());
+            ERROR_LOG("get input name by index failed");
+            return FAILED;
+        }
         std::string inputName_str = inputName;
         int ret_cmp = inputName_str.compare(ACL_DYNAMIC_AIPP_NAME);
         if (ret_cmp == 0) {

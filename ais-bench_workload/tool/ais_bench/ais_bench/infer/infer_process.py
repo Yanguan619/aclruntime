@@ -161,6 +161,8 @@ def set_dymdims_shape(session, inputs):
 def warmup(session, args, intensors_desc, infiles):
     # prepare input data
     infeeds = []
+    if len(infiles) != len(intensors_desc):
+        raise ValueError(f"input files count{infiles} is not equal to model input tensors count{intensors_desc}")
     for j, files in enumerate(infiles):
         if args.run_mode == "tensor":
             tensor = get_tensor_from_files_list(files, session, intensors_desc[j].realsize,

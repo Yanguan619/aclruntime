@@ -129,6 +129,8 @@ def init_inference_session(args, acl_json_path):
 def set_dymshape_shape(session, inputs):
     shape_list = []
     intensors_desc = session.get_inputs()
+    if len(inputs) != len(intensors_desc):
+        raise ValueError(f"input datas count{inputs} is not equal to model input tensors count{intensors_desc}")
     for i, input_ in enumerate(inputs):
         str_shape = [str(shape) for shape in input_.shape]
         shapes = ",".join(str_shape)
@@ -143,6 +145,8 @@ def set_dymshape_shape(session, inputs):
 def set_dymdims_shape(session, inputs):
     shape_list = []
     intensors_desc = session.get_inputs()
+    if len(inputs) != len(intensors_desc):
+        raise ValueError(f"input datas count{inputs} is not equal to model input tensors count{intensors_desc}")
     for i, input_ in enumerate(inputs):
         str_shape = [str(shape) for shape in input_.shape]
         shapes = ",".join(str_shape)

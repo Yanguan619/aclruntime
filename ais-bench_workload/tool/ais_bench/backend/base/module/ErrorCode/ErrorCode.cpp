@@ -60,6 +60,9 @@ std::map<int, std::pair<const std::string *, int>> ErrMsgMap = {
 template<typename T>
 static std::string GetErrMsg(T& messages, int offset, int len)
 {
+    if (offset < 0 || len < 0) {
+        return "offset or len in error message should not be negative";
+    }
     return (offset < len) ? messages[offset] : "Undefined error code";
 }
 }

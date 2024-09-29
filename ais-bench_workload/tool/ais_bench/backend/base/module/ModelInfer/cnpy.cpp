@@ -80,6 +80,9 @@ template <> std::vector<char> &cnpy::operator += (std::vector<char> &lhs, const 
 void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape, bool &fortranOrder)
 {
     char buffer[256];
+    if (fp == nullptr) {
+        throw std::runtime_error("file stream is empty");
+    }
     size_t res = fread(buffer, sizeof(char), 11, fp);
     if (res != 11) { // 11 means buffer size
         throw std::runtime_error("ParseNpyHeader: failed fread");

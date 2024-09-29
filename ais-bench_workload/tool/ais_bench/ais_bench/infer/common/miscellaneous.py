@@ -48,7 +48,7 @@ ACL_JSON_CMD_LIST = [
 ]
 
 def logger_out(out_log):
-    
+
     print(out_log)
 
 def get_modules_version(name):
@@ -176,8 +176,12 @@ def get_batchsize(session, args):
         elems = instr.split(';')
         for elem in elems:
             tmp_idx = elem.rfind(':')
+            if tmp_idx == -1:
+                continue
             name = elem[:tmp_idx]
             shapestr = elem[tmp_idx + 1 :]
+            if not shapestr:
+                continue
             if name == intensors_desc[0].name:
                 batchsize = int(shapestr.split(',')[0])
     return batchsize

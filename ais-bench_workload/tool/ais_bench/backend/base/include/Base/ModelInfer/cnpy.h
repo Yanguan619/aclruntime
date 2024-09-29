@@ -111,6 +111,9 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
 {
     FILE *fp = nullptr;
     std::vector<size_t> trueDataShape;
+    if (data == nullptr) {
+        throw std::runtime_error("origin data is null in npy save");
+    }
     if (mode == "w") {
         if (access(fname.c_str(), F_OK) == 0 && remove(fname.c_str()) != 0) {
             ERROR_LOG("existing file %s cannot be removed", fname.c_str());

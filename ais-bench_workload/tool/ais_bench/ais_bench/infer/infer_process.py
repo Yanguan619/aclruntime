@@ -232,6 +232,8 @@ def infer_loop_tensor_run(session, args, intensors_desc, infileslist, output_pre
 def infer_loop_files_run(session, args, intensors_desc, infileslist, output_prefix):
     for i, infiles in enumerate(tqdm(infileslist, file=sys.stdout, desc='Inference files Processing')):
         intensors = []
+        if len(infiles) != len(intensors_desc):
+            raise ValueError(f"input files count{infiles} is not equal to model input tensors count{intensors_desc}")
         for j, files in enumerate(infiles):
             real_files = convert_real_files(files)
             tensor = session.create_tensor_from_fileslist(intensors_desc[j], real_files)

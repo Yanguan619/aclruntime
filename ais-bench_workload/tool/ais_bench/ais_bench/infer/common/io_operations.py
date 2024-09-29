@@ -212,7 +212,7 @@ def create_infileslist_from_inputs_list(inputs_list, intensors_desc, no_combine_
     inputlistcount = len(inputs_list)
     intensorcount = len(intensors_desc)
     if intensorcount == 0:
-        raise RuntimeError("model tensors desciption count is zero")
+        raise ValueError("model tensors desciption count is zero")
     if os.path.isfile(inputs_list[0]):
         chunks = inputlistcount // intensorcount
         fileslist = list(list_split(inputs_list, chunks, PADDING_INFER_FAKE_FILE))
@@ -268,7 +268,7 @@ def create_pipeline_fileslist_from_inputs_list(inputs_list, intensors_desc):
     inputlistcount = len(inputs_list)
     intensorcount = len(intensors_desc)
     if intensorcount == 0:
-        raise RuntimeError("model tensors desciption count is zero")
+        raise ValueError("model tensors desciption count is zero")
     if os.path.isfile(inputs_list[0]):
         chunks = inputlistcount // intensorcount
         fileslist = list(list_split(inputs_list, chunks, PADDING_INFER_FAKE_FILE))
@@ -296,6 +296,8 @@ def create_pipeline_fileslist_from_inputs_list(inputs_list, intensors_desc):
 
 def save_tensors_to_file(outputs, output_prefix, infiles_paths, outfmt, index, output_batchsize_axis):
     files_count_perbatch = len(infiles_paths[0])
+    if files_count_perbatch == 0:
+        raise ValueError("files count per batch is zero")
     infiles_perbatch = np.transpose(infiles_paths)
     for i, out in enumerate(outputs):
         ndata = np.array(out)

@@ -51,7 +51,7 @@ from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
 from ais_bench.infer.common.path_security_check import (
     is_legal_args_path_string, check_normal_string, FILE_PERM_CHOICE, check_path_legality
 )
-from ais_bench.infer.interface_check import check_output_dir_legality
+from ais_bench.infer.interface_check import check_output_dir_legality, check_dym_hw_list
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.backends import BackendFactory
 from ais_bench.infer.common.path_security_check import ms_open, MAX_SIZE_LIMITED_CONFIG_FILE
@@ -61,7 +61,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)
 logger = logging.getLogger(__name__)
 
 def logger_print(logger_msg):
-    
+
     print(f'{logger_msg}', flush=True, end="")
 
 def set_session_options(session, args):
@@ -72,6 +72,7 @@ def set_session_options(session, args):
         aipp_batchsize = session.get_max_dym_batchsize()
     elif args.dym_hw is not None:
         hwstr = args.dym_hw.split(",")
+        check_dym_hw_list(hwstr)
         session.set_dynamic_hw((int)(hwstr[0]), (int)(hwstr[1]))
     elif args.dym_dims is not None:
         session.set_dynamic_dims(args.dym_dims)

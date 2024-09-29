@@ -159,6 +159,11 @@ Result ModelProcess::GetDynamicIndex(size_t &dymindex)
     size_t numInputs = aclmdlGetNumInputs(modelDesc_);
     for (size_t i = 0; i < numInputs; i++) {
         inputname = aclmdlGetInputNameByIndex(modelDesc_, i);
+        if (inputname == nullptr) {
+            ACLERR_LOG(aclGetRecentErrMsg());
+            ERROR_LOG("get input name by index failed");
+            return FAILED;
+        }
         std::string inputname_str = inputname;
         int ret_cmp = inputname_str.compare(ACL_DYNAMIC_TENSOR_NAME);
         if (ret_cmp == 0) {

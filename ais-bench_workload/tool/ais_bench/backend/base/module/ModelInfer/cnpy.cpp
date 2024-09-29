@@ -77,44 +77,6 @@ template <> std::vector<char> &cnpy::operator += (std::vector<char> &lhs, const 
     return lhs;
 }
 
-void cnpy::ParseNpyHeader(unsigned char *buffer, size_t &wordSize, std::vector<size_t> &shape, bool &fortranOrder)
-{
-    uint16_t headerLen = *reinterpret_cast<uint16_t *>(buffer + 8);            // 8 means offset of headerLen
-    std::string header(reinterpret_cast<char *>(buffer + 9), headerLen);       // 9 means offser of header
-
-    size_t loc1;
-    size_t loc2;
-
-    loc1 = header.find("fortran_order") + 16; // 16 means offset
-    fortranOrder = (header.substr(loc1, 4) == "True" ? true : false); // 4 means length of "True"
-
-    loc1 = header.find("(");
-    loc2 = header.find(")");
-
-    if ( loc2 <= loc1) {
-        throw std::runtime_error("')' is not bebind '(' in npy file header");
-    }
-
-    std::regex numRegex("[0-9][0-9]*");
-    std::smatch sm;
-    shape.clear();
-    std::string strShape = header.substr(loc1 + 1, loc2 - loc1 - 1);
-    while (std::regex_search(strShape, sm, numRegex)) {
-        shape.push_back(std::stoi(sm[0].str()));
-        strShape = sm.suffix().str();
-    }
-
-    loc1 = header.find("descr") + 9; // 9 means offset
-    bool littleEndian = (header[loc1] == '<' || header[loc1] == '|' ? true : false);
-    if (!littleEndian) {
-        throw std::runtime_error("ParseNpyHeader: should be little endian.");
-    }
-
-    std::string strWs = header.substr(loc1 + 2);
-    loc2 = strWs.find("'");
-    wordSize = atoi(strWs.substr(0, loc2).c_str());
-}
-
 void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape, bool &fortranOrder)
 {
     char buffer[256];

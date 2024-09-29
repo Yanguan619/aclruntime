@@ -939,6 +939,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
         PROMPT_MSG("the dynamic_dims parameter is not specified for model conversion");
         delete [] dims;
         free(dynamicInfo_.dyDims.pDims);
+        dynamicInfo_.dyDims.pDims = nullptr;
         return APP_ERR_ACL_FAILURE;
     }
 
@@ -947,6 +948,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
         ERROR_LOG("check dynamic dims failed, please set correct dymDims paramenter");
         delete [] dims;
         free(dynamicInfo_.dyDims.pDims);
+        dynamicInfo_.dyDims.pDims = nullptr;
         return APP_ERR_ACL_FAILURE;
     }
 
@@ -962,6 +964,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
         ERROR_LOG("split dims str failed");
         delete [] dims;
         free(dynamicInfo_.dyDims.pDims);
+        dynamicInfo_.dyDims.pDims = nullptr;
         return APP_ERR_ACL_FAILURE;
     }
     for (auto map : namedimsmap) {
@@ -997,6 +1000,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicShape(std::string dymshapeStr)
     if (ret != SUCCESS) {
         ERROR_LOG("check dynamic shape failed");
         free(dynamicInfo_.dyShape.pShapes);
+        dynamicInfo_.dyShape.pShapes = nullptr;
         return APP_ERR_ACL_FAILURE;
     }
 
@@ -1008,6 +1012,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicShape(std::string dymshapeStr)
     if (ret != SUCCESS) {
         ERROR_LOG("split dims str failed");
         free(dynamicInfo_.dyShape.pShapes);
+        dynamicInfo_.dyShape.pShapes = nullptr;
         return APP_ERR_ACL_FAILURE;
     }
     for (auto map : namedimsmap) {

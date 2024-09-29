@@ -267,6 +267,8 @@ def create_pipeline_fileslist_from_inputs_list(inputs_list, intensors_desc):
     fileslist = []
     inputlistcount = len(inputs_list)
     intensorcount = len(intensors_desc)
+    if intensorcount == 0:
+        raise RuntimeError("model tensors desciption count is zero")
     if os.path.isfile(inputs_list[0]):
         chunks = inputlistcount // intensorcount
         fileslist = list(list_split(inputs_list, chunks, PADDING_INFER_FAKE_FILE))

@@ -213,6 +213,8 @@ def run_pipeline_inference(session, args, infileslist, output_prefix, extra_sess
 def infer_loop_tensor_run(session, args, intensors_desc, infileslist, output_prefix):
     for i, infiles in enumerate(tqdm(infileslist, file=sys.stdout, desc='Inference tensor Processing')):
         intensors = []
+        if len(infiles) != len(intensors_desc):
+            raise ValueError(f"input files count{infiles} is not equal to model input tensors count{intensors_desc}")
         for j, files in enumerate(infiles):
             tensor = get_tensor_from_files_list(files, session, intensors_desc[j].realsize,
                                                 args.pure_data_type, args.no_combine_tensor_mode)
@@ -252,6 +254,9 @@ def infer_fulltensors_run(session, args, intensors_desc, infileslist, output_pre
     for inputs in tqdm(intensorslist, file=sys.stdout, desc='Inference Processing full'):
         outputs = run_inference(session, args, inputs)
         outtensors.append(outputs)
+
+    if len(infileslist) != len(outtensors):
+        raise ValueError(f"input files count{infileslist} is not equal to out tensors count{outtensors}")
 
     for i, outputs in enumerate(outtensors):
         session.convert_tensors_to_host(outputs)

@@ -117,6 +117,9 @@ std::string Utils::printCurrentTime()
 
     gettimeofday(&tv, &tz);
     p = localtime(&tv.tv_sec);
+    if (p == nullptr) {
+        std::runtime_error("get local time failed");
+    }
     std::string pi = std::to_string(p->tm_year + 1900) + std::to_string(p->tm_mon + 1) + std::to_string(p->tm_mday) \
              + "_" + std::to_string(p->tm_hour) + "_" + std::to_string(p->tm_min) + "_" + \
              std::to_string(p->tm_sec) + "_" + std::to_string(tv.tv_usec);

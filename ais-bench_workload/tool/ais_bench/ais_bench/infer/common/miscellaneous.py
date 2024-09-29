@@ -193,8 +193,12 @@ def get_range_list(ranges):
     for elem in elems:
         shapes = []
         tmp_idx = elem.rfind(':')
+        if tmp_idx == -1:
+            continue
         name = elem[:tmp_idx]
         shapestr = elem[tmp_idx + 1 :]
+        if not shapestr:
+            continue
         for content in shapestr.split(','):
             step = 1
             if '~' in content:

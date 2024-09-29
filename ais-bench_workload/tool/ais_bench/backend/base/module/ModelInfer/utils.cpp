@@ -379,6 +379,9 @@ Result Utils::TensorToBin(const std::string& outputFileName, Base::TensorBase& o
 template <typename T>
 static void SaveTxt(std::ofstream& outFile, const T* p, size_t size, size_t rowCount)
 {
+    if (p == nullptr) {
+        throw runtime_error("SaveTxt: data pointer is null");
+    }
     std::vector<T> nums (p, p + size);
     size_t count = 0;
     for (auto num: nums) {

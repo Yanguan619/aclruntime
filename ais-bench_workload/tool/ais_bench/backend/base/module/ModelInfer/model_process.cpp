@@ -247,7 +247,7 @@ Result ModelProcess::SetDynamicShape(
 )
 {
     aclError ret;
-    const char *name;
+    const char *name = nullptr;
     size_t  input_num = dym_shape_map.size();
     if (dims_num.size() != input_num) {
         ERROR_LOG("dims num size: %zu not equal to input num %zu", dims_num.size(), input_num);
@@ -256,6 +256,14 @@ Result ModelProcess::SetDynamicShape(
     aclTensorDesc *inputDesc;
     for (size_t i = 0; i < input_num; i++) {
         name = aclmdlGetInputNameByIndex(modelDesc_, i);
+        if (name == nullptr) {
+            ACLERR_LOG(aclGetRecentErrMsg());
+            ERROR_LOG("get input name by index failed");
+            return FAILED;
+        }
+        if (dym_shape_map.count(name) == 0) {
+            continue;
+        }
         int64_t arr[dym_shape_map[name].size()];
         try {
             std::copy(dym_shape_map[name].begin(), dym_shape_map[name].end(), arr);

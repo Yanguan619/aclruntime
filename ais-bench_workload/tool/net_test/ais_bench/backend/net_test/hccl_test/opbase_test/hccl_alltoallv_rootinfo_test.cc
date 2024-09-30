@@ -95,8 +95,7 @@ void HcclOpBaseAlltoallvTest::cal_execution_time(float time)
     double average_time_us = total_time_us / iters;
     double algorithm_bandwith_GBytes_s = malloc_kSize / average_time_us * B_US_TO_GB_S;
 
-    print_execution_time(average_time_us, algorithm_bandwith_GBytes_s);
-    return;
+    return print_execution_time(average_time_us, algorithm_bandwith_GBytes_s);
 }
 
 void HcclOpBaseAlltoallvTest::free_send_recv_buf()
@@ -159,7 +158,7 @@ int HcclOpBaseAlltoallvTest::hccl_op_base_test() //主函数
         ACLCHECK(check_buf_result()); // 校验计算结果
     }
 
-    cal_execution_time(time);
+    int ret = cal_execution_time(time);
 
     //销毁集合通信内存资源
     ACLCHECK(aclrtFree(send_buff));
@@ -168,6 +167,6 @@ int HcclOpBaseAlltoallvTest::hccl_op_base_test() //主函数
     if (check == 1) {
         ACLCHECK(destory_check_buf());
     }
-    return 0;
+    return ret;
 }
 }

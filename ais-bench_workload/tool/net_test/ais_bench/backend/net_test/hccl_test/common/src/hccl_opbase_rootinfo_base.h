@@ -23,7 +23,7 @@ public:
     virtual void init_data_count(); //初始化malloc_kSize
     virtual void no_verification();
     virtual void is_data_overflow();
-    virtual void print_execution_time(double average_time_us, double algorithm_bandwith_GBytes_s); //打印耗时
+    virtual int print_execution_time(double average_time_us, double algorithm_bandwith_GBytes_s); //打印耗时
 
 public:
     void *send_buff;

@@ -124,7 +124,7 @@ void HcclOpBaseTest::is_data_overflow()
     return;
 }
 
-void HcclOpBaseTest::print_execution_time(double average_time_us, double algorithm_bandwith_GBytes_s)
+int HcclOpBaseTest::print_execution_time(double average_time_us, double algorithm_bandwith_GBytes_s)
 {
     setvbuf(stdout, NULL, _IOLBF, 0); // 设置printf的缓冲区大小
     //不开启结果校验场景
@@ -160,8 +160,8 @@ void HcclOpBaseTest::print_execution_time(double average_time_us, double algorit
     bool curResuult = check_result[rank_id];
     int ret = communicater->AllGatherInfoToRoot(&check_result, &curResuult, sizeof(bool), rank_size);
     if (ret != 0) {
-        ERROR("rank: %d run all gather root info failed!", rank_id);
-        throw(std::runtime_error("print execution time failed!"));
+        ERROR("Rank: %d run all gather root info failed! Print execution time failed!", rank_id);
+        return ret;
     }
     #endif
 

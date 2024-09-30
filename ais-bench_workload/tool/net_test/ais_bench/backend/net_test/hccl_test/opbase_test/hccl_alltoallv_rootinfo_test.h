@@ -21,7 +21,7 @@ private:
     virtual int init_buf_val();  //（初始化host_buf，初始化check_buf，拷贝到send_buf） 其中需要调用hccl_host_buf_init
     virtual int check_buf_result();//（recv_buf拷贝到recvbufftemp,并且校验正确性）需要调用check_buf_init，校验正确性要调用check_buf_result_float
     void free_send_recv_buf();
-    void cal_execution_time(float time);//统计耗时
+    int cal_execution_time(float time);//统计耗时
     virtual int destory_check_buf();//集合通信销毁
 
     unsigned long long *send_counts;

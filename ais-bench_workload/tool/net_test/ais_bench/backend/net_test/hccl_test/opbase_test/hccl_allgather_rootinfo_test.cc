@@ -101,7 +101,7 @@ int HcclOpBaseAllgatherTest::check_buf_result()
     return 0;
 }
 
-void HcclOpBaseAllgatherTest::cal_execution_time(float time)
+int HcclOpBaseAllgatherTest::cal_execution_time(float time)
 {
     double total_time_us              = time * 1000;
     double average_time_us            = total_time_us / iters;

@@ -102,7 +102,7 @@ int HcclOpBaseBrocastTest::check_buf_result()
     return 0;
 }
 
-void HcclOpBaseBrocastTest::cal_execution_time(float time)
+int HcclOpBaseBrocastTest::cal_execution_time(float time)
 {
     double total_time_us = time * 1000;
     double average_time_us = total_time_us / iters;

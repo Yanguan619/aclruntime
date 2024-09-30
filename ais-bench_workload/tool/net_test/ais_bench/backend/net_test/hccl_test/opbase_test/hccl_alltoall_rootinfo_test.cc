@@ -73,7 +73,7 @@ int HcclOpBaseAlltoallTest::check_buf_result()
     return 0;
 }
 
-void HcclOpBaseAlltoallTest::cal_execution_time(float time)
+int HcclOpBaseAlltoallTest::cal_execution_time(float time)
 {
     double total_time_us = time * 1000;
     double average_time_us = total_time_us / iters;

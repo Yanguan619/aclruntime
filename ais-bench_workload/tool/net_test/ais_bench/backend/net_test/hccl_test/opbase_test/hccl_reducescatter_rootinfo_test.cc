@@ -105,7 +105,7 @@ int HcclOpBaseReducescatterTest::check_buf_result()
     return 0;
 }
 
-void HcclOpBaseReducescatterTest::cal_execution_time(float time)
+int HcclOpBaseReducescatterTest::cal_execution_time(float time)
 {
     double total_time_us              = time * 1000;
     double average_time_us            = total_time_us / iters;

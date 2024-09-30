@@ -109,7 +109,7 @@ int is_all_digit(const char *strNum)
     // 参数有效性检查
    if (strNum == NULL)
    {
-       ERROR("string type number is NULL");
+       ERROR("String type number is NULL.");
        return -1;
    }
 
@@ -237,7 +237,7 @@ void HcclTest::print_help()
 int HcclTest::check_data_count()
 {
     if (data_parsed_begin < 0 || data_parsed_end < 0) {
-        ERROR("invalid size specified for [-b,--minbytes] or [-e,--maxbytes]");
+        ERROR("Invalid size specified for [-b,--minbytes] or [-e,--maxbytes]");
         return -1;
     }
     data->min_bytes = (u64)data_parsed_begin;
@@ -249,7 +249,7 @@ int HcclTest::check_data_count()
     }
 
     if (data->max_bytes < data->min_bytes) {
-        ERROR("invalid option: maxbytes < minbytes, Check the [-b,--minbytes] and [-e,--maxbytes] options.");
+        ERROR("Invalid option: maxbytes < minbytes, Check the [-b,--minbytes] and [-e,--maxbytes] options.");
         return -1;
     } else {
         if (stepbytes_flag != 0) {// 用户配置了增量步长
@@ -344,7 +344,7 @@ int HcclTest::check_cmd_line()
     }
     if (rank_id >= rank_size)
     {
-        ERROR("rank_id shouldn't be larger than rank_size.");
+        ERROR("Rank_id shouldn't be larger than rank_size.");
         return -1;
     }
     #endif
@@ -589,7 +589,7 @@ int HcclTest::init_hcclComm()
 
     // 在root_rank获取root_info
     if(rank_id == root_rank) {
-        INFO("the minbytes is %llu, maxbytes is %llu, iters is %d, warmup_iters is %d.", data->min_bytes, data->max_bytes, iters, warmup_iters);
+        INFO("The minbytes is %llu, maxbytes is %llu, iters is %d, warmup_iters is %d.", data->min_bytes, data->max_bytes, iters, warmup_iters);
         HCCLROOTRANKCHECK(HcclGetRootInfo(&comm_id));
     }
 
@@ -602,7 +602,7 @@ int HcclTest::init_hcclComm()
     #ifndef MPI_SUPPORT
     ret = communicater->SynchronizeRootInfo(&comm_id, HCCL_ROOT_INFO_BYTES);
     if (ret != 0) {
-        ERROR("rank: %d run synchronize root info failed!", rank_id);
+        ERROR("Rank: %d run synchronize root info failed!", rank_id);
         return ret;
     }
     #endif
@@ -636,7 +636,7 @@ int HcclTest::opbase_test_by_data_size(HcclTest* hccl_test)
         ret = hccl_test->hccl_op_base_test();
         if (ret != 0)
         {
-            ERROR("execute hccl op test failed, Detailed logs are stored in path: ~/ascend/log/");
+            ERROR("Execute hccl op test failed, Detailed logs are stored in path: ~/ascend/log/");
             return ret;
         }
     }

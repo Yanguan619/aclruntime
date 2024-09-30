@@ -94,7 +94,7 @@ void HcclOpBaseTest::no_verification()
 {
     check = 0; //不进行校验
     if (rank_id == root_rank && print_dump) {
-        WARN("The calculation result overflows, No verification is performed.");
+        WARN("The calculation result overflows, no verification is performed.");
         print_dump = false;
     }
     return;
@@ -147,7 +147,7 @@ int HcclOpBaseTest::print_execution_time(double average_time_us, double algorith
     if (check_err != 0)
     {
         check_result[rank_id] = false; // 结果校验失败
-        ERROR("rank id %d, check result failed", rank_id);
+        ERROR("Rank id %d, check result failed.", rank_id);
     } else {
         check_result[rank_id] = true; // 结果校验成功
     }

@@ -54,7 +54,7 @@ int HcclCommunicater::ServerBcast(
 )
 {
     ServerPreset();
-    DEBUG("rank: %d, Server Bcast listening on port: %d ......", m_rankID, m_serverPort);
+    DEBUG("Rank: %d, Server Bcast listening on port: %d ......", m_rankID, m_serverPort);
     int connectedClientCount = 0;
     int tryConnectCount = 0;
     int clientRank = -1;
@@ -62,7 +62,7 @@ int HcclCommunicater::ServerBcast(
         tryConnectCount++;
         if (tryConnectCount >= m_rankSize * RETRY_TIMES) {
             close(m_serverSkt);
-            ERROR("root rank: %d, Server broadcast stopped after try %d times.", m_rankID, tryConnectCount);
+            ERROR("Root rank: %d, Server broadcast stopped after try %d times.", m_rankID, tryConnectCount);
             return -1;
         }
         struct sockaddr_in clientAddr;
@@ -82,7 +82,7 @@ int HcclCommunicater::ServerBcast(
             break;
         }
         if (clientRank >= m_rankSize) {
-            WARN("clientRank: %d is over max rankID: %d, won't recv!", m_rankID, m_rankSize - 1);
+            WARN("ClientRank: %d is over max rankID: %d, won't recv!", m_rankID, m_rankSize - 1);
             close(clientSkt);
             continue;
         }
@@ -125,7 +125,7 @@ int HcclCommunicater::ClientRecv(
         }
 
     }
-    ERROR("rank: %d, client received from server failed!", m_rankID);
+    ERROR("Rank: %d, client received from server failed!", m_rankID);
     return -1;
 }
 
@@ -149,7 +149,7 @@ int HcclCommunicater::ServerGather(
         if (tryConnectCount >= m_rankSize * RETRY_TIMES) {
             free(singleData);
             close(m_serverSkt);
-            ERROR("root rank: %d, Server broadcast stopped after try %d times.", m_rankID, tryConnectCount);
+            ERROR("Root rank: %d, Server broadcast stopped after try %d times.", m_rankID, tryConnectCount);
             return -1;
         }
         struct sockaddr_in clientAddr;
@@ -221,7 +221,7 @@ int HcclCommunicater::ClientBcast(
         }
     }
     close(m_clientSkt);
-    DEBUG("client rank: %d, broadcast failed!", m_rankID);
+    DEBUG("Client rank: %d, broadcast failed!", m_rankID);
     return -1;
 }
 
@@ -230,14 +230,14 @@ bool HcclCommunicater::ServerPreset()
     // 服务器套接字校验
     m_serverSkt = socket(AF_INET, SOCK_STREAM, 0);
     if (m_serverSkt == -1) {
-        ERROR("rank: %d, create socket failed.", m_rankID);
+        ERROR("Rank: %d, create socket failed.", m_rankID);
         return false;
     }
     DEBUG("rank: %d, serverSkt: %d", m_rankID, m_serverSkt);
 
     int reuse = 1;
     if (setsockopt(m_serverSkt, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) == -1) {
-        ERROR("rank: %d, setsocket options failed.", m_rankID);
+        ERROR("Rank: %d, setsocket options failed.", m_rankID);
         close(m_serverSkt);
         return false;
     }
@@ -273,13 +273,13 @@ bool HcclCommunicater::ClientPreset()
     // 服务器套接字校验
     m_clientSkt = socket(AF_INET, SOCK_STREAM, 0);
     if (m_clientSkt == -1) {
-        ERROR("rank: %d, create socket failed.", m_rankID);
+        ERROR("Rank: %d, create socket failed.", m_rankID);
         return false;
     }
-    DEBUG("rank: %d, , clientSkt: %d", m_rankID, m_clientSkt);
+    DEBUG("Rank: %d, , clientSkt: %d", m_rankID, m_clientSkt);
     int reuse = 1;
     if (setsockopt(m_clientSkt, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) == -1) {
-        ERROR("rank: %d, set socket options failed.", m_rankID);
+        ERROR("Rank: %d, set socket options failed.", m_rankID);
         close(m_clientSkt);
         return false;
     }

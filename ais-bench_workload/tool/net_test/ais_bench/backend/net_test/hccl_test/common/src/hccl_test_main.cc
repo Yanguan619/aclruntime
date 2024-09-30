@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     HcclTest *hccl_test = nullptr;
     hccl_test = init_opbase_ptr(hccl_test);
     if(hccl_test == nullptr) {
-        ERROR("hccl_test is null");
+        ERROR("Init hccl executor failed.");
         ret = -1;
         goto hccltesterr3;
     }

@@ -90,7 +90,7 @@ int HcclOpBaseReduceTest::check_buf_result()
             break;
         default:
             ret++;
-            ERROR("no match datatype.");
+            ERROR("No match datatype.");
             break;
     }
     if(ret != 0)

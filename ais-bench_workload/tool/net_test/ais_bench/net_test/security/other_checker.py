@@ -13,10 +13,7 @@
 # limitations under the License.
 
 import os
-import zipfile
-import tarfile
 import shutil
-from ais_bench.net_test.security.standard_consts import ZIP_DECOMPRESSED_RATIO_LIMIT
 
 
 def is_disk_space_enough(path, need_size):
@@ -29,27 +26,3 @@ def is_disk_space_enough(path, need_size):
 def is_memory_enough(need_size):
     available_memory = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_AVPHYS_PAGES')
     return available_memory >= need_size
-
-
-def is_zip_boom(zip_file, max_size=0):  # todo, 未使用
-    file_name, total_size = _get_zip_basic_info(zip_file)
-    file_size = os.stat(file_name).st_size
-    max_decompressed_size = file_size * ZIP_DECOMPRESSED_RATIO_LIMIT
-    size_threshold = max(max_decompressed_size, max_size)
-    if total_size > size_threshold:
-        return False
-    return True
-
-
-def _get_zip_basic_info(file_obj):
-    if isinstance(file_obj, zipfile.ZipFile):
-        info_list = file_obj.infolist()
-        total_size = sum(info.file_size for info in info_list)
-        filename = file_obj.filename
-        return filename, total_size
-    if isinstance(file_obj, tarfile.TarFile):
-        info_list = file_obj.getmembers()
-        total_size = sum(info.size for info in info_list)
-        filename = file_obj.filename
-        return filename, total_size
-    return "", 0

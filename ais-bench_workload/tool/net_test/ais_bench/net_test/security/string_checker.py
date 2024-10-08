@@ -24,13 +24,13 @@ class StringChecker:
         self.this_str = this_str
 
     def is_legal_path(self):
-        '''
+        """
         校验路径字符串形式规范。
-        Paramters:
+        Parameters:
             None
         Returns:
             bool (True:路径规范, False:路径不规范)
-        '''
+        """
         if get_platform() == PlatformSupport.LINUX:
             return self._is_legal_path_linux()
         if get_platform() == PlatformSupport.WINDOWS:
@@ -38,61 +38,63 @@ class StringChecker:
         return False
 
     def is_length_legal(self, max_length: int):
-        '''
+        """
         校验字符长度合法。
-        Paramters:
+        Parameters:
             max_length: 字符串许可的最长长度
         Returns:
             bool (True:字符串长度合法, False:字符串长度非法)
-        '''
+        """
         if len(self.this_str) > max_length:
             return False
         return True
 
-    def is_black_pattern_check_ok(self, pattern=StrBlackPattern.NORMAL_STR):
-        '''
+    def is_black_pattern_check_ok(self, char_set=StrBlackPattern.NORMAL_STR):
+        """
         校验字符串是否含黑名单字符。
-        Paramters:
-            pattern: 字符黑名单的正则表达式
+        Parameters:
+            char_set: 字符黑名单的集合
         Returns:
             bool (True:字符串不含黑名单字符, False:字符串含黑名单字符)
-        '''
+        """
+        pattern = f"[{char_set}]"
         if re.compile(pattern).search(self.this_str):
             return False
         return True
 
-    def is_white_pattern_check_ok(self, pattern=StrWhitePattern.NORMAL_STR):
-        '''
+    def is_white_pattern_check_ok(self, char_set=StrWhitePattern.NORMAL_STR):
+        """
         校验字符串是否含白名单以外字符。
-        Paramters:
-            pattern: 字符白名单的正则表达式
+        Parameters:
+            char_set: 字符白名单的集合
         Returns:
             bool (True:字符串不含白名单以外字符, False:字符串含白名单以外字符)
-        '''
+        """
+        pattern = f"[^{char_set}]"
         if re.compile(pattern).search(self.this_str):
             return False
         return True
 
     def is_full_match_pattern(self, pattern):
-        '''
+        """
         校验字符串是否完全满足正则表达式。
-        Paramters:
+        Parameters:
             pattern: 指定的正则表达式
         Returns:
             bool (True:字符串满足正则表达式, False:字符串不满足正则表达式)
-        '''
+        """
         if not re.fullmatch(pattern, self.this_str):
             return False
         return True
 
     def is_cmd_meet_black_list(self, black_list=CommandBlackList.NORMAL_LINUX):
-        '''
+        """
         校验命令字符串是否包含危险命令。
-        Paramters:
+        Parameters:
             black_list: 危险命令黑名单列表
         Returns:
             bool (True:字符串不含黑名单命令, False:字符串含黑名单命令)
-        '''
+        """
         sub_cmds = self.this_str.split(" ")
         for cmd in sub_cmds:
             if cmd in black_list:

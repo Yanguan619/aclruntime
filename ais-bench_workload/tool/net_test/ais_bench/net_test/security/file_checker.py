@@ -13,52 +13,52 @@
 # limitations under the License.
 
 from ais_bench.net_test.security.file_stat import FileStat
-from ais_bench.net_test.security.standard_consts import PermForbid, PermNeed, FileSizeLimite
-from ais_bench.net_test.common.logger import logger
+from ais_bench.net_test.security.standard_consts import PermForbid, PermNeed, FileSizeLimit
 
 
 class FileChecker:
     def __init__(self, file: str):
         self.file_stat = FileStat(file)
 
-    def is_file(self):  # todo, 是否需要加上@property, 感觉和file_stat不统一
-        '''
+    def is_file(self):
+        """
         校验路径是否是文件。
-        Paramters:
+        Parameters:
             None
+
         Returns:
             bool (True:路径是文件, False:路径非文件)
-        '''
+        """
         return self.file_stat.is_file
 
     def is_dir(self):
-        '''
+        """
         校验路径是否是文件夹。
-        Paramters:
+        Parameters:
             None
         Returns:
             bool (True:路径是文件夹, False:路径非文件夹)
-        '''
+        """
         return self.file_stat.is_dir
 
     def is_exists(self):
-        '''
+        """
         校验路径是否存在。
-        Paramters:
+        Parameters:
             None
         Returns:
             bool (True:路径存在, False:路径不存在)
-        '''
+        """
         return self.file_stat.is_exists
 
     def is_not_softlink(self):  # only linux
-        '''
+        """
         校验路径是否不是软链接。
-        Paramters:
+        Parameters:
             None
         Returns:
             bool (True:路径不是软链接, False:路径是软链接)
-        '''
+        """
         return not self.file_stat.is_softlink
 
     def is_permission_legal(
@@ -66,14 +66,14 @@ class FileChecker:
             perm_need=PermNeed.READ_FILE,
             perm_forbid=PermForbid.USER_MAIN_DIR,
     ):  # only linux
-        '''
+        """
         路径权限是否合法。
-        Paramters:
+        Parameters:
             perm_need: 路径至少需要的权限
             perm_forbid: 路径不能拥有的权限
         Returns:
             bool (True:路径权限合法, False:路径权限非法)
-        '''
+        """
         cur_perm = self.file_stat.permission
         if cur_perm & perm_forbid > 0:
             return False
@@ -87,8 +87,8 @@ class FileChecker:
     def is_user_or_group_owner(self):  # only linux
         return self.file_stat.is_owner or self.file_stat.is_group_owner
 
-    def is_size_legal(self, max_size: int = FileSizeLimite.UNLIMITE):
-        if max_size == FileSizeLimite.UNLIMITE:
+    def is_size_legal(self, max_size: int = FileSizeLimit.UNLIMITED):
+        if max_size == FileSizeLimit.UNLIMITED:
             return True
         if self.file_stat.is_dir:  # 文件夹不校验
             return True
@@ -96,17 +96,17 @@ class FileChecker:
             return False
         return True
 
-    def is_suffix_legal(self, legal_suffixs: list):
-        '''
-            legal_suffixs: list of suffixs, such as [".json", ".yaml"]
-        '''
-        if not legal_suffixs:
+    def is_suffix_legal(self, legal_suffixes: list):
+        """
+            legal_suffixes: list of suffixes, such as [".json", ".yaml"]
+        """
+        if not legal_suffixes:
             return True
         if self.file_stat.is_dir:  # 文件夹不校验
             return True
 
         cur_suffix = self.file_stat.suffix
-        for suffix in legal_suffixs:
+        for suffix in legal_suffixes:
             if cur_suffix == suffix:
                 return True
         return False
@@ -114,11 +114,13 @@ class FileChecker:
 
 def check_linux_file_path(
         file_path: str,
-        max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
+        max_size=FileSizeLimit.NORMAL_READ_FILE_4G,
         perm_forbid=PermForbid.USER_MAIN_DIR,
         perm_need=PermNeed.READ_FILE,
-        legal_suffixs=[],
+        legal_suffixes=None,
 ):
+    legal_suffixes = legal_suffixes if legal_suffixes is not None else []
+    
     file_checker = FileChecker(file_path)
     if not file_checker.is_exists():
         raise ValueError("path not exist.")
@@ -132,25 +134,25 @@ def check_linux_file_path(
         raise ValueError("path's permission is illegal.")
     if not file_checker.is_size_legal(max_size=max_size):
         raise ValueError(f"file size over max size: {max_size}.")
-    if not file_checker.is_suffix_legal(legal_suffixs=legal_suffixs):
-        raise ValueError(f"file suffix is not in : {legal_suffixs}.")
+    if not file_checker.is_suffix_legal(legal_suffixes=legal_suffixes):
+        raise ValueError(f"file suffix is not in : {legal_suffixes}.")
 
 
 def check_linux_readable_file(
         file_path: str,
-        max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
+        max_size=FileSizeLimit.NORMAL_READ_FILE_4G,
         perm_forbid=PermForbid.USER_MAIN_DIR,
-        legal_suffixs=[],
+        legal_suffixes=None,
 ):
     check_linux_file_path(file_path, max_size=max_size, perm_forbid=perm_forbid, perm_need=PermNeed.READ_FILE,
-                          legal_suffixs=legal_suffixs)
+                          legal_suffixes=legal_suffixes)
 
 
 def check_linux_executable_file(
         file_path: str,
-        max_size=FileSizeLimite.NORMAL_READ_FILE_4G,
+        max_size=FileSizeLimit.NORMAL_READ_FILE_4G,
         perm_forbid=PermForbid.USER_MAIN_DIR,
-        legal_suffixs=[],
+        legal_suffixes=None,
 ):
     check_linux_file_path(file_path, max_size=max_size, perm_forbid=perm_forbid, perm_need=PermNeed.EXEC_FILE,
-                          legal_suffixs=legal_suffixs)
+                          legal_suffixes=legal_suffixes)

@@ -44,8 +44,8 @@ class PermNeed:
 
 
 # 文件大小限制
-class FileSizeLimite:
-    UNLIMITE = -1  # 不限制，必须显式表示不限制，读取必须传入
+class FileSizeLimit:
+    UNLIMITED = -1  # 不限制，必须显式表示不限制，读取必须传入
     NORMAL_CONFIG_FILE = 10485760  # 10MB, 10 * 1024 * 1024
     NORMAL_READ_FILE_4G = 4294967296  # 4GB, 4 * 1024 * 1024 * 1024
     NORMAL_READ_FILE_32G = 34359738368  # 32GB, 32 * 1024 * 1024 * 1024
@@ -69,12 +69,12 @@ class PathLengthLimit:
 class StrWhitePattern:
     ABS_PATH_LINUX = r"[^_A-Za-z0-9/.-]"  # linux绝对路径
     ABS_PATH_WIN = r"[^_:\\A-Za-z0-9/.-]"  # windows绝对路径
-    NORMAL_STR = r"[^_A-Za-z0-9\"'><=\[\])(,}{: /.~-]"  # 常规字符串
+    NORMAL_STR = r"_A-Za-z0-9\"'><=\[\])(,}{: /.~-"  # 常规字符串
 
 
 # 字符串校验的黑名单
 class StrBlackPattern:
-    NORMAL_STR = r"[\&\%\$\*\^\#\@\\\n\f\r\b\t\v\u007F]"
+    NORMAL_STR = r"\&\%\$\*\^\#\@\\\n\f\r\b\t\v\u007F"
 
 
 # 危险命令黑名单

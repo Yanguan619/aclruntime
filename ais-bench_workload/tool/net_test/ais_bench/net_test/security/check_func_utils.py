@@ -15,20 +15,20 @@
 import os
 import re
 import shutil
-from shutil import which
 
 from ais_bench.net_test.common.consts import LENGTH_LIMIT, INT_LIMIT, STRING_PATTERN, OTHERS
-from ais_bench.net_test.security.file_checker import check_linux_executable_file, check_linux_readable_file
-from ais_bench.net_test.security.standard_consts import FileSizeLimite, PermForbid, PermNeed
+from ais_bench.net_test.security.file_checker import check_linux_executable_file
+from ais_bench.net_test.security.standard_consts import FileSizeLimite, PermForbid
 
 
-def check_str_length(s: str, MIN_LEN: int = 0, MAX_LEN: int = LENGTH_LIMIT.MAX_UINT64_STR_LENGTH):
+def _check_str_length(s: str, MIN_LEN: int = 0, MAX_LEN: int = LENGTH_LIMIT.MAX_UINT64_STR_LENGTH):
     if len(s) < MIN_LEN or len(s) > MAX_LEN:
         raise ValueError('The length of input string is not between [{}, {}]'.format(MIN_LEN, MAX_LEN))
+    return s
 
 
 def check_int_string(x: str, X_MIN: int = 0, X_MAX: int = INT_LIMIT.UINT64_MAX):
-    check_str_length(x, MIN_LEN=1, MAX_LEN=LENGTH_LIMIT.MAX_UINT64_STR_LENGTH)
+    _check_str_length(x, MIN_LEN=1, MAX_LEN=LENGTH_LIMIT.MAX_UINT64_STR_LENGTH)
     if not x.isdigit():
         raise ValueError(f"Input x is an invalid positive int value")
 
@@ -85,7 +85,7 @@ def check_linux_username(value: str):
 
 
 def transform_hostfile_line(line: str):
-    # todo, 是否需要改成正则匹配
+    """ 解析并提取 hostfile 的行字段值 """
     info_list = line.split(":")
     if len(info_list) < OTHERS.NODE_INFO_MIN_COUNT:
         raise ValueError(f"node_info line: {info_list} missing enough params!")
@@ -93,14 +93,15 @@ def transform_hostfile_line(line: str):
         raise ValueError(f"node_info line: {info_list} too many params!")
     while len(info_list) < OTHERS.NODE_INFO_MAX_COUNT:
         info_list.append("")
-    check_ipv4_string(info_list[0])  # ipv4 str
-    check_positive_int_string(info_list[1])  # device_count, empty is legal
-    info_list[1] = int(info_list[1])  # device_count,
-    info_list[2] = info_list[2] if info_list[2] else "root"  # user, default is root
-    check_linux_username(info_list[2])
+    ipv4_str, device_count, user, port = info_list
+    check_ipv4_string(ipv4_str)  # ipv4 str
+    check_positive_int_string(device_count)  # device_count, empty is legal
+    device_count = int(device_count)  # device_count,
+    user = user if user else "root"  # user, default is root
+    check_linux_username(user)
     # port, default is 22
-    info_list[3] = check_int_string(info_list[3], X_MIN=1, X_MAX=INT_LIMIT.PORT_MAX) if info_list[3] else 22
-    return tuple(info_list)
+    port = check_int_string(port, X_MIN=1, X_MAX=INT_LIMIT.PORT_MAX) if port else 22
+    return ipv4_str, device_count, user, port
 
 
 def parse_hostfile(hostfile):

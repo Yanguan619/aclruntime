@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, mock_open
 from ais_bench.net_test.security.check_func_utils import (
-    check_str_length, check_int_string, check_positive_int_string,
+    _check_str_length, check_int_string, check_positive_int_string,
     check_exe_path, is_regex_fullmatch, check_ipv4_string,
     check_bytes_format, check_linux_username, transform_hostfile_line,
     parse_hostfile, find_executable, check_executable
@@ -15,10 +15,10 @@ class TestCheckFuncUtils(unittest.TestCase):
 
     def test_check_str_length(self):
         with self.assertRaisesRegex(ValueError, 'is not between'):
-            check_str_length("abc", 5, 10)
+            _check_str_length("abc", 5, 10)
         with self.assertRaisesRegex(ValueError, 'is not between'):
-            check_str_length("abcdefghijklmno", 5, 10)
-        self.assertIsNone(check_str_length("hello", 3, 10))
+            _check_str_length("abcdefghijklmno", 5, 10)
+        self.assertIsNone(_check_str_length("hello", 3, 10))
 
     def test_check_int_string(self):
         with self.assertRaisesRegex(ValueError, 'is an invalid positive int value'):

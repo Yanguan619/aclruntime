@@ -51,7 +51,7 @@ from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
 from ais_bench.infer.common.path_security_check import (
     is_legal_args_path_string, check_normal_string, FILE_PERM_CHOICE, check_path_legality
 )
-from ais_bench.infer.interface_check import check_output_dir_legality
+from ais_bench.infer.interface_check import check_output_dir_legality, check_dym_hw_list
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.backends import BackendFactory
 from ais_bench.infer.common.path_security_check import ms_open, MAX_SIZE_LIMITED_CONFIG_FILE
@@ -61,7 +61,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)
 logger = logging.getLogger(__name__)
 
 def logger_print(logger_msg):
-    
+
     print(f'{logger_msg}', flush=True, end="")
 
 def set_session_options(session, args):
@@ -72,6 +72,7 @@ def set_session_options(session, args):
         aipp_batchsize = session.get_max_dym_batchsize()
     elif args.dym_hw is not None:
         hwstr = args.dym_hw.split(",")
+        check_dym_hw_list(hwstr)
         session.set_dynamic_hw((int)(hwstr[0]), (int)(hwstr[1]))
     elif args.dym_dims is not None:
         session.set_dynamic_dims(args.dym_dims)
@@ -128,6 +129,8 @@ def init_inference_session(args, acl_json_path):
 def set_dymshape_shape(session, inputs):
     shape_list = []
     intensors_desc = session.get_inputs()
+    if len(inputs) != len(intensors_desc):
+        raise ValueError(f"input datas count{inputs} is not equal to model input tensors count{intensors_desc}")
     for i, input_ in enumerate(inputs):
         str_shape = [str(shape) for shape in input_.shape]
         shapes = ",".join(str_shape)
@@ -142,6 +145,8 @@ def set_dymshape_shape(session, inputs):
 def set_dymdims_shape(session, inputs):
     shape_list = []
     intensors_desc = session.get_inputs()
+    if len(inputs) != len(intensors_desc):
+        raise ValueError(f"input datas count{inputs} is not equal to model input tensors count{intensors_desc}")
     for i, input_ in enumerate(inputs):
         str_shape = [str(shape) for shape in input_.shape]
         shapes = ",".join(str_shape)
@@ -156,6 +161,8 @@ def set_dymdims_shape(session, inputs):
 def warmup(session, args, intensors_desc, infiles):
     # prepare input data
     infeeds = []
+    if len(infiles) != len(intensors_desc):
+        raise ValueError(f"input files count{infiles} is not equal to model input tensors count{intensors_desc}")
     for j, files in enumerate(infiles):
         if args.run_mode == "tensor":
             tensor = get_tensor_from_files_list(files, session, intensors_desc[j].realsize,
@@ -206,6 +213,8 @@ def run_pipeline_inference(session, args, infileslist, output_prefix, extra_sess
 def infer_loop_tensor_run(session, args, intensors_desc, infileslist, output_prefix):
     for i, infiles in enumerate(tqdm(infileslist, file=sys.stdout, desc='Inference tensor Processing')):
         intensors = []
+        if len(infiles) != len(intensors_desc):
+            raise ValueError(f"input files count{infiles} is not equal to model input tensors count{intensors_desc}")
         for j, files in enumerate(infiles):
             tensor = get_tensor_from_files_list(files, session, intensors_desc[j].realsize,
                                                 args.pure_data_type, args.no_combine_tensor_mode)
@@ -223,6 +232,8 @@ def infer_loop_tensor_run(session, args, intensors_desc, infileslist, output_pre
 def infer_loop_files_run(session, args, intensors_desc, infileslist, output_prefix):
     for i, infiles in enumerate(tqdm(infileslist, file=sys.stdout, desc='Inference files Processing')):
         intensors = []
+        if len(infiles) != len(intensors_desc):
+            raise ValueError(f"input files count{infiles} is not equal to model input tensors count{intensors_desc}")
         for j, files in enumerate(infiles):
             real_files = convert_real_files(files)
             tensor = session.create_tensor_from_fileslist(intensors_desc[j], real_files)
@@ -245,6 +256,9 @@ def infer_fulltensors_run(session, args, intensors_desc, infileslist, output_pre
     for inputs in tqdm(intensorslist, file=sys.stdout, desc='Inference Processing full'):
         outputs = run_inference(session, args, inputs)
         outtensors.append(outputs)
+
+    if len(infileslist) != len(outtensors):
+        raise ValueError(f"input files count{infileslist} is not equal to out tensors count{outtensors}")
 
     for i, outputs in enumerate(outtensors):
         session.convert_tensors_to_host(outputs)

@@ -56,6 +56,12 @@ namespace Base {
         std::shared_ptr<Feeds> &feeds, bool autoDymShape,
         bool autoDymDims, const bool pure_infer, std::vector<std::string> &inputNames)
     {
+        if (files.size() != inputNames.size()) {
+            throw std::runtime_error("files not equal to input names count while prepare input data in pipeline.");
+        }
+        if (files.size() != session->GetInputs().size()) {
+            throw std::runtime_error("files not equal to model inputs count while prepare input data in pipeline.");
+        }
         for (size_t i = 0; i < files.size(); i++) {
             if (pure_infer) {
                 auto array = std::make_shared<cnpy::NpyArray>(CreatePureInferArray(files[i], session->GetInputs()[i]));
@@ -131,10 +137,16 @@ namespace Base {
         for (const auto &desc: session->GetInputs()) {
             inputNames.emplace_back(desc.name);
         }
+        if (inputsList.size() != shapesList.size()) {
+            throw std::runtime_error("input list len not equal to shapes list len");
+        }
         for (size_t i = 0; i < inputsList.size(); i++) {
             auto feeds = std::make_shared<Feeds>();
             feeds->inputs = std::make_shared<std::vector<Base::BaseTensor>>(inputsList[i]);
             feeds->outputNames = std::make_shared<std::vector<std::string>>(outputNames);
+            if (inputNames.size() != shapesList[i].size()) {
+                throw std::runtime_error("input name count not equal to shapes count");
+            }
             for (size_t j = 0; j < inputNames.size(); j++) {
                 if (autoDymShape) {
                     AutoSetDym(feeds, "shape", inputNames[j], shapesList[i][j], j == (inputNames.size() - 1));

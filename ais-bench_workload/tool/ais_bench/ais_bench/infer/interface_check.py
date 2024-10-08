@@ -63,7 +63,7 @@ def check_output_dir_legality(value):
         raise RuntimeError(f"output path:{value} is illegal. Please check.") from err
     if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
         raise RuntimeError(f"output path:{value} is illegal. Please check.")
-    
+
 def check_positive_integer(value):
     if not isinstance(value, int):
         raise TypeError(f"value:{value} is not a integer!")
@@ -104,3 +104,12 @@ def check_loop_size(value):
 def check_bool_value(value):
     if not isinstance(value, bool):
         raise TypeError(f"value:{value} is not a bool!")
+
+def check_dym_hw_list(hw_list:list):
+    if len(hw_list) != 2:
+        raise ValueError("int count not match, legal format of dymHW string is \"int,int\"")
+    try :
+        _ = int(hw_list[0])
+        _ = int(hw_list[1])
+    except ValueError as err:
+        raise ValueError("data type not match, legal format of dymHW string is \"int,int\"")

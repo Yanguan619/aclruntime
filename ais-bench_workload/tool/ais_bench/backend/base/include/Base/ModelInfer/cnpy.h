@@ -91,7 +91,6 @@ char BigEndianTest();
 char MapType(const std::type_info &t);
 template <typename T> std::vector<char> CreateNpyHeader(const std::vector<size_t> &shape);
 void ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape, bool &fortranOrder);
-void ParseNpyHeader(unsigned char *buffer, size_t &wordSize, std::vector<size_t> &shape, bool &fortranOrder);
 NpyArray NpyLoad(std::string fname);
 NpyArray BinLoad(std::string fname);
 
@@ -112,6 +111,9 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
 {
     FILE *fp = nullptr;
     std::vector<size_t> trueDataShape;
+    if (data == nullptr) {
+        throw std::runtime_error("NpySave: origin data is null");
+    }
     if (mode == "w") {
         if (access(fname.c_str(), F_OK) == 0 && remove(fname.c_str()) != 0) {
             ERROR_LOG("existing file %s cannot be removed", fname.c_str());
@@ -153,21 +155,24 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
     }
     std::vector<char> header = CreateNpyHeader<T>(trueDataShape);
     size_t nels = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<size_t>());
-    if (fseek(fp, 0, SEEK_SET) != 0) { 
+    if (fp == nullptr) {
+        throw std::runtime_error("NpySave: file stream is null");
+    }
+    if (fseek(fp, 0, SEEK_SET) != 0) {
         fclose(fp);
-        throw std::runtime_error("NpySave: fseek failed"); 
+        throw std::runtime_error("NpySave: fseek failed");
     }
     if (fwrite(&header[0], sizeof(char), header.size(), fp) != header.size()) {
         throw std::runtime_error("NpySave: fwrite failed");
     }
-    if (fseek(fp, 0, SEEK_END) != 0) { 
-        throw std::runtime_error("NpySave: fseek failed"); 
+    if (fseek(fp, 0, SEEK_END) != 0) {
+        throw std::runtime_error("NpySave: fseek failed");
     }
-    if (fwrite(data, sizeof(T), nels, fp) != nels) { 
-        throw std::runtime_error("NpySave: fwrite failed"); 
+    if (fwrite(data, sizeof(T), nels, fp) != nels) {
+        throw std::runtime_error("NpySave: fwrite failed");
     }
-    if (fclose(fp) != 0) { 
-        throw std::runtime_error("NpySave: fclose failed"); 
+    if (fclose(fp) != 0) {
+        throw std::runtime_error("NpySave: fclose failed");
     }
 }
 

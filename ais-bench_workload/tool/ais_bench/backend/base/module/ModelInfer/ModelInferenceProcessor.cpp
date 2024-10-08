@@ -186,6 +186,10 @@ APP_ERROR ModelInferenceProcessor::AddOutTensors(
         std::vector<int64_t> i64shape;
         std::vector<uint32_t> u32shape;
         realLen = processModel->GetOutTensorLen(index, is_dymshape);
+        if (index >= modelDesc_.outTensorsDesc.size() || index >= outputs.size()) {
+            ERROR_LOG("index: %zu of output name: %s should be smaller than outputs size!", index, name.c_str());
+            return APP_ERR_ACL_RT_FAILURE;
+        }
         if (processModel->GetCurOutputShape(index, is_dymshape, i64shape) != SUCCESS) {
             // 针对于动态shape场景 如果无法获取真实的输出shape 先填写一个一维的值 以便后续内存可以导出
             auto tmpDataType = static_cast<aclDataType>(modelDesc_.outTensorsDesc[index].datatype);
@@ -213,6 +217,11 @@ APP_ERROR ModelInferenceProcessor::CheckInVectorAndFillBaseTensor(
     std::vector<BaseTensor> &inputs
 )
 {
+    if (feeds.size() != modelDesc_.inTensorsDesc.size()) {
+        ERROR_LOG("feeds size: %zu not equal to model tensor desc size: %zu",
+            feeds.size(), modelDesc_.inTensorsDesc.size());
+        return APP_ERR_ACL_RT_FAILURE;
+    }
     for (size_t i = 0; i < feeds.size(); ++i) {
         BaseTensor baseTensor = {};
         baseTensor.buf = feeds[i].buf;
@@ -930,6 +939,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
         PROMPT_MSG("the dynamic_dims parameter is not specified for model conversion");
         delete [] dims;
         free(dynamicInfo_.dyDims.pDims);
+        dynamicInfo_.dyDims.pDims = nullptr;
         return APP_ERR_ACL_FAILURE;
     }
 
@@ -938,6 +948,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
         ERROR_LOG("check dynamic dims failed, please set correct dymDims paramenter");
         delete [] dims;
         free(dynamicInfo_.dyDims.pDims);
+        dynamicInfo_.dyDims.pDims = nullptr;
         return APP_ERR_ACL_FAILURE;
     }
 
@@ -953,6 +964,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
         ERROR_LOG("split dims str failed");
         delete [] dims;
         free(dynamicInfo_.dyDims.pDims);
+        dynamicInfo_.dyDims.pDims = nullptr;
         return APP_ERR_ACL_FAILURE;
     }
     for (auto map : namedimsmap) {
@@ -988,6 +1000,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicShape(std::string dymshapeStr)
     if (ret != SUCCESS) {
         ERROR_LOG("check dynamic shape failed");
         free(dynamicInfo_.dyShape.pShapes);
+        dynamicInfo_.dyShape.pShapes = nullptr;
         return APP_ERR_ACL_FAILURE;
     }
 
@@ -999,6 +1012,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicShape(std::string dymshapeStr)
     if (ret != SUCCESS) {
         ERROR_LOG("split dims str failed");
         free(dynamicInfo_.dyShape.pShapes);
+        dynamicInfo_.dyShape.pShapes = nullptr;
         return APP_ERR_ACL_FAILURE;
     }
     for (auto map : namedimsmap) {

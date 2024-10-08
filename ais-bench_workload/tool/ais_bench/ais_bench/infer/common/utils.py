@@ -62,9 +62,13 @@ def list_share(list_a, count, num, left):
     head = 0
     for i in range(count):
         if i < left:
+            if head + num + 1 >= len(list_a):
+                raise OverflowError("get list part failed")
             every_chunk = list_a[head : head + num + 1]
             head = head + num + 1
         else:
+            if head + num >= len(list_a):
+                raise OverflowError("get list part failed")
             every_chunk = list_a[head : head + num]
             head = head + num
         yield every_chunk

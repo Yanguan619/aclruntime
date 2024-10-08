@@ -229,6 +229,10 @@ APP_ERROR DeviceManager::CreateContext(DeviceContext device, size_t& contextInde
         ERROR_LOG("acl create context failed");
         return ret;
     }
+    if (nextContextIndex_.count(deviceId) == 0) {
+        ERROR_LOG("device %d missing default context!", deviceId);
+        return APP_ERR_COMM_READ_FAIL;
+    }
     auto newContextIndex = nextContextIndex_[deviceId];
     contexts_[deviceId].insert({newContextIndex, newContext});
     contextIndex = newContextIndex;

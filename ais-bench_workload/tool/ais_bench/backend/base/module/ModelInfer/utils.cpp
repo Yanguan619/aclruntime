@@ -67,6 +67,12 @@ int Utils::str2num(char* str)
     int flag = 0;
     const int decimal = 10;
     while (*str >= '0' && *str <= '9') {
+        if (n > INT_MAX / 10 || (n == INT_MAX / 10 && (*str - '0') > INT_MAX % 10)) {
+            throw std::runtime_error("string format int overflowed");
+        }
+        if (n < INT_MIN / 10 || (n == INT_MIN / 10 && (*str - '0') > -(INT_MIN % 10))) {
+            throw std::runtime_error("string format int underflowed");
+        }
         n = n * decimal + (*str - '0');
         str++;
     }
@@ -87,6 +93,9 @@ std::string Utils::modelName(string& s)
         position1 = position1 + 1;
     }
     position2 = s.find_last_of(".");
+    if (position1 > position2) {
+        throw std::runtime_error("illegal model name string.");
+    }
     std::string modelName = s.substr(position1, position2 - position1);
     return modelName;
 }
@@ -108,6 +117,9 @@ std::string Utils::printCurrentTime()
 
     gettimeofday(&tv, &tz);
     p = localtime(&tv.tv_sec);
+    if (p == nullptr) {
+        std::runtime_error("get local time failed");
+    }
     std::string pi = std::to_string(p->tm_year + 1900) + std::to_string(p->tm_mon + 1) + std::to_string(p->tm_mday) \
              + "_" + std::to_string(p->tm_hour) + "_" + std::to_string(p->tm_min) + "_" + \
              std::to_string(p->tm_sec) + "_" + std::to_string(tv.tv_usec);
@@ -367,6 +379,9 @@ Result Utils::TensorToBin(const std::string& outputFileName, Base::TensorBase& o
 template <typename T>
 static void SaveTxt(std::ofstream& outFile, const T* p, size_t size, size_t rowCount)
 {
+    if (p == nullptr) {
+        throw runtime_error("SaveTxt: data pointer is null");
+    }
     std::vector<T> nums (p, p + size);
     size_t count = 0;
     for (auto num: nums) {

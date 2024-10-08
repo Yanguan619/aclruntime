@@ -77,48 +77,20 @@ template <> std::vector<char> &cnpy::operator += (std::vector<char> &lhs, const 
     return lhs;
 }
 
-void cnpy::ParseNpyHeader(unsigned char *buffer, size_t &wordSize, std::vector<size_t> &shape, bool &fortranOrder)
-{
-    uint16_t headerLen = *reinterpret_cast<uint16_t *>(buffer + 8);            // 8 means offset of headerLen
-    std::string header(reinterpret_cast<char *>(buffer + 9), headerLen);       // 9 means offser of header
-
-    size_t loc1;
-    size_t loc2;
-
-    loc1 = header.find("fortran_order") + 16; // 16 means offset
-    fortranOrder = (header.substr(loc1, 4) == "True" ? true : false); // 4 means length of "True"
-
-    loc1 = header.find("(");
-    loc2 = header.find(")");
-
-    std::regex numRegex("[0-9][0-9]*");
-    std::smatch sm;
-    shape.clear();
-    std::string strShape = header.substr(loc1 + 1, loc2 - loc1 - 1);
-    while (std::regex_search(strShape, sm, numRegex)) {
-        shape.push_back(std::stoi(sm[0].str()));
-        strShape = sm.suffix().str();
-    }
-
-    loc1 = header.find("descr") + 9; // 9 means offset
-    bool littleEndian = (header[loc1] == '<' || header[loc1] == '|' ? true : false);
-    if (!littleEndian) {
-        throw std::runtime_error("ParseNpyHeader: should be little endian.");
-    }
-
-    std::string strWs = header.substr(loc1 + 2);
-    loc2 = strWs.find("'");
-    wordSize = atoi(strWs.substr(0, loc2).c_str());
-}
-
 void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape, bool &fortranOrder)
 {
     char buffer[256];
+    if (fp == nullptr) {
+        throw std::runtime_error("file stream is empty");
+    }
     size_t res = fread(buffer, sizeof(char), 11, fp);
     if (res != 11) { // 11 means buffer size
         throw std::runtime_error("ParseNpyHeader: failed fread");
     }
     std::string header = fgets(buffer, 256, fp);
+    if (header.size() == 0) {
+        throw std::runtime_error("npy header is empty");
+    }
     if (header[header.size() - 1] != '\n') {
         throw std::runtime_error("ParseNpyHeader: the ending of header should be \n.");
     }
@@ -141,6 +113,10 @@ void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape
     std::regex numRegex("[0-9][0-9]*");
     std::smatch sm;
     shape.clear();
+
+    if ( loc2 <= loc1) {
+        throw std::runtime_error("')' is not bebind '(' in npy file header");
+    }
 
     std::string strShape = header.substr(loc1 + 1, loc2 - loc1 - 1);
     while (std::regex_search(strShape, sm, numRegex)) {

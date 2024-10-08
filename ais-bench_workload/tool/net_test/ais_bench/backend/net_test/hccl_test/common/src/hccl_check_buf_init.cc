@@ -283,7 +283,7 @@ void reduce_check_buf_init_bfp16(void* dst_buf, u64 count, int val, int op, int 
     {
         for(u64 j = 0; j < count; ++j)
         {
-            f16_temp[j] = fp32tobf16(val * rank_size); 
+            f16_temp[j] = fp32tobf16(val * rank_size);
         }
     }
     else if(op == HCCL_REDUCE_PROD)
@@ -325,7 +325,7 @@ int alltoall_check_result_uint64(const void *check_buf, u64 *recv_counts, u64 *r
         {
             if(result[j] != check_val)
             {
-                printf("check data from rank %d  result[%llu] error, exp:%llu, act:%llu\n", i, j, check_val, result[j]);
+                ERROR("Check data from rank %d  result[%llu] error, exp:%llu, act:%llu", i, j, check_val, result[j]);
                 ret++;
             }
         }
@@ -345,10 +345,10 @@ int alltoall_check_result_fp32(const void *check_buf, u64 *recv_counts, u64 *rec
         {
             if(result[j] != check_val)
             {
-                printf("check data from rank %d  result[%llu] error, exp:%f, act:%f\n", i, j, check_val, result[j]);
+                ERROR("Check data from rank %d  result[%llu] error, exp:%f, act:%f", i, j, check_val, result[j]);
                 ret++;
             }
-                
+
         }
     }
     return ret;
@@ -366,7 +366,7 @@ int alltoall_check_result_int8(const void *check_buf, u64 *recv_counts, u64 *rec
         {
             if(result[j] != check_val)
             {
-                printf("check data from rank %d  result[%llu] error, exp:%d, act:%d\n", i, j, check_val, result[j]);
+                ERROR("Check data from rank %d  result[%llu] error, exp:%d, act:%d", i, j, check_val, result[j]);
                 ret++;
             }
         }
@@ -386,7 +386,7 @@ int alltoall_check_result_int32(const void *check_buf, u64 *recv_counts, u64 *re
         {
             if(result[j] != check_val)
             {
-                printf("check data from rank %d  result[%llu] error, exp:%d, act:%d\n", i, j, check_val, result[j]);
+                ERROR("Check data from rank %d  result[%llu] error, exp:%d, act:%d", i, j, check_val, result[j]);
                 ret++;
             }
         }
@@ -406,7 +406,7 @@ int alltoall_check_result_int64(const void *check_buf, u64 *recv_counts, u64 *re
         {
             if(result[j] != check_val)
             {
-                printf("check data from rank %d  result[%llu] error, exp:%lld, act:%lld\n", i, j, check_val, result[j]);
+                ERROR("Check data from rank %d  result[%llu] error, exp:%lld, act:%lld", i, j, check_val, result[j]);
                 ret++;
             }
         }
@@ -426,7 +426,7 @@ int alltoall_check_result_int16(const void *check_buf, u64 *recv_counts, u64 *re
         {
             if(result[j] != check_val)
             {
-                printf("check data from rank %d  result[%llu] error, exp:%d, act:%d\n", i, j, check_val, result[j]);
+                ERROR("Check data from rank %d  result[%llu] error, exp:%d, act:%d", i, j, check_val, result[j]);
                 ret++;
             }
         }
@@ -447,7 +447,7 @@ int alltoall_check_result_fp16(const void *check_buf, u64 *recv_counts, u64 *rec
         {
             if(result[j] != check_val)
             {
-                printf("check data from rank %d  result[%llu] error, exp:%d, act:%d\n", i, j, check_val, result[j]);
+                ERROR("Check data from rank %d  result[%llu] error, exp:%d, act:%d", i, j, check_val, result[j]);
                 ret++;
             }
         }
@@ -467,7 +467,7 @@ int alltoall_check_result_uint8(const void *check_buf, u64 *recv_counts, u64 *re
         {
             if(result[j] != check_val)
             {
-                printf("check data from rank %d  result[%llu] error, exp:%d, act:%d\n", i, j, check_val, result[j]);
+                ERROR("Check data from rank %d  result[%llu] error, exp:%d, act:%d", i, j, check_val, result[j]);
                 ret++;
             }
         }
@@ -487,7 +487,7 @@ int alltoall_check_result_uint16(const void *check_buf, u64 *recv_counts, u64 *r
         {
             if(result[j] != check_val)
             {
-                printf("check data from rank %d  result[%llu] error, exp:%d, act:%d\n", i, j, check_val, result[j]);
+                ERROR("Check data from rank %d  result[%llu] error, exp:%d, act:%d", i, j, check_val, result[j]);
                 ret++;
             }
         }
@@ -507,7 +507,7 @@ int alltoall_check_result_uint32(const void *check_buf, u64 *recv_counts, u64 *r
         {
             if(result[j] != check_val)
             {
-                printf("check data from rank %d  result[%llu] error, exp:%d, act:%d\n", i, j, check_val, result[j]);
+                ERROR("Check data from rank %d  result[%llu] error, exp:%d, act:%d", i, j, check_val, result[j]);
                 ret++;
             }
         }
@@ -527,7 +527,7 @@ int alltoall_check_result_bfp16(const void *check_buf, u64 *recv_counts, u64 *re
         {
             if(fabs(result[j] - check_val) / abs(result[j]) > 0.001)
             {
-                printf("check data from rank %d  result[%llu] error, exp:%d, act:%d\n", i, j, check_val, result[j]);
+                ERROR("Check data from rank %d  result[%llu] error, exp:%d, act:%d", i, j, check_val, result[j]);
                 ret++;
             }
         }

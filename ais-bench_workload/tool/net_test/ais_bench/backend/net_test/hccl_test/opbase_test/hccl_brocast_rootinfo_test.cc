@@ -30,7 +30,7 @@ namespace hccl
 {
 HcclOpBaseBrocastTest::HcclOpBaseBrocastTest() : HcclOpBaseTest()
 {
-    
+
     host_buf = nullptr;
     recv_buff_temp = nullptr;
     check_buf = nullptr;
@@ -92,7 +92,7 @@ int HcclOpBaseBrocastTest::check_buf_result()
             break;
         default:
             ret++;
-            printf("no match datatype\n");
+            ERROR("No match datatype.");
             break;
     }
     if(ret != 0)
@@ -102,14 +102,13 @@ int HcclOpBaseBrocastTest::check_buf_result()
     return 0;
 }
 
-void HcclOpBaseBrocastTest::cal_execution_time(float time)
+int HcclOpBaseBrocastTest::cal_execution_time(float time)
 {
     double total_time_us = time * 1000;
     double average_time_us = total_time_us / iters;
     double algorithm_bandwith_GBytes_s = malloc_kSize / average_time_us * B_US_TO_GB_S;
 
-    print_execution_time(average_time_us, algorithm_bandwith_GBytes_s);
-    return;
+    return print_execution_time(average_time_us, algorithm_bandwith_GBytes_s);
 }
 
 int HcclOpBaseBrocastTest::destory_check_buf()
@@ -123,7 +122,7 @@ int HcclOpBaseBrocastTest::destory_check_buf()
 int HcclOpBaseBrocastTest::hccl_op_base_test() //主函数
 {
     if (op_flag != 0 && rank_id == root_rank) {
-        printf("Warning: The -o,--op <sum/prod/min/max> option does not take effect. Check the cmd parameter.\n");
+        WARN("The -o,--op <sum/prod/min/max> option does not take effect. Check the cmd parameter.\n");
     }
     // 获取数据量和数据类型
     init_data_count();
@@ -159,13 +158,13 @@ int HcclOpBaseBrocastTest::hccl_op_base_test() //主函数
         ACLCHECK(check_buf_result()); // 校验计算结果
     }
 
-    cal_execution_time(time);
+    int ret = cal_execution_time(time);
 
     //销毁集合通信内存资源
     ACLCHECK(aclrtFree(buff));
     if (check == 1) {
         ACLCHECK(destory_check_buf());
     }
-    return 0;
+    return ret;
 }
 }

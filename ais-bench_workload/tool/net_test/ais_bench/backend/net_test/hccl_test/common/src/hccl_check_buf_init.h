@@ -1,5 +1,6 @@
 #ifndef _HCCL_CHECK_BUF_INIT_H_
 #define _HCCL_CHECK_BUF_INIT_H_
+#include <map>
 #include <stdio.h>
 #include <math.h>
 #include <unistd.h>
@@ -10,7 +11,8 @@
 #include <cstdint>
 #include <hccl/hccl_types.h>
 #include "hccl_test_common.h"
-#include <map>
+#include "hccl_test_logger.h"
+
 
 static inline float fp32_from_bits(uint32_t w)
 {
@@ -81,7 +83,7 @@ static inline uint16_t fp32tobf16(float x){
     man = *p & 0x007FFFFFu;
     if (exp == 0 && man == 0) {
         // zero
-        return x; 
+        return x;
     }
     if (exp == 0x7F800000u) {
         // infinity or Nans

@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <vector>
+#ifdef MPI_SUPPORT
 #include "mpi.h"
+#endif
 #include "hccl_opbase_rootinfo_base.h"
 #include "hccl_allgather_rootinfo_test.h"
 #include "hccl_test_common.h"
@@ -107,14 +109,14 @@ int is_all_digit(const char *strNum)
     // 参数有效性检查
    if (strNum == NULL)
    {
-       printf("Error: ptr [%s] is NULL\n", strNum);
+       ERROR("String type number is NULL.");
        return -1;
    }
 
     u32 nLength = sal_str_len(strNum);
     for (u32 index = 0; index < nLength; index++) {
         if (!isdigit(strNum[index])) {
-            printf("Error:In judge all digit, check isdigit failed.\n");
+            ERROR("In judge all digit, check isdigit failed.");
             return -1;
         }
     }
@@ -127,7 +129,7 @@ long strtol_alldigit(const char *optarg)
     if (ret != 0) {
         return ret;
     }
-    
+
     return strtol(optarg, NULL, 0);
 }
 
@@ -147,6 +149,8 @@ HcclTest::~HcclTest()
     data = nullptr;
 }
 
+
+#ifdef MPI_SUPPORT
 struct option HcclTest::longopts[] =
 {
     {"op", required_argument, 0, 'o'},
@@ -162,10 +166,34 @@ struct option HcclTest::longopts[] =
     {"npus", required_argument, 0, 'p'},
     {"help", no_argument, 0, 'h'},
 };
+#endif
 
+#ifndef MPI_SUPPORT
+struct option HcclTest::longopts[] =
+{
+    {"op", required_argument, 0, 'o'},
+    {"datatype", required_argument, 0, 'd'},
+    {"minbytes", required_argument, 0, 'b'},
+    {"maxbytes", required_argument, 0, 'e'},
+    {"stepbytes", required_argument, 0, 'i'},
+    {"stepfactor", required_argument, 0, 'f'},
+    {"root", required_argument, 0, 'r'},
+    {"iters", required_argument, 0, 'n'},
+    {"warmup_iters", required_argument, 0, 'w'},
+    {"check", required_argument, 0, 'c'},
+    {"npus", required_argument, 0, 'p'},
+    {"server_ip", required_argument, 0, 'a'},
+    {"server_port", required_argument, 0, 'g'},
+    {"rank_size", required_argument, 0, 'j'},
+    {"rank_id", required_argument, 0, 'k'},
+    {"help", no_argument, 0, 'h'},
+};
+#endif
+
+#ifdef MPI_SUPPORT
 void HcclTest::print_help()
 {
-    printf("USAGE: ./test \n\t"
+    INFO("USAGE: ./test \n\t"
     "[-b,--minbytes <min size in bytes>] \n\t"
     "[-e,--maxbytes <max size in bytes>] \n\t"
     "[-i,--stepbytes <increment size>] \n\t"
@@ -180,23 +208,48 @@ void HcclTest::print_help()
     "[-h,--help]\n");
     return;
 }
+#endif
+
+#ifndef MPI_SUPPORT
+void HcclTest::print_help()
+{
+    INFO("USAGE: ./test \n\t"
+    "[-b,--minbytes <min size in bytes>] \n\t"
+    "[-e,--maxbytes <max size in bytes>] \n\t"
+    "[-i,--stepbytes <increment size>] \n\t"
+    "[-f,--stepfactor <increment factor>] \n\t"
+    "[-n,--iters <iteration count>] \n\t"
+    "[-o,--op <sum/prod/min/max>] \n\t"
+    "[-d,--datatype <int8/int16/int/fp16/fp32/int64/uint64/uint8/uint16/uint32/fp64/bfp16>] \n\t"
+    "[-r,--root <root>] \n\t"
+    "[-w,--warmup_iters <warmup iteration count>] \n\t"
+    "[-c,--check <result verification> 0:disabled 1:enabled.] \n\t"
+    "[-p,--npus <npus used for one node>] \n\t"
+    "[-a,--server_ip <ip of root rank>] \n\t"
+    "[-g,--server_port <port of root rank>] \n\t"
+    "[-j,--rank_size <rank size>] \n\t"
+    "[-k,--rank_id <current rank's id>] \n\t"
+    "[-h,--help]\n");
+    return;
+}
+#endif
 
 int HcclTest::check_data_count()
 {
     if (data_parsed_begin < 0 || data_parsed_end < 0) {
-        printf("invalid size specified for [-b,--minbytes] or [-e,--maxbytes]\n");
+        ERROR("Invalid size specified for [-b,--minbytes] or [-e,--maxbytes]");
         return -1;
     }
     data->min_bytes = (u64)data_parsed_begin;
     data->max_bytes = (u64)data_parsed_end;
 
     if (stepbytes_flag != 0 && temp_step_bytes < 0) {
-        printf("Error: [-i,--stepbytes] must be greater than or equal to 0.\n");
+        ERROR("[-i,--stepbytes] must be greater than or equal to 0.");
         return -1;
     }
 
     if (data->max_bytes < data->min_bytes) {
-        printf("invalid option: maxbytes < minbytes, Check the [-b,--minbytes] and [-e,--maxbytes] options.\n");
+        ERROR("Invalid option: maxbytes < minbytes, Check the [-b,--minbytes] and [-e,--maxbytes] options.");
         return -1;
     } else {
         if (stepbytes_flag != 0) {// 用户配置了增量步长
@@ -212,12 +265,12 @@ int HcclTest::check_data_count()
     }
 
     if (stepfactor_flag !=0 && data->step_factor <= 1.0) {
-        printf("Error: [-f,--stepfactor] Must be greater than 1.0f, Start step mod.\n");
+        ERROR("[-f,--stepfactor] Must be greater than 1.0f, Start step mod.");
         return -1;
     }
 
     if (stepfactor_flag !=0 && stepbytes_flag != 0) {
-        printf("Warning: [-f,--stepfactor] and [-i,--stepbytes] are set, [-f,--stepfactor] is enabled by default.\n");
+        WARN("[-f,--stepfactor] and [-i,--stepbytes] are set, [-f,--stepfactor] is enabled by default.");
     }
 
     return 0;
@@ -234,49 +287,68 @@ int HcclTest::check_cmd_line()
 
     if (dtype == -1)
     {
-        printf("Error: [-d,--datatype] is invalid, Use [-h,--help] to check the correct input parameter.\n");
+        ERROR("[-d,--datatype] is invalid, Use [-h,--help] to check the correct input parameter.\n");
         return -1;
     }
 
     if (op_type == -1)
     {
-        printf("Error: [-o,--op] is invalid, Use [-h,--help] to check the correct input parameter.\n");
+        ERROR("[-o,--op] is invalid, Use [-h,--help] to check the correct input parameter.");
         return -1;
     }
 
     if (warmup_iters < 0) {
-        printf("Error: [-w,--warmup_iters] is invalid, warmup_iters must be greater than or equal to 0.\n");
+        ERROR("[-w,--warmup_iters] is invalid, warmup_iters must be greater than or equal to 0.");
         return -1;
     }
 
     if (iters < 0) {
-        printf("Error: [-n,--iters] is invalid, iters must be greater than or equal to 0.\n");
+        ERROR("[-n,--iters] is invalid, iters must be greater than or equal to 0.");
         return -1;
     }
 
     if (hccl_root >= rank_size || hccl_root < 0) //如果指定的root rank大于等于rank_size
     {
-        printf("Error: [-r,--root <root>] is invalid, root rank must be greater than or equal to 0 and less than or equal to %d.\n", rank_size - 1);
+        ERROR("[-r,--root <root>] is invalid, root rank must be greater than or equal to 0 and less than or equal to %d.", rank_size - 1);
         return -1;
     }
 
     if (check != 1 && check != 0)
     {
-        printf("Error: [-c,--check] is invalid, check should be 0 or 1\n");
+        ERROR("[-c,--check] is invalid, check should be 0 or 1");
         return -1;
     }
 
     if (dev_count == 0)
     {
-        printf("Error: The number of device is 0.Check whether the package is correct.\n");
+        ERROR("The number of device is 0.Check whether the package is correct.");
         return -1;
     }
 
     if (npus < 1 || npus > dev_count)
     {
-        printf("Error: [-p,--npus <npus used for one node>] is invalid, npus must be greater than or equal to 1 and less than or equal to %d.\n", dev_count);
+        ERROR("[-p,--npus <npus used for one node>] is invalid, npus must be greater than or equal to 1 and less than or equal to %d.", dev_count);
         return -1;
     }
+
+    #ifndef MPI_SUPPORT
+    if (server_ip == "")
+    {
+        ERROR("[-a,--server_ip <ip of root rank>] is invalid.");
+        return -1;
+    }
+    if (server_port == -1)
+    {
+        ERROR("[-a,--server_port <port of root rank>] is invalid.");
+        return -1;
+    }
+    if (rank_id >= rank_size)
+    {
+        ERROR("Rank_id shouldn't be larger than rank_size.");
+        return -1;
+    }
+    #endif
+
     return 0;
 }
 
@@ -352,12 +424,26 @@ int HcclTest::parse_opt(int opt)
         case 'p':
             npus = strtol_alldigit(optarg);
             break;
+        #ifndef MPI_SUPPORT
+        case 'a': // serverIP
+            server_ip = std::string(optarg);
+            break;
+        case 'g': // serverPort
+            server_port = strtol_alldigit(optarg);
+            break;
+        case 'j': // rankSize
+            rank_size = strtol_alldigit(optarg);
+            break;
+        case 'k': // rankID
+            rank_id = strtol_alldigit(optarg);
+            break;
+        #endif
         case 'h':
             print_help();
             return 1;
         default:
-            printf("invalid option \n");
-            printf("Try [-h --help] for more information.\n");
+            ERROR("invalid option ");
+            INFO("Try [-h --help] for more information.");
             return -1;
         }
     return 0;
@@ -369,7 +455,16 @@ int HcclTest::parse_cmd_line(int argc, char* argv[])
     int longindex = 0;
     int ret = 0;
     long parsed;
-    while(-1 != (opt = getopt_long(argc, argv, "o:d:b:e:i:f:r:n:w:c:p:h", longopts, &longindex)))
+
+    #ifdef MPI_SUPPORT
+    std::string optString = "o:d:b:e:i:f:r:n:w:c:p:h";
+    #endif
+
+    #ifndef MPI_SUPPORT
+    std::string optString = "o:d:b:e:i:f:r:n:w:c:p:a:g:j:k:h"; // serverIP, serverPort, rankSize, rankID
+    #endif
+
+    while(-1 != (opt = getopt_long(argc, argv, optString.c_str(), longopts, &longindex)))
     {
         ret = parse_opt(opt);
         if (ret != 0)
@@ -379,11 +474,7 @@ int HcclTest::parse_cmd_line(int argc, char* argv[])
     }
 
     if (optind < argc) {
-        printf("non-option ARGV-elements: ");
-        while (optind < argc) {
-            printf("%s ", argv[optind++]);
-        }
-        printf("\n");
+        ERROR("Find non-option argv elements in commands!");
         return -1;
     }
 
@@ -395,7 +486,7 @@ int HcclTest::getAviDevs(const char* devs, std::vector<int>& dev_ids)
 
     std::string use_devs(devs);
     std::string pattern = ",";
-    std::string::size_type pos; 
+    std::string::size_type pos;
     use_devs += pattern;
     size_t val_size = use_devs.size();
     for(size_t i = 0; i < val_size; ++i)
@@ -405,19 +496,26 @@ int HcclTest::getAviDevs(const char* devs, std::vector<int>& dev_ids)
         {
             std::string s = use_devs.substr(i, pos);
             int tmp_rank = atoi(s.c_str());
-            dev_ids.push_back(tmp_rank); 
+            dev_ids.push_back(tmp_rank);
             i = pos + pattern.size() - 1;
         }
-    }	
+    }
 
     return 0;
 }
 
 int HcclTest::get_mpi_proc()
 {
+    #ifdef MPI_SUPPORT
     //获取当前进程在所属进程组的编号
     MPI_Comm_size(MPI_COMM_WORLD, &proc_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &proc_rank);
+    #endif
+    #ifndef MPI_SUPPORT
+    //获取当前进程在所属进程组的编号
+    proc_size = rank_size;
+    proc_rank = rank_id;
+    #endif
 
     ACLCHECK(aclrtGetDeviceCount(&dev_count));
 
@@ -425,8 +523,10 @@ int HcclTest::get_mpi_proc()
         npus = dev_count;
     }
 
+    #ifdef MPI_SUPPORT
     rank_id = proc_rank;
     rank_size = proc_size;
+    #endif
 
     const char* devs = getenv("HCCL_TEST_USE_DEVS");
     if(devs != NULL)
@@ -460,7 +560,7 @@ int HcclTest::set_device_sat_mode()
 {
     const char *soc_name_ptr = aclrtGetSocName();
     if (soc_name_ptr == nullptr) {
-        printf("aclrtGetSocName failed");
+        ERROR("Using acl api get SocName failed!");
         return -1;
     }
 
@@ -483,18 +583,37 @@ int HcclTest::init_hcclComm()
     int ret = set_device_sat_mode();
     if (ret != 0)
     {
-        printf("set_device_sat_mode execute failed, Detailed logs are stored in path: /root/ascend/log/");
+        ERROR("Close over float detector failed, Detailed logs are stored in path: ~/ascend/log/");
         return ret;
     }
 
     // 在root_rank获取root_info
     if(rank_id == root_rank) {
-        printf("the minbytes is %llu, maxbytes is %llu, iters is %d, warmup_iters is %d\n", data->min_bytes, data->max_bytes, iters, warmup_iters);
+        INFO("The minbytes is %llu, maxbytes is %llu, iters is %d, warmup_iters is %d.", data->min_bytes, data->max_bytes, iters, warmup_iters);
         HCCLROOTRANKCHECK(HcclGetRootInfo(&comm_id));
     }
+
+    #ifdef MPI_SUPPORT
     //将root_info广播到通信域内的其他rank
     MPI_Bcast(&comm_id, HCCL_ROOT_INFO_BYTES, MPI_CHAR, root_rank, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
+    #endif
+
+    #ifndef MPI_SUPPORT
+    ret = communicater->SynchronizeRootInfo(&comm_id, HCCL_ROOT_INFO_BYTES);
+    if (ret != 0) {
+        ERROR("Rank: %d run synchronize root info failed!", rank_id);
+        return ret;
+    }
+    #endif
+
+    std::string rootInfoContent = "";
+    for (int i = 0; i < HCCL_ROOT_INFO_BYTES; ++i) {
+        rootInfoContent = rootInfoContent + comm_id.internal[i];
+    }
+    DEBUG("rank: %d, received rootInfo is: %s", rank_id, rootInfoContent.c_str());
+
+
     //初始化集合通信域
     HCCLCHECK(HcclCommInitRootInfo(rank_size, &comm_id, rank_id, &hccl_comm));
 
@@ -517,7 +636,7 @@ int HcclTest::opbase_test_by_data_size(HcclTest* hccl_test)
         ret = hccl_test->hccl_op_base_test();
         if (ret != 0)
         {
-            printf("hccl_op_base execute failed, Detailed logs are stored in path: /root/ascend/log/");
+            ERROR("Execute hccl op test failed, Detailed logs are stored in path: ~/ascend/log/");
             return ret;
         }
     }
@@ -539,4 +658,21 @@ int HcclTest::destory_hcclComm()
     ACLCHECK(aclFinalize());
     return 0;
 }
+
+int HcclTest::InitCommunicater()
+{
+    try {
+        communicater = std::make_shared<hccl::HcclCommunicater>(
+            server_ip,
+            server_port,
+            rank_size,
+            rank_id
+        );
+    } catch (...) {
+        ERROR("Create communicater failed!");
+        return 1;
+    }
+    return 0;
+}
+
 }

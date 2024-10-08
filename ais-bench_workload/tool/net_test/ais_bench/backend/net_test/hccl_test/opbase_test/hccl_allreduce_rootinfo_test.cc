@@ -30,7 +30,7 @@ namespace hccl
 {
 HcclOpBaseAllreduceTest::HcclOpBaseAllreduceTest() : HcclOpBaseTest()
 {
-    
+
     host_buf = nullptr;
     recv_buff_temp = nullptr;
     check_buf = nullptr;
@@ -85,7 +85,7 @@ int HcclOpBaseAllreduceTest::check_buf_result()
             break;
         default:
             ret++;
-            printf("no match datatype\n");
+            ERROR("No match datatype.");
             break;
     }
     if(ret != 0)
@@ -95,14 +95,13 @@ int HcclOpBaseAllreduceTest::check_buf_result()
     return 0;
 }
 
-void HcclOpBaseAllreduceTest::cal_execution_time(float time)
+int HcclOpBaseAllreduceTest::cal_execution_time(float time)
 {
     double total_time_us = time * 1000;
     double average_time_us = total_time_us / iters;
     double algorithm_bandwith_GBytes_s = malloc_kSize / average_time_us * B_US_TO_GB_S;
 
-    print_execution_time(average_time_us, algorithm_bandwith_GBytes_s);
-    return;
+    return print_execution_time(average_time_us, algorithm_bandwith_GBytes_s);
 }
 
 int HcclOpBaseAllreduceTest::destory_check_buf()
@@ -152,7 +151,7 @@ int HcclOpBaseAllreduceTest::hccl_op_base_test() //主函数
         ACLCHECK(check_buf_result()); // 校验计算结果
     }
 
-    cal_execution_time(time);
+    int ret = cal_execution_time(time);
 
     //销毁集合通信内存资源
     ACLCHECK(aclrtFree(send_buff));
@@ -160,6 +159,6 @@ int HcclOpBaseAllreduceTest::hccl_op_base_test() //主函数
     if (check == 1) {
         ACLCHECK(destory_check_buf());
     }
-    return 0;
+    return ret;
 }
 }

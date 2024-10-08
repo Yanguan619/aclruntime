@@ -1,10 +1,13 @@
 #ifndef __HCCL_OPBASE_ROOTINFO_BASE_H_
 #define __HCCL_OPBASE_ROOTINFO_BASE_H_
 #include "hccl_test_common.h"
+#ifdef MPI_SUPPORT
 #include "mpi.h"
+#endif
 #include "hccl_check_common.h"
 #include <hccl/hccl_types.h>
 #include "hccl_check_buf_init.h"
+#include "hccl_test_logger.h"
 
 namespace hccl
 {
@@ -20,7 +23,7 @@ public:
     virtual void init_data_count(); //初始化malloc_kSize
     virtual void no_verification();
     virtual void is_data_overflow();
-    virtual void print_execution_time(double average_time_us, double algorithm_bandwith_GBytes_s); //打印耗时
+    virtual int print_execution_time(double average_time_us, double algorithm_bandwith_GBytes_s); //打印耗时
 
 public:
     void *send_buff;

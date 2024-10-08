@@ -94,7 +94,7 @@ void HcclOpBaseTest::no_verification()
 {
     check = 0; //不进行校验
     if (rank_id == root_rank && print_dump) {
-        printf("Warning: The calculation result overflows, No verification is performed.\n");
+        WARN("The calculation result overflows, no verification is performed.");
         print_dump = false;
     }
     return;
@@ -124,20 +124,22 @@ void HcclOpBaseTest::is_data_overflow()
     return;
 }
 
-void HcclOpBaseTest::print_execution_time(double average_time_us, double algorithm_bandwith_GBytes_s)
+int HcclOpBaseTest::print_execution_time(double average_time_us, double algorithm_bandwith_GBytes_s)
 {
+    setvbuf(stdout, NULL, _IOLBF, 0); // 设置printf的缓冲区大小
     //不开启结果校验场景
     if (check == 0)
     {
         if (rank_id == root_rank) {
             if (print_header)
             {
-                printf("%-15s | %-12s | %-18s | %s\n", data_size, aveg_time, alg_bandwidth, verification_result);
+                INFO("Test result without check is:");
+                INFO(" %-15s | %-12s | %-18s | %s", data_size, aveg_time, alg_bandwidth, verification_result);
                 print_header = false;
             }
-            printf("%-17llu | %-14.2f | %-20.5f | NULL\n", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
+            INFO(" %-17llu | %-14.2f | %-20.5f | NULL", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
         }
-        return;
+        return 0;
     }
 
     // 开启结果校验，部分rank结果校验失败场景
@@ -145,38 +147,51 @@ void HcclOpBaseTest::print_execution_time(double average_time_us, double algorit
     if (check_err != 0)
     {
         check_result[rank_id] = false; // 结果校验失败
-        printf("rank id %d, check result failed\n", rank_id);
+        ERROR("Rank id %d, check result failed.", rank_id);
     } else {
         check_result[rank_id] = true; // 结果校验成功
     }
 
+    #ifdef MPI_SUPPORT
     MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, check_result, sizeof(bool), MPI_BYTE, MPI_COMM_WORLD);
+    #endif
 
-    bool result = true;
-    for (int p = 0; p < rank_size; p++)
-    {
-        if (check_result[p] == false)
-        {
-            result = false;
-            break;
-        }
+    #ifndef MPI_SUPPORT
+    bool curResuult = check_result[rank_id];
+    int ret = communicater->AllGatherInfoToRoot(&check_result, &curResuult, sizeof(bool), rank_size);
+    if (ret != 0) {
+        ERROR("Rank: %d run all gather root info failed! Print execution time failed!", rank_id);
+        return ret;
     }
+    #endif
+
+
     if (rank_id == root_rank)
     {
+        bool result = true;
+        for (int p = 0; p < rank_size; p++)
+        {
+            if (check_result[p] == false)
+            {
+                result = false;
+                break;
+            }
+        }
         if (print_header)
         {
-            printf("%-15s | %-12s | %-18s | %s\n", data_size, aveg_time, alg_bandwidth, verification_result);
+            INFO("Test result with check is:");
+            INFO(" %-15s | %-12s | %-18s | %s", data_size, aveg_time, alg_bandwidth, verification_result);
             print_header = false;
         }
 
         if (!result)
         {
-            printf("%-17llu | %-14.2f | %-20.5f | failed\n", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
+            INFO(" %-17llu | %-14.2f | %-20.5f | failed", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
         } else {
-            printf("%-17llu | %-14.2f | %-20.5f | success\n", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
+            INFO(" %-17llu | %-14.2f | %-20.5f | success", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
         }
     }
-    return;
+    return 0;
 }
 
 

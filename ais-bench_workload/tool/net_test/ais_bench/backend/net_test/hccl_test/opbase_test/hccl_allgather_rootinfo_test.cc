@@ -10,6 +10,7 @@
 #include "hccl_allgather_rootinfo_test.h"
 #include "hccl_opbase_rootinfo_base.h"
 #include "hccl_check_buf_init.h"
+
 using namespace hccl;
 
 HcclTest* init_opbase_ptr(HcclTest* opbase)
@@ -30,7 +31,7 @@ namespace hccl
 {
 HcclOpBaseAllgatherTest::HcclOpBaseAllgatherTest() : HcclOpBaseTest()
 {
-    
+
     host_buf = nullptr;
     recv_buff_temp = nullptr;
     check_buf = nullptr;
@@ -90,7 +91,7 @@ int HcclOpBaseAllgatherTest::check_buf_result()
             break;
         default:
             ret++;
-            printf("no match datatype\n");
+            ERROR("No match datatype.");
             break;
     }
     if(ret != 0)
@@ -100,14 +101,13 @@ int HcclOpBaseAllgatherTest::check_buf_result()
     return 0;
 }
 
-void HcclOpBaseAllgatherTest::cal_execution_time(float time)
+int HcclOpBaseAllgatherTest::cal_execution_time(float time)
 {
     double total_time_us              = time * 1000;
     double average_time_us            = total_time_us / iters;
     double algorithm_bandwith_GBytes_s = malloc_kSize * rank_size / average_time_us * B_US_TO_GB_S;
 
-    print_execution_time(average_time_us, algorithm_bandwith_GBytes_s);
-    return;
+    return print_execution_time(average_time_us, algorithm_bandwith_GBytes_s);
 }
 
 int HcclOpBaseAllgatherTest::destory_check_buf()
@@ -121,9 +121,9 @@ int HcclOpBaseAllgatherTest::destory_check_buf()
 int HcclOpBaseAllgatherTest::hccl_op_base_test() //主函数
 {
     if (op_flag != 0 && rank_id == root_rank) {
-        printf("Warning: The -o,--op <sum/prod/min/max> option does not take effect. Check the cmd parameter.\n");
+        WARN("The -o,--op <sum/prod/min/max> option does not take effect. Check the cmd parameter.\n");
     }
-    
+
     // 获取数据量和数据类型
     init_data_count();
 
@@ -160,7 +160,7 @@ int HcclOpBaseAllgatherTest::hccl_op_base_test() //主函数
         ACLCHECK(check_buf_result()); // 校验计算结果
     }
 
-    cal_execution_time(time);
+    int ret = cal_execution_time(time);
 
     //销毁集合通信内存资源
     ACLCHECK(aclrtFree(send_buff));
@@ -168,6 +168,6 @@ int HcclOpBaseAllgatherTest::hccl_op_base_test() //主函数
     if (check == 1) {
         ACLCHECK(destory_check_buf());
     }
-    return 0;
+    return ret;
 }
 }

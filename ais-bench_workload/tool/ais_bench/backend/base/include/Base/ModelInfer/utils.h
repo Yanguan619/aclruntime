@@ -85,6 +85,7 @@ public:
     static Result TensorToBin(const std::string& outputFileName, Base::TensorBase& output);
     static Result TensorToTxt(const std::string& outputFileName, Base::TensorBase& output);
     static bool TailContain(const std::string& str, const std::string& tail);
+    static bool IsValidInteger(const std::string& str);
 };
 
 #endif

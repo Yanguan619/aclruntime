@@ -448,3 +448,16 @@ bool Utils::TailContain(const std::string& str, const std::string& tail)
     }
     return false;
 }
+
+bool Utils::IsValidInteger(const std::string& str) {
+    if (str.empty()) {
+        return false;
+    }
+    char* end;
+    long val = std::strtol(str.c_str(), &end, 10);
+    // Check for empty string, characters left after conversion, and out of range values
+    if (end == str.c_str() || *end != '\0' || val > INT_MAX || val < INT_MIN) {
+        return false;
+    }
+    return true;
+}

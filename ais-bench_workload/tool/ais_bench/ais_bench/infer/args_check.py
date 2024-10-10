@@ -9,6 +9,7 @@ AIPP_CONFIG_MAX_SIZE = 12.5 * 1024 # 12.5KB
 CPP_INT_MAX_SIZE = 2147483647 # 2^31 - 1
 INPUT_LIST_MAX_SIZE = 1024
 LOOP_MAX_SIZE = 100000
+DEVICE_COUNT_MAX = 256
 
 def check_dym_string(value):
     if not value:
@@ -126,6 +127,10 @@ def check_device_range_valid(value):
         # Check if the value contains a comma; if so, split into a list of integers
         if ',' in value:
             ilist = [int(v) for v in value.split(',')]
+            if len(ilist) > DEVICE_COUNT_MAX:
+                raise argparse.ArgumentTypeError(
+                    f"too much device id in --device, max permitted count is {DEVICE_COUNT_MAX}"
+                )
             for ivalue in ilist:
                 if ivalue < min_value or ivalue > max_value:
                     raise argparse.ArgumentTypeError("{} of device:{} is invalid. valid value range is [{}, {}]".format(

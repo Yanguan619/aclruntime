@@ -62,8 +62,6 @@ public:
     static Result SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_str,
         std::map<string, int64_t> &out_namedimsmul_map);
 
-    static int str2num(char* str);
-
     static std::string modelName(std::string& s);
 
     static std::string TimeLine();

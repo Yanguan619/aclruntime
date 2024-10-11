@@ -522,6 +522,7 @@ MemoryData CopyMemory2DeviceMemory(void *ptr, uint64_t size, int32_t deviceId)
     }
     ret = MemoryHelper::MxbsMemcpy(dst, src, dst.size);
     if (ret != APP_ERR_OK) {
+        dst.free(dst.ptrData);
         throw std::runtime_error("copy mem to device failed! cause: memcpy failed!");
     }
     return dst;

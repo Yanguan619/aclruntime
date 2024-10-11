@@ -115,7 +115,6 @@ APP_ERROR MemoryHelper::Malloc(MemoryData& data)
     ret = specificMalloc(data);
     if (ret != APP_ERR_OK) {
         ERROR_LOG("%sMalloc ptrData failed.", GetError(ret).c_str());
-        data.free(data.ptrData);
         data.ptrData = nullptr;
         return APP_ERR_ACL_BAD_ALLOC;
     }

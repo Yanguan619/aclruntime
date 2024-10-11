@@ -88,7 +88,7 @@ def parse_result(results, args):
             print(result[1])
     return RET.SUCCESS
 
-def lanuch_run_node(args):
+def launch_run_node(args):
     command_lists = construct_command_lists(args)
     results = multiprocess_run(args.npus, command_lists)
     ret = parse_result(results, args)

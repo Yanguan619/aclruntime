@@ -14,7 +14,7 @@
 
 from ais_bench.backend.net_test.common.args_adapter import ArgsAdapter
 from ais_bench.backend.net_test.common.get_args import get_args
-from ais_bench.backend.net_test.lanuch_run_node import lanuch_run_node
+from ais_bench.backend.net_test.launch_run_node import launch_run_node
 
 
 if __name__ == "__main__":
@@ -22,5 +22,5 @@ if __name__ == "__main__":
     args = ArgsAdapter(args.server_ip, args.server_port, args.rank_size, args.node_id, args.op_task, args.npus,
             args.minbytes, args.maxbytes, args.stepbytes, args.stepfactor, args.op, args.root, args.datatype,
             args.iters, args.warmup_iters, args.check)
-    ret = lanuch_run_node(args)
+    ret = launch_run_node(args)
     exit(ret)

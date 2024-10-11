@@ -11,8 +11,16 @@
 
 ### 环境和依赖
 
-- 请参见《CANN开发工具指南》安装昇腾设备开发或运行环境，即toolkit或nnrt软件包。
+- 硬件环境请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/canncommercial/80RC22/quickstart/quickstart/quickstart_18_0002.html)》。
+- 软件环境请参见《[CANN 软件安装指南](https://www.hiascend.com/document/detail/zh/canncommercial/80RC22/softwareinst/instg/instg_0000.html?Mode=PmIns&OS=Ubuntu&Software=cannToolKit)》安装昇腾设备开发或运行环境，即toolkit或nnrt软件包。
 - 安装Python3、Python包模块numpy、tqdm、wheel。
+
+以上环境依赖请根据实际环境选择适配的版本。
+
+### 版本配套说明
+
+- ais_bench推理工具适配CANN 6.0.RC1及以上版本的CANN软件包。
+- ais_bench推理工具支持的固件驱动版本与配套CANN软件支持的固件驱动版本相同，开发者可通过“[昇腾社区-固件与驱动](https://www.hiascend.com/hardware/firmware-drivers/community?product=2&model=28&cann=8.0.RC3.alpha003&driver=1.0.25.alpha)”页面根据产品型号与CANN软件版本获取配套的固件与驱动。
 
 ### 工具安装方式
 

@@ -23,6 +23,39 @@
 #include <unistd.h>
 
 constexpr int DIR_CHECK_MODE = R_OK | W_OK | X_OK;
+constexpr const uint16_t MAX_PATH_SIZE = 1024;
+constexpr const int MAX_DEPTH = 20;
+constexpr const char pathSeparator = '/';
+constexpr const char* FILE_VALID_PATTERN = "^[a-zA-Z0-9_.:/-]+$";
+
+constexpr const uint32_t FULL_PATH_LENGTH_MAX = 4096;
+constexpr const uint32_t FILE_NAME_LENGTH_MAX = 255;
+constexpr const uint32_t PATH_DEPTH_MAX = 32;
+
+constexpr size_t MAX_PKL_SIZE = 1024ULL * 1024 * 1024;
+constexpr size_t MAX_NUMPY_SIZE = 10ULL * 1024 * 1024 * 1024;
+constexpr size_t MAX_JSON_SIZE = 1024ULL * 1024 * 1024;
+constexpr size_t MAX_PT_SIZE = 10ULL * 1024 * 1024 * 1024;
+constexpr size_t MAX_CSV_SIZE = 1024ULL * 1024 * 1024;
+constexpr size_t MAX_YAML_SIZE = 10ULL * 1024 * 1024;
+constexpr size_t MAX_FILE_SIZE_DEFAULT = 10ULL * 1024 * 1024 * 1024;
+
+constexpr mode_t NORMAL_FILE_MODE_DEFAULT = 0640;
+constexpr mode_t READONLY_FILE_MODE_DEFAULT = 0440;
+constexpr mode_t SCRIPT_FILE_MODE_DEFAULT = 0550;
+constexpr mode_t NORMAL_DIR_MODE_DEFAULT = 0750;
+
+enum class FileType {
+    PKL,
+    NUMPY,
+    JSON,
+    PT,
+    CSV,
+    YAML,
+
+    /* Add new type before this line. */
+    COMMON
+};
 
 // File 类主要处理文件相关操作
 class File {
@@ -53,9 +86,33 @@ public:
     // 校验文件属组
     static bool CheckOwner(const std::string &path);
     // 获取绝对路径
+    static std::string GetFullPath(const std::string &originPath);
+    static std::vector<std::string> SplitPath(const std::string &path);
     static std::string GetAbsPath(const std::string &path);
     // 获取文件大小
     static uint64_t Size(const std::string &path);
+    // 校验文件是否存在
+    static bool IsPathExist(const std::string& path);
+
+    static bool IsPathLengthLegal(const std::string& path);
+
+    static bool IsPathCharactersValid(const std::string& path);
+
+    static bool IsPathDepthValid(const std::string& path);
+
+    static bool CheckFileRWX(const std::string& path, const std::string& permissions);
+
+    static bool IsRegularFile(const std::string& path);
+
+    static size_t GetFileSize(const std::string &path);
+
+    static std::string GetFileName(const std::string& path);
+
+    static std::string GetFileSuffix(const std::string& path);
+
+    static bool CheckFileSuffixAndSize(const std::string &path, FileType type);
+    // 读文件前的校验
+    static bool CheckFileBeforeRead(const std::string &path, const std::string &authority, FileType type);
 };
 
 #endif //MS_SAFE_CHECK_BASE_FILE_H

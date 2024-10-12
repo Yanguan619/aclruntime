@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <vector>
+#include <climits>
 #include "File.h"
 #include "Base/Log/Log.h"
 #include "Base/ModelInfer/cnpy.h"

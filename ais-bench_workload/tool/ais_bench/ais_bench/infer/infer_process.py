@@ -49,7 +49,7 @@ from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
                                    save_data_to_files, create_fake_file_name, logger,
                                    create_tmp_acl_json, move_subdir, convert_helper)
 from ais_bench.infer.common.path_security_check import (
-    is_legal_args_path_string, check_normal_string, FILE_PERM_CHOICE, check_path_legality
+    is_legal_args_path_string, check_normal_string, FILE_PERM_CHOICE, check_path_legality, MAX_SIZE_LIMITED_NORMAL_FILE
 )
 from ais_bench.infer.interface_check import check_output_dir_legality, check_dym_hw_list
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
@@ -521,6 +521,11 @@ def main(args, index=0, msgq=None, device_list=None):
             infileslist = create_infileslist_from_inputs_list(inputs_list, intensors_desc, args.no_combine_tensor_mode)
         else:
             infileslist = create_pipeline_fileslist_from_inputs_list(inputs_list, intensors_desc)
+
+    for files in infileslist: # check all file legality
+        for file in files:
+            check_path_legality(file, perm=FILE_PERM_CHOICE.READ, max_size=MAX_SIZE_LIMITED_NORMAL_FILE)
+
     if not args.pipeline:
         warmup(session, args, intensors_desc, infileslist[0])
     else:

@@ -519,9 +519,9 @@ def main(args, index=0, msgq=None, device_list=None):
     else:
         if not args.pipeline: # check before np.load, not here
             infileslist = create_infileslist_from_inputs_list(inputs_list, intensors_desc, args.no_combine_tensor_mode)
-        else:
+        else: # check here, because in cpp, not easy to check
             infileslist = create_pipeline_fileslist_from_inputs_list(inputs_list, intensors_desc)
-            for files in infileslist: # check all file legality
+            for files in infileslist:
                 for file in files:
                     check_path_legality(file, perm=FILE_PERM_CHOICE.READ, max_size=MAX_SIZE_LIMITED_NORMAL_FILE)
 

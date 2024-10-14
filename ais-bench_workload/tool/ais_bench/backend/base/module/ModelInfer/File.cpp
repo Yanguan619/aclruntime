@@ -98,22 +98,28 @@ std::string File::GetAbsPath(const std::string &originPath)
     if (tokensRefined.empty()) {
         return "/";
     }
-
     std::string resolvedPath("");
     for (std::string& token : tokensRefined) {
         resolvedPath.append("/").append(token);
     }
-
     return resolvedPath;
 }
 
 bool File::Chmod(const std::string &path, const mode_t &mode)
 {
-    if (path.empty()) {
-        ERROR_LOG("path is empty");
+    if (!IsPathExist(path)) {
+        ERROR_LOG("path not exist");
+        return false;
+    }
+    if (IsSoftLink(path)) {
+        ERROR_LOG("path is soft link");
         return false;
     }
     std::string absPath = GetAbsPath(path);
+    if (absPath.empty()) {
+        ERROR_LOG("path is empty");
+        return false;
+    }
     return chmod(absPath.c_str(), mode) == 0;
 }
 
@@ -123,18 +129,27 @@ bool File::Access(const std::string &path, const mode_t &mode)
         ERROR_LOG("path is empty");
         return false;
     }
-    std::string absPath = GetAbsPath(path);
-    return access(absPath.c_str(), mode) == 0;
+    return access(path.c_str(), mode) == 0;
 }
 
-bool File::DeleteFile(const std::string &path)
+bool File::IsFileReadable(const std::string& path)
 {
-    if (path.empty()) {
-        ERROR_LOG("path is empty");
-        return false;
-    }
-    std::string absPath = GetAbsPath(path);
-    return unlink(absPath.c_str()) == 0;
+    return access(path.c_str(), R_OK) == 0;
+}
+
+bool File::IsFileWritable(const std::string& path)
+{
+    return access(path.c_str(), W_OK) == 0;
+}
+
+bool File::IsFileExecutable(const std::string& path)
+{
+    return (access(path.c_str(), R_OK) == 0) && (access(path.c_str(), X_OK) == 0);
+}
+
+bool File::IsDirReadable(const std::string& path)
+{
+    return (access(path.c_str(), R_OK) == 0) && (access(path.c_str(), X_OK) == 0);
 }
 
 bool File::IsPathExist(const std::string& path) 
@@ -193,6 +208,15 @@ bool File::IsRegularFile(const std::string& path)
     return false;
 }
 
+bool File::IsDir(const std::string& path) 
+{
+    struct stat buffer;
+    if (stat(path.c_str(), &buffer) == 0) {
+        return (buffer.st_mode & S_IFDIR) != 0;
+    }
+    return false;
+}
+
 size_t File::GetFileSize(const std::string &path)
 {
     struct stat path_stat;
@@ -201,6 +225,15 @@ size_t File::GetFileSize(const std::string &path)
         return -1;
     }
     return static_cast<size_t>(path_stat.st_size);
+}
+
+std::string File::GetParentDir(const std::string& path)
+{
+    size_t found = path.find_last_of('/');
+    if (found != std::string::npos) {
+        return path.substr(0, found);
+    }
+    return ".";
 }
 
 std::string File::GetFileName(const std::string& path)
@@ -234,7 +267,6 @@ bool File::CheckFileSuffixAndSize(const std::string &path, FileType type)
     };
     
     size_t size = GetFileSize(path);
-    
     if (size < 0) {
         ERROR_LOG("get file size error");
         return false;
@@ -263,13 +295,7 @@ bool File::CheckFileSuffixAndSize(const std::string &path, FileType type)
         ERROR_LOG("file size invalid");
         return false;
     }
-
     return true;
-}
-
-bool File::IsExist(const std::string &path)
-{
-    return Access(GetAbsPath(path), F_OK);
 }
 
 bool File::IsSoftLink(const std::string &path)
@@ -286,215 +312,133 @@ bool File::IsSoftLink(const std::string &path)
     return S_ISLNK(fileStat.st_mode);
 }
 
-bool File::IsFile(const std::string &path)
+/****************** 文件操作函数库，会对入参做基本检查 ************************/
+bool File::DeleteFile(const std::string &path)
 {
-    if (path.empty()) {
-        ERROR_LOG("path is empty");
-        return false;
-    }
-    std::string absPath = GetAbsPath(path);
-    struct stat fileStat;
-    if (lstat(absPath.c_str(), &fileStat) != 0) {
-        ERROR_LOG("the file lstat failed");
-        return false;
-    }
-    return fileStat.st_mode & S_IFREG;
-}
-
-uint64_t File::Size(const std::string &path)
-{
-    if (path.empty()) {
-        ERROR_LOG("path is empty");
-        return 0;
-    }
-    struct stat fileStat;
-    if (lstat(path.c_str(), &fileStat) != 0) {
-        ERROR_LOG("the file lstat failed");
-        return 0;
-    }
-    return fileStat.st_size;
-}
-
-bool File::CheckDir(const std::string &path)
-{
-    if (path.empty()) {
-        ERROR_LOG("path is empty");
-        return false;
-    }
-    std::string absPath = GetAbsPath(path);
-    if (absPath.size() > MAX_PATH_SIZE) {
-        ERROR_LOG("path length invalid");
-        return false;
-    }
-    if (StringChecker::HasInvalidChar(absPath)) {
-        ERROR_LOG("path is invalid");
-        return false;
-    }
-    if (!IsExist(absPath)) {
-        ERROR_LOG("path is not exists");
-        return false;
-    }
-    if (IsSoftLink(absPath)) {
-        ERROR_LOG("path is soft link");
-        return false;
-    }
-    if (CheckOwner(absPath)) {
-        ERROR_LOG("check usr owner error");
-        return false;
-    }
-    if (Access(absPath, DIR_CHECK_MODE)) {
-        ERROR_LOG("path have no rwx access");
-        return false;
-    }
-    return true;
-}
-
-bool File::CreateDir(const std::string &path, const mode_t &mode)
-{
-    if (path.empty()) {
-        ERROR_LOG("path is empty");
-        return false;
-    }
-    std::string absPath = GetAbsPath(path);
-    if (IsExist(absPath)) {
-        if (IsSoftLink(absPath)) {
-            ERROR_LOG("path is soft link");
-            return false;
-        }
-        if (Access(absPath, DIR_CHECK_MODE)) {
-            ERROR_LOG("path have no rwx access");
-            return false;
-        }
+    if (!IsPathExist(path)) {
+        WARN_LOG("path not exist");
         return true;
     }
-    if (mkdir(absPath.c_str(), mode) != 0) {
-        ERROR_LOG("create path failed");
-        return false;
-    }
-    return true;
-}
-
-bool File::RemoveDir(const std::string &path, int depth)
-{
-    if (depth >= MAX_DEPTH) {
-        ERROR_LOG("The maximum recursion depth is exceeded");
+    if (IsSoftLink(path)) {
+        ERROR_LOG("path is soft link");
         return false;
     }
     std::string absPath = GetAbsPath(path);
-    if (!File::CheckFile(absPath)) {
-        ERROR_LOG("check path error");
-        return false;
-    }
-    DIR *dir = opendir(absPath.c_str());
-    if (dir == nullptr) {
-        ERROR_LOG("open dir failed");
-        return false;
-    }
-    const struct dirent *entry = nullptr;
-    while ((entry = readdir(dir)) != nullptr) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            continue;
-        }
-        auto subPath = absPath + "/" + entry->d_name;
-        struct stat st;
-        if (lstat(subPath.c_str(), &st) == -1) {
-            closedir(dir);
-            ERROR_LOG("check lstat error");
-            return false;
-        }
-        if (S_ISDIR(st.st_mode)) {
-            if (!RemoveDir(subPath, depth + 1)) {
-                closedir(dir);
-                ERROR_LOG("remove child dir error");
-                return false;
-            }
-            rmdir(subPath.c_str());
-        } else {
-            remove(subPath.c_str());
-        }
-    }
-    closedir(dir);
-    if (absPath.c_str() != 0) {
-        ERROR_LOG("remove dir failed");
-        return false;
-    }
-    return true;
-}
-
-bool File::CheckFile(const std::string &path, uint64_t maxReadFileBytes, const int &mode)
-{
     if (path.empty()) {
         ERROR_LOG("path is empty");
         return false;
     }
-    std::string absPath = GetAbsPath(path);
-    if (absPath.size() > FULL_PATH_LENGTH_MAX) {
-        ERROR_LOG("path length invalid");
-        return false;
+    return remove(absPath.c_str()) == 0;
+}
+
+static bool CreateDirAux(const std::string& path, bool recursion, mode_t mode)
+{
+    std::string parent = GetParentDir(path);
+
+    if (!IsPathExist(parent)) {
+        if (!recursion) {
+            ERROR_LOG("dir path not exist");
+            return false;
+        }
+        /* 递归创建父目录，由于前面已经判断过目录深度，此处递归是安全的 */
+        if (!CreateDirAux(parent, recursion, mode)) {
+            ERROR_LOG("recursive creation of parent directory failed");
+            return false;
+        }
     }
-    if (IsSoftLink(absPath)) {
-        ERROR_LOG("path is soft link");
-        return false;
-    }
-    if (CheckOwner(absPath)) {
-        ERROR_LOG("check usr owner error");
-        return false;
-    }
-    if (Access(absPath, mode)) {
-        ERROR_LOG("check permission error");
-        return false;
-    }
-    if (Size(absPath) > maxReadFileBytes) {
-        ERROR_LOG("file size invalid");
-        return false;
+
+    if (mkdir(path.c_str(), mode) != 0) {
+        if (errno == EACCES || errno == EROFS) {
+            ERROR_LOG("mkdir permission denined");
+            return false;
+        } else {
+            ERROR_LOG("syscall failed");
+            return false;
+        }
     }
     return true;
 }
 
-bool File::CheckFileBeforeRead(const std::string &path, const std::string &authority, FileType type)
+bool File::CreateDir(const std::string &path, bool recursion, mode_t mode)
 {
-    std::string realPath = GetAbsPath(path);
-    if (realPath.empty()) {
+    if (IsPathExist(path)) {
+        INFO_LOG("dir already exist, no need to create");
+        return true;
+    }
+    std::string absPath = GetAbsPath(path);
+    if (absPath.empty()) {
         ERROR_LOG("path is empty");
         return false;
     }
-    if (!IsPathExist(realPath)) {
-        ERROR_LOG("path not exist");
-        return false;
-    }
-    if (!IsRegularFile(realPath)) {
-        ERROR_LOG("path is not regular file");
-        return false;
-    }
-    if (!IsPathLengthLegal(realPath)) {
+    if (!IsPathLengthLegal(absPath)) {
         ERROR_LOG("path length illegal");
         return false;
     }
-    if (!IsPathCharactersValid(realPath)) {
+    if (!IsPathCharactersValid(absPath)) {
         ERROR_LOG("path characters invalid");
         return false;
     }
-    if (!IsPathDepthValid(realPath)) {
+    if (StringChecker::HasInvalidChar(absPath)) {
+        ERROR_LOG("path has invalid characters");
+        return false;
+    }
+    if (!IsPathDepthValid(absPath)) {
         ERROR_LOG("path depth invalid");
         return false;
     }
-    if (IsSoftLink(realPath)) {
-        ERROR_LOG("path is soft link");
-        return false;
-    }
-    if (!CheckFileRWX(realPath, authority)) {
-        ERROR_LOG("path permission error");
-        return false;
-    }
-    /* 如果是/dev/random之类的无法计算size的文件，不要用本函数check */
-    if (!CheckFileSuffixAndSize(path, type)) {
-        ERROR_LOG("path suffix and size invalid");
+    return CreateDirAux(absPath, recursion, mode);
+}
+
+bool File::OpenFile(const std::string& path, std::ifstream& ifs, std::ios::openmode mode)
+{
+    std::string absPath = GetAbsPath(path);
+    if (!CheckFileBeforeRead(absPath)) {
+        ERROR_LOG("before read, path is illegal");
         return false;
     }
 
+    std::ifstream tmpifs(absPath, mode);
+    if (!tmpifs.is_open()) {
+        ERROR_LOG("file open failed");
+        return false;
+    }
+
+    ifs = std::move(tmpifs);
     return true;
 }
 
+bool File::OpenFile(const std::string& path, std::ofstream& ofs, std::ios::openmode mode)
+{
+    std::string absPath = GetAbsPath(path);
+    if (absPath.empty()) {
+        ERROR_LOG("path is empty");
+        return false;
+    }
+
+    std::string parent = GetParentDir(absPath);
+    if (!CheckFileBeforeCreateOrWrite(absPath, true)) {
+        ERROR_LOG("before write, path is illegal");
+        return false;
+    }
+
+    if (!IsPathExist(parent)) {
+        if (!CreateDir(parent, true)) {
+            ERROR_LOG("path not exist, create failed");
+            return false;
+        }
+    }
+
+    std::ofstream tmpofs(absPath, mode);
+    if (!tmpofs.is_open()) {
+        ERROR_LOG("file open failed");
+        return false;
+    }
+
+    ofs = std::move(tmpofs);
+    return true;
+}
+
+/****************************** 通用检查函数 ********************************/
 bool File::CheckOwner(const std::string &path)
 {
     std::string absPath = GetAbsPath(path);
@@ -510,13 +454,124 @@ bool File::CheckOwner(const std::string &path)
     return true;
 }
 
-// std::string File::GetAbsPath(const std::string &path)
-// {
-//     char buffer[MAX_PATH_SIZE];
-//     char* result = realpath(path.c_str(), buffer);
-//     if (result == nullptr) {
-//         ERROR_LOG("convert absPath error");
-//         return "";
-//     }
-//     return std::string(buffer);
-// }
+bool File::CheckDir(const std::string &path)
+{
+    std::string absPath = GetAbsPath(path);
+    if (absPath.empty()) {
+        ERROR_LOG("path is empty");
+        return false;
+    }
+    if (!IsPathExist(absPath)) {
+        ERROR_LOG("path not exist");
+        return false;
+    }
+    if (!IsDir) {
+        ERROR_LOG("path is not dir");
+        return false;
+    }
+    if (!IsPathLengthLegal(absPath)) {
+        ERROR_LOG("path length illegal");
+        return false;
+    }
+    if (!IsPathCharactersValid(absPath)) {
+        ERROR_LOG("path characters invalid");
+        return false;
+    }
+    if (StringChecker::HasInvalidChar(absPath)) {
+        ERROR_LOG("path has invalid characters");
+        return false;
+    }
+    if (!IsPathDepthValid(absPath)) {
+        ERROR_LOG("path depth invalid");
+        return false;
+    }
+    if (IsSoftLink(absPath)) {
+        ERROR_LOG("path is soft link");
+        return false;
+    }
+    if (!IsDirReadable(absPath)) {
+        ERROR_LOG("path have no rw access");
+        return false;
+    }
+    return true;
+}
+
+bool File::CheckFileBeforeRead(const std::string &path, const std::string &authority, FileType type)
+{
+    std::string absPath = GetAbsPath(path);
+    if (absPath.empty()) {
+        ERROR_LOG("path is empty");
+        return false;
+    }
+    if (!IsRegularFile(absPath)) {
+        ERROR_LOG("path is not regular file");
+        return false;
+    }
+    if (!IsPathLengthLegal(absPath)) {
+        ERROR_LOG("path length illegal");
+        return false;
+    }
+    if (!IsPathCharactersValid(absPath)) {
+        ERROR_LOG("path characters invalid");
+        return false;
+    }
+    if (StringChecker::HasInvalidChar(absPath)) {
+        ERROR_LOG("path has invalid characters");
+        return false;
+    }
+    if (!IsPathDepthValid(absPath)) {
+        ERROR_LOG("path depth invalid");
+        return false;
+    }
+    if (IsSoftLink(absPath)) {
+        ERROR_LOG("path is soft link");
+        return false;
+    }
+    if (!CheckFileRWX(absPath, authority)) {
+        ERROR_LOG("path permission error");
+        return false;
+    }
+    /* 如果是/dev/random之类的无法计算size的文件，不要用本函数check */
+    if (!CheckFileSuffixAndSize(path, type)) {
+        ERROR_LOG("path suffix and size invalid");
+        return false;
+    }
+    return true;
+}
+
+bool File::CheckFileBeforeCreateOrWrite(const std::string &path, bool overwrite)
+{
+    std::string absPath = GetAbsPath(path);
+    if (absPath.empty()) {
+        ERROR_LOG("path is empty");
+        return false;
+    }
+    if (!IsPathLengthLegal(absPath)) {
+        ERROR_LOG("path length illegal");
+        return false;
+    }
+    if (!IsPathCharactersValid(absPath)) {
+        ERROR_LOG("path characters invalid");
+        return false;
+    }
+    if (StringChecker::HasInvalidChar(absPath)) {
+        ERROR_LOG("path has invalid characters");
+        return false;
+    }
+    if (!IsPathDepthValid(absPath)) {
+        ERROR_LOG("path depth invalid");
+        return false;
+    }
+    if (IsPathExist(absPath)) {
+        if (!overwrite) {
+            ERROR_LOG("path already exist and not allow to overwrite");
+            return false;
+        }
+        /* 默认不允许覆盖其他用户创建的文件，若有特殊需求（如多用户通信管道等）由业务自行校验 */
+        if (!IsFileWritable(absPath) || !CheckOwner(absPath)) {
+            ERROR_LOG("path already create by other owner");
+            return false;
+        }
+    }
+    return true;
+}

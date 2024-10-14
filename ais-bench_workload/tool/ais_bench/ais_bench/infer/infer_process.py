@@ -517,14 +517,13 @@ def main(args, index=0, msgq=None, device_list=None):
             for _ in intensors_desc:
                 infileslist[0].append(pure_file)
     else:
-        if not args.pipeline:
+        if not args.pipeline: # check before np.load, not here
             infileslist = create_infileslist_from_inputs_list(inputs_list, intensors_desc, args.no_combine_tensor_mode)
         else:
             infileslist = create_pipeline_fileslist_from_inputs_list(inputs_list, intensors_desc)
-
-    for files in infileslist: # check all file legality
-        for file in files:
-            check_path_legality(file, perm=FILE_PERM_CHOICE.READ, max_size=MAX_SIZE_LIMITED_NORMAL_FILE)
+            for files in infileslist: # check all file legality
+                for file in files:
+                    check_path_legality(file, perm=FILE_PERM_CHOICE.READ, max_size=MAX_SIZE_LIMITED_NORMAL_FILE)
 
     if not args.pipeline:
         warmup(session, args, intensors_desc, infileslist[0])

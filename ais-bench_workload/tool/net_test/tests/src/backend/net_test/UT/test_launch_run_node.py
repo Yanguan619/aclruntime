@@ -34,8 +34,8 @@ class TestLaunchRunNode(unittest.TestCase):
     @patch('ais_bench.backend.net_test.launch_run_node.parse_result')
     def test_launch_run_node_success(self, mock_parse_result, mock_multiprocess_run, mock_construct_command_lists):
         mock_construct_command_lists.return_value = [  
-            ["hccl_test/bin/all_reduce_test", "--rank_id", "0", "-f"],  
-            ["hccl_test/bin/all_reduce_test", "--rank_id", "1", "-f"],  
+            ["hccl_test/bin/all_reduce_test", "--rank_id", "0"],  
+            ["hccl_test/bin/all_reduce_test", "--rank_id", "1"],  
         ]  
         mock_multiprocess_run.return_value = [(RET.SUCCESS, ''), (RET.SUCCESS, '')]
         mock_parse_result.return_value = RET.SUCCESS
@@ -55,8 +55,8 @@ class TestLaunchRunNode(unittest.TestCase):
     @patch('ais_bench.backend.net_test.launch_run_node.parse_result')
     def test_launch_run_node_failure(self, mock_parse_result, mock_multiprocess_run, mock_construct_command_lists):
         mock_construct_command_lists.return_value = [  
-            ["hccl_test/bin/all_reduce_test", "--rank_id", "0", "-f"],  
-            ["hccl_test/bin/all_reduce_test", "--rank_id", "1", "-f"],  
+            ["hccl_test/bin/all_reduce_test", "--rank_id", "0"],  
+            ["hccl_test/bin/all_reduce_test", "--rank_id", "1"],  
         ]  
         mock_multiprocess_run.return_value = [(RET.FAILED, 'Cmd failed!'), (RET.SUCCESS, '')]
         mock_parse_result.return_value = RET.FAILED
@@ -101,7 +101,7 @@ class TestLaunchRunNode(unittest.TestCase):
         mock_process.wait.return_value = RET.SUCCESS
         mock_popen.return_value = mock_process
 
-        result = run_hccl_test_exec_command(['cmd1', 'cmd2'])
+        result = run_hccl_test_exec_command(["hccl_test/bin/all_reduce_test", "--rank_id", "0"])
         self.assertEqual(result, (RET.SUCCESS, ""))
 
 
@@ -113,8 +113,8 @@ class TestLaunchRunNode(unittest.TestCase):
         mock_process.wait.return_value = RET.FAILED
         mock_popen.return_value = mock_process
 
-        result = run_hccl_test_exec_command(['cmd1', 'cmd2'])
-        self.assertEqual(result, (RET.FAILED, "Cmd ['cmd1', 'cmd2'] failed! error log: error occurred"))
+        result = run_hccl_test_exec_command(["hccl_test/bin/all_reduce_test", "--rank_id", "0"])
+        self.assertEqual(result, (RET.FAILED, "Cmd ['hccl_test/bin/all_reduce_test', '--rank_id', '0'] failed! error log: error occurred"))
 
     @patch('subprocess.Popen')
     def test_multiprocess_run(self, mock_popen):
@@ -124,7 +124,12 @@ class TestLaunchRunNode(unittest.TestCase):
         mock_process.wait.return_value = RET.SUCCESS
         mock_popen.return_value = mock_process
 
-        command_lists = [['cmd1', 'test1'], ['cmd2', 'test2']]
+        command_lists = [  
+            ["hccl_test/bin/all_reduce_test", "--rank_id", "0"],  
+            ["hccl_test/bin/all_reduce_test", "--rank_id", "1"],  
+        ]  
+
+
         results = multiprocess_run(2, command_lists)
         self.assertEqual(results, [(RET.SUCCESS, ""), (RET.SUCCESS, "")])
 
@@ -162,11 +167,11 @@ class TestLaunchRunNode(unittest.TestCase):
                 self.npus = npus
 
         args = Args(node_id=1, npus=3)
-        results = [(RET.FAILED, "Cmd ['cmd1', 'cmd2'] failed! error log: error occurred"), (RET.SUCCESS, ""), (RET.SUCCESS, "")]
+        results = [(RET.FAILED, "Cmd ['cmd1'] failed! error log: error occurred"), (RET.SUCCESS, ""), (RET.SUCCESS, "")]
         
         result = parse_result(results, args)
         self.assertEqual(result, RET.FAILED)
-        mock_error.assert_called_once_with("rank_id:3, device id:0, run failed! error info:Cmd ['cmd1', 'cmd2'] failed! error log: error occurred")
+        mock_error.assert_called_once_with("rank_id:3, device id:0, run failed! error info:Cmd ['cmd1'] failed! error log: error occurred")
 
 
     def test_get_rank_related_cmd_list_with_valid_args(self):  

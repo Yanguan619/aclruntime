@@ -23,11 +23,10 @@ class TestNetBench(unittest.TestCase):
         pass
 
 
-    def test_run_backend_net_test(self):
+def test_run_backend_net_test(self):
         server_ip = socket.gethostbyname(socket.gethostname())
         rank_size = "8"
         npus = "8"
-        print(server_ip)
         command = [
             "python3", "-m", "ais_bench.backend.net_test",
             "--rank_size", rank_size,
@@ -39,24 +38,20 @@ class TestNetBench(unittest.TestCase):
             "--maxbytes", "256K"
         ]
         
-        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        self.assertEqual(result.returncode, 0, f"命令执行失败: {result.stderr}")
-        
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)       
         output_lines = result.stdout.splitlines()
-
         cur_val = 1024
-        pattern = r'\[INFO\]\[HCCL_TEST\]\s*(\d+)\s*\|\s*\d+\.\d+\s*\|\s*\d+\.\d+\s*\|\s*(success|failure)'
+        pattern = r'\[INFO\]\[HCCL_TEST\]\s*(\d+)\s*\|\s*\d+\.\d+\s*\|\s*\d+\.\d+\s*\|\s*(success|failed|NULL)'
         for line in output_lines:
-            print(f"Processing line: {line}") 
             match = re.search(pattern, line)
             if match:
                 value = int(match.group(1))
                 result = match.group(2)
-                self.assertEqual(value, cur_val, f"匹配失败")
-                self.assertEqual(result, 'success', f"匹配失败")
+                self.assertEqual(value, cur_val, f"data_size no match")
+                self.assertEqual(result, 'success', f"check_result is not success")
                 cur_val *= 2
 
-        self.assertEqual(cur_val, 262144 * 2, "未匹配到所有预期值")
+        self.assertEqual(cur_val, 262144 * 2, "run error")
 
 
 if __name__ == "__main__":

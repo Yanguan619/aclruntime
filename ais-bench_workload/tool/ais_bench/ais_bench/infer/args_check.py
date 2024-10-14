@@ -1,7 +1,7 @@
 import os
 import re
 import argparse
-from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE
+from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE, check_path_legality
 
 OM_MODEL_MAX_SIZE = 10 * 1024 * 1024 * 1024 # 10GB
 ACL_JSON_MAX_SIZE = 8 * 1024 # 8KB
@@ -24,6 +24,11 @@ def check_dym_string(value):
 def check_dym_range_string(value):
     if not value:
         return value
+    if os.path.exists(value): # another kind of input(path type)
+        try:
+            check_path_legality(value, perm=FILE_PERM_CHOICE.READ)
+        except ValueError as err:
+            raise argparse.ArgumentTypeError(f"dymShape range string is not a legal path") from err
     dym_string = value
     regex = re.compile(r"[^_A-Za-z0-9,;:/.\-~]")
     if regex.search(dym_string):

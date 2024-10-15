@@ -45,7 +45,7 @@ PyInferenceSession::PyInferenceSession(const std::string &modelPath, const uint3
         ERROR_LOG("model path illegal, please check.");
         throw std::runtime_error("please check model path");
     }
-    if (!File::CheckFileBeforeRead(options->aclJsonPath, "r", FileType::JSON)) {
+    if ((options->aclJsonPath != "") && (!File::CheckFileBeforeRead(options->aclJsonPath, "r", FileType::JSON))) {
         ERROR_LOG("acl json path illegal, please check.");
         throw std::runtime_error("please check acl json path");
     }

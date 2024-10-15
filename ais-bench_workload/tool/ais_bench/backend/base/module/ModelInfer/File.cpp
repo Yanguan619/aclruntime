@@ -26,7 +26,7 @@
 #include "Base/ModelInfer/File.h"
 
 
-static std::string File::GetFullPath(const std::string &originPath)
+std::string File::GetFullPath(const std::string &originPath)
 {
     if (originPath.empty()) {
         return "";
@@ -331,7 +331,7 @@ bool File::DeleteFile(const std::string &path)
     return remove(absPath.c_str()) == 0;
 }
 
-static bool CreateDirAux(const std::string& path, bool recursion, mode_t mode)
+bool File::CreateDirAux(const std::string& path, bool recursion, mode_t mode)
 {
     std::string parent = GetParentDir(path);
 
@@ -465,7 +465,7 @@ bool File::CheckDir(const std::string &path)
         ERROR_LOG("path not exist");
         return false;
     }
-    if (!IsDir) {
+    if (!IsDir(absPath)) {
         ERROR_LOG("path is not dir");
         return false;
     }

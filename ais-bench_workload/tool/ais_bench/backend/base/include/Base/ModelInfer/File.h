@@ -60,7 +60,8 @@ class File {
 public:
     File() = default;
     virtual ~File() = default;
-    // 安全的创建目录的形式：存在文件时校验该文件权限及软链接
+    // 安全的创建目录
+    static bool CreateDirAux(const std::string& path, bool recursion, mode_t mode);
     static bool CreateDir(const std::string &path, bool recursion=false, mode_t mode=NORMAL_DIR_MODE_DEFAULT);
     // 打开文件
     static bool OpenFile(const std::string& path, std::ifstream& ifs, std::ios::openmode mode=std::ios::in);

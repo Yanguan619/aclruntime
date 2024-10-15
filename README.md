@@ -18,7 +18,7 @@ Ascend tools，昇腾工具仓库。
 
 3.  [opdump_compare](https://gitee.com/ascend/tools/tree/master/opdump_compare)
     
-    **opdump_compare工具**：算子dump图比较工具。
+    **opdump_compare工具**：算子仿真dump数据指令序分析工具，用于分析同一算子实现在不同CANN版本下的指令序变化。
 
 #### 贡献
 

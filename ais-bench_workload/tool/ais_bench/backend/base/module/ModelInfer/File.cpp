@@ -264,6 +264,7 @@ bool File::CheckFileSuffixAndSize(const std::string &path, FileType type)
         {FileType::PT, {"pt", MAX_PT_SIZE}},
         {FileType::CSV, {"csv", MAX_CSV_SIZE}},
         {FileType::YAML, {"yaml", MAX_YAML_SIZE}},
+        {FileType::OM, {"om", MAX_OM_SIZE}},
     };
     
     size_t size = GetFileSize(path);
@@ -378,10 +379,6 @@ bool File::CreateDir(const std::string &path, bool recursion, mode_t mode)
         ERROR_LOG("path characters invalid");
         return false;
     }
-    if (StringChecker::HasInvalidChar(absPath)) {
-        ERROR_LOG("path has invalid characters");
-        return false;
-    }
     if (!IsPathDepthValid(absPath)) {
         ERROR_LOG("path depth invalid");
         return false;
@@ -477,10 +474,6 @@ bool File::CheckDir(const std::string &path)
         ERROR_LOG("path characters invalid");
         return false;
     }
-    if (StringChecker::HasInvalidChar(absPath)) {
-        ERROR_LOG("path has invalid characters");
-        return false;
-    }
     if (!IsPathDepthValid(absPath)) {
         ERROR_LOG("path depth invalid");
         return false;
@@ -513,10 +506,6 @@ bool File::CheckFileBeforeRead(const std::string &path, const std::string &autho
     }
     if (!IsPathCharactersValid(absPath)) {
         ERROR_LOG("path characters invalid");
-        return false;
-    }
-    if (StringChecker::HasInvalidChar(absPath)) {
-        ERROR_LOG("path has invalid characters");
         return false;
     }
     if (!IsPathDepthValid(absPath)) {
@@ -552,10 +541,6 @@ bool File::CheckFileBeforeCreateOrWrite(const std::string &path, bool overwrite)
     }
     if (!IsPathCharactersValid(absPath)) {
         ERROR_LOG("path characters invalid");
-        return false;
-    }
-    if (StringChecker::HasInvalidChar(absPath)) {
-        ERROR_LOG("path has invalid characters");
         return false;
     }
     if (!IsPathDepthValid(absPath)) {

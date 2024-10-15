@@ -41,11 +41,11 @@ PyInferenceSession::PyInferenceSession(const std::string &modelPath, const uint3
         ERROR_LOG("loop size out of range: loop must be greater than 0 and less than or equal to 100000.");
         throw std::runtime_error("loop num out of range. Please check.");
     }
-    if (!File::CheckFileBeforeRead(modelPath)) {
+    if (!File::CheckFileBeforeRead(modelPath, "r", FileType::OM)) {
         ERROR_LOG("model path illegal, please check.");
         throw std::runtime_error("please check model path");
     }
-    if (!File::CheckFileBeforeRead(options->aclJsonPath)) {
+    if (!File::CheckFileBeforeRead(options->aclJsonPath, "r", FileType::JSON)) {
         ERROR_LOG("acl json path illegal, please check.");
         throw std::runtime_error("please check acl json path");
     }

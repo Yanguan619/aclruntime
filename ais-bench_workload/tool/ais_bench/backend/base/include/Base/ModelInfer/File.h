@@ -24,7 +24,7 @@
 
 constexpr int DIR_CHECK_MODE = R_OK | W_OK | X_OK;
 constexpr const char pathSeparator = '/';
-constexpr const char* FILE_VALID_PATTERN = "^[a-zA-Z0-9_.:/-]+$";
+constexpr const char* FILE_VALID_PATTERN = "^[a-zA-Z0-9_./-]+$";
 
 constexpr const uint32_t FULL_PATH_LENGTH_MAX = 4096;
 constexpr const uint32_t FILE_NAME_LENGTH_MAX = 255;
@@ -36,6 +36,7 @@ constexpr size_t MAX_JSON_SIZE = 1024ULL * 1024 * 1024;
 constexpr size_t MAX_PT_SIZE = 10ULL * 1024 * 1024 * 1024;
 constexpr size_t MAX_CSV_SIZE = 1024ULL * 1024 * 1024;
 constexpr size_t MAX_YAML_SIZE = 10ULL * 1024 * 1024;
+constexpr size_t MAX_OM_SIZE = 64ULL * 1024 * 1024 * 1024;
 constexpr size_t MAX_FILE_SIZE_DEFAULT = 10ULL * 1024 * 1024 * 1024;
 
 constexpr mode_t NORMAL_FILE_MODE_DEFAULT = 0640;
@@ -50,6 +51,7 @@ enum class FileType {
     PT,
     CSV,
     YAML,
+    OM,
 
     /* Add new type before this line. */
     COMMON

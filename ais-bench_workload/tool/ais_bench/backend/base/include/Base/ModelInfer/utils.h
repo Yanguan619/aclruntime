@@ -63,8 +63,6 @@ public:
     static Result SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_str,
         std::map<string, int64_t> &out_namedimsmul_map);
 
-    static int str2num(char* str);
-
     static std::string modelName(std::string& s);
 
     static std::string TimeLine();
@@ -86,6 +84,7 @@ public:
     static Result TensorToBin(const std::string& outputFileName, Base::TensorBase& output);
     static Result TensorToTxt(const std::string& outputFileName, Base::TensorBase& output);
     static bool TailContain(const std::string& str, const std::string& tail);
+    static bool IsValidInteger(const std::string& str);
 };
 
 #endif

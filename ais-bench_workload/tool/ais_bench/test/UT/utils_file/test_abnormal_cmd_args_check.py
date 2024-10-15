@@ -31,6 +31,7 @@ from ais_bench.infer.args_check import (
     check_output_path_legality,
     check_positive_integer,
     str2bool,
+    DEVICE_COUNT_MAX
 )
 logging.basicConfig(
     stream=sys.stdout, level=logging.INFO, format="[%(levelname)s] %(message)s"
@@ -153,6 +154,9 @@ class TestClass:
         with pytest.raises(Exception):
             check_device_range_valid(value)
         value = "256"
+        with pytest.raises(Exception):
+            check_device_range_valid(value)
+        value = ["1" for _ in range(DEVICE_COUNT_MAX + 1)]
         with pytest.raises(Exception):
             check_device_range_valid(value)
 

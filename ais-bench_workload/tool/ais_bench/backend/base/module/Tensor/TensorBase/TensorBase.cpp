@@ -518,13 +518,12 @@ MemoryData CopyMemory2DeviceMemory(void *ptr, uint64_t size, int32_t deviceId)
     Base::MemoryData dst(size, MemoryData::MemoryType::MEMORY_DEVICE, deviceId);
     auto ret = MemoryHelper::MxbsMalloc(dst);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("memory data malloc failed device size:%zu ret:%d", size, ret);
-        return ret;
+        throw std::runtime_error("copy mem to device failed! cause: malloc device memory data failed!");
     }
     ret = MemoryHelper::MxbsMemcpy(dst, src, dst.size);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("memory memcpy failed. ret=%d", ret);
-        return ret;
+        dst.free(dst.ptrData);
+        throw std::runtime_error("copy mem to device failed! cause: memcpy failed!");
     }
     return dst;
 }

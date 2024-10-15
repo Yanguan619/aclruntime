@@ -1,7 +1,7 @@
 import os
 import re
 import argparse
-from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE
+from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE, check_path_legality
 
 OM_MODEL_MAX_SIZE = 10 * 1024 * 1024 * 1024 # 10GB
 ACL_JSON_MAX_SIZE = 8 * 1024 # 8KB
@@ -9,6 +9,7 @@ AIPP_CONFIG_MAX_SIZE = 12.5 * 1024 # 12.5KB
 CPP_INT_MAX_SIZE = 2147483647 # 2^31 - 1
 INPUT_LIST_MAX_SIZE = 1024
 LOOP_MAX_SIZE = 100000
+DEVICE_COUNT_MAX = 256
 
 def check_dym_string(value):
     if not value:
@@ -23,6 +24,11 @@ def check_dym_string(value):
 def check_dym_range_string(value):
     if not value:
         return value
+    if os.path.exists(value): # another kind of input(path type)
+        try:
+            check_path_legality(value, perm=FILE_PERM_CHOICE.READ)
+        except ValueError as err:
+            raise argparse.ArgumentTypeError(f"dymShape range string is not a legal path") from err
     dym_string = value
     regex = re.compile(r"[^_A-Za-z0-9,;:/.\-~]")
     if regex.search(dym_string):
@@ -126,6 +132,10 @@ def check_device_range_valid(value):
         # Check if the value contains a comma; if so, split into a list of integers
         if ',' in value:
             ilist = [int(v) for v in value.split(',')]
+            if len(ilist) > DEVICE_COUNT_MAX:
+                raise argparse.ArgumentTypeError(
+                    f"too much device id in --device, max permitted count is {DEVICE_COUNT_MAX}"
+                )
             for ivalue in ilist:
                 if ivalue < min_value or ivalue > max_value:
                     raise argparse.ArgumentTypeError("{} of device:{} is invalid. valid value range is [{}, {}]".format(

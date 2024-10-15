@@ -61,27 +61,6 @@ void Utils::SplitString(std::string& s, std::vector<std::string>& v, char c)
     }
 }
 
-int Utils::str2num(char* str)
-{
-    int n = 0;
-    int flag = 0;
-    const int decimal = 10;
-    while (*str >= '0' && *str <= '9') {
-        if (n > INT_MAX / 10 || (n == INT_MAX / 10 && (*str - '0') > INT_MAX % 10)) {
-            throw std::runtime_error("string format int overflowed");
-        }
-        if (n < INT_MIN / 10 || (n == INT_MIN / 10 && (*str - '0') > -(INT_MIN % 10))) {
-            throw std::runtime_error("string format int underflowed");
-        }
-        n = n * decimal + (*str - '0');
-        str++;
-    }
-    if (flag == 1) {
-        n = -n;
-    }
-    return n;
-}
-
 std::string Utils::modelName(string& s)
 {
     string::size_type position1;
@@ -447,4 +426,17 @@ bool Utils::TailContain(const std::string& str, const std::string& tail)
         return true;
     }
     return false;
+}
+
+bool Utils::IsValidInteger(const std::string& str) {
+    if (str.empty()) {
+        return false;
+    }
+    char* end;
+    long val = std::strtol(str.c_str(), &end, 10);
+    // Check for empty string, characters left after conversion, and out of range values
+    if (end == str.c_str() || *end != '\0' || val > INT_MAX || val < INT_MIN) {
+        return false;
+    }
+    return true;
 }

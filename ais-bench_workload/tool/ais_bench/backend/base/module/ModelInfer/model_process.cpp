@@ -226,6 +226,10 @@ Result ModelProcess::CheckDynamicShape(
 
         dims_num.push_back(shape_tmp_size);
         for (size_t index = 0; index < shape_tmp_size; ++index) {
+            if (!Utils::IsValidInteger(shape_tmp[index])) {
+                ERROR_LOG("dim of dymshape string is illegal!");
+                return FAILED;
+            }
             num_tmp = atoi(shape_tmp[index].c_str());
             shape_array_tmp.push_back(num_tmp);
         }
@@ -456,6 +460,10 @@ Result ModelProcess::CheckDynamicDims(vector<string> dym_dims, size_t gearCount,
             return FAILED;
         }
         for (size_t j = 0; j < dims[i].dimCount; j++) {
+            if (!Utils::IsValidInteger(dym_dims[j])) {
+                ERROR_LOG("dim of dymdims string is illegal!");
+                return FAILED;
+            }
             if (dims[i].dims[j] != atoi(dym_dims[j].c_str())) {
                 break;
             }

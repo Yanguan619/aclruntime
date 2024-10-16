@@ -32,41 +32,28 @@ class ArgsAdapter():
         self.iters = iters
         self.warmup_iters = warmup_iters
         self.check = check
+        self.all_args_fields = [
+            '--server_ip', '--server_port', '--rank_size', '--node_id', 
+            '--op_task', '--npus', '--minbytes', '--maxbytes', 
+            '--stepbytes', '--stepfactor', '--op', '--root', 
+            '--datatype', '--iters', '--warmup_iters', '--check'
+        ]
+        self.rank_related_fields = [
+            '--server_ip', '--server_port', '--rank_size', 
+            '--npus', '--minbytes', '--maxbytes', 
+            '--stepbytes', '--stepfactor', '--op', 
+            '--root', '--datatype', '--iters', 
+            '--warmup_iters', '--check'
+        ]
 
     def get_all_args_dict(self):
-        args_dict = {}
-        args_dict.update({'--server_ip': self.server_ip})
-        args_dict.update({'--server_port': self.server_port})
-        args_dict.update({'--rank_size':self.rank_size})
-        args_dict.update({'--node_id': self.node_id})
-        args_dict.update({'--op_task': self.op_task})
-        args_dict.update({'--npus': self.npus})
-        args_dict.update({'--minbytes': self.minbytes})
-        args_dict.update({'--maxbytes': self.maxbytes})
-        args_dict.update({'--stepbytes': self.stepbytes})
-        args_dict.update({'--stepfactor': self.stepfactor})
-        args_dict.update({'--op': self.op})
-        args_dict.update({'--root': self.root})
-        args_dict.update({'--datatype': self.datatype})
-        args_dict.update({'--iters': self.iters})
-        args_dict.update({'--warmup_iters': self.warmup_iters})
-        args_dict.update({'--check': self.check})
-        return args_dict
+        return self._build_args_dict(self.all_args_fields) 
 
     def get_rank_related_args_dict(self):
+        return self._build_args_dict(self.rank_related_fields)
+
+    def _build_args_dict(self, fields):
         args_dict = {}
-        args_dict.update({'--server_ip': self.server_ip})
-        args_dict.update({'--server_port': self.server_port})
-        args_dict.update({'--rank_size': self.rank_size})
-        args_dict.update({'--npus': self.npus})
-        args_dict.update({'--minbytes': self.minbytes})
-        args_dict.update({'--maxbytes': self.maxbytes})
-        args_dict.update({'--stepbytes': self.stepbytes})
-        args_dict.update({'--stepfactor': self.stepfactor})
-        args_dict.update({'--op': self.op})
-        args_dict.update({'--root': self.root})
-        args_dict.update({'--datatype': self.datatype})
-        args_dict.update({'--iters': self.iters})
-        args_dict.update({'--warmup_iters': self.warmup_iters})
-        args_dict.update({'--check': self.check})
+        for field in fields:
+            args_dict[field] = getattr(self, field[2:])
         return args_dict

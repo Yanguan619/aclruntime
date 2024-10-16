@@ -6,6 +6,8 @@ Ascend tools，昇腾工具仓库。
 
 **请根据自己的需要进入对应文件夹获取工具，或者点击下面的说明链接选择需要的工具进行使用。**
 
+**版本配套和硬件配套请参见各子文件夹的配套说明**
+
 #### 使用说明
 
 1.  [msame](https://gitee.com/ascend/tools/tree/master/msame)

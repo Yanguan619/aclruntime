@@ -43,6 +43,8 @@ constexpr mode_t NORMAL_FILE_MODE_DEFAULT = 0640;
 constexpr mode_t READONLY_FILE_MODE_DEFAULT = 0440;
 constexpr mode_t SCRIPT_FILE_MODE_DEFAULT = 0550;
 constexpr mode_t NORMAL_DIR_MODE_DEFAULT = 0750;
+constexpr mode_t READ_FILE_NOT_PERMITTED = S_IWGRP | S_IWOTH;
+constexpr mode_t WRITE_FILE_NOT_PERMITTED = S_IWGRP | S_IWOTH | S_IROTH | S_IXOTH;
 
 enum class FileType {
     PKL,
@@ -107,13 +109,14 @@ public:
     static bool IsRegularFile(const std::string& path);
     // 获取文件名
     static std::string GetFileName(const std::string& path);
+    // 获取文件权限
+    static mode_t GetFilePermissions(const std::string& path);
     // 获取文件后缀
     static std::string GetFileSuffix(const std::string& path);
     // 校验文件后缀和内容长度
     static bool CheckFileSuffixAndSize(const std::string &path, FileType type);
     // 读文件前的校验
-    static bool CheckFileBeforeRead(const std::string &path, const std::string &authority="r", 
-                                    FileType type=FileType::COMMON);
+    static bool CheckFileBeforeRead(const std::string &path, FileType type=FileType::COMMON);
     static bool CheckFileBeforeCreateOrWrite(const std::string &path, bool overwrite=false);
 };
 

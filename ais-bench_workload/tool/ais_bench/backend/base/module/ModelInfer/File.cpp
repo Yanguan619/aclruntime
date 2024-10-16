@@ -503,7 +503,6 @@ bool File::CheckDir(const std::string &path)
 bool File::CheckFileBeforeRead(const std::string &path, FileType type)
 {
     std::string absPath = GetAbsPath(path);
-    INFO_LOG("check file before read, abs path: %s", absPath.c_str());
     if (absPath.empty()) {
         ERROR_LOG("path is empty");
         return false;

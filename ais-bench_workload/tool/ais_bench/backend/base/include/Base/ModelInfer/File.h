@@ -65,7 +65,6 @@ public:
     File() = default;
     virtual ~File() = default;
     // 安全的创建目录
-    static bool CreateDirAux(const std::string& path, bool recursion, mode_t mode);
     static bool CreateDir(const std::string &path, bool recursion=false, mode_t mode=NORMAL_DIR_MODE_DEFAULT);
     // 打开文件
     static bool OpenFile(const std::string& path, std::ifstream& ifs, std::ios::openmode mode=std::ios::in);
@@ -95,7 +94,6 @@ public:
     static std::string GetParentDir(const std::string& path);
     // 获取绝对路径
     static std::string GetFullPath(const std::string &originPath);
-    static std::vector<std::string> SplitPath(const std::string &path);
     static std::string GetAbsPath(const std::string &path);
     // 获取文件大小
     static size_t GetFileSize(const std::string &path);

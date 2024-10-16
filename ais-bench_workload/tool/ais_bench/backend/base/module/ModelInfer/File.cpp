@@ -53,7 +53,7 @@ std::string File::GetFullPath(const std::string &originPath)
     return fullPath;
 }
 
-std::vector<std::string> File::SplitPath(const std::string &path)
+static std::vector<std::string> SplitPath(const std::string &path)
 {
     std::vector<std::string> tokens;
     size_t len = path.length();
@@ -343,11 +343,11 @@ bool File::DeleteFile(const std::string &path)
     return remove(absPath.c_str()) == 0;
 }
 
-bool File::CreateDirAux(const std::string& path, bool recursion, mode_t mode)
+static bool CreateDirAux(const std::string& path, bool recursion, mode_t mode)
 {
-    std::string parent = GetParentDir(path);
+    std::string parent = File::GetParentDir(path);
 
-    if (!IsPathExist(parent)) {
+    if (!File::IsPathExist(parent)) {
         if (!recursion) {
             ERROR_LOG("dir path not exist");
             return false;

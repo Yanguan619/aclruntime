@@ -250,7 +250,7 @@ mode_t File::GetFilePermissions(const std::string& path)
     struct stat path_stat;
     if (stat(path.c_str(), &path_stat) != 0) {
         ERROR_LOG("file not exists");
-        return 0o777;
+        return 0777;
     }
     mode_t permissions = path_stat.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
     return permissions;
@@ -528,11 +528,11 @@ bool File::CheckFileBeforeRead(const std::string &path, FileType type)
         ERROR_LOG("path is soft link");
         return false;
     }
-    if (GetFilePermissions(absPath) & READ_FILE_NOT_PERMITTED > 0) {
+    if ((GetFilePermissions(absPath) & READ_FILE_NOT_PERMITTED) > 0) {
         ERROR_LOG("path permission should not be over 0o755(rwxr-xr-x)");
         return false;
     }
-    if (!IsFileReadable(absPath) || GetFilePermissions(absPath) & S_IRUSR == 0) {
+    if (!IsFileReadable(absPath) || (GetFilePermissions(absPath) & S_IRUSR) == 0) {
         ERROR_LOG("path permission should be at least 0o400(r--------)");
         return false;
     }
@@ -568,7 +568,7 @@ bool File::CheckFileBeforeCreateOrWrite(const std::string &path, bool overwrite)
             ERROR_LOG("path already exist and not allow to overwrite");
             return false;
         }
-        if (GetFilePermissions(absPath) & WRITE_FILE_NOT_PERMITTED > 0) {
+        if ((GetFilePermissions(absPath) & WRITE_FILE_NOT_PERMITTED) > 0) {
             ERROR_LOG("path permission should not be over 0o750(rwxr-x---)");
             return false;
         }

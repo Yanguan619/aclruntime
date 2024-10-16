@@ -23,7 +23,7 @@ class TestNetBench(unittest.TestCase):
         pass
 
 
-def test_run_backend_net_test(self):
+    def test_run_backend_net_test(self):
         server_ip = socket.gethostbyname(socket.gethostname())
         rank_size = "8"
         npus = "8"

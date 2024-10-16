@@ -14,20 +14,16 @@ class TestLaunchRunNode(unittest.TestCase):
     def setUp(self):
         pass
  
-
     def tearDown(self):
         pass
     
-
     @classmethod
     def tearDownClass(cls):
         pass
 
-
     @classmethod
     def setUpClass(cls):
         pass
-
 
     @patch('ais_bench.backend.net_test.launch_run_node.construct_command_lists')
     @patch('ais_bench.backend.net_test.launch_run_node.multiprocess_run')
@@ -39,16 +35,13 @@ class TestLaunchRunNode(unittest.TestCase):
         ]  
         mock_multiprocess_run.return_value = [(RET.SUCCESS, ''), (RET.SUCCESS, '')]
         mock_parse_result.return_value = RET.SUCCESS
-        
         args = MagicMock()
         args.npus = 2
-
         result = launch_run_node(args)
         self.assertEqual(result, RET.SUCCESS)
         mock_construct_command_lists.assert_called_once_with(args)
         mock_multiprocess_run.assert_called_once_with(args.npus, mock_construct_command_lists.return_value)
         mock_parse_result.assert_called_once_with(mock_multiprocess_run.return_value, args)
-
 
     @patch('ais_bench.backend.net_test.launch_run_node.construct_command_lists')
     @patch('ais_bench.backend.net_test.launch_run_node.multiprocess_run')
@@ -60,7 +53,6 @@ class TestLaunchRunNode(unittest.TestCase):
         ]  
         mock_multiprocess_run.return_value = [(RET.FAILED, 'Cmd failed!'), (RET.SUCCESS, '')]
         mock_parse_result.return_value = RET.FAILED
-        
         args = MagicMock()
         args.npus = 2
         result = launch_run_node(args)
@@ -68,7 +60,6 @@ class TestLaunchRunNode(unittest.TestCase):
         mock_construct_command_lists.assert_called_once_with(args)
         mock_multiprocess_run.assert_called_once_with(args.npus, mock_construct_command_lists.return_value)
         mock_parse_result.assert_called_once_with(mock_multiprocess_run.return_value, args)
-
 
     @patch('os.path.join')
     @patch('os.path.exists')
@@ -82,16 +73,13 @@ class TestLaunchRunNode(unittest.TestCase):
         mock_stat.return_value = MagicMock(st_mode=stat.S_IWUSR | stat.S_IRUSR | stat.S_IXUSR)
         mock_generate_rank_id_list.return_value = ['0']
         mock_get_rank_related_cmd_list.return_value = []
-
         args = MagicMock()
         args.op_task = 'all_reduce_test'
         args.rank_id = '0'
-
         cmd_lists = construct_command_lists(args)
         mock_check_linux_file_path.assert_called_once()
         expected_cmd_lists = [['tools/ais-bench_workload/tool/net_test/ais_bench/backend/net_test/hccl_test/bin/all_reduce_test', '--rank_id', '0']]
         self.assertEqual(cmd_lists, expected_cmd_lists)
-
 
     @patch('subprocess.Popen')
     def test_run_hccl_test_exec_command_success(self, mock_popen):
@@ -100,10 +88,8 @@ class TestLaunchRunNode(unittest.TestCase):
         mock_process.communicate.return_value = (b'', b'')
         mock_process.wait.return_value = RET.SUCCESS
         mock_popen.return_value = mock_process
-
         result = run_hccl_test_exec_command(["hccl_test/bin/all_reduce_test", "--rank_id", "0"])
         self.assertEqual(result, (RET.SUCCESS, ""))
-
 
     @patch('subprocess.Popen')
     def test_run_hccl_test_exec_command_failure(self, mock_popen):
@@ -112,7 +98,6 @@ class TestLaunchRunNode(unittest.TestCase):
         mock_process.communicate.return_value = (b'', b'error occurred')
         mock_process.wait.return_value = RET.FAILED
         mock_popen.return_value = mock_process
-
         result = run_hccl_test_exec_command(["hccl_test/bin/all_reduce_test", "--rank_id", "0"])
         self.assertEqual(result, (RET.FAILED, "Cmd ['hccl_test/bin/all_reduce_test', '--rank_id', '0'] failed! error log: error occurred"))
 
@@ -123,13 +108,10 @@ class TestLaunchRunNode(unittest.TestCase):
         mock_process.communicate.return_value = (b'', b'')
         mock_process.wait.return_value = RET.SUCCESS
         mock_popen.return_value = mock_process
-
         command_lists = [  
             ["hccl_test/bin/all_reduce_test", "--rank_id", "0"],  
             ["hccl_test/bin/all_reduce_test", "--rank_id", "1"],  
         ]  
-
-
         results = multiprocess_run(2, command_lists)
         self.assertEqual(results, [(RET.SUCCESS, ""), (RET.SUCCESS, "")])
 
@@ -154,7 +136,6 @@ class TestLaunchRunNode(unittest.TestCase):
 
         args = Args(node_id=1, npus=3)
         results = [(RET.SUCCESS, ""), (RET.SUCCESS, ""), (RET.SUCCESS, "")]
-        
         result = parse_result(results, args)
         self.assertEqual(result, RET.SUCCESS)
         mock_error.assert_not_called()
@@ -168,7 +149,6 @@ class TestLaunchRunNode(unittest.TestCase):
 
         args = Args(node_id=1, npus=3)
         results = [(RET.FAILED, "Cmd ['cmd1'] failed! error log: error occurred"), (RET.SUCCESS, ""), (RET.SUCCESS, "")]
-        
         result = parse_result(results, args)
         self.assertEqual(result, RET.FAILED)
         mock_error.assert_called_once_with("rank_id:3, device id:0, run failed! error info:Cmd ['cmd1'] failed! error log: error occurred")
@@ -180,12 +160,10 @@ class TestLaunchRunNode(unittest.TestCase):
             "--rank": 1,  
             "--stepbytes": 1024,  
             "--size": 512  
-        }  
-          
+        }
         result = get_rank_related_cmd_list(mock_args)  
         expected = ["--rank", "1", "--stepbytes", "1024", "--size", "512"]  
         self.assertListEqual(result, expected)  
-
 
     def test_get_rank_related_cmd_list_with_zero_stepbytes(self):  
         mock_args = MagicMock()  
@@ -193,21 +171,18 @@ class TestLaunchRunNode(unittest.TestCase):
             "--rank": 1,  
             "--stepbytes": 0,  
             "--size": 512  
-        }  
-          
+        }
         result = get_rank_related_cmd_list(mock_args)  
         expected = ["--rank", "1", "--size", "512"]  
         self.assertListEqual(result, expected)  
       
-
     def test_get_rank_related_cmd_list_with_empty_args(self):  
         mock_args = MagicMock()  
         mock_args.get_rank_related_args_dict.return_value = {}  
         result = get_rank_related_cmd_list(mock_args)  
-
         expected = []  
-
         self.assertListEqual(result, expected)  
-  
+
+
 if __name__ == '__main__':  
     unittest.main()

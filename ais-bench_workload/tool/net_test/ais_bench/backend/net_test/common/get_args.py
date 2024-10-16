@@ -158,10 +158,7 @@ def get_args():
         choices=[0, 1],
         help="result verification, 0:disabled 1:enabled."
     )
-
     args = parser.parse_args()
-
     # 参数中有部分耦合的关系需要校验
     combination_args_check(args)
-
     return args

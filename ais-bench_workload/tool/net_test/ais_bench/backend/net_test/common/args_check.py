@@ -28,7 +28,7 @@ def arg_check_ipv4_string(value):
 
 
 def arg_check_port_range(value):
-    if (len(value) > LENGTH_LIMIT.MAX_PORT_STR_LENGTH):
+    if len(value) > LENGTH_LIMIT.MAX_PORT_STR_LENGTH:
         raise argparse.ArgumentTypeError(f"The length of port str is over {LENGTH_LIMIT.MAX_PORT_STR_LENGTH}!")
 
     arg_check_nonnegative_integer(value)
@@ -79,20 +79,16 @@ def arg_check_bytes_format(value):
 
 def arg_check_device_count_range(value):
     arg_check_positive_integer(value)
-    ivalue = int(value)
-    actual_device_count = get_actual_device_count()
-    if ivalue > actual_device_count:
-        raise argparse.ArgumentTypeError(f"device_count should not be over {actual_device_count}")
-    return ivalue
+    if int(value) > get_actual_device_count():
+        raise argparse.ArgumentTypeError(f"device_count should not be over {get_actual_device_count()}")
+    return int(value)
 
 
 def arg_check_device_id_range(value):
     arg_check_nonnegative_integer(value)
-    ivalue = int(value)
-    actual_device_count = get_actual_device_count()
-    if ivalue > actual_device_count:
-        raise argparse.ArgumentTypeError(f"device_id should not be over {actual_device_count - 1}")
-    return ivalue
+    if int(value) > get_actual_device_count():
+        raise argparse.ArgumentTypeError(f"device_id should not be over {get_actual_device_count() - 1}")
+    return int(value)
 
 
 def combination_args_check(args):

@@ -8,20 +8,16 @@ class TestNetBench(unittest.TestCase):
     def setUp(self):
         pass
  
-
     def tearDown(self):
         pass
-
 
     @classmethod
     def setUpClass(cls):
         pass
 
-
     @classmethod
     def tearDownClass(cls):
         pass
-
 
     def test_run_backend_net_test(self):
         server_ip = socket.gethostbyname(socket.gethostname())

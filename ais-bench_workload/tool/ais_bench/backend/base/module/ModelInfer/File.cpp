@@ -436,12 +436,9 @@ bool File::OpenFile(const std::string& path, std::ofstream& ofs, std::ios::openm
         }
     }
 
-    int fd = open(absPath, CREATE_FILE_MODE_DEFAULT, NORMAL_FILE_MODE_DEFAULT);
-    if (fd == -1) {
-        ERROR_LOG("open file failed with default permissions");
-        return false;
-    }
-    std::ofstream tmpofs(fdopen(fd, mode));
+    int fd = open(absPath.c_str(), CREATE_FILE_MODE_DEFAULT, NORMAL_FILE_MODE_DEFAULT);
+    close(fd);
+    std::ofstream tmpofs(absPath, mode);
     if (!tmpofs.is_open()) {
         ERROR_LOG("file open failed");
         return false;

@@ -21,6 +21,7 @@
 #include <fstream>
 #include <vector>
 #include <unistd.h>
+#include <fcntl.h>
 
 constexpr int DIR_CHECK_MODE = R_OK | W_OK | X_OK;
 constexpr const char pathSeparator = '/';

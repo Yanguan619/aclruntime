@@ -45,6 +45,7 @@ constexpr mode_t SCRIPT_FILE_MODE_DEFAULT = 0550;
 constexpr mode_t NORMAL_DIR_MODE_DEFAULT = 0750;
 constexpr mode_t READ_FILE_NOT_PERMITTED = S_IWGRP | S_IWOTH;
 constexpr mode_t WRITE_FILE_NOT_PERMITTED = S_IWGRP | S_IWOTH | S_IROTH | S_IXOTH;
+constexpr mode_t CREATE_FILE_MODE_DEFAULT = O_CREAT | O_WRONLY | O_APPEND;
 
 enum class FileType {
     PKL,

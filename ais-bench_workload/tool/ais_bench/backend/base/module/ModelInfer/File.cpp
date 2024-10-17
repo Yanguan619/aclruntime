@@ -436,12 +436,16 @@ bool File::OpenFile(const std::string& path, std::ofstream& ofs, std::ios::openm
         }
     }
 
-    std::ofstream tmpofs(absPath, mode);
+    int fd = open(absPath, CREATE_FILE_MODE_DEFAULT, NORMAL_FILE_MODE_DEFAULT);
+    if (fd == -1) {
+        ERROR_LOG("open file failed with default permissions");
+        return false;
+    }
+    std::ofstream tmpofs(fdopen(fd, mode));
     if (!tmpofs.is_open()) {
         ERROR_LOG("file open failed");
         return false;
     }
-
     ofs = std::move(tmpofs);
     return true;
 }
@@ -565,6 +569,14 @@ bool File::CheckFileBeforeCreateOrWrite(const std::string &path, bool overwrite)
     if (IsPathExist(absPath)) {
         if (!overwrite) {
             ERROR_LOG("path already exist and not allow to overwrite");
+            return false;
+        }
+        if (!IsRegularFile(absPath)) {
+            ERROR_LOG("path is not regular file");
+            return false;
+        }
+        if (IsSoftLink(absPath)) {
+            ERROR_LOG("path is soft link");
             return false;
         }
         if ((GetFilePermissions(absPath) & WRITE_FILE_NOT_PERMITTED) > 0) {

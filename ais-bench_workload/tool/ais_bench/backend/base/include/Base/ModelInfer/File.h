@@ -31,12 +31,9 @@ constexpr const uint32_t FULL_PATH_LENGTH_MAX = 4096;
 constexpr const uint32_t FILE_NAME_LENGTH_MAX = 255;
 constexpr const uint32_t PATH_DEPTH_MAX = 32;
 
-constexpr size_t MAX_PKL_SIZE = 1024ULL * 1024 * 1024;
 constexpr size_t MAX_NUMPY_SIZE = 10ULL * 1024 * 1024 * 1024;
 constexpr size_t MAX_JSON_SIZE = 1024ULL * 1024 * 1024;
-constexpr size_t MAX_PT_SIZE = 10ULL * 1024 * 1024 * 1024;
 constexpr size_t MAX_CSV_SIZE = 1024ULL * 1024 * 1024;
-constexpr size_t MAX_YAML_SIZE = 10ULL * 1024 * 1024;
 constexpr size_t MAX_OM_SIZE = 64ULL * 1024 * 1024 * 1024;
 constexpr size_t MAX_FILE_SIZE_DEFAULT = 10ULL * 1024 * 1024 * 1024;
 
@@ -49,12 +46,9 @@ constexpr mode_t WRITE_FILE_NOT_PERMITTED = S_IWGRP | S_IWOTH | S_IROTH | S_IXOT
 constexpr mode_t CREATE_FILE_MODE_DEFAULT = O_EXCL | O_CREAT;
 
 enum class FileType {
-    PKL,
     NUMPY,
     JSON,
-    PT,
     CSV,
-    YAML,
     OM,
 
     /* Add new type before this line. */
@@ -76,7 +70,6 @@ public:
     // 文件权限修改
     static bool Chmod(const std::string &path, const mode_t &mode);
     // 文件权限校验
-    static bool Access(const std::string &path, const mode_t &mode);
     static bool IsFileReadable(const std::string& path);
     static bool IsFileWritable(const std::string& path);
     static bool IsFileExecutable(const std::string& path);

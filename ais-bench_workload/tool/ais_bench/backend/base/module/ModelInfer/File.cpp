@@ -107,6 +107,11 @@ std::string File::GetAbsPath(const std::string &originPath)
 
 bool File::Chmod(const std::string &path, const mode_t &mode)
 {
+    std::string absPath = GetAbsPath(path);
+    if (absPath.empty()) {
+        ERROR_LOG("path is empty");
+        return false;
+    }
     if (!IsPathExist(path)) {
         ERROR_LOG("path not exist");
         return false;
@@ -115,21 +120,11 @@ bool File::Chmod(const std::string &path, const mode_t &mode)
         ERROR_LOG("path is soft link");
         return false;
     }
-    std::string absPath = GetAbsPath(path);
-    if (absPath.empty()) {
-        ERROR_LOG("path is empty");
+    if (!CheckOwner(absPath)) {
+        ERROR_LOG("path owner error, can't chmod");
         return false;
     }
     return chmod(absPath.c_str(), mode) == 0;
-}
-
-bool File::Access(const std::string &path, const mode_t &mode)
-{
-    if (path.empty()) {
-        ERROR_LOG("path is empty");
-        return false;
-    }
-    return access(path.c_str(), mode) == 0;
 }
 
 bool File::IsFileReadable(const std::string& path)
@@ -163,14 +158,11 @@ bool File::IsPathLengthLegal(const std::string& path)
     if (path.length() > FULL_PATH_LENGTH_MAX || path.length() == 0) {
         return false;
     }
-    size_t pos = path.find_last_of(PATH_SEPARATOR);
-    if (pos == std::string::npos) {
-        pos = 0;
-    } else {
-        pos = pos + 1;
-    }
-    if (path.length() - pos > FILE_NAME_LENGTH_MAX) {
-        return false;
+    std::vector<std::string> tokens = SplitPath(path);
+    for (std::string& token : tokens) {
+        if (token.length() > FILE_NAME_LENGTH_MAX) {
+            return false;
+        }
     }
     return true;
 }
@@ -222,7 +214,7 @@ size_t File::GetFileSize(const std::string &path)
     struct stat path_stat;
     if (stat(path.c_str(), &path_stat) != 0) {
         ERROR_LOG("file not exists");
-        return -1;
+        return 0;
     }
     return static_cast<size_t>(path_stat.st_size);
 }
@@ -269,20 +261,18 @@ std::string File::GetFileSuffix(const std::string& path)
 bool File::CheckFileSuffixAndSize(const std::string &path, FileType type)
 {
     static const std::map<FileType, std::pair<std::string, size_t>> FileTypeCheckTbl = {
-        {FileType::PKL, {"kpl", MAX_PKL_SIZE}},
         {FileType::NUMPY, {"npy", MAX_NUMPY_SIZE}},
         {FileType::JSON, {"json", MAX_JSON_SIZE}},
-        {FileType::PT, {"pt", MAX_PT_SIZE}},
         {FileType::CSV, {"csv", MAX_CSV_SIZE}},
-        {FileType::YAML, {"yaml", MAX_YAML_SIZE}},
         {FileType::OM, {"om", MAX_OM_SIZE}},
     };
     
-    size_t size = GetFileSize(path);
-    if (size < 0) {
-        ERROR_LOG("get file size error");
+    struct stat path_stat;
+    if (stat(path.c_str(), &path_stat) != 0) {
+        ERROR_LOG("file not exists");
         return false;
     }
+    size_t size = GetFileSize(path);
 
     if (type == FileType::COMMON) {
         if (size > MAX_FILE_SIZE_DEFAULT) {
@@ -312,12 +302,9 @@ bool File::CheckFileSuffixAndSize(const std::string &path, FileType type)
 
 bool File::IsSoftLink(const std::string &path)
 {
-    if (path.empty()) {
-        ERROR_LOG("path is empty");
-        return false;
-    }
+    std::string absPath = GetAbsPath(path);
     struct stat fileStat;
-    if (lstat(path.c_str(), &fileStat) != 0) {
+    if (lstat(absPath.c_str(), &fileStat) != 0) {
         ERROR_LOG("the file lstat failed");
         return false;
     }
@@ -327,16 +314,16 @@ bool File::IsSoftLink(const std::string &path)
 /****************** 文件操作函数库，会对入参做基本检查 ************************/
 bool File::DeleteFile(const std::string &path)
 {
-    if (!IsPathExist(path)) {
+    std::string absPath = GetAbsPath(path);
+    if (!IsPathExist(absPath)) {
         WARN_LOG("path not exist");
         return true;
     }
-    if (IsSoftLink(path)) {
+    if (IsSoftLink(absPath)) {
         ERROR_LOG("path is soft link");
         return false;
     }
-    std::string absPath = GetAbsPath(path);
-    if (path.empty()) {
+    if (absPath.empty()) {
         ERROR_LOG("path is empty");
         return false;
     }

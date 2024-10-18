@@ -31,7 +31,7 @@ std::string File::GetFullPath(const std::string &originPath)
     if (originPath.empty()) {
         return "";
     }
-    if (originPath[0] == '/') {
+    if (originPath[0] == PATH_SEPARATOR) {
         return originPath;
     }
 
@@ -46,7 +46,7 @@ std::string File::GetFullPath(const std::string &originPath)
         return "";
     }
 
-    std::string fullPath = std::move(std::string(cwd) + pathSeparator + originPath);
+    std::string fullPath = std::move(std::string(cwd) + PATH_SEPARATOR + originPath);
     delete[] cwdBuf;
     cwdBuf = nullptr;
 
@@ -60,7 +60,7 @@ static std::vector<std::string> SplitPath(const std::string &path)
     size_t start = 0;
 
     while (start < len) {
-        size_t end = path.find(pathSeparator, start);
+        size_t end = path.find(PATH_SEPARATOR, start);
         if (end == std::string::npos) {
             end = len;
         }
@@ -163,7 +163,7 @@ bool File::IsPathLengthLegal(const std::string& path)
     if (path.length() > FULL_PATH_LENGTH_MAX || path.length() == 0) {
         return false;
     }
-    size_t pos = path.find_last_of(pathSeparator);
+    size_t pos = path.find_last_of(PATH_SEPARATOR);
     if (pos == std::string::npos) {
         pos = 0;
     } else {
@@ -182,7 +182,7 @@ bool File::IsPathCharactersValid(const std::string& path)
 
 bool File::IsPathDepthValid(const std::string& path)
 {
-    return std::count(path.begin(), path.end(), pathSeparator) <= PATH_DEPTH_MAX;
+    return std::count(path.begin(), path.end(), PATH_SEPARATOR) <= PATH_DEPTH_MAX;
 }
 
 bool File::CheckFileRWX(const std::string& path, const std::string& permissions)

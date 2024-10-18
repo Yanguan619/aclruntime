@@ -470,14 +470,6 @@ bool File::CheckDir(const std::string &path)
         ERROR_LOG("path is empty");
         return false;
     }
-    if (!IsPathExist(absPath)) {
-        ERROR_LOG("path not exist");
-        return false;
-    }
-    if (!IsDir(absPath)) {
-        ERROR_LOG("path is not dir");
-        return false;
-    }
     if (!IsPathLengthLegal(absPath)) {
         ERROR_LOG("path length illegal");
         return false;
@@ -488,6 +480,14 @@ bool File::CheckDir(const std::string &path)
     }
     if (!IsPathDepthValid(absPath)) {
         ERROR_LOG("path depth invalid");
+        return false;
+    }
+    if (!IsPathExist(absPath)) {
+        ERROR_LOG("path not exist");
+        return false;
+    }
+    if (!IsDir(absPath)) {
+        ERROR_LOG("path is not dir");
         return false;
     }
     if (IsSoftLink(absPath)) {
@@ -508,10 +508,6 @@ bool File::CheckFileBeforeRead(const std::string &path, FileType type)
         ERROR_LOG("path is empty");
         return false;
     }
-    if (!IsRegularFile(absPath)) {
-        ERROR_LOG("path is not regular file");
-        return false;
-    }
     if (!IsPathLengthLegal(absPath)) {
         ERROR_LOG("path length illegal");
         return false;
@@ -522,6 +518,10 @@ bool File::CheckFileBeforeRead(const std::string &path, FileType type)
     }
     if (!IsPathDepthValid(absPath)) {
         ERROR_LOG("path depth invalid");
+        return false;
+    }
+    if (!IsRegularFile(absPath)) {
+        ERROR_LOG("path is not regular file");
         return false;
     }
     if (IsSoftLink(absPath)) {

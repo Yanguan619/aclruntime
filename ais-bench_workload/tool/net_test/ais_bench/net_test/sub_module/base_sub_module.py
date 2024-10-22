@@ -1,0 +1,140 @@
+# Copyright (c) 2024-2024 Huawei Technologies Co., Ltd.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import os
+import argparse
+
+from abc import abstractmethod, ABCMeta
+
+from ais_bench.net_test.common.args_adapter import BaseArgsAdapter
+from ais_bench.net_test.security.file_checker import check_linux_readable_file
+from ais_bench.net_test.security.other_checker import check_positive_integer_str
+from ais_bench.net_test.common.consts import OTHERS
+from ais_bench.net_test.common.args_check import (
+    arg_check_hostfile_legalty, arg_check_positive_integer, arg_check_ssh_key_path_legalty,
+    arg_check_port_range
+)
+from ais_bench.net_test.common.utils import get_actual_device_count, get_ip_address, get_user_name, get_default_port
+
+class NodeInfo:
+    def __init__(self, ip, device_count, user, port):
+        self.ip = ip
+        self.device_count = device_count
+        self.user = user
+        self.port = port
+
+
+class BaseSubmodule(metaclass=ABCMeta):
+    def __init__(self, name) -> None:
+        self.name = name
+        self.hostfile_info = {} # {node_id: NodeInfo}
+        self.arg_adapter = BaseArgsAdapter()
+
+    @staticmethod
+    def _transform_hostfile_line(line):
+        info_list = line.split(":")
+        if len(info_list) < OTHERS.NODE_INFO_MIN_COUNT:
+            raise ValueError(f"node_info line: {info_list} missing enough params!")
+        while len(info_list) < OTHERS.NODE_INFO_MAX_COUNT:
+            info_list.append("")
+        check_positive_integer_str(info_list[1]) # device_count, empty is legal
+        check_positive_integer_str(info_list[3]) # port, empty is legal
+        info_list[1] = int(info_list[1]) # device_count,
+        info_list[2] = info_list[2] if info_list[2] else "root" # user, default is root
+        info_list[3] = int(info_list[3]) if info_list[3] else 22 # port, default is 22
+        return tuple(info_list)
+
+    @abstractmethod
+    def add_sub_arguments(self, subparsers):
+        pass
+
+    def add_base_arguments(self):
+        self.parser.add_argument(
+            "--hostfile",
+            "-f",
+            type=arg_check_hostfile_legalty, # int
+            help="required, npus used for one node"
+        )
+        self.parser.add_argument(
+            "--rank_size",
+            "-n",
+            type=arg_check_positive_integer, # str
+            default=8,
+            help="optional, default 8, rank_size(number of devices in all nodes)"
+        )
+        self.parser.add_argument(
+            "--link_port",
+            "-lpt",
+            type=arg_check_port_range, # int
+            default=21345,
+            help="optional, default 21345, port to share root info"
+        )
+        self.parser.add_argument(
+            "--ssh_key_path",
+            "-skp",
+            type=arg_check_ssh_key_path_legalty, # str
+            default="/root/.ssh/id_rsa",
+            help="optional, default /root/.ssh/id_rsa, ssh key path"
+        )
+        self.parser.add_argument(
+            "--python",
+            "-py",
+            type=str,
+            default="python3",
+            help="optional, default python3, path of python executable file"
+        )
+        self.parser.add_argument(
+            "--env_script_path",
+            "-esp",
+            type=str,
+            default="/usr/local/Ascend/ascend-toolkit/set_env.sh",
+            help="optional, default /usr/local/Ascend/ascend-toolkit/set_env.sh, path of shell scripts for set env"
+        )
+
+    @abstractmethod
+    def exec(self, args):
+        pass
+
+    @abstractmethod
+    def _init_before_exec(self, args):
+        pass
+
+    def _get_hostfile_content(self, args):
+        if not args.hostfile:
+            actual_device_count = get_actual_device_count()
+            if args.rank_size > actual_device_count:
+                raise ValueError(f"rank_size:{args.rank_size} shouldn't larger than actual device count: {actual_device_count}")
+            self.hostfile_info[0] = NodeInfo(
+                get_ip_address(),
+                args.rank_size,
+                get_user_name(),
+                get_default_port(),
+            )
+            return
+
+        if not check_linux_readable_file(args.hostfile):
+            raise RuntimeError(f"hostfile is illegal, please check!") # 安全库还是得多打些log
+        with open(args.hostfile, 'r') as file:
+            count = 0
+            for line in file:
+                stripped_line = line.strip()
+                self.hostfile_info[count] = NodeInfo(*self._transform_hostfile_line(stripped_line))
+                count += 1
+
+
+
+
+
+
+
+

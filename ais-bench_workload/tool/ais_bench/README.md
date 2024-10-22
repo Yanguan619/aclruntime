@@ -25,7 +25,7 @@
 ### 工具安装方式
 
 ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序包**的安装。
-安装方式包括：下载whl包安装、一键式编译安装和源代码编译安装。
+安装方式包括：下载whl包安装和源代码编译安装。
 
 **说明**：
 
@@ -83,54 +83,6 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    # 成功安装ais_bench推理程序
    Successfully installed ais_bench-{version}
    ```
-
-
-
-#### 一键式编译安装
-
-1. **安装aclruntime包**
-
-   在安装环境执行如下命令安装aclruntime包：
-
-   ```bash
-   pip3 install -v 'git+https://gitee.com/ascend/tools.git#egg=aclruntime&subdirectory=ais-bench_workload/tool/ais_bench/backend'
-   ```
-
-   说明：若为覆盖安装，请增加“--force-reinstall”参数强制安装，例如：
-
-   ```bash
-   pip3 install -v --force-reinstall 'git+https://gitee.com/ascend/tools.git#egg=aclruntime&subdirectory=ais-bench_workload/tool/ais_bench/backend'
-   ```
-
-   提示如下示例信息则表示安装成功：
-
-   ```bash
-   Successfully installed aclruntime-{version}
-   ```
-
-2. **安装ais_bench推理程序包**
-
-   在安装环境执行如下命令安装ais_bench推理程序包：
-
-   ```bash
-    pip3 install -v 'git+https://gitee.com/ascend/tools.git#egg=ais_bench&subdirectory=ais-bench_workload/tool/ais_bench'
-   ```
-
-   说明：若为覆盖安装，请增加“--force-reinstall”参数强制安装，例如：
-
-   ```bash
-   pip3 install -v --force-reinstall 'git+https://gitee.com/ascend/tools.git#egg=ais_bench&subdirectory=ais-bench_workload/tool/ais_bench'
-   ```
-
-   须知：使用强制安装会同时将工具涉及的依赖全部更新为最新版本，若只需要更新安装工具，请参见"**卸载和更新**"。
-
-   提示如下示例信息则表示安装成功：
-
-   ```bash
-   Successfully installed ais_bench-{version}
-   ```
-
-
 
 #### 源代码编译安装
 1. 从代码开源仓[Gitee](https://gitee.com/ascend/tools.git)克隆/下载工具压缩包“tools-master.zip”。

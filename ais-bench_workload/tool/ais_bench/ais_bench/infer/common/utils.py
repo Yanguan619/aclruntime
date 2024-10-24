@@ -287,3 +287,16 @@ def move_subdir(src_dir, dest_dir):
                 raise RuntimeError(f"move source directory:{abs_src_subdir} to destination directory:{abs_dest_subdir} failed!") from err
             res_dest, res_subdir = dest_dir, subdirs[0]
     return res_dest, res_subdir
+
+
+def str_to_uint(string: str):
+    if not isinstance(string, str):
+        raise ValueError("convert string to int failed! src is not a string!")
+    if not string:
+        raise ValueError("convert string to int failed! string is empty!")
+    if not string.isdigit():
+        raise ValueError(f"convert string to int failed! string contains special characters other than numbers.")
+    try :
+        value = int(value)
+    except ValueError as err:
+        raise RuntimeError("convert string to int failed! unexpected error") from err

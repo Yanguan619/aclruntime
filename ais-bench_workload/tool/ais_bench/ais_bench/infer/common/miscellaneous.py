@@ -20,7 +20,7 @@ import logging
 import itertools
 import numpy as np
 
-from ais_bench.infer.common.utils import logger
+from ais_bench.infer.common.utils import logger, str_to_uint
 from ais_bench.infer.common.path_security_check import ms_open, FileStat, FILE_PERM_CHOICE,  MAX_SIZE_LIMITED_CONFIG_FILE, MAX_SIZE_LIMITED_NORMAL_FILE
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 
@@ -204,14 +204,14 @@ def get_range_list(ranges):
         for content in shapestr.split(','):
             step = 1
             if '~' in content:
-                start = int(content.split('~')[0])
-                end = int(content.split('~')[1])
-                step = int(content.split('~')[2]) if len(content.split('~')) == 3 else 1
+                start = str_to_uint(content.split('~')[0])
+                end = str_to_uint(content.split('~')[1])
+                step = str_to_uint(content.split('~')[2]) if len(content.split('~')) == 3 else 1
                 ranges = [str(i) for i in range(start, end + 1, step)]
             elif '-' in content:
                 ranges = content.split('-')
             else:
-                start = int(content)
+                start = str_to_uint(content)
                 ranges = [str(start)]
             shapes.append(ranges)
             logger.debug("content:{} get range{}".format(content, ranges))

@@ -50,6 +50,10 @@ OWNER_SUB_CHAPTER = ' FAQ/security_error/owner_or_ownergroup_error_log_solution\
 PERMISSION_SUB_CHAPTER = ' FAQ/security_error/path_permission_error_log_solution\"'
 ILLEGAL_CHAR_SUB_CHAPTER = ' FAQ/security_error/path_contain_illegal_char_error_log_solution\"'
 
+MAX_LINUX_ABS_PATH_LENGTH = 4096
+MAX_LINUX_BASE_NAME_LENGTH = 255
+MAX_WIN_ABS_PATH_LENGTH = 260
+
 
 class FILE_PERM_CHOICE:
     WRITE = "write"
@@ -70,20 +74,23 @@ def is_platform(platform: str):
 
 
 def is_legal_path_length(path):
-    if len(path) > 4096 and not is_platform("win"):  # linux total path length limit
-        logger.error(f"file total path{path} length out of range (4096), please check the file(or directory) path")
+    if len(path) > MAX_LINUX_ABS_PATH_LENGTH and not is_platform("win"):  # linux total path length limit
+        logger.error(f"file total path's length out of range ({MAX_LINUX_ABS_PATH_LENGTH}), " + \
+            "please check the file(or directory) path")
         solution_log(SOLUTION_BASE_LOC + PATH_LENGTH_SUB_CHAPTER)
         return False
 
-    if len(path) > 260 and is_platform("win"):  # windows total path length limit
-        logger.error(f"file total path{path} length out of range (260), please check the file(or directory) path")
+    if len(path) > MAX_WIN_ABS_PATH_LENGTH and is_platform("win"):  # windows total path length limit
+        logger.error(f"file total path's length out of range ({MAX_WIN_ABS_PATH_LENGTH}), " + \
+            "please check the file(or directory) path")
         solution_log_win(SOLUTION_BASE_LOC + PATH_LENGTH_SUB_CHAPTER)
         return False
 
     dirnames = path.split("/")
     for dirname in dirnames:
-        if len(dirname) > 255:  # linux single file path length limit
-            logger.error(f"file name{dirname} length out of range (255), please check the file(or directory) path")
+        if len(dirname) > MAX_LINUX_BASE_NAME_LENGTH:  # linux single file path length limit
+            logger.error(f"file base name length out of range ({MAX_LINUX_BASE_NAME_LENGTH}), " + \
+                "please check the file(or directory) path")
             solution_log(SOLUTION_BASE_LOC + PATH_LENGTH_SUB_CHAPTER)
             return False
     return True
@@ -91,11 +98,11 @@ def is_legal_path_length(path):
 
 def is_match_path_white_list(path):
     if PATH_WHITE_LIST_REGEX.search(path) and not is_platform("win"):
-        logger.error(f"path:{path} contains illegal char, legal chars include A-Z a-z 0-9 _ - / .")
+        logger.error(f"path contains illegal char, legal chars include A-Z a-z 0-9 _ - / .")
         solution_log(SOLUTION_BASE_LOC + ILLEGAL_CHAR_SUB_CHAPTER)
         return False
     if PATH_WHITE_LIST_REGEX_WIN.search(path) and is_platform("win"):
-        logger.error(f"path:{path} contains illegal char, legal chars include A-Z a-z 0-9 _ - / . : \\")
+        logger.error(f"path contains illegal char, legal chars include A-Z a-z 0-9 _ - / . : \\")
         solution_log_win(SOLUTION_BASE_LOC + ILLEGAL_CHAR_SUB_CHAPTER)
         return False
     return True

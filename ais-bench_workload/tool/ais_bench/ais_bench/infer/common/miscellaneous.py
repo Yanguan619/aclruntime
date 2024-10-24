@@ -221,6 +221,8 @@ def get_range_list(ranges):
         logger.debug("name:{} shapes:{} info:{}".format(name, shapes, info))
 
     res = [';'.join(s) for s in list(itertools.product(*info_list))]
+    if len(res) == 0:
+        raise ValueError("can not get a legal dymshape range from dymshape range string!")
     logger.debug("range list:{}".format(res))
     return res
 

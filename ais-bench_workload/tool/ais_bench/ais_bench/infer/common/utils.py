@@ -291,12 +291,12 @@ def move_subdir(src_dir, dest_dir):
 
 def str_to_uint(string: str):
     if not isinstance(string, str):
-        raise ValueError("convert string to int failed! src is not a string!")
+        raise ValueError("convert string to uint failed! src is not a string!")
     if not string:
-        raise ValueError("convert string to int failed! string is empty!")
+        raise ValueError("convert string to uint failed! string is empty!")
     if not string.isdigit():
-        raise ValueError(f"convert string to int failed! string contains special characters other than numbers.")
+        raise ValueError(f"convert string to uint failed! string contains special characters other than numbers.")
     try :
         value = int(value)
     except ValueError as err:
-        raise RuntimeError("convert string to int failed! unexpected error") from err
+        raise RuntimeError("convert string to uint failed! unexpected error") from err

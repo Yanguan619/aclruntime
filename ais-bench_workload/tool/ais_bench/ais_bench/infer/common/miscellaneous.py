@@ -47,6 +47,8 @@ ACL_JSON_CMD_LIST = [
     "msproftx",
 ]
 
+DYMSHAPE_COUNT_MAX = 256
+
 def logger_out(out_log):
 
     print(out_log)
@@ -270,6 +272,8 @@ def regenerate_dymshape_cmd(args: AISBenchInferArgsAdapter, dym_shape):
 
 def dymshape_range_run(args: AISBenchInferArgsAdapter):
     dymshape_list = get_dymshape_list(args.dym_shape_range)
+    if len(dymshape_list) > DYMSHAPE_COUNT_MAX:
+        raise ValueError(f"dymshape range run do not support more than {DYMSHAPE_COUNT_MAX} dymshape type!")
     results = []
     for dymshape in dymshape_list:
         cmd = regenerate_dymshape_cmd(args, dymshape)
@@ -277,8 +281,6 @@ def dymshape_range_run(args: AISBenchInferArgsAdapter):
         logger.debug("cmd:{}".format(cmd))
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, _ = p.communicate(timeout=DYMSHAPE_RANGE_TIMEOUT)
-        if p.returncode != 0:
-            raise RuntimeError(f"Run inference failed!This model do not support dymshape: {dymshape}!")
         out_log = stdout.decode('utf-8')
         logger_out(out_log)  # show original log of cmd
         result["result"], result["throughput"] = get_throughtput_from_log(out_log)

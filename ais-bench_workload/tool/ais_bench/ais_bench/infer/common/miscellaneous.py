@@ -277,6 +277,8 @@ def dymshape_range_run(args: AISBenchInferArgsAdapter):
         logger.debug("cmd:{}".format(cmd))
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, _ = p.communicate(timeout=DYMSHAPE_RANGE_TIMEOUT)
+        if p.returncode != 0:
+            raise RuntimeError(f"Run inference failed!This model do not support dymshape: {dymshape}!")
         out_log = stdout.decode('utf-8')
         logger_out(out_log)  # show original log of cmd
         result["result"], result["throughput"] = get_throughtput_from_log(out_log)

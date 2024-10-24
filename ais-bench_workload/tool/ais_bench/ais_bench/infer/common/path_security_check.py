@@ -326,7 +326,7 @@ def check_path_legality(path, perm=FILE_PERM_CHOICE.WRITE, max_size=MAX_SIZE_LIM
     try:
         file_stat = FileStat(path)
     except Exception as err:
-        raise ValueError(f"The format of path:{path} is illegal. Please check.") from err
+        raise ValueError(f"The path string is illegal. Please check.") from err
     if not file_stat.is_basically_legal(perm):
         raise ValueError(f"The path:{path} is illegal. Please check.")
     if file_stat.is_file and not file_stat.is_legal_file_size(max_size):

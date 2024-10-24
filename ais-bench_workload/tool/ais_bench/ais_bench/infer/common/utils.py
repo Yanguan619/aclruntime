@@ -297,6 +297,7 @@ def str_to_uint(string: str):
     if not string.isdigit():
         raise ValueError(f"convert string to uint failed! string contains special characters other than numbers.")
     try :
-        value = int(value)
+        int_value = int(string)
     except ValueError as err:
         raise RuntimeError("convert string to uint failed! unexpected error") from err
+    return int_value

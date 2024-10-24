@@ -125,13 +125,13 @@ class OpenException(Exception):
 
 class FileStat:
     def __init__(self, file) -> None:
-        if not is_legal_path_length(file) or not is_match_path_white_list(file):
+        self.file = os.path.abspath(file)
+        if not is_legal_path_length(self.file) or not is_match_path_white_list(self.file):
             raise OpenException(f"create FileStat failed")
-        self.file = file
-        self.is_file_exist = os.path.exists(file)
+        self.is_file_exist = os.path.exists(self.file)
         if self.is_file_exist:
-            self.file_stat = os.stat(file)
-            self.realpath = os.path.realpath(file)
+            self.file_stat = os.stat(self.file)
+            self.realpath = os.path.realpath(self.file)
         else:
             self.file_stat = None
 

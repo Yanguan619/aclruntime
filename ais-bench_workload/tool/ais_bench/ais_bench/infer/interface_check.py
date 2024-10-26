@@ -12,10 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 from ais_bench.infer.args_check import OM_MODEL_MAX_SIZE, ACL_JSON_MAX_SIZE, LOOP_MAX_SIZE, CPP_INT_MAX_SIZE
 from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE
 
 CUSTOME_SIZE_MAX_SIZE = 64 * 1024 * 1024 * 1024 # 64 GB
+MODEL_INPUT_TENSOR_COUNT_MAX = 65536
+DYM_STRING_PATTERN = "([A-Za-z0-9_\-]{1,1024}:[0-9]{1,12}(\,[0-9]{1,12}){0,6}){1,65535}"
+DYM_RANGE_STRING_PATTERN = "([A-Za-z0-9_\-]{1,1024}:([0-9]{1,12}([\~\-][0-9]{1,12}){0,2})" + \
+    "(\,[0-9]{1,12}([\~\-][0-9]{1,12}){0,2}){0,6}){1,65535}"
 
 def check_model_path_legality(value):
     if not value:
@@ -64,11 +69,13 @@ def check_output_dir_legality(value):
     if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
         raise RuntimeError(f"output path:{value} is illegal. Please check.")
 
+
 def check_positive_integer(value):
     if not isinstance(value, int):
         raise TypeError(f"value:{value} is not a integer!")
     if value <= 0 or value > CPP_INT_MAX_SIZE:
         raise ValueError(f"input value:{value} is out of range. Please check.")
+
 
 def check_in_out_list(in_out_list, inputs, outputs):
     if len(in_out_list) != len(inputs):
@@ -78,6 +85,7 @@ def check_in_out_list(in_out_list, inputs, outputs):
             raise TypeError(f"in_out_list reused_index:{reused_index} is not a integer!")
         if reused_index < -1 or reused_index >= len(outputs):
             raise IndexError(f"in_out_list[{in_out_list}] out of range, length range is (-1, {len(outputs)})")
+
 
 def check_custom_size(value, mode):
     if mode not in ["static", "dymbatch", "dymhw", "dymdims", "dymshape"]:
@@ -95,15 +103,18 @@ def check_custom_size(value, mode):
     if ivalue <= 0 or ivalue > CUSTOME_SIZE_MAX_SIZE:
         raise ValueError(f"input value:{value} is out of range. Please check.")
 
+
 def check_loop_size(value):
     if not isinstance(value, int):
         raise TypeError(f"value:{value} is not a integer!")
     if value <= 0 or value > LOOP_MAX_SIZE:
         raise ValueError(f"input value:{value} is out of range. Please check.")
 
+
 def check_bool_value(value):
     if not isinstance(value, bool):
         raise TypeError(f"value:{value} is not a bool!")
+
 
 def check_dym_hw_list(hw_list:list):
     if len(hw_list) != 2:
@@ -113,3 +124,13 @@ def check_dym_hw_list(hw_list:list):
         _ = int(hw_list[1])
     except ValueError as err:
         raise ValueError("data type not match, legal format of dymHW string is \"int,int\"")
+
+
+def check_dym_str_format(shapes_str: str):
+    if not re.fullmatch(shapes_str, DYM_STRING_PATTERN):
+        raise ValueError("dymshape or dymdims string's format is illegal!")
+
+
+def check_dym_shape_range_str_format(shapes_range_str: str):
+    if not re.fullmatch(shapes_range_str, DYM_RANGE_STRING_PATTERN):
+        raise ValueError("dymshape range string's format is illegal!")

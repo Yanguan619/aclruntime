@@ -2,6 +2,7 @@ import os
 import re
 import argparse
 from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE, check_path_legality
+from ais_bench.infer.interface_check import check_dym_shape_range_str_format
 
 OM_MODEL_MAX_SIZE = 10 * 1024 * 1024 * 1024 # 10GB
 ACL_JSON_MAX_SIZE = 8 * 1024 # 8KB
@@ -11,6 +12,7 @@ INPUT_LIST_MAX_SIZE = 1024
 LOOP_MAX_SIZE = 100000
 DEVICE_COUNT_MAX = 256
 
+
 def check_dym_string(value):
     if not value:
         return value
@@ -18,6 +20,7 @@ def check_dym_string(value):
     regex = re.compile(r"[^_A-Za-z0-9,;:/.-]")
     if regex.search(dym_string):
         raise argparse.ArgumentTypeError(f"dym string \"{dym_string}\" is not a legal string")
+
     return dym_string
 
 
@@ -29,11 +32,12 @@ def check_dym_range_string(value):
             check_path_legality(value, perm=FILE_PERM_CHOICE.READ)
         except ValueError as err:
             raise argparse.ArgumentTypeError(f"file contain dymShape range is not a legal path") from err
-    dym_string = value
-    regex = re.compile(r"[^_A-Za-z0-9,;:/.\-~]")
-    if regex.search(dym_string):
-        raise argparse.ArgumentTypeError(f"dym range string \"{dym_string}\" is not a legal string")
-    return dym_string
+    else:
+        try:
+            check_dym_shape_range_str_format(value)
+        except ValueError as err:
+            raise argparse.ArgumentTypeError(f"dym range string is not a legal format string")
+    return value
 
 
 def check_number_list(value):

@@ -343,6 +343,8 @@ def makedirs_safe(path, mode=0o750):
             continue
         current_path += "/" + part
         if os.path.exists(current_path):
-            check_path_legality(current_path)
             continue
-        os.mkdir(current_path, mode=mode)
+        try:
+            os.mkdir(current_path, mode=mode)
+        except Exception as err:
+            raise RuntimeError(f"can not make dir: {current_path}") from err

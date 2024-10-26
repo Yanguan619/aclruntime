@@ -118,11 +118,14 @@ def check_dym_hw_list(hw_list:list):
     if len(hw_list) != 2:
         raise ValueError("int count not match, legal format of dymHW string is \"int,int\"")
     try :
-        _ = int(hw_list[0])
-        _ = int(hw_list[1])
+        h = int(hw_list[0])
+        w = int(hw_list[1])
     except ValueError as err:
         raise ValueError("data type not match, legal format of dymHW string is \"int,int\"")
-
+    if h < 1 or h > CPP_INT_MAX_SIZE:
+        raise ValueError(f"height of dym_hw string is out of range [1, {CPP_INT_MAX_SIZE}]")
+    if h < 1 or h > CPP_INT_MAX_SIZE:
+        raise ValueError(f"width of dym_hw string is out of range [1, {CPP_INT_MAX_SIZE}]")
 
 def check_dym_str_format(shapes_str: str):
     if not re.fullmatch(DYM_STRING_PATTERN, shapes_str):

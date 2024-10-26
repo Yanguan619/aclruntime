@@ -21,7 +21,8 @@ import itertools
 import numpy as np
 
 from ais_bench.infer.common.utils import logger, str_to_uint
-from ais_bench.infer.common.path_security_check import ms_open, FileStat, FILE_PERM_CHOICE,  MAX_SIZE_LIMITED_CONFIG_FILE, MAX_SIZE_LIMITED_NORMAL_FILE
+from ais_bench.infer.common.path_security_check import (ms_open, FileStat, FILE_PERM_CHOICE,  MAX_SIZE_LIMITED_CONFIG_FILE,
+    MAX_SIZE_LIMITED_NORMAL_FILE, makedirs_safe)
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.args_check import check_dym_shape_range_str_format
 
@@ -143,13 +144,13 @@ def get_acl_json_path(args):
         out_profiler_path = os.path.join(args.output, "profiler")
 
         if not os.path.exists(out_profiler_path):
-            os.makedirs(out_profiler_path, PERMISSION_DIR)
+            makedirs_safe(out_profiler_path, PERMISSION_DIR)
         output_json_dict = {"profiler": {"switch": "on", "aicpu": "on", "output": out_profiler_path, "aic_metrics": ""}}
     elif args.dump:
         out_dump_path = os.path.join(args.output, "dump")
 
         if not os.path.exists(out_dump_path):
-            os.makedirs(out_dump_path, PERMISSION_DIR)
+            makedirs_safe(out_dump_path, PERMISSION_DIR)
 
         model_name = args.model.split("/")[-1]
         output_json_dict = {

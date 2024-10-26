@@ -124,7 +124,7 @@ def check_dym_hw_list(hw_list:list):
         raise ValueError("data type not match, legal format of dymHW string is \"int,int\"")
     if h < 1 or h > CPP_INT_MAX_SIZE:
         raise ValueError(f"height of dym_hw string is out of range [1, {CPP_INT_MAX_SIZE}]")
-    if h < 1 or h > CPP_INT_MAX_SIZE:
+    if w < 1 or w > CPP_INT_MAX_SIZE:
         raise ValueError(f"width of dym_hw string is out of range [1, {CPP_INT_MAX_SIZE}]")
 
 def check_dym_str_format(shapes_str: str):

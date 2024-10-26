@@ -19,8 +19,6 @@ from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOIC
 CUSTOME_SIZE_MAX_SIZE = 64 * 1024 * 1024 * 1024 # 64 GB
 MODEL_INPUT_TENSOR_COUNT_MAX = 65536
 DYM_STRING_PATTERN = "([A-Za-z0-9_\-]{1,1024}:[0-9]{1,12}(\,[0-9]{1,12}){0,6}){1,65535}"
-DYM_RANGE_STRING_PATTERN = "([A-Za-z0-9_\-]{1,1024}:([0-9]{1,12}([\~\-][0-9]{1,12}){0,2})" + \
-    "(\,[0-9]{1,12}([\~\-][0-9]{1,12}){0,2}){0,6}){1,65535}"
 
 def check_model_path_legality(value):
     if not value:
@@ -130,7 +128,3 @@ def check_dym_str_format(shapes_str: str):
     if not re.fullmatch(shapes_str, DYM_STRING_PATTERN):
         raise ValueError("dymshape or dymdims string's format is illegal!")
 
-
-def check_dym_shape_range_str_format(shapes_range_str: str):
-    if not re.fullmatch(shapes_range_str, DYM_RANGE_STRING_PATTERN):
-        raise ValueError("dymshape range string's format is illegal!")

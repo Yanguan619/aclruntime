@@ -2,7 +2,6 @@ import os
 import re
 import argparse
 from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE, check_path_legality
-from ais_bench.infer.interface_check import check_dym_shape_range_str_format
 
 OM_MODEL_MAX_SIZE = 10 * 1024 * 1024 * 1024 # 10GB
 ACL_JSON_MAX_SIZE = 8 * 1024 # 8KB
@@ -11,6 +10,13 @@ CPP_INT_MAX_SIZE = 2147483647 # 2^31 - 1
 INPUT_LIST_MAX_SIZE = 1024
 LOOP_MAX_SIZE = 100000
 DEVICE_COUNT_MAX = 256
+DYM_RANGE_STRING_PATTERN = "([A-Za-z0-9_\-]{1,1024}:([0-9]{1,12}([\~\-][0-9]{1,12}){0,2})" + \
+    "(\,[0-9]{1,12}([\~\-][0-9]{1,12}){0,2}){0,6}){1,65535}"
+
+
+def check_dym_shape_range_str_format(shapes_range_str: str):
+    if not re.fullmatch(shapes_range_str, DYM_RANGE_STRING_PATTERN):
+        raise ValueError("dymshape range string's format is illegal!")
 
 
 def check_dym_string(value):

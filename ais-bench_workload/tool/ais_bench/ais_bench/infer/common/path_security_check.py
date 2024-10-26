@@ -337,7 +337,7 @@ def makedirs_safe(path, mode=0o750):
     # only linux
     abs_path = os.path.abspath(path)
     parts = abs_path.split("/")
-    current_path = "/"
+    current_path = ""
     for _, part in enumerate(parts):
         if not part:
             continue

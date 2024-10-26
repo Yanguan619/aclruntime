@@ -331,3 +331,18 @@ def check_path_legality(path, perm=FILE_PERM_CHOICE.WRITE, max_size=MAX_SIZE_LIM
         raise ValueError(f"The path:{path} is illegal. Please check.")
     if file_stat.is_file and not file_stat.is_legal_file_size(max_size):
         raise ValueError(f"The file:{path} size is larger than {max_size}. Please check.")
+
+
+def makedirs_safe(path, mode=0o750):
+    # only linux
+    abs_path = os.path.abspath(path)
+    parts = abs_path.split("/")
+    current_path = "/"
+    for _, part in enumerate(parts):
+        if not part:
+            continue
+        current_path += "/" + part
+        if os.path.exists(current_path):
+            check_path_legality(current_path)
+            continue
+        os.mkdir(current_path, mode=mode)

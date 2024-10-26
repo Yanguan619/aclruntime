@@ -49,7 +49,8 @@ from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
                                    save_data_to_files, create_fake_file_name, logger,
                                    create_tmp_acl_json, move_subdir, convert_helper)
 from ais_bench.infer.common.path_security_check import (
-    is_legal_args_path_string, check_normal_string, FILE_PERM_CHOICE, check_path_legality, MAX_SIZE_LIMITED_NORMAL_FILE
+    is_legal_args_path_string, check_normal_string, FILE_PERM_CHOICE, check_path_legality,
+    MAX_SIZE_LIMITED_NORMAL_FILE, makedirs_safe
 )
 from ais_bench.infer.interface_check import (check_output_dir_legality, check_dym_hw_list, check_dym_str_format)
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
@@ -485,7 +486,7 @@ def main(args, index=0, msgq=None, device_list=None):
                 output_prefix = os.path.join(args.output, args.output_dirname)
                 output_prefix = os.path.join(output_prefix, "device" + str(device_list[index]) + "_" + str(index))
             if not os.path.exists(output_prefix):
-                os.makedirs(output_prefix, PERMISSION_DIR)
+                makedirs_safe(output_prefix, PERMISSION_DIR)
             else:
                 check_output_dir_legality(output_prefix)
             logger.info(f"output path:{output_prefix}")
@@ -499,7 +500,7 @@ def main(args, index=0, msgq=None, device_list=None):
             else:
                 output_prefix = os.path.join(args.output, args.output_dirname)
             if not os.path.exists(output_prefix):
-                os.makedirs(output_prefix, PERMISSION_DIR)
+                makedirs_safe(output_prefix, PERMISSION_DIR)
             else:
                 check_output_dir_legality(output_prefix)
             logger.info(f"output path:{output_prefix}")

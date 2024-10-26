@@ -18,7 +18,7 @@ from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOIC
 
 CUSTOME_SIZE_MAX_SIZE = 64 * 1024 * 1024 * 1024 # 64 GB
 MODEL_INPUT_TENSOR_COUNT_MAX = 65536
-DYM_STRING_PATTERN = "([A-Za-z0-9_\-]{1,1024}:[0-9]{1,12}(\,[0-9]{1,12}){0,6}){1,65535}"
+DYM_STRING_PATTERN = "([A-Za-z0-9_\-]{1,1024}:[1-9][0-9]{1,4}(\,[1-9][0-9]{1,4}){0,6}){1,1024}"
 
 def check_model_path_legality(value):
     if not value:

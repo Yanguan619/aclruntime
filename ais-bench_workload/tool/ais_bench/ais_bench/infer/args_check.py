@@ -10,8 +10,8 @@ CPP_INT_MAX_SIZE = 2147483647 # 2^31 - 1
 INPUT_LIST_MAX_SIZE = 1024
 LOOP_MAX_SIZE = 100000
 DEVICE_COUNT_MAX = 256
-DYM_RANGE_STRING_PATTERN = "([A-Za-z0-9_\-]{1,1024}:([0-9]{1,12}([\~\-][0-9]{1,12}){0,2})" + \
-    "(\,[0-9]{1,12}([\~\-][0-9]{1,12}){0,2}){0,6}){1,65535}"
+DYM_RANGE_STRING_PATTERN = "([A-Za-z0-9_\-]{1,1024}:([1-9][0-9]{1,4}([\~\-][1-9][0-9]{1,4}){0,2})" + \
+    "(\,[1-9][0-9]{1,4}([\~\-][1-9][0-9]{1,4}){0,2}){0,6}){1,1024}}"
 
 
 def check_dym_shape_range_str_format(shapes_range_str: str):

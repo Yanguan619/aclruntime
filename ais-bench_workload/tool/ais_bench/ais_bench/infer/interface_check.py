@@ -125,6 +125,6 @@ def check_dym_hw_list(hw_list:list):
 
 
 def check_dym_str_format(shapes_str: str):
-    if not re.fullmatch(shapes_str, DYM_STRING_PATTERN):
+    if not re.fullmatch(DYM_STRING_PATTERN, shapes_str):
         raise ValueError("dymshape or dymdims string's format is illegal!")
 

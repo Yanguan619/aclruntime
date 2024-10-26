@@ -15,7 +15,7 @@ DYM_RANGE_STRING_PATTERN = "([A-Za-z0-9_\-]{1,1024}:([0-9]{1,12}([\~\-][0-9]{1,1
 
 
 def check_dym_shape_range_str_format(shapes_range_str: str):
-    if not re.fullmatch(shapes_range_str, DYM_RANGE_STRING_PATTERN):
+    if not re.fullmatch(DYM_RANGE_STRING_PATTERN, shapes_range_str):
         raise ValueError("dymshape range string's format is illegal!")
 
 

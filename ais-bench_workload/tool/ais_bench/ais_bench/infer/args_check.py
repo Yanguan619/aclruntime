@@ -205,7 +205,7 @@ def check_output_path_legality(value):
         file_stat = FileStat(path_value)
     except Exception as err:
         raise argparse.ArgumentTypeError(f"output path string is illegal. Please check.") from err
-    if not file_stat.is_dir:
+    if not file_stat.is_dir and file_stat.is_exists:
         raise argparse.ArgumentTypeError(f"output path is not a directory")
     if not file_stat.is_basically_legal(FILE_PERM_CHOICE.WRITE):
         raise argparse.ArgumentTypeError(f"output path:{path_value} is illegal. Please check.")

@@ -93,7 +93,7 @@ def check_dump_path(dump_path):
         file_stat = FileStat(dump_path)
     except Exception as err:
         raise ValueError(f"weight path:{dump_path} is illegal. Please check.") from err
-    if not file_stat.is_dir:
+    if not file_stat.is_dir and file_stat.is_exists:
         raise TypeError(f"output path is not a directory")
     if not (file_stat.is_basically_legal(FILE_PERM_CHOICE.WRITE) and file_stat.is_basically_legal(FILE_PERM_CHOICE.READ)):
         raise ValueError(f"output path:{dump_path} is illegal. Please check.")

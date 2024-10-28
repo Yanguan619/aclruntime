@@ -176,8 +176,8 @@ cnpy::NpyArray cnpy::NpyLoad(std::string fname)
 
 cnpy::NpyArray cnpy::BinLoad(std::string fname)
 {
-    std::ifstream file(fname, std::ios::binary);
-    if (!file) {
+    std::ifstream file;
+    if (!File::OpenFile(fname, file, std::ios::binary)) {
         throw std::runtime_error("BinLoad: Unable to open file" + fname);
     }
     std::size_t size = 0;

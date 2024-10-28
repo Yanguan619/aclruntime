@@ -226,9 +226,9 @@ Result Utils::SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_
 
 Result Utils::ReadBinFileToMemory(const std::string fileName, char *ptr, const size_t size, size_t &offset)
 {
-    std::ifstream binFile(fileName, std::ifstream::binary);
-    if (binFile.is_open() == false) {
-        ERROR_LOG("open file %s failed", fileName.c_str());
+    std::ifstream binFile;
+    if (!File::OpenFile(fileName, binFile, std::ifstream::binary)) {
+        ERROR_LOG("read bin file to memory: open file %s failed.", fileName.c_str());
         return FAILED;
     }
 
@@ -362,10 +362,8 @@ Result Utils::TensorToBin(const std::string& outputFileName, Base::TensorBase& o
         ERROR_LOG("Tensor to bin: existing file %s cannot be removed", outputFileName.c_str());
         return FAILED;
     }
-    int fd = open(outputFileName.c_str(), OPNE_OR_CREATE_MODE, CREATE_FILE_MODE);
-    close(fd);
-    std::ofstream outfile(outputFileName, std::ios::out | std::ios::binary);
-    if (!outfile) {
+    std::ofstream outfile;
+    if (!File::OpenFile(outputFileName, outfile, std::ios::out | std::ios::binary)) {
         ERROR_LOG("Tensor to bin: open file %s failed.", outputFileName.c_str());
         return FAILED;
     }
@@ -400,10 +398,8 @@ Result Utils::TensorToTxt(const std::string& outputFileName, Base::TensorBase& o
         ERROR_LOG("Tensor to txt: existing file %s cannot be removed", outputFileName.c_str());
         return FAILED;
     }
-    int fd = open(outputFileName.c_str(), OPNE_OR_CREATE_MODE, CREATE_FILE_MODE);
-    close(fd);
-    std::ofstream outFile(outputFileName);
-    if (!outFile) {
+    std::ofstream outFile;
+    if (!File::OpenFile(outputFileName, outFile)) {
         ERROR_LOG("Tensor to txt: open file %s failed.", outputFileName.c_str());
         return FAILED;
     }

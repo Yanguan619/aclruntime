@@ -27,6 +27,7 @@
 #include "Base/ErrorCode/ErrorCode.h"
 #include "Base/Log/Log.h"
 #include "Base/ModelInfer/pipeline.h"
+#include "Base/ModelInfer/File.h"
 
 const int LOOP_MAX_SIZE = 100000;
 const size_t CUSTOME_SIZE_MAX_SIZE = 68719476736; // 64GB
@@ -39,6 +40,14 @@ PyInferenceSession::PyInferenceSession(const std::string &modelPath, const uint3
     if (options->loop <= 0 || options->loop > LOOP_MAX_SIZE) {
         ERROR_LOG("loop size out of range: loop must be greater than 0 and less than or equal to 100000.");
         throw std::runtime_error("loop num out of range. Please check.");
+    }
+    if (!File::CheckFileBeforeRead(modelPath, FileType::OM)) {
+        ERROR_LOG("model path illegal, please check.");
+        throw std::runtime_error("please check model path");
+    }
+    if ((options->aclJsonPath != "") && (!File::CheckFileBeforeRead(options->aclJsonPath, FileType::JSON))) {
+        ERROR_LOG("acl json path illegal, please check.");
+        throw std::runtime_error("please check acl json path");
     }
     Init(modelPath, options);
 }

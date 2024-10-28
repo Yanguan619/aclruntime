@@ -178,13 +178,14 @@ cnpy::NpyArray cnpy::BinLoad(std::string fname)
 {
     std::ifstream file;
     if (!File::OpenFile(fname, file, std::ios::binary)) {
-        throw std::runtime_error("BinLoad: Unable to open file" + fname);
+        throw std::runtime_error("Load bin file: open file failed");
     }
     std::size_t size = 0;
     file.seekg(0, std::ios::end);
     try {
         size = file.tellg();
     } catch (exception &e) {
+        file.close();
         throw std::runtime_error("BinLoad: file size out of range");
     }
 
@@ -194,10 +195,11 @@ cnpy::NpyArray cnpy::BinLoad(std::string fname)
     try {
         arr.dataHolder = std::make_shared<std::vector<char>>(size);
     } catch (exception &e) {
+        file.close();
         throw std::runtime_error("BinLoad: make dataHolder failed");
     }
 
     file.read(arr.dataHolder->data(), size);
-
+    file.close();
     return arr;
 }

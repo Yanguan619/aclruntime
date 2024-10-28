@@ -228,7 +228,7 @@ Result Utils::ReadBinFileToMemory(const std::string fileName, char *ptr, const s
 {
     std::ifstream binFile;
     if (!File::OpenFile(fileName, binFile, std::ifstream::binary)) {
-        ERROR_LOG("read bin file to memory: open file %s failed.", fileName.c_str());
+        ERROR_LOG("read bin file to memory: open file failed.");
         return FAILED;
     }
 
@@ -241,6 +241,7 @@ Result Utils::ReadBinFileToMemory(const std::string fileName, char *ptr, const s
     }
     if (offset + binFileBufferLen > size) {
         ERROR_LOG("offset:%zu filesize:%zu > size:%zu invalid", offset, binFileBufferLen, size);
+        binFile.close();
         return FAILED;
     }
 
@@ -364,7 +365,7 @@ Result Utils::TensorToBin(const std::string& outputFileName, Base::TensorBase& o
     }
     std::ofstream outfile;
     if (!File::OpenFile(outputFileName, outfile, std::ios::out | std::ios::binary)) {
-        ERROR_LOG("Tensor to bin: open file %s failed.", outputFileName.c_str());
+        ERROR_LOG("Tensor to bin: open file failed.");
         return FAILED;
     }
 
@@ -400,7 +401,7 @@ Result Utils::TensorToTxt(const std::string& outputFileName, Base::TensorBase& o
     }
     std::ofstream outFile;
     if (!File::OpenFile(outputFileName, outFile)) {
-        ERROR_LOG("Tensor to txt: open file %s failed.", outputFileName.c_str());
+        ERROR_LOG("Tensor to txt: open file failed.");
         return FAILED;
     }
     size_t size = output.GetSize();
@@ -431,9 +432,11 @@ Result Utils::TensorToTxt(const std::string& outputFileName, Base::TensorBase& o
     } else if (output.GetDataType() == Base::TENSOR_DTYPE_BOOL) {
         SaveTxt(outFile, (bool*)output.GetBuffer(), size, rowCount);
     } else {
+        outFile.close();
         ERROR_LOG("Tensor to bin: output data type unrecognized.");
         return FAILED;
     }
+    outFile.close();
     return SUCCESS;
 }
 

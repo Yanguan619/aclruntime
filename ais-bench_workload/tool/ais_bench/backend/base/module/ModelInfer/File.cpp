@@ -330,6 +330,10 @@ bool File::DeleteFile(const std::string &path)
         ERROR_LOG("path is empty");
         return false;
     }
+    if (!CheckOwner(absPath)) {
+        ERROR_LOG("path owner error, can't delete");
+        return false;
+    }
     return remove(absPath.c_str()) == 0;
 }
 

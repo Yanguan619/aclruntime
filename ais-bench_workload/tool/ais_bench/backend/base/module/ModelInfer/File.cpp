@@ -36,8 +36,11 @@ std::string File::GetFullPath(const std::string &originPath)
     }
 
     char* cwd = nullptr;
-    char* cwdBuf = new char[PATH_MAX];
-    if (cwdBuf == nullptr) {
+    char* cwdBuf = nullptr;
+    try {
+        cwdBuf = new char[PATH_MAX];
+    } catch (const std::bad_alloc& e) {
+        ERROR_LOG("create buffer failed: %s", e.what());
         throw std::runtime_error("No memory.");
     }
     cwd = getcwd(cwdBuf, PATH_MAX);

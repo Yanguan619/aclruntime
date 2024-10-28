@@ -23,7 +23,7 @@ class TestCheckFuncUtils(unittest.TestCase):
             _check_str_length("abc", 5, 10)
         with self.assertRaisesRegex(ValueError, 'is not between'):
             _check_str_length("abcdefghijklmno", 5, 10)
-        assert _check_str_length(s := "hello", 3, 10) == s
+        self.assertEqual(_check_str_length(s := "hello", 3, 10), s)
 
     def test_check_int_string(self):
         with self.assertRaisesRegex(ValueError, 'is an invalid positive int value'):
@@ -58,7 +58,7 @@ class TestCheckFuncUtils(unittest.TestCase):
 
         for val in range(1, 10000):
             for tail in "KMGkmg":
-                assert check_bytes_format(str(val) + tail) == str(val)
+                self.assertEqual(check_bytes_format(str(val) + tail), str(val))
 
     def test_check_linux_username(self):
         with self.assertRaisesRegex(ValueError, ''):
@@ -69,10 +69,10 @@ class TestCheckFuncUtils(unittest.TestCase):
 
     def test_find_executable(self):
         # with self.assertRaisesRegex(ValueError, ''):
-        assert _find_executable("bash") is not None
-        assert _find_executable("") is None
-        assert _find_executable("/home/this_is_a_not_exists_path") is None
-        assert _find_executable("this_is_a_not_exists_name") is None
+        self.assertIsNotNone(_find_executable("bash"))
+        self.assertEqual(_find_executable(""), None)
+        self.assertEqual(_find_executable("/home/this_is_a_not_exists_path"), None)
+        self.assertEqual(_find_executable("this_is_a_not_exists_name"), None)
 
     @patch('os.environ')
     def test_check_executable(self, mock_environ):

@@ -92,11 +92,11 @@ def check_dump_path(dump_path):
     try:
         file_stat = FileStat(dump_path)
     except Exception as err:
-        raise ValueError(f"weight path:{dump_path} is illegal. Please check.") from err
+        raise ValueError(f"dump path in acl json file:{dump_path} is illegal. Please check.") from err
     if not file_stat.is_dir and file_stat.is_exists:
-        raise TypeError(f"output path is not a directory")
+        raise TypeError(f"dump path in acl json file is not a directory")
     if not (file_stat.is_basically_legal(FILE_PERM_CHOICE.WRITE) and file_stat.is_basically_legal(FILE_PERM_CHOICE.READ)):
-        raise ValueError(f"output path:{dump_path} is illegal. Please check.")
+        raise ValueError(f"dump path in acl json file:{dump_path} is illegal. Please check.")
 
 def check_valid_acl_json_for_dump(acl_json_path, model):
     with ms_open(acl_json_path, mode="r", max_size=MAX_SIZE_LIMITED_CONFIG_FILE) as f:

@@ -1078,9 +1078,14 @@ Result SaveTensorMemoryToFile(const aclTensorDesc *desc, std::string &prefixName
     }
     std::string fileName = prefixName + "_format_" + std::to_string(format) +
         "_dtype_" + std::to_string(dtype) + "_shape_" + shapestr + ".bin";
-    ofstream outFile(fileName, ios::out | ios::binary);
+    ofstream outFile;
+    if (!File::OpenFile(fileName, outFile, ios::out | ios::binary)) {
+        ERROR_LOG("save tensor memory to file: open file failed.");
+        return FAILED;
+    }
     outFile.write((char*)hostaddr, len);
     aclrtFreeHost(hostaddr);
+    outFile.close();
     return SUCCESS;
 }
 

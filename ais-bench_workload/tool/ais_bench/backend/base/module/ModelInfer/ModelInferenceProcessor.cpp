@@ -162,6 +162,10 @@ APP_ERROR ModelInferenceProcessor::CreateOutMemoryData(std::vector<MemoryData>& 
         Base::MemoryData memorydata(size, MemoryData::MemoryType::MEMORY_DEVICE, deviceId_);
         auto ret = MemoryHelper::MxbsMalloc(memorydata);
         if (ret != APP_ERR_OK) {
+            for (auto& mem : outputs) {
+                MemoryHelper::MxbsFree(mem);
+            }
+            outputs.clear();
             ERROR_LOG("memory data malloc failed.i:%zu name:%s size:%zu ret:%d", \
                       i, modelDesc_.outTensorsDesc[i].name.c_str(), size, ret);
             return ret;
@@ -675,6 +679,8 @@ APP_ERROR ModelInferenceProcessor::AllocDymAIPPIndexMem()
         return APP_ERR_OK;
     }
 
+    std::vector<size_t> allocatedIndices;
+
     for (const auto& index : dymAIPPIndexList_) {
         TensorDesc info;
         int datatype;
@@ -688,9 +694,15 @@ APP_ERROR ModelInferenceProcessor::AllocDymAIPPIndexMem()
         DEBUG_LOG("debug aipp config index:%d allow size:%d\n", int(index), int(info.size));
         auto ret = MemoryHelper::MxbsMalloc(memdata);
         if (ret != APP_ERR_OK) {
+            for (const auto& allocatedIndex : allocatedIndices) {
+                if (dymAIPPIndexMemory_.count(allocatedIndex)) {
+                    MemoryHelper::MxbsFree(dymAIPPIndexMemory_[allocatedIndex]);
+                }
+            }
             ERROR_LOG("memory data malloc failed. ret=%d", ret);
             return ret;
         }
+        allocatedIndices.push_back(index);
         dymAIPPIndexMemory_[index] = memdata;
         dymAIPPIndexSet_[index] = nullptr;
     }

@@ -14,7 +14,7 @@
 
 import re
 from ais_bench.infer.args_check import (OM_MODEL_MAX_SIZE, ACL_JSON_MAX_SIZE, LOOP_MAX_SIZE,
-    CPP_INT_MAX_SIZE, INPUT_LIST_MAX_SIZE)
+    CPP_INT_MAX_SIZE, INPUT_LIST_MAX_SIZE, INPUT_NAME_LENGTH_MAX)
 from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE
 
 CUSTOME_SIZE_MAX_SIZE = 64 * 1024 * 1024 * 1024 # 64 GB

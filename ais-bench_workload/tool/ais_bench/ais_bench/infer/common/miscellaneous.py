@@ -28,6 +28,7 @@ from ais_bench.infer.args_check import check_dym_shape_range_str_format
 
 PERMISSION_DIR = 0o750
 DYMSHAPE_RANGE_TIMEOUT = 600
+DYMSHAPE_RANGE_LINE_COUNT_MAX = 256
 
 ACL_JSON_CMD_LIST = [
     "output",
@@ -238,7 +239,9 @@ def get_dymshape_list(input_ranges):
     if os.path.isfile(input_ranges):
         with ms_open(input_ranges, mode="rt", max_size=MAX_SIZE_LIMITED_NORMAL_FILE, encoding='utf-8') as finfo:
             line = finfo.readline()
-            while line:
+            for _ in range (DYMSHAPE_RANGE_LINE_COUNT_MAX):
+                if not line:
+                    break
                 line = line.rstrip('\n')
                 check_dym_shape_range_str_format(line)
                 ranges_list.append(line)

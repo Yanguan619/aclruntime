@@ -89,17 +89,19 @@ class DymAippManager:
 
     def _get_int_safe(self, head_name: str, key_name: str):
         try:
-            self.cfg.getint(head_name, key_name)
+            value = self.cfg.getint(head_name, key_name)
         except Exception as err:
             raise ValueError("get int type value from aipp config file failed, " + \
                 f"head name:{head_name}, key name:{key_name}") from err
+        return value
 
     def _get_float_safe(self, head_name: str, key_name: str):
         try:
-            self.cfg.getfloat(head_name, key_name)
+            value = self.cfg.getfloat(head_name, key_name)
         except Exception as err:
             raise ValueError("get float type value from aipp config file failed, " + \
                 f"head name:{head_name}, key name:{key_name}") from err
+        return value
 
     def _aipp_set_input_format(self):
         input_format = self.cfg.get(AIPP_HEAD_STR, 'input_format')

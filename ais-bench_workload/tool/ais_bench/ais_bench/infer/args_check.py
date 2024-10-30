@@ -8,15 +8,27 @@ ACL_JSON_MAX_SIZE = 8 * 1024 # 8KB
 AIPP_CONFIG_MAX_SIZE = 12.5 * 1024 # 12.5KB
 CPP_INT_MAX_SIZE = 2147483647 # 2^31 - 1
 INPUT_LIST_MAX_SIZE = 1024
+INPUT_NAME_LENGTH_MAX = 256
 LOOP_MAX_SIZE = 100000
 DEVICE_COUNT_MAX = 256
-DYM_RANGE_STRING_PATTERN = "([A-Za-z0-9_\-]{1,1024}:([1-9][0-9]{0,4}([\~\-][1-9][0-9]{0,4}){0,2})" + \
-    "(\,[1-9][0-9]{0,4}([\~\-][1-9][0-9]{0,4}){0,2}){0,6}){1,1024}"
+DYM_RANGE_PATTERN = "[1-9][0-9]{0,4}([\~\-][1-9][0-9]{0,4}){0,2}(\,[1-9][0-9]{0,4}([\~\-][1-9][0-9]{0,4}){0,2}){0,6}"
 
 
 def check_dym_shape_range_str_format(shapes_range_str: str):
-    if not re.fullmatch(DYM_RANGE_STRING_PATTERN, shapes_range_str):
-        raise ValueError("dymshape range string's format is illegal!")
+    input_info_list = shapes_range_str.split(";")
+    if len(input_info_list) > INPUT_LIST_MAX_SIZE:
+        raise ValueError(f"dymshape range string's format is illegal! input count over {INPUT_LIST_MAX_SIZE}")
+    for input_info_str in input_info_list:
+        input_name_and_value = input_info_str.split(":")
+        if len(input_name_and_value) != 2:
+            raise ValueError("dymshape range string's format is illegal! input info format wrong!")
+        if len(input_name_and_value[0]) < 0 or len(input_name_and_value[0]) > INPUT_NAME_LENGTH_MAX:
+            raise ValueError("dymshape range string's format is illegal! " + \
+                f"input name len is output of [1, {INPUT_LIST_MAX_SIZE}]")
+        if re.compile(r"[^_A-Za-z0-9/.-]").search(input_name_and_value[0]):
+            raise ValueError("dymshape range string's format is illegal! input name contain illegal char!")
+        if not re.fullmatch(DYM_RANGE_PATTERN, input_name_and_value[1]):
+            raise ValueError("dymshape range string's format is illegal! range string's format is illegal!")
 
 
 def check_dym_string(value):

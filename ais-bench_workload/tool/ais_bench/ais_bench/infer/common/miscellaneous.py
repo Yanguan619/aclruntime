@@ -239,7 +239,7 @@ def get_dymshape_list(input_ranges):
     if os.path.isfile(input_ranges):
         with ms_open(input_ranges, mode="rt", max_size=MAX_SIZE_LIMITED_NORMAL_FILE, encoding='utf-8') as finfo:
             line = finfo.readline()
-            for _ in range (DYMSHAPE_RANGE_LINE_COUNT_MAX):
+            for _ in range(DYMSHAPE_RANGE_LINE_COUNT_MAX):
                 if not line:
                     break
                 line = line.rstrip('\n')

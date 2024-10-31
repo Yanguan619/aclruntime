@@ -20,12 +20,15 @@ import logging
 import itertools
 import numpy as np
 
-from ais_bench.infer.common.utils import logger
-from ais_bench.infer.common.path_security_check import ms_open, FileStat, FILE_PERM_CHOICE,  MAX_SIZE_LIMITED_CONFIG_FILE, MAX_SIZE_LIMITED_NORMAL_FILE
+from ais_bench.infer.common.utils import logger, str_to_uint
+from ais_bench.infer.common.path_security_check import (ms_open, FileStat, FILE_PERM_CHOICE,  MAX_SIZE_LIMITED_CONFIG_FILE,
+    MAX_SIZE_LIMITED_NORMAL_FILE, makedirs_safe)
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
+from ais_bench.infer.args_check import check_dym_shape_range_str_format
 
 PERMISSION_DIR = 0o750
 DYMSHAPE_RANGE_TIMEOUT = 600
+DYMSHAPE_RANGE_LINE_COUNT_MAX = 256
 
 ACL_JSON_CMD_LIST = [
     "output",
@@ -46,6 +49,8 @@ ACL_JSON_CMD_LIST = [
     "sys_interconnection_freq",
     "msproftx",
 ]
+
+DYMSHAPE_COUNT_MAX = 256
 
 def logger_out(out_log):
 
@@ -88,9 +93,11 @@ def check_dump_path(dump_path):
     try:
         file_stat = FileStat(dump_path)
     except Exception as err:
-        raise ValueError(f"weight path:{dump_path} is illegal. Please check.") from err
+        raise ValueError(f"dump path in acl json file:{dump_path} is illegal. Please check.") from err
+    if not file_stat.is_dir and file_stat.is_exists:
+        raise TypeError(f"dump path in acl json file is not a directory")
     if not (file_stat.is_basically_legal(FILE_PERM_CHOICE.WRITE) and file_stat.is_basically_legal(FILE_PERM_CHOICE.READ)):
-        raise ValueError(f"output path:{dump_path} is illegal. Please check.")
+        raise ValueError(f"dump path in acl json file:{dump_path} is illegal. Please check.")
 
 def check_valid_acl_json_for_dump(acl_json_path, model):
     with ms_open(acl_json_path, mode="r", max_size=MAX_SIZE_LIMITED_CONFIG_FILE) as f:
@@ -140,13 +147,13 @@ def get_acl_json_path(args):
         out_profiler_path = os.path.join(args.output, "profiler")
 
         if not os.path.exists(out_profiler_path):
-            os.makedirs(out_profiler_path, PERMISSION_DIR)
+            makedirs_safe(out_profiler_path, PERMISSION_DIR)
         output_json_dict = {"profiler": {"switch": "on", "aicpu": "on", "output": out_profiler_path, "aic_metrics": ""}}
     elif args.dump:
         out_dump_path = os.path.join(args.output, "dump")
 
         if not os.path.exists(out_dump_path):
-            os.makedirs(out_dump_path, PERMISSION_DIR)
+            makedirs_safe(out_dump_path, PERMISSION_DIR)
 
         model_name = args.model.split("/")[-1]
         output_json_dict = {
@@ -202,14 +209,14 @@ def get_range_list(ranges):
         for content in shapestr.split(','):
             step = 1
             if '~' in content:
-                start = int(content.split('~')[0])
-                end = int(content.split('~')[1])
-                step = int(content.split('~')[2]) if len(content.split('~')) == 3 else 1
+                start = str_to_uint(content.split('~')[0])
+                end = str_to_uint(content.split('~')[1])
+                step = str_to_uint(content.split('~')[2]) if len(content.split('~')) == 3 else 1
                 ranges = [str(i) for i in range(start, end + 1, step)]
             elif '-' in content:
                 ranges = content.split('-')
             else:
-                start = int(content)
+                start = str_to_uint(content)
                 ranges = [str(start)]
             shapes.append(ranges)
             logger.debug("content:{} get range{}".format(content, ranges))
@@ -219,6 +226,8 @@ def get_range_list(ranges):
         logger.debug("name:{} shapes:{} info:{}".format(name, shapes, info))
 
     res = [';'.join(s) for s in list(itertools.product(*info_list))]
+    if len(res) == 0:
+        raise ValueError("can not get a legal dymshape range from dymshape range string!")
     logger.debug("range list:{}".format(res))
     return res
 
@@ -230,8 +239,11 @@ def get_dymshape_list(input_ranges):
     if os.path.isfile(input_ranges):
         with ms_open(input_ranges, mode="rt", max_size=MAX_SIZE_LIMITED_NORMAL_FILE, encoding='utf-8') as finfo:
             line = finfo.readline()
-            while line:
+            for _ in range(DYMSHAPE_RANGE_LINE_COUNT_MAX):
+                if not line:
+                    break
                 line = line.rstrip('\n')
+                check_dym_shape_range_str_format(line)
                 ranges_list.append(line)
                 line = finfo.readline()
     else:
@@ -270,6 +282,8 @@ def regenerate_dymshape_cmd(args: AISBenchInferArgsAdapter, dym_shape):
 
 def dymshape_range_run(args: AISBenchInferArgsAdapter):
     dymshape_list = get_dymshape_list(args.dym_shape_range)
+    if len(dymshape_list) > DYMSHAPE_COUNT_MAX:
+        raise ValueError(f"dymshape range run do not support more than {DYMSHAPE_COUNT_MAX} dymshape type!")
     results = []
     for dymshape in dymshape_list:
         cmd = regenerate_dymshape_cmd(args, dymshape)

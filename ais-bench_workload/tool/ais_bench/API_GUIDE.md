@@ -440,7 +440,7 @@ reset()
 - device侧保存tensor的方式，在host侧无法直接访问
 
 ## interface python API 使用样例
-- 如果要执行使用样例，需要在linux环境下载[ais-bench_workload](https://gitee.com/ascend/tools/tree/master/ais-bench_workload)的源码，进入[使用样例目录](https://gitee.com/ascend/tools/tree/master/ais-bench_workload/tool/ais_bench/api_samples)下，执行以下命令生成样例执行所需的模型（仅支持在310系列的推理卡上生成，不支持在910系列的训练卡上生成）。
+- 如果要执行使用样例，需要在linux环境下载[ais-bench_workload](https://gitee.com/ascend/tools/tree/master/ais-bench_workload)的源码，进入[使用样例目录](https://gitee.com/ascend/tools/tree/master/ais-bench_workload/tool/ais_bench/api_samples)下，执行以下命令生成样例执行所需的模型（仅支持在Atlas 推理系列产品上生成，不支持在Atlas 训练系列产品上生成）。
   ```cmd
   chmod 750 get_sample_datas.sh
   ```

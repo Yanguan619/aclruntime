@@ -18,6 +18,7 @@ from ais_bench.infer.args_check import (OM_MODEL_MAX_SIZE, ACL_JSON_MAX_SIZE, LO
 from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE
 
 CUSTOME_SIZE_MAX_SIZE = 64 * 1024 * 1024 * 1024 # 64 GB
+CUSTOME_MAX_COUNT = 256
 MODEL_INPUT_TENSOR_COUNT_MAX = 65536
 DYM_INFO_PATTERN = "[1-9][0-9]{0,4}(\,[1-9][0-9]{0,4}){0,6}"
 
@@ -86,21 +87,37 @@ def check_in_out_list(in_out_list, inputs, outputs):
             raise IndexError(f"in_out_list[{in_out_list}] out of range, length range is (-1, {len(outputs)})")
 
 
+def check_all_list(list_to_check: list, max_len: int, allow_empty: bool = True, data_type: type = int):
+    if not isinstance(list_to_check, list):
+        raise ValueError("the list be checked is not a list!")
+    if not allow_empty and len(list_to_check) == 0:
+        raise ValueError("the list is empty")
+    if len(list_to_check) > max_len:
+        raise ValueError(f"the list's length is over {max_len}!")
+    for value in list_to_check:
+        if not isinstance(value, data_type):
+            raise ValueError(f"some value in list is not the expected type: {data_type}")
+
+
 def check_custom_size(value, mode):
     if mode not in ["static", "dymbatch", "dymhw", "dymdims", "dymshape"]:
-        raise ValueError(f"{mode} is illegal, Please check.")
-    if mode in ["static", "dymbatch", "dymhw", "dymdims"] and value == None:
+        raise ValueError(f"infer mode is illegal, Please check.")
+    if mode in ["static", "dymbatch", "dymhw", "dymdims"] and value is None:
         return
-    if mode == "dymshape" and value == None:
-        raise ValueError(f"input custom_size:{value} dismatch with mode. Please check.")
-    if type(value) == list:
-        ivalue = value[0]
+    if mode == "dymshape" and value is None:
+        raise ValueError(f"custom_size:{value} dismatch with mode. Please check.")
+
+    if isinstance(value, list):
+        check_all_list(value, max_len=CUSTOME_MAX_COUNT, allow_empty=False)
+        for data in value:
+            if data <= 0 or data > CUSTOME_SIZE_MAX_SIZE:
+                raise ValueError(f"value:{value} in custom size list is out of range. Please check.")
+
+    elif isinstance(value, int):
+        if value <= 0 or value > CUSTOME_SIZE_MAX_SIZE:
+            raise ValueError(f"custom size value:{value} is out of range. Please check.")
     else:
-        ivalue = value
-    if not isinstance(ivalue, int):
         raise TypeError(f"value:{value} is not a integer!")
-    if ivalue <= 0 or ivalue > CUSTOME_SIZE_MAX_SIZE:
-        raise ValueError(f"input value:{value} is out of range. Please check.")
 
 
 def check_loop_size(value):
@@ -127,6 +144,7 @@ def check_dym_hw_list(hw_list:list):
         raise ValueError(f"height of dym_hw string is out of range [1, {CPP_INT_MAX_SIZE}]")
     if w < 1 or w > CPP_INT_MAX_SIZE:
         raise ValueError(f"width of dym_hw string is out of range [1, {CPP_INT_MAX_SIZE}]")
+
 
 def check_dym_str_format(shapes_str: str):
     input_info_list = shapes_str.split(";")

@@ -14,13 +14,14 @@
 
 
 import os
-from ais_bench.infer.utils import get_args
+from ais_bench.infer.utils import get_args, check_int_args_max_limit
 from ais_bench.infer.infer_process import infer_process
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 
 
 if __name__ == "__main__":
     args = get_args()
+    check_int_args_max_limit(args)
 
     args = AISBenchInferArgsAdapter(args.model, args.input, args.output,
                 args.output_dirname, args.outfmt, args.loop, args.debug, args.device,

@@ -22,6 +22,27 @@ from ais_bench.infer.args_check import (
 )
 
 
+class INT_ARGS_MAX:
+    THREADS = 64
+    WARMUP_COUNT = 10000
+    BATCHSIZE = 4096
+    DYMBATCH = 4096
+    BATCHSIZE_AXIS = 8
+
+
+def check_int_args_max_limit(args):
+    if args.threads > INT_ARGS_MAX.THREADS:
+        raise ValueError(f"--thread: {args.threads} is over {INT_ARGS_MAX.THREADS}")
+    if args.threads > INT_ARGS_MAX.WARMUP_COUNT:
+        raise ValueError(f"--warmup_count: {args.warmup_count} is over {INT_ARGS_MAX.WARMUP_COUNT}")
+    if args.threads > INT_ARGS_MAX.THREADS:
+        raise ValueError(f"--batchsize: {args.batchsize} is over {INT_ARGS_MAX.BATCHSIZE}")
+    if args.threads > INT_ARGS_MAX.THREADS:
+        raise ValueError(f"--dymBatch: {args.dym_batch} is over {INT_ARGS_MAX.DYMBATCH}")
+    if args.threads > INT_ARGS_MAX.THREADS:
+        raise ValueError(f"--output_batchsize_axis: {args.output_batchsize_axis} is over {INT_ARGS_MAX.BATCHSIZE_AXIS}")
+
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(

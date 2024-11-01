@@ -40,6 +40,7 @@ from ais_bench.infer.common.path_security_check import (
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
+MAX_FILE_LOAD_COUNT = 100000
 PERMISSION_DIR = 0o750
 READ_WRITE_FLAGS = os.O_RDWR | os.O_CREAT
 WRITE_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
@@ -84,6 +85,8 @@ def get_fileslist_from_dir(dir_):
     files_list = []
 
     for f in os.listdir(dir_):
+        if len(files_list) > MAX_FILE_LOAD_COUNT:
+            raise OverflowError(f"file count under directory: {dir_} is over {MAX_FILE_LOAD_COUNT}!")
         f_true_path = os.path.join(dir_, f)
         f_stat = FileStat(f_true_path)
         if not f_stat.is_basically_legal(FILE_PERM_CHOICE.READ):

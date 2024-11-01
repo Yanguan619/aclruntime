@@ -35,7 +35,7 @@ def check_int_args_max_limit(args):
         raise ValueError(f"--threads: {args.threads} is over {INT_ARGS_MAX.THREADS}")
     if args.warmup_count > INT_ARGS_MAX.WARMUP_COUNT:
         raise ValueError(f"--warmup_count: {args.warmup_count} is over {INT_ARGS_MAX.WARMUP_COUNT}")
-    if args.batchsize > INT_ARGS_MAX.BATCHSIZE:
+    if args.batchsize is not None and args.batchsize > INT_ARGS_MAX.BATCHSIZE:
         raise ValueError(f"--batchsize: {args.batchsize} is over {INT_ARGS_MAX.BATCHSIZE}")
     if args.dym_batch > INT_ARGS_MAX.DYMBATCH:
         raise ValueError(f"--dymBatch: {args.dym_batch} is over {INT_ARGS_MAX.DYMBATCH}")

@@ -18,7 +18,7 @@ from ais_bench.infer.args_check import (OM_MODEL_MAX_SIZE, ACL_JSON_MAX_SIZE, LO
 from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE
 
 CUSTOME_SIZE_MAX_SIZE = 64 * 1024 * 1024 * 1024 # 64 GB
-CUSTOME_MAX_COUNT = 256
+CUSTOM_MAX_COUNT = 256
 MODEL_INPUT_TENSOR_COUNT_MAX = 65536
 DYM_INFO_PATTERN = "[1-9][0-9]{0,4}(\,[1-9][0-9]{0,4}){0,6}"
 
@@ -108,7 +108,7 @@ def check_custom_size(value, mode):
         raise ValueError(f"custom_size:{value} dismatch with mode. Please check.")
 
     if isinstance(value, list):
-        check_all_list(value, max_len=CUSTOME_MAX_COUNT, allow_empty=False)
+        check_all_list(value, max_len=CUSTOM_MAX_COUNT, allow_empty=False)
         for data in value:
             if data <= 0 or data > CUSTOME_SIZE_MAX_SIZE:
                 raise ValueError(f"value:{value} in custom size list is out of range. Please check.")

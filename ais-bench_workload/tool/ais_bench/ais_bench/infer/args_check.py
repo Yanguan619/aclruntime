@@ -11,6 +11,7 @@ INPUT_LIST_MAX_SIZE = 1024
 INPUT_NAME_LENGTH_MAX = 256
 LOOP_MAX_SIZE = 100000
 DEVICE_COUNT_MAX = 256
+NUMBER_LIST_MAX_LENGTH = 50000
 DYM_RANGE_PATTERN = "[1-9][0-9]{0,4}([\~\-][1-9][0-9]{0,4}){0,2}(\,[1-9][0-9]{0,4}([\~\-][1-9][0-9]{0,4}){0,2}){0,6}"
 
 
@@ -62,9 +63,11 @@ def check_number_list(value):
     if not value:
         return value
     number_list = value
-    regex = re.compile(r"[^0-9,;]")
+    regex = re.compile(r"[^0-9,]")
     if regex.search(number_list):
-        raise argparse.ArgumentTypeError(f"number_list \"{number_list}\" is not a legal list")
+        raise argparse.ArgumentTypeError("number list is contain illegal char!")
+    if len(number_list) > NUMBER_LIST_MAX_LENGTH:
+        raise argparse.ArgumentTypeError(f"number list is over max length: {NUMBER_LIST_MAX_LENGTH}!")
     return number_list
 
 

@@ -47,12 +47,13 @@ from ais_bench.infer.common.miscellaneous import (dymshape_range_run, get_acl_js
 from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
                                    get_fileslist_from_dir, list_split, list_share,
                                    save_data_to_files, create_fake_file_name, logger,
-                                   create_tmp_acl_json, move_subdir, convert_helper)
+                                   create_tmp_acl_json, move_subdir, convert_helper, str_to_uint)
 from ais_bench.infer.common.path_security_check import (
     is_legal_args_path_string, check_normal_string, FILE_PERM_CHOICE, check_path_legality,
     MAX_SIZE_LIMITED_NORMAL_FILE, makedirs_safe
 )
-from ais_bench.infer.interface_check import (check_output_dir_legality, check_dym_hw_list, check_dym_str_format)
+from ais_bench.infer.interface_check import (check_output_dir_legality, check_dym_hw_list, check_dym_str_format,
+    check_all_list, CUSTOM_MAX_COUNT)
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.backends import BackendFactory
 from ais_bench.infer.common.path_security_check import ms_open, MAX_SIZE_LIMITED_CONFIG_FILE
@@ -116,7 +117,8 @@ def set_session_options(session, args):
 
     # 设置custom out tensors size
     if args.output_size is not None:
-        customsizes = [int(n) for n in args.output_size.split(',')]
+        customsizes = [str_to_uint(n) for n in args.output_size.split(',')]
+        check_all_list(customsizes, max_len=CUSTOM_MAX_COUNT, allow_empty=False, data_type=int)
         logger.debug(f"set customsize:{customsizes}")
         session.set_custom_outsize(customsizes)
 

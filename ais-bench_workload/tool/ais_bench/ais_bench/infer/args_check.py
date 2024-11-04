@@ -12,11 +12,12 @@ INPUT_NAME_LENGTH_MAX = 256
 LOOP_MAX_SIZE = 100000
 DEVICE_COUNT_MAX = 256
 NUMBER_LIST_MAX_LENGTH = 50000
+DYM_INFO_PATTERN = "[1-9][0-9]{0,4}(\,[1-9][0-9]{0,4}){0,6}"
 DYM_RANGE_PATTERN = "[1-9][0-9]{0,4}([\~\-][1-9][0-9]{0,4}){0,2}(\,[1-9][0-9]{0,4}([\~\-][1-9][0-9]{0,4}){0,2}){0,6}"
 
 
-def check_dym_shape_range_str_format(shapes_range_str: str):
-    input_info_list = shapes_range_str.split(";")
+def check_dym_str_format(dym_str: str, regular_compression: str):
+    input_info_list = dym_str.split(";")
     if len(input_info_list) > INPUT_LIST_MAX_SIZE:
         raise ValueError(f"dymshape range string's format is illegal! input count over {INPUT_LIST_MAX_SIZE}")
     for input_info_str in input_info_list:
@@ -28,7 +29,7 @@ def check_dym_shape_range_str_format(shapes_range_str: str):
                 f"input name len is output of [1, {INPUT_LIST_MAX_SIZE}]")
         if re.compile(r"[^_A-Za-z0-9/.-]").search(input_name_and_value[0]):
             raise ValueError("dymshape range string's format is illegal! input name contain illegal char!")
-        if not re.fullmatch(DYM_RANGE_PATTERN, input_name_and_value[1]):
+        if not re.fullmatch(regular_compression, input_name_and_value[1]):
             raise ValueError("dymshape range string's format is illegal! range string's format is illegal!")
 
 
@@ -39,7 +40,6 @@ def check_dym_string(value):
     regex = re.compile(r"[^_A-Za-z0-9,;:/.-]")
     if regex.search(dym_string):
         raise argparse.ArgumentTypeError(f"dym string \"{dym_string}\" is not a legal string")
-
     return dym_string
 
 
@@ -53,7 +53,7 @@ def check_dym_range_string(value):
             raise argparse.ArgumentTypeError(f"file contain dymShape range is not a legal path") from err
     else:
         try:
-            check_dym_shape_range_str_format(value)
+            check_dym_str_format(value, DYM_RANGE_PATTERN)
         except ValueError as err:
             raise argparse.ArgumentTypeError(f"dym range string is not a legal format string")
     return value

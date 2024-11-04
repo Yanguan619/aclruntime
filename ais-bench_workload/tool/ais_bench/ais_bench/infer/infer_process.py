@@ -47,7 +47,7 @@ from ais_bench.infer.common.miscellaneous import (dymshape_range_run, get_acl_js
 from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
                                    get_fileslist_from_dir, list_split, list_share,
                                    save_data_to_files, create_fake_file_name, logger,
-                                   create_tmp_acl_json, move_subdir, convert_helper, str_to_uint)
+                                   create_tmp_acl_json, move_subdir, convert_helper, str_to_uint, get_msprof_bin_path)
 from ais_bench.infer.common.path_security_check import (
     is_legal_args_path_string, check_normal_string, FILE_PERM_CHOICE, check_path_legality,
     MAX_SIZE_LIMITED_NORMAL_FILE, makedirs_safe
@@ -785,7 +785,7 @@ def infer_process(args:AISBenchInferArgsAdapter):
 
     if args.profiler:
         # try use msprof to run
-        msprof_bin = shutil.which('msprof')
+        msprof_bin = get_msprof_bin_path()
         if msprof_bin is None:
             logger.info("find no msprof continue use acl.json mode, result won't be parsed as csv")
         elif os.getenv('AIT_NO_MSPROF_MODE') == '1':

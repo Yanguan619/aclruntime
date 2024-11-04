@@ -46,6 +46,7 @@ READ_WRITE_FLAGS = os.O_RDWR | os.O_CREAT
 WRITE_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
 WRITE_MODES = stat.S_IWUSR | stat.S_IRUSR
 MSACCUCMP_FILE_PATH = "tools/operator_cmp/compare/msaccucmp.py"
+MSPROF_BIN_FILE_SUB_PATH = "bin/msprof"
 CANN_PATH = "/usr/local/Ascend/ascend-toolkit/latest"
 
 
@@ -165,14 +166,18 @@ def get_dump_relative_paths(output_dir, timestamp):
     return dump_relative_paths
 
 
+def get_msprof_bin_path():
+    ascend_toolkit_path = os.environ.get("ASCEND_TOOLKIT_HOME", CANN_PATH)
+    check_path_legality(ascend_toolkit_path, perm=FILE_PERM_CHOICE.READ, is_file=False)
+    msprof_bin_path = os.path.join(ascend_toolkit_path, MSPROF_BIN_FILE_SUB_PATH)
+    return msprof_bin_path if os.path.exists(msprof_bin_path) else None # trust file in cann toolkit
+
+
 def get_msaccucmp_path():
-    ascend_toolkit_path = os.environ.get("ASCEND_TOOLKIT_HOME")
-    if not is_legal_args_path_string(ascend_toolkit_path):
-        raise TypeError(f"ASCEND_TOOLKIT_HOME:{ascend_toolkit_path} is illegal")
-    if ascend_toolkit_path is None:
-        ascend_toolkit_path = CANN_PATH
+    ascend_toolkit_path = os.environ.get("ASCEND_TOOLKIT_HOME", CANN_PATH)
+    check_path_legality(ascend_toolkit_path, perm=FILE_PERM_CHOICE.READ, is_file=False)
     msaccucmp_path = os.path.join(ascend_toolkit_path, MSACCUCMP_FILE_PATH)
-    return msaccucmp_path if os.path.exists(msaccucmp_path) else None
+    return msaccucmp_path if os.path.exists(msaccucmp_path) else None # trust file in cann toolkit
 
 
 def make_dirs(path):

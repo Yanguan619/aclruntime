@@ -36,7 +36,8 @@ NP_TYPE_LIST = [
 PIPELINE_API_SAMPLE_COUNT_MAX = 512
 ITERATION_TIMES_MAX = 65536
 MAX_DEVICE_COUNT = 32
-MAX_PROCESS_COUNT_PER_DEVIVE = 32
+MAX_PROCESS_COUNT_PER_DEVICE = 32
+MAX_TOTAL_PROCESS_COUNT = 64
 
 
 class InferSession:
@@ -458,11 +459,13 @@ class MultiDeviceSession():
         subprocess_num = 0
         for _, device in device_feeds.items():
             subprocess_num += len(device)
+        if subprocess_num > MAX_TOTAL_PROCESS_COUNT:
+            raise RuntimeError(f"subprocess count over max permitted count: {MAX_TOTAL_PROCESS_COUNT}")
         p = Pool(subprocess_num)
         outputs_queue = Manager().Queue()
         for device_id, feeds in device_feeds.items():
             check_device_range_valid(device_id)
-            check_list(feeds, max_len=MAX_PROCESS_COUNT_PER_DEVIVE, allow_empty=False)
+            check_list(feeds, max_len=MAX_PROCESS_COUNT_PER_DEVICE, allow_empty=False)
             for feed in feeds:
                 p.apply_async(
                     self.subprocess_infer,
@@ -496,10 +499,12 @@ class MultiDeviceSession():
         subprocess_num = 0
         for _, device in device_feeds_list.items():
             subprocess_num += len(device)
+        if subprocess_num > MAX_TOTAL_PROCESS_COUNT:
+            raise RuntimeError(f"subprocess count over max permitted count: {MAX_TOTAL_PROCESS_COUNT}")
         p = Pool(subprocess_num)
         outputs_queue = Manager().Queue()
         for device_id, feeds in device_feeds_list.items():
-            check_list(feeds, max_len=MAX_PROCESS_COUNT_PER_DEVIVE, allow_empty=False)
+            check_list(feeds, max_len=MAX_PROCESS_COUNT_PER_DEVICE, allow_empty=False)
             check_device_range_valid(device_id)
             for feed in feeds:
                 p.apply_async(
@@ -535,10 +540,12 @@ class MultiDeviceSession():
         subprocess_num = 0
         for _, device in device_feeds.items():
             subprocess_num += len(device)
+        if subprocess_num > MAX_TOTAL_PROCESS_COUNT:
+            raise RuntimeError(f"subprocess count over max permitted count: {MAX_TOTAL_PROCESS_COUNT}")
         p = Pool(subprocess_num)
         outputs_queue = Manager().Queue()
         for device_id, feeds in device_feeds.items():
-            check_list(feeds, max_len=MAX_PROCESS_COUNT_PER_DEVIVE, allow_empty=False)
+            check_list(feeds, max_len=MAX_PROCESS_COUNT_PER_DEVICE, allow_empty=False)
             check_device_range_valid(device_id)
             for feed in feeds:
                 p.apply_async(

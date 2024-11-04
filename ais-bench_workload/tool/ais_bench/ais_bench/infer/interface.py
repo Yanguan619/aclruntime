@@ -20,8 +20,8 @@ import aclruntime
 from ais_bench.infer.common.logger import logger
 from ais_bench.infer.dym_aipp_manager import DymAippManager
 from ais_bench.infer.interface_check import (check_model_path_legality, check_acl_json_path_legality,
-    check_device_range_valid, check_positive_integer, check_custom_size, check_bool_value, 
-    check_in_out_list, check_loop_size)
+    check_device_range_valid, check_positive_integer, check_custom_size, check_bool_value,
+    check_in_out_list, check_loop_size, check_all_list, MODEL_INPUT_TENSOR_COUNT_MAX)
 
 TORCH_TENSOR_LIST = [
     'torch.FloatTensor', 'torch.DoubleTensor', 'torch.HalfTensor', 'torch.BFloat16Tensor',
@@ -32,6 +32,8 @@ NP_TYPE_LIST = [
     np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16,
     np.uint32, np.float16, np.float32, np.float64
 ]
+
+PIPELINE_API_SAMPLE_COUNT_MAX = 512
 
 
 class InferSession:
@@ -194,6 +196,7 @@ class InferSession:
         '''
         inputs = []
         shapes = []
+        check_all_list(feeds, max_len=MODEL_INPUT_TENSOR_COUNT_MAX, allow_empty=False)
         check_bool_value(out_array)
         check_custom_size(custom_sizes, mode)
         for feed in feeds:
@@ -237,10 +240,12 @@ class InferSession:
             feeds_list: input data list
             mode: static dymdims dymshape...
         '''
+        check_all_list(feeds_list, max_len=PIPELINE_API_SAMPLE_COUNT_MAX, allow_empty=False)
         check_custom_size(custom_sizes, mode)
         inputs_list = []
         shapes_list = []
         for feeds in feeds_list:
+            check_all_list(feeds, max_len=MODEL_INPUT_TENSOR_COUNT_MAX, allow_empty=False)
             inputs = []
             shapes = []
             for feed in feeds:
@@ -338,6 +343,7 @@ class InferSession:
             mode: static dymdims dymshape ...
             custom_sizes: only dymshape needs
         '''
+        check_all_list(feeds, max_len=MODEL_INPUT_TENSOR_COUNT_MAX, allow_empty=False)
         check_custom_size(custom_sizes, mode)
         check_positive_integer(iteration_times)
         if not in_out_list:

@@ -19,7 +19,7 @@ from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOIC
 
 CUSTOME_SIZE_MAX_SIZE = 16 * 1024 * 1024 * 1024 # 16 GB
 CUSTOM_MAX_COUNT = 256
-MODEL_INPUT_TENSOR_COUNT_MAX = 65536
+MODEL_INPUT_TENSOR_COUNT_MAX = 1024
 DYM_INFO_PATTERN = "[1-9][0-9]{0,4}(\,[1-9][0-9]{0,4}){0,6}"
 
 def check_model_path_legality(value):
@@ -73,6 +73,8 @@ def check_all_list(list_to_check: list, max_len: int, allow_empty: bool = True, 
         raise ValueError("the list is empty")
     if len(list_to_check) > max_len:
         raise ValueError(f"the list's length is over {max_len}!")
+    if not data_type:
+        return
     for value in list_to_check:
         if not isinstance(value, data_type):
             raise ValueError(f"some value in list is not the expected type: {data_type}")

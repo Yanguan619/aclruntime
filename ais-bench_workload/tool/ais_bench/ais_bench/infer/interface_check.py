@@ -66,14 +66,14 @@ def check_in_out_list(in_out_list, inputs, outputs):
             raise IndexError(f"in_out_list[{in_out_list}] out of range, length range is (-1, {len(outputs)})")
 
 
-def check_all_list(list_to_check: list, max_len: int, allow_empty: bool = True, data_type: type = int):
+def check_all_list(list_to_check: list, max_len: int, allow_empty: bool = True, data_type: type = None):
     if not isinstance(list_to_check, list):
         raise ValueError("the list be checked is not a list!")
     if not allow_empty and len(list_to_check) == 0:
         raise ValueError("the list is empty")
     if len(list_to_check) > max_len:
         raise ValueError(f"the list's length is over {max_len}!")
-    if not data_type:
+    if data_type is None:
         return
     for value in list_to_check:
         if not isinstance(value, data_type):

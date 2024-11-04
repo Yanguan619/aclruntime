@@ -268,7 +268,7 @@ def move_subdir(src_dir, dest_dir):
               |--2023***1--...  (bin file移动到新的目录下)
     '''
     res_dest, res_subdir = None, None
-    check_path_legality(src_dir, FILE_PERM_CHOICE.READ)
+    check_path_legality(src_dir, FILE_PERM_CHOICE.READ, is_file=False)
     subdirs = os.listdir(src_dir)
     if len(subdirs) != 1:
         logger.error(
@@ -277,9 +277,9 @@ def move_subdir(src_dir, dest_dir):
         )
     else:
         abs_dest_subdir = os.path.join(dest_dir, subdirs[0])
-        check_path_legality(abs_dest_subdir, FILE_PERM_CHOICE.WRITE) # if not exist, won't raise exception
+        check_path_legality(abs_dest_subdir, FILE_PERM_CHOICE.WRITE, is_file=False) # if not exist, won't raise exception
         abs_src_subdir = os.path.join(src_dir, subdirs[0])
-        check_path_legality(abs_src_subdir, FILE_PERM_CHOICE.READ)
+        check_path_legality(abs_src_subdir, FILE_PERM_CHOICE.READ, is_file=False)
 
         if os.path.exists(abs_dest_subdir):
             logger.error("move subdirectory failed: destination directory %s exists" % abs_dest_subdir)

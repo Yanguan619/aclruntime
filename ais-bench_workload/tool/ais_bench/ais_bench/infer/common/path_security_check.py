@@ -323,8 +323,6 @@ def check_normal_string(str_to_check):
 
 
 def check_path_legality(path, perm=FILE_PERM_CHOICE.WRITE, max_size=MAX_SIZE_LIMITED_CONFIG_FILE, is_file=True, suffix=None):
-    if not suffix:
-        suffix = []
     try:
         file_stat = FileStat(path)
     except Exception as err:
@@ -336,7 +334,7 @@ def check_path_legality(path, perm=FILE_PERM_CHOICE.WRITE, max_size=MAX_SIZE_LIM
             raise ValueError(f"The path:{path} is not a directory.") # check path string content when init FileStat
     if not file_stat.is_basically_legal(perm):
         raise ValueError(f"The path:{path} is illegal. Please check the error log for more detail.")
-    if file_stat.is_file and not file_stat.is_legal_file_type(suffix):
+    if suffix and file_stat.is_file and not file_stat.is_legal_file_type(suffix):
         raise ValueError(f"The suffix of path:{path} not in {suffix}. Please check.")
     if file_stat.is_file and not file_stat.is_legal_file_size(max_size):
         raise ValueError(f"The file:{path} size is larger than {max_size}. Please check.")

@@ -453,7 +453,7 @@ def convert(tmp_acl_json_path, real_dump_path, tmp_dump_path):
             raise RuntimeError(f"rmtree tmp_dump_path:{tmp_dump_path} failed!") from err
 
     if tmp_acl_json_path is not None:
-        check_path_legality(tmp_acl_json_path, FILE_PERM_CHOICE.WRITE, is_file=False) # if not exist, won't except
+        check_path_legality(tmp_acl_json_path, FILE_PERM_CHOICE.WRITE, suffix=["json"]) # if not exist, won't except
         try:
             os.remove(tmp_acl_json_path)
         except Exception as err: # if tmp_acl_json_path be used, may failed.

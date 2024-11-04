@@ -53,7 +53,7 @@ from ais_bench.infer.common.path_security_check import (
     MAX_SIZE_LIMITED_NORMAL_FILE, makedirs_safe
 )
 from ais_bench.infer.interface_check import (check_output_dir_legality, check_dym_hw_list, check_dym_str_format,
-    check_all_list, CUSTOM_MAX_COUNT, check_custom_size)
+    check_list, CUSTOM_MAX_COUNT, check_custom_size)
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.backends import BackendFactory
 from ais_bench.infer.common.path_security_check import ms_open, MAX_SIZE_LIMITED_CONFIG_FILE
@@ -118,7 +118,7 @@ def set_session_options(session, args):
     # 设置custom out tensors size
     if args.output_size is not None:
         customsizes = [str_to_uint(n) for n in args.output_size.split(',')]
-        check_all_list(customsizes, max_len=CUSTOM_MAX_COUNT, allow_empty=False, data_type=int)
+        check_list(customsizes, max_len=CUSTOM_MAX_COUNT, allow_empty=False, data_type=int)
         check_custom_size(customsizes)
         logger.debug(f"set customsize:{customsizes}")
         session.set_custom_outsize(customsizes)

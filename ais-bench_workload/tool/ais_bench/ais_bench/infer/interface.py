@@ -34,6 +34,7 @@ NP_TYPE_LIST = [
 ]
 
 PIPELINE_API_SAMPLE_COUNT_MAX = 512
+ITERATION_TIMES_MAX = 65536
 
 
 class InferSession:
@@ -346,6 +347,8 @@ class InferSession:
         check_all_list(feeds, max_len=MODEL_INPUT_TENSOR_COUNT_MAX, allow_empty=False)
         check_custom_size(custom_sizes, mode)
         check_positive_integer(iteration_times)
+        if iteration_times > ITERATION_TIMES_MAX:
+            raise ValueError(f"iteration times over max limit: {ITERATION_TIMES_MAX}")
         if not in_out_list:
             in_out_list = []
         if in_out_list is not None:

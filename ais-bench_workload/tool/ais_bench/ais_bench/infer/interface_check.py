@@ -99,7 +99,7 @@ def check_all_list(list_to_check: list, max_len: int, allow_empty: bool = True, 
             raise ValueError(f"some value in list is not the expected type: {data_type}")
 
 
-def check_custom_size(value, mode):
+def check_custom_size(value, mode="dymshape"):
     if mode not in ["static", "dymbatch", "dymhw", "dymdims", "dymshape"]:
         raise ValueError(f"infer mode is illegal, Please check.")
     if mode in ["static", "dymbatch", "dymhw", "dymdims"] and value is None:

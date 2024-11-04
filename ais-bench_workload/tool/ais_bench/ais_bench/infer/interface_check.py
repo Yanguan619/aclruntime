@@ -15,7 +15,7 @@
 import re
 from ais_bench.infer.args_check import (OM_MODEL_MAX_SIZE, ACL_JSON_MAX_SIZE, LOOP_MAX_SIZE,
     CPP_INT_MAX_SIZE, INPUT_LIST_MAX_SIZE, INPUT_NAME_LENGTH_MAX)
-from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE
+from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE, check_path_legality
 
 CUSTOME_SIZE_MAX_SIZE = 16 * 1024 * 1024 * 1024 # 16 GB
 CUSTOM_MAX_COUNT = 256
@@ -25,29 +25,13 @@ DYM_INFO_PATTERN = "[1-9][0-9]{0,4}(\,[1-9][0-9]{0,4}){0,6}"
 def check_model_path_legality(value):
     if not value:
         raise RuntimeError("empty model path!")
-    try:
-        file_stat = FileStat(value)
-    except Exception as err:
-        raise RuntimeError(f"om path:{value} is illegal. Please check.") from err
-    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
-        raise RuntimeError(f"om path:{value} is illegal. Please check.")
-    if not file_stat.is_legal_file_size(OM_MODEL_MAX_SIZE):
-        raise RuntimeError(f"om path:{value} is illegal. Please check.")
+    check_path_legality(value, FILE_PERM_CHOICE.READ, max_size=OM_MODEL_MAX_SIZE, suffix=["om"])
 
 
 def check_acl_json_path_legality(value):
     if not value:
         return
-    try:
-        file_stat = FileStat(value)
-    except Exception as err:
-        raise RuntimeError(f"acl json path:{value} is illegal. Please check.") from err
-    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
-        raise RuntimeError(f"acl json path:{value} is illegal. Please check.")
-    if not file_stat.is_legal_file_type(["json"]):
-        raise RuntimeError(f"acl json path:{value} is illegal. Please check.")
-    if not file_stat.is_legal_file_size(ACL_JSON_MAX_SIZE):
-        raise RuntimeError(f"acl json path:{value} is illegal. Please check.")
+    check_path_legality(value, FILE_PERM_CHOICE.READ, max_size=ACL_JSON_MAX_SIZE, suffix=["json"])
 
 
 def check_device_range_valid(value):
@@ -62,12 +46,7 @@ def check_device_range_valid(value):
 
 
 def check_output_dir_legality(value):
-    try:
-        file_stat = FileStat(value)
-    except Exception as err:
-        raise RuntimeError(f"output path:{value} is illegal. Please check.") from err
-    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
-        raise RuntimeError(f"output path:{value} is illegal. Please check.")
+    check_path_legality(value, FILE_PERM_CHOICE.READ, is_file=False)
 
 
 def check_positive_integer(value):

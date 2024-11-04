@@ -206,19 +206,29 @@ def get_range_list(ranges):
         shapestr = elem[tmp_idx + 1 :]
         if not shapestr:
             continue
-        for content in shapestr.split(','):
+        total_range_count = 1
+        for content in shapestr.split(','): # loop count limit in regular expression
             step = 1
+            if total_range_count > DYMSHAPE_COUNT_MAX:
+                raise ValueError(("dymshape range run do not support more than" + \
+                    f" {DYMSHAPE_COUNT_MAX} dymshape type!"))
             if '~' in content:
                 start = str_to_uint(content.split('~')[0])
                 end = str_to_uint(content.split('~')[1])
                 step = str_to_uint(content.split('~')[2]) if len(content.split('~')) == 3 else 1
+                if (end + 1 -start) / step > DYMSHAPE_COUNT_MAX:
+                    raise ValueError(("dymshape range run do not support more than" + \
+                        f" {DYMSHAPE_COUNT_MAX} dymshape type!"))
                 ranges = [str(i) for i in range(start, end + 1, step)]
             elif '-' in content:
                 ranges = content.split('-')
             else:
                 start = str_to_uint(content)
                 ranges = [str(start)]
+            if len(ranges) == 0:
+                raise ValueError("sub range in dymshape range should not be empty!")
             shapes.append(ranges)
+            total_range_count = total_range_count * len(ranges)
             logger.debug("content:{} get range{}".format(content, ranges))
         shape_list = [','.join(s) for s in list(itertools.product(*shapes))]
         info = ["{}:{}".format(name, s) for s in shape_list]

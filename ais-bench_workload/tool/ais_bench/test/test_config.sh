@@ -38,7 +38,7 @@ full_st_script_list=( \
     "test_infer_resnet50_dymshape.py" \
     "test_infer_resnet50_normal.py" \
     "test_result.py" \
-    "test_aclruntimeAPI/test_dynamic_run.py" \
+    "test_dynamic_run.py" \
 )
 
 full_ut_script_list=( \

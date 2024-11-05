@@ -20,8 +20,8 @@ import aclruntime
 from ais_bench.infer.common.logger import logger
 from ais_bench.infer.dym_aipp_manager import DymAippManager
 from ais_bench.infer.interface_check import (check_model_path_legality, check_acl_json_path_legality,
-    check_device_range_valid, check_positive_integer, check_custom_size, check_bool_value, 
-    check_in_out_list, check_loop_size)
+    check_device_range_valid, check_positive_integer, check_custom_size, check_bool_value,
+    check_in_out_list, check_loop_size, check_list, check_dict, MODEL_INPUT_TENSOR_COUNT_MAX)
 
 TORCH_TENSOR_LIST = [
     'torch.FloatTensor', 'torch.DoubleTensor', 'torch.HalfTensor', 'torch.BFloat16Tensor',
@@ -32,6 +32,12 @@ NP_TYPE_LIST = [
     np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16,
     np.uint32, np.float16, np.float32, np.float64
 ]
+
+PIPELINE_API_SAMPLE_COUNT_MAX = 512
+ITERATION_TIMES_MAX = 65536
+MAX_DEVICE_COUNT = 32
+MAX_PROCESS_COUNT_PER_DEVICE = 32
+MAX_TOTAL_PROCESS_COUNT = 64
 
 
 class InferSession:
@@ -194,6 +200,7 @@ class InferSession:
         '''
         inputs = []
         shapes = []
+        check_list(feeds, max_len=MODEL_INPUT_TENSOR_COUNT_MAX, allow_empty=False)
         check_bool_value(out_array)
         check_custom_size(custom_sizes, mode)
         for feed in feeds:
@@ -237,10 +244,12 @@ class InferSession:
             feeds_list: input data list
             mode: static dymdims dymshape...
         '''
+        check_list(feeds_list, max_len=PIPELINE_API_SAMPLE_COUNT_MAX, allow_empty=False)
         check_custom_size(custom_sizes, mode)
         inputs_list = []
         shapes_list = []
         for feeds in feeds_list:
+            check_list(feeds, max_len=MODEL_INPUT_TENSOR_COUNT_MAX, allow_empty=False)
             inputs = []
             shapes = []
             for feed in feeds:
@@ -338,8 +347,11 @@ class InferSession:
             mode: static dymdims dymshape ...
             custom_sizes: only dymshape needs
         '''
+        check_list(feeds, max_len=MODEL_INPUT_TENSOR_COUNT_MAX, allow_empty=False)
         check_custom_size(custom_sizes, mode)
         check_positive_integer(iteration_times)
+        if iteration_times > ITERATION_TIMES_MAX:
+            raise ValueError(f"iteration times over max limit: {ITERATION_TIMES_MAX}")
         if not in_out_list:
             in_out_list = []
         if in_out_list is not None:
@@ -442,14 +454,18 @@ class MultiDeviceSession():
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
         '''
+        check_dict(device_feeds, max_len=MAX_DEVICE_COUNT, allow_empty=False)
         check_custom_size(custom_sizes, mode)
         subprocess_num = 0
         for _, device in device_feeds.items():
             subprocess_num += len(device)
+        if subprocess_num > MAX_TOTAL_PROCESS_COUNT:
+            raise RuntimeError(f"subprocess count over max permitted count: {MAX_TOTAL_PROCESS_COUNT}")
         p = Pool(subprocess_num)
         outputs_queue = Manager().Queue()
         for device_id, feeds in device_feeds.items():
             check_device_range_valid(device_id)
+            check_list(feeds, max_len=MAX_PROCESS_COUNT_PER_DEVICE, allow_empty=False)
             for feed in feeds:
                 p.apply_async(
                     self.subprocess_infer,
@@ -478,13 +494,17 @@ class MultiDeviceSession():
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
         '''
+        check_dict(device_feeds_list, max_len=MAX_DEVICE_COUNT, allow_empty=False)
         check_custom_size(custom_sizes, mode)
         subprocess_num = 0
         for _, device in device_feeds_list.items():
             subprocess_num += len(device)
+        if subprocess_num > MAX_TOTAL_PROCESS_COUNT:
+            raise RuntimeError(f"subprocess count over max permitted count: {MAX_TOTAL_PROCESS_COUNT}")
         p = Pool(subprocess_num)
         outputs_queue = Manager().Queue()
         for device_id, feeds in device_feeds_list.items():
+            check_list(feeds, max_len=MAX_PROCESS_COUNT_PER_DEVICE, allow_empty=False)
             check_device_range_valid(device_id)
             for feed in feeds:
                 p.apply_async(
@@ -514,14 +534,18 @@ class MultiDeviceSession():
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
         '''
+        check_dict(device_feeds, max_len=MAX_DEVICE_COUNT, allow_empty=False)
         check_custom_size(custom_sizes, mode)
         check_positive_integer(iteration_times)
         subprocess_num = 0
         for _, device in device_feeds.items():
             subprocess_num += len(device)
+        if subprocess_num > MAX_TOTAL_PROCESS_COUNT:
+            raise RuntimeError(f"subprocess count over max permitted count: {MAX_TOTAL_PROCESS_COUNT}")
         p = Pool(subprocess_num)
         outputs_queue = Manager().Queue()
         for device_id, feeds in device_feeds.items():
+            check_list(feeds, max_len=MAX_PROCESS_COUNT_PER_DEVICE, allow_empty=False)
             check_device_range_valid(device_id)
             for feed in feeds:
                 p.apply_async(

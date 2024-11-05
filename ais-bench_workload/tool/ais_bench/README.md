@@ -456,8 +456,10 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
 ##### 静态shape场景示例，以resnet18模型为例
 ###### atc命令转换出带动态aipp配置的静态shape模型
 ```
-atc --framework=5 --model=./resnet18.onnx --output=resnet18_bs4_dym_aipp --input_format=NCHW --input_shape="image:4,3,224,224" --soc_version={实际芯片型号} --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_bs4_dym_aipp --input_format=NCHW --input_shape="image:4,3,224,224" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
 ```
+**注**: 参数值<soc_version>查询方法如下：在安装昇腾Al处理器的服务器执行npu-smiinfo命令进行查询，获取ChipName信息。实际配置值为AscendChipName，例如Chip Name取值为xxxyy，实际配置值为Ascendxxxyy。参数值约束：请使用与芯片名相对应的<soc_version>取值进行模型转换，然后再进行推理。
+
 - dym_aipp_conf.aippconfig的内容(下同)为：
 ```
 aipp_op{
@@ -473,7 +475,7 @@ python3 -m ais_bench --model resnet18_bs4_dym_aipp.om --aipp_config actual_aipp_
 ##### 动态batch场景示例，以resnet18模型为例
 ###### atc命令转换出带动态aipp配置的动态batch模型
 ```
-atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_batch_aipp --input_format=NCHW --input_shape="image:-1,3,224,224" --dynamic_batch_size "1,2" --soc_version={实际芯片型号} --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_batch_aipp --input_format=NCHW --input_shape="image:-1,3,224,224" --dynamic_batch_size "1,2" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
 ```
 ###### ais_bench命令
 ```
@@ -482,7 +484,7 @@ python3 -m ais_bench --model resnet18_dym_batch_aipp.om --aipp_config actual_aip
 ##### 动态宽高场景示例，以resnet18模型为例
 ###### atc命令转换出带动态aipp配置的动态宽高模型
 ```
-atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_image_aipp --input_format=NCHW --input_shape="image:4,3,-1,-1" --dynamic_image_size "112,112;224,224" --soc_version={实际芯片型号} --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_image_aipp --input_format=NCHW --input_shape="image:4,3,-1,-1" --dynamic_image_size "112,112;224,224" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
 ```
 ###### ais_bench命令
 ```

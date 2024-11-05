@@ -98,7 +98,7 @@ def check_custom_size(value, mode="dymshape"):
         raise ValueError(f"custom_size:{value} dismatch with mode. Please check.")
 
     if isinstance(value, list):
-        check_list(value, max_len=CUSTOM_MAX_COUNT, allow_empty=False)
+        check_list(value, max_len=CUSTOM_MAX_COUNT, allow_empty=False, data_type=int)
         for data in value:
             if data <= 0 or data > CUSTOME_SIZE_MAX_SIZE:
                 raise ValueError(f"value:{value} in custom size list is out of range. Please check.")

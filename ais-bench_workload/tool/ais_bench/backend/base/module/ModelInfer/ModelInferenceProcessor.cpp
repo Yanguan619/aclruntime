@@ -165,7 +165,6 @@ APP_ERROR ModelInferenceProcessor::CreateOutMemoryData(std::vector<MemoryData>& 
             for (auto& mem : outputs) {
                 MemoryHelper::MxbsFree(mem);
             }
-            outputs.clear();
             ERROR_LOG("memory data malloc failed.i:%zu name:%s size:%zu ret:%d", \
                       i, modelDesc_.outTensorsDesc[i].name.c_str(), size, ret);
             return ret;

@@ -328,7 +328,7 @@ def check_path_legality(path, perm=FILE_PERM_CHOICE.WRITE, max_size=MAX_SIZE_LIM
     except Exception as err:
         raise ValueError(f"The path string is illegal. Please check.") from err
     if is_file != file_stat.is_file:
-        if file_stat.is_file:
+        if is_file:
             raise ValueError(f"The path:{path} is not a file.") # check path string content when init FileStat
         else:
             raise ValueError(f"The path:{path} is not a directory.") # check path string content when init FileStat

@@ -458,7 +458,7 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
 ```
 atc --framework=5 --model=./resnet18.onnx --output=resnet18_bs4_dym_aipp --input_format=NCHW --input_shape="image:4,3,224,224" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
 ```
-**注**: 参数值<soc_version>查询方法如下：在安装昇腾Al处理器的服务器执行npu-smiinfo命令进行查询，获取ChipName信息。实际配置值为AscendChipName，例如Chip Name取值为xxxyy，实际配置值为Ascendxxxyy。参数值约束：请使用与芯片名相对应的<soc_version>取值进行模型转换，然后再进行推理。
+**注**: 参数值<soc_version>查询方法如下：在安装昇腾Al处理器的服务器执行npu-smi info命令进行查询，获取ChipName信息。实际配置值为AscendChipName，例如Chip Name取值为xxxyy，实际配置值为Ascendxxxyy。参数值约束：请使用与芯片名相对应的<soc_version>取值进行模型转换，然后再进行推理。
 
 - dym_aipp_conf.aippconfig的内容(下同)为：
 ```

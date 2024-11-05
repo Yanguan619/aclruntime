@@ -48,7 +48,7 @@ def check_dym_range_string(value):
         return value
     if os.path.exists(value): # another kind of input(path type)
         try:
-            check_path_legality(value, perm=FILE_PERM_CHOICE.READ)
+            check_path_legality(value, perm=FILE_PERM_CHOICE.READ, suffix=["info"])
         except ValueError as err:
             raise argparse.ArgumentTypeError(f"file contain dymShape range is not a legal path") from err
     else:

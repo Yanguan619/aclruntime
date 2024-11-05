@@ -24,7 +24,7 @@ from ais_bench.infer.common.utils import logger, str_to_uint
 from ais_bench.infer.common.path_security_check import (ms_open, FileStat, FILE_PERM_CHOICE,  MAX_SIZE_LIMITED_CONFIG_FILE,
     MAX_SIZE_LIMITED_NORMAL_FILE, makedirs_safe)
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
-from ais_bench.infer.args_check import check_dym_str_format, DYM_INFO_PATTERN
+from ais_bench.infer.args_check import check_dym_str_format, DYM_RANGE_PATTERN
 
 PERMISSION_DIR = 0o750
 DYMSHAPE_RANGE_TIMEOUT = 600
@@ -253,7 +253,7 @@ def get_dymshape_list(input_ranges):
                 if not line:
                     break
                 line = line.rstrip('\n')
-                check_dym_str_format(line, DYM_INFO_PATTERN)
+                check_dym_str_format(line, DYM_RANGE_PATTERN)
                 ranges_list.append(line)
                 line = finfo.readline()
     else:

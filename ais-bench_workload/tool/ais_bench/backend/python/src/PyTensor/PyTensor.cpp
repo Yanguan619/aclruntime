@@ -94,9 +94,9 @@ void TensorToHost(TensorBase &tensor)
 
 void TensorToDevice(TensorBase &tensor, const int32_t deviceId)
 {
-    if (deviceId > DEVICE_ID_MAX) {
-        ERROR_LOG("device id should not be over %zu", DEVICE_ID_MAX);
-        throw std::runtime_error("device id is over max limitation");
+    if (deviceId > DEVICE_ID_MAX || deviceId < 0) {
+        ERROR_LOG("device id should not be out of [0, %zu]", DEVICE_ID_MAX);
+        throw std::runtime_error("device id is out of range");
     }
     APP_ERROR ret = tensor.ToDevice(deviceId);
     if (ret != APP_ERR_OK) {

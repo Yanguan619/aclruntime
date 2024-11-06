@@ -53,9 +53,9 @@ PyInferenceSession::PyInferenceSession(const std::string &modelPath, const uint3
         ERROR_LOG("acl json path illegal, please check.");
         throw std::runtime_error("please check acl json path");
     }
-    if (deviceId > DEVICE_ID_MAX) {
-        ERROR_LOG("device id should not be over %zu", DEVICE_ID_MAX);
-        throw std::runtime_error("device id is over max limitation");
+    if (deviceId > DEVICE_ID_MAX || deviceId < 0) {
+        ERROR_LOG("device id should not be out of [0, %zu]", DEVICE_ID_MAX);
+        throw std::runtime_error("device id is out of range");
     }
 
     Init(modelPath, options);

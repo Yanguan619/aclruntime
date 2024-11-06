@@ -48,6 +48,8 @@ const std::map<Base::TensorDataType, uint32_t> DATA_TYPE_TO_BYTE_SIZE_MAP = {
     {Base::TENSOR_DTYPE_BOOL, ONE_BYTE}
 };
 
+const uint32_t DEVICE_ID_MAX = 255;
+
 #ifdef COMPILE_PYTHON_MODULE
 const std::map<Base::TensorDataType, std::string> DATA_TYPE_TO_FORMAT_MAP = {
     {Base::TENSOR_DTYPE_UINT8, py::format_descriptor<uint8_t>::format()},
@@ -92,6 +94,10 @@ void TensorToHost(TensorBase &tensor)
 
 void TensorToDevice(TensorBase &tensor, const int32_t deviceId)
 {
+    if (deviceId > DEVICE_ID_MAX) {
+        ERROR_LOG("device id should not be over %zu", DEVICE_ID_MAX);
+        throw std::runtime_error("device id is over max limitation");
+    }
     APP_ERROR ret = tensor.ToDevice(deviceId);
     if (ret != APP_ERR_OK) {
         throw std::runtime_error(GetError(ret));

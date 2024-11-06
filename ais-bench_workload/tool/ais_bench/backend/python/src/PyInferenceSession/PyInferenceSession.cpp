@@ -30,7 +30,8 @@
 #include "Base/ModelInfer/File.h"
 
 const int LOOP_MAX_SIZE = 100000;
-const size_t CUSTOME_SIZE_MAX_SIZE = 68719476736; // 64GB
+const size_t CUSTOME_SIZE_MAX_SIZE = 17179869184; // 16GB
+const uint32_t DEVICE_ID_MAX = 255;
 
 namespace Base {
 PyInferenceSession::PyInferenceSession(const std::string &modelPath, const uint32_t &deviceId,
@@ -49,6 +50,11 @@ PyInferenceSession::PyInferenceSession(const std::string &modelPath, const uint3
         ERROR_LOG("acl json path illegal, please check.");
         throw std::runtime_error("please check acl json path");
     }
+    if (deviceId > DEVICE_ID_MAX) {
+        ERROR_LOG("device id should not be over %zu", DEVICE_ID_MAX);
+        throw std::runtime_error("device id is over max limitation");
+    }
+
     Init(modelPath, options);
 }
 

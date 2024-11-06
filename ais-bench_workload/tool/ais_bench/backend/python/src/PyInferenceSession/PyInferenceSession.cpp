@@ -32,6 +32,9 @@
 const int LOOP_MAX_SIZE = 100000;
 const size_t CUSTOME_SIZE_MAX_SIZE = 17179869184; // 16GB
 const uint32_t DEVICE_ID_MAX = 255;
+const size_t CUSTOME_SIZE_COUNT_MAX = 256;
+const int BATCHSIZE_MAX = 4096;
+const int HW_MAX = 65536
 
 namespace Base {
 PyInferenceSession::PyInferenceSession(const std::string &modelPath, const uint32_t &deviceId,
@@ -280,6 +283,10 @@ int PyInferenceSession::SetStaticBatch()
 int PyInferenceSession::SetDynamicBatchsize(int batchsize)
 {
     SetContext();
+    if (batchsize <= 0 || batchsize > BATCHSIZE_MAX) {
+        ERROR_LOG("dynamic batchsize must be greater than 0 and less than or equal to %d.", BATCHSIZE_MAX);
+        throw std::runtime_error("dynamic batchsize out of range. Please check.");
+    }
     APP_ERROR ret = modelInfer_.SetDynamicBatchsize(batchsize);
     if (ret != APP_ERR_OK) {
         throw std::runtime_error(GetError(ret));
@@ -322,6 +329,14 @@ int PyInferenceSession::SetDymAIPPInfoSet()
 int PyInferenceSession::SetDynamicHW(int width, int height)
 {
     SetContext();
+    if (width <= 0 || width > HW_MAX) {
+        ERROR_LOG("width of dymHW must be greater than 0 and less than or equal to %d.", HW_MAX);
+        throw std::runtime_error("width of dymHW out of range. Please check.");
+    }
+    if (height <= 0 || height > HW_MAX) {
+        ERROR_LOG("height of dymHW must be greater than 0 and less than or equal to %d.", HW_MAX);
+        throw std::runtime_error("height of dymHW out of range. Please check.");
+    }
     APP_ERROR ret = modelInfer_.SetDynamicHW(width, height);
     if (ret != APP_ERR_OK) {
         throw std::runtime_error(GetError(ret));
@@ -351,9 +366,13 @@ int PyInferenceSession::SetDynamicShape(std::string dymshapeStr)
 
 int PyInferenceSession::SetCustomOutTensorsSize(std::vector<size_t> customOutSize)
 {
+    if (customOutSize.size() > CUSTOME_SIZE_COUNT_MAX) {
+        ERROR_LOG(f"custom size count is over max permitted count %zu", CUSTOME_SIZE_COUNT_MAX);
+        throw std::runtime_error("length of custom size list out of range. Please check.");
+    }
     for (size_t outSize : customOutSize) {
         if (outSize <= 0 || outSize > CUSTOME_SIZE_MAX_SIZE) {
-            ERROR_LOG("custom size out of range: custom size must be greater than 0 and less than or equal to 64GB.");
+            ERROR_LOG("custom size out of range: custom size must be greater than 0 and less than or equal to 16GB.");
             throw std::runtime_error("custom size num out of range. Please check.");
         }
     }

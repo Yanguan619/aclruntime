@@ -456,8 +456,10 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
 ##### 静态shape场景示例，以resnet18模型为例
 ###### atc命令转换出带动态aipp配置的静态shape模型
 ```
-atc --framework=5 --model=./resnet18.onnx --output=resnet18_bs4_dym_aipp --input_format=NCHW --input_shape="image:4,3,224,224" --soc_version=Ascend310 --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_bs4_dym_aipp --input_format=NCHW --input_shape="image:4,3,224,224" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
 ```
+**注**: 参数值<soc_version>查询方法如下：在安装昇腾Al处理器的服务器执行npu-smi info命令进行查询，获取ChipName信息。实际配置值为AscendChipName，例如Chip Name取值为xxxyy，实际配置值为Ascendxxxyy。参数值约束：请使用与芯片名相对应的<soc_version>取值进行模型转换，然后再进行推理。
+
 - dym_aipp_conf.aippconfig的内容(下同)为：
 ```
 aipp_op{
@@ -473,7 +475,7 @@ python3 -m ais_bench --model resnet18_bs4_dym_aipp.om --aipp_config actual_aipp_
 ##### 动态batch场景示例，以resnet18模型为例
 ###### atc命令转换出带动态aipp配置的动态batch模型
 ```
-atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_batch_aipp --input_format=NCHW --input_shape="image:-1,3,224,224" --dynamic_batch_size "1,2" --soc_version=Ascend310 --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_batch_aipp --input_format=NCHW --input_shape="image:-1,3,224,224" --dynamic_batch_size "1,2" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
 ```
 ###### ais_bench命令
 ```
@@ -482,7 +484,7 @@ python3 -m ais_bench --model resnet18_dym_batch_aipp.om --aipp_config actual_aip
 ##### 动态宽高场景示例，以resnet18模型为例
 ###### atc命令转换出带动态aipp配置的动态宽高模型
 ```
-atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_image_aipp --input_format=NCHW --input_shape="image:4,3,-1,-1" --dynamic_image_size "112,112;224,224" --soc_version=Ascend310 --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_image_aipp --input_format=NCHW --input_shape="image:4,3,-1,-1" --dynamic_image_size "112,112;224,224" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
 ```
 ###### ais_bench命令
 ```
@@ -577,15 +579,15 @@ python3 -m ais_bench --model pth_resnet50.onnx --backend trtexec --perf 1
   该参数通过拉起msprof命令进行性能数据采集。
 
   该方式进行性能数据采集时，首先检查是否存在msprof命令：
-  
+
   - 若命令存在，则使用该命令进行性能数据采集、解析并导出为可视化的性能数据文件。
   - 若命令不存在，则msprof层面会报错，ais_bench层面不检查命令内容合法性。
   - 若环境配置了AIT_NO_MSPROF_MODE=1，则使用--profiler参数采集性能数据时调用的是acl.json文件。
-  
+
   msprof命令不存在或环境配置了AIT_NO_MSPROF_MODE=1情况下，采集的性能数据文件未自动解析，需要参见[CANN 开发工具指南_导出性能数据](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0027.html)章节，将性能数据解析并导出为可视化的性能数据文件。
-  
+
   更多性能数据采集参数介绍请参见[CANN 开发工具指南_msprof命令行工具](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0010.html)章节。
-  
+
 + --acl_json_path优先级高于--profiler和--dump，同时设置时以--acl_json_path为准。
 
 + --profiler参数和--dump参数，必须要增加--output参数，指示输出路径。

@@ -467,7 +467,7 @@ bool Utils::IsLegalDymString(const std::string& str)
     for (const auto& infoStr : inputInfoList) {
         std::istringstream iss2(infoStr);
         std::vector<std::string> inputInfo;
-        while (std::getline(iss2, infoStr, ';')) {
+        while (std::getline(iss2, infoStr, ':')) {
             inputInfo.push_back(infoStr);
         }
         if (inputInfo.size() != 2) {

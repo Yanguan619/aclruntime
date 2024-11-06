@@ -466,12 +466,16 @@ bool Utils::IsLegalDymString(const std::string& str)
 
     for (const auto& infoStr : inputInfoList) {
         std::istringstream iss2(infoStr);
-        std::string inputName, inputValue;
-        if (!(iss2 >> inputName >> std::ws && std::getline(iss2, inputValue, ':'))) {
+        std::vector<std::string> inputInfo;
+        while (std::getline(iss2, infoStr, ';')) {
+            inputInfo.push_back(infoStr);
+        }
+        if (inputInfo.size() != 2) {
             ERROR_LOG("the format of input info parsed from dymshape string is wrong!");
             return false;
         }
-
+        std::string inputName = inputInfo[0];
+        std::string inputValue = inputInfo[1];
         if (inputName.length() < 0 || inputName.length() > INPUT_NAME_LENGTH_MAX) {
             ERROR_LOG("the length of input name parsed from dymshape string is output of [1, %zu]", INPUT_LIST_MAX_SIZE);
             return false;
@@ -485,7 +489,7 @@ bool Utils::IsLegalDymString(const std::string& str)
         }
 
         // 检查值是否符合正则表达式
-        std::regex compression_regex("[1-9][0-9]{0,4}(,[1-9][0-9]{0,4}){0,6}");
+        std::regex compression_regex("[1-9][0-9]{0,4}(\\,[1-9][0-9]{0,4}){0,6}");
         if (!std::regex_match(inputValue, compression_regex)) {
             ERROR_LOG("the format of shape string parsed from dymshape string is illegal!");
             return false;

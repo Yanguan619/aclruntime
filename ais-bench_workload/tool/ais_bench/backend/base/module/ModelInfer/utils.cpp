@@ -485,7 +485,7 @@ bool Utils::IsLegalDymString(const std::string& str)
         }
 
         // 检查值是否符合正则表达式
-        std::regex compression_regex("[1-9][0-9]{0,4}(\\,[1-9][0-9]{0,4}){0,6}");
+        std::regex compression_regex("[1-9][0-9]{0,4}(,[1-9][0-9]{0,4}){0,6}");
         if (!std::regex_match(inputValue, compression_regex)) {
             ERROR_LOG("the format of shape string parsed from dymshape string is illegal!");
             return false;

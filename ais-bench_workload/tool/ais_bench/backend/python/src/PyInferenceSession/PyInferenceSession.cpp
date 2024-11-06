@@ -373,7 +373,7 @@ int PyInferenceSession::SetDynamicShape(std::string dymshapeStr)
 int PyInferenceSession::SetCustomOutTensorsSize(std::vector<size_t> customOutSize)
 {
     if (customOutSize.size() > CUSTOME_SIZE_COUNT_MAX) {
-        ERROR_LOG(f"custom size count is over max permitted count %zu", CUSTOME_SIZE_COUNT_MAX);
+        ERROR_LOG("custom size count is over max permitted count %zu", CUSTOME_SIZE_COUNT_MAX);
         throw std::runtime_error("length of custom size list out of range. Please check.");
     }
     for (size_t outSize : customOutSize) {

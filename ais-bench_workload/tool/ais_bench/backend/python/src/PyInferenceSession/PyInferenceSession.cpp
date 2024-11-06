@@ -34,7 +34,7 @@ const size_t CUSTOME_SIZE_MAX_SIZE = 17179869184; // 16GB
 const uint32_t DEVICE_ID_MAX = 255;
 const size_t CUSTOME_SIZE_COUNT_MAX = 256;
 const int BATCHSIZE_MAX = 4096;
-const int HW_MAX = 65536
+const int HW_MAX = 65536;
 
 namespace Base {
 PyInferenceSession::PyInferenceSession(const std::string &modelPath, const uint32_t &deviceId,
@@ -347,6 +347,9 @@ int PyInferenceSession::SetDynamicHW(int width, int height)
 int PyInferenceSession::SetDynamicDims(std::string dymdimsStr)
 {
     SetContext();
+    if (!Utils::IsLegalDymString(dymdimsStr)) {
+        throw std::runtime_error("the format of dynamic dims string is illegal, please check")
+    }
     APP_ERROR ret = modelInfer_.SetDynamicDims(dymdimsStr);
     if (ret != APP_ERR_OK) {
         throw std::runtime_error(GetError(ret));
@@ -357,6 +360,9 @@ int PyInferenceSession::SetDynamicDims(std::string dymdimsStr)
 int PyInferenceSession::SetDynamicShape(std::string dymshapeStr)
 {
     SetContext();
+    if (!Utils::IsLegalDymString(dymshapeStr)) {
+        throw std::runtime_error("the format of dynamic shape string is illegal, please check")
+    }
     APP_ERROR ret = modelInfer_.SetDynamicShape(dymshapeStr);
     if (ret != APP_ERR_OK) {
         throw std::runtime_error(GetError(ret));

@@ -36,7 +36,7 @@ namespace py = pybind11;
 #include "Base/ModelInfer/ModelInferenceProcessor.h"
 #include "Base/Tensor/TensorBase/TensorBase.h"
 #include "Base/ModelInfer/DynamicAippConfig.h"
-#include "Base/ModelInfer/Utils.h"
+#include "Base/ModelInfer/utils.h"
 
 namespace Base {
 class PyInferenceSession {

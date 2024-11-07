@@ -25,6 +25,9 @@ const uint16_t OPEN_FILE_MODE = 640;
 const uint32_t MAX_OPEN_FILES_SIZE = 64 * 1024 * 1024;
 const mode_t OPNE_OR_CREATE_MODE = O_EXCL | O_CREAT;
 const mode_t CREATE_FILE_MODE = S_IRUSR | S_IWUSR | S_IRGRP;
+const size_t DYM_STRING_MAX_LENGTH = 4096;
+const size_t INPUT_LIST_MAX_SIZE = 1024;
+const size_t INPUT_NAME_LENGTH_MAX = 256;
 }
 
 void Utils::SplitString(std::string& s, std::vector<std::string>& v, char c)
@@ -427,7 +430,8 @@ bool Utils::TailContain(const std::string& str, const std::string& tail)
     return false;
 }
 
-bool Utils::IsValidInteger(const std::string& str) {
+bool Utils::IsValidInteger(const std::string& str)
+{
     if (str.empty()) {
         return false;
     }
@@ -436,6 +440,60 @@ bool Utils::IsValidInteger(const std::string& str) {
     // Check for empty string, characters left after conversion, and out of range values
     if (end == str.c_str() || *end != '\0' || val > INT_MAX || val < INT_MIN) {
         return false;
+    }
+    return true;
+}
+
+bool Utils::IsLegalDymString(const std::string& str)
+{
+    if (str.size() > DYM_STRING_MAX_LENGTH) {
+        ERROR_LOG("dymshape string length is over %zu", DYM_STRING_MAX_LENGTH);
+        return false;
+    }
+    std::istringstream iss(str);
+    std::string inputInfoStr;
+    std::vector<std::string> inputInfoList;
+
+    // 分割字符串
+    while (std::getline(iss, inputInfoStr, ';')) {
+        inputInfoList.push_back(inputInfoStr);
+    }
+
+    if (inputInfoList.size() > INPUT_LIST_MAX_SIZE) {
+        ERROR_LOG("the count of input list parsed from dymshape string is over %zu", INPUT_LIST_MAX_SIZE);
+        return false;
+    }
+
+    for (std::string infoStr : inputInfoList) {
+        std::istringstream iss2(infoStr);
+        std::vector<std::string> inputInfo;
+        while (std::getline(iss2, infoStr, ':')) {
+            inputInfo.push_back(infoStr);
+        }
+        if (inputInfo.size() != 2) {
+            ERROR_LOG("the format of input info parsed from dymshape string is wrong!");
+            return false;
+        }
+        std::string inputName = inputInfo[0];
+        std::string inputValue = inputInfo[1];
+        if (inputName.length() < 0 || inputName.length() > INPUT_NAME_LENGTH_MAX) {
+            ERROR_LOG("the length of input name parsed from dymshape string is output of [1, %zu]", INPUT_LIST_MAX_SIZE);
+            return false;
+        }
+
+        // 检查非法字符
+        std::regex illegal_char_regex("[^_A-Za-z0-9/.-]");
+        if (std::regex_search(inputName, illegal_char_regex)) {
+            ERROR_LOG("input name parsed from dymshape string contain illegal char!");
+            return false;
+        }
+
+        // 检查值是否符合正则表达式
+        std::regex compression_regex("[1-9][0-9]{0,4}(\\,[1-9][0-9]{0,4}){0,6}");
+        if (!std::regex_match(inputValue, compression_regex)) {
+            ERROR_LOG("the format of shape string parsed from dymshape string is illegal!");
+            return false;
+        }
     }
     return true;
 }

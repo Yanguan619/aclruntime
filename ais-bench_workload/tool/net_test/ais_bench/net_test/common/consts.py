@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 class PACKAGE_INFO:
-    version = "0.0.3"
+    version = "1.0.0"
 
 
 class SUB_MODULE_NAME:

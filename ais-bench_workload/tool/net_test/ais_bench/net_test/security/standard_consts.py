@@ -17,7 +17,7 @@ import stat
 
 # 文件/文件夹不能有的权限
 class PermForbid:
-    USER_MAIN_DIR = stat.S_IWGRP | stat.S_IRWXO  # 0o750
+    USER_MAIN_DIR = stat.S_IWGRP | stat.S_IWOTH  # 0o755
     PROGRAM_FILE = stat.S_IWUSR | stat.S_IWGRP | stat.S_IRWXO  # 0o550
     PROGRAM_DIR = stat.S_IWUSR | stat.S_IWGRP | stat.S_IRWXO  # 0o550
     CONFIG_FILE = stat.S_IXUSR | stat.S_IWGRP | stat.S_IXGRP | stat.S_IWGRP | stat.S_IRWXO  # 0o640
@@ -42,6 +42,11 @@ class PermNeed:
     WRITE_FILE = stat.S_IWRITE  # 当前用户写权限
     EXEC_FILE = stat.S_IEXEC  # 当前用户执行权限
 
+
+# 八进制权限
+class Permission:
+    DIR_TO_CREATE = 0o750
+    FILE_TO_WRITE = 0o640
 
 # 文件大小限制
 class FileSizeLimit:
@@ -85,6 +90,3 @@ class CommandBlackList:
         "shutdown", "reboot",
         "curl", "wget",
     ]
-
-
-ZIP_DECOMPRESSED_RATIO_LIMIT = 4  # 逆压缩率限制（解压后大小/压缩包大小）

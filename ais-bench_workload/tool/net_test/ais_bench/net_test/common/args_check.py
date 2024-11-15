@@ -15,13 +15,23 @@ import argparse
 import re
 from ais_bench.net_test.common.consts import INT_LIMIT, LENGTH_LIMIT, STRING_PATTERN
 from ais_bench.net_test.common.utils import get_actual_device_count, compare_bytes_string
+from ais_bench.net_test.security.file_checker import check_linux_readable_file
+from ais_bench.net_test.security.standard_consts import PermForbid
 
 
 def arg_check_hostfile_legalty(value):
+    try:
+        check_linux_readable_file(value)
+    except Exception as err:
+        raise argparse.ArgumentTypeError("hostfile does not pass security check!") from err
     return value
 
 
 def arg_check_ssh_key_path_legalty(value):
+    try:
+        check_linux_readable_file(value, perm_forbid=PermForbid.SECRET_FILE)
+    except Exception as err:
+        raise argparse.ArgumentTypeError("ssh key does not pass security check!") from err
     return value
 
 

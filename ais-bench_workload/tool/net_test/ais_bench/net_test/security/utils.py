@@ -16,7 +16,6 @@ import os
 import sys
 
 from ais_bench.net_test.security.standard_consts import PlatformSupport, FileSizeLimit, Permission
-from ais_bench.net_test.security.file_stat import FileStat
 
 def get_platform():
     if sys.platform.startswith(PlatformSupport.LINUX):

@@ -19,10 +19,6 @@ import argparse
 from collections import namedtuple
 from abc import abstractmethod, ABCMeta
 from ais_bench.net_test.sub_module.base_sub_module import BaseSubmodule
-from ais_bench.net_test.common.args_check import (
-    arg_check_positive_integer, arg_check_nonnegative_integer, arg_check_bytes_format,
-    arg_check_device_count_range, arg_check_device_id_range,
-)
 from ais_bench.net_test.common.utils import multiprocess_run
 from ais_bench.net_test.common.logger import logger
 from ais_bench.net_test.common.consts import REMOTE_NODE_INFO_NAME, PACKAGE_INFO

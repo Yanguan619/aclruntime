@@ -130,11 +130,3 @@ class BaseSubmodule(metaclass=ABCMeta):
                 stripped_line = line.strip()
                 self.hostfile_info[count] = NodeInfo(*self._transform_hostfile_line(stripped_line))
                 count += 1
-
-
-
-
-
-
-
-

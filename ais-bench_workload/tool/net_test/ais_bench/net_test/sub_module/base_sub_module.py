@@ -25,7 +25,7 @@ from ais_bench.net_test.common.args_check import (
     arg_check_port_range
 )
 from ais_bench.net_test.common.utils import get_actual_device_count, get_ip_address, get_user_name, get_default_port
-from ais_bench.net_test.security.utils import ms_open
+from ais_bench.net_test.security.file_stat import ms_open
 
 class NodeInfo:
     def __init__(self, ip, device_count, user, port):

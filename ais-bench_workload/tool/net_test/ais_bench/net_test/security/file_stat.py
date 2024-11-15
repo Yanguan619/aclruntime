@@ -15,6 +15,7 @@
 import os
 import stat
 from ais_bench.net_test.security.string_checker import StringChecker
+from ais_bench.net_test.security.standard_consts import FileSizeLimit, Permission
 
 
 def basic_path_string_check_ok(file: str):
@@ -120,3 +121,53 @@ class FileStat:
             return suffix
         else:
             return ""
+
+
+def ms_open(file, mode="r", max_size=FileSizeLimit.UNLIMITED, softlink=False,
+    write_permission=Permission.FILE_TO_WRITE, **kwargs):
+    file_stat = FileStat(file)
+
+    if file_stat.is_exists and file_stat.is_dir:
+        raise Exception(f"Expecting a file, but it's a folder. {file}")
+
+    if not softlink and file_stat.is_softlink:
+        raise Exception(f"Softlink is not allowed to be opened. {file}")
+
+    if "r" in mode:
+        if not file_stat.is_exists:
+            raise Exception(f"No such file or directory {file}")
+        if max_size is None:
+            raise Exception(f"Reading files must have a size limit control. {file}")
+        if max_size != FileSizeLimit.UNLIMITED and max_size < file_stat.file_size:
+            raise Exception(f"The file size has exceeded the specifications and cannot be read. {file}")
+
+    if "w" in mode:
+        if file_stat.is_exists and not file_stat.is_owner:
+            raise Exception(
+                f"The file owner is inconsistent with the current process user and is not allowed to write. {file}"
+            )
+        if file_stat.is_exists:
+            try:
+                os.remove(file)
+            except Exception as err:
+                raise PermissionError(f"current user can't remove {file}!") from err
+
+    if "a" in mode:
+        if not file_stat.is_owner:
+            raise Exception(
+                f"The file owner is inconsistent with the current process user and is not allowed to write. {file}"
+            )
+        if file_stat.permission != (file_stat.permission & write_permission):
+            os.chmod(file, file_stat.permission & write_permission)
+
+    flags = os.O_RDONLY
+    if "+" in mode:
+        flags = flags | os.O_RDWR
+    elif "w" in mode or "a" in mode or "x" in mode:
+        flags = flags | os.O_WRONLY
+
+    if "w" in mode or "x" in mode:
+        flags = flags | os.O_TRUNC | os.O_CREAT
+    if "a" in mode:
+        flags = flags | os.O_APPEND | os.O_CREAT
+    return os.fdopen(os.open(file, flags, mode=write_permission), mode, **kwargs) # ms_open函数中，file在之前已经完成校验了

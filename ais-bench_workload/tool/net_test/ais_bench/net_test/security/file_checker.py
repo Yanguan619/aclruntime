@@ -120,7 +120,7 @@ def check_linux_file_path(
         legal_suffixes=None,
 ):
     legal_suffixes = legal_suffixes if legal_suffixes is not None else []
-    
+
     file_checker = FileChecker(file_path)
     if not file_checker.is_exists():
         raise ValueError("path not exist.")

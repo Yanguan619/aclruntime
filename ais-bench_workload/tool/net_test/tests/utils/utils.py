@@ -25,8 +25,6 @@ class FileCreationForTesting:
         self.temp_dir, self.base_path = get_temp_file_dir(using_temp_dir=using_temp_dir)
         self.using_temp_dir = using_temp_dir
 
-        print('temp file dir base_path:', self.base_path)
-
     def create_file(self, file_name, content='',
                     size=1024, permission=0o642, is_softlink=False):
         original_file_path = self.base_path / file_name

@@ -25,7 +25,7 @@
 ### 工具安装方式
 
 ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序包**的安装。
-安装方式包括：下载whl包安装、一键式编译安装和源代码编译安装。
+安装方式包括：下载whl包安装和源代码编译安装。
 
 **说明**：
 
@@ -83,54 +83,6 @@ ais_bench推理工具的安装包括**aclruntime包**和**ais_bench推理程序�
    # 成功安装ais_bench推理程序
    Successfully installed ais_bench-{version}
    ```
-
-
-
-#### 一键式编译安装
-
-1. **安装aclruntime包**
-
-   在安装环境执行如下命令安装aclruntime包：
-
-   ```bash
-   pip3 install -v 'git+https://gitee.com/ascend/tools.git#egg=aclruntime&subdirectory=ais-bench_workload/tool/ais_bench/backend'
-   ```
-
-   说明：若为覆盖安装，请增加“--force-reinstall”参数强制安装，例如：
-
-   ```bash
-   pip3 install -v --force-reinstall 'git+https://gitee.com/ascend/tools.git#egg=aclruntime&subdirectory=ais-bench_workload/tool/ais_bench/backend'
-   ```
-
-   提示如下示例信息则表示安装成功：
-
-   ```bash
-   Successfully installed aclruntime-{version}
-   ```
-
-2. **安装ais_bench推理程序包**
-
-   在安装环境执行如下命令安装ais_bench推理程序包：
-
-   ```bash
-    pip3 install -v 'git+https://gitee.com/ascend/tools.git#egg=ais_bench&subdirectory=ais-bench_workload/tool/ais_bench'
-   ```
-
-   说明：若为覆盖安装，请增加“--force-reinstall”参数强制安装，例如：
-
-   ```bash
-   pip3 install -v --force-reinstall 'git+https://gitee.com/ascend/tools.git#egg=ais_bench&subdirectory=ais-bench_workload/tool/ais_bench'
-   ```
-
-   须知：使用强制安装会同时将工具涉及的依赖全部更新为最新版本，若只需要更新安装工具，请参见"**卸载和更新**"。
-
-   提示如下示例信息则表示安装成功：
-
-   ```bash
-   Successfully installed ais_bench-{version}
-   ```
-
-
 
 #### 源代码编译安装
 1. 从代码开源仓[Gitee](https://gitee.com/ascend/tools.git)克隆/下载工具压缩包“tools-master.zip”。
@@ -504,8 +456,10 @@ python3 -m ais_bench --model ./pth_resnet50_dymshape.om  --outputSize 100000 --d
 ##### 静态shape场景示例，以resnet18模型为例
 ###### atc命令转换出带动态aipp配置的静态shape模型
 ```
-atc --framework=5 --model=./resnet18.onnx --output=resnet18_bs4_dym_aipp --input_format=NCHW --input_shape="image:4,3,224,224" --soc_version=Ascend310 --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_bs4_dym_aipp --input_format=NCHW --input_shape="image:4,3,224,224" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
 ```
+**注**: 参数值<soc_version>查询方法如下：在安装昇腾Al处理器的服务器执行npu-smi info命令进行查询，获取ChipName信息。实际配置值为AscendChipName，例如Chip Name取值为xxxyy，实际配置值为Ascendxxxyy。参数值约束：请使用与芯片名相对应的<soc_version>取值进行模型转换，然后再进行推理。
+
 - dym_aipp_conf.aippconfig的内容(下同)为：
 ```
 aipp_op{
@@ -521,7 +475,7 @@ python3 -m ais_bench --model resnet18_bs4_dym_aipp.om --aipp_config actual_aipp_
 ##### 动态batch场景示例，以resnet18模型为例
 ###### atc命令转换出带动态aipp配置的动态batch模型
 ```
-atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_batch_aipp --input_format=NCHW --input_shape="image:-1,3,224,224" --dynamic_batch_size "1,2" --soc_version=Ascend310 --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_batch_aipp --input_format=NCHW --input_shape="image:-1,3,224,224" --dynamic_batch_size "1,2" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
 ```
 ###### ais_bench命令
 ```
@@ -530,7 +484,7 @@ python3 -m ais_bench --model resnet18_dym_batch_aipp.om --aipp_config actual_aip
 ##### 动态宽高场景示例，以resnet18模型为例
 ###### atc命令转换出带动态aipp配置的动态宽高模型
 ```
-atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_image_aipp --input_format=NCHW --input_shape="image:4,3,-1,-1" --dynamic_image_size "112,112;224,224" --soc_version=Ascend310 --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_image_aipp --input_format=NCHW --input_shape="image:4,3,-1,-1" --dynamic_image_size "112,112;224,224" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
 ```
 ###### ais_bench命令
 ```
@@ -625,15 +579,15 @@ python3 -m ais_bench --model pth_resnet50.onnx --backend trtexec --perf 1
   该参数通过拉起msprof命令进行性能数据采集。
 
   该方式进行性能数据采集时，首先检查是否存在msprof命令：
-  
+
   - 若命令存在，则使用该命令进行性能数据采集、解析并导出为可视化的性能数据文件。
   - 若命令不存在，则msprof层面会报错，ais_bench层面不检查命令内容合法性。
   - 若环境配置了AIT_NO_MSPROF_MODE=1，则使用--profiler参数采集性能数据时调用的是acl.json文件。
-  
+
   msprof命令不存在或环境配置了AIT_NO_MSPROF_MODE=1情况下，采集的性能数据文件未自动解析，需要参见[CANN 开发工具指南_导出性能数据](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0027.html)章节，将性能数据解析并导出为可视化的性能数据文件。
-  
+
   更多性能数据采集参数介绍请参见[CANN 开发工具指南_msprof命令行工具](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0010.html)章节。
-  
+
 + --acl_json_path优先级高于--profiler和--dump，同时设置时以--acl_json_path为准。
 
 + --profiler参数和--dump参数，必须要增加--output参数，指示输出路径。

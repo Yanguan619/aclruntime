@@ -87,6 +87,22 @@ class DymAippManager:
         self._aipp_set_dtc_pixel_min(option_list)
         self._aipp_set_pixel_var_reci(option_list)
 
+    def _get_int_safe(self, head_name: str, key_name: str):
+        try:
+            value = self.cfg.getint(head_name, key_name)
+        except Exception as err:
+            raise ValueError("get int type value from aipp config file failed, " + \
+                f"head name:{head_name}, key name:{key_name}") from err
+        return value
+
+    def _get_float_safe(self, head_name: str, key_name: str):
+        try:
+            value = self.cfg.getfloat(head_name, key_name)
+        except Exception as err:
+            raise ValueError("get float type value from aipp config file failed, " + \
+                f"head name:{head_name}, key name:{key_name}") from err
+        return value
+
     def _aipp_set_input_format(self):
         input_format = self.cfg.get(AIPP_HEAD_STR, 'input_format')
         legal_image_format = ["YUV420SP_U8", "XRGB8888_U8", "RGB888_U8", "YUV400_U8"]
@@ -98,8 +114,8 @@ class DymAippManager:
 
     def _aipp_set_src_image_size(self):
         src_image_size = list()
-        tmp_size_w = self.cfg.getint(AIPP_HEAD_STR, 'src_image_size_w')
-        tmp_size_h = self.cfg.getint(AIPP_HEAD_STR, 'src_image_size_h')
+        tmp_size_w = self._get_int_safe(AIPP_HEAD_STR, 'src_image_size_w')
+        tmp_size_h = self._get_int_safe(AIPP_HEAD_STR, 'src_image_size_h')
         if (SRC_IMAGE_SIZE_W_MIN <= tmp_size_w <= SRC_IMAGE_SIZE_W_MAX):
             src_image_size.append(tmp_size_w)
         else:
@@ -117,7 +133,7 @@ class DymAippManager:
         if (option_list.count('rbuv_swap_switch') == 0):
             self.session.aipp_set_rbuv_swap_switch(RBUV_SWAP_SWITCH_OFF)
             return
-        tmp_rs_switch = self.cfg.getint(AIPP_HEAD_STR, 'rbuv_swap_switch')
+        tmp_rs_switch = self._get_int_safe(AIPP_HEAD_STR, 'rbuv_swap_switch')
         if (tmp_rs_switch == RBUV_SWAP_SWITCH_OFF or tmp_rs_switch == RBUV_SWAP_SWITCH_ON):
             self.session.aipp_set_rbuv_swap_switch(tmp_rs_switch)
         else:
@@ -128,7 +144,7 @@ class DymAippManager:
         if (option_list.count('ax_swap_switch') == 0):
             self.session.aipp_set_ax_swap_switch(AX_SWAP_SWITCH_OFF)
             return
-        tmp_as_switch = self.cfg.getint(AIPP_HEAD_STR, 'ax_swap_switch')
+        tmp_as_switch = self._get_int_safe(AIPP_HEAD_STR, 'ax_swap_switch')
         if (tmp_as_switch == AX_SWAP_SWITCH_OFF or tmp_as_switch == AX_SWAP_SWITCH_ON):
             self.session.aipp_set_ax_swap_switch(tmp_as_switch)
         else:
@@ -139,7 +155,7 @@ class DymAippManager:
         if (option_list.count('csc_switch') == 0):
             tmp_csc_switch = CSC_SWITCH_OFF
         else:
-            tmp_csc_switch = self.cfg.getint(AIPP_HEAD_STR, 'csc_switch')
+            tmp_csc_switch = self._get_int_safe(AIPP_HEAD_STR, 'csc_switch')
 
         if (tmp_csc_switch == CSC_SWITCH_OFF):
             tmp_csc_params = [0] * 16
@@ -152,7 +168,7 @@ class DymAippManager:
                 'input_bias_0', 'input_bias_1', 'input_bias_2'
             ]
             for option in options:
-                tmp_csc_params.append(0 if option_list.count(option) == 0 else self.cfg.getint(AIPP_HEAD_STR, option))
+                tmp_csc_params.append(0 if option_list.count(option) == 0 else self._get_int_safe(AIPP_HEAD_STR, option))
 
             range_ok = True
             for i in range(1, 9):
@@ -172,7 +188,7 @@ class DymAippManager:
         if (option_list.count('crop') == 0):
             tmp_crop_switch = CROP_SWITCH_OFF
         else:
-            tmp_crop_switch = self.cfg.getint(AIPP_HEAD_STR, 'crop')
+            tmp_crop_switch = self._get_int_safe(AIPP_HEAD_STR, 'crop')
 
         if (tmp_crop_switch == CROP_SWITCH_OFF):
             tmp_crop_params = [0, 0, 0, 416, 416]
@@ -180,16 +196,16 @@ class DymAippManager:
             tmp_crop_params = list()
             tmp_crop_params.append(tmp_crop_switch)
             tmp_crop_params.append(
-                0 if option_list.count('load_start_pos_w') == 0 else self.cfg.getint(AIPP_HEAD_STR, 'load_start_pos_w')
+                0 if option_list.count('load_start_pos_w') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'load_start_pos_w')
             )
             tmp_crop_params.append(
-                0 if option_list.count('load_start_pos_h') == 0 else self.cfg.getint(AIPP_HEAD_STR, 'load_start_pos_h')
+                0 if option_list.count('load_start_pos_h') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'load_start_pos_h')
             )
             tmp_crop_params.append(
-                0 if option_list.count('crop_size_w') == 0 else self.cfg.getint(AIPP_HEAD_STR, 'crop_size_w')
+                0 if option_list.count('crop_size_w') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'crop_size_w')
             )
             tmp_crop_params.append(
-                0 if option_list.count('crop_size_h') == 0 else self.cfg.getint(AIPP_HEAD_STR, 'crop_size_h')
+                0 if option_list.count('crop_size_h') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'crop_size_h')
             )
 
             range_ok = True
@@ -210,7 +226,7 @@ class DymAippManager:
         if (option_list.count('padding') == 0):
             tmp_padding_switch = PADDING_SWITCH_OFF
         else:
-            tmp_padding_switch = self.cfg.getint(AIPP_HEAD_STR, 'padding')
+            tmp_padding_switch = self._get_int_safe(AIPP_HEAD_STR, 'padding')
 
         if (tmp_padding_switch == PADDING_SWITCH_OFF):
             tmp_padding_params = [0] * 5
@@ -218,16 +234,16 @@ class DymAippManager:
             tmp_padding_params = list()
             tmp_padding_params.append(tmp_padding_switch)
             tmp_padding_params.append(
-                0 if option_list.count('top_padding_size') == 0 else self.cfg.getint(AIPP_HEAD_STR, 'top_padding_size')
+                0 if option_list.count('top_padding_size') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'top_padding_size')
             )
             tmp_padding_params.append(
-                0 if option_list.count('bottom_padding_size') == 0 else self.cfg.getint(AIPP_HEAD_STR, 'bottom_padding_size')
+                0 if option_list.count('bottom_padding_size') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'bottom_padding_size')
             )
             tmp_padding_params.append(
-                0 if option_list.count('left_padding_size') == 0 else self.cfg.getint(AIPP_HEAD_STR, 'left_padding_size')
+                0 if option_list.count('left_padding_size') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'left_padding_size')
             )
             tmp_padding_params.append(
-                0 if option_list.count('right_padding_size') == 0 else self.cfg.getint(AIPP_HEAD_STR, 'right_padding_size')
+                0 if option_list.count('right_padding_size') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'right_padding_size')
             )
 
             range_ok = True
@@ -245,16 +261,16 @@ class DymAippManager:
     def _aipp_set_dtc_pixel_mean(self, option_list):
         tmp_mean_params = list()
         tmp_mean_params.append(
-            0 if option_list.count('mean_chn_0') == 0 else self.cfg.getint(AIPP_HEAD_STR, 'mean_chn_0')
+            0 if option_list.count('mean_chn_0') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'mean_chn_0')
         )
         tmp_mean_params.append(
-            0 if option_list.count('mean_chn_1') == 0 else self.cfg.getint(AIPP_HEAD_STR, 'mean_chn_1')
+            0 if option_list.count('mean_chn_1') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'mean_chn_1')
         )
         tmp_mean_params.append(
-            0 if option_list.count('mean_chn_2') == 0 else self.cfg.getint(AIPP_HEAD_STR, 'mean_chn_2')
+            0 if option_list.count('mean_chn_2') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'mean_chn_2')
         )
         tmp_mean_params.append(
-            0 if option_list.count('mean_chn_3') == 0 else self.cfg.getint(AIPP_HEAD_STR, 'mean_chn_3')
+            0 if option_list.count('mean_chn_3') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'mean_chn_3')
         )
 
         range_ok = True
@@ -269,16 +285,16 @@ class DymAippManager:
     def _aipp_set_dtc_pixel_min(self, option_list):
         tmp_min_params = list()
         tmp_min_params.append(
-            0 if option_list.count('min_chn_0') == 0 else self.cfg.getfloat(AIPP_HEAD_STR, 'min_chn_0')
+            0 if option_list.count('min_chn_0') == 0 else self._get_float_safe(AIPP_HEAD_STR, 'min_chn_0')
         )
         tmp_min_params.append(
-            0 if option_list.count('min_chn_1') == 0 else self.cfg.getfloat(AIPP_HEAD_STR, 'min_chn_1')
+            0 if option_list.count('min_chn_1') == 0 else self._get_float_safe(AIPP_HEAD_STR, 'min_chn_1')
         )
         tmp_min_params.append(
-            0 if option_list.count('min_chn_2') == 0 else self.cfg.getfloat(AIPP_HEAD_STR, 'min_chn_2')
+            0 if option_list.count('min_chn_2') == 0 else self._get_float_safe(AIPP_HEAD_STR, 'min_chn_2')
         )
         tmp_min_params.append(
-            0 if option_list.count('min_chn_3') == 0 else self.cfg.getfloat(AIPP_HEAD_STR, 'min_chn_3')
+            0 if option_list.count('min_chn_3') == 0 else self._get_float_safe(AIPP_HEAD_STR, 'min_chn_3')
         )
 
         range_ok = True
@@ -293,16 +309,16 @@ class DymAippManager:
     def _aipp_set_pixel_var_reci(self, option_list):
         tmp_reci_params = list()
         tmp_reci_params.append(
-            0 if option_list.count('var_reci_chn_0') == 0 else self.cfg.getfloat(AIPP_HEAD_STR, 'var_reci_chn_0')
+            0 if option_list.count('var_reci_chn_0') == 0 else self._get_float_safe(AIPP_HEAD_STR, 'var_reci_chn_0')
         )
         tmp_reci_params.append(
-            0 if option_list.count('var_reci_chn_1') == 0 else self.cfg.getfloat(AIPP_HEAD_STR, 'var_reci_chn_1')
+            0 if option_list.count('var_reci_chn_1') == 0 else self._get_float_safe(AIPP_HEAD_STR, 'var_reci_chn_1')
         )
         tmp_reci_params.append(
-            0 if option_list.count('var_reci_chn_2') == 0 else self.cfg.getfloat(AIPP_HEAD_STR, 'var_reci_chn_2')
+            0 if option_list.count('var_reci_chn_2') == 0 else self._get_float_safe(AIPP_HEAD_STR, 'var_reci_chn_2')
         )
         tmp_reci_params.append(
-            0 if option_list.count('var_reci_chn_3') == 0 else self.cfg.getfloat(AIPP_HEAD_STR, 'var_reci_chn_3')
+            0 if option_list.count('var_reci_chn_3') == 0 else self._get_float_safe(AIPP_HEAD_STR, 'var_reci_chn_3')
         )
 
         range_ok = True

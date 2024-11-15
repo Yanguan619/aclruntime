@@ -1,4 +1,6 @@
 # find_best_batchsize推理介绍
+## 下线预告
+本功能将于2024.11.10正式下线，如有疑问，请在本仓库提issue留言。
 
 ## 介绍
 本文介绍AisBench推理工具中find_best_batchsize专项功能

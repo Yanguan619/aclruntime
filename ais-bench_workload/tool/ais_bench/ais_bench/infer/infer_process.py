@@ -47,11 +47,14 @@ from ais_bench.infer.common.miscellaneous import (dymshape_range_run, get_acl_js
 from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
                                    get_fileslist_from_dir, list_split, list_share,
                                    save_data_to_files, create_fake_file_name, logger,
-                                   create_tmp_acl_json, move_subdir, convert_helper)
+                                   create_tmp_acl_json, move_subdir, convert_helper, str_to_uint, get_msprof_bin_path)
 from ais_bench.infer.common.path_security_check import (
-    is_legal_args_path_string, check_normal_string, FILE_PERM_CHOICE, check_path_legality, MAX_SIZE_LIMITED_NORMAL_FILE
+    is_legal_args_path_string, check_normal_string, FILE_PERM_CHOICE, check_path_legality,
+    MAX_SIZE_LIMITED_NORMAL_FILE, makedirs_safe
 )
-from ais_bench.infer.interface_check import check_output_dir_legality, check_dym_hw_list
+from ais_bench.infer.interface_check import (check_output_dir_legality, check_dym_hw_list,
+    check_list, CUSTOM_MAX_COUNT, check_custom_size)
+from ais_bench.infer.args_check import check_dym_str_format, DYM_INFO_PATTERN
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.backends import BackendFactory
 from ais_bench.infer.common.path_security_check import ms_open, MAX_SIZE_LIMITED_CONFIG_FILE
@@ -75,8 +78,10 @@ def set_session_options(session, args):
         check_dym_hw_list(hwstr)
         session.set_dynamic_hw((int)(hwstr[0]), (int)(hwstr[1]))
     elif args.dym_dims is not None:
+        check_dym_str_format(args.dym_dims, DYM_INFO_PATTERN)
         session.set_dynamic_dims(args.dym_dims)
     elif args.dym_shape is not None:
+        check_dym_str_format(args.dym_shape, DYM_INFO_PATTERN)
         session.set_dynamic_shape(args.dym_shape)
     else:
         session.set_staticbatch()
@@ -113,7 +118,9 @@ def set_session_options(session, args):
 
     # 设置custom out tensors size
     if args.output_size is not None:
-        customsizes = [int(n) for n in args.output_size.split(',')]
+        customsizes = [str_to_uint(n) for n in args.output_size.split(',')]
+        check_list(customsizes, max_len=CUSTOM_MAX_COUNT, allow_empty=False, data_type=int)
+        check_custom_size(customsizes)
         logger.debug(f"set customsize:{customsizes}")
         session.set_custom_outsize(customsizes)
 
@@ -439,14 +446,14 @@ def convert(tmp_acl_json_path, real_dump_path, tmp_dump_path):
         convert_helper(output_dir, timestamp)
 
     if tmp_dump_path is not None:
-        check_path_legality(tmp_dump_path, FILE_PERM_CHOICE.WRITE) # if not exist, won't except
+        check_path_legality(tmp_dump_path, FILE_PERM_CHOICE.WRITE, is_file=False) # if not exist, won't except
         try:
             shutil.rmtree(tmp_dump_path)
         except Exception as err: # if tmp_dump_path be used, may failed.
             raise RuntimeError(f"rmtree tmp_dump_path:{tmp_dump_path} failed!") from err
 
     if tmp_acl_json_path is not None:
-        check_path_legality(tmp_acl_json_path, FILE_PERM_CHOICE.WRITE) # if not exist, won't except
+        check_path_legality(tmp_acl_json_path, FILE_PERM_CHOICE.WRITE, suffix=["json"]) # if not exist, won't except
         try:
             os.remove(tmp_acl_json_path)
         except Exception as err: # if tmp_acl_json_path be used, may failed.
@@ -483,7 +490,7 @@ def main(args, index=0, msgq=None, device_list=None):
                 output_prefix = os.path.join(args.output, args.output_dirname)
                 output_prefix = os.path.join(output_prefix, "device" + str(device_list[index]) + "_" + str(index))
             if not os.path.exists(output_prefix):
-                os.makedirs(output_prefix, PERMISSION_DIR)
+                makedirs_safe(output_prefix, PERMISSION_DIR)
             else:
                 check_output_dir_legality(output_prefix)
             logger.info(f"output path:{output_prefix}")
@@ -497,7 +504,7 @@ def main(args, index=0, msgq=None, device_list=None):
             else:
                 output_prefix = os.path.join(args.output, args.output_dirname)
             if not os.path.exists(output_prefix):
-                os.makedirs(output_prefix, PERMISSION_DIR)
+                makedirs_safe(output_prefix, PERMISSION_DIR)
             else:
                 check_output_dir_legality(output_prefix)
             logger.info(f"output path:{output_prefix}")
@@ -779,7 +786,7 @@ def infer_process(args:AISBenchInferArgsAdapter):
 
     if args.profiler:
         # try use msprof to run
-        msprof_bin = shutil.which('msprof')
+        msprof_bin = get_msprof_bin_path()
         if msprof_bin is None:
             logger.info("find no msprof continue use acl.json mode, result won't be parsed as csv")
         elif os.getenv('AIT_NO_MSPROF_MODE') == '1':

@@ -40,11 +40,13 @@ from ais_bench.infer.common.path_security_check import (
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
+MAX_FILE_LOAD_COUNT = 100000
 PERMISSION_DIR = 0o750
 READ_WRITE_FLAGS = os.O_RDWR | os.O_CREAT
 WRITE_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
 WRITE_MODES = stat.S_IWUSR | stat.S_IRUSR
 MSACCUCMP_FILE_PATH = "tools/operator_cmp/compare/msaccucmp.py"
+MSPROF_BIN_FILE_SUB_PATH = "bin/msprof"
 CANN_PATH = "/usr/local/Ascend/ascend-toolkit/latest"
 
 
@@ -84,6 +86,8 @@ def get_fileslist_from_dir(dir_):
     files_list = []
 
     for f in os.listdir(dir_):
+        if len(files_list) > MAX_FILE_LOAD_COUNT:
+            raise OverflowError(f"file count under directory: {dir_} is over {MAX_FILE_LOAD_COUNT}!")
         f_true_path = os.path.join(dir_, f)
         f_stat = FileStat(f_true_path)
         if not f_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
@@ -162,14 +166,18 @@ def get_dump_relative_paths(output_dir, timestamp):
     return dump_relative_paths
 
 
+def get_msprof_bin_path():
+    ascend_toolkit_path = os.environ.get("ASCEND_TOOLKIT_HOME", CANN_PATH)
+    check_path_legality(ascend_toolkit_path, perm=FILE_PERM_CHOICE.READ, is_file=False)
+    msprof_bin_path = os.path.join(ascend_toolkit_path, MSPROF_BIN_FILE_SUB_PATH)
+    return msprof_bin_path if os.path.exists(msprof_bin_path) else None # trust file in cann toolkit
+
+
 def get_msaccucmp_path():
-    ascend_toolkit_path = os.environ.get("ASCEND_TOOLKIT_HOME")
-    if not is_legal_args_path_string(ascend_toolkit_path):
-        raise TypeError(f"ASCEND_TOOLKIT_HOME:{ascend_toolkit_path} is illegal")
-    if ascend_toolkit_path is None:
-        ascend_toolkit_path = CANN_PATH
+    ascend_toolkit_path = os.environ.get("ASCEND_TOOLKIT_HOME", CANN_PATH)
+    check_path_legality(ascend_toolkit_path, perm=FILE_PERM_CHOICE.READ, is_file=False)
     msaccucmp_path = os.path.join(ascend_toolkit_path, MSACCUCMP_FILE_PATH)
-    return msaccucmp_path if os.path.exists(msaccucmp_path) else None
+    return msaccucmp_path if os.path.exists(msaccucmp_path) else None # trust file in cann toolkit
 
 
 def make_dirs(path):
@@ -265,7 +273,7 @@ def move_subdir(src_dir, dest_dir):
               |--2023***1--...  (bin file移动到新的目录下)
     '''
     res_dest, res_subdir = None, None
-    check_path_legality(src_dir, FILE_PERM_CHOICE.READ)
+    check_path_legality(src_dir, FILE_PERM_CHOICE.READ, is_file=False)
     subdirs = os.listdir(src_dir)
     if len(subdirs) != 1:
         logger.error(
@@ -274,9 +282,9 @@ def move_subdir(src_dir, dest_dir):
         )
     else:
         abs_dest_subdir = os.path.join(dest_dir, subdirs[0])
-        check_path_legality(abs_dest_subdir, FILE_PERM_CHOICE.WRITE) # if not exist, won't raise exception
+        check_path_legality(abs_dest_subdir, FILE_PERM_CHOICE.WRITE, is_file=False) # if not exist, won't raise exception
         abs_src_subdir = os.path.join(src_dir, subdirs[0])
-        check_path_legality(abs_src_subdir, FILE_PERM_CHOICE.READ)
+        check_path_legality(abs_src_subdir, FILE_PERM_CHOICE.READ, is_file=False)
 
         if os.path.exists(abs_dest_subdir):
             logger.error("move subdirectory failed: destination directory %s exists" % abs_dest_subdir)
@@ -287,3 +295,17 @@ def move_subdir(src_dir, dest_dir):
                 raise RuntimeError(f"move source directory:{abs_src_subdir} to destination directory:{abs_dest_subdir} failed!") from err
             res_dest, res_subdir = dest_dir, subdirs[0]
     return res_dest, res_subdir
+
+
+def str_to_uint(string: str):
+    if not isinstance(string, str):
+        raise ValueError("convert string to uint failed! src is not a string!")
+    if not string:
+        raise ValueError("convert string to uint failed! string is empty!")
+    if not string.isdigit():
+        raise ValueError(f"convert string to uint failed! string contains special characters other than numbers.")
+    try :
+        int_value = int(string)
+    except ValueError as err:
+        raise RuntimeError("convert string to uint failed! unexpected error") from err
+    return int_value

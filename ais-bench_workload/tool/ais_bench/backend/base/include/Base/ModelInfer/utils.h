@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <regex>
 #include <dirent.h>
 #include <sys/time.h>
 #include <fstream>
@@ -85,6 +86,7 @@ public:
     static Result TensorToTxt(const std::string& outputFileName, Base::TensorBase& output);
     static bool TailContain(const std::string& str, const std::string& tail);
     static bool IsValidInteger(const std::string& str);
+    static bool IsLegalDymString(const std::string& str);
 };
 
 #endif

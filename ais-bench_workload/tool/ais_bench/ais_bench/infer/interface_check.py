@@ -12,37 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ais_bench.infer.args_check import OM_MODEL_MAX_SIZE, ACL_JSON_MAX_SIZE, LOOP_MAX_SIZE, CPP_INT_MAX_SIZE
-from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE
+import re
+from ais_bench.infer.args_check import (OM_MODEL_MAX_SIZE, ACL_JSON_MAX_SIZE, LOOP_MAX_SIZE,
+    CPP_INT_MAX_SIZE, INPUT_LIST_MAX_SIZE, INPUT_NAME_LENGTH_MAX)
+from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE, check_path_legality
 
-CUSTOME_SIZE_MAX_SIZE = 64 * 1024 * 1024 * 1024 # 64 GB
+CUSTOME_SIZE_MAX_SIZE = 16 * 1024 * 1024 * 1024 # 16 GB
+CUSTOM_MAX_COUNT = 256
+MODEL_INPUT_TENSOR_COUNT_MAX = 1024
+
 
 def check_model_path_legality(value):
     if not value:
         raise RuntimeError("empty model path!")
-    try:
-        file_stat = FileStat(value)
-    except Exception as err:
-        raise RuntimeError(f"om path:{value} is illegal. Please check.") from err
-    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
-        raise RuntimeError(f"om path:{value} is illegal. Please check.")
-    if not file_stat.is_legal_file_size(OM_MODEL_MAX_SIZE):
-        raise RuntimeError(f"om path:{value} is illegal. Please check.")
+    check_path_legality(value, FILE_PERM_CHOICE.READ, max_size=OM_MODEL_MAX_SIZE, suffix=["om"])
 
 
 def check_acl_json_path_legality(value):
     if not value:
         return
-    try:
-        file_stat = FileStat(value)
-    except Exception as err:
-        raise RuntimeError(f"acl json path:{value} is illegal. Please check.") from err
-    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
-        raise RuntimeError(f"acl json path:{value} is illegal. Please check.")
-    if not file_stat.is_legal_file_type(["json"]):
-        raise RuntimeError(f"acl json path:{value} is illegal. Please check.")
-    if not file_stat.is_legal_file_size(ACL_JSON_MAX_SIZE):
-        raise RuntimeError(f"acl json path:{value} is illegal. Please check.")
+    check_path_legality(value, FILE_PERM_CHOICE.READ, max_size=ACL_JSON_MAX_SIZE, suffix=["json"])
 
 
 def check_device_range_valid(value):
@@ -57,18 +46,15 @@ def check_device_range_valid(value):
 
 
 def check_output_dir_legality(value):
-    try:
-        file_stat = FileStat(value)
-    except Exception as err:
-        raise RuntimeError(f"output path:{value} is illegal. Please check.") from err
-    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
-        raise RuntimeError(f"output path:{value} is illegal. Please check.")
+    check_path_legality(value, FILE_PERM_CHOICE.READ, is_file=False)
+
 
 def check_positive_integer(value):
     if not isinstance(value, int):
         raise TypeError(f"value:{value} is not a integer!")
     if value <= 0 or value > CPP_INT_MAX_SIZE:
         raise ValueError(f"input value:{value} is out of range. Please check.")
+
 
 def check_in_out_list(in_out_list, inputs, outputs):
     if len(in_out_list) != len(inputs):
@@ -79,21 +65,50 @@ def check_in_out_list(in_out_list, inputs, outputs):
         if reused_index < -1 or reused_index >= len(outputs):
             raise IndexError(f"in_out_list[{in_out_list}] out of range, length range is (-1, {len(outputs)})")
 
-def check_custom_size(value, mode):
-    if mode not in ["static", "dymbatch", "dymhw", "dymdims", "dymshape"]:
-        raise ValueError(f"{mode} is illegal, Please check.")
-    if mode in ["static", "dymbatch", "dymhw", "dymdims"] and value == None:
+
+def check_list(list_to_check: list, max_len: int, allow_empty: bool = True, data_type: type = None):
+    if not isinstance(list_to_check, list):
+        raise ValueError("the list be checked is not a list!")
+    if not allow_empty and len(list_to_check) == 0:
+        raise ValueError("the list is empty")
+    if len(list_to_check) > max_len:
+        raise ValueError(f"the list's length is over {max_len}!")
+    if data_type is None:
         return
-    if mode == "dymshape" and value == None:
-        raise ValueError(f"input custom_size:{value} dismatch with mode. Please check.")
-    if type(value) == list:
-        ivalue = value[0]
+    for value in list_to_check:
+        if not isinstance(value, data_type):
+            raise ValueError(f"some value in list is not the expected type: {data_type}")
+
+
+def check_dict(dict_to_check: dict, max_len: int, allow_empty: bool = True):
+    if not isinstance(dict_to_check, dict):
+        raise ValueError("the list be checked is not a list!")
+    if not allow_empty and len(dict_to_check) == 0:
+        raise ValueError("the list is empty")
+    if len(dict_to_check) > max_len:
+        raise ValueError(f"the list's length is over {max_len}!")
+
+
+def check_custom_size(value, mode="dymshape"):
+    if mode not in ["static", "dymbatch", "dymhw", "dymdims", "dymshape"]:
+        raise ValueError(f"infer mode is illegal, Please check.")
+    if mode in ["static", "dymbatch", "dymhw", "dymdims"] and value is None:
+        return
+    if mode == "dymshape" and value is None:
+        raise ValueError(f"custom_size:{value} dismatch with mode. Please check.")
+
+    if isinstance(value, list):
+        check_list(value, max_len=CUSTOM_MAX_COUNT, allow_empty=False, data_type=int)
+        for data in value:
+            if data <= 0 or data > CUSTOME_SIZE_MAX_SIZE:
+                raise ValueError(f"value:{value} in custom size list is out of range. Please check.")
+
+    elif isinstance(value, int):
+        if value <= 0 or value > CUSTOME_SIZE_MAX_SIZE:
+            raise ValueError(f"custom size value:{value} is out of range. Please check.")
     else:
-        ivalue = value
-    if not isinstance(ivalue, int):
         raise TypeError(f"value:{value} is not a integer!")
-    if ivalue <= 0 or ivalue > CUSTOME_SIZE_MAX_SIZE:
-        raise ValueError(f"input value:{value} is out of range. Please check.")
+
 
 def check_loop_size(value):
     if not isinstance(value, int):
@@ -101,15 +116,21 @@ def check_loop_size(value):
     if value <= 0 or value > LOOP_MAX_SIZE:
         raise ValueError(f"input value:{value} is out of range. Please check.")
 
+
 def check_bool_value(value):
     if not isinstance(value, bool):
         raise TypeError(f"value:{value} is not a bool!")
+
 
 def check_dym_hw_list(hw_list:list):
     if len(hw_list) != 2:
         raise ValueError("int count not match, legal format of dymHW string is \"int,int\"")
     try :
-        _ = int(hw_list[0])
-        _ = int(hw_list[1])
+        h = int(hw_list[0])
+        w = int(hw_list[1])
     except ValueError as err:
         raise ValueError("data type not match, legal format of dymHW string is \"int,int\"")
+    if h < 1 or h > CPP_INT_MAX_SIZE:
+        raise ValueError(f"height of dym_hw string is out of range [1, {CPP_INT_MAX_SIZE}]")
+    if w < 1 or w > CPP_INT_MAX_SIZE:
+        raise ValueError(f"width of dym_hw string is out of range [1, {CPP_INT_MAX_SIZE}]")

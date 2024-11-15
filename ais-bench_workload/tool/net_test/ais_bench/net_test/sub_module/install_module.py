@@ -84,7 +84,19 @@ class InstallModule(BaseSubmodule):
             '--force-reinstall',
             "-fr",
             action="store_true",
-            help="whether force reinstall ais_cl_bkd-<version>-py3-<platform>.whl for nodes"
+            help="whether --force-reinstall *.whl for nodes"
+        )
+        self.parser.add_argument(
+            '--ignore-installed',
+            "-ii",
+            action="store_true",
+            help="whether --ignore-installed *.whl for nodes"
+        )
+        self.parser.add_argument(
+            '--uninstall',
+            "-ui",
+            action="store_true",
+            help="whether --uninstall *.whl for nodes"
         )
 
     def exec(self, args):
@@ -128,8 +140,14 @@ class InstallModule(BaseSubmodule):
     def _gen_install_cmd(self, args):
         pkg_name = os.path.basename(args.whl_pkg_path)
         cmd = f"{args.pip} install {pkg_name}"
-        if args.force_reinstall:
+
+        if args.uninstall:
+            cmd = cmd + " --uninstall"
+        elif args.ignore_installed:
+            cmd = cmd + " --ignore-installed"
+        elif args.force_reinstall:
             cmd = cmd + " --force-reinstall"
+
         cmd = cmd + f";rm -f {pkg_name}" # delete tmp whl pkg
         return cmd
 

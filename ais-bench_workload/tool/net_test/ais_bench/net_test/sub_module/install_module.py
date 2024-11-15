@@ -92,12 +92,6 @@ class InstallModule(BaseSubmodule):
             action="store_true",
             help="whether --ignore-installed *.whl for nodes"
         )
-        self.parser.add_argument(
-            '--uninstall',
-            "-ui",
-            action="store_true",
-            help="whether --uninstall *.whl for nodes"
-        )
 
     def exec(self, args):
         self._init_before_exec(args)
@@ -141,9 +135,7 @@ class InstallModule(BaseSubmodule):
         pkg_name = os.path.basename(args.whl_pkg_path)
         cmd = f"{args.pip} install {pkg_name}"
 
-        if args.uninstall:
-            cmd = cmd + " --uninstall"
-        elif args.ignore_installed:
+        if args.ignore_installed:
             cmd = cmd + " --ignore-installed"
         elif args.force_reinstall:
             cmd = cmd + " --force-reinstall"

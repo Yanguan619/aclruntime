@@ -56,6 +56,6 @@ def check_linux_file_stat_string_from_shell(file_info: list, user: str):
     if permission[PERM_STRING_IDX.S_IWGRP] != "-" or permission[PERM_STRING_IDX.S_IWOTH] != "-":
         raise ValueError(f"current/remote file could be write by group/other user!")
 
-    file_size = file_info[STAT_STRING_IDX.SIZE]
+    file_size = int(file_info[STAT_STRING_IDX.SIZE])
     if file_size > FileSizeLimit.NORMAL_EXEC_FILE:
         raise ValueError(f"current/remote file's should not be over {FileSizeLimit.NORMAL_EXEC_FILE} Bytes")

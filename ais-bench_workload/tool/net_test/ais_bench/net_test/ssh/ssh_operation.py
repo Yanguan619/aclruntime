@@ -49,7 +49,7 @@ def remote_exec_file_check(file_path: str, node_info: NodeInfo, ssh_key_path: st
     ssh_client_connect(ssh_client, node_info, ssh_key_path)
     actual_path = file_path.replace(" ","")
 
-    if len(actual_path):
+    if len(actual_path) == 0:
         raise ValueError("file path is empty!")
     check_linux_path_format(actual_path)
 
@@ -68,8 +68,6 @@ def remote_exec_file_check(file_path: str, node_info: NodeInfo, ssh_key_path: st
     if len(result) > 0:
         file_info = result[0].split()
         check_linux_file_stat_string_from_shell(file_info, node_info.user)
-
-
 
 
 def remote_exec(node_id: int, node_info: NodeInfo, cmd: str, ssh_key_path: str = ""):

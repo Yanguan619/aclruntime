@@ -92,13 +92,7 @@ class InstallModule(BaseSubmodule):
             '--force-reinstall',
             "-fr",
             action="store_true",
-            help="whether --force-reinstall *.whl for nodes"
-        )
-        self.parser.add_argument(
-            '--ignore-installed',
-            "-ii",
-            action="store_true",
-            help="whether --ignore-installed *.whl for nodes"
+            help="whether --force-reinstall *.whl(do not reinstall dependencies) for nodes"
         )
 
     def exec(self, args):
@@ -143,10 +137,8 @@ class InstallModule(BaseSubmodule):
         pkg_name = os.path.basename(args.whl_pkg_path)
         cmd = f"{args.pip} install {pkg_name}"
 
-        if args.ignore_installed:
-            cmd = cmd + " --ignore-installed"
-        elif args.force_reinstall:
-            cmd = cmd + " --force-reinstall"
+        if args.force_reinstall:
+            cmd = cmd + " --no-deps --force-reinstall"
 
         cmd = cmd + f";rm -f {pkg_name}" # delete tmp whl pkg
         cmd = f"source {args.env_script_path};" + cmd

@@ -19,6 +19,7 @@ import paramiko
 import scp
 
 from ais_bench.net_test.common.logger import logger
+from ais_bench.net_test.common.consts import TIME_OUT
 from ais_bench.net_test.sub_module.base_sub_module import NodeInfo
 from ais_bench.net_test.security.file_checker import check_linux_path_format
 from ais_bench.net_test.security.other_checker import check_linux_file_stat_string_from_shell
@@ -55,7 +56,8 @@ def remote_exec_file_check(file_path: str, node_info: NodeInfo, ssh_key_path: st
 
     get_file_info_cmd = f"ls -l {actual_path}"
     try:
-        _, stdout, stderr = ssh_client.exec_command(get_file_info_cmd, bufsize=1)
+        _, stdout, stderr = ssh_client.exec_command(get_file_info_cmd, bufsize=1,
+            timeout=TIME_OUT.NORMAL_SSH_EXEC_TIMEOUT)
     except Exception as err:
         ssh_client.close()
         raise RuntimeError(f"user:{node_info.user}, server_ip:{node_info.ip}, " +
@@ -75,7 +77,7 @@ def remote_exec(node_id: int, node_info: NodeInfo, cmd: str, ssh_key_path: str =
     ssh_client = paramiko.SSHClient()
     ssh_client_connect(ssh_client, node_info, ssh_key_path)
     try:
-        _, stdout, stderr = ssh_client.exec_command(cmd, bufsize=1)
+        _, stdout, stderr = ssh_client.exec_command(cmd, bufsize=1, timeout=TIME_OUT.NORMAL_SSH_EXEC_TIMEOUT)
     except Exception as err:
         ssh_client.close()
         raise RuntimeError(f"user:{node_info.user}, server_ip:{node_info.ip}, " +

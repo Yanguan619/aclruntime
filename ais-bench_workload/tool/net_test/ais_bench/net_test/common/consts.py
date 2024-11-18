@@ -75,6 +75,10 @@ class RET:
     FAILED = 1
 
 
+class TIME_OUT:
+    NORMAL_SSH_EXEC_TIMEOUT = 6000
+
+
 OP_TASK = [
     "all_reduce_test", "all_gather_test", "alltoall_test", "alltoallv_test",
     "broadcast_test", "reduce_scatter_test", "reduce_test"

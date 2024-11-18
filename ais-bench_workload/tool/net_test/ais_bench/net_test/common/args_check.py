@@ -21,7 +21,7 @@ from ais_bench.net_test.security.standard_consts import PermForbid
 
 def arg_check_hostfile_legalty(value):
     try:
-        check_linux_readable_file(value)
+        check_linux_readable_file(value, perm_forbid=PermForbid.SECRET_FILE)
     except Exception as err:
         raise argparse.ArgumentTypeError(f"hostfile does not pass security check! detail: {err}")
     return value

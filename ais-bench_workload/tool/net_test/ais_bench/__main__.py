@@ -1,10 +1,10 @@
-# Copyright (c) 2024-2024 Huawei Technologies Co., Ltd.
+# Copyright (c) 2024-2024 Huawei Technologies Co., Ltd. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,13 +13,5 @@
 # limitations under the License.
 
 import os
-import sys
-
-from ais_bench.net_test.security.standard_consts import PlatformSupport
-
-def get_platform():
-    if sys.platform.startswith(PlatformSupport.LINUX):
-        return PlatformSupport.LINUX
-    if sys.platform.startswith(PlatformSupport.WINDOWS):
-        return PlatformSupport.WINDOWS
-    return PlatformSupport.UNKNOWN
+cur_path = os.path.dirname(os.path.realpath(__file__))
+exec(open(os.path.join(cur_path, "net_test/__main__.py")).read())

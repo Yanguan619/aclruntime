@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
+class BaseArgsAdapter():
+    def __init__(self):
+        self.args_dict = {}
 
-from ais_bench.net_test.security.standard_consts import PlatformSupport
+    def set_all_args_dict(self, args):
+        for arg_name, arg_value in vars(args).items():
+            self.args_dict[f"--{arg_name}"] = arg_value
 
-def get_platform():
-    if sys.platform.startswith(PlatformSupport.LINUX):
-        return PlatformSupport.LINUX
-    if sys.platform.startswith(PlatformSupport.WINDOWS):
-        return PlatformSupport.WINDOWS
-    return PlatformSupport.UNKNOWN
+    def get_all_args_dict(self):
+        return self.args_dict

@@ -83,7 +83,7 @@ class InstallModule(BaseSubmodule):
         )
         self.parser.add_argument(
             "--whl_pkg_path",
-            "--wp",
+            "-wp",
             type=arg_check_whl_legalty,
             default=DEFAULT_WHL_PATH,
             help=f"optional, default {DEFAULT_WHL_PATH}, the path of whl package"

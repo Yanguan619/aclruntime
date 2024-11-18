@@ -54,6 +54,9 @@ def check_linux_file_stat_string_from_shell(file_info: list, user: str):
         raise ValueError(f"current/remote user: {user} is not the owner of file")
 
     permission = file_info[STAT_STRING_IDX.PERMISSION]
+    if permission[0] != "-":
+        raise ValueError(f"current/remote file is a softlink!")
+
     if permission[PERM_STRING_IDX.S_IWGRP] != "-" or permission[PERM_STRING_IDX.S_IWOTH] != "-":
         raise ValueError(f"current/remote file could be write by group/other user!")
 

@@ -90,9 +90,9 @@ class BaseSubmodule(metaclass=ABCMeta):
         self.parser.add_argument(
             "--python",
             "-py",
-            type=str,
             default="python3",
-            help="optional, default python3, path of python executable file"
+            choices=["python3", "python", "python3.7", "python3.8", "python3.9", "python3.10", "python3.11"],
+            help="optional, default python3, python interpreter"
         )
         self.parser.add_argument(
             "--env_script_path",

@@ -789,8 +789,8 @@ def infer_process(args:AISBenchInferArgsAdapter):
         msprof_bin = get_msprof_bin_path()
         if msprof_bin is None:
             logger.info("find no msprof continue use acl.json mode, result won't be parsed as csv")
-        elif os.getenv('AIT_NO_MSPROF_MODE') == '1':
-            logger.info("find AIT_NO_MSPROF_MODE set, continue use acl.json mode, result won't be parsed as csv")
+        elif os.getenv('MSIT_NO_MSPROF_MODE') == '1':
+            logger.info("find MSIT_NO_MSPROF_MODE set, continue use acl.json mode, result won't be parsed as csv")
         else:
             ret = msprof_run_profiling(args, msprof_bin)
             return ret

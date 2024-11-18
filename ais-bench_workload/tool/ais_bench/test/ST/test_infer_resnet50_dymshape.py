@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 OPEN_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
 OPEN_MODES = stat.S_IWUSR | stat.S_IRUSR
-MSPROF_SWITCH = 'AIT_NO_MSPROF_MODE'
+MSPROF_SWITCH = 'MSIT_NO_MSPROF_MODE'
 
 
 class TestClass:

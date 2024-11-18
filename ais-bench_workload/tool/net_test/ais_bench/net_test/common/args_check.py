@@ -23,7 +23,7 @@ def arg_check_hostfile_legalty(value):
     try:
         check_linux_readable_file(value)
     except Exception as err:
-        raise argparse.ArgumentTypeError("hostfile does not pass security check!") from err
+        raise argparse.ArgumentTypeError(f"hostfile does not pass security check! detail: {err}")
     return value
 
 
@@ -31,7 +31,7 @@ def arg_check_whl_legalty(value):
     try:
         check_linux_readable_file(value)
     except Exception as err:
-        raise argparse.ArgumentTypeError("whl package path does not pass security check!") from err
+        raise argparse.ArgumentTypeError(f"whl package path does not pass security check! detail: {err}")
     return value
 
 

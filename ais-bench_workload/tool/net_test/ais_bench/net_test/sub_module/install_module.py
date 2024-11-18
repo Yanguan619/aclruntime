@@ -21,7 +21,7 @@ from abc import abstractmethod, ABCMeta
 from ais_bench.net_test.sub_module.base_sub_module import BaseSubmodule
 from ais_bench.net_test.common.utils import multiprocess_run
 from ais_bench.net_test.common.logger import logger
-from ais_bench.net_test.common.consts import REMOTE_NODE_INFO_NAME, PACKAGE_INFO, DEFAULT_ENV_SCRIPT_PATH
+from ais_bench.net_test.common.consts import REMOTE_NODE_INFO_NAME, DEFAULT_WHL_PATH, DEFAULT_ENV_SCRIPT_PATH
 from ais_bench.net_test.ssh.ssh_operation import remote_put, remote_exec, remote_exec_file_check
 from ais_bench.net_test.common.args_check import arg_check_whl_legalty
 
@@ -85,8 +85,8 @@ class InstallModule(BaseSubmodule):
             "--whl_pkg_path",
             "--wp",
             type=arg_check_whl_legalty,
-            default=f"ais_bench_net_test-{PACKAGE_INFO.version}-py3-none-{sys.platform}_{platform.machine()}.whl",
-            help=f"optional, default ais_bench_net_test-{PACKAGE_INFO.version}-py3-none-{sys.platform}_{platform.machine()}.whl, the path of whl package"
+            default=DEFAULT_WHL_PATH,
+            help=f"optional, default {DEFAULT_WHL_PATH}, the path of whl package"
         )
         self.parser.add_argument(
             '--force-reinstall',

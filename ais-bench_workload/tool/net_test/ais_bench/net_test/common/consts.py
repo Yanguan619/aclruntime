@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import sys
+import platform
+
 DEFAULT_ENV_SCRIPT_PATH = "/usr/local/Ascend/ascend-toolkit/set_env.sh"
 DEFAULT_SSH_KEY_PATH = "/root/.ssh/id_rsa"
 
@@ -88,3 +91,5 @@ OP_CMD_HELP_INFO = "[-b,--minbytes <min size in bytes>] \n\t" + \
                    "[-w,--warmup_iters <warmup iteration count>] \n\t" + \
                    "[-c,--check <result verification> 0:disabled 1:enabled.] \n\t" + \
                    "[-p,--npus <npus used for one node>] \n\t"
+
+DEFAULT_WHL_PATH = f"ais_bench_net_test-{PACKAGE_INFO.version}-py3-none-{sys.platform}_{platform.machine()}.whl"

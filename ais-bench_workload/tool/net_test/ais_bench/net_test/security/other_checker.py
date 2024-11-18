@@ -28,6 +28,7 @@ def is_memory_enough(need_size):
     available_memory = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_AVPHYS_PAGES')
     return available_memory >= need_size
 
+
 def check_positive_integer_str(value):
     if value is None:
         return
@@ -45,14 +46,14 @@ def check_positive_integer_str(value):
 
 
 def check_linux_file_stat_string_from_shell(file_info: list, user: str):
+    if len(file_info) < STAT_STRING_IDX.SIZE + 1:
+        raise ValueError(f"current/remote path is not a file")
+
     owner = file_info[STAT_STRING_IDX.USER]
     if owner != user:
         raise ValueError(f"current/remote user: {user} is not the owner of file")
 
     permission = file_info[STAT_STRING_IDX.PERMISSION]
-    if permission[0] == "d":
-        raise ValueError(f"current/remote path is not a file")
-
     if permission[PERM_STRING_IDX.S_IWGRP] != "-" or permission[PERM_STRING_IDX.S_IWOTH] != "-":
         raise ValueError(f"current/remote file could be write by group/other user!")
 

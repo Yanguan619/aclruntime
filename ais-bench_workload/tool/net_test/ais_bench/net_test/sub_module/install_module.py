@@ -33,18 +33,18 @@ def remote_install_whl_pkg(args_dict):
     logger.info(f"node id:{args_dict[REMOTE_NODE_INFO_NAME.NODE_ID]}, " + \
         f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start installing...")
     logger.debug(f"All node related info: {args_dict}")
-    env_path = REMOTE_NODE_INFO_NAME.CMD.split(";")[0].split()[1]
+    env_path = args_dict.get(REMOTE_NODE_INFO_NAME.CMD).split(";")[0].split()[1]
     if not env_path == DEFAULT_ENV_SCRIPT_PATH: # check exec env script
         remote_exec_file_check(
             env_path,
-            REMOTE_NODE_INFO_NAME.NODE_INFO,
-            REMOTE_NODE_INFO_NAME.SSH_KEY_PATH,
+            args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
+            args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
         )
     remote_exec(
-        args_dict[REMOTE_NODE_INFO_NAME.NODE_ID],
-        args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO],
-        args_dict[REMOTE_NODE_INFO_NAME.CMD],
-        args_dict[REMOTE_NODE_INFO_NAME.SSH_KEY_PATH]
+        args_dict.get(REMOTE_NODE_INFO_NAME.NODE_ID),
+        args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
+        args_dict.get(REMOTE_NODE_INFO_NAME.CMD),
+        args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
     )
 
 
@@ -56,11 +56,11 @@ def remote_deploy_whl_pkg(args_dict):
         f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start deploying...")
     logger.debug(f"All node related info: {args_dict}")
     remote_put(
-        args_dict[REMOTE_NODE_INFO_NAME.NODE_ID],
-        args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO],
-        args_dict[REMOTE_NODE_INFO_NAME.SRC_PATH],
-        args_dict[REMOTE_NODE_INFO_NAME.DST_PATH],
-        args_dict[REMOTE_NODE_INFO_NAME.SSH_KEY_PATH]
+        args_dict.get(REMOTE_NODE_INFO_NAME.NODE_ID),
+        args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
+        args_dict.get(REMOTE_NODE_INFO_NAME.SRC_PATH),
+        args_dict.get(REMOTE_NODE_INFO_NAME.DST_PATH),
+        args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
     )
 
 

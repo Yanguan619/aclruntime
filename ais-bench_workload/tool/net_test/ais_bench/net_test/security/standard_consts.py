@@ -51,7 +51,8 @@ class Permission:
 # 文件大小限制
 class FileSizeLimit:
     UNLIMITED = -1  # 不限制，必须显式表示不限制，读取必须传入
-    NORMAL_CONFIG_FILE = 10485760  # 10MB, 10 * 1024 * 1024
+    NORMAL_CONFIG_FILE = 10485760 # 10MB, 10 * 1024 * 1024
+    NORMAL_EXEC_FILE = 104857600 # 100MB, 100 * 1024 * 1024
     NORMAL_READ_FILE_4G = 4294967296  # 4GB, 4 * 1024 * 1024 * 1024
     NORMAL_READ_FILE_32G = 34359738368  # 32GB, 32 * 1024 * 1024 * 1024
 
@@ -90,3 +91,20 @@ class CommandBlackList:
         "shutdown", "reboot",
         "curl", "wget",
     ]
+
+class STAT_STRING_IDX:
+    PERMISSION = 0
+    USER = 2
+    GROUP = 3
+    SIZE = 4
+
+class PERM_STRING_IDX:
+    S_IRUSR = 1  # read by owner
+    S_IWUSR = 2  # write by owner
+    S_IXUSR = 3  # execute by owner
+    S_IRGRP = 4  # read by group
+    S_IWGRP = 5  # write by group
+    S_IXGRP = 6  # execute by group
+    S_IROTH = 7  # read by others
+    S_IWOTH = 8  # write by others
+    S_IXOTH = 9  # execute by others

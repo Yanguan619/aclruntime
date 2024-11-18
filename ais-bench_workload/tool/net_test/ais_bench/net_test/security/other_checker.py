@@ -15,6 +15,7 @@
 import os
 import shutil
 from ais_bench.net_test.common.consts import LENGTH_LIMIT
+from ais_bench.net_test.security.standard_consts import STAT_STRING_IDX, PERM_STRING_IDX, FileSizeLimit
 
 def is_disk_space_enough(path, need_size):
     _, _, free_space = shutil.disk_usage(path)
@@ -41,3 +42,20 @@ def check_positive_integer_str(value):
     ivalue = int(value)
     if ivalue == 0:
         raise ValueError("%s is an invalid positive int value" % value)
+
+
+def check_linux_file_stat_string_from_shell(file_info: list, user: str):
+    owner = file_info[STAT_STRING_IDX.USER]
+    if owner != user:
+        raise ValueError(f"current/remote user: {user} is not the owner of file")
+
+    permission = file_info[STAT_STRING_IDX.PERMISSION]
+    if permission[0] == "d":
+        raise ValueError(f"current/remote path is not a file")
+
+    if permission[PERM_STRING_IDX.S_IWGRP] != "-" or permission[PERM_STRING_IDX.S_IWOTH] != "-":
+        raise ValueError(f"current/remote file could be write by group/other user!")
+
+    file_size = file_info[STAT_STRING_IDX.SIZE]
+    if file_size > FileSizeLimit.NORMAL_EXEC_FILE:
+        raise ValueError(f"current/remote file's should not be over {FileSizeLimit.NORMAL_EXEC_FILE} Bytes")

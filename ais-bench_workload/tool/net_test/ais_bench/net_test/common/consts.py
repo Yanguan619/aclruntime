@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+DEFAULT_ENV_SCRIPT_PATH = "/usr/local/Ascend/ascend-toolkit/set_env.sh"
+DEFAULT_SSH_KEY_PATH = "/root/.ssh/id_rsa"
+
 class PACKAGE_INFO:
     version = "1.0.0"
 

@@ -111,6 +111,8 @@ class FileChecker:
                 return True
         return False
 
+def check_linux_path_format(file_path: str):
+    _ = FileChecker(file_path) # if format illegal raise OpenException
 
 def check_linux_file_path(
         file_path: str,

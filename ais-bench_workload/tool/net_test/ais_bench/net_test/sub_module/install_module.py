@@ -21,39 +21,46 @@ from abc import abstractmethod, ABCMeta
 from ais_bench.net_test.sub_module.base_sub_module import BaseSubmodule
 from ais_bench.net_test.common.utils import multiprocess_run
 from ais_bench.net_test.common.logger import logger
-from ais_bench.net_test.common.consts import REMOTE_NODE_INFO_NAME, PACKAGE_INFO
-from ais_bench.net_test.ssh.ssh_operation import remote_put, remote_exec
+from ais_bench.net_test.common.consts import REMOTE_NODE_INFO_NAME, PACKAGE_INFO, DEFAULT_ENV_SCRIPT_PATH
+from ais_bench.net_test.ssh.ssh_operation import remote_put, remote_exec, remote_exec_file_check
 
 
 def remote_install_whl_pkg(args_dict):
-        """
-            args_dict: (node_id, node_info, cmd, ssh_key_path),
-        """
-        logger.info(f"node id:{args_dict[REMOTE_NODE_INFO_NAME.NODE_ID]}, " + \
-            f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start installing...")
-        logger.debug(f"All node related info: {args_dict}")
-        remote_exec(
-            args_dict[REMOTE_NODE_INFO_NAME.NODE_ID],
-            args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO],
-            args_dict[REMOTE_NODE_INFO_NAME.CMD],
-            args_dict[REMOTE_NODE_INFO_NAME.SSH_KEY_PATH]
+    """
+        args_dict: (node_id, node_info, cmd, ssh_key_path),
+    """
+    logger.info(f"node id:{args_dict[REMOTE_NODE_INFO_NAME.NODE_ID]}, " + \
+        f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start installing...")
+    logger.debug(f"All node related info: {args_dict}")
+    env_path = REMOTE_NODE_INFO_NAME.CMD.split(";")[0].split()[1]
+    if not env_path == DEFAULT_ENV_SCRIPT_PATH: # check exec env script
+        remote_exec_file_check(
+            env_path,
+            REMOTE_NODE_INFO_NAME.NODE_INFO,
+            REMOTE_NODE_INFO_NAME.SSH_KEY_PATH,
         )
+    remote_exec(
+        args_dict[REMOTE_NODE_INFO_NAME.NODE_ID],
+        args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO],
+        args_dict[REMOTE_NODE_INFO_NAME.CMD],
+        args_dict[REMOTE_NODE_INFO_NAME.SSH_KEY_PATH]
+    )
 
 
 def remote_deploy_whl_pkg(args_dict):
-        """
-            args_dict: (node_id, node_info, src_path, dst_path, ssh_key_path),
-        """
-        logger.info(f"node id:{args_dict[REMOTE_NODE_INFO_NAME.NODE_ID]}, " + \
-            f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start deploying...")
-        logger.debug(f"All node related info: {args_dict}")
-        remote_put(
-            args_dict[REMOTE_NODE_INFO_NAME.NODE_ID],
-            args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO],
-            args_dict[REMOTE_NODE_INFO_NAME.SRC_PATH],
-            args_dict[REMOTE_NODE_INFO_NAME.DST_PATH],
-            args_dict[REMOTE_NODE_INFO_NAME.SSH_KEY_PATH]
-        )
+    """
+        args_dict: (node_id, node_info, src_path, dst_path, ssh_key_path),
+    """
+    logger.info(f"node id:{args_dict[REMOTE_NODE_INFO_NAME.NODE_ID]}, " + \
+        f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start deploying...")
+    logger.debug(f"All node related info: {args_dict}")
+    remote_put(
+        args_dict[REMOTE_NODE_INFO_NAME.NODE_ID],
+        args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO],
+        args_dict[REMOTE_NODE_INFO_NAME.SRC_PATH],
+        args_dict[REMOTE_NODE_INFO_NAME.DST_PATH],
+        args_dict[REMOTE_NODE_INFO_NAME.SSH_KEY_PATH]
+    )
 
 
 class InstallModule(BaseSubmodule):
@@ -141,6 +148,7 @@ class InstallModule(BaseSubmodule):
             cmd = cmd + " --force-reinstall"
 
         cmd = cmd + f";rm -f {pkg_name}" # delete tmp whl pkg
+        cmd = f"source {args.env_script_path};" + cmd
         return cmd
 
     def _gen_install_args_dict_list(self, args):

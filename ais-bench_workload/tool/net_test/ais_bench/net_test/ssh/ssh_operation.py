@@ -20,6 +20,8 @@ import scp
 
 from ais_bench.net_test.common.logger import logger
 from ais_bench.net_test.sub_module.base_sub_module import NodeInfo
+from ais_bench.net_test.security.file_checker import check_linux_path_format
+from ais_bench.net_test.security.other_checker import check_linux_file_stat_string_from_shell
 
 
 def console_origin(line):
@@ -40,6 +42,34 @@ def ssh_client_connect(ssh_client, node_info: NodeInfo, ssh_key_path: str = ""):
             raise RuntimeError(f"ssh connect use ssh key: {ssh_key_path}, server:{ip} port:{port} failed!") from err
     else:
         raise FileExistsError(f"ssh_key_path not offered, can not connect to nodes")
+
+
+def remote_exec_file_check(file_path: str, node_info: NodeInfo, ssh_key_path: str = ""):
+    ssh_client = paramiko.SSHClient()
+    ssh_client_connect(ssh_client, node_info, ssh_key_path)
+    actual_path = file_path.replace(" ","")
+
+    if len(actual_path):
+        raise ValueError("file path is empty!")
+    check_linux_path_format(actual_path)
+
+    get_file_info_cmd = f"ls -l {actual_path}"
+    try:
+        _, stdout, stderr = ssh_client.exec_command(get_file_info_cmd, bufsize=1)
+    except Exception as err:
+        ssh_client.close()
+        raise RuntimeError(f"user:{node_info.user}, server_ip:{node_info.ip}, " +
+            f"port:{node_info.port} exec command:{get_file_info_cmd} failed!") from err
+    error_str = stderr.read().decode("utf-8")
+    if error_str:
+        raise RuntimeError(f"remote check file failed! error log: {error_str}")
+
+    result = stdout.readlines()
+    if len(result) > 0:
+        file_info = result[0].split()
+        check_linux_file_stat_string_from_shell(file_info, node_info.user)
+
+
 
 
 def remote_exec(node_id: int, node_info: NodeInfo, cmd: str, ssh_key_path: str = ""):

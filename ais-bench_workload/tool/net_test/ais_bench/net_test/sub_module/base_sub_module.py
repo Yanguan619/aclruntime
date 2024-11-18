@@ -19,7 +19,7 @@ from abc import abstractmethod, ABCMeta
 from ais_bench.net_test.common.args_adapter import BaseArgsAdapter
 from ais_bench.net_test.security.file_checker import check_linux_readable_file
 from ais_bench.net_test.security.other_checker import check_positive_integer_str
-from ais_bench.net_test.common.consts import OTHERS
+from ais_bench.net_test.common.consts import OTHERS, DEFAULT_SSH_KEY_PATH, DEFAULT_ENV_SCRIPT_PATH
 from ais_bench.net_test.common.args_check import (
     arg_check_hostfile_legalty, arg_check_positive_integer, arg_check_ssh_key_path_legalty,
     arg_check_port_range
@@ -84,7 +84,7 @@ class BaseSubmodule(metaclass=ABCMeta):
             "--ssh_key_path",
             "-skp",
             type=arg_check_ssh_key_path_legalty, # str
-            default="/root/.ssh/id_rsa",
+            default=DEFAULT_SSH_KEY_PATH,
             help="optional, default /root/.ssh/id_rsa, ssh key path"
         )
         self.parser.add_argument(
@@ -98,7 +98,7 @@ class BaseSubmodule(metaclass=ABCMeta):
             "--env_script_path",
             "-esp",
             type=str,
-            default="/usr/local/Ascend/ascend-toolkit/set_env.sh",
+            default=DEFAULT_ENV_SCRIPT_PATH,
             help="optional, default /usr/local/Ascend/ascend-toolkit/set_env.sh, path of shell scripts for set env"
         )
 

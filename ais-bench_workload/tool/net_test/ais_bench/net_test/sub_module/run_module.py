@@ -146,7 +146,7 @@ class RunModule(BaseSubmodule):
 
     @staticmethod
     def _get_npus_used_per_node(op_cmd_string: str):
-        cmd_list = op_cmd_string
+        cmd_list = op_cmd_string.split()
         for i, value in enumerate(cmd_list):
             if i == len(cmd_list) - 1:
                 raise ValueError("can not find info of --npus!")

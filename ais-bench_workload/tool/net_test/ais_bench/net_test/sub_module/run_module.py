@@ -183,7 +183,7 @@ class RunModule(BaseSubmodule):
         self._get_hostfile_content(args)
 
     def _screen_hostfile_info(self, args):
-        npus_per_node = self._get_npus_used_per_node()
+        npus_per_node = self._get_npus_used_per_node(args.op_cmds)
         if npus_per_node <= 0:
             raise ValueError("--npus is not a positive int!")
         if args.rank_size % npus_per_node != 0:

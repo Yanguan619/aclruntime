@@ -189,7 +189,7 @@ class RunModule(BaseSubmodule):
         if args.rank_size % npus_per_node != 0:
             raise ValueError("--rank_size is not a precise multiple of --npus!")
 
-        activate_nodes_count = args.rank_size / npus_per_node
+        activate_nodes_count = int(args.rank_size / npus_per_node)
         if activate_nodes_count > len(self.hostfile_info):
             raise ValueError("--rank_size is over (nodes count in host file) * (npus per node)!")
 

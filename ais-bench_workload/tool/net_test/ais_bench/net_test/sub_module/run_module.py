@@ -145,13 +145,12 @@ class RunModule(BaseSubmodule):
         self.run_mode_factory = RunModeFactory()
 
     @staticmethod
-    def _get_npus_used_per_node(op_cmd_string: str):
-        cmd_list = op_cmd_string.split()
-        for i, value in enumerate(cmd_list):
-            if i == len(cmd_list) - 1:
+    def _get_npus_used_per_node(op_cmd_list: str):
+        for i, value in enumerate(op_cmd_list):
+            if i == len(op_cmd_list) - 1:
                 raise ValueError("can not find info of --npus!")
             if value == "-p" or value == "--npus":
-                return int(cmd_list[i + 1])
+                return int(op_cmd_list[i + 1])
         raise ValueError("can not find info of --npus!")
 
     def add_sub_arguments(self, subparsers):

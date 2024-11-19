@@ -35,7 +35,7 @@ ACL_LIB_DIR = ${ASCEND_DIR}/lib64
 MPI_INC_DIR = ${MPI_HOME}/include
 MPI_LIB_DIR = ${MPI_HOME}/lib
 
-LIST = all_gather_test all_reduce_test alltoallv_test alltoall_test broadcast_test reduce_scatter_test reduce_test
+LIST = all_gather_test all_reduce_test alltoallv_test alltoall_test broadcast_test reduce_scatter_test reduce_test scatter_test
 
 #
 #library flags

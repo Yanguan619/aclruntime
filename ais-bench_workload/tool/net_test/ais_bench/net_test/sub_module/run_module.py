@@ -144,6 +144,16 @@ class RunModule(BaseSubmodule):
         super().__init__(name)
         self.run_mode_factory = RunModeFactory()
 
+    @staticmethod
+    def _get_npus_used_per_node(op_cmd_string: str):
+        cmd_list = op_cmd_string
+        for i, value in enumerate(cmd_list):
+            if i == len(cmd_list) - 1:
+                raise ValueError("can not find info of --npus!")
+            if value == "-p" or value == "--npus":
+                return int(cmd_list[i + 1])
+        raise ValueError("can not find info of --npus!")
+
     def add_sub_arguments(self, subparsers):
         self.parser = subparsers.add_parser(
             self.name,
@@ -165,9 +175,30 @@ class RunModule(BaseSubmodule):
     def exec(self, args):
         self._init_before_exec(args)
         run_mode_instance = self.run_mode_factory.get(args.run_mode)
+        self._screen_hostfile_info(args)
         run_mode_instance(args, self.hostfile_info)
 
     def _init_before_exec(self, args):
         self.arg_adapter.set_all_args_dict(args)
         self._get_hostfile_content(args)
+
+    def _screen_hostfile_info(self, args):
+        npus_per_node = self._get_npus_used_per_node()
+        if npus_per_node <= 0:
+            raise ValueError("--npus is not a positive int!")
+        if args.rank_size % npus_per_node != 0:
+            raise ValueError("--rank_size is not a precise multiple of --npus!")
+
+        activate_nodes_count = args.rank_size / npus_per_node
+        if activate_nodes_count > len(self.hostfile_info):
+            raise ValueError("--rank_size is over (nodes count in host file) * (npus per node)!")
+
+        screened_hostfile_info = {}
+        for i in range(activate_nodes_count):
+            if self.hostfile_info.get(i).device_count < npus_per_node:
+                raise ValueError(f"the count of npus to launch in node: {i} is over permission in hostfile!")
+            screened_hostfile_info[i] = self.hostfile_info.get(i)
+
+        self.hostfile_info = screened_hostfile_info
+
 

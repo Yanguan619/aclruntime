@@ -112,8 +112,8 @@ def get_args():
         "--op",
         "-o",
         type=str,
-        default="sum",
-        choices=["sum", "prod", "min", "max"],
+        default="na",
+        choices=["na", "sum", "prod", "min", "max"],
         help="choose from sum/prod/min/max"
     )
     parser.add_argument(

@@ -79,6 +79,8 @@ all:
 	@printf "\033[0;32;32mreduce_scatter_test completed\n\033[m"
 	g++ $(CXXFLAGS) $(Common_SRC) ${Opbase_DIR}/hccl_reduce_rootinfo_test.cc $(INCLUDEDIRS) -I${Opbase_DIR} -o reduce_test $(LIBS) -D_IONBF
 	@printf "\033[0;32;32mreduce_test compile completed\n\033[m"
+	g++ $(CXXFLAGS) $(Common_SRC) ${Opbase_DIR}/hccl_scatter_rootinfo_test.cc $(INCLUDEDIRS) -I${Opbase_DIR} -o scatter_test $(LIBS) -D_IONBF
+	@printf "\033[0;32;32mscatter_test compile completed\n\033[m"
 	mv $(LIST) ${WORK_DIR}/bin
 
 .PHONY: clean

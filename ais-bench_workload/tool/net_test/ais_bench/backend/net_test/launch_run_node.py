@@ -53,6 +53,8 @@ def get_rank_related_cmd_list(args):
     for op_cmd, value in args.get_rank_related_args_dict().items():
         if (op_cmd == "--stepbytes" and value == 0):
             continue
+        if (op_cmd == "--op" and value == "na"):
+            continue
         sub_cmd_list.append(op_cmd)
         sub_cmd_list.append(f"{value}")
     return sub_cmd_list

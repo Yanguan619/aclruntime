@@ -64,7 +64,7 @@ def get_args():
         default="all_reduce_test",
         choices=[
             "all_reduce_test", "all_gather_test", "alltoall_test", "alltoallv_test",
-            "broadcast_test", "reduce_scatter_test", "reduce_test"
+            "broadcast_test", "reduce_scatter_test", "reduce_test", "scatter_test"
         ],
         help="op task, support \"all_reduce_test\", \"all_gather_test\", \"alltoall_test\", \"alltoallv_test\", " +
             "\"broadcast_test\", \"reduce_scatter_test\", \"reduce_test\""

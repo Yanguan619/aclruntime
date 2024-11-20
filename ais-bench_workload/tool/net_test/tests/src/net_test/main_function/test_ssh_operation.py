@@ -8,9 +8,9 @@ from ais_bench.net_test.sub_module.base_sub_module import NodeInfo
 
 class FakeBufferedFile:
     def read(self):
-        pass
-    def readline(self):
-        pass
+        return b"1"
+    def readline(self, n):
+        return "11"
 
 
 class TestCheckFuncUtils(unittest.TestCase):

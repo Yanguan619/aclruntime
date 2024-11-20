@@ -108,13 +108,14 @@ python3 -m ais_bench run <optional arguments> <op task> <op cmds>
 ##### 常规命令（optional arguments）
 |参数名|简写|说明|是否必选|
 | ---- | ---- | ----- | ----- |
-|--hostfile|-f|Hostfile节点列表文件。目前**单机场景下仍然需配置此文件**。格式参考章节"备注说明/hostfile的格式"|是|
+|--hostfile|-f|Hostfile节点列表文件。单机场景下可以不配置。权限不得超过0o600。格式参考章节"备注说明/hostfile的格式"|是|
 |--rank_size|-n|集群中参与集合通信测评的总device数量，默认值：8|否|
 |--link_port|-lpt|共享root rank信息的端口，默认21345|否|
 |--ssh_key_path|-skp|操作节点ssh私钥的路径默认/root/.ssh/id_rsa| 否|
-|--python|-py|使用的python解释器路径，默认  python3|否|
+|--python|-py|使用的python解释器路径，可选["python3", "python", "python3.7", "python3.8", "python3.9", "python3.10", "python3.11"]，默认 python3|否|
 |--env_script_path|-esp|每个节点上配置环境变量的shell脚本路径，在执行命令前此脚本会先在每个节点上被source，默认 /usr/local/Ascend/ascend-toolkit/set_env.sh|否|
 |--run_mode|-rm|运行模式，目前可选["full"]，默认 "full",所有device统一拉起一次|否|
+|--help|-h|显示帮助信息|
 
 ##### 通信测评任务选择（op task）
 |可选op task|
@@ -129,8 +130,9 @@ python3 -m ais_bench run <optional arguments> <op task> <op cmds>
 |scatter_test|
 
 ##### 后端相关命令（op cmds）
-这部分命令与hccl_test中非mpirun相关命令一致，参考昇腾社区CANN文档中HCCL性能测试工具/工具使用/参数说明中对参数的定义：
+这部分命令与hccl_test中通信算子可执行文件传入的相关命令一致，参考昇腾社区CANN文档中HCCL性能测试工具/工具使用/参数说明中对参数的定义：
 ![xxx](imgs/op_cmd.png)
+
 
 #### install 二级命令
 **整体命令格式：**
@@ -142,15 +144,13 @@ python3 -m ais_bench install <optional arguments> <op task> <op cmds>
 ##### 常规命令（optional arguments）
 |参数名|简写|说明|是否必选|
 | ---- | ---- | ----- | ----- |
-|--hostfile|-f|Hostfile节点列表文件。目前**单机场景下仍然需配置此文件**。格式参考章节"备注说明/hostfile的格式"|是|
-|--rank_size|-n|集群中参与集合通信测评的总device数量，默认值：8|否|
-|--link_port|-lpt|共享root rank信息的端口，默认21345|否|
+|--hostfile|-f|Hostfile节点列表文件。单机场景下可以不配置。权限不得超过0o600。格式参考章节"备注说明/hostfile的格式"|是|
 |--ssh_key_path|-skp|操作节点ssh私钥的路径默认/root/.ssh/id_rsa| 否|
-|--python|-py|使用的python解释器路径，默认  python3|否|
 |--env_script_path|-esp|每个节点上配置环境变量的shell脚本路径，在执行命令前此脚本会先在每个节点上被source，默认 /usr/local/Ascend/ascend-toolkit/set_env.sh|否|
-|--pip|NA|使用的pip的路径，默认 "pip3"|否|
+|--pip|NA|使用的pip解释器，可选["pip3", "pip"]，默认 "pip3"|否|
 |--whl_pkg_path|-wp|ais_bench_net_test软件包路径，默认 "./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl"|否|
 |--force-reinstall|-fr|是否强制在pip install时使用--force-reinstall|否|
+|--help|-h|显示帮助信息|
 
 ## 备注说明
 ### hostfile的格式
@@ -161,4 +161,9 @@ python3 -m ais_bench install <optional arguments> <op task> <op cmds>
 10.10.10.11:3:user1
 10.10.10.11:3:user1:22
 ```
+
+### 运行时（run 子命令）rank_size、hostfile中指定的每节点最大device数以及op cmds中-p的取值的关系
+1. rank_size 需要是-p取值的整数倍
+2. hostfile中会生效的节点是前（rank_size/-p取值）行
+3. 需要确保hostfile中生效的节点的最大device数大于等于-p的取值
 

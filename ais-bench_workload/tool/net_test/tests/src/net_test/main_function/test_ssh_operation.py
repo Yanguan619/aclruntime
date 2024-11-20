@@ -1,6 +1,5 @@
 import unittest
 import paramiko
-from io import StringIO
 from unittest.mock import patch, Mock
 from ais_bench.net_test.ssh.ssh_operation import (ssh_client_connect, remote_exec, remote_exec_file_check, remote_put
     )
@@ -9,6 +8,8 @@ from ais_bench.net_test.sub_module.base_sub_module import NodeInfo
 
 class FakeBufferedFile:
     def read(self):
+        pass
+    def readlines(self):
         pass
 
 
@@ -36,7 +37,7 @@ class TestCheckFuncUtils(unittest.TestCase):
     @patch("paramiko.SSHClient.exec_command")
     def test_remote_exec_file_check(self, mock_exec, mock_connect, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        mock_exec.return_value = ("1", "1", FakeBufferedFile())
+        mock_exec.return_value = ("1", FakeBufferedFile(), FakeBufferedFile())
 
         mock_exec.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "exec command:"):
@@ -54,7 +55,7 @@ class TestCheckFuncUtils(unittest.TestCase):
     @patch("paramiko.SSHClient.exec_command")
     def test_remote_exec(self, mock_exec, mock_connect, mock_console, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        mock_exec.return_value = ("1", "1", StringIO("n"))
+        mock_exec.return_value = ("1", FakeBufferedFile(), FakeBufferedFile())
 
         mock_exec.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "exec command:"):
@@ -63,6 +64,7 @@ class TestCheckFuncUtils(unittest.TestCase):
         mock_exec.side_effect = None
         mock_read = Mock(spec=FakeBufferedFile)
         mock_read.read.return_value = b"ERROR"
+        mock_read.readlines.return_value = "1111111111"
         with self.assertRaisesRegex(RuntimeError, "failed, error log from node:"):
             remote_exec("./", node_info, "./")
 

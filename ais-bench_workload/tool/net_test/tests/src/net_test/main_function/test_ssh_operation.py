@@ -30,8 +30,8 @@ class TestCheckFuncUtils(unittest.TestCase):
     @patch("paramiko.SSHClient.exec_command")
     def test_remote_exec_file_check(self, mock_exec, mock_connect, mock_read, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        stdout = paramiko.ChannelFile(1)
-        stderr = paramiko.ChannelFile(1)
+        stdout = paramiko.ChannelFile(["1"])
+        stderr = paramiko.ChannelFile(["1"])
         mock_exec.return_value = tuple[None, stdout, stderr]
 
         mock_exec.side_effect = Exception('An error occurred')
@@ -51,8 +51,8 @@ class TestCheckFuncUtils(unittest.TestCase):
     @patch("paramiko.SSHClient.exec_command")
     def test_remote_exec(self, mock_exec, mock_connect, mock_console, mock_read, mock_readlines, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        stdout = paramiko.ChannelFile(1)
-        stderr = paramiko.ChannelFile(1)
+        stdout = paramiko.ChannelFile(["1"])
+        stderr = paramiko.ChannelFile(["1"])
         mock_exec.return_value = tuple[None, stdout, stderr]
 
         mock_exec.side_effect = Exception('An error occurred')

@@ -21,7 +21,7 @@ class FakeSCPClient:
     def put(self):
         return
 
-    def closed(self):
+    def close(self):
         return
 
 

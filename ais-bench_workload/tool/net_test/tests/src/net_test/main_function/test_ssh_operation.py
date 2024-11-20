@@ -24,45 +24,37 @@ class TestCheckFuncUtils(unittest.TestCase):
         with self.assertRaisesRegex(FileExistsError, "ssh_key_path not offered"):
             ssh_client_connect(ssh_client, node_info, "")
 
-    @patch("paramiko.ChannelFile", return_value = "1")
     @patch("paramiko.SSHClient.close")
-    @patch("paramiko.ChannelFile.read")
+    @patch("ais_bench.net_test.ssh.ssh_operation.remote_exec_file_check.error_str")
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
     @patch("paramiko.SSHClient.exec_command")
-    def test_remote_exec_file_check(self, mock_exec, mock_connect, mock_read, mock_close, mock_channel):
+    def test_remote_exec_file_check(self, mock_exec, mock_connect, mock_error_str, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        stdout = paramiko.ChannelFile(["1"])
-        stderr = paramiko.ChannelFile(["1"])
-        mock_exec.return_value = tuple[None, stdout, stderr]
+        mock_exec.return_value = tuple["1", "1", "1"]
 
         mock_exec.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "exec command:"):
             remote_exec_file_check("./", node_info, "./")
 
         mock_exec.side_effect = None
-        mock_read.return_value = b"1111"
+        mock_error_str.return_value = "dd"
         with self.assertRaisesRegex(RuntimeError, "remote check file failed! error log"):
             remote_exec_file_check("./", node_info, "./")
 
-    @patch("paramiko.ChannelFile", return_value = "1")
     @patch("paramiko.SSHClient.close")
-    @patch("paramiko.ChannelFile.readlines")
-    @patch("paramiko.ChannelFile.read")
+    @patch("ais_bench.net_test.ssh.ssh_operation.remote_exec.error_str")
     @patch("ais_bench.net_test.ssh.ssh_operation.console_origin")
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
     @patch("paramiko.SSHClient.exec_command")
-    def test_remote_exec(self, mock_exec, mock_connect, mock_console, mock_read, mock_readlines, mock_close, mock_channel):
+    def test_remote_exec(self, mock_exec, mock_connect, mock_console, mock_error_str, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        stdout = paramiko.ChannelFile(["1"])
-        stderr = paramiko.ChannelFile(["1"])
-        mock_exec.return_value = tuple[None, stdout, stderr]
+        mock_exec.return_value = tuple["1", "1", "1"]
 
         mock_exec.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "exec command:"):
             remote_exec_file_check("./", node_info, "./")
 
-        mock_readlines.return_value = ""
-        mock_read.return_value = b"ERROR"
+        mock_error_str.return_value = "ERROR"
         with self.assertRaisesRegex(RuntimeError, "failed, error log from node:"):
             remote_exec("./", node_info, "./")
 

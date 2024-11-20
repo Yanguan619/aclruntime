@@ -30,7 +30,7 @@ class TestCheckFuncUtils(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "is not a string"):
             check_positive_integer_str(["a"])
 
-        long_str = "1" * (LENGTH_LIMIT.MAX_BYTES_STR_LENGTH + 1)
+        long_str = "1" * (LENGTH_LIMIT.MAX_UINT64_STR_LENGTH + 1)
         with self.assertRaisesRegex(ValueError, "is over length limit"):
             check_positive_integer_str(long_str)
 

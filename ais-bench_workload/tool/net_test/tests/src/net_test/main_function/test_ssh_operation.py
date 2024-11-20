@@ -33,7 +33,7 @@ class TestCheckFuncUtils(unittest.TestCase):
             ssh_client_connect(ssh_client, node_info, "")
 
     @patch("paramiko.SSHClient.close")
-    @patch("FakeBufferedFile.read")
+    @patch(".FakeBufferedFile.read")
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
     @patch("paramiko.SSHClient.exec_command")
     def test_remote_exec_file_check(self, mock_exec, mock_connect, mock_read, mock_close):
@@ -50,7 +50,7 @@ class TestCheckFuncUtils(unittest.TestCase):
             remote_exec_file_check("./", node_info, "./")
 
     @patch("paramiko.SSHClient.close")
-    @patch("FakeBufferedFile.read")
+    @patch(".FakeBufferedFile.read")
     @patch("ais_bench.net_test.ssh.ssh_operation.console_origin")
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
     @patch("paramiko.SSHClient.exec_command")

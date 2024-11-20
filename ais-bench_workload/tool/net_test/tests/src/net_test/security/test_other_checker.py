@@ -15,8 +15,8 @@ class TestCheckFuncUtils(unittest.TestCase):
 
     @patch("shutil.disk_usage", return_value = (0, 0, 1000))
     def test_is_disk_space_enough(self, mock_dick):
-        self.assertFalse(is_disk_space_enough(1001))
-        self.assertTrue(is_disk_space_enough(999))
+        self.assertFalse(is_disk_space_enough("./", 1001))
+        self.assertTrue(is_disk_space_enough("./", 999))
 
     @patch("os.sysconf", return_value = 100)
     def test_is_memory_enough(self, monk_sysconf):

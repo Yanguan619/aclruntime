@@ -14,7 +14,7 @@ class FakeBufferedFile:
         return self.data
 
     def readline(self, n):
-        return self.data.decode("utf-8")
+        return [self.data.decode("utf-8") + "\n"]
 
 
 class FakeSCPClient:
@@ -62,10 +62,9 @@ class TestCheckFuncUtils(unittest.TestCase):
 
     @patch("paramiko.SSHClient.close")
     @patch("ais_bench.net_test.ssh.ssh_operation.console_origin")
-    @patch("iter", return_value = ["1"])
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
     @patch("paramiko.SSHClient.exec_command")
-    def test_remote_exec(self, mock_exec, mock_connect, mock_iter, mock_console, mock_close):
+    def test_remote_exec(self, mock_exec, mock_connect, mock_console, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
         mock_exec.return_value = ("1", FakeBufferedFile(b'aa'), FakeBufferedFile(b'a'))
         mock_exec.side_effect = Exception('An error occurred')

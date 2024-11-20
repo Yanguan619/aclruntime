@@ -36,7 +36,7 @@ class TestCheckFuncUtils(unittest.TestCase):
     @patch("paramiko.SSHClient.exec_command")
     def test_remote_exec_file_check(self, mock_exec, mock_connect, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        mock_exec.return_value = tuple["1", "1", FakeBufferedFile()]
+        mock_exec.return_value = ("1", "1", FakeBufferedFile())
 
         mock_exec.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "exec command:"):
@@ -54,7 +54,7 @@ class TestCheckFuncUtils(unittest.TestCase):
     @patch("paramiko.SSHClient.exec_command")
     def test_remote_exec(self, mock_exec, mock_connect, mock_console, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        mock_exec.return_value = tuple["1", "1", StringIO("n")]
+        mock_exec.return_value = ("1", "1", StringIO("n"))
 
         mock_exec.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "exec command:"):

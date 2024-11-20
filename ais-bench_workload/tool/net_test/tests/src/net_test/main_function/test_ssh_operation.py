@@ -1,16 +1,10 @@
 import unittest
 import paramiko
+from io import StringIO
 from unittest.mock import patch
 from ais_bench.net_test.ssh.ssh_operation import (ssh_client_connect, remote_exec, remote_exec_file_check, remote_put
     )
 from ais_bench.net_test.sub_module.base_sub_module import NodeInfo
-
-class FakeBufferedFile:
-    def __init__(self, a = "1"):
-        self.data = a
-
-    def read(self):
-        return self.data
 
 
 class TestCheckFuncUtils(unittest.TestCase):
@@ -33,12 +27,12 @@ class TestCheckFuncUtils(unittest.TestCase):
             ssh_client_connect(ssh_client, node_info, "")
 
     @patch("paramiko.SSHClient.close")
-    @patch(".FakeBufferedFile.read")
+    @patch("io.StringIO.read")
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
     @patch("paramiko.SSHClient.exec_command")
     def test_remote_exec_file_check(self, mock_exec, mock_connect, mock_read, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        mock_exec.return_value = tuple["1", "1", FakeBufferedFile("n")]
+        mock_exec.return_value = tuple["1", "1", StringIO("n")]
 
         mock_exec.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "exec command:"):
@@ -50,13 +44,13 @@ class TestCheckFuncUtils(unittest.TestCase):
             remote_exec_file_check("./", node_info, "./")
 
     @patch("paramiko.SSHClient.close")
-    @patch(".FakeBufferedFile.read")
+    @patch("io.StringIO.read")
     @patch("ais_bench.net_test.ssh.ssh_operation.console_origin")
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
     @patch("paramiko.SSHClient.exec_command")
     def test_remote_exec(self, mock_exec, mock_connect, mock_console, mock_read, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        mock_exec.return_value = tuple["1", "1", FakeBufferedFile("n")]
+        mock_exec.return_value = tuple["1", "1", StringIO("n")]
 
         mock_exec.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "exec command:"):

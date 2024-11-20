@@ -65,7 +65,8 @@ class TestCheckFuncUtils(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "should not be over"):
             check_linux_file_stat_string_from_shell(over_size_str_list, user)
 
-
+if __name__ == '__main__':
+    unittest.main()
 
 
 

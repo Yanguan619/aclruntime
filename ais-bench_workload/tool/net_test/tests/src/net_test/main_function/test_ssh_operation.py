@@ -1,10 +1,15 @@
 import unittest
 import paramiko
 from io import StringIO
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from ais_bench.net_test.ssh.ssh_operation import (ssh_client_connect, remote_exec, remote_exec_file_check, remote_put
     )
 from ais_bench.net_test.sub_module.base_sub_module import NodeInfo
+
+
+class FakeBufferedFile:
+    def read(self):
+        pass
 
 
 class TestCheckFuncUtils(unittest.TestCase):
@@ -27,10 +32,27 @@ class TestCheckFuncUtils(unittest.TestCase):
             ssh_client_connect(ssh_client, node_info, "")
 
     @patch("paramiko.SSHClient.close")
-    @patch("io.StringIO.read")
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
     @patch("paramiko.SSHClient.exec_command")
-    def test_remote_exec_file_check(self, mock_exec, mock_connect, mock_read, mock_close):
+    def test_remote_exec_file_check(self, mock_exec, mock_connect, mock_close):
+        node_info = NodeInfo("XX", 1, "A", 123)
+        mock_exec.return_value = tuple["1", "1", FakeBufferedFile()]
+
+        mock_exec.side_effect = Exception('An error occurred')
+        with self.assertRaisesRegex(RuntimeError, "exec command:"):
+            remote_exec_file_check("./", node_info, "./")
+
+        mock_exec.side_effect = None
+        mock_read = Mock(spec=FakeBufferedFile)
+        mock_read.read.return_value = b"dd"
+        with self.assertRaisesRegex(RuntimeError, "remote check file failed! error log"):
+            remote_exec_file_check("./", node_info, "./")
+
+    @patch("paramiko.SSHClient.close")
+    @patch("ais_bench.net_test.ssh.ssh_operation.console_origin")
+    @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
+    @patch("paramiko.SSHClient.exec_command")
+    def test_remote_exec(self, mock_exec, mock_connect, mock_console, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
         mock_exec.return_value = tuple["1", "1", StringIO("n")]
 
@@ -39,24 +61,8 @@ class TestCheckFuncUtils(unittest.TestCase):
             remote_exec_file_check("./", node_info, "./")
 
         mock_exec.side_effect = None
-        mock_read.return_value = "dd"
-        with self.assertRaisesRegex(RuntimeError, "remote check file failed! error log"):
-            remote_exec_file_check("./", node_info, "./")
-
-    @patch("paramiko.SSHClient.close")
-    @patch("io.StringIO.read")
-    @patch("ais_bench.net_test.ssh.ssh_operation.console_origin")
-    @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
-    @patch("paramiko.SSHClient.exec_command")
-    def test_remote_exec(self, mock_exec, mock_connect, mock_console, mock_read, mock_close):
-        node_info = NodeInfo("XX", 1, "A", 123)
-        mock_exec.return_value = tuple["1", "1", StringIO("n")]
-
-        mock_exec.side_effect = Exception('An error occurred')
-        with self.assertRaisesRegex(RuntimeError, "exec command:"):
-            remote_exec_file_check("./", node_info, "./")
-
-        mock_read.return_value = "ERROR"
+        mock_read = Mock(spec=FakeBufferedFile)
+        mock_read.read.return_value = b"ERROR"
         with self.assertRaisesRegex(RuntimeError, "failed, error log from node:"):
             remote_exec("./", node_info, "./")
 

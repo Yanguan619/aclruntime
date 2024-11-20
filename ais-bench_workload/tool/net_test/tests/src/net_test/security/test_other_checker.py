@@ -1,4 +1,3 @@
-import os
 import unittest
 from unittest.mock import patch
 
@@ -14,7 +13,7 @@ class TestCheckFuncUtils(unittest.TestCase):
     def tearDown(self):
         pass
 
-    @patch("shutils.disk_usage", return_value = (0, 0, 1000))
+    @patch("shutil.disk_usage", return_value = (0, 0, 1000))
     def test_is_disk_space_enough(self, mock_dick):
         self.assertFalse(is_disk_space_enough(1001))
         self.assertTrue(is_disk_space_enough(999))

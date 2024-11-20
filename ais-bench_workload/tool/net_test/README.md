@@ -108,11 +108,11 @@ python3 -m ais_bench run <optional arguments> <op task> <op cmds>
 ##### 常规命令（optional arguments）
 |参数名|简写|说明|是否必选|
 | ---- | ---- | ----- | ----- |
-|--hostfile|-f|Hostfile节点列表文件。单机场景下可以不配置。权限不得超过0o600。格式参考章节"备注说明/hostfile的格式"|是|
+|--hostfile|-f|操作节点上Hostfile节点列表文件。单机场景下可以不配置。权限不得超过0o600。格式参考章节"备注说明/hostfile的格式"|是|
 |--rank_size|-n|集群中参与集合通信测评的总device数量，默认值：8|否|
 |--link_port|-lpt|共享root rank信息的端口，默认21345|否|
 |--ssh_key_path|-skp|操作节点ssh私钥的路径默认/root/.ssh/id_rsa| 否|
-|--python|-py|使用的python解释器路径，可选["python3", "python", "python3.7", "python3.8", "python3.9", "python3.10", "python3.11"]，默认 python3|否|
+|--python|-py|每个节点使用的python解释器，可选["python3", "python", "python3.7", "python3.8", "python3.9", "python3.10", "python3.11"]，默认 python3|否|
 |--env_script_path|-esp|每个节点上配置环境变量的shell脚本路径，在执行命令前此脚本会先在每个节点上被source，默认 /usr/local/Ascend/ascend-toolkit/set_env.sh|否|
 |--run_mode|-rm|运行模式，目前可选["full"]，默认 "full",所有device统一拉起一次|否|
 |--help|-h|显示帮助信息|
@@ -144,12 +144,12 @@ python3 -m ais_bench install <optional arguments> <op task> <op cmds>
 ##### 常规命令（optional arguments）
 |参数名|简写|说明|是否必选|
 | ---- | ---- | ----- | ----- |
-|--hostfile|-f|Hostfile节点列表文件。单机场景下可以不配置。权限不得超过0o600。格式参考章节"备注说明/hostfile的格式"|是|
+|--hostfile|-f|操作节点上Hostfile节点列表文件。单机场景下可以不配置。权限不得超过0o600。格式参考章节"备注说明/hostfile的格式"|是|
 |--ssh_key_path|-skp|操作节点ssh私钥的路径默认/root/.ssh/id_rsa| 否|
 |--env_script_path|-esp|每个节点上配置环境变量的shell脚本路径，在执行命令前此脚本会先在每个节点上被source，默认 /usr/local/Ascend/ascend-toolkit/set_env.sh|否|
-|--pip|NA|使用的pip解释器，可选["pip3", "pip"]，默认 "pip3"|否|
-|--whl_pkg_path|-wp|ais_bench_net_test软件包路径，默认 "./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl"|否|
-|--force-reinstall|-fr|是否强制在pip install时使用--force-reinstall|否|
+|--pip|NA|每个节点使用的pip解释器，可选["pip3", "pip"]，默认 "pip3"|否|
+|--whl_pkg_path|-wp|操作节点上whl包的路径，默认 "./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl"|否|
+|--force-reinstall|-fr|是否强制在pip install时使用--force-reinstall，注意，force-reinstall不重装依赖|否|
 |--help|-h|显示帮助信息|
 
 ## 备注说明

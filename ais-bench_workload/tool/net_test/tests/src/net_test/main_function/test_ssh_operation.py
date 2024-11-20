@@ -9,7 +9,7 @@ from ais_bench.net_test.sub_module.base_sub_module import NodeInfo
 class FakeBufferedFile:
     def read(self):
         pass
-    def readlines(self):
+    def readline(self):
         pass
 
 
@@ -64,7 +64,7 @@ class TestCheckFuncUtils(unittest.TestCase):
         mock_exec.side_effect = None
         mock_read = Mock(spec=FakeBufferedFile)
         mock_read.read.return_value = b"ERROR"
-        mock_read.readlines.return_value = "1111111111"
+        mock_read.readline.return_value = "1111111111"
         with self.assertRaisesRegex(RuntimeError, "failed, error log from node:"):
             remote_exec("./", node_info, "./")
 

@@ -7,10 +7,14 @@ from ais_bench.net_test.sub_module.base_sub_module import NodeInfo
 
 
 class FakeBufferedFile:
+    def __init__(self, bstr: bytes):
+        self.data = bstr
+
     def read(self):
-        return b"1"
+        return self.data
+
     def readline(self, n):
-        return "11"
+        return self.data.decode("utf-8")
 
 
 class TestCheckFuncUtils(unittest.TestCase):
@@ -37,15 +41,14 @@ class TestCheckFuncUtils(unittest.TestCase):
     @patch("paramiko.SSHClient.exec_command")
     def test_remote_exec_file_check(self, mock_exec, mock_connect, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        mock_exec.return_value = ("1", FakeBufferedFile(), FakeBufferedFile())
-
+        mock_exec.return_value = ("1", FakeBufferedFile(b'aa'), FakeBufferedFile(b'a'))
         mock_exec.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "exec command:"):
             remote_exec_file_check("./", node_info, "./")
 
+        mock_exec.return_value = ("1", FakeBufferedFile(b'aaa'), FakeBufferedFile(b'a'))
         mock_exec.side_effect = None
-        mock_read = Mock(spec=FakeBufferedFile)
-        mock_read.read.return_value = b"dd"
+
         with self.assertRaisesRegex(RuntimeError, "remote check file failed! error log"):
             remote_exec_file_check("./", node_info, "./")
 
@@ -55,16 +58,13 @@ class TestCheckFuncUtils(unittest.TestCase):
     @patch("paramiko.SSHClient.exec_command")
     def test_remote_exec(self, mock_exec, mock_connect, mock_console, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        mock_exec.return_value = ("1", FakeBufferedFile(), FakeBufferedFile())
-
+        mock_exec.return_value = ("1", FakeBufferedFile(b'aa'), FakeBufferedFile(b'a'))
         mock_exec.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "exec command:"):
             remote_exec_file_check("./", node_info, "./")
 
+        mock_exec.return_value = ("1", FakeBufferedFile(b'aa'), FakeBufferedFile(b'ERROR'))
         mock_exec.side_effect = None
-        mock_read = Mock(spec=FakeBufferedFile)
-        mock_read.read.return_value = b"ERROR"
-        mock_read.readline.return_value = "1111111111"
         with self.assertRaisesRegex(RuntimeError, "failed, error log from node:"):
             remote_exec("./", node_info, "./")
 

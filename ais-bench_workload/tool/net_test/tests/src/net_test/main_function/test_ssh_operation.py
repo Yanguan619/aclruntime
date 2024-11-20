@@ -24,7 +24,7 @@ class TestCheckFuncUtils(unittest.TestCase):
         with self.assertRaisesRegex(FileExistsError, "ssh_key_path not offered"):
             ssh_client_connect(ssh_client, node_info, "")
 
-    @patch("paramiko.ChannelFile", "1")
+    @patch("paramiko.ChannelFile", return_value = "1")
     @patch("paramiko.SSHClient.close")
     @patch("paramiko.ChannelFile.read")
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
@@ -44,7 +44,7 @@ class TestCheckFuncUtils(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "remote check file failed! error log"):
             remote_exec_file_check("./", node_info, "./")
 
-    @patch("paramiko.ChannelFile", "1")
+    @patch("paramiko.ChannelFile", return_value = "1")
     @patch("paramiko.SSHClient.close")
     @patch("paramiko.ChannelFile.readlines")
     @patch("paramiko.ChannelFile.read")

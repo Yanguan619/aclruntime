@@ -17,6 +17,14 @@ class FakeBufferedFile:
         return self.data.decode("utf-8")
 
 
+class FakeSCPClient:
+    def put(self):
+        return
+
+    def closed(self):
+        return
+
+
 class TestCheckFuncUtils(unittest.TestCase):
     def setUp(self):
         pass
@@ -69,18 +77,18 @@ class TestCheckFuncUtils(unittest.TestCase):
     #         remote_exec(1, node_info, "ls", "./")
 
     @patch("paramiko.SSHClient.close")
-    @patch("scp.SCPClient.close")
-    @patch("scp.SCPClient.put")
     @patch("scp.SCPClient")
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
-    def test_remote_put(self, mock_connect, mock_scp, mock_scp_put, mock_scp_close, mock_ssh_close):
+    def test_remote_put(self, mock_connect, mock_scp,  mock_ssh_close):
         node_info = NodeInfo("XX", 1, "A", 123)
         mock_scp.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "open trans_client failed"):
             remote_put(1, node_info, "./", "./", "./")
 
         mock_scp.side_effect = None
-        mock_scp_put.side_effect = Exception('An error occurred')
+        mock_scp.return_value = FakeSCPClient()
+        mock_fake_scp = Mock(spec=FakeSCPClient)
+        mock_fake_scp.put.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "to dst_path:"):
             remote_put(1, node_info, "./", "./", "./")
 

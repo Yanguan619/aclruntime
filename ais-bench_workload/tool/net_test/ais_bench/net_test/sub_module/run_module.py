@@ -21,7 +21,7 @@ from ais_bench.net_test.common.utils import multiprocess_run
 from ais_bench.net_test.common.logger import logger
 from ais_bench.net_test.ssh.ssh_operation import remote_exec
 from ais_bench.net_test.common.consts import RUN_MODE_NAME, REMOTE_NODE_INFO_NAME, OP_TASK, OP_CMD_HELP_INFO, RET
-
+from ais_bench.net_test.common.args_check import (arg_check_positive_integer, arg_check_port_range)
 
 class BaseRunMode(metaclass=ABCMeta):
     def __init__(self) -> None:
@@ -162,6 +162,27 @@ class RunModule(BaseSubmodule):
         )
         super().add_base_arguments()
         # 运行任务选择
+        self.parser.add_argument(
+            "--rank_size",
+            "-n",
+            type=arg_check_positive_integer, # str
+            default=8,
+            help="optional, default 8, rank_size(number of devices in all nodes)"
+        )
+        self.parser.add_argument(
+            "--link_port",
+            "-lpt",
+            type=arg_check_port_range, # int
+            default=21345,
+            help="optional, default 21345, port to share root info"
+        )
+        self.parser.add_argument(
+            "--python",
+            "-py",
+            default="python3",
+            choices=["python3", "python", "python3.7", "python3.8", "python3.9", "python3.10", "python3.11"],
+            help="optional, default python3, python interpreter"
+        )
         self.parser.add_argument(
             "--run_mode",
             "-rm",

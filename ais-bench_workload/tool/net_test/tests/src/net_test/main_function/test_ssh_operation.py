@@ -14,8 +14,7 @@ class FakeBufferedFile:
         return self.data
 
     def readline(self, n):
-        return [self.data.decode("utf-8") + "\n"]
-
+        return "aa"
 
 class FakeSCPClient:
     def put(self):

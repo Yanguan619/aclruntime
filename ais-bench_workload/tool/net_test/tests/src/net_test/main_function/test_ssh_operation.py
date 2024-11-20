@@ -5,6 +5,14 @@ from ais_bench.net_test.ssh.ssh_operation import (ssh_client_connect, remote_exe
     )
 from ais_bench.net_test.sub_module.base_sub_module import NodeInfo
 
+class FakeBufferedFile:
+    def __init__(self, a = "1"):
+        self.data = a
+
+    def read(self):
+        return self.data
+
+
 class TestCheckFuncUtils(unittest.TestCase):
     def setUp(self):
         pass
@@ -25,36 +33,36 @@ class TestCheckFuncUtils(unittest.TestCase):
             ssh_client_connect(ssh_client, node_info, "")
 
     @patch("paramiko.SSHClient.close")
-    @patch("ais_bench.net_test.ssh.ssh_operation.remote_exec_file_check.error_str")
+    @patch("FakeBufferedFile.read")
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
     @patch("paramiko.SSHClient.exec_command")
-    def test_remote_exec_file_check(self, mock_exec, mock_connect, mock_error_str, mock_close):
+    def test_remote_exec_file_check(self, mock_exec, mock_connect, mock_read, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        mock_exec.return_value = tuple["1", "1", "1"]
+        mock_exec.return_value = tuple["1", "1", FakeBufferedFile("n")]
 
         mock_exec.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "exec command:"):
             remote_exec_file_check("./", node_info, "./")
 
         mock_exec.side_effect = None
-        mock_error_str.return_value = "dd"
+        mock_read.return_value = "dd"
         with self.assertRaisesRegex(RuntimeError, "remote check file failed! error log"):
             remote_exec_file_check("./", node_info, "./")
 
     @patch("paramiko.SSHClient.close")
-    @patch("ais_bench.net_test.ssh.ssh_operation.remote_exec.error_str")
+    @patch("FakeBufferedFile.read")
     @patch("ais_bench.net_test.ssh.ssh_operation.console_origin")
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
     @patch("paramiko.SSHClient.exec_command")
-    def test_remote_exec(self, mock_exec, mock_connect, mock_console, mock_error_str, mock_close):
+    def test_remote_exec(self, mock_exec, mock_connect, mock_console, mock_read, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
-        mock_exec.return_value = tuple["1", "1", "1"]
+        mock_exec.return_value = tuple["1", "1", FakeBufferedFile("n")]
 
         mock_exec.side_effect = Exception('An error occurred')
         with self.assertRaisesRegex(RuntimeError, "exec command:"):
             remote_exec_file_check("./", node_info, "./")
 
-        mock_error_str.return_value = "ERROR"
+        mock_read.return_value = "ERROR"
         with self.assertRaisesRegex(RuntimeError, "failed, error log from node:"):
             remote_exec("./", node_info, "./")
 

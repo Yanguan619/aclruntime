@@ -59,7 +59,7 @@ class TestClass:
                 "dvpp_freq": "50",
             }
         }
-        os.environ.pop('AIT_NO_MSPROF_MODE', None)
+        os.environ.pop('MSIT_NO_MSPROF_MODE', None)
         json_path = os.path.realpath("acl_test.json")
         self.generate_acl_json(json_path, output_json_dict)
         cmd_dict = get_legal_json_content(json_path)

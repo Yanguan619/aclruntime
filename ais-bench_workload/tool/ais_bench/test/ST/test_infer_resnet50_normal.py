@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 OPEN_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
 OPEN_MODES = stat.S_IWUSR | stat.S_IRUSR
-MSPROF_SWITCH = 'AIT_NO_MSPROF_MODE'
+MSPROF_SWITCH = 'MSIT_NO_MSPROF_MODE'
 
 
 class TestClass:
@@ -975,7 +975,7 @@ class TestClass:
         log_path = os.path.join(output_path, "profiler.log")
         model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
 
-        # when AIT_NO_MSPROF_MODE=0
+        # when MSIT_NO_MSPROF_MODE=0
         env_label = os.getenv(MSPROF_SWITCH, 'null')
         if env_label != 'null':
             del os.environ[MSPROF_SWITCH]
@@ -999,7 +999,7 @@ class TestClass:
         else:
             assert label_is_exist is False
 
-        # when AIT_NO_MSPROF_MODE=1
+        # when MSIT_NO_MSPROF_MODE=1
         os.environ[MSPROF_SWITCH] = "1"
         label_is_exist = False
         os.remove(log_path)
@@ -1015,7 +1015,7 @@ class TestClass:
 
         with open(log_path) as f:
             for line in f:
-                if "find AIT_NO_MSPROF_MODE set" in line:
+                if "find MSIT_NO_MSPROF_MODE set" in line:
                     label_is_exist = True
                     break
 

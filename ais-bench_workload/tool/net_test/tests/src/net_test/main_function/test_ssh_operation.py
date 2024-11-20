@@ -27,7 +27,7 @@ class TestCheckFuncUtils(unittest.TestCase):
     @patch("paramiko.SSHClient.close")
     @patch("paramiko.ChannelFile.read")
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
-    @patch("paramiko.SSHClient.exec_commamd")
+    @patch("paramiko.SSHClient.exec_command")
     def test_remote_exec_file_check(self, mock_exec, mock_connect, mock_read, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
         stdout = paramiko.ChannelFile()
@@ -48,7 +48,7 @@ class TestCheckFuncUtils(unittest.TestCase):
     @patch("paramiko.ChannelFile.read")
     @patch("ais_bench.net_test.ssh.ssh_operation.console_origin")
     @patch("ais_bench.net_test.ssh.ssh_operation.ssh_client_connect")
-    @patch("paramiko.SSHClient.exec_commamd")
+    @patch("paramiko.SSHClient.exec_command")
     def test_remote_exec(self, mock_exec, mock_connect, mock_console, mock_read, mock_readlines, mock_close):
         node_info = NodeInfo("XX", 1, "A", 123)
         stdout = paramiko.ChannelFile()

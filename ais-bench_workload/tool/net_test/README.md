@@ -27,7 +27,7 @@ ssh-copy-id -i ~/.ssh/id_rsa.pub <user1>@<node1 ip>
 3. 从SSH远程登录`<user>@<node ip>`，确认可以直接免密登录
 **注意：**当前工具使用SSH只支持ipv4。
 
-### 工具安装方式
+### 工具安装与卸载
 #### 获取whl包
 从[工具发布界面](RELEASE_INFO.md)获取工具安装包`ais_bench_net_test-<version>-py3-none-linux_<arch>.whl`
 
@@ -65,8 +65,8 @@ pip3 uninstall ais_bench_net_test
 #### 准备好hostfile
 hostfile的内容如下
 ```bash
-1.1.1.0:8
-1.1.1.1:8
+10.1.1.0:8
+10.1.1.1:8
 ```
 #### 启动工具进行集合通信测试
 执行如下命令：
@@ -76,7 +76,7 @@ python3 -m ais_bench -f hostfile -n 16 all_reduce_test -p 8 -b 8K -e 64M -f 2 -d
 该命令的含义是在双机共16卡上执行测试数据大小起始值为8KB，结束值为64MB，数据增量乘法因子为2的all_reduce集合通信测试任务。
 
 ### 命令行参数说明
-**整体命令格式：**
+整体命令格式：
 ```bash
 python3 -m ais_bench <sub module> <other cmds>
 ```
@@ -103,7 +103,7 @@ optional arguments:
 |install|安装功能|为集群中操作节点以外的其他节点一键安装软件包|
 
 #### run 二级命令
-**整体命令格式：**
+整体命令格式：
 ```bash
 # 默认不带run二级命令
 python3 -m ais_bench <optional arguments> <op task> <op cmds>
@@ -154,7 +154,7 @@ python3 -m ais_bench install <optional arguments> <op task> <op cmds>
 |--ssh_key_path|-skp|操作节点ssh私钥的路径默认/root/.ssh/id_rsa| 否|
 |--env_script_path|-esp|每个节点上配置环境变量的shell脚本路径，在执行命令前此脚本会先在每个节点上被source，默认 /usr/local/Ascend/ascend-toolkit/set_env.sh|否|
 |--pip|NA|每个节点使用的pip解释器，可选["pip3", "pip"]，默认 "pip3"|否|
-|--whl_pkg_path|-wp|操作节点上whl包的路径，默认 `./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl`|否|
+|--whl_pkg_path|-wp|操作节点上whl包的路径，默认识别 `./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl`用于安装|否|
 |--force-reinstall|-fr|为其他节点安装whl包时执行强制安装，该操作不会重装whl包的依赖包|否|
 |--help|-h|显示帮助信息|
 

@@ -27,7 +27,7 @@ ssh-copy-id -i ~/.ssh/id_rsa.pub <user1>@<node1 ip>
 3. 从SSH远程登录`<user>@<node ip>`，确认可以直接免密登录
 **注意：**当前工具使用SSH只支持ipv4。
 
-### 工具安装方式
+### 工具安装与卸载
 #### 获取whl包
 从[工具发布界面](RELEASE_INFO.md)获取工具安装包`ais_bench_net_test-<version>-py3-none-linux_<arch>.whl`
 
@@ -53,14 +53,20 @@ python3 -m ais_bench install -f <hostfile>
 ```
 其中hostfile内容的配置参考 章节"备注说明/hostfile的格式"
 
+#### 卸载whl包
+在每个安装了本工具的集群环境中，执行如下命令卸载本工具：
+```bash
+pip3 uninstall ais_bench_net_test
+```
+
 ## 使用方法
 ### 快速上手
 假设有一个双机集群，集群每个节点都有8张device可以使用，节点的os ip分别为1.1.1.0 和 1.1.1.1，将1.1.1.0这个节点作为操作节点。
 #### 准备好hostfile
 hostfile的内容如下
 ```bash
-1.1.1.0:8
-1.1.1.1:8
+10.1.1.0:8
+10.1.1.1:8
 ```
 #### 启动工具进行集合通信测试
 执行如下命令：
@@ -70,7 +76,7 @@ python3 -m ais_bench -f hostfile -n 16 all_reduce_test -p 8 -b 8K -e 64M -f 2 -d
 该命令的含义是在双机共16卡上执行测试数据大小起始值为8KB，结束值为64MB，数据增量乘法因子为2的all_reduce集合通信测试任务。
 
 ### 命令行参数说明
-**整体命令格式：**
+整体命令格式：
 ```bash
 python3 -m ais_bench <sub module> <other cmds>
 ```
@@ -94,10 +100,10 @@ optional arguments:
 |二级命令|含义|备注|
 | ---- | ---- | ---- |
 |run|运行集合通信任务|默认的二级命令，在执行此二级命令时不需要手动指定|
-|install|安装功能||
+|install|安装功能|为集群中操作节点以外的其他节点一键安装软件包|
 
 #### run 二级命令
-**整体命令格式：**
+整体命令格式：
 ```bash
 # 默认不带run二级命令
 python3 -m ais_bench <optional arguments> <op task> <op cmds>
@@ -108,15 +114,16 @@ python3 -m ais_bench run <optional arguments> <op task> <op cmds>
 ##### 常规命令（optional arguments）
 |参数名|简写|说明|是否必选|
 | ---- | ---- | ----- | ----- |
-|--hostfile|-f|Hostfile节点列表文件。目前**单机场景下仍然需配置此文件**。格式参考章节"备注说明/hostfile的格式"|是|
+|--hostfile|-f|操作节点上Hostfile节点列表文件。单机场景下可以不配置。权限不得超过0o600。格式参考章节"备注说明/hostfile的格式"|是|
 |--rank_size|-n|集群中参与集合通信测评的总device数量，默认值：8|否|
 |--link_port|-lpt|共享root rank信息的端口，默认21345|否|
 |--ssh_key_path|-skp|操作节点ssh私钥的路径默认/root/.ssh/id_rsa| 否|
-|--python|-py|使用的python解释器路径，默认  python3|否|
+|--python|-py|每个节点使用的python解释器，可选["python3", "python", "python3.7", "python3.8", "python3.9", "python3.10", "python3.11"]，默认 python3|否|
 |--env_script_path|-esp|每个节点上配置环境变量的shell脚本路径，在执行命令前此脚本会先在每个节点上被source，默认 /usr/local/Ascend/ascend-toolkit/set_env.sh|否|
 |--run_mode|-rm|运行模式，目前可选["full"]，默认 "full",所有device统一拉起一次|否|
+|--help|-h|显示帮助信息|
 
-##### 通信测评任务选择（op task）
+##### 通信算子任务选择（op task）
 |可选op task|
 | ---- |
 |all_gather_test|
@@ -129,8 +136,9 @@ python3 -m ais_bench run <optional arguments> <op task> <op cmds>
 |scatter_test|
 
 ##### 后端相关命令（op cmds）
-这部分命令与hccl_test中非mpirun相关命令一致，参考昇腾社区CANN文档中HCCL性能测试工具/工具使用/参数说明中对参数的定义：
+这部分命令与hccl_test中通信算子可执行文件传入的相关命令一致，参考昇腾社区CANN文档中HCCL性能测试工具/工具使用/参数说明中[HCCL Test相关参数]<br>(https://www.hiascend.com/document/detail/zh/canncommercial/80RC3/devaids/devtools/hccltool/HCCLpertest_16_0005.html)：
 ![xxx](imgs/op_cmd.png)
+
 
 #### install 二级命令
 **整体命令格式：**
@@ -142,15 +150,19 @@ python3 -m ais_bench install <optional arguments> <op task> <op cmds>
 ##### 常规命令（optional arguments）
 |参数名|简写|说明|是否必选|
 | ---- | ---- | ----- | ----- |
-|--hostfile|-f|Hostfile节点列表文件。目前**单机场景下仍然需配置此文件**。格式参考章节"备注说明/hostfile的格式"|是|
-|--rank_size|-n|集群中参与集合通信测评的总device数量，默认值：8|否|
-|--link_port|-lpt|共享root rank信息的端口，默认21345|否|
+|--hostfile|-f|操作节点上Hostfile节点列表文件。单机场景下可以不配置。权限不得超过0o600。格式参考章节"备注说明/hostfile的格式"|是|
 |--ssh_key_path|-skp|操作节点ssh私钥的路径默认/root/.ssh/id_rsa| 否|
-|--python|-py|使用的python解释器路径，默认  python3|否|
 |--env_script_path|-esp|每个节点上配置环境变量的shell脚本路径，在执行命令前此脚本会先在每个节点上被source，默认 /usr/local/Ascend/ascend-toolkit/set_env.sh|否|
-|--pip|NA|使用的pip的路径，默认 "pip3"|否|
-|--whl_pkg_path|-wp|ais_bench_net_test软件包路径，默认 "./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl"|否|
-|--force-reinstall|-fr|是否强制在pip install时使用--force-reinstall|否|
+|--pip|NA|每个节点使用的pip解释器，可选["pip3", "pip"]，默认 "pip3"|否|
+|--whl_pkg_path|-wp|操作节点上whl包的路径，默认识别 `./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl`用于安装|否|
+|--force-reinstall|-fr|为其他节点安装whl包时执行强制安装，该操作不会重装whl包的依赖包|否|
+|--help|-h|显示帮助信息|
+
+### 运行结果说明
+参考昇腾社区CANN文档中HCCL性能测试工具/工具使用/[结果说明章节](https://www.hiascend.com/document/detail/zh/canncommercial/80RC3/devaids/devtools/hccltool/HCCLpertest_16_0006.html)
+
+### 规格约束说明
+参考昇腾社区CANN文档中HCCL性能测试工具/工具使用/[规格约束章节](https://www.hiascend.com/document/detail/zh/canncommercial/80RC3/devaids/devtools/hccltool/HCCLpertest_16_0007.html)
 
 ## 备注说明
 ### hostfile的格式
@@ -161,4 +173,9 @@ python3 -m ais_bench install <optional arguments> <op task> <op cmds>
 10.10.10.11:3:user1
 10.10.10.11:3:user1:22
 ```
+
+### 运行时（run 子命令）rank_size、hostfile中指定的每节点最大device数以及op cmds中-p的取值的关系
+1. rank_size 需要是-p取值的整数倍
+2. hostfile中只有前N行节点信息会生效，其中N=(rank_size/-p取值)。
+3. 需要确保hostfile中生效的节点的最大device数大于等于-p的取值
 

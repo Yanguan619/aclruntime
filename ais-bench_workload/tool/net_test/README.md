@@ -176,6 +176,6 @@ python3 -m ais_bench install <optional arguments> <op task> <op cmds>
 
 ### 运行时（run 子命令）rank_size、hostfile中指定的每节点最大device数以及op cmds中-p的取值的关系
 1. rank_size 需要是-p取值的整数倍
-2. hostfile中会生效的节点信息是前（rank_size/-p取值）行
+2. hostfile中只有前N行节点信息会生效，其中N=(rank_size/-p取值)。
 3. 需要确保hostfile中生效的节点信息的最大device数大于等于-p的取值
 

@@ -100,7 +100,7 @@ optional arguments:
 |二级命令|含义|备注|
 | ---- | ---- | ---- |
 |run|运行集合通信任务|默认的二级命令，在执行此二级命令时不需要手动指定|
-|install|安装功能|为集群中操作节点以外的节点一键安装软件包|
+|install|安装功能|为集群中操作节点以外的其他节点一键安装软件包|
 
 #### run 二级命令
 **整体命令格式：**
@@ -154,8 +154,8 @@ python3 -m ais_bench install <optional arguments> <op task> <op cmds>
 |--ssh_key_path|-skp|操作节点ssh私钥的路径默认/root/.ssh/id_rsa| 否|
 |--env_script_path|-esp|每个节点上配置环境变量的shell脚本路径，在执行命令前此脚本会先在每个节点上被source，默认 /usr/local/Ascend/ascend-toolkit/set_env.sh|否|
 |--pip|NA|每个节点使用的pip解释器，可选["pip3", "pip"]，默认 "pip3"|否|
-|--whl_pkg_path|-wp|操作节点上whl包的路径，默认 "./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl"|否|
-|--force-reinstall|-fr|是否强制在为其他节点执行pip install时使用--force-reinstall，注意，force-reinstall不重装依赖|否|
+|--whl_pkg_path|-wp|操作节点上whl包的路径，默认 `./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl`|否|
+|--force-reinstall|-fr|为其他节点安装whl包时执行强制安装，该操作不会重装whl包的依赖包|否|
 |--help|-h|显示帮助信息|
 
 ### 运行结果说明

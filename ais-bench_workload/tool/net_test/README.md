@@ -123,7 +123,7 @@ python3 -m ais_bench run <optional arguments> <op task> <op cmds>
 |--run_mode|-rm|运行模式，目前可选["full"]，默认 "full",所有device统一拉起一次|否|
 |--help|-h|显示帮助信息|
 
-##### 通信测评任务选择（op task）
+##### 通信算子任务选择（op task）
 |可选op task|
 | ---- |
 |all_gather_test|

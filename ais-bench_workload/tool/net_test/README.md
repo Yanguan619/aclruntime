@@ -136,7 +136,7 @@ python3 -m ais_bench run <optional arguments> <op task> <op cmds>
 |scatter_test|
 
 ##### 后端相关命令（op cmds）
-这部分命令与hccl_test中通信算子可执行文件传入的相关命令一致，参考昇腾社区CANN文档中HCCL性能测试工具/工具使用/参数说明中[HCCL Test相关参数](https://www.hiascend.com/document/detail/zh/canncommercial/80RC3/quickstart/quickstart/quickstart_18_0001.html?sub_id=%2Fzh%2Fcanncommercial%2F80RC3%2Fdevaids%2Fdevtools%2Fhccltool%2FHCCLpertest_16_0005.html)：
+这部分命令与hccl_test中通信算子可执行文件传入的相关命令一致，参考昇腾社区CANN文档中HCCL性能测试工具/工具使用/参数说明中[HCCL Test相关参数]<br>(https://www.hiascend.com/document/detail/zh/canncommercial/80RC3/quickstart/quickstart/quickstart_18_0001.html?sub_id=%2Fzh%2Fcanncommercial%2F80RC3%2Fdevaids%2Fdevtools%2Fhccltool%2FHCCLpertest_16_0005.html)：
 ![xxx](imgs/op_cmd.png)
 
 

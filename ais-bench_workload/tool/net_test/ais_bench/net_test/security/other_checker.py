@@ -33,16 +33,16 @@ def check_positive_integer_str(value):
     if value is None:
         return
     if not isinstance(value, str):
-        raise ValueError(f"{value} is not a string")
+        raise ValueError(f"int string to check is not a string")
     if not value:
         return
     if len(value) > LENGTH_LIMIT.MAX_UINT64_STR_LENGTH:
-        raise ValueError(f"{value} is an invalid positive int value")
+        raise ValueError(f"int string to check is over length limit")
     if not value.isdigit():
-        raise ValueError(f"{value} is an invalid positive int value")
+        raise ValueError(f"int string to check is an invalid positive int value")
     ivalue = int(value)
     if ivalue == 0:
-        raise ValueError("%s is an invalid positive int value" % value)
+        raise ValueError(f"{value} is not positive")
 
 
 def check_linux_file_stat_string_from_shell(file_info: list, user: str):

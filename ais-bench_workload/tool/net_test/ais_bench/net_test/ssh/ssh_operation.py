@@ -70,6 +70,7 @@ def remote_exec_file_check(file_path: str, node_info: NodeInfo, ssh_key_path: st
     if len(result) > 0:
         file_info = result[0].split()
         check_linux_file_stat_string_from_shell(file_info, node_info.user)
+    ssh_client.close()
 
 
 def remote_exec(node_id: int, node_info: NodeInfo, cmd: str, ssh_key_path: str = ""):

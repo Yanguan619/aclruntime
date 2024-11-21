@@ -55,7 +55,7 @@ function test_different_device_count_run()
 function test_different_op_task_run()
 {
     op_task_list=("all_gather_test" "all_reduce_test" "alltoall_test" "alltoallv_test" \
-        "broadcast_test" "reduce_scatter_test" "reduce_test")
+        "broadcast_test" "reduce_scatter_test" "reduce_test" "scatter_test")
 
     for op_task in ${op_task_list[@]}; do
         parallel_run $op_task 2

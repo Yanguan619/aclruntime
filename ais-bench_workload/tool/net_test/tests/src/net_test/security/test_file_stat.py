@@ -96,3 +96,7 @@ class TestFileStat(unittest.TestCase):
     def test_file(self):
         with self.assertRaises(OpenException):
             file_stat = FileStat("/fake/path/:/file.txt")
+
+
+if __name__ == '__main__':
+    unittest.main()

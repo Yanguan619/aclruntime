@@ -17,13 +17,9 @@ import argparse
 from abc import abstractmethod, ABCMeta
 
 from ais_bench.net_test.common.args_adapter import BaseArgsAdapter
-from ais_bench.net_test.security.file_checker import check_linux_readable_file
 from ais_bench.net_test.security.other_checker import check_positive_integer_str
 from ais_bench.net_test.common.consts import OTHERS, DEFAULT_SSH_KEY_PATH, DEFAULT_ENV_SCRIPT_PATH
-from ais_bench.net_test.common.args_check import (
-    arg_check_hostfile_legalty, arg_check_positive_integer, arg_check_ssh_key_path_legalty,
-    arg_check_port_range
-)
+from ais_bench.net_test.common.args_check import (arg_check_hostfile_legalty, arg_check_ssh_key_path_legalty)
 from ais_bench.net_test.common.utils import get_actual_device_count, get_ip_address, get_user_name, get_default_port
 from ais_bench.net_test.security.file_stat import ms_open
 
@@ -67,32 +63,11 @@ class BaseSubmodule(metaclass=ABCMeta):
             help="required, npus used for one node"
         )
         self.parser.add_argument(
-            "--rank_size",
-            "-n",
-            type=arg_check_positive_integer, # str
-            default=8,
-            help="optional, default 8, rank_size(number of devices in all nodes)"
-        )
-        self.parser.add_argument(
-            "--link_port",
-            "-lpt",
-            type=arg_check_port_range, # int
-            default=21345,
-            help="optional, default 21345, port to share root info"
-        )
-        self.parser.add_argument(
             "--ssh_key_path",
             "-skp",
             type=arg_check_ssh_key_path_legalty, # str
             default=DEFAULT_SSH_KEY_PATH,
             help="optional, default /root/.ssh/id_rsa, ssh key path"
-        )
-        self.parser.add_argument(
-            "--python",
-            "-py",
-            default="python3",
-            choices=["python3", "python", "python3.7", "python3.8", "python3.9", "python3.10", "python3.11"],
-            help="optional, default python3, python interpreter"
         )
         self.parser.add_argument(
             "--env_script_path",
@@ -112,12 +87,9 @@ class BaseSubmodule(metaclass=ABCMeta):
 
     def _get_hostfile_content(self, args):
         if not args.hostfile:
-            actual_device_count = get_actual_device_count()
-            if args.rank_size > actual_device_count:
-                raise ValueError(f"rank_size:{args.rank_size} shouldn't larger than actual device count: {actual_device_count}")
             self.hostfile_info[0] = NodeInfo(
                 get_ip_address(),
-                args.rank_size,
+                get_actual_device_count(),
                 get_user_name(),
                 get_default_port(),
             )

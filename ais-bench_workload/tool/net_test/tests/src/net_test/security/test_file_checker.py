@@ -52,7 +52,7 @@ class TestCheckLinuxFilePath(unittest.TestCase):
             check_linux_file_path(str(file_path))
 
     def test_illegal_permission(self):
-        for permission in [0o641, 0o642, 0o644]:
+        for permission in [0o647, 0o770]:
             file_path = self.file_creator.create_file('test.txt', permission=permission)
             with self.assertRaisesRegex(ValueError, "path's permission is illegal."):
                 check_linux_file_path(str(file_path), perm_need=PermNeed.READ_FILE,

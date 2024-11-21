@@ -18,6 +18,7 @@ from ais_bench.backend.net_test.common.args_check import (
     arg_check_nonnegative_integer, arg_check_bytes_format, arg_check_device_count_range,
     arg_check_device_id_range, combination_args_check
 )
+from ais_bench.net_test.common.consts import OP_TASK
 
 
 def get_args():
@@ -62,12 +63,9 @@ def get_args():
         "-otk",
         type=str,
         default="all_reduce_test",
-        choices=[
-            "all_reduce_test", "all_gather_test", "alltoall_test", "alltoallv_test",
-            "broadcast_test", "reduce_scatter_test", "reduce_test"
-        ],
+        choices=OP_TASK,
         help="op task, support \"all_reduce_test\", \"all_gather_test\", \"alltoall_test\", \"alltoallv_test\", " +
-            "\"broadcast_test\", \"reduce_scatter_test\", \"reduce_test\""
+            "\"broadcast_test\", \"reduce_scatter_test\", \"reduce_test\", \"scatter_test\""
     )
 
     # 集合通信性能测试命令支持的参数
@@ -112,8 +110,8 @@ def get_args():
         "--op",
         "-o",
         type=str,
-        default="sum",
-        choices=["sum", "prod", "min", "max"],
+        default="na",
+        choices=["na", "sum", "prod", "min", "max"],
         help="choose from sum/prod/min/max"
     )
     parser.add_argument(

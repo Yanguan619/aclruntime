@@ -29,6 +29,7 @@ OP_TASK_LIST = [
     "broadcast_test",
     "reduce_scatter_test",
     "reduce_test",
+    "scatter_test",
 ]
 
 

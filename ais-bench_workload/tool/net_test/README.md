@@ -53,6 +53,12 @@ python3 -m ais_bench install -f <hostfile>
 ```
 其中hostfile内容的配置参考 章节"备注说明/hostfile的格式"
 
+#### 卸载whl包
+在每个安装了本工具的集群环境中，执行如下命令卸载本工具：
+```bash
+pip3 uninstall ais_bench_net_test
+```
+
 ## 使用方法
 ### 快速上手
 假设有一个双机集群，集群每个节点都有8张device可以使用，节点的os ip分别为1.1.1.0 和 1.1.1.1，将1.1.1.0这个节点作为操作节点。

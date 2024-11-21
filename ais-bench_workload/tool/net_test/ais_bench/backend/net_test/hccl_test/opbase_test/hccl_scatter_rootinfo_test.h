@@ -6,6 +6,7 @@
 #endif
 #include "hccl_check_common.h"
 #include "hccl_opbase_rootinfo_base.h"
+#include "hccl_test_logger.h"
 namespace hccl
 {
     HcclTest* init_opbase_ptr(HcclTest* opbase);

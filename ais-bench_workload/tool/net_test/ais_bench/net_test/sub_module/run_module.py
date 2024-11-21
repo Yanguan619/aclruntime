@@ -76,6 +76,8 @@ class FullRun(BaseRunMode):
     def _refresh_npus_for_node(self, node_id, args):
         for i, arg in enumerate(args.op_cmds):
             if arg == "--npus":
+                if i == len(args.op_cmds) - 1:
+                    return
                 if args.op_cmds[i + 1].isdigit():
                     args.op_cmds[i + 1] = self.hostfile_info.get(node_id).device_count
                 else:

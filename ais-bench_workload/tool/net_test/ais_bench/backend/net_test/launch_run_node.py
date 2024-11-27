@@ -41,6 +41,17 @@ def run_hccl_test_exec_command(cmd_list):
     return RET.SUCCESS, ""
 
 
+def check_root_port_free(args):
+    if args.node_id != 0:
+        return RET.SUCCESS
+    cmd_list = ["ss", "-tuln", "|", "grep", f"':{args.server_port} '"]
+    p = subprocess.Popen(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, _ = p.communicate()
+    if stdout:
+        return RET.FAILED
+    return RET.SUCCESS
+
+
 def generate_rank_id_list(args):
     rank_id_list = []
     for i in range(args.npus):
@@ -88,9 +99,11 @@ def parse_result(results, args):
             return result[0]
         if result[1]:
             print(result[1])
-    return RET.SUCCESS
+
 
 def launch_run_node(args):
+    if check_root_port_free(args) != RET.SUCCESS:
+        return RET.FAILED
     command_lists = construct_command_lists(args)
     results = multiprocess_run(args.npus, command_lists)
     ret = parse_result(results, args)

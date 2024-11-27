@@ -97,7 +97,7 @@ class InstallModule(BaseSubmodule):
 
     def exec(self, args):
         self._init_before_exec(args)
-        self._erase_self_node_info(self)
+        self._erase_self_node_info()
         if len(self.hostfile_info) > 0:
             self._deploy(args)
             self._install(args)

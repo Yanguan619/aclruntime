@@ -204,10 +204,17 @@ class RunModule(BaseSubmodule):
         )
 
     def exec(self, args):
+        self._check_op_cmds()
         self._init_before_exec(args)
         run_mode_instance = self.run_mode_factory.get(args.run_mode)
         self._screen_hostfile_info(args)
         run_mode_instance(args, self.hostfile_info)
+
+    def _check_op_cmds(self, args):
+        if len(args.op_cmds) == 0:
+            raise ValueError("in run mode, missing op task!")
+        if args.op_cmds[0] not in OP_TASK:
+            raise ValueError("in run mode, op task not support!")
 
     def _init_before_exec(self, args):
         self.arg_adapter.set_all_args_dict(args)

@@ -110,6 +110,7 @@ class InstallModule(BaseSubmodule):
         for key, node_info in self.hostfile_info.items():
             if (node_info.ip == self_ip):
                 self.hostfile_info.pop(key)
+                return
 
     def _init_before_exec(self, args):
         self.arg_adapter.set_all_args_dict(args)

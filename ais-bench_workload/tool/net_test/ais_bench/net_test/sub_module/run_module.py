@@ -160,6 +160,7 @@ class RunModule(BaseSubmodule):
                 return DEFAULT.NPUS
             if value == "-p" or value == "--npus":
                 return int(op_cmd_list[i + 1])
+        return DEFAULT.NPUS
 
     def add_sub_arguments(self, subparsers):
         self.parser = subparsers.add_parser(

@@ -44,7 +44,7 @@ class FullRun(BaseRunMode):
         args_dict_list = self._gen_full_args_dict_list(args)
         try:
             self._run(args, args_dict_list)
-        except BaseException as err:
+        except (KeyboardInterrupt, RuntimeError) as err:
             logger.error(f"get some error in full run mode, error detail: {err}")
             self._clean_up(args, args_dict_list)
 

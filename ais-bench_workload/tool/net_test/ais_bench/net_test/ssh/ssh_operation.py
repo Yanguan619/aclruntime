@@ -60,11 +60,11 @@ def remote_exec_file_check(file_path: str, node_info: NodeInfo, ssh_key_path: st
             timeout=TIME_OUT.NORMAL_SSH_EXEC_TIMEOUT)
     except Exception as err:
         ssh_client.close()
-        raise RuntimeError(f"user:{node_info.user}, server_ip:{node_info.ip}, " +
+        raise ValueError(f"user:{node_info.user}, server_ip:{node_info.ip}, " +
             f"port:{node_info.port} exec command:{get_file_info_cmd} failed!") from err
     error_str = stderr.read().decode("utf-8")
     if error_str:
-        raise RuntimeError(f"remote check file failed! error log: {error_str}")
+        raise ValueError(f"remote check file failed! error log: {error_str}")
 
     result = stdout.readlines()
     if len(result) > 0:

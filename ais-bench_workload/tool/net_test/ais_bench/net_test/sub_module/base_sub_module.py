@@ -97,7 +97,13 @@ class BaseSubmodule(metaclass=ABCMeta):
 
         with ms_open(args.hostfile, 'r') as file:
             count = 0
+            ip_list = []
             for line in file:
                 stripped_line = line.strip()
-                self.hostfile_info[count] = NodeInfo(*self._transform_hostfile_line(stripped_line))
+                node_info = NodeInfo(*self._transform_hostfile_line(stripped_line))
+                if node_info.ip not in ip_list:
+                    ip_list.append(node_info.ip)
+                else:
+                    raise ValueError(f"in hostfile, line:{count + 1}, get repeated node ip:{node_info.ip}, please check")
+                self.hostfile_info[count] = node_info
                 count += 1

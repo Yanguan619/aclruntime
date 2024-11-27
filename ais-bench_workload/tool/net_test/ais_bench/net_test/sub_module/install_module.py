@@ -125,8 +125,6 @@ class InstallModule(BaseSubmodule):
         src_path = os.path.abspath(args.whl_pkg_path)
         dst_path = "./"
         for node_id, node_info in self.hostfile_info.items():
-            if node_id == 0:
-                continue
             args_dict = {
                 REMOTE_NODE_INFO_NAME.NODE_ID: node_id,
                 REMOTE_NODE_INFO_NAME.NODE_INFO: node_info,
@@ -155,8 +153,6 @@ class InstallModule(BaseSubmodule):
     def _gen_install_args_dict_list(self, args):
         args_dict_list = []
         for node_id, node_info in self.hostfile_info.items():
-            if node_id == 0:
-                continue
             args_dict = {
                 REMOTE_NODE_INFO_NAME.NODE_ID: node_id,
                 REMOTE_NODE_INFO_NAME.NODE_INFO: node_info,

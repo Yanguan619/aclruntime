@@ -171,8 +171,9 @@ python3 -m ais_bench install <optional arguments> <op task> <op cmds>
 # 训练节点IP(ipv4):每节点最大device数:节点用户（默认root）:连接节点的端口（默认22）
 10.10.10.10:8
 10.10.10.11:3:user1
-10.10.10.11:3:user1:22
+10.10.10.12:3:user1:22
 ```
+注意：hostfile中训练节点ip不可重复
 
 ### 运行时（run 子命令）rank_size、hostfile中指定的每节点最大device数以及op cmds中-p的取值的关系
 1. rank_size 需要是-p取值的整数倍

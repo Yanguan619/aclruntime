@@ -19,7 +19,7 @@ from abc import abstractmethod, ABCMeta
 from ais_bench.net_test.sub_module.base_sub_module import BaseSubmodule
 from ais_bench.net_test.common.utils import multiprocess_run
 from ais_bench.net_test.common.logger import logger
-from ais_bench.net_test.ssh.ssh_operation import remote_exec
+from ais_bench.net_test.ssh.ssh_operation import remote_exec, remote_exec_file_check
 from ais_bench.net_test.common.consts import RUN_MODE_NAME, REMOTE_NODE_INFO_NAME, OP_TASK, OP_CMD_HELP_INFO, RET
 from ais_bench.net_test.common.args_check import (arg_check_positive_integer, arg_check_port_range)
 
@@ -100,6 +100,12 @@ class FullRun(BaseRunMode):
         logger.info(f"node id:{args_dict[REMOTE_NODE_INFO_NAME.NODE_ID]}, " + \
             f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start running...")
         logger.debug(f"All node related info: {args_dict}")
+        env_path = args_dict.get(REMOTE_NODE_INFO_NAME.CMD).split(";")[0].split()[1]
+        remote_exec_file_check(
+            env_path,
+            args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
+            args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
+        )
         remote_exec(
             args_dict[REMOTE_NODE_INFO_NAME.NODE_ID],
             args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO],

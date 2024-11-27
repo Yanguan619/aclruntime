@@ -45,12 +45,12 @@ def check_positive_integer_str(value):
         raise ValueError(f"{value} is not positive")
 
 
-def check_linux_file_stat_string_from_shell(file_info: list, user: str):
+def check_linux_file_stat_string_from_shell(file_info: list, user: str, is_default_path: bool = False):
     if len(file_info) < STAT_STRING_IDX.SIZE + 1:
         raise ValueError(f"current/remote path is not a file")
 
     owner = file_info[STAT_STRING_IDX.USER]
-    if owner != user:
+    if not is_default_path and owner != user:
         raise ValueError(f"current/remote user: {user} is not the owner of file")
 
     permission = file_info[STAT_STRING_IDX.PERMISSION]

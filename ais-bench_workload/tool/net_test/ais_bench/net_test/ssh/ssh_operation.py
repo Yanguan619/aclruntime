@@ -19,7 +19,7 @@ import paramiko
 import scp
 
 from ais_bench.net_test.common.logger import logger
-from ais_bench.net_test.common.consts import TIME_OUT
+from ais_bench.net_test.common.consts import TIME_OUT, DEFAULT_ENV_SCRIPT_PATH
 from ais_bench.net_test.sub_module.base_sub_module import NodeInfo
 from ais_bench.net_test.security.file_checker import check_linux_path_format
 from ais_bench.net_test.security.other_checker import check_linux_file_stat_string_from_shell
@@ -69,7 +69,7 @@ def remote_exec_file_check(file_path: str, node_info: NodeInfo, ssh_key_path: st
     result = stdout.readlines()
     if len(result) > 0:
         file_info = result[0].split()
-        check_linux_file_stat_string_from_shell(file_info, node_info.user)
+        check_linux_file_stat_string_from_shell(file_info, node_info.user, file_path == DEFAULT_ENV_SCRIPT_PATH)
     ssh_client.close()
 
 

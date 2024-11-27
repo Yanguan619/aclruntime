@@ -204,7 +204,7 @@ class RunModule(BaseSubmodule):
         )
 
     def exec(self, args):
-        self._check_op_cmds()
+        self._check_op_cmds(args)
         self._init_before_exec(args)
         run_mode_instance = self.run_mode_factory.get(args.run_mode)
         self._screen_hostfile_info(args)

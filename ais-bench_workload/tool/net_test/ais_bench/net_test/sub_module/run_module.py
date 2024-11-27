@@ -102,12 +102,13 @@ class FullRun(BaseRunMode):
         logger.info(f"node id:{args_dict[REMOTE_NODE_INFO_NAME.NODE_ID]}, " + \
             f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start running...")
         logger.debug(f"All node related info: {args_dict}")
-        env_path = args_dict.get(REMOTE_NODE_INFO_NAME.CMD).split(";")[0].split()[1]
-        remote_exec_file_check(
-            env_path,
-            args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
-            args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
-        )
+        if (args_dict.get(REMOTE_NODE_INFO_NAME.CMD).split(";")[0].split()[0] == "source"):
+            env_path = args_dict.get(REMOTE_NODE_INFO_NAME.CMD).split(";")[0].split()[1]
+            remote_exec_file_check(
+                env_path,
+                args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
+                args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
+            )
         remote_exec(
             args_dict[REMOTE_NODE_INFO_NAME.NODE_ID],
             args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO],

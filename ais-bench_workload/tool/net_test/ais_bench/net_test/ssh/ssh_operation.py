@@ -87,11 +87,12 @@ def remote_exec(node_id: int, node_info: NodeInfo, cmd: str, ssh_key_path: str =
         console_origin(line)
     error_str = stderr.read().decode("utf-8")
     if error_str:
-        if "ERROR" in error_str:
+        if "WARNING" in error_str:
+            logger.warning(f"command:{cmd} exec in user:{node_info.user}, server:{node_info.ip}, " +
+             f"port:{node_info.port} get some error log from node: {error_str}")
+        else:
             raise RuntimeError(f"command:{cmd} exec in user:{node_info.user}, server:{node_info.ip}, " +
                 f"port:{node_info.port} failed, error log from node: {error_str}")
-        logger.warning(f"command:{cmd} exec in user:{node_info.user}, server:{node_info.ip}, " +
-             f"port:{node_info.port} get some error log from node: {error_str}")
     logger.debug(f"node_id:{node_id}, server:{node_info.ip} remote_exec end")
     ssh_client.close()
 

@@ -19,7 +19,7 @@ import argparse
 from collections import namedtuple
 from abc import abstractmethod, ABCMeta
 from ais_bench.net_test.sub_module.base_sub_module import BaseSubmodule
-from ais_bench.net_test.common.utils import multiprocess_run
+from ais_bench.net_test.common.utils import multiprocess_run, get_ip_address
 from ais_bench.net_test.common.logger import logger
 from ais_bench.net_test.common.consts import REMOTE_NODE_INFO_NAME, DEFAULT_WHL_PATH, DEFAULT_ENV_SCRIPT_PATH
 from ais_bench.net_test.ssh.ssh_operation import remote_put, remote_exec, remote_exec_file_check
@@ -97,12 +97,18 @@ class InstallModule(BaseSubmodule):
 
     def exec(self, args):
         self._init_before_exec(args)
-        if len(self.hostfile_info) > 1: # only 1 node
+        self._erase_self_node_info(self)
+        if len(self.hostfile_info) > 0:
             self._deploy(args)
             self._install(args)
             logger.info(f"install whl pkg:{args.whl_pkg_path} for all nodes success!")
         else:
-            logger.warning(f"less than 2 node in hostfile, won't install!")
+            logger.warning(f"hostfile do not contain other node, won't install!")
+
+    def _erase_self_node_info(self):
+        self_ip = get_ip_address()
+        if (self.hostfile_info.get(self_ip)):
+            self.hostfile_info.pop(self_ip)
 
     def _init_before_exec(self, args):
         self.arg_adapter.set_all_args_dict(args)

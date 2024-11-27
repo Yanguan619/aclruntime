@@ -146,6 +146,7 @@ class InstallModule(BaseSubmodule):
             cmd = cmd + " --no-deps --force-reinstall"
 
         cmd = cmd + f";rm -f {pkg_name}" # delete tmp whl pkg
+        cmd = "umask 0022;" + cmd # limit remote installed bin file permission
         cmd = f"source {args.env_script_path};" + cmd
         return cmd
 

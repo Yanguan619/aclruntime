@@ -107,8 +107,9 @@ class InstallModule(BaseSubmodule):
 
     def _erase_self_node_info(self):
         self_ip = get_ip_address()
-        if (self.hostfile_info.get(self_ip)):
-            self.hostfile_info.pop(self_ip)
+        for key, node_info in self.hostfile_info.items():
+            if (node_info.ip == self_ip):
+                self.hostfile_info.pop(key)
 
     def _init_before_exec(self, args):
         self.arg_adapter.set_all_args_dict(args)

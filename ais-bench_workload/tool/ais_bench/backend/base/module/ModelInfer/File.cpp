@@ -173,11 +173,7 @@ bool File::IsPathLengthLegal(const std::string& path)
 bool File::IsPathCharactersValid(const std::string& path)
 {
     for (size_t i = 0; i < path.size(); i++) {
-        bool validFlag = false;
-        if (FILE_VALID_PATTERN.count(path[i]) != 0) {
-            validFlag = true;
-        }
-        if (!validFlag) {
+        if (FILE_VALID_PATTERN.count(path[i]) == 0 && !isalnum(path[i])) {
             return false;
         }
     }

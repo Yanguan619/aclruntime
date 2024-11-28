@@ -50,13 +50,13 @@ class TestCheckFuncUtils(unittest.TestCase):
         node_info = NodeInfo("XX", 1, "A", 123)
         mock_exec.return_value = ("1", FakeBufferedFile(b'aa'), FakeBufferedFile(b'a'))
         mock_exec.side_effect = Exception('An error occurred')
-        with self.assertRaisesRegex(RuntimeError, "exec command:"):
+        with self.assertRaisesRegex(ValueError, "exec command:"):
             remote_exec_file_check("./", node_info, "./")
 
         mock_exec.return_value = ("1", FakeBufferedFile(b'aaa'), FakeBufferedFile(b'a'))
         mock_exec.side_effect = None
 
-        with self.assertRaisesRegex(RuntimeError, "remote check file failed! error log"):
+        with self.assertRaisesRegex(ValueError, "remote check file failed! error log"):
             remote_exec_file_check("./", node_info, "./")
 
     @patch("paramiko.SSHClient.close")

@@ -122,7 +122,7 @@ python3 -m ais_bench run <optional arguments> <op task> <op cmds>
 ##### 常规命令（optional arguments）
 |参数名|简写|说明|是否必选|
 | ---- | ---- | ----- | ----- |
-|--hostfile|-f|操作节点上Hostfile节点列表文件。单机场景下可以不配置。权限不得超过0o600。格式参考章节"备注说明/hostfile的格式"|是|
+|--hostfile|-f|操作节点上Hostfile节点列表文件。权限不得超过0o600。格式参考章节"备注说明/hostfile的格式"。若不配置hostfile，默认使用操作节点单机运行|是|
 |--rank_size|-n|集群中参与集合通信测评的总device数量，默认值：8|否|
 |--link_port|-lpt|共享root rank信息的端口，默认21345|否|
 |--ssh_key_path|-skp|操作节点ssh私钥的路径，默认/root/.ssh/id_rsa| 否|
@@ -184,7 +184,10 @@ python3 -m ais_bench install <optional arguments>
 注意：hostfile中训练节点ip不可重复
 
 ### 运行时（run 子命令）rank_size、hostfile中指定的每节点最大device数以及op cmds中-p的取值的关系
-1. rank_size 需要是-p取值的整数倍
+#### 配置了hostfile时
+1. rank_size 需要是-p取值的整数倍。
 2. hostfile中只有前N行节点信息会生效，其中N=(rank_size/-p取值)。
-3. 需要确保hostfile中生效的节点的最大device数大于等于-p的取值
-
+3. 需要确保hostfile中生效的节点的最大device数大于等于-p的取值。
+#### 未配置hostfile时
+1. rank_size 必须和-p取值相等。
+2. rank_size 不能超过操作节点实际最大device数。

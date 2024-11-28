@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-const std::string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_./-"
+const std::string FILE_VALID_PATTERN= "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_./-"
 constexpr int DIR_CHECK_MODE = R_OK | W_OK | X_OK;
 constexpr const char PATH_SEPARATOR = '/';
 

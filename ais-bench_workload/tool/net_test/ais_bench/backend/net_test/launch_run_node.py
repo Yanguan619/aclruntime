@@ -50,6 +50,7 @@ def check_root_port_free(args):
             s.bind((args.server_ip, args.server_port))
             return RET.SUCCESS
         except socket.error as e:
+            logger.error(f"port: {args.server_port} is occupied!")
             return RET.FAILED
 
 

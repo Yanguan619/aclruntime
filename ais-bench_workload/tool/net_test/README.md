@@ -34,6 +34,10 @@ ssh-copy-id -i ~/.ssh/id_rsa.pub <user1>@<node1 ip>
 其中`<version>`为工具版本，`<arch>`表示cpu架构。
 #### 安装whl包
 1. **方式1：手动在所有节点安装**
+出于安全考虑,安装前在所有集群通信节点设置umask值：
+```bash
+umask 0022
+```
 在所有集群通信节点的python3环境上执行如下命令进行安装：
 ```bash
 pip3 install ./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl
@@ -43,6 +47,10 @@ pip3 install ./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl
 pip3 install ./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl --force-reinstall
 ```
 2. **方式2：在操作节点安装，通过操作节点部署到到其他集群通信节点**
+出于安全考虑,安装前在操作节点设置umask值：
+```bash
+umask 0022
+```
 在操作节点的python3环境上执行如下命令进行安装：
 ```bash
 pip3 install ./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl

@@ -47,6 +47,7 @@ def check_root_port_free(args):
     cmd_list = ["ss", "-tuln", "|", "grep", f"':{args.server_port} '"]
     p = subprocess.Popen(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, _ = p.communicate()
+    _ = p.wait()
     if stdout:
         return RET.FAILED
     return RET.SUCCESS

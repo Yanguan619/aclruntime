@@ -9,7 +9,7 @@
 
 ## 工具安装&前置准备
 ### 环境和依赖
-- 请参见《CANN开发工具指南》安装昇腾设备开发或运行环境，即toolkit或nnrt软件包。
+- 请参见《CANN开发工具指南》安装昇腾设备开发或运行环境，即CANN toolkit软件包(请确保集群中所有节点安装的CANN包版本一致)。
 - 安装Python3、Python包模块paramiko、scp、wheel(启动本工具的操作节点上必须安装)。
 
 ### 配置当前操作节点到集群通信节点的SSH信任关系，以支持集群通信节点远程登录
@@ -154,7 +154,7 @@ python3 -m ais_bench install <optional arguments>
 |--ssh_key_path|-skp|操作节点ssh私钥的路径，默认/root/.ssh/id_rsa| 否|
 |--env_script_path|-esp|每个节点(除操作节点)上配置环境变量的shell脚本路径，在执行命令前此脚本会先在每个节点上被source，默认 /usr/local/Ascend/ascend-toolkit/set_env.sh|否|
 |--pip|NA|每个节点(除操作节点)使用的pip解释器，可选["pip3", "pip"]，默认 "pip3"|否|
-|--whl_pkg_path|-wp|操作节点上whl包的路径，默认识别 `./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl`用于安装。<br> 其中<version>为操作节点上当前运行的本工具的版本|否|
+|--whl_pkg_path|-wp|操作节点上whl包的路径，默认识别 `./ais_bench_net_test-<version>-py3-none-linux_<arch>.whl`用于安装。<br> 其中`<version>`为操作节点上当前运行的本工具的版本|否|
 |--force-reinstall|-fr|为其他节点安装whl包时执行强制安装，该操作不会重装whl包的依赖包|否|
 |--help|-h|显示帮助信息|
 

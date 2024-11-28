@@ -169,7 +169,7 @@ class RunModule(BaseSubmodule):
             self.name,
             help=f"run net test",
             usage='%(prog)s [optional arguments] [op task] [op cmds] \n\n' + \
-                "[op task]:\n" + f"{OP_TASK}\n\n" + "[op cmd]:\n" + OP_CMD_HELP_INFO,
+                "[op task]:\n" + f"{OP_TASK}\n\n" + "[op cmds]:\n" + OP_CMD_HELP_INFO,
         )
         super().add_base_arguments()
         # 运行任务选择

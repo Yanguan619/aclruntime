@@ -19,9 +19,9 @@ import argparse
 from collections import namedtuple
 from abc import abstractmethod, ABCMeta
 from ais_bench.net_test.sub_module.base_sub_module import BaseSubmodule
-from ais_bench.net_test.common.utils import multiprocess_run
+from ais_bench.net_test.common.utils import multiprocess_run, get_ip_address
 from ais_bench.net_test.common.logger import logger
-from ais_bench.net_test.common.consts import REMOTE_NODE_INFO_NAME, DEFAULT_WHL_PATH, DEFAULT_ENV_SCRIPT_PATH
+from ais_bench.net_test.common.consts import REMOTE_NODE_INFO_NAME, DEFAULT_WHL_PATH
 from ais_bench.net_test.ssh.ssh_operation import remote_put, remote_exec, remote_exec_file_check
 from ais_bench.net_test.common.args_check import arg_check_whl_legalty
 
@@ -34,12 +34,11 @@ def remote_install_whl_pkg(args_dict):
         f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start installing...")
     logger.debug(f"All node related info: {args_dict}")
     env_path = args_dict.get(REMOTE_NODE_INFO_NAME.CMD).split(";")[0].split()[1]
-    if not env_path == DEFAULT_ENV_SCRIPT_PATH: # check exec env script
-        remote_exec_file_check(
-            env_path,
-            args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
-            args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
-        )
+    remote_exec_file_check(
+        env_path,
+        args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
+        args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
+    )
     remote_exec(
         args_dict.get(REMOTE_NODE_INFO_NAME.NODE_ID),
         args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
@@ -71,7 +70,7 @@ class InstallModule(BaseSubmodule):
     def add_sub_arguments(self, subparsers):
         self.parser = subparsers.add_parser(
             self.name,
-            help=f"install whl pkg for all nodes",
+            help=f"install whl pkg for other nodes.",
             usage="%(prog)s [optional arguments]",
         )
         super().add_base_arguments()
@@ -97,12 +96,20 @@ class InstallModule(BaseSubmodule):
 
     def exec(self, args):
         self._init_before_exec(args)
-        if len(self.hostfile_info) > 1: # only 1 node
+        self._erase_self_node_info()
+        if len(self.hostfile_info) > 0:
             self._deploy(args)
             self._install(args)
             logger.info(f"install whl pkg:{args.whl_pkg_path} for all nodes success!")
         else:
-            logger.warning(f"less than 2 node in hostfile, won't install!")
+            logger.warning(f"hostfile do not contain other node, won't install!")
+
+    def _erase_self_node_info(self):
+        self_ip = get_ip_address()
+        for key, node_info in self.hostfile_info.items():
+            if (node_info.ip == self_ip):
+                self.hostfile_info.pop(key)
+                return
 
     def _init_before_exec(self, args):
         self.arg_adapter.set_all_args_dict(args)
@@ -117,8 +124,6 @@ class InstallModule(BaseSubmodule):
         src_path = os.path.abspath(args.whl_pkg_path)
         dst_path = "./"
         for node_id, node_info in self.hostfile_info.items():
-            if node_id == 0:
-                continue
             args_dict = {
                 REMOTE_NODE_INFO_NAME.NODE_ID: node_id,
                 REMOTE_NODE_INFO_NAME.NODE_INFO: node_info,
@@ -141,14 +146,13 @@ class InstallModule(BaseSubmodule):
             cmd = cmd + " --no-deps --force-reinstall"
 
         cmd = cmd + f";rm -f {pkg_name}" # delete tmp whl pkg
+        cmd = "umask 0022;" + cmd # limit remote installed bin file permission
         cmd = f"source {args.env_script_path};" + cmd
         return cmd
 
     def _gen_install_args_dict_list(self, args):
         args_dict_list = []
         for node_id, node_info in self.hostfile_info.items():
-            if node_id == 0:
-                continue
             args_dict = {
                 REMOTE_NODE_INFO_NAME.NODE_ID: node_id,
                 REMOTE_NODE_INFO_NAME.NODE_INFO: node_info,

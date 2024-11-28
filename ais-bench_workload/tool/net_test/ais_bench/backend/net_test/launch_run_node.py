@@ -15,6 +15,7 @@ import os
 import stat
 import sys
 import subprocess
+import socket
 from multiprocessing import Pool
 from ais_bench.backend.net_test.common.consts import RET
 from ais_bench.net_test.security.file_checker import check_linux_executable_file
@@ -39,6 +40,18 @@ def run_hccl_test_exec_command(cmd_list):
     if return_code != RET.SUCCESS:
         return RET.FAILED, f"Cmd {cmd_list} failed! error log: {stderr.decode('utf-8')}"
     return RET.SUCCESS, ""
+
+
+def check_root_port_free(args):
+    if args.node_id != 0:
+        return RET.SUCCESS
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind((args.server_ip, args.server_port))
+            return RET.SUCCESS
+        except socket.error as e:
+            logger.error(f"port: {args.server_port} is occupied!")
+            return RET.FAILED
 
 
 def generate_rank_id_list(args):
@@ -90,7 +103,10 @@ def parse_result(results, args):
             print(result[1])
     return RET.SUCCESS
 
+
 def launch_run_node(args):
+    if check_root_port_free(args) != RET.SUCCESS:
+        return RET.FAILED
     command_lists = construct_command_lists(args)
     results = multiprocess_run(args.npus, command_lists)
     ret = parse_result(results, args)

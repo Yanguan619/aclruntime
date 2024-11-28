@@ -39,7 +39,7 @@ def arg_check_ssh_key_path_legalty(value):
     try:
         check_linux_readable_file(value, perm_forbid=PermForbid.SECRET_FILE)
     except Exception as err:
-        raise argparse.ArgumentTypeError("ssh key does not pass security check!") from err
+        raise argparse.ArgumentTypeError(f"ssh key does not pass security check! detail: {err}")
     return value
 
 

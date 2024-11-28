@@ -19,8 +19,9 @@ from abc import abstractmethod, ABCMeta
 from ais_bench.net_test.sub_module.base_sub_module import BaseSubmodule
 from ais_bench.net_test.common.utils import multiprocess_run
 from ais_bench.net_test.common.logger import logger
-from ais_bench.net_test.ssh.ssh_operation import remote_exec
-from ais_bench.net_test.common.consts import RUN_MODE_NAME, REMOTE_NODE_INFO_NAME, OP_TASK, OP_CMD_HELP_INFO, RET
+from ais_bench.net_test.ssh.ssh_operation import remote_exec, remote_exec_file_check
+from ais_bench.net_test.common.consts import (RUN_MODE_NAME, REMOTE_NODE_INFO_NAME,
+    OP_TASK, OP_CMD_HELP_INFO, RET, DEFAULT)
 from ais_bench.net_test.common.args_check import (arg_check_positive_integer, arg_check_port_range)
 
 class BaseRunMode(metaclass=ABCMeta):
@@ -43,7 +44,8 @@ class FullRun(BaseRunMode):
         args_dict_list = self._gen_full_args_dict_list(args)
         try:
             self._run(args, args_dict_list)
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, RuntimeError) as err:
+            logger.error(f"get some error in full run mode, error detail: {err}")
             self._clean_up(args, args_dict_list)
 
     def _run(self, args, args_dict_list):
@@ -100,6 +102,13 @@ class FullRun(BaseRunMode):
         logger.info(f"node id:{args_dict[REMOTE_NODE_INFO_NAME.NODE_ID]}, " + \
             f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start running...")
         logger.debug(f"All node related info: {args_dict}")
+        if (args_dict.get(REMOTE_NODE_INFO_NAME.CMD).split(";")[0].split()[0] == "source"):
+            env_path = args_dict.get(REMOTE_NODE_INFO_NAME.CMD).split(";")[0].split()[1]
+            remote_exec_file_check(
+                env_path,
+                args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
+                args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
+            )
         remote_exec(
             args_dict[REMOTE_NODE_INFO_NAME.NODE_ID],
             args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO],
@@ -150,17 +159,17 @@ class RunModule(BaseSubmodule):
     def _get_npus_used_per_node(op_cmd_list: str):
         for i, value in enumerate(op_cmd_list):
             if i == len(op_cmd_list) - 1:
-                raise ValueError("can not find info of --npus!")
+                return DEFAULT.NPUS
             if value == "-p" or value == "--npus":
                 return int(op_cmd_list[i + 1])
-        raise ValueError("can not find info of --npus!")
+        return DEFAULT.NPUS
 
     def add_sub_arguments(self, subparsers):
         self.parser = subparsers.add_parser(
             self.name,
             help=f"run net test",
-            usage='%(prog)s [optional arguments] [op task] [op cmds]',
-            epilog="op task:\n" + f"{OP_TASK}   " + "op cmd:\n" + OP_CMD_HELP_INFO,
+            usage='%(prog)s [optional arguments] <op task> [op cmds] \n\n' + \
+                "[op task]:\n" + f"{OP_TASK}\n\n" + "[op cmds]:\n" + OP_CMD_HELP_INFO,
         )
         super().add_base_arguments()
         # 运行任务选择
@@ -195,10 +204,17 @@ class RunModule(BaseSubmodule):
         )
 
     def exec(self, args):
+        self._check_op_cmds(args)
         self._init_before_exec(args)
         run_mode_instance = self.run_mode_factory.get(args.run_mode)
         self._screen_hostfile_info(args)
         run_mode_instance(args, self.hostfile_info)
+
+    def _check_op_cmds(self, args):
+        if len(args.op_cmds) == 0:
+            raise ValueError("in run mode, missing op task!")
+        if args.op_cmds[0] not in OP_TASK:
+            raise ValueError("in run mode, op task not support!")
 
     def _init_before_exec(self, args):
         self.arg_adapter.set_all_args_dict(args)

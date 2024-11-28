@@ -1,22 +1,22 @@
-import unittest  
-import stat  
+import unittest
+import stat
 from unittest.mock import patch, MagicMock
 from ais_bench.backend.net_test.common.consts import RET
 
-from ais_bench.backend.net_test.launch_run_node import (  
-    launch_run_node, construct_command_lists, multiprocess_run, parse_result,  
+from ais_bench.backend.net_test.launch_run_node import (
+    launch_run_node, construct_command_lists, multiprocess_run, parse_result,
     generate_rank_id_list, get_rank_related_cmd_list, run_hccl_test_exec_command
-)  
+)
 
 
 class TestLaunchRunNode(unittest.TestCase):
 
     def setUp(self):
         pass
- 
+
     def tearDown(self):
         pass
-    
+
     @classmethod
     def tearDownClass(cls):
         pass
@@ -29,10 +29,10 @@ class TestLaunchRunNode(unittest.TestCase):
     @patch('ais_bench.backend.net_test.launch_run_node.multiprocess_run')
     @patch('ais_bench.backend.net_test.launch_run_node.parse_result')
     def test_launch_run_node_success(self, mock_parse_result, mock_multiprocess_run, mock_construct_command_lists):
-        mock_construct_command_lists.return_value = [  
-            ["hccl_test/bin/all_reduce_test", "--rank_id", "0"],  
-            ["hccl_test/bin/all_reduce_test", "--rank_id", "1"],  
-        ]  
+        mock_construct_command_lists.return_value = [
+            ["hccl_test/bin/all_reduce_test", "--rank_id", "0"],
+            ["hccl_test/bin/all_reduce_test", "--rank_id", "1"],
+        ]
         mock_multiprocess_run.return_value = [(RET.SUCCESS, ''), (RET.SUCCESS, '')]
         mock_parse_result.return_value = RET.SUCCESS
         args = MagicMock()
@@ -47,10 +47,10 @@ class TestLaunchRunNode(unittest.TestCase):
     @patch('ais_bench.backend.net_test.launch_run_node.multiprocess_run')
     @patch('ais_bench.backend.net_test.launch_run_node.parse_result')
     def test_launch_run_node_failure(self, mock_parse_result, mock_multiprocess_run, mock_construct_command_lists):
-        mock_construct_command_lists.return_value = [  
-            ["hccl_test/bin/all_reduce_test", "--rank_id", "0"],  
-            ["hccl_test/bin/all_reduce_test", "--rank_id", "1"],  
-        ]  
+        mock_construct_command_lists.return_value = [
+            ["hccl_test/bin/all_reduce_test", "--rank_id", "0"],
+            ["hccl_test/bin/all_reduce_test", "--rank_id", "1"],
+        ]
         mock_multiprocess_run.return_value = [(RET.FAILED, 'Cmd failed!'), (RET.SUCCESS, '')]
         mock_parse_result.return_value = RET.FAILED
         args = MagicMock()
@@ -108,10 +108,10 @@ class TestLaunchRunNode(unittest.TestCase):
         mock_process.communicate.return_value = (b'', b'')
         mock_process.wait.return_value = RET.SUCCESS
         mock_popen.return_value = mock_process
-        command_lists = [  
-            ["hccl_test/bin/all_reduce_test", "--rank_id", "0"],  
-            ["hccl_test/bin/all_reduce_test", "--rank_id", "1"],  
-        ]  
+        command_lists = [
+            ["hccl_test/bin/all_reduce_test", "--rank_id", "0"],
+            ["hccl_test/bin/all_reduce_test", "--rank_id", "1"],
+        ]
         results = multiprocess_run(2, command_lists)
         self.assertEqual(results, [(RET.SUCCESS, ""), (RET.SUCCESS, "")])
 
@@ -154,35 +154,35 @@ class TestLaunchRunNode(unittest.TestCase):
         mock_error.assert_called_once_with("rank_id:3, device id:0, run failed! error info:Cmd ['cmd1'] failed! error log: error occurred")
 
 
-    def test_get_rank_related_cmd_list_with_valid_args(self):  
-        mock_args = MagicMock()  
-        mock_args.get_rank_related_args_dict.return_value = {  
-            "--rank": 1,  
-            "--stepbytes": 1024,  
-            "--size": 512  
+    def test_get_rank_related_cmd_list_with_valid_args(self):
+        mock_args = MagicMock()
+        mock_args.get_rank_related_args_dict.return_value = {
+            "--rank": 1,
+            "--stepbytes": 1024,
+            "--size": 512
         }
-        result = get_rank_related_cmd_list(mock_args)  
-        expected = ["--rank", "1", "--stepbytes", "1024", "--size", "512"]  
-        self.assertListEqual(result, expected)  
+        result = get_rank_related_cmd_list(mock_args)
+        expected = ["--rank", "1", "--stepbytes", "1024", "--size", "512"]
+        self.assertListEqual(result, expected)
 
-    def test_get_rank_related_cmd_list_with_zero_stepbytes(self):  
-        mock_args = MagicMock()  
-        mock_args.get_rank_related_args_dict.return_value = {  
-            "--rank": 1,  
-            "--stepbytes": 0,  
-            "--size": 512  
+    def test_get_rank_related_cmd_list_with_zero_stepbytes(self):
+        mock_args = MagicMock()
+        mock_args.get_rank_related_args_dict.return_value = {
+            "--rank": 1,
+            "--stepbytes": 0,
+            "--size": 512
         }
-        result = get_rank_related_cmd_list(mock_args)  
-        expected = ["--rank", "1", "--size", "512"]  
-        self.assertListEqual(result, expected)  
-      
-    def test_get_rank_related_cmd_list_with_empty_args(self):  
-        mock_args = MagicMock()  
-        mock_args.get_rank_related_args_dict.return_value = {}  
-        result = get_rank_related_cmd_list(mock_args)  
-        expected = []  
-        self.assertListEqual(result, expected)  
+        result = get_rank_related_cmd_list(mock_args)
+        expected = ["--rank", "1", "--size", "512"]
+        self.assertListEqual(result, expected)
+
+    def test_get_rank_related_cmd_list_with_empty_args(self):
+        mock_args = MagicMock()
+        mock_args.get_rank_related_args_dict.return_value = {}
+        result = get_rank_related_cmd_list(mock_args)
+        expected = []
+        self.assertListEqual(result, expected)
 
 
-if __name__ == '__main__':  
+if __name__ == '__main__':
     unittest.main()

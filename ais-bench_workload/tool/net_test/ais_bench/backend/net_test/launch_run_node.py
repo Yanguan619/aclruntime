@@ -15,6 +15,7 @@ import os
 import stat
 import sys
 import subprocess
+import socket
 from multiprocessing import Pool
 from ais_bench.backend.net_test.common.consts import RET
 from ais_bench.net_test.security.file_checker import check_linux_executable_file
@@ -44,13 +45,12 @@ def run_hccl_test_exec_command(cmd_list):
 def check_root_port_free(args):
     if args.node_id != 0:
         return RET.SUCCESS
-    cmd_list = ["ss", "-tuln", "|", "grep", f"':{args.server_port} '"]
-    p = subprocess.Popen(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, _ = p.communicate()
-    _ = p.wait()
-    if stdout:
-        return RET.FAILED
-    return RET.SUCCESS
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind((args.server_ip, args.server_port))
+            return RET.SUCCESS
+        except socket.error as e:
+            return RET.FAILED
 
 
 def generate_rank_id_list(args):

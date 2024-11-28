@@ -88,7 +88,7 @@ OP_TASK = [
     "broadcast_test", "reduce_scatter_test", "reduce_test", "scatter_test",
 ]
 
-OP_CMD_HELP_INFO = "[-b,--minbytes <min size in bytes>] \n\t" + \
+OP_CMD_HELP_INFO = "\t[-b,--minbytes <min size in bytes>] \n\t" + \
                    "[-e,--maxbytes <max size in bytes>] \n\t" + \
                    "[-i,--stepbytes <increment size>] \n\t" + \
                    "[-f,--stepfactor <increment factor>] \n\t" + \

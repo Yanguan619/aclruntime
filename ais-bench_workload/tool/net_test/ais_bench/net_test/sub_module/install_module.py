@@ -70,7 +70,7 @@ class InstallModule(BaseSubmodule):
     def add_sub_arguments(self, subparsers):
         self.parser = subparsers.add_parser(
             self.name,
-            help=f"install whl pkg for all nodes",
+            help=f"install whl pkg for other nodes.",
             usage="%(prog)s [optional arguments]",
         )
         super().add_base_arguments()

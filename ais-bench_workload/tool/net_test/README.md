@@ -114,15 +114,15 @@ optional arguments:
 整体命令格式：
 ```bash
 # 默认不带run二级命令
-python3 -m ais_bench <optional arguments> <op task> <op cmds>
+python3 -m ais_bench [optional arguments] <op task> [op cmds]
 # 显示带run二级命令
-python3 -m ais_bench run <optional arguments> <op task> <op cmds>
+python3 -m ais_bench run [optional arguments] <op task> [op cmds]
 ```
 
 ##### 常规命令（optional arguments）
 |参数名|简写|说明|是否必选|
 | ---- | ---- | ----- | ----- |
-|--hostfile|-f|操作节点上Hostfile节点列表文件。权限不得超过0o600。格式参考章节"备注说明/hostfile的格式"。若不配置hostfile，默认使用操作节点单机运行|是|
+|--hostfile|-f|操作节点上Hostfile节点列表文件。权限不得超过0o600。格式参考章节["备注说明/hostfile的格式"](#jump1)。若不配置hostfile，默认使用操作节点单机运行|是|
 |--rank_size|-n|集群中参与集合通信测评的总device数量，默认值：8|否|
 |--link_port|-lpt|共享root rank信息的端口，默认21345|否|
 |--ssh_key_path|-skp|操作节点ssh私钥的路径，默认/root/.ssh/id_rsa| 否|
@@ -152,13 +152,13 @@ python3 -m ais_bench run <optional arguments> <op task> <op cmds>
 **整体命令格式：**
 ```bash
 # 显示带run二级命令
-python3 -m ais_bench install <optional arguments>
+python3 -m ais_bench install [optional arguments]
 ```
 
 ##### 常规命令（optional arguments）
 |参数名|简写|说明|是否必选|
 | ---- | ---- | ----- | ----- |
-|--hostfile|-f|操作节点上Hostfile节点列表文件。单机场景下可以不配置。权限不得超过0o600。格式参考章节"备注说明/hostfile的格式"|是|
+|--hostfile|-f|操作节点上Hostfile节点列表文件。单机场景下可以不配置。权限不得超过0o600。格式参考章节["备注说明/hostfile的格式"](#jump1)|是|
 |--ssh_key_path|-skp|操作节点ssh私钥的路径，默认/root/.ssh/id_rsa| 否|
 |--env_script_path|-esp|每个节点(除操作节点)上配置环境变量的shell脚本路径，在执行命令前此脚本会先在每个节点上被source，默认 /usr/local/Ascend/ascend-toolkit/set_env.sh|否|
 |--pip|NA|每个节点(除操作节点)使用的pip解释器，可选["pip3", "pip"]，默认 "pip3"|否|
@@ -173,7 +173,7 @@ python3 -m ais_bench install <optional arguments>
 参考昇腾社区CANN文档中HCCL性能测试工具/工具使用/[规格约束章节](https://www.hiascend.com/document/detail/zh/canncommercial/80RC3/devaids/devtools/hccltool/HCCLpertest_16_0007.html)
 
 ## 备注说明
-### hostfile的格式
+### hostfile的格式 <a name="jump1"></a>
 合法样例：
 ```bash
 # 训练节点IP(ipv4):每节点最大device数:节点用户（默认root）:连接节点的端口（默认22）
@@ -181,7 +181,7 @@ python3 -m ais_bench install <optional arguments>
 10.10.10.11:3:user1
 10.10.10.12:3:user1:22
 ```
-注意：hostfile中训练节点ip不可重复
+<b> 注意：hostfile中训练节点ip不可重复 <b>
 
 ### 运行时（run 子命令）rank_size、hostfile中指定的每节点最大device数以及op cmds中-p的取值的关系
 #### 配置了hostfile时

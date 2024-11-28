@@ -101,6 +101,7 @@ def parse_result(results, args):
             return result[0]
         if result[1]:
             print(result[1])
+        return RET.SUCCESS
 
 
 def launch_run_node(args):

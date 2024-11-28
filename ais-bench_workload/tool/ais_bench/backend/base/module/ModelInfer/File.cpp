@@ -172,7 +172,18 @@ bool File::IsPathLengthLegal(const std::string& path)
 
 bool File::IsPathCharactersValid(const std::string& path)
 {
-    return std::regex_match(path, std::regex(FILE_VALID_PATTERN));
+    for (size_t i = 0; i < path.size(); i++) {
+        bool validFlag = false;
+        for (size_t j = 0; j < FILE_VALID_PATTERN.size(); j++) {
+            if (path[i] == FILE_VALID_PATTERN[j]) {
+                validFlag = true;
+            }
+        }
+        if (!validFlag) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool File::IsPathDepthValid(const std::string& path)

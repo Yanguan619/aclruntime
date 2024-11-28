@@ -23,9 +23,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+const std::string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_./-"
 constexpr int DIR_CHECK_MODE = R_OK | W_OK | X_OK;
 constexpr const char PATH_SEPARATOR = '/';
-constexpr const char* FILE_VALID_PATTERN = "^[a-zA-Z0-9_./-]+$";
 
 constexpr const uint32_t FULL_PATH_LENGTH_MAX = 4096;
 constexpr const uint32_t FILE_NAME_LENGTH_MAX = 255;

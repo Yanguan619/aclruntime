@@ -174,7 +174,7 @@ bool File::IsPathCharactersValid(const std::string& path)
 {
     const std::vector<char> extendedPattern = { '_', '.', '/', '-' };
     for (size_t i = 0; i < path.size(); ++i) {
-        auto it = std:find(extendedPattern.begin(), extendedPattern.end(), path[i]);
+        auto it = std::find(extendedPattern.begin(), extendedPattern.end(), path[i]);
         if (it == extendedPattern.end() && !isalnum(path[i])) {
             return false;
         }

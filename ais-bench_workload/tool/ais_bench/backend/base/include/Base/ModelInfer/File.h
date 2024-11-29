@@ -25,7 +25,6 @@
 #include <cctype>
 #include <unordered_set>
 
-const std::unordered_set<char> FILE_VALID_PATTERN = { '_', '.', '/', '-' };
 constexpr int DIR_CHECK_MODE = R_OK | W_OK | X_OK;
 constexpr const char PATH_SEPARATOR = '/';
 

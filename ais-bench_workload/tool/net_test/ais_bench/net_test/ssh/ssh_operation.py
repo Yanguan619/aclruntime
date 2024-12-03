@@ -60,11 +60,11 @@ def remote_exec_file_check(file_path: str, node_info: NodeInfo, ssh_key_path: st
             timeout=TIME_OUT.NORMAL_SSH_EXEC_TIMEOUT)
     except Exception as err:
         ssh_client.close()
-        raise ValueError(f"user:{node_info.user}, server_ip:{node_info.ip}, " +
-            f"port:{node_info.port} exec command:{get_file_info_cmd} failed!") from err
+        raise ValueError(f"server_ip:{node_info.ip}, " +
+            f"exec command:{get_file_info_cmd} failed!") from err
     error_str = stderr.read().decode("utf-8")
     if error_str:
-        raise ValueError(f"remote check file failed! error log: {error_str}")
+        raise ValueError(f"server_ip:{node_info.ip}, remote check file failed! error log: {error_str}")
 
     result = stdout.readlines()
     if len(result) > 0:
@@ -74,25 +74,25 @@ def remote_exec_file_check(file_path: str, node_info: NodeInfo, ssh_key_path: st
 
 
 def remote_exec(node_id: int, node_info: NodeInfo, cmd: str, ssh_key_path: str = ""):
-    logger.debug(f"node_id:{node_id}, server:{node_info.ip} remote_exec start")
+    logger.debug(f"user:{node_info.user}, server_ip:{node_info.ip}, port:{node_info.port} remote_exec start")
     ssh_client = paramiko.SSHClient()
     ssh_client_connect(ssh_client, node_info, ssh_key_path)
     try:
         _, stdout, stderr = ssh_client.exec_command(cmd, bufsize=1, timeout=TIME_OUT.NORMAL_SSH_EXEC_TIMEOUT)
     except Exception as err:
         ssh_client.close()
-        raise RuntimeError(f"user:{node_info.user}, server_ip:{node_info.ip}, " +
-            f"port:{node_info.port} exec command:{cmd} failed!") from err
+        raise RuntimeError(f"server_ip:{node_info.ip}, " +
+            f"exec command:{cmd} failed!") from err
     for line in iter(lambda: stdout.readline(2048), ""):
         console_origin(line)
     error_str = stderr.read().decode("utf-8")
     if error_str:
         if "WARNING" in error_str:
-            logger.warning(f"command:{cmd} exec in user:{node_info.user}, server:{node_info.ip}, " +
-             f"port:{node_info.port} get some error log from node: {error_str}")
+            logger.warning(f"remote command exec in server:{node_info.ip}, " +
+             f"get some error log from node: {error_str}")
         else:
-            raise RuntimeError(f"command:{cmd} exec in user:{node_info.user}, server:{node_info.ip}, " +
-                f"port:{node_info.port} failed, error log from node: {error_str}")
+            raise RuntimeError(f"remote command exec in server:{node_info.ip}, " +
+                f"failed, error log from node: {error_str}")
     logger.debug(f"node_id:{node_id}, server:{node_info.ip} remote_exec end")
     ssh_client.close()
 

@@ -17,9 +17,10 @@ import argparse
 import subprocess
 from abc import abstractmethod, ABCMeta
 from ais_bench.net_test.sub_module.base_sub_module import BaseSubmodule
+from ais_bench.net_test.sub_module.utils import remote_run_env_check
 from ais_bench.net_test.common.utils import multiprocess_run
 from ais_bench.net_test.common.logger import logger
-from ais_bench.net_test.ssh.ssh_operation import remote_exec, remote_exec_file_check
+from ais_bench.net_test.ssh.ssh_operation import remote_exec
 from ais_bench.net_test.common.consts import (RUN_MODE_NAME, REMOTE_NODE_INFO_NAME,
     OP_TASK, OP_CMD_HELP_INFO, RET, DEFAULT)
 from ais_bench.net_test.common.args_check import (arg_check_positive_integer, arg_check_port_range)
@@ -52,6 +53,7 @@ class FullRun(BaseRunMode):
         if not args.hostfile: # only root node run
             self._root_node_run_py_backend_cmd(args_dict_list[0].get(REMOTE_NODE_INFO_NAME.CMD))
         else:
+            multiprocess_run(remote_run_env_check, args_dict_list)
             multiprocess_run(self._remote_run_py_backend_cmd, args_dict_list)
 
     def _clean_up(self, args, args_dict_list):
@@ -61,7 +63,9 @@ class FullRun(BaseRunMode):
         else:
             for i, _ in enumerate(args_dict_list):
                 args_dict_list[i][REMOTE_NODE_INFO_NAME.CMD] = f"pkill -9 {args.op_cmds[0]}"
+            logger.info("start to clean up op task ...")
             multiprocess_run(self._remote_run_py_backend_cmd, args_dict_list)
+            logger.info("clean up op task success!")
 
     def _gen_full_args_dict_list(self, args):
         args_dict_list = []
@@ -102,13 +106,6 @@ class FullRun(BaseRunMode):
         logger.info(f"node id:{args_dict[REMOTE_NODE_INFO_NAME.NODE_ID]}, " + \
             f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start running...")
         logger.debug(f"All node related info: {args_dict}")
-        if (args_dict.get(REMOTE_NODE_INFO_NAME.CMD).split(";")[0].split()[0] == "source"):
-            env_path = args_dict.get(REMOTE_NODE_INFO_NAME.CMD).split(";")[0].split()[1]
-            remote_exec_file_check(
-                env_path,
-                args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
-                args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
-            )
         remote_exec(
             args_dict[REMOTE_NODE_INFO_NAME.NODE_ID],
             args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO],

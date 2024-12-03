@@ -19,10 +19,11 @@ import argparse
 from collections import namedtuple
 from abc import abstractmethod, ABCMeta
 from ais_bench.net_test.sub_module.base_sub_module import BaseSubmodule
+from ais_bench.net_test.sub_module.utils import remote_run_env_check
 from ais_bench.net_test.common.utils import multiprocess_run, get_ip_address
 from ais_bench.net_test.common.logger import logger
 from ais_bench.net_test.common.consts import REMOTE_NODE_INFO_NAME, DEFAULT_WHL_PATH
-from ais_bench.net_test.ssh.ssh_operation import remote_put, remote_exec, remote_exec_file_check
+from ais_bench.net_test.ssh.ssh_operation import remote_put, remote_exec
 from ais_bench.net_test.common.args_check import arg_check_whl_legalty
 
 
@@ -33,12 +34,6 @@ def remote_install_whl_pkg(args_dict):
     logger.info(f"node id:{args_dict[REMOTE_NODE_INFO_NAME.NODE_ID]}, " + \
         f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start installing...")
     logger.debug(f"All node related info: {args_dict}")
-    env_path = args_dict.get(REMOTE_NODE_INFO_NAME.CMD).split(";")[0].split()[1]
-    remote_exec_file_check(
-        env_path,
-        args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
-        args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
-    )
     remote_exec(
         args_dict.get(REMOTE_NODE_INFO_NAME.NODE_ID),
         args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
@@ -136,6 +131,7 @@ class InstallModule(BaseSubmodule):
 
     def _install(self, args):
         args_dict_list = self._gen_install_args_dict_list(args)
+        multiprocess_run(remote_run_env_check, args_dict_list)
         multiprocess_run(remote_install_whl_pkg, args_dict_list)
 
     def _gen_install_cmd(self, args):

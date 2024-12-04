@@ -116,7 +116,7 @@ class TestClass:
         )
 
     def test_check_acl_json_path_legality(self):
-        assert check_acl_json_path_legality("") == ""
+        assert check_acl_json_path_legality("") == None
 
         self.check_illegal_fake_path_case(
             func_to_test=check_acl_json_path_legality,

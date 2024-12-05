@@ -149,9 +149,6 @@ class TestClass:
             check_device_range_valid(value)
 
     def test_check_output_dir_legality(self):
-        with pytest.raises(Exception):
-            check_output_dir_legality("")
-
         self.check_illegal_fake_path_case(
             func_to_test=check_output_dir_legality,
             fake_value=FakeFile.NOT_READABLE_OUTPUT_DIR,

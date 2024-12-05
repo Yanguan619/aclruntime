@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 from ais_bench.backend.net_test.common.consts import RET
 
 from ais_bench.backend.net_test.launch_run_node import (
-    launch_run_node, construct_command_lists, multiprocess_run, parse_result,
+    launch_run_node, construct_command_lists, multiprocess_run,
     generate_rank_id_list, get_rank_related_cmd_list, run_hccl_test_exec_command
 )
 
@@ -27,39 +27,33 @@ class TestLaunchRunNode(unittest.TestCase):
 
     @patch('ais_bench.backend.net_test.launch_run_node.construct_command_lists')
     @patch('ais_bench.backend.net_test.launch_run_node.multiprocess_run')
-    @patch('ais_bench.backend.net_test.launch_run_node.parse_result')
-    def test_launch_run_node_success(self, mock_parse_result, mock_multiprocess_run, mock_construct_command_lists):
+    def test_launch_run_node_success(self, mock_multiprocess_run, mock_construct_command_lists):
         mock_construct_command_lists.return_value = [
             ["hccl_test/bin/all_reduce_test", "--rank_id", "0"],
             ["hccl_test/bin/all_reduce_test", "--rank_id", "1"],
         ]
-        mock_multiprocess_run.return_value = [(RET.SUCCESS, ''), (RET.SUCCESS, '')]
-        mock_parse_result.return_value = RET.SUCCESS
+        mock_multiprocess_run.return_value = RET.SUCCESS
         args = MagicMock()
         args.npus = 2
         result = launch_run_node(args)
         self.assertEqual(result, RET.SUCCESS)
         mock_construct_command_lists.assert_called_once_with(args)
         mock_multiprocess_run.assert_called_once_with(args.npus, mock_construct_command_lists.return_value)
-        mock_parse_result.assert_called_once_with(mock_multiprocess_run.return_value, args)
 
     @patch('ais_bench.backend.net_test.launch_run_node.construct_command_lists')
     @patch('ais_bench.backend.net_test.launch_run_node.multiprocess_run')
-    @patch('ais_bench.backend.net_test.launch_run_node.parse_result')
-    def test_launch_run_node_failure(self, mock_parse_result, mock_multiprocess_run, mock_construct_command_lists):
+    def test_launch_run_node_failure(self, mock_multiprocess_run, mock_construct_command_lists):
         mock_construct_command_lists.return_value = [
             ["hccl_test/bin/all_reduce_test", "--rank_id", "0"],
             ["hccl_test/bin/all_reduce_test", "--rank_id", "1"],
         ]
-        mock_multiprocess_run.return_value = [(RET.FAILED, 'Cmd failed!'), (RET.SUCCESS, '')]
-        mock_parse_result.return_value = RET.FAILED
+        mock_multiprocess_run.return_value = RET.FAILED
         args = MagicMock()
         args.npus = 2
         result = launch_run_node(args)
         self.assertEqual(result, RET.FAILED)
         mock_construct_command_lists.assert_called_once_with(args)
         mock_multiprocess_run.assert_called_once_with(args.npus, mock_construct_command_lists.return_value)
-        mock_parse_result.assert_called_once_with(mock_multiprocess_run.return_value, args)
 
     @patch('os.path.join')
     @patch('os.path.exists')
@@ -88,8 +82,7 @@ class TestLaunchRunNode(unittest.TestCase):
         mock_process.communicate.return_value = (b'', b'')
         mock_process.wait.return_value = RET.SUCCESS
         mock_popen.return_value = mock_process
-        result = run_hccl_test_exec_command(["hccl_test/bin/all_reduce_test", "--rank_id", "0"])
-        self.assertEqual(result, (RET.SUCCESS, ""))
+        run_hccl_test_exec_command(["hccl_test/bin/all_reduce_test", "--rank_id", "0"])
 
     @patch('subprocess.Popen')
     def test_run_hccl_test_exec_command_failure(self, mock_popen):
@@ -98,8 +91,8 @@ class TestLaunchRunNode(unittest.TestCase):
         mock_process.communicate.return_value = (b'', b'error occurred')
         mock_process.wait.return_value = RET.FAILED
         mock_popen.return_value = mock_process
-        result = run_hccl_test_exec_command(["hccl_test/bin/all_reduce_test", "--rank_id", "0"])
-        self.assertEqual(result, (RET.FAILED, "Cmd ['hccl_test/bin/all_reduce_test', '--rank_id', '0'] failed! error log: error occurred"))
+        with self.assertRaisesRegex(RuntimeError, "failed! error log:"):
+            run_hccl_test_exec_command(["hccl_test/bin/all_reduce_test", "--rank_id", "0"])
 
     @patch('subprocess.Popen')
     def test_multiprocess_run(self, mock_popen):
@@ -113,8 +106,7 @@ class TestLaunchRunNode(unittest.TestCase):
             ["hccl_test/bin/all_reduce_test", "--rank_id", "1"],
         ]
         results = multiprocess_run(2, command_lists)
-        self.assertEqual(results, [(RET.SUCCESS, ""), (RET.SUCCESS, "")])
-
+        self.assertEqual(results, RET.SUCCESS)
 
     def test_generate_rank_id_list(self):
         class Args:
@@ -126,33 +118,6 @@ class TestLaunchRunNode(unittest.TestCase):
         expected_rank_id_list = [8, 9, 10, 11]
         result = generate_rank_id_list(args)
         self.assertEqual(result, expected_rank_id_list)
-
-    @patch('logging.Logger.error')
-    def test_parse_result_success(self, mock_error):
-        class Args:
-            def __init__(self, node_id, npus):
-                self.node_id = node_id
-                self.npus = npus
-
-        args = Args(node_id=1, npus=3)
-        results = [(RET.SUCCESS, ""), (RET.SUCCESS, ""), (RET.SUCCESS, "")]
-        result = parse_result(results, args)
-        self.assertEqual(result, RET.SUCCESS)
-        mock_error.assert_not_called()
-
-    @patch('logging.Logger.error')
-    def test_parse_result_failure(self, mock_error):
-        class Args:
-            def __init__(self, node_id, npus):
-                self.node_id = node_id
-                self.npus = npus
-
-        args = Args(node_id=1, npus=3)
-        results = [(RET.FAILED, "Cmd ['cmd1'] failed! error log: error occurred"), (RET.SUCCESS, ""), (RET.SUCCESS, "")]
-        result = parse_result(results, args)
-        self.assertEqual(result, RET.FAILED)
-        mock_error.assert_called_once_with("rank_id:3, device id:0, run failed! error info:Cmd ['cmd1'] failed! error log: error occurred")
-
 
     def test_get_rank_related_cmd_list_with_valid_args(self):
         mock_args = MagicMock()

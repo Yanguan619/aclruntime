@@ -153,7 +153,7 @@ class TestClass:
         def mock_check():
             return True
         fake_value="output"
-        monkeypatch.setattr("check_path_legality", mock_check)
+        monkeypatch.setattr("ais_bench.infer.common.path_security_check.check_path_legality", mock_check)
         result = check_output_dir_legality(fake_value)
         assert result == True
 

@@ -30,6 +30,7 @@ from ais_bench.infer.interface_check import (
     check_bool_value,
     check_dym_hw_list
 )
+from ais_bench.infer.common.path_security_check import check_path_legality
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.INFO, format="[%(levelname)s] %(message)s"
@@ -147,6 +148,14 @@ class TestClass:
         value = -1
         with pytest.raises(ValueError):
             check_device_range_valid(value)
+
+    def test_check_output_dir_legality(self):
+        def mock_check():
+            return True
+        fake_value="output"
+        monkeypatch.setattr("check_path_legality", mock_check)
+        result = check_output_dir_legality(fake_value)
+        assert result == True
 
     def test_check_positive_integer(self):
         value = "abc"

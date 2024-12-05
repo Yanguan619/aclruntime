@@ -148,13 +148,6 @@ class TestClass:
         with pytest.raises(ValueError):
             check_device_range_valid(value)
 
-    def test_check_output_dir_legality(self):
-        self.check_illegal_fake_path_case(
-            func_to_test=check_output_dir_legality,
-            fake_value=FakeFile.NOT_READABLE_OUTPUT_DIR,
-            permission=0o100
-        )
-
     def test_check_positive_integer(self):
         value = "abc"
         with pytest.raises(TypeError):

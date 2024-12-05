@@ -20,7 +20,8 @@ from collections import namedtuple
 from abc import abstractmethod, ABCMeta
 from ais_bench.net_test.sub_module.base_sub_module import BaseSubmodule
 from ais_bench.net_test.sub_module.utils import remote_run_env_check
-from ais_bench.net_test.common.utils import multiprocess_run, get_ip_address
+from ais_bench.net_test.common.utils import get_ip_address
+from ais_bench.net_test.sub_module.multiprocess_runner import MultiProcessRunner
 from ais_bench.net_test.common.logger import logger
 from ais_bench.net_test.common.consts import REMOTE_NODE_INFO_NAME, DEFAULT_WHL_PATH
 from ais_bench.net_test.ssh.ssh_operation import remote_put, remote_exec
@@ -61,6 +62,7 @@ def remote_deploy_whl_pkg(args_dict):
 class InstallModule(BaseSubmodule):
     def __init__(self, name) -> None:
         super().__init__(name)
+        self.multiprocess_run = MultiProcessRunner()
 
     def add_sub_arguments(self, subparsers):
         self.parser = subparsers.add_parser(
@@ -95,7 +97,7 @@ class InstallModule(BaseSubmodule):
         if len(self.hostfile_info) > 0:
             self._deploy(args)
             self._install(args)
-            logger.info(f"install whl pkg:{args.whl_pkg_path} for all nodes success!")
+            logger.info(f"install whl pkg:{args.whl_pkg_path} for other nodes success!")
         else:
             logger.warning(f"hostfile do not contain other node, won't install!")
 
@@ -112,7 +114,7 @@ class InstallModule(BaseSubmodule):
 
     def _deploy(self, args):
         args_dict_list = self._gen_deploy_args_dict_list(args)
-        multiprocess_run(remote_deploy_whl_pkg, args_dict_list)
+        self.multiprocess_run(remote_deploy_whl_pkg, args_dict_list)
 
     def _gen_deploy_args_dict_list(self, args):
         args_dict_list = []
@@ -131,8 +133,8 @@ class InstallModule(BaseSubmodule):
 
     def _install(self, args):
         args_dict_list = self._gen_install_args_dict_list(args)
-        multiprocess_run(remote_run_env_check, args_dict_list)
-        multiprocess_run(remote_install_whl_pkg, args_dict_list)
+        self.multiprocess_run(remote_run_env_check, args_dict_list)
+        self.multiprocess_run(remote_install_whl_pkg, args_dict_list)
 
     def _gen_install_cmd(self, args):
         pkg_name = os.path.basename(args.whl_pkg_path)

@@ -1,8 +1,8 @@
 import unittest
 import paramiko
 from unittest.mock import patch, Mock
-from ais_bench.net_test.ssh.ssh_operation import (ssh_client_connect, remote_exec, remote_exec_file_check, remote_put
-    )
+from ais_bench.net_test.ssh.ssh_operation import (ssh_client_connect, remote_exec, remote_exec_file_check, remote_put,
+    SSHCheckValueError, SSHConnectError, SSHKeyExistsError, SSHRemoteExecError, SSHRemotePutError)
 from ais_bench.net_test.sub_module.base_sub_module import NodeInfo
 
 
@@ -36,11 +36,11 @@ class TestCheckFuncUtils(unittest.TestCase):
         ssh_client = paramiko.SSHClient()
         node_info = NodeInfo("XX", 1, "A", 123)
         mock_ssh_client.side_effect = Exception('An error occurred')
-        with self.assertRaisesRegex(RuntimeError, "ssh connect use ssh key"):
+        with self.assertRaisesRegex(SSHConnectError, "ssh connect use ssh key"):
             ssh_client_connect(ssh_client, node_info, "./")
 
         mock_ssh_client.side_effect = None
-        with self.assertRaisesRegex(FileExistsError, "ssh_key_path not offered"):
+        with self.assertRaisesRegex(SSHKeyExistsError, "ssh_key_path not offered"):
             ssh_client_connect(ssh_client, node_info, "")
 
     @patch("paramiko.SSHClient.close")
@@ -50,13 +50,13 @@ class TestCheckFuncUtils(unittest.TestCase):
         node_info = NodeInfo("XX", 1, "A", 123)
         mock_exec.return_value = ("1", FakeBufferedFile(b'aa'), FakeBufferedFile(b'a'))
         mock_exec.side_effect = Exception('An error occurred')
-        with self.assertRaisesRegex(ValueError, "exec command:"):
+        with self.assertRaisesRegex(SSHCheckValueError, "exec command:"):
             remote_exec_file_check("./", node_info, "./")
 
         mock_exec.return_value = ("1", FakeBufferedFile(b'aaa'), FakeBufferedFile(b'a'))
         mock_exec.side_effect = None
 
-        with self.assertRaisesRegex(ValueError, "remote check file failed! error log"):
+        with self.assertRaisesRegex(SSHCheckValueError, "remote check file failed! error log"):
             remote_exec_file_check("./", node_info, "./")
 
     @patch("paramiko.SSHClient.close")
@@ -67,7 +67,7 @@ class TestCheckFuncUtils(unittest.TestCase):
         node_info = NodeInfo("XX", 1, "A", 123)
         mock_exec.return_value = ("1", FakeBufferedFile(b'aa'), FakeBufferedFile(b'a'))
         mock_exec.side_effect = Exception('An error occurred')
-        with self.assertRaisesRegex(RuntimeError, "exec command:"):
+        with self.assertRaisesRegex(SSHRemoteExecError, "exec command:"):
             remote_exec(1, node_info, "ls", "./")
 
         mock_exec.return_value = ("1", FakeBufferedFile(b'aa'), FakeBufferedFile(b'ERROR'))
@@ -81,14 +81,14 @@ class TestCheckFuncUtils(unittest.TestCase):
     def test_remote_put(self, mock_connect, mock_scp,  mock_ssh_close):
         node_info = NodeInfo("XX", 1, "A", 123)
         mock_scp.side_effect = Exception('An error occurred')
-        with self.assertRaisesRegex(RuntimeError, "open trans_client failed"):
+        with self.assertRaisesRegex(SSHRemotePutError, "open trans_client failed"):
             remote_put(1, node_info, "./", "./", "./")
 
         mock_scp.side_effect = None
         mock_scp.return_value = FakeSCPClient()
         mock_fake_scp = Mock(spec=FakeSCPClient)
         mock_fake_scp.put.side_effect = Exception('An error occurred')
-        with self.assertRaisesRegex(RuntimeError, "to dst_path:"):
+        with self.assertRaisesRegex(SSHRemotePutError, "to dst_path:"):
             remote_put(1, node_info, "./", "./", "./")
 
 

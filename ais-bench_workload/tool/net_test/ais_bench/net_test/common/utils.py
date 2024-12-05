@@ -74,12 +74,3 @@ def compare_bytes_string(min_bytes, max_bytes):
     if (num_max / num_min) * (max_suffix_k_bytes / min_suffix_k_bytes) >= 1:
         return True
     return False
-
-
-def multiprocess_run(func, namedtuple_lists):
-        # 创建一个进程池
-        process_count = len(namedtuple_lists)
-        with Pool(processes=process_count) as pool:  # 可以指定进程数量，默认为CPU核心数
-            # 使用进程池映射命令到 run_command 函数
-            results = pool.map(func, namedtuple_lists)
-        return results

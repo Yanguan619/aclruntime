@@ -38,14 +38,14 @@ def run_hccl_test_exec_command(cmd_list):
     # 等待命令执行完成
     return_code = p.wait()
     if return_code != RET.SUCCESS:
-        return RET.FAILED, f"Cmd {cmd_list} failed! error log: {stderr.decode('utf-8')}"
-    return RET.SUCCESS, ""
+        raise RuntimeError(f"Cmd {cmd_list} failed! error log: {stderr.decode('utf-8')}")
 
 
 def check_root_port_free(args):
     if args.node_id != 0:
         return RET.SUCCESS
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             s.bind((args.server_ip, args.server_port))
             return RET.SUCCESS
@@ -86,28 +86,25 @@ def construct_command_lists(args):
 
 
 def multiprocess_run(process_count, command_lists):
-    # 创建一个进程池
-    with Pool(processes=process_count) as pool:  # 可以指定进程数量，默认为CPU核心数
-        # 使用进程池映射命令到 run_command 函数
-        results = pool.map(run_hccl_test_exec_command, command_lists)
-    return results
+    p = Pool(process_count)
+    task_failed = RET.SUCCESS
 
+    def _callback(value):
+        logger.error(f"subprocess run failed, error: {value}")
+        p.terminate()
+        task_failed = RET.FAILED
 
-def parse_result(results, args):
-    rank_id_list = generate_rank_id_list(args)
-    for device_id, result in enumerate(results):
-        if (result[0] != RET.SUCCESS):
-            logger.error(f"rank_id:{rank_id_list[device_id]}, device id:{device_id}, run failed! error info:{result[1]}")
-            return result[0]
-        if result[1]:
-            print(result[1])
-    return RET.SUCCESS
+    for _, command_list in enumerate(command_lists):
+        p.apply_async(run_hccl_test_exec_command, args=(command_list,), error_callback=_callback)
+    p.close()
+    p.join()
+
+    return task_failed
 
 
 def launch_run_node(args):
     if check_root_port_free(args) != RET.SUCCESS:
         return RET.FAILED
     command_lists = construct_command_lists(args)
-    results = multiprocess_run(args.npus, command_lists)
-    ret = parse_result(results, args)
+    ret = multiprocess_run(args.npus, command_lists)
     return ret

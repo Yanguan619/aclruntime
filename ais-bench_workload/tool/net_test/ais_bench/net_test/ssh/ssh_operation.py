@@ -25,6 +25,26 @@ from ais_bench.net_test.security.file_checker import check_linux_path_format
 from ais_bench.net_test.security.other_checker import check_linux_file_stat_string_from_shell
 
 
+class SSHConnectError(Exception):...
+
+
+class SSHKeyExistsError(FileExistsError):...
+
+
+class SSHRemoteExecError(Exception):...
+
+
+class SSHCheckValueError(Exception):...
+
+
+class SSHRemotePutError(Exception):...
+
+
+SSH_EXCEPTION_LIST = [
+    SSHConnectError, SSHKeyExistsError, SSHRemoteExecError, SSHCheckValueError, SSHRemotePutError
+]
+
+
 def console_origin(line):
     sys.stdout.write(line)
     sys.stdout.flush()
@@ -40,9 +60,9 @@ def ssh_client_connect(ssh_client, node_info: NodeInfo, ssh_key_path: str = ""):
             ssh_client.connect(ip, port=int(port), username=user, key_filename=ssh_key_path)
         except Exception as err:
             ssh_client.close()
-            raise RuntimeError(f"ssh connect use ssh key: {ssh_key_path}, server:{ip} port:{port} failed!") from err
+            raise SSHConnectError(f"ssh connect use ssh key: {ssh_key_path}, server:{ip} port:{port} failed!") from err
     else:
-        raise FileExistsError(f"ssh_key_path not offered, can not connect to nodes")
+        raise SSHKeyExistsError(f"ssh_key_path not offered, can not connect to nodes")
 
 
 def remote_exec_file_check(file_path: str, node_info: NodeInfo, ssh_key_path: str = ""):
@@ -51,8 +71,12 @@ def remote_exec_file_check(file_path: str, node_info: NodeInfo, ssh_key_path: st
     actual_path = file_path.replace(" ","")
 
     if len(actual_path) == 0:
-        raise ValueError("file path is empty!")
-    check_linux_path_format(actual_path)
+        raise SSHCheckValueError("file path is empty!")
+
+    try:
+        check_linux_path_format(actual_path)
+    except Exception as err:
+        raise SSHCheckValueError(f"check file format failed, error detail:{err}")
 
     get_file_info_cmd = f"ls -l {actual_path}"
     try:
@@ -60,16 +84,19 @@ def remote_exec_file_check(file_path: str, node_info: NodeInfo, ssh_key_path: st
             timeout=TIME_OUT.NORMAL_SSH_EXEC_TIMEOUT)
     except Exception as err:
         ssh_client.close()
-        raise ValueError(f"server_ip:{node_info.ip}, " +
+        raise SSHCheckValueError(f"server_ip:{node_info.ip}, " +
             f"exec command:{get_file_info_cmd} failed!") from err
     error_str = stderr.read().decode("utf-8")
     if error_str:
-        raise ValueError(f"server_ip:{node_info.ip}, remote check file failed! error log: {error_str}")
+        raise SSHCheckValueError(f"server_ip:{node_info.ip}, remote check file failed! error log: {error_str}")
 
     result = stdout.readlines()
     if len(result) > 0:
         file_info = result[0].split()
-        check_linux_file_stat_string_from_shell(file_info, node_info.user, file_path == DEFAULT_ENV_SCRIPT_PATH)
+        try:
+            check_linux_file_stat_string_from_shell(file_info, node_info.user, file_path == DEFAULT_ENV_SCRIPT_PATH)
+        except ValueError as err:
+            raise SSHCheckValueError(f"remote file check failed, err detail:{err}")
     ssh_client.close()
 
 
@@ -81,7 +108,7 @@ def remote_exec(node_id: int, node_info: NodeInfo, cmd: str, ssh_key_path: str =
         _, stdout, stderr = ssh_client.exec_command(cmd, bufsize=1, timeout=TIME_OUT.NORMAL_SSH_EXEC_TIMEOUT)
     except Exception as err:
         ssh_client.close()
-        raise RuntimeError(f"server_ip:{node_info.ip}, " +
+        raise SSHRemoteExecError(f"server_ip:{node_info.ip}, " +
             f"exec command:{cmd} failed!") from err
     for line in iter(lambda: stdout.readline(2048), ""):
         console_origin(line)
@@ -105,12 +132,12 @@ def remote_put(node_id: int, node_info: NodeInfo, src_path: str, dst_path: str, 
         trans_client = scp.SCPClient(ssh_client.get_transport())
     except Exception as err:
         ssh_client.close()
-        raise RuntimeError(f"user:{node_info.user}, server:{node_info.ip} " + \
+        raise SSHRemotePutError(f"user:{node_info.user}, server:{node_info.ip} " + \
              f"port:{node_info.port} open trans_client failed") from err
     try:
         trans_client.put(src_path, dst_path, recursive=True)
     except Exception as err:
-        raise RuntimeError(f"user:{node_info.user}, server:{node_info.ip} port:{node_info.port} scp put " +
+        raise SSHRemotePutError(f"user:{node_info.user}, server:{node_info.ip} port:{node_info.port} scp put " +
             f"src_path: {src_path} to dst_path: {dst_path} failed") from err
     finally:
         trans_client.close()

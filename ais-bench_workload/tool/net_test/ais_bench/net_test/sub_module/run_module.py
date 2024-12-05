@@ -18,12 +18,12 @@ import subprocess
 from abc import abstractmethod, ABCMeta
 from ais_bench.net_test.sub_module.base_sub_module import BaseSubmodule
 from ais_bench.net_test.sub_module.utils import remote_run_env_check
-from ais_bench.net_test.common.utils import multiprocess_run
 from ais_bench.net_test.common.logger import logger
 from ais_bench.net_test.ssh.ssh_operation import remote_exec
 from ais_bench.net_test.common.consts import (RUN_MODE_NAME, REMOTE_NODE_INFO_NAME,
     OP_TASK, OP_CMD_HELP_INFO, RET, DEFAULT)
 from ais_bench.net_test.common.args_check import (arg_check_positive_integer, arg_check_port_range)
+from ais_bench.net_test.sub_module.multiprocess_runner import MultiProcessRunner
 
 class BaseRunMode(metaclass=ABCMeta):
     def __init__(self) -> None:
@@ -39,33 +39,24 @@ class FullRun(BaseRunMode):
     def __init__(self) -> None:
         self.name = RUN_MODE_NAME.FULL
         self.hostfile_info = {}
+        self.multiprocess_run = MultiProcessRunner()
 
     def __call__(self, args, hostfile_info: dict):
         self.hostfile_info = hostfile_info
         args_dict_list = self._gen_full_args_dict_list(args)
-        try:
-            self._run(args, args_dict_list)
-        except (KeyboardInterrupt, RuntimeError) as err:
-            logger.error(f"get some error in full run mode, error detail: {err}")
-            self._clean_up(args, args_dict_list)
+        self._run(args, args_dict_list)
 
     def _run(self, args, args_dict_list):
-        if not args.hostfile: # only root node run
-            self._root_node_run_py_backend_cmd(args_dict_list[0].get(REMOTE_NODE_INFO_NAME.CMD))
-        else:
-            multiprocess_run(remote_run_env_check, args_dict_list)
-            multiprocess_run(self._remote_run_py_backend_cmd, args_dict_list)
-
-    def _clean_up(self, args, args_dict_list):
         clean_up_cmd = f"pkill -9 {args.op_cmds[0]}"
         if not args.hostfile: # only root node run
-            self._root_node_run_py_backend_cmd(cmd=clean_up_cmd)
+            try:
+                self._root_node_run_py_backend_cmd(args_dict_list[0].get(REMOTE_NODE_INFO_NAME.CMD))
+            except (KeyboardInterrupt, RuntimeError) as err:
+                logger.error(f"get some error in full run mode, error detail: {err}")
+                self._root_node_run_py_backend_cmd(cmd=clean_up_cmd)
         else:
-            for i, _ in enumerate(args_dict_list):
-                args_dict_list[i][REMOTE_NODE_INFO_NAME.CMD] = f"pkill -9 {args.op_cmds[0]}"
-            logger.info("start to clean up op task ...")
-            multiprocess_run(self._remote_run_py_backend_cmd, args_dict_list)
-            logger.info("clean up op task success!")
+            self.multiprocess_run(remote_run_env_check, args_dict_list)
+            self.multiprocess_run(self._remote_run_py_backend_cmd, args_dict_list, clean_up_cmd)
 
     def _gen_full_args_dict_list(self, args):
         args_dict_list = []

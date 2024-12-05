@@ -94,8 +94,8 @@ class TestClass:
         self.cur_dir = os.path.dirname(os.path.abspath(__file__))
 
     def test_check_model_path_legality(self):
-        with pytest.raises(Exception):
-            check_device_range_valid("")
+        with pytest.raises(RuntimeError):
+            check_model_path_legality("")
 
         self.check_illegal_fake_path_case(
             func_to_test=check_model_path_legality,
@@ -138,19 +138,19 @@ class TestClass:
 
     def test_check_device_range_valid(self):
         DEVICE_COUNT_MAX = 256
-        value = "1,-1"
-        with pytest.raises(Exception):
+        value = "a"
+        with pytest.raises(TypeError):
             check_device_range_valid(value)
-        value = "256"
-        with pytest.raises(Exception):
+        value = 256
+        with pytest.raises(ValueError):
             check_device_range_valid(value)
-        value = ["1" for _ in range(DEVICE_COUNT_MAX + 1)]
-        with pytest.raises(Exception):
+        value = -1
+        with pytest.raises(ValueError):
             check_device_range_valid(value)
 
     def test_check_output_dir_legality(self):
-        with pytest.raises(Exception):
-            check_device_range_valid("")
+        with pytest.raises(ValueError):
+            check_output_dir_legality("")
 
         self.check_illegal_fake_path_case(
             func_to_test=check_output_dir_legality,
@@ -160,153 +160,153 @@ class TestClass:
 
     def test_check_positive_integer(self):
         value = "abc"
-        with pytest.raises(Exception):
+        with pytest.raises(TypeError):
             check_positive_integer(value)
 
         value = 0
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_positive_integer(value)
 
         value = 2147483648
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_positive_integer(value)
 
     def test_check_in_out_list(self):
         in_out_list = [1, 2, 3]
         inputs = [1, 2]
         outputs = [1, 2, 3]
-        with pytest.raises(Exception):
+        with pytest.raises(RuntimeError):
             check_in_out_list(in_out_list, inputs, outputs)
 
         in_out_list = [1, 2, "a"]
         inputs = [1, 2, 3]
         outputs = [1, 2, 3]
-        with pytest.raises(Exception):
+        with pytest.raises(TypeError):
             check_in_out_list(in_out_list, inputs, outputs)
 
         in_out_list = [1, -2, 3]
         inputs = [1, 2, 3]
         outputs = [1, 2, 3]
-        with pytest.raises(Exception):
+        with pytest.raises(IndexError):
             check_in_out_list(in_out_list, inputs, outputs)
 
         in_out_list = [1, 2, 3]
         inputs = [1, 2, 3]
         outputs = [1, 2, 3]
-        with pytest.raises(Exception):
+        with pytest.raises(IndexError):
             check_in_out_list(in_out_list, inputs, outputs)
         
     def test_check_list(self):
         list_check = 1
         max_len = 2
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_list(list_check, max_len)
 
         list_check = []
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_list(list_check, max_len, False)
 
         list_check = [1, 2, 3]
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_list(list_check, max_len)
 
         list_check = [1, 2, 3]
         max_len = 4
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_list(list_check, max_len, True, str)
 
     def test_check_dict(self):
         dict_check = 1
         max_len = 1
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_dict(dict_check, max_len)
 
         dict_check = {
             "key1" : "value1",
             "key2" : "value2"
         }
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_dict(dict_check, max_len)
 
         dict_check = {}
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_dict(dict_check, max_len, False)
 
     def test_check_custom_size(self):
         CUSTOME_SIZE_MAX_SIZE = 16 * 1024 * 1024 * 1024
         value = 1
         mode="xxx"
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_custom_size(value, mode)
         
         value = None
         mode = "dymshape"
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_custom_size(value, mode)
         
         value = [0, 2]
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_custom_size(value, mode)
         
         value = [1, CUSTOME_SIZE_MAX_SIZE + 1]
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_custom_size(value, mode)
 
         value = 0
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_custom_size(value, mode)
 
         value = CUSTOME_SIZE_MAX_SIZE + 1
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_custom_size(value, mode)
 
         value = "abc"
-        with pytest.raises(Exception):
+        with pytest.raises(TypeError):
             check_custom_size(value, mode)
         
     def test_check_loop_size(self):
         LOOP_MAX_SIZE = 100000
         loop = "abc"
-        with pytest.raises(Exception):
+        with pytest.raises(TypeError):
             check_loop_size(loop)
         
         loop = 0
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_loop_size(loop)
 
         loop = LOOP_MAX_SIZE + 1
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_loop_size(loop)
 
     def test_check_bool_value(self):
         value = 10
-        with pytest.raises(Exception):
+        with pytest.raises(TypeError):
             check_bool_value(value)
 
     def test_check_dym_hw_list(self):
         CPP_INT_MAX_SIZE = 2147483647
         hw_list = [1]
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_dym_hw_list(hw_list)
         
         hw_list = ["a", 1]
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_dym_hw_list(hw_list)
         
         hw_list = [0, 1]
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_dym_hw_list(hw_list)
         
         hw_list = [CPP_INT_MAX_SIZE + 1, 1]
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_dym_hw_list(hw_list)
 
         hw_list = [1, 0]
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_dym_hw_list(hw_list)
         
         hw_list = [1, CPP_INT_MAX_SIZE + 1]
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             check_dym_hw_list(hw_list)
 
 

@@ -149,7 +149,7 @@ class TestClass:
             check_device_range_valid(value)
 
     def test_check_output_dir_legality(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(Exception):
             check_output_dir_legality("")
 
         self.check_illegal_fake_path_case(

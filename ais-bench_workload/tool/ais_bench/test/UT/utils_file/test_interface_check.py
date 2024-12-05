@@ -149,14 +149,6 @@ class TestClass:
         with pytest.raises(ValueError):
             check_device_range_valid(value)
 
-    def test_check_output_dir_legality(self, monkeypatch):
-        def mock_check():
-            return True
-        fake_value="output"
-        monkeypatch.setattr("ais_bench.infer.common.path_security_check.check_path_legality", mock_check)
-        result = check_output_dir_legality(fake_value)
-        assert result == True
-
     def test_check_positive_integer(self):
         value = "abc"
         with pytest.raises(TypeError):

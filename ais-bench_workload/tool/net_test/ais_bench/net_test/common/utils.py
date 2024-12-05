@@ -18,7 +18,7 @@ import subprocess
 import getpass
 from multiprocessing import Pool
 
-from ais_bench.net_test.common.consts import STRING_PATTERN, OTHERS
+from ais_bench.net_test.common.consts import STRING_PATTERN, OTHERS, LENGTH_LIMIT
 from ais_bench.net_test.common.logger import logger
 
 def get_ip_address():
@@ -74,3 +74,9 @@ def compare_bytes_string(min_bytes, max_bytes):
     if (num_max / num_min) * (max_suffix_k_bytes / min_suffix_k_bytes) >= 1:
         return True
     return False
+
+
+def cut_npu_process_name(task_name: str):
+    if len(task_name) > LENGTH_LIMIT.NPU_PROCESS_NAME_LENGTH:
+        return task_name[:LENGTH_LIMIT.NPU_PROCESS_NAME_LENGTH]
+    return task_name

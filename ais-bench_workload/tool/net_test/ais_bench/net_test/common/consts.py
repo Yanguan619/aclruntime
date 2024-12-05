@@ -53,6 +53,7 @@ class LENGTH_LIMIT:
     MIN_UINT_STR_LENGTH = 1
     MIN_BYTES_STR_LENGTH = 2
     MAX_LINUX_USERNAME_LENGTH = 30  # linux 用户名长度限制
+    NPU_PROCESS_NAME_LENGTH = 15 # npu-smi 进程长度限制
 
 
 class STRING_PATTERN:

@@ -149,7 +149,7 @@ class TestClass:
         with pytest.raises(ValueError):
             check_device_range_valid(value)
 
-    def test_check_output_dir_legality(self):
+    def test_check_output_dir_legality(self, monkeypatch):
         def mock_check():
             return True
         fake_value="output"

@@ -20,7 +20,6 @@ from ais_bench.infer.interface_check import (
     check_model_path_legality,
     check_acl_json_path_legality,
     check_device_range_valid,
-    check_output_dir_legality,
     check_positive_integer,
     check_in_out_list,
     check_list,

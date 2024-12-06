@@ -24,6 +24,7 @@ from ais_bench.net_test.common.consts import (RUN_MODE_NAME, REMOTE_NODE_INFO_NA
     OP_TASK, OP_CMD_HELP_INFO, RET, DEFAULT)
 from ais_bench.net_test.common.args_check import (arg_check_positive_integer, arg_check_port_range)
 from ais_bench.net_test.sub_module.multiprocess_runner import MultiProcessRunner
+from ais_bench.net_test.common.utils import cut_npu_process_name
 
 class BaseRunMode(metaclass=ABCMeta):
     def __init__(self) -> None:
@@ -47,7 +48,7 @@ class FullRun(BaseRunMode):
         self._run(args, args_dict_list)
 
     def _run(self, args, args_dict_list):
-        clean_up_cmd = f"pkill -9 {args.op_cmds[0]}"
+        clean_up_cmd = f"pkill -9 {cut_npu_process_name(args.op_cmds[0])}"
         if not args.hostfile: # only root node run
             try:
                 self._root_node_run_py_backend_cmd(args_dict_list[0].get(REMOTE_NODE_INFO_NAME.CMD))

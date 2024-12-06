@@ -97,7 +97,7 @@ class InstallModule(BaseSubmodule):
         if len(self.hostfile_info) > 0:
             self._deploy(args)
             self._install(args)
-            logger.info(f"install whl pkg:{args.whl_pkg_path} for other nodes success!")
+            logger.info(f"finish installing whl pkg:{args.whl_pkg_path} for other nodes!")
         else:
             logger.warning(f"hostfile do not contain other node, won't install!")
 

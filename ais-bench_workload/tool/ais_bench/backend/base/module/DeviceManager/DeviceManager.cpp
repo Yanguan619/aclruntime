@@ -60,13 +60,16 @@ APP_ERROR DeviceManager::InitDevices(std::string configFilePath)
     }
 
     APP_ERROR ret = aclInit(aclJsonPath_.c_str());
-    aclrtSetDeviceSatMode(ACL_RT_OVERFLOW_MODE_SATURATION); // 离线推理只使用饱和模式
-    if (ret != APP_ERR_OK) {
+    if (ret == ACL_ERROR_REPEAT_INITIALIZE) {
+        WARN_LOG("acl repeat initialize");
+        repeatInitAclFlag = false;
+    } else if (ret != APP_ERR_OK) {
         initCounter_ = 0;
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("acl init failed");
         return ret;
     }
+    aclrtSetDeviceSatMode(ACL_RT_OVERFLOW_MODE_SATURATION);
     INFO_LOG("acl init success");
 
     ret = aclrtGetDeviceCount(&deviceCount_);
@@ -87,6 +90,10 @@ APP_ERROR DeviceManager::InitDevices(std::string configFilePath)
  */
 APP_ERROR DeviceManager::DestroyDevices()
 {
+    if (!repeatInitAclFlag) {
+        WARN_LOG("acl repeat destroy");
+        return APP_ERR_OK;
+    }
     std::lock_guard<std::mutex> lock(mtx_);
     if (initCounter_ == 0) {
         return APP_ERR_COMM_OUT_OF_RANGE;
@@ -114,11 +121,14 @@ APP_ERROR DeviceManager::DestroyDevices()
         }
 
         contexts_.clear();
-        APP_ERROR ret = aclFinalize();
-        if (ret != APP_ERR_OK) {
-            ACLERR_LOG(aclGetRecentErrMsg());
-            ERROR_LOG("finalize acl failed");
-            return ret;
+        if (repeatInitAclFlag) {
+            DEBUG_LOG("not repeat acl init");
+            APP_ERROR ret = aclFinalize();
+            if (ret != APP_ERR_OK) {
+                ACLERR_LOG(aclGetRecentErrMsg());
+                ERROR_LOG("finalize acl failed");
+                return ret;
+            }
         }
         INFO_LOG("end to finalize acl");
         return APP_ERR_OK;
@@ -150,11 +160,15 @@ APP_ERROR DeviceManager::DestroyContext(uint32_t deviceId, std::size_t contextIn
         ERROR_LOG("destroy context failed: context id %lu cannot be find", contextIndex);
         return APP_ERR_OK;
     }
-    ret = aclrtDestroyContext(contexts_[deviceId][contextIndex]);
-    if (ret != APP_ERR_OK) {
-        ACLERR_LOG(aclGetRecentErrMsg());
-        ERROR_LOG("destroy context failed: destroy context failed");
-        return ret;
+    if (contexts_[deviceId][contextIndex] == nullptr) {
+        WARN_LOG("repeat destroy context");
+    } else {
+        ret = aclrtDestroyContext(contexts_[deviceId][contextIndex]);
+        if (ret != APP_ERR_OK) {
+            ACLERR_LOG(aclGetRecentErrMsg());
+            ERROR_LOG("destroy context failed");
+            return ret;
+        }
     }
     contexts_[deviceId].erase(contextIndex);
     DEBUG_LOG("end to destroy context %lu in device %u", contextIndex, deviceId);
@@ -223,11 +237,22 @@ APP_ERROR DeviceManager::CreateContext(DeviceContext device, size_t& contextInde
         nextContextIndex_[deviceId] = 0;
     }
     aclrtContext newContext = nullptr;
-    APP_ERROR ret = aclrtCreateContext(&newContext, deviceId);
-    if (ret != APP_ERR_OK) {
-        ACLERR_LOG(aclGetRecentErrMsg());
-        ERROR_LOG("acl create context failed");
-        return ret;
+    if (contexts_[deviceId].empty() && !repeatInitAclFlag) {
+        INFO_LOG("get current context");
+        APP_ERROR ret = aclrtGetCurrentContext(&newContext);
+        if (ret != APP_ERR_OK) {
+            ACLERR_LOG(aclGetRecentErrMsg());
+            ERROR_LOG("acl get current context failed. ret=%d", ret);
+            return ret;
+        }
+    } else {
+        INFO_LOG("create new context");
+        APP_ERROR ret = aclrtCreateContext(&newContext, deviceId);
+        if (ret != APP_ERR_OK) {
+            ACLERR_LOG(aclGetRecentErrMsg());
+            ERROR_LOG("acl create context failed");
+            return ret;
+        }
     }
     if (nextContextIndex_.count(deviceId) == 0) {
         ERROR_LOG("device %d missing default context!", deviceId);

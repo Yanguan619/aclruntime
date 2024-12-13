@@ -66,6 +66,7 @@ private:
     uint32_t deviceCount_ = 0;
     uint32_t initCounter_ = 0;
     std::string aclJsonPath_ = "";
+    bool repeatInitAclFlag = true;
 };
 }  // namespace Base
 

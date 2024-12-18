@@ -136,7 +136,7 @@ python3 -m ais_bench run [optional arguments] <op task> [op cmds]
 ##### 常规命令（optional arguments）
 |参数名|简写|说明|是否必选|
 | ---- | ---- | ----- | ----- |
-|--hostfile|-f|操作节点上的节点列表文件。权限不得超过0o600。格式参考章节["备注说明> --hostfile传入文件的格式"](#jump1)。若不配置此文件，默认使用操作节点单机运行|是|
+|--hostfile|-f|操作节点上的节点列表文件。权限不得超过0o600。格式参考章节["备注说明> --hostfile传入文件的格式"](#jump1)。若不配置此文件，默认使用操作节点单机运行(这种情况下不需要配置--ssh_key_path)|是|
 |--rank_size|-n|集群中参与集合通信测评的总device数量，默认值：8|否|
 |--link_port|-lpt|共享root rank信息的端口，默认21345|否|
 |--ssh_key_path|-skp|操作节点ssh私钥的路径，权限不得超过0o600，默认/root/.ssh/id_rsa| 否|
@@ -157,6 +157,8 @@ python3 -m ais_bench run [optional arguments] <op task> [op cmds]
 |reduce_scatter_test|
 |reduce_test|
 |scatter_test|
+|all_gatherv_test|
+|reduce_scatterv_test|
 
 ##### 后端相关命令（op cmds）
 这部分命令与hccl_test中通信算子可执行文件传入的相关命令一致，参考昇腾社区CANN文档中“HCCL性能测试工具 > 参数说明 > [HCCL Test工具相关参数](https://www.hiascend.com/document/detail/zh/canncommercial/80RC3/devaids/devtools/hccltool/HCCLpertest_16_0005.html#ZH-CN_TOPIC_0000002082057253__section18761173413116)”：<br>

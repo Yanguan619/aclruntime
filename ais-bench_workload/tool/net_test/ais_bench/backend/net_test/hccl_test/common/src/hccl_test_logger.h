@@ -30,6 +30,11 @@
         printf(color fmt LogColorNone_, ##__VA_ARGS__);                            \
     } while (0)
 
+#define LOG_ORIGIN(fmt, ...)         \
+    do {                               \
+        printf(fmt "\n", ##__VA_ARGS__); \
+    } while (0)
+
 const int BASE_YEAR = 1900;
 const std::string SELF_MODULE_NAME = "HCCL_TEST";
 

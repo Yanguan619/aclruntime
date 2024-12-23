@@ -10,7 +10,8 @@ CXXFLAGS := -std=c++11\
         -Wl,-z,relro\
         -Wl,-z,now\
         -Wl,-z,noexecstack\
-		-Wl,--copy-dt-needed-entries
+		-Wl,--copy-dt-needed-entries\
+		-Wl,--unresolved-symbols=ignore-all
 
 ifeq ($(MPI), 1)
 CXXFLAGS += -DMPI_SUPPORT

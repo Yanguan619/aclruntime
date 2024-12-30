@@ -931,6 +931,42 @@ class TestClass:
         ret = os.system(cmd)
         assert ret == 0
 
+    def test_general_inference_interface_same_multi_device_0_divide_input_for_odd_count(self):
+        """ device 0,0 divide_inputs 1"""
+        devices = "0,0"
+        batch_size = 1
+        static_model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+        input_size = TestCommonClass.get_model_inputs_size(static_model_path)[0]
+        file_num = 25
+        input_path = TestCommonClass.get_inputs_path(
+            input_size, os.path.join(self.model_base_path, "input"), file_num
+        )
+        model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+        cmd = "{} --model {} --device {} --input {} --divide_input 1".format(
+            TestCommonClass.cmd_prefix, model_path, devices, input_path
+        )
+        logger.info("run cmd:{}".format(cmd))
+        ret = os.system(cmd)
+        assert ret == 0
+
+    def test_general_inference_interface_same_multi_device_0_divide_input_for_even_count(self):
+        """ device 0,0 divide_inputs 1"""
+        devices = "0,0"
+        batch_size = 1
+        static_model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+        input_size = TestCommonClass.get_model_inputs_size(static_model_path)[0]
+        file_num = 26
+        input_path = TestCommonClass.get_inputs_path(
+            input_size, os.path.join(self.model_base_path, "input"), file_num
+        )
+        model_path = TestCommonClass.get_model_static_om_path(batch_size, self.model_name)
+        cmd = "{} --model {} --device {} --input {} --divide_input 1".format(
+            TestCommonClass.cmd_prefix, model_path, devices, input_path
+        )
+        logger.info("run cmd:{}".format(cmd))
+        ret = os.system(cmd)
+        assert ret == 0
+
     def test_general_inference_interface_abnormal_invalid_device(self):
         """ device 1,2,255. legal"""
         device_count, ret = acl.rt.get_device_count()

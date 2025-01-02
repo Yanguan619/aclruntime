@@ -54,7 +54,9 @@ class FullRun(BaseRunMode):
                 self._root_node_run_py_backend_cmd(args_dict_list[0].get(REMOTE_NODE_INFO_NAME.CMD))
             except (KeyboardInterrupt, RuntimeError) as err:
                 logger.error(f"get some error in full run mode, error detail: {err}")
+                logger.info(f"start to clean up current node resource ...")
                 self._root_node_run_py_backend_cmd(cmd=clean_up_cmd)
+                logger.info(f"clean up current node resource success!")
         else:
             self.multiprocess_run(remote_run_env_check, args_dict_list)
             self.multiprocess_run(self._remote_run_py_backend_cmd, args_dict_list, clean_up_cmd)
@@ -118,9 +120,10 @@ class FullRun(BaseRunMode):
         _, stderr = p.communicate()
 
         # 等待命令执行完成
-        return_code = p.wait()
-        if return_code != RET.SUCCESS:
-            raise RuntimeError(f"exec cmd {cmd_list} failed! error log: {stderr.decode('utf-8')}")
+        p.wait()
+        error_log = stderr.decode("utf-8")
+        if error_log:
+            raise RuntimeError(f"exec cmd {cmd_list} failed! error log: {error_log}")
 
 
 RUN_MODE_SWITCH = {

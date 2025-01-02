@@ -67,7 +67,6 @@ class BaseSubmodule(metaclass=ABCMeta):
             "--ssh_key_path",
             "-skp",
             type=arg_check_ssh_key_path_legalty, # str
-            default=DEFAULT_SSH_KEY_PATH,
             help="optional, default /root/.ssh/id_rsa, ssh key path"
         )
         self.parser.add_argument(
@@ -95,6 +94,10 @@ class BaseSubmodule(metaclass=ABCMeta):
                 get_default_port(),
             )
             return
+        else:
+            if args.ssh_key_path is None:
+                args.ssh_key_path = DEFAULT_SSH_KEY_PATH
+                arg_check_ssh_key_path_legalty(DEFAULT_SSH_KEY_PATH)
 
         with ms_open(args.hostfile, 'r') as file:
             count = 0

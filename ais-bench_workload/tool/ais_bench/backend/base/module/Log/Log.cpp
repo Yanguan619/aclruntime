@@ -16,13 +16,9 @@
 
 #include "Base/Log/Log.h"
 
-int g_frizyLogLevel = 2;
 const int LOG_BUFFER_SIZE = 1024;
 
 namespace Base {
-void SETLOGLEVEL(int level)
-{
-    g_frizyLogLevel = level;
-}
+int LogCtrl::frizyLogLevel = 2;
 }
 

@@ -130,7 +130,7 @@ PyInferenceSession::~PyInferenceSession()
 
 void PyInferenceSession::Init(const std::string &modelPath, std::shared_ptr<SessionOptions> options)
 {
-    SETLOGLEVEL(options->log_level);
+    LogCtrl::SetLogLevel(options->log_level);
     DeviceManager::GetInstance()->SetAclJsonPath(options->aclJsonPath);
     APP_ERROR ret = TensorContext::GetInstance()->CreateContext(deviceId_, contextIndex_);
     if (ret != APP_ERR_OK) {

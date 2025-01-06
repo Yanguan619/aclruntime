@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef _HCCL_CHECK_COMMOM_H_
-#define _HCCL_CHECK_COMMOM_H_
+#ifndef HCCL_CHECK_COMMOM_H_
+#define HCCL_CHECK_COMMOM_H_
 #include <stdio.h>
 #include <math.h>
 #include <unistd.h>
@@ -33,11 +33,11 @@
 //浮点数计算精度，当前算误差百分比
 #define HCCL_EPSION_FLOAT 0.000001
 
-extern int check_buf_result_float(const void* result_buf, const void* check_buf, unsigned long long count);
-extern int check_buf_result_int8(const void* result_buf, const void* check_buf, unsigned long long count);
-extern int check_buf_result_half(const void* result_buf, const void* check_buf, unsigned long long count);
-extern int check_buf_result_int32(const void* result_buf, const void* check_buf, unsigned long long count);
-extern int check_buf_result_int64(const void* result_buf, const void* check_buf, unsigned long long count);
-extern int check_buf_result_u64(const void* result_buf, const void* check_buf, unsigned long long count);
+extern int CheckBufResultFloat(const void* resultBuf, const void* checkBuf, unsigned long long count);
+extern int CheckBufResultInt8(const void* resultBuf, const void* checkBuf, unsigned long long count);
+extern int CheckBufResultHalf(const void* resultBuf, const void* checkBuf, unsigned long long count);
+extern int CheckBufResultInt32(const void* resultBuf, const void* checkBuf, unsigned long long count);
+extern int CheckBufResultInt64(const void* resultBuf, const void* checkBuf, unsigned long long count);
+extern int CheckBufResultU64(const void* resultBuf, const void* checkBuf, unsigned long long count);
 
 #endif

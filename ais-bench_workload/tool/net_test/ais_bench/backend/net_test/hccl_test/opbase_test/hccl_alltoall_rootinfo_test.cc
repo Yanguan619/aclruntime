@@ -42,7 +42,7 @@ int HcclOpBaseAlltoallTest::init_buf_val()
 {
     //初始化输入内存
     ACLCHECK(aclrtMallocHost((void**)&host_buf, malloc_kSize));
-    hccl_host_buf_init((char*)host_buf, data->count, dtype, rank_id + 1);
+    HcclHostBufInit((char*)host_buf, data->count, dtype, rank_id + 1);
 
     ACLCHECK(aclrtMemcpy((void*)send_buff, malloc_kSize, (void*)host_buf, malloc_kSize, ACL_MEMCPY_HOST_TO_DEVICE));
     return 0;
@@ -63,7 +63,7 @@ int HcclOpBaseAlltoallTest::check_buf_result()
     }
 
     int ret = 0;
-    ret = hccl_alltoallv_check_result(check_buf, recv_counts, recv_disp, rank_id, rank_size, dtype);
+    ret = HcclAlltoallvCheckResult(check_buf, recv_counts, recv_disp, rank_id, rank_size, dtype);
     if(ret != 0)
     {
         check_err++;

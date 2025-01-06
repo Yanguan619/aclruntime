@@ -46,11 +46,11 @@ int HcclOpBaseReducescatterTest::init_buf_val()
     //初始化输入内存
     ACLCHECK(aclrtMallocHost((void**)&host_buf, malloc_kSize * rank_size));
     if(op_type == HCCL_REDUCE_PROD || dtype == HCCL_DATA_TYPE_INT8) {
-        hccl_host_buf_init((char*)host_buf, data->count * rank_size, dtype, val);
+        HcclHostBufInit((char*)host_buf, data->count * rank_size, dtype, val);
     } else {
         for(int i = 0; i < rank_size; ++i)
         {
-            hccl_host_buf_init(((char*)host_buf + i * malloc_kSize), data->count, dtype, i + 1);//+ i * malloc_kSize 跳到下一块内存中，写数据
+            HcclHostBufInit(((char*)host_buf + i * malloc_kSize), data->count, dtype, i + 1);//+ i * malloc_kSize 跳到下一块内存中，写数据
         }
     }
 
@@ -60,9 +60,9 @@ int HcclOpBaseReducescatterTest::init_buf_val()
     //初始化校验内存
     ACLCHECK(aclrtMallocHost((void**)&check_buf, malloc_kSize));
     if(op_type == HCCL_REDUCE_PROD || dtype == HCCL_DATA_TYPE_INT8) {
-        hccl_reduce_check_buf_init((char*)check_buf, data->count, dtype, op_type, val, rank_size);
+        HcclReduceCheckBufInit((char*)check_buf, data->count, dtype, op_type, val, rank_size);
     } else {
-        hccl_reduce_check_buf_init(check_buf, data->count, dtype, op_type, rank_id + 1, rank_size);
+        HcclReduceCheckBufInit(check_buf, data->count, dtype, op_type, rank_id + 1, rank_size);
     }
     return 0;
 }
@@ -77,21 +77,21 @@ int HcclOpBaseReducescatterTest::check_buf_result()
     switch(dtype)
     {
         case HCCL_DATA_TYPE_FP32:
-            ret = check_buf_result_float((char*)recv_buff_temp, (char*)check_buf, data->count);
+            ret = CheckBufResultFloat((char*)recv_buff_temp, (char*)check_buf, data->count);
             break;
         case HCCL_DATA_TYPE_INT8:
-            ret = check_buf_result_int8((char*)recv_buff_temp, (char*)check_buf, data->count);
+            ret = CheckBufResultInt8((char*)recv_buff_temp, (char*)check_buf, data->count);
             break;
         case HCCL_DATA_TYPE_INT32:
-            ret = check_buf_result_int32((char*)recv_buff_temp, (char*)check_buf, data->count);
+            ret = CheckBufResultInt32((char*)recv_buff_temp, (char*)check_buf, data->count);
             break;
         case HCCL_DATA_TYPE_FP16:
         case HCCL_DATA_TYPE_INT16:
         case HCCL_DATA_TYPE_BFP16:
-            ret = check_buf_result_half((char*)recv_buff_temp, (char*)check_buf, data->count);
+            ret = CheckBufResultHalf((char*)recv_buff_temp, (char*)check_buf, data->count);
             break;
         case HCCL_DATA_TYPE_INT64:
-            ret = check_buf_result_int64((char*)recv_buff_temp, (char*)check_buf, data->count);
+            ret = CheckBufResultInt64((char*)recv_buff_temp, (char*)check_buf, data->count);
             break;
         default:
             ret++;

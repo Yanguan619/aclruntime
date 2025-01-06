@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef _HCCL_CHECK_BUF_INIT_H_
-#define _HCCL_CHECK_BUF_INIT_H_
+#ifndef HCCL_CHECK_BUF_INIT_H_
+#define HCCL_CHECK_BUF_INIT_H_
 #include <map>
 #include <stdio.h>
 #include <math.h>
@@ -128,10 +128,10 @@ extern std::map<int,ReduceCheckBufInitFunc> functionReduceMap;
 typedef int(*AllToAllCheckResult)(const void*, u64*, u64*, int, int);
 extern std::map<int,AllToAllCheckResult> functionAllToAllMap;
 
-extern void hccl_host_buf_init(void *dst_buf, unsigned long long count, int dtype, int val);
-extern void hccl_reduce_check_buf_init(void *dst_buf, unsigned long long count, int dtype, int op, int val,
-    int rank_size);
-extern int hccl_alltoallv_check_result(void *check_buf, unsigned long long *recv_counts, unsigned long long *recv_disp,
-    int rank_id, int rank_size, int dtype);
+extern void HcclHostBufInit(void *dstBuf, unsigned long long count, int dtype, int val);
+extern void HcclReduceCheckBufInit(void *dstBuf, unsigned long long count, int dtype, int op, int val,
+    int rankSize);
+extern int HcclAlltoallvCheckResult(void *checkBuf, unsigned long long *recvCounts, unsigned long long *recvDisp,
+    int rankId, int rankSize, int dtype);
 
 #endif

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __HCCL_TEST_COMMUNICATE_H_
-#define __HCCL_TEST_COMMUNICATE_H_
+#ifndef HCCL_TEST_COMMUNICATE_H_
+#define HCCL_TEST_COMMUNICATE_H_
 
 #include <iostream>
 #include <string>

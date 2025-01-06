@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __HCCL_OPBASE_ROOTINFO_BASE_H_
-#define __HCCL_OPBASE_ROOTINFO_BASE_H_
+#ifndef HCCL_OPBASE_ROOTINFO_BASE_H_
+#define HCCL_OPBASE_ROOTINFO_BASE_H_
 #include "hccl_test_common.h"
 #ifdef MPI_SUPPORT
 #include "mpi.h"
@@ -52,8 +52,8 @@ public:
     int val = 2; //校验参数
 
 private:
-    virtual int init_buf_val();  //（初始化host_buf，初始化check_buf，拷贝到send_buf） 其中需要调用hccl_host_buf_init
-    virtual int check_buf_result();//（recv_buf拷贝到recvbufftemp,并且校验正确性）需要调用check_buf_init，校验正确性要调用check_buf_result_float
+    virtual int init_buf_val();  //（初始化host_buf，初始化check_buf，拷贝到send_buf） 其中需要调用HcclHostBufInit
+    virtual int check_buf_result();//（recv_buf拷贝到recvbufftemp,并且校验正确性）需要调用check_buf_init，校验正确性要调用CheckBufResultFloat
 
     virtual int destory_check_buf();//校验内存销毁
 

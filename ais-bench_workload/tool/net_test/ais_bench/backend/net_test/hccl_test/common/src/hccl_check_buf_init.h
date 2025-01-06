@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #ifndef _HCCL_CHECK_BUF_INIT_H_
 #define _HCCL_CHECK_BUF_INIT_H_
 #include <map>
@@ -75,8 +91,9 @@ static inline uint16_t fp16_ieee_from_fp32_value(float f)
     return (sign >> 16) | (shl1_w > UINT32_C(0xFF000000) ? UINT16_C(0x7E00) : nonsign);
 }
 
-static inline uint16_t fp32tobf16(float x){
-	float y = x;
+static inline uint16_t fp32tobf16(float x)
+{
+    float y = x;
     int *p = (int *) &y;
     unsigned int exp, man;
     exp = *p & 0x7F800000u;

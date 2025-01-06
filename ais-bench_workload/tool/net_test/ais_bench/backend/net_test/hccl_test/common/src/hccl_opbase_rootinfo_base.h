@@ -20,17 +20,16 @@
 #ifdef MPI_SUPPORT
 #include "mpi.h"
 #endif
-#include "hccl_check_common.h"
+
 #include <hccl/hccl_types.h>
+#include "hccl_check_common.h"
 #include "hccl_check_buf_init.h"
 #include "hccl_test_logger.h"
 
-namespace hccl
-{
+namespace hccl {
 const double B_US_TO_GB_S = 1.0E6 / 1.0E9;
 
-class HcclOpBaseTest:public HcclTest
-{
+class HcclOpBaseTest: public HcclTest {
 public:
     HcclOpBaseTest();
     virtual ~HcclOpBaseTest();

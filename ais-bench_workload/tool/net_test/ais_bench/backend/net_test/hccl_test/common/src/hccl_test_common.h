@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include <vector>
 #include <memory>
-#include "hccl/hccl.h"
+#include <hccl/hccl.h>
 #include <hccl/hccl_types.h>
 #include <limits.h>
 #include <ctype.h>

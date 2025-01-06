@@ -23,13 +23,11 @@
 #include "hccl_check_common.h"
 #include "hccl_opbase_rootinfo_base.h"
 #include "hccl_test_logger.h"
-namespace hccl
-{
-    HcclTest* init_opbase_ptr(HcclTest* opbase);
-    void delete_opbase_ptr(HcclTest* opbase);
+namespace hccl {
+HcclTest* init_opbase_ptr(HcclTest* opbase);
+void delete_opbase_ptr(HcclTest* opbase);
 
-class HcclOpBaseScatterTest:public HcclOpBaseTest
-{
+class HcclOpBaseScatterTest: public HcclOpBaseTest {
 public:
     HcclOpBaseScatterTest();
     virtual ~HcclOpBaseScatterTest();

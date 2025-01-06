@@ -96,7 +96,7 @@ static std::string getCurrentTime()
 #define LOG_WARNING_STR "3"
 #define LOG_ERROR_STR "4"
 
-static int GetLogLevel()
+static int GetLogLevel(void)
 {
     int logLevel = LOG_INFO;
     char* logLevelEnv = getenv("AISBENCH_CL_TEST_LOG_LEVEL");
@@ -118,10 +118,10 @@ static int g_frizy_log_level = GetLogLevel();
 #define PRINT_ERR_(mode, fmt, ...) PRINT_LOG(LOG_COLOR_LIGHT_RED_, mode, fmt, ##__VA_ARGS__)
 
 #define LOG(level, fmt, ...) do {                      \
-    if (level == LOG_DEBUG) { if (LOG_DEBUG >= g_frizy_log_level) {PRINT_DBG_("DEBUG", fmt, ##__VA_ARGS__);}            \
-    } else if (level == LOG_INFO) { if (LOG_INFO >= g_frizy_log_level) {PRINT_INFO_("INFO", fmt, ##__VA_ARGS__);}        \
+    if (level == LOG_DEBUG) { if (LOG_DEBUG >= g_frizy_log_level) {PRINT_DBG_("DEBUG", fmt, ##__VA_ARGS__);} \
+    } else if (level == LOG_INFO) { if (LOG_INFO >= g_frizy_log_level) {PRINT_INFO_("INFO", fmt, ##__VA_ARGS__);} \
     } else if (level == LOG_WARNING) { if (LOG_WARNING >= g_frizy_log_level) {PRINT_WARN_("WARN", fmt, ##__VA_ARGS__);} \
-    } else if (level == LOG_ERROR) { if (LOG_ERROR >= g_frizy_log_level) {PRINT_ERR_("ERROR", fmt, ##__VA_ARGS__);}     \
+    } else if (level == LOG_ERROR) { if (LOG_ERROR >= g_frizy_log_level) {PRINT_ERR_("ERROR", fmt, ##__VA_ARGS__);} \
     } else {                                                     \
     }                                                            \
 } while (0)

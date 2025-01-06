@@ -31,16 +31,14 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "hccl/hccl.h"
+#include <hccl/hccl.h>
 #include <hccl/hccl_types.h>
 
 #include "hccl_test_logger.h"
 
 
-namespace hccl
-{
-class HcclCommunicater
-{
+namespace hccl {
+class HcclCommunicater {
 public:
     HcclCommunicater(
         const std::string serverIP,

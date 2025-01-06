@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #ifndef __HCCL_TEST_COMMON_H_
 #define __HCCL_TEST_COMMON_H_
 #include <stdio.h>
@@ -41,32 +57,28 @@ struct DataSize {
 const int SERVER_MAX_DEV_NUM = 8;
 
 #define ACLCHECK(ret) do { \
-    if(ret != ACL_SUCCESS)\
-    {\
-        ERROR("acl interface return err %s:%d, retcode: %d ", __FILE__, __LINE__, ret);\
-        return ret;\
-    }\
-} while(0)
+    if ((ret) != ACL_SUCCESS) { \
+        ERROR("acl interface return err %s:%d, retcode: %d ", __FILE__, __LINE__, (ret));\
+        return (ret); \
+    } \
+} while (0)
 
 #define HCCLCHECK(ret) do {  \
-    if(ret != HCCL_SUCCESS) \
-    {   \
-        ERROR("hccl interface return errreturn err %s:%d, retcode: %d ", __FILE__, __LINE__, ret); \
-        return ret;\
+    if ((ret) != HCCL_SUCCESS) { \
+        ERROR("hccl interface return errreturn err %s:%d, retcode: %d ", __FILE__, __LINE__, (ret)); \
+        return (ret); \
     } \
-} while(0)
+} while (0)
 
 #define HCCLROOTRANKCHECK(ret) do {  \
-    if(ret != HCCL_SUCCESS && ret != HCCL_E_PARA) \
-    {   \
-        ERROR("hccl interface return errreturn err %s:%d, retcode: %d ", __FILE__, __LINE__, ret); \
-        return ret;\
+    if ((ret) != HCCL_SUCCESS && (ret) != HCCL_E_PARA) { \
+        ERROR("hccl interface return errreturn err %s:%d, retcode: %d ", __FILE__, __LINE__, (ret)); \
+        return (ret); \
     } \
-} while(0)
-namespace hccl
-{
-class HcclTest
-{
+} while (0)
+
+namespace hccl {
+class HcclTest {
 public:
     HcclTest();
     virtual ~HcclTest();
@@ -96,7 +108,6 @@ public:
     int get_env_resource();
     int release_env_resource();
     int InitCommunicater();
-
 
 private:
     int set_device_sat_mode();

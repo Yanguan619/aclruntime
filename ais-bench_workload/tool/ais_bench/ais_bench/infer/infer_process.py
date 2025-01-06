@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Technologies Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
                                    save_data_to_files, create_fake_file_name, logger,
                                    create_tmp_acl_json, move_subdir, convert_helper, str_to_uint, get_msprof_bin_path)
 from ais_bench.infer.common.path_security_check import (
-    is_legal_args_path_string, check_normal_string, FILE_PERM_CHOICE, check_path_legality,
+    is_legal_args_path_string, check_normal_string, FilePermChoice, check_path_legality,
     MAX_SIZE_LIMITED_NORMAL_FILE, makedirs_safe
 )
 from ais_bench.infer.interface_check import (check_output_dir_legality, check_dym_hw_list,
@@ -65,7 +65,7 @@ logger = logging.getLogger(__name__)
 
 def logger_print(logger_msg):
 
-    print(f'{logger_msg}', flush=True, end="")
+    logger.info(logger_msg)
 
 def set_session_options(session, args):
     # 增加校验
@@ -91,8 +91,9 @@ def set_session_options(session, args):
         logger.info(f"try get model batchsize:{args.batchsize}")
 
     if not args.auto_set_dymshape_mode and not args.auto_set_dymdims_mode:
-        if args.batchsize < 0 and not args.dym_batch and not args.dym_dims and not args.dym_shape:
-            raise RuntimeError('dynamic batch om model detected, but dymbatch, dymdims or dymshape not set!')
+        if args.batchsize < 0 :
+            if  not args.dym_batch and not args.dym_dims and not args.dym_shape:
+                raise RuntimeError('dynamic batch om model detected, but dymbatch, dymdims or dymshape not set!')
 
     if aipp_batchsize < 0:
         aipp_batchsize = args.batchsize
@@ -102,7 +103,7 @@ def set_session_options(session, args):
         aipp_input_exist = 0
     else:
         aipp_input_exist = session.get_dym_aipp_input_exist()
-    logger.debug(f"aipp_input_exist: {aipp_input_exist}")
+    logger.debug("aipp_input_exist: %s", aipp_input_exist)
     if (args.aipp_config is not None) and (aipp_input_exist == 1):
         session.load_aipp_config_file(args.aipp_config, aipp_batchsize)
         session.check_dym_aipp_input_exist()
@@ -121,7 +122,7 @@ def set_session_options(session, args):
         customsizes = [str_to_uint(n) for n in args.output_size.split(',')]
         check_list(customsizes, max_len=CUSTOM_MAX_COUNT, allow_empty=False, data_type=int)
         check_custom_size(customsizes)
-        logger.debug(f"set customsize:{customsizes}")
+        logger.debug("set customsize:%s",customsizes)
         session.set_custom_outsize(customsizes)
 
 
@@ -129,7 +130,7 @@ def init_inference_session(args, acl_json_path):
     session = InferSession(args.device, args.model, acl_json_path, args.debug, args.loop)
 
     set_session_options(session, args)
-    logger.debug(f"session info:{session.session}")
+    logger.debug("session info:%s", session.session)
     return session
 
 
@@ -144,7 +145,7 @@ def set_dymshape_shape(session, inputs):
         dyshape = f"{intensors_desc[i].name}:{shapes}"
         shape_list.append(dyshape)
     dyshapes = ';'.join(shape_list)
-    logger.debug(f"set dymshape shape:{dyshapes}")
+    logger.debug("set dymshape shape:%s", dyshapes)
     session.set_dynamic_shape(dyshapes)
     summary.add_batchsize(inputs[0].shape[0])
 
@@ -160,7 +161,7 @@ def set_dymdims_shape(session, inputs):
         dydim = f"{intensors_desc[i].name}:{shapes}"
         shape_list.append(dydim)
     dydims = ';'.join(shape_list)
-    logger.debug(f"set dymdims shape:{dydims}")
+    logger.debug("set dymdims shape:%s",dydims)
     session.set_dynamic_dims(dydims)
     summary.add_batchsize(inputs[0].shape[0])
 
@@ -305,17 +306,17 @@ def get_file_name(file_path: str, suffix: str, res_file_path: list) -> list:
         res_file_path: 保存返回结果的列表
     Returns: 文件路径
     """
-    for file in os.listdir(file_path):
-
-        if os.path.isdir(os.path.join(file_path, file)):
-            get_file_name(os.path.join(file_path, file), suffix, res_file_path)
-        else:
-            res_file_path.append(os.path.join(file_path, file))
-    # endswith：表示以suffix结尾。可根据需要自行修改；如：startswith：表示以suffix开头，__contains__：包含suffix字符串
-    if suffix == '' or suffix is None:
+    if suffix == '' or suffix is None :
         return res_file_path
-    else:
-        return list(filter(lambda x: x.endswith(suffix), res_file_path))
+    # 遍历目录及子目录
+    for root, _, files in os.walk(file_path):
+        for file in files:
+            # 如果指定了后缀，检查文件是否符合要求
+            if file.endswith(suffix):
+                # 组合文件的完整路径
+                res_file_path.append(os.path.join(root, file))
+                
+    return res_file_path
 
 
 def get_legal_json_content(acl_json_path):
@@ -446,18 +447,19 @@ def convert(tmp_acl_json_path, real_dump_path, tmp_dump_path):
         convert_helper(output_dir, timestamp)
 
     if tmp_dump_path is not None:
-        check_path_legality(tmp_dump_path, FILE_PERM_CHOICE.WRITE, is_file=False) # if not exist, won't except
+        check_path_legality(tmp_dump_path, FilePermChoice.WRITE, is_file=False) # if not exist, won't except
         try:
             shutil.rmtree(tmp_dump_path)
         except Exception as err: # if tmp_dump_path be used, may failed.
             raise RuntimeError(f"rmtree tmp_dump_path:{tmp_dump_path} failed!") from err
 
     if tmp_acl_json_path is not None:
-        check_path_legality(tmp_acl_json_path, FILE_PERM_CHOICE.WRITE, suffix=["json"]) # if not exist, won't except
+        check_path_legality(tmp_acl_json_path, FilePermChoice.WRITE, suffix=["json"]) # if not exist, won't except
         try:
             os.remove(tmp_acl_json_path)
         except Exception as err: # if tmp_acl_json_path be used, may failed.
             raise RuntimeError(f"rm tmp_acl_json_path:{tmp_acl_json_path} failed!") from err
+
 
 def main(args, index=0, msgq=None, device_list=None):
     # if msgq is not None,as subproces run
@@ -530,7 +532,7 @@ def main(args, index=0, msgq=None, device_list=None):
             infileslist = create_pipeline_fileslist_from_inputs_list(inputs_list, intensors_desc)
             for files in infileslist:
                 for file in files:
-                    check_path_legality(file, perm=FILE_PERM_CHOICE.READ, max_size=MAX_SIZE_LIMITED_NORMAL_FILE)
+                    check_path_legality(file, perm=FilePermChoice.READ, max_size=MAX_SIZE_LIMITED_NORMAL_FILE)
 
     if not args.pipeline:
         warmup(session, args, intensors_desc, infileslist[0])
@@ -694,7 +696,7 @@ def multidevice_run(args):
     tlist = []
     while msgq.qsize() != 0:
         ret = msgq.get()
-        if type(ret) == list:
+        if isinstance(ret, list):
             logger.info(f"i:{ret[0]} device_{device_list[ret[0]]} throughput:{ret[1]} \
                 start_time:{ret[2]} end_time:{ret[3]}")
             tlist.append(ret[1])
@@ -708,7 +710,7 @@ def args_rules(args):
         raise RuntimeError('error bad parameters --profiler and --dump')
 
     if args.output_dirname and args.output_dirname[0] == '/': # abspath is not permitted
-        raise ValueError("--output_dirname do not support abs path!" )
+        raise ValueError("--output_dirname do not support abs path!")
 
     if (args.profiler or args.dump) and (args.output is None):
         logger.error("when dump or profiler, miss output path, please check them!")
@@ -800,7 +802,7 @@ def infer_process(args:AISBenchInferArgsAdapter):
         dymshape_range_run(args)
         return 0
 
-    if type(args.device) == list:
+    if isinstance(args.device,list):
         # args has multiple device, run single process for each device
         ret = multidevice_run(args)
         return ret

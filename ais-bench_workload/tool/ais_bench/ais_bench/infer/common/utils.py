@@ -34,7 +34,7 @@ from ais_bench.infer.common.path_security_check import (
     FileStat,
     is_legal_args_path_string,
     check_path_legality,
-    FILE_PERM_CHOICE,
+    FilePermChoice,
 )
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
@@ -53,7 +53,7 @@ CANN_PATH = "/usr/local/Ascend/ascend-toolkit/latest"
 # Split a List Into Even Chunks of N Elements
 def list_split(list_a, n, padding_file):
     for x in range(0, len(list_a), n):
-        every_chunk = list_a[x : n + x]
+        every_chunk = list_a[x: n + x]
 
         if len(every_chunk) < n:
             every_chunk = every_chunk + [padding_file for _ in range(n - len(every_chunk))]
@@ -66,19 +66,23 @@ def list_share(list_a, count, num, left):
         if i < left:
             if head + num + 1 >= len(list_a):
                 raise OverflowError("get list part failed")
-            every_chunk = list_a[head : head + num + 1]
+            every_chunk = list_a[head: head + num + 1]
             head = head + num + 1
         else:
             if head + num > len(list_a):
                 raise OverflowError("get list part failed")
-            every_chunk = list_a[head : head + num]
+            every_chunk = list_a[head: head + num]
             head = head + num
         yield every_chunk
 
 
 def natural_sort(lst):
-    convert = lambda text: int(text) if text.isdigit() else text.lower()
-    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    def convert(text):
+        return int(text) if text.isdigit() else text.lower()
+
+    def alphanum_key(key):
+        return [convert(c) for c in re.split('([0-9]+)', key)]
+
     return sorted(lst, key=alphanum_key)
 
 
@@ -90,11 +94,12 @@ def get_fileslist_from_dir(dir_):
             raise OverflowError(f"file count under directory: {dir_} is over {MAX_FILE_LOAD_COUNT}!")
         f_true_path = os.path.join(dir_, f)
         f_stat = FileStat(f_true_path)
-        if not f_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
+        if not f_stat.is_basically_legal(FilePermChoice.READ):
             raise RuntimeError(f'input data:{f_true_path} is illegal')
         if f_stat.is_dir:
             continue
-        if f.endswith(".npy") or f.endswith(".NPY") or f.endswith(".bin") or f.endswith(".BIN"):
+        is_valid_extension = f.endswith(".npy") or f.endswith(".NPY") or f.endswith(".bin") or f.endswith(".BIN")
+        if is_valid_extension:
             files_list.append(os.path.join(dir_, f))
 
     if len(files_list) == 0:
@@ -168,16 +173,16 @@ def get_dump_relative_paths(output_dir, timestamp):
 
 def get_msprof_bin_path():
     ascend_toolkit_path = os.environ.get("ASCEND_TOOLKIT_HOME", CANN_PATH)
-    check_path_legality(ascend_toolkit_path, perm=FILE_PERM_CHOICE.READ, is_file=False)
+    check_path_legality(ascend_toolkit_path, perm=FilePermChoice.READ, is_file=False)
     msprof_bin_path = os.path.join(ascend_toolkit_path, MSPROF_BIN_FILE_SUB_PATH)
-    return msprof_bin_path if os.path.exists(msprof_bin_path) else None # trust file in cann toolkit
+    return msprof_bin_path if os.path.exists(msprof_bin_path) else None  # trust file in cann toolkit
 
 
 def get_msaccucmp_path():
     ascend_toolkit_path = os.environ.get("ASCEND_TOOLKIT_HOME", CANN_PATH)
-    check_path_legality(ascend_toolkit_path, perm=FILE_PERM_CHOICE.READ, is_file=False)
+    check_path_legality(ascend_toolkit_path, perm=FilePermChoice.READ, is_file=False)
     msaccucmp_path = os.path.join(ascend_toolkit_path, MSACCUCMP_FILE_PATH)
-    return msaccucmp_path if os.path.exists(msaccucmp_path) else None # trust file in cann toolkit
+    return msaccucmp_path if os.path.exists(msaccucmp_path) else None  # trust file in cann toolkit
 
 
 def make_dirs(path):
@@ -244,7 +249,7 @@ def convert_helper(output_dir, timestamp):  # convert bin file in src path and o
     if msaccucmp_path is None:
         logger.error("convert bin file failed: msaccucmp.py is not found. NPY file transfer failed.")
         return
-    if dump_relative_paths == []:
+    if not dump_relative_paths:
         logger.error("convert bin file failed: relative dump paths is empty. NPY file transfer failed.")
         return
     for dump_relative_path in dump_relative_paths:
@@ -273,7 +278,7 @@ def move_subdir(src_dir, dest_dir):
               |--2023***1--...  (bin file移动到新的目录下)
     '''
     res_dest, res_subdir = None, None
-    check_path_legality(src_dir, FILE_PERM_CHOICE.READ, is_file=False)
+    check_path_legality(src_dir, FilePermChoice.READ, is_file=False)
     subdirs = os.listdir(src_dir)
     if len(subdirs) != 1:
         logger.error(
@@ -282,17 +287,18 @@ def move_subdir(src_dir, dest_dir):
         )
     else:
         abs_dest_subdir = os.path.join(dest_dir, subdirs[0])
-        check_path_legality(abs_dest_subdir, FILE_PERM_CHOICE.WRITE, is_file=False) # if not exist, won't raise exception
+        check_path_legality(abs_dest_subdir, FilePermChoice.WRITE, is_file=False)  # if not exist, won't raise exception
         abs_src_subdir = os.path.join(src_dir, subdirs[0])
-        check_path_legality(abs_src_subdir, FILE_PERM_CHOICE.READ, is_file=False)
+        check_path_legality(abs_src_subdir, FilePermChoice.READ, is_file=False)
 
         if os.path.exists(abs_dest_subdir):
             logger.error("move subdirectory failed: destination directory %s exists" % abs_dest_subdir)
         else:
             try:
                 shutil.move(abs_src_subdir, abs_dest_subdir)
-            except Exception as err: # if abs_src_subdir be opened, may failed.
-                raise RuntimeError(f"move source directory:{abs_src_subdir} to destination directory:{abs_dest_subdir} failed!") from err
+            except Exception as err:  # if abs_src_subdir be opened, may failed.
+                raise RuntimeError(
+                    f"move source directory:{abs_src_subdir} to destination directory:{abs_dest_subdir} failed!") from err
             res_dest, res_subdir = dest_dir, subdirs[0]
     return res_dest, res_subdir
 
@@ -304,7 +310,7 @@ def str_to_uint(string: str):
         raise ValueError("convert string to uint failed! string is empty!")
     if not string.isdigit():
         raise ValueError(f"convert string to uint failed! string contains special characters other than numbers.")
-    try :
+    try:
         int_value = int(string)
     except ValueError as err:
         raise RuntimeError("convert string to uint failed! unexpected error") from err

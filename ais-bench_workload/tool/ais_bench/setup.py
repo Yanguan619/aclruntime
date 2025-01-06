@@ -11,24 +11,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import sys
 import subprocess
 from setuptools import setup, find_packages  # type: ignore
-
 
 with open('requirements.txt', encoding='utf-8') as f:
     required = f.read().splitlines()
 
 with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
-
+# 获取Git绝对路径
+try:
+    result = subprocess.run(['which', 'git'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    git_path = result.stdout.decode('utf-8').strip()  # 获取并解码输出
+except subprocess.CalledProcessError:
+    print("Git is not installed. Exiting the script.")
+    sys.exit(1)
 # 使用Git命令获取最新的提交哈希
 try:
-    git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode('utf-8').strip()
+    git_hash = subprocess.check_output([git_path, 'rev-parse', 'HEAD']).decode('utf-8').strip()
 except Exception:
     git_hash = ""
 # 使用Git命令获取最新的提交日期和时间
 try:
-    git_date = subprocess.check_output(['git', 'show', '-s', '--format=%cd', 'HEAD']).decode('utf-8').strip()
+    git_date = subprocess.check_output([git_path, 'show', '-s', '--format=%cd', 'HEAD']).decode('utf-8').strip()
 except Exception:
     git_date = ""
 
@@ -40,7 +46,7 @@ setup(
     description='ais_bench tool',
     long_description=long_description,
     url=f"gitee repo: Ascend/tools, commit id: {git_hash}, release_date: {git_date}",
-    release_date = git_date,
+    release_date=git_date,
     packages=packages,
     include_package_data=True,
     keywords='ais_bench tool',

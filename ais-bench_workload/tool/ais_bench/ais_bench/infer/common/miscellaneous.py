@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Technologies Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import itertools
 import numpy as np
 
 from ais_bench.infer.common.utils import logger, str_to_uint
-from ais_bench.infer.common.path_security_check import (ms_open, FileStat, FILE_PERM_CHOICE,  MAX_SIZE_LIMITED_CONFIG_FILE,
-    MAX_SIZE_LIMITED_NORMAL_FILE, makedirs_safe)
+from ais_bench.infer.common.path_security_check import (ms_open, FileStat, FilePermChoice, MAX_SIZE_LIMITED_CONFIG_FILE,
+                                                        MAX_SIZE_LIMITED_NORMAL_FILE, makedirs_safe)
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
 from ais_bench.infer.args_check import check_dym_str_format, DYM_RANGE_PATTERN
 
@@ -52,9 +52,6 @@ ACL_JSON_CMD_LIST = [
 
 DYMSHAPE_COUNT_MAX = 256
 
-def logger_out(out_log):
-
-    print(out_log)
 
 def get_modules_version(name):
     try:
@@ -71,14 +68,14 @@ def version_check(args):
     except Exception:
         logger.warning(
             "can't find aclruntime, please install aclruntime " + \
-                "from gitee repo: Ascend/tools, path: tools/ais_bench-workload/tool/ais_bench."
+            "from gitee repo: Ascend/tools, path: tools/ais_bench-workload/tool/ais_bench."
         )
         args.run_mode = "tensor"
         return
     if aclruntime_version != "0.0.2":
         logger.warning(
             f"aclruntime{aclruntime_version} version is lower, please update " + \
-                "from gitee repo: Ascend/tools, path: tools/ais_bench-workload/tool/ais_bench."
+            "from gitee repo: Ascend/tools, path: tools/ais_bench-workload/tool/ais_bench."
         )
         # set old run mode to run ok
         args.run_mode = "tensor"
@@ -96,8 +93,9 @@ def check_dump_path(dump_path):
         raise ValueError(f"dump path in acl json file:{dump_path} is illegal. Please check.") from err
     if not file_stat.is_dir and file_stat.is_exists:
         raise TypeError(f"dump path in acl json file is not a directory")
-    if not (file_stat.is_basically_legal(FILE_PERM_CHOICE.WRITE) and file_stat.is_basically_legal(FILE_PERM_CHOICE.READ)):
+    if not (file_stat.is_basically_legal(FilePermChoice.WRITE) and file_stat.is_basically_legal(FilePermChoice.READ)):
         raise ValueError(f"dump path in acl json file:{dump_path} is illegal. Please check.")
+
 
 def check_valid_acl_json_for_dump(acl_json_path, model):
     with ms_open(acl_json_path, mode="r", max_size=MAX_SIZE_LIMITED_CONFIG_FILE) as f:
@@ -166,8 +164,6 @@ def get_acl_json_path(args):
 
     out_json_file_path = os.path.join(args.output, "acl.json")
 
-    OPEN_FLAGS = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-    OPEN_MODES = stat.S_IWUSR | stat.S_IRUSR
     with ms_open(out_json_file_path, mode="w") as f:
         json.dump(output_json_dict, f, indent=4, separators=(", ", ": "), sort_keys=True)
     return out_json_file_path
@@ -186,7 +182,7 @@ def get_batchsize(session, args):
             if tmp_idx == -1:
                 continue
             name = elem[:tmp_idx]
-            shapestr = elem[tmp_idx + 1 :]
+            shapestr = elem[tmp_idx + 1:]
             if not shapestr:
                 continue
             if name == intensors_desc[0].name:
@@ -203,22 +199,22 @@ def get_range_list(ranges):
         if tmp_idx == -1:
             continue
         name = elem[:tmp_idx]
-        shapestr = elem[tmp_idx + 1 :]
+        shapestr = elem[tmp_idx + 1:]
         if not shapestr:
             continue
         total_range_count = 1
-        for content in shapestr.split(','): # loop count limit in regular expression
+        for content in shapestr.split(','):  # loop count limit in regular expression
             step = 1
             if total_range_count > DYMSHAPE_COUNT_MAX:
                 raise ValueError(("dymshape range run do not support more than" + \
-                    f" {DYMSHAPE_COUNT_MAX} dymshape type!"))
+                                  f" {DYMSHAPE_COUNT_MAX} dymshape type!"))
             if '~' in content:
                 start = str_to_uint(content.split('~')[0])
                 end = str_to_uint(content.split('~')[1])
                 step = str_to_uint(content.split('~')[2]) if len(content.split('~')) == 3 else 1
-                if (end + 1 -start) / step > DYMSHAPE_COUNT_MAX:
+                if (end + 1 - start) / step > DYMSHAPE_COUNT_MAX:
                     raise ValueError(("dymshape range run do not support more than" + \
-                        f" {DYMSHAPE_COUNT_MAX} dymshape type!"))
+                                      f" {DYMSHAPE_COUNT_MAX} dymshape type!"))
                 ranges = [str(i) for i in range(start, end + 1, step)]
             elif '-' in content:
                 ranges = content.split('-')
@@ -229,16 +225,16 @@ def get_range_list(ranges):
                 raise ValueError("sub range in dymshape range should not be empty!")
             shapes.append(ranges)
             total_range_count = total_range_count * len(ranges)
-            logger.debug("content:{} get range{}".format(content, ranges))
+            logger.debug("content:%s get range%s", content, ranges)
         shape_list = [','.join(s) for s in list(itertools.product(*shapes))]
         info = ["{}:{}".format(name, s) for s in shape_list]
         info_list.append(info)
-        logger.debug("name:{} shapes:{} info:{}".format(name, shapes, info))
+        logger.debug("name:%s shapes:%s info:%s", name, shapes, info)
 
     res = [';'.join(s) for s in list(itertools.product(*info_list))]
     if len(res) == 0:
         raise ValueError("can not get a legal dymshape range from dymshape range string!")
-    logger.debug("range list:{}".format(res))
+    logger.debug("range list:%s", res)
     return res
 
 
@@ -298,11 +294,11 @@ def dymshape_range_run(args: AISBenchInferArgsAdapter):
     for dymshape in dymshape_list:
         cmd = regenerate_dymshape_cmd(args, dymshape)
         result = {"dymshape": dymshape, "cmd": cmd, "result": "Failed", "throughput": 0}
-        logger.debug("cmd:{}".format(cmd))
+        logger.debug("cmd:%s", cmd)
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, _ = p.communicate(timeout=DYMSHAPE_RANGE_TIMEOUT)
         out_log = stdout.decode('utf-8')
-        logger_out(out_log)  # show original log of cmd
+        logger.info("out log %s", out_log)  # show original log of cmd
         result["result"], result["throughput"] = get_throughtput_from_log(out_log)
         logger.info("dymshape:{} end run result:{}".format(dymshape, result["result"]))
         results.append(result)

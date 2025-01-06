@@ -1,4 +1,4 @@
- # Copyright (c) 2024-2024 Huawei Technologies Co., Ltd.
+# Copyright (c) 2024-2025 Huawei Technologies Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+import logging
 import aclruntime
 import numpy as np
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
+logger = logging.getLogger(__name__)
+
 
 def aclruntime_api_static():
     device_id = 0
@@ -23,7 +29,7 @@ def aclruntime_api_static():
     options = aclruntime.session_options()
     session = aclruntime.InferenceSession(model_path, device_id, options)
 
-    #create new numpy data according inputs info
+    # create new numpy data according inputs info
     shape0 = session.get_inputs()[0].shape
     ndata0 = np.full(shape0, 1).astype(np.float32)
     shape1 = session.get_inputs()[1].shape
@@ -42,15 +48,16 @@ def aclruntime_api_static():
     outnames = [meta.name for meta in session.get_outputs()]
     outputs = session.run(outnames, feeds)
 
-    print(f"outputs: {outputs}")
+    logger.info("outputs: %s", outputs)
     outarray = []
     for out in outputs:
         # convert acltenor to host memory
         out.to_host()
         # convert acltensor to numpy array
         outarray.append(np.array(out))
-    print(outarray)
+    logger.info("outarray: %s", outarray)
     # summay inference throughput
-    print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
+    logger.info("infer avg:%s ms", np.mean(session.sumary().exec_time_list))
+
 
 aclruntime_api_static()

@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Technologies Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import numpy as np
-from ais_bench.infer.interface import MultiDeviceSession
+from ais_bench.infer.interface import MultiDeviceSession, logger
 
 
 def multidevice_infer_iteration_static():
@@ -32,7 +32,7 @@ def multidevice_infer_iteration_static():
     device_feeds = {device_id: [[ndata1, ndata2], [ndata1, ndata2]]}
     # in is numpy list and output is numpy list
     outputs = multi_session.infer_iteration(device_feeds, in_out_list, iteration_times, mode='static')
-    print(f"outputs: {outputs}")
+    logger.info("outputs: %s", outputs)
 
 
 multidevice_infer_iteration_static()

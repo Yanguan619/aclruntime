@@ -127,7 +127,7 @@ int HcclOpBaseBrocastTest::hccl_op_base_test() //主函数
     // 获取数据量和数据类型
     init_data_count();
 
-    malloc_kSize = data->count * data->type_size;
+    malloc_kSize = data->count * data->typeSize;
 
     //申请集合通信操作的内存
     ACLCHECK(aclrtMalloc((void**)&buff, malloc_kSize, ACL_MEM_MALLOC_HUGE_FIRST));

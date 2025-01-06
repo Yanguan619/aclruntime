@@ -128,7 +128,7 @@ int HcclOpBaseAllgatherTest::hccl_op_base_test() //主函数
     init_data_count();
 
     data->count = (data->count + rank_size - 1) / rank_size;
-    malloc_kSize = data->count * data->type_size;
+    malloc_kSize = data->count * data->typeSize;
 
     //申请集合通信操作的内存
     ACLCHECK(aclrtMalloc((void**)&send_buff, malloc_kSize, ACL_MEM_MALLOC_HUGE_FIRST));

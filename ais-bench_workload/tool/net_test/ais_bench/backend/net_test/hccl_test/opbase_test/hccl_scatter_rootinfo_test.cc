@@ -121,7 +121,7 @@ int HcclOpBaseScatterTest::hccl_op_base_test() // 主函数
     init_data_count();
 
     data->count = (data->count + rank_size - 1) / rank_size;
-    malloc_kSize = data->count * data->type_size;
+    malloc_kSize = data->count * data->typeSize;
 
     // 申请集合通信操作的内存
     ACLCHECK(aclrtMalloc((void**)&send_buff, malloc_kSize * rank_size, ACL_MEM_MALLOC_HUGE_FIRST));
@@ -133,7 +133,7 @@ int HcclOpBaseScatterTest::hccl_op_base_test() // 主函数
     ACLCHECK(aclrtMallocHost((void**)&host_buf, malloc_kSize * rank_size));
     if (rank_id == root_rank) {
         for (int i=0; i < rank_size; ++i) {
-            hccl_host_buf_init((char*)host_buf + data->count * data->type_size * i, data->count, dtype, i+1);
+            hccl_host_buf_init((char*)host_buf + data->count * data->typeSize * i, data->count, dtype, i+1);
         }
         ACLCHECK(aclrtMemcpy((void*)send_buff, malloc_kSize * rank_size, (void*)host_buf, malloc_kSize * rank_size, ACL_MEMCPY_HOST_TO_DEVICE));
     }

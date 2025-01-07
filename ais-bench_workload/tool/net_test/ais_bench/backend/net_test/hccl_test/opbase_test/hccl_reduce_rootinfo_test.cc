@@ -53,7 +53,7 @@ int HcclOpBaseReduceTest::init_buf_val()
     //初始化校验内存
     ACLCHECK(aclrtMallocHost((void**)&check_buf, malloc_kSize));
     if(rank_id == root_rank) {
-        hccl_reduce_check_buf_init((char*)check_buf, data->count, dtype, op_type, val, rank_size);
+        HcclReduceCheckBufInit((char*)check_buf, data->count, dtype, op_type, val, rank_size);
     }
     return 0;
 }

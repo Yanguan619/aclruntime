@@ -138,7 +138,7 @@ namespace hccl
 HcclTest::HcclTest()
 {
     data = new DataSize;
-    data->step_factor = 1;
+    data->stepFactor = 1;
     proc_rank = 0;
     proc_size = 0;
 }
@@ -240,31 +240,31 @@ int HcclTest::check_data_count()
         ERROR("Invalid size specified for [-b,--minbytes] or [-e,--maxbytes]");
         return -1;
     }
-    data->min_bytes = (u64)data_parsed_begin;
-    data->max_bytes = (u64)data_parsed_end;
+    data->minBytes = (u64)data_parsed_begin;
+    data->maxBytes = (u64)data_parsed_end;
 
     if (stepbytes_flag != 0 && temp_step_bytes < 0) {
         ERROR("[-i,--stepbytes] must be greater than or equal to 0.");
         return -1;
     }
 
-    if (data->max_bytes < data->min_bytes) {
+    if (data->maxBytes < data->minBytes) {
         ERROR("Invalid option: maxbytes < minbytes, Check the [-b,--minbytes] and [-e,--maxbytes] options.");
         return -1;
     } else {
         if (stepbytes_flag != 0) {// 用户配置了增量步长
-            data->step_bytes = temp_step_bytes;
+            data->stepBytes = temp_step_bytes;
         } else {// 用户未配置增量步长
-            if (data->max_bytes == data->min_bytes) {
-                data->step_bytes = 1;// 用户配置数据量的起始值和结束值相同，但未配置增量步长，为防止进入死循环，设置增量步长为1
+            if (data->maxBytes == data->minBytes) {
+                data->stepBytes = 1;// 用户配置数据量的起始值和结束值相同，但未配置增量步长，为防止进入死循环，设置增量步长为1
             }
-            if (data->max_bytes > data->min_bytes) {
-                data->step_bytes = (data->max_bytes - data->min_bytes)/10;
+            if (data->maxBytes > data->minBytes) {
+                data->stepBytes = (data->maxBytes - data->minBytes)/10;
             }
         }
     }
 
-    if (stepfactor_flag !=0 && data->step_factor <= 1.0) {
+    if (stepfactor_flag !=0 && data->stepFactor <= 1.0) {
         ERROR("[-f,--stepfactor] Must be greater than 1.0f, Start step mod.");
         return -1;
     }
@@ -400,7 +400,7 @@ int HcclTest::parse_opt(int opt)
         case 'f':
             stepfactor_flag++;
             char *temp;
-            data->step_factor = strtof(optarg, &temp);
+            data->stepFactor = strtof(optarg, &temp);
             break;
         case 'n':
             iters = strtol_alldigit(optarg);
@@ -589,7 +589,7 @@ int HcclTest::init_hcclComm()
 
     // 在root_rank获取root_info
     if(rank_id == root_rank) {
-        INFO("The minbytes is %llu, maxbytes is %llu, iters is %d, warmup_iters is %d.", data->min_bytes, data->max_bytes, iters, warmup_iters);
+        INFO("The minbytes is %llu, maxbytes is %llu, iters is %d, warmup_iters is %d.", data->minBytes, data->maxBytes, iters, warmup_iters);
         HCCLROOTRANKCHECK(HcclGetRootInfo(&comm_id));
     }
 
@@ -629,9 +629,9 @@ int HcclTest::init_hcclComm()
 int HcclTest::opbase_test_by_data_size(HcclTest* hccl_test)
 {
     int ret = 0;
-    for (data->data_size = data->min_bytes;\
-        data->data_size <= data->max_bytes;\
-        (data->step_factor <= 1.0 ? data->data_size += data->step_bytes : data->data_size *= data->step_factor))
+    for (data->dataSize = data->minBytes;\
+        data->dataSize <= data->maxBytes;\
+        (data->stepFactor <= 1.0 ? data->dataSize += data->stepBytes : data->dataSize *= data->stepFactor))
     {
         ret = hccl_test->hccl_op_base_test();
         if (ret != 0)

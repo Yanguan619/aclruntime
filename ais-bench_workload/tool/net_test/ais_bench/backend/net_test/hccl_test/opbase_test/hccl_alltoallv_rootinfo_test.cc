@@ -68,7 +68,7 @@ int HcclOpBaseAlltoallvTest::init_buf_val()
 {
     //初始化输入内存
     ACLCHECK(aclrtMallocHost((void**)&host_buf, malloc_kSize));
-    hccl_host_buf_init((char*)host_buf, data->count, dtype, rank_id + 1);
+    HcclHostBufInit((char*)host_buf, data->count, dtype, rank_id + 1);
 
     ACLCHECK(aclrtMemcpy((void*)send_buff, malloc_kSize, (void*)host_buf, malloc_kSize, ACL_MEMCPY_HOST_TO_DEVICE));
     return 0;
@@ -81,7 +81,7 @@ int HcclOpBaseAlltoallvTest::check_buf_result()
     ACLCHECK(aclrtMemcpy((void*)check_buf, malloc_kSize, (void*)recv_buff, malloc_kSize, ACL_MEMCPY_DEVICE_TO_HOST));
 
     int ret = 0;
-    ret = hccl_alltoallv_check_result(check_buf, recv_counts, recv_disp, rank_id, rank_size, dtype);
+    ret = HcclAlltoallvCheckResult(check_buf, recv_counts, recv_disp, rank_id, rank_size, dtype);
     if(ret != 0)
     {
         check_err++;
@@ -121,7 +121,7 @@ int HcclOpBaseAlltoallvTest::hccl_op_base_test() //主函数
     // 获取数据量和数据类型
     init_data_count();
     data->count = (data->count + rank_size - 1) / rank_size * rank_size;
-    malloc_kSize = data->count * data->type_size;
+    malloc_kSize = data->count * data->typeSize;
 
     //申请集合通信操作的内存
     ACLCHECK(aclrtMalloc((void**)&send_buff, malloc_kSize, ACL_MEM_MALLOC_HUGE_FIRST));

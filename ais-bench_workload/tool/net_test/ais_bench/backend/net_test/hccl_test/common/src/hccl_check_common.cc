@@ -7,13 +7,13 @@
 #include <sys/syscall.h>
 #include "hccl_check_common.h"
 
-int check_buf_result_float(const void *result_buf, const void *check_buf, u64 count)
+int CheckBufResultFloat(const void *resultBuf, const void *checkBuf, u64 count)
 {
     u64 i = 0; // j = 0;
     // int n = 0;
     int err = 0;
-    float *c_buf = (float *)check_buf;
-    float *result = (float *)result_buf;
+    float *c_buf = (float *)checkBuf;
+    float *result = (float *)resultBuf;
     u64 first_err_pos = ULLONG_MAX;
     for (i = 0; i < count; ++i) {
         if (fabsf(c_buf[i] - result[i]) > HCCL_EPSION_FLOAT) {
@@ -44,11 +44,11 @@ int check_buf_result_float(const void *result_buf, const void *check_buf, u64 co
     return err;
 }
 
-int check_buf_result_int8(const void *result_buf, const void *check_buf, u64 count)
+int CheckBufResultInt8(const void *resultBuf, const void *checkBuf, u64 count)
 {
     u64 i = 0;
-    s8 *c_buf = (s8 *)check_buf;
-    s8 *result = (s8 *)result_buf;
+    s8 *c_buf = (s8 *)checkBuf;
+    s8 *result = (s8 *)resultBuf;
     int err = 0;
     u64 first_err_pos = ULLONG_MAX;
     for (i = 0; i < count; ++i) {
@@ -70,11 +70,11 @@ int check_buf_result_int8(const void *result_buf, const void *check_buf, u64 cou
     return err;
 }
 
-int check_buf_result_half(const void *result_buf, const void *check_buf, u64 count)
+int CheckBufResultHalf(const void *resultBuf, const void *checkBuf, u64 count)
 {
     u64 i = 0;
-    u16 *result = (u16 *)result_buf;
-    u16 *s = (u16 *)check_buf;
+    u16 *result = (u16 *)resultBuf;
+    u16 *s = (u16 *)checkBuf;
     int err = 0;
     u64 first_err_pos = ULLONG_MAX;
 
@@ -97,11 +97,11 @@ int check_buf_result_half(const void *result_buf, const void *check_buf, u64 cou
     return err;
 }
 
-int check_buf_result_int32(const void *result_buf, const void *check_buf, u64 count)
+int CheckBufResultInt32(const void *resultBuf, const void *checkBuf, u64 count)
 {
     u64 i = 0;
-    int *c_buf = (int *)check_buf;
-    int *result = (int *)result_buf;
+    int *c_buf = (int *)checkBuf;
+    int *result = (int *)resultBuf;
     int err = 0;
     u64 first_err_pos = ULLONG_MAX;
     for (i = 0; i < count; ++i) {
@@ -123,11 +123,11 @@ int check_buf_result_int32(const void *result_buf, const void *check_buf, u64 co
     return err;
 }
 
-int check_buf_result_int64(const void *result_buf, const void *check_buf, u64 count)
+int CheckBufResultInt64(const void *resultBuf, const void *checkBuf, u64 count)
 {
     u64 i = 0;
-    s64 *c_buf = (s64 *)check_buf;
-    s64 *result = (s64 *)result_buf;
+    s64 *c_buf = (s64 *)checkBuf;
+    s64 *result = (s64 *)resultBuf;
     int err = 0;
     u64 first_err_pos = ULLONG_MAX;
     for (i = 0; i < count; ++i) {
@@ -150,11 +150,11 @@ int check_buf_result_int64(const void *result_buf, const void *check_buf, u64 co
     return err;
 }
 
-int check_buf_result_u64(const void *result_buf, const void *check_buf, u64 count)
+int CheckBufResultU64(const void *resultBuf, const void *checkBuf, u64 count)
 {
     u64 i = 0;
-    u64 *c_buf = (u64 *)check_buf;
-    u64 *result = (u64 *)result_buf;
+    u64 *c_buf = (u64 *)checkBuf;
+    u64 *result = (u64 *)resultBuf;
     int err = 0;
     u64 first_err_pos = ULLONG_MAX;
     for (i = 0; i < count; ++i) {

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __HCCL_TEST_COMMUNICATE_H_
-#define __HCCL_TEST_COMMUNICATE_H_
+#ifndef HCCL_TEST_COMMUNICATE_H_
+#define HCCL_TEST_COMMUNICATE_H_
 
 #include <iostream>
 #include <string>
@@ -31,16 +31,14 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "hccl/hccl.h"
+#include <hccl/hccl.h>
 #include <hccl/hccl_types.h>
 
 #include "hccl_test_logger.h"
 
 
-namespace hccl
-{
-class HcclCommunicater
-{
+namespace hccl {
+class HcclCommunicater {
 public:
     HcclCommunicater(
         const std::string serverIP,

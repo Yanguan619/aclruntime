@@ -8,10 +8,10 @@
 #include "hccl_check_buf_init.h"
 #include <map>
 
-void host_buf_init_fp32(void* dst_buf, u64 count, int val)
+void host_buf_init_fp32(void* dstBuf, u64 count, int val)
 {
     float* f_tmp = NULL;
-    f_tmp = (float*)dst_buf;
+    f_tmp = (float*)dstBuf;
     for(u64 j = 0; j < count; ++j)
     {
         f_tmp[j] = val;
@@ -19,10 +19,10 @@ void host_buf_init_fp32(void* dst_buf, u64 count, int val)
     return;
 }
 
-void host_buf_init_int8(void* dst_buf, u64 count, int val)
+void host_buf_init_int8(void* dstBuf, u64 count, int val)
 {
     char* tmp = NULL;
-    tmp = (char*)dst_buf;
+    tmp = (char*)dstBuf;
     for(u64 j = 0; j < count; ++j)
     {
         tmp[j] = val % 128;
@@ -30,10 +30,10 @@ void host_buf_init_int8(void* dst_buf, u64 count, int val)
     return;
 }
 
-void host_buf_init_int32(void* dst_buf, u64 count, int val)
+void host_buf_init_int32(void* dstBuf, u64 count, int val)
 {
     int* t_tmp = NULL;
-    t_tmp = (int*)dst_buf;
+    t_tmp = (int*)dstBuf;
     for(u64 j = 0; j < count; ++j)
     {
         t_tmp[j] = val;
@@ -41,10 +41,10 @@ void host_buf_init_int32(void* dst_buf, u64 count, int val)
     return;
 }
 
-void host_buf_init_fp16(void* dst_buf, u64 count, int val)
+void host_buf_init_fp16(void* dstBuf, u64 count, int val)
 {
     unsigned short* f16_temp = NULL;
-    f16_temp = (u16*)dst_buf;
+    f16_temp = (u16*)dstBuf;
     for(u64 j = 0; j < count; ++j)
     {
         f16_temp[j] = fp16_ieee_from_fp32_value(val);
@@ -52,10 +52,10 @@ void host_buf_init_fp16(void* dst_buf, u64 count, int val)
     return;
 }
 
-void host_buf_init_int16(void* dst_buf, u64 count, int val)
+void host_buf_init_int16(void* dstBuf, u64 count, int val)
 {
     short* s16_tmp = NULL;
-    s16_tmp = (s16*)dst_buf;
+    s16_tmp = (s16*)dstBuf;
     for(u64 j = 0; j < count; ++j)
     {
         s16_tmp[j] = val;
@@ -63,10 +63,10 @@ void host_buf_init_int16(void* dst_buf, u64 count, int val)
     return;
 }
 
-void host_buf_init_int64(void* dst_buf, u64 count, int val)
+void host_buf_init_int64(void* dstBuf, u64 count, int val)
 {
     int64_t* tmp_buf = NULL;
-    tmp_buf = (int64_t*)dst_buf;
+    tmp_buf = (int64_t*)dstBuf;
     for(u64 j = 0; j < count; ++j)
     {
         tmp_buf[j] = val;
@@ -74,9 +74,9 @@ void host_buf_init_int64(void* dst_buf, u64 count, int val)
     return;
 }
 
-void host_buf_init_bfp16(void* dst_buf, u64 count, int val)
+void host_buf_init_bfp16(void* dstBuf, u64 count, int val)
 {
-    unsigned short *f16_temp = (u16*)dst_buf;
+    unsigned short *f16_temp = (u16*)dstBuf;
     for(u64 j = 0; j < count; ++j)
     {
         f16_temp[j] = fp32tobf16(val);  //fp32转换bf16
@@ -84,19 +84,19 @@ void host_buf_init_bfp16(void* dst_buf, u64 count, int val)
     return;
 }
 
-void hccl_host_buf_init(void* dst_buf, u64 count, int dtype, int val)
+void HcclHostBufInit(void* dstBuf, u64 count, int dtype, int val)
 {
     if(functionMap.find(dtype) != functionMap.end())
     {
-        functionMap[dtype](dst_buf, count, val);
+        functionMap[dtype](dstBuf, count, val);
     }
     return;
 }
 
-void reduce_check_buf_init_fp32(void* dst_buf, u64 count, int val, int op, int rank_size)
+void reduce_check_buf_init_fp32(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
     float* f_tmp = NULL;
-    f_tmp = (float*)dst_buf;
+    f_tmp = (float*)dstBuf;
     if(op == HCCL_REDUCE_SUM)
     {
         for(u64 j = 0; j < count; ++j)
@@ -121,10 +121,10 @@ void reduce_check_buf_init_fp32(void* dst_buf, u64 count, int val, int op, int r
     return;
 }
 
-void reduce_check_buf_init_int8(void* dst_buf, u64 count, int val, int op, int rank_size)
+void reduce_check_buf_init_int8(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
     char* tmp = NULL;
-    tmp = (char*)dst_buf;
+    tmp = (char*)dstBuf;
     int n = 0;
     if(op == HCCL_REDUCE_SUM)
     {
@@ -164,10 +164,10 @@ void reduce_check_buf_init_int8(void* dst_buf, u64 count, int val, int op, int r
     return;
 }
 
-void reduce_check_buf_init_int32(void* dst_buf, u64 count, int val, int op, int rank_size)
+void reduce_check_buf_init_int32(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
     int*  t_tmp = NULL;
-    t_tmp = (int*)dst_buf;
+    t_tmp = (int*)dstBuf;
     if(op == HCCL_REDUCE_SUM)
     {
         for(u64 j = 0; j < count; ++j)
@@ -192,10 +192,10 @@ void reduce_check_buf_init_int32(void* dst_buf, u64 count, int val, int op, int 
     return;
 }
 
-void reduce_check_buf_init_fp16(void* dst_buf, u64 count, int val, int op, int rank_size)
+void reduce_check_buf_init_fp16(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
     u16* f16_temp = NULL;
-    f16_temp = (u16*)dst_buf;
+    f16_temp = (u16*)dstBuf;
     if(op == HCCL_REDUCE_SUM)
     {
         for(u64 j = 0; j < count; ++j)
@@ -220,10 +220,10 @@ void reduce_check_buf_init_fp16(void* dst_buf, u64 count, int val, int op, int r
     return;
 }
 
-void reduce_check_buf_init_int16(void* dst_buf, u64 count, int val, int op, int rank_size)
+void reduce_check_buf_init_int16(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
     s16* s16_temp = NULL;
-    s16_temp = (s16*)dst_buf;
+    s16_temp = (s16*)dstBuf;
     if(op == HCCL_REDUCE_SUM)
     {
         for(u64 j = 0; j < count; ++j)
@@ -248,10 +248,10 @@ void reduce_check_buf_init_int16(void* dst_buf, u64 count, int val, int op, int 
     return;
 }
 
-void reduce_check_buf_init_int64(void* dst_buf, u64 count, int val, int op, int rank_size)
+void reduce_check_buf_init_int64(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
     int64_t* temp = nullptr;
-    temp = (int64_t*)dst_buf;
+    temp = (int64_t*)dstBuf;
     if(op == HCCL_REDUCE_SUM)
     {
         for(u64 j = 0; j < count; ++j)
@@ -276,9 +276,9 @@ void reduce_check_buf_init_int64(void* dst_buf, u64 count, int val, int op, int 
     return;
 }
 
-void reduce_check_buf_init_bfp16(void* dst_buf, u64 count, int val, int op, int rank_size)
+void reduce_check_buf_init_bfp16(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
-    unsigned short *f16_temp = (u16*)dst_buf;
+    unsigned short *f16_temp = (u16*)dstBuf;
     if(op == HCCL_REDUCE_SUM)
     {
         for(u64 j = 0; j < count; ++j)
@@ -303,11 +303,11 @@ void reduce_check_buf_init_bfp16(void* dst_buf, u64 count, int val, int op, int 
     return;
 }
 
-void hccl_reduce_check_buf_init(void *dst_buf, u64 count, int dtype, int op, int val, int rank_size)
+void HcclReduceCheckBufInit(void *dstBuf, u64 count, int dtype, int op, int val, int rankSize)
 {
     if(functionReduceMap.find(dtype) != functionReduceMap.end())
     {
-        functionReduceMap[dtype](dst_buf, count, val, op, rank_size);
+        functionReduceMap[dtype](dstBuf, count, val, op, rankSize);
     }
     return;
 }
@@ -535,17 +535,17 @@ int alltoall_check_result_bfp16(const void *check_buf, u64 *recv_counts, u64 *re
     return ret;
 }
 
-int hccl_alltoallv_check_result(void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_id, int rank_size, int dtype)
+int HcclAlltoallvCheckResult(void *checkBuf, u64 *recvCounts, u64 *recvDisp, int rankId, int rankSize, int dtype)
 {
     int ret = 0;
-    if(rank_size < 1)   //接收数据为0则不进行数据校验
+    if(rankSize < 1)   //接收数据为0则不进行数据校验
     {
         return ret;
     }
 
     if(functionAllToAllMap.find(dtype) != functionAllToAllMap.end())
     {
-        ret = functionAllToAllMap[dtype](check_buf, recv_counts, recv_disp, rank_size, dtype);
+        ret = functionAllToAllMap[dtype](checkBuf, recvCounts, recvDisp, rankSize, dtype);
     }
     return ret;
 }

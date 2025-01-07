@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef _HCCL_CHECK_BUF_INIT_H_
-#define _HCCL_CHECK_BUF_INIT_H_
+#ifndef HCCL_CHECK_BUF_INIT_H_
+#define HCCL_CHECK_BUF_INIT_H_
 #include <map>
 #include <stdio.h>
 #include <math.h>
@@ -28,6 +28,10 @@
 #include <hccl/hccl_types.h>
 #include "hccl_test_common.h"
 #include "hccl_test_logger.h"
+
+const int OFFSET_16 = 16;
+const int OFFSET_13 = 13;
+const int EIGHT_BIT = 256;
 
 
 static inline float fp32_from_bits(uint32_t w)
@@ -85,10 +89,10 @@ static inline uint16_t fp16_ieee_from_fp32_value(float f)
 
     base = fp32_from_bits((bias >> 1) + UINT32_C(0x07800000)) + base;
     const uint32_t bits = fp32_to_bits(base);
-    const uint32_t exp_bits = (bits >> 13) & UINT32_C(0x00007C00);
+    const uint32_t exp_bits = (bits >> OFFSET_13) & UINT32_C(0x00007C00);
     const uint32_t mantissa_bits = bits & UINT32_C(0x00000FFF);
     const uint32_t nonsign = exp_bits + mantissa_bits;
-    return (sign >> 16) | (shl1_w > UINT32_C(0xFF000000) ? UINT16_C(0x7E00) : nonsign);
+    return (sign >> OFFSET_16) | (shl1_w > UINT32_C(0xFF000000) ? UINT16_C(0x7E00) : nonsign);
 }
 
 static inline uint16_t fp32tobf16(float x)
@@ -111,7 +115,7 @@ static inline uint16_t fp32tobf16(float x)
     float r = x;
     int *pr = (int *) &r;
     *pr &= 0xff800000; // r has the same exp as x
-    r = r / 256;
+    r = r / EIGHT_BIT;
     y = x + r;
 
     *p &= 0xffff0000;
@@ -120,18 +124,18 @@ static inline uint16_t fp32tobf16(float x)
 }
 
 typedef void(*HostBufInitFunc)(void *, u64, int);
-extern std::map<int,HostBufInitFunc> functionMap;
+extern std::map<int, HostBufInitFunc> functionMap;
 
 typedef void(*ReduceCheckBufInitFunc)(void *, u64, int, int, int);
-extern std::map<int,ReduceCheckBufInitFunc> functionReduceMap;
+extern std::map<int, ReduceCheckBufInitFunc> functionReduceMap;
 
 typedef int(*AllToAllCheckResult)(const void*, u64*, u64*, int, int);
-extern std::map<int,AllToAllCheckResult> functionAllToAllMap;
+extern std::map<int, AllToAllCheckResult> functionAllToAllMap;
 
-extern void hccl_host_buf_init(void *dst_buf, unsigned long long count, int dtype, int val);
-extern void hccl_reduce_check_buf_init(void *dst_buf, unsigned long long count, int dtype, int op, int val,
-    int rank_size);
-extern int hccl_alltoallv_check_result(void *check_buf, unsigned long long *recv_counts, unsigned long long *recv_disp,
-    int rank_id, int rank_size, int dtype);
+extern void HcclHostBufInit(void *dstBuf, unsigned long long count, int dtype, int val);
+extern void HcclReduceCheckBufInit(void *dstBuf, unsigned long long count, int dtype, int op, int val,
+    int rankSize);
+extern int HcclAlltoallvCheckResult(void *checkBuf, unsigned long long *recvCounts, unsigned long long *recvDisp,
+    int rankId, int rankSize, int dtype);
 
 #endif

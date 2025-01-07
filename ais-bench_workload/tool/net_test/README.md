@@ -157,8 +157,6 @@ python3 -m ais_bench run [optional arguments] <op task> [op cmds]
 |reduce_scatter_test|
 |reduce_test|
 |scatter_test|
-|all_gatherv_test|
-|reduce_scatterv_test|
 
 ##### 后端相关命令（op cmds）
 这部分命令与hccl_test中通信算子可执行文件传入的相关命令一致，参考昇腾社区CANN文档中“HCCL性能测试工具 > 参数说明 > [HCCL Test工具相关参数](https://www.hiascend.com/document/detail/zh/canncommercial/80RC3/devaids/devtools/hccltool/HCCLpertest_16_0005.html#ZH-CN_TOPIC_0000002082057253__section18761173413116)”：<br>

@@ -34,47 +34,47 @@ void HcclOpBaseTest::init_data_count()
     switch(dtype)
     {
         case HCCL_DATA_TYPE_FP32:
-            data->count = (data->data_size + sizeof(float) - 1)/sizeof(float); //count向上取整
-            data->type_size = sizeof(float);
+            data->count = (data->dataSize + sizeof(float) - 1)/sizeof(float); //count向上取整
+            data->typeSize = sizeof(float);
             break;
         case HCCL_DATA_TYPE_INT32:
-            data->count = (data->data_size + sizeof(int) - 1)/sizeof(int);
-            data->type_size = sizeof(int);
+            data->count = (data->dataSize + sizeof(int) - 1)/sizeof(int);
+            data->typeSize = sizeof(int);
             break;
         case HCCL_DATA_TYPE_BFP16:
         case HCCL_DATA_TYPE_FP16:
         case HCCL_DATA_TYPE_INT16:
-            data->count = (data->data_size + sizeof(short) - 1)/sizeof(short);
-            data->type_size = sizeof(short);
+            data->count = (data->dataSize + sizeof(short) - 1)/sizeof(short);
+            data->typeSize = sizeof(short);
             break;
         case HCCL_DATA_TYPE_INT8:
-            data->count = (data->data_size + sizeof(signed char) - 1)/sizeof(signed char);
-            data->type_size = sizeof(signed char);
+            data->count = (data->dataSize + sizeof(signed char) - 1)/sizeof(signed char);
+            data->typeSize = sizeof(signed char);
             break;
         case HCCL_DATA_TYPE_INT64:
         case HCCL_DATA_TYPE_FP64:
-            data->count = (data->data_size + sizeof(long long) - 1)/sizeof(long long);
-            data->type_size = sizeof(long long);
+            data->count = (data->dataSize + sizeof(long long) - 1)/sizeof(long long);
+            data->typeSize = sizeof(long long);
             break;
         case HCCL_DATA_TYPE_UINT64:
-            data->count = (data->data_size + sizeof(unsigned long long) - 1)/sizeof(unsigned long long);
-            data->type_size = sizeof(unsigned long long);
+            data->count = (data->dataSize + sizeof(unsigned long long) - 1)/sizeof(unsigned long long);
+            data->typeSize = sizeof(unsigned long long);
             break;
         case HCCL_DATA_TYPE_UINT8:
-            data->count = (data->data_size + sizeof(unsigned char) - 1)/sizeof(unsigned char);
-            data->type_size = sizeof(unsigned char);
+            data->count = (data->dataSize + sizeof(unsigned char) - 1)/sizeof(unsigned char);
+            data->typeSize = sizeof(unsigned char);
             break;
         case HCCL_DATA_TYPE_UINT16:
-            data->count = (data->data_size + sizeof(unsigned short) - 1)/sizeof(unsigned short);
-            data->type_size = sizeof(unsigned short);
+            data->count = (data->dataSize + sizeof(unsigned short) - 1)/sizeof(unsigned short);
+            data->typeSize = sizeof(unsigned short);
             break;
         case HCCL_DATA_TYPE_UINT32:
-            data->count = (data->data_size + sizeof(unsigned int) - 1)/sizeof(unsigned int);
-            data->type_size = sizeof(unsigned int);
+            data->count = (data->dataSize + sizeof(unsigned int) - 1)/sizeof(unsigned int);
+            data->typeSize = sizeof(unsigned int);
             break;
         default:
-            data->count = (data->data_size + sizeof(float) - 1)/sizeof(float);
-            data->type_size = sizeof(float);
+            data->count = (data->dataSize + sizeof(float) - 1)/sizeof(float);
+            data->typeSize = sizeof(float);
             break;
     }
     return;
@@ -137,7 +137,7 @@ int HcclOpBaseTest::print_execution_time(double average_time_us, double algorith
                 LOG_ORIGIN(" %-15s | %-12s | %-18s | %s", data_size, aveg_time, alg_bandwidth, verification_result);
                 print_header = false;
             }
-            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | NULL", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
+            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | NULL", data->dataSize, average_time_us, algorithm_bandwith_GBytes_s);
         }
         return 0;
     }
@@ -186,9 +186,9 @@ int HcclOpBaseTest::print_execution_time(double average_time_us, double algorith
 
         if (!result)
         {
-            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | failed", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
+            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | failed", data->dataSize, average_time_us, algorithm_bandwith_GBytes_s);
         } else {
-            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | success", data->data_size, average_time_us, algorithm_bandwith_GBytes_s);
+            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | success", data->dataSize, average_time_us, algorithm_bandwith_GBytes_s);
         }
     }
     return 0;

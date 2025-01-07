@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __HCCL_TEST_COMMON_H_
-#define __HCCL_TEST_COMMON_H_
+#ifndef HCCL_TEST_COMMON_H_
+#define HCCL_TEST_COMMON_H_
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include <vector>
 #include <memory>
-#include "hccl/hccl.h"
+#include <hccl/hccl.h>
 #include <hccl/hccl_types.h>
 #include <limits.h>
 #include <ctype.h>
@@ -45,13 +45,13 @@ typedef unsigned int u32;
 typedef unsigned long long u64;
 
 struct DataSize {
-    u64 min_bytes;
-    u64 max_bytes;
-    u64 step_bytes = 0;
-    double step_factor;
+    u64 minBytes;
+    u64 maxBytes;
+    u64 stepBytes= 0;
+    double stepFactor;
     u64 count;
-    u64 data_size;
-    u64 type_size;
+    u64 dataSize;
+    u64 typeSize;
 };
 
 const int SERVER_MAX_DEV_NUM = 8;

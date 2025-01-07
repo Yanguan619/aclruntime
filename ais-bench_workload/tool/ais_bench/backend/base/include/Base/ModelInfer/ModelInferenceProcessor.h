@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,14 +48,14 @@ struct BaseTensor {
 
     BaseTensor() = default;
 
-    BaseTensor(int64_t buf, int64_t size, int64_t len=0)
+    BaseTensor(int64_t buf, int64_t size, int64_t len = 0)
     {
         this->buf = reinterpret_cast<void*>(buf);
         this->size = static_cast<size_t>(size);
         this->len = static_cast<size_t>(len);
     }
 
-    BaseTensor(void* buf, size_t size, size_t len=0)
+    BaseTensor(void* buf, size_t size, size_t len = 0)
     {
         this->buf = buf;
         this->size = size;

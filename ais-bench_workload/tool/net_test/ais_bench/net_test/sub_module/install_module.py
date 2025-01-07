@@ -23,7 +23,7 @@ from ais_bench.net_test.sub_module.utils import remote_run_env_check
 from ais_bench.net_test.common.utils import get_ip_address
 from ais_bench.net_test.sub_module.multiprocess_runner import MultiProcessRunner
 from ais_bench.net_test.common.logger import logger
-from ais_bench.net_test.common.consts import REMOTE_NODE_INFO_NAME, DEFAULT_WHL_PATH
+from ais_bench.net_test.common.consts import RemoteNodeInfoName, DEFAULT_WHL_PATH
 from ais_bench.net_test.ssh.ssh_operation import remote_put, remote_exec
 from ais_bench.net_test.common.args_check import arg_check_whl_legalty
 
@@ -32,14 +32,14 @@ def remote_install_whl_pkg(args_dict):
     """
         args_dict: (node_id, node_info, cmd, ssh_key_path),
     """
-    logger.info(f"node id:{args_dict[REMOTE_NODE_INFO_NAME.NODE_ID]}, " + \
-        f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start installing...")
+    logger.info(f"node id:{args_dict[RemoteNodeInfoName.NODE_ID]}, " + \
+        f"server ip:{args_dict[RemoteNodeInfoName.NODE_INFO].ip} start installing...")
     logger.debug(f"All node related info: {args_dict}")
     remote_exec(
-        args_dict.get(REMOTE_NODE_INFO_NAME.NODE_ID),
-        args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
-        args_dict.get(REMOTE_NODE_INFO_NAME.CMD),
-        args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
+        args_dict.get(RemoteNodeInfoName.NODE_ID),
+        args_dict.get(RemoteNodeInfoName.NODE_INFO),
+        args_dict.get(RemoteNodeInfoName.CMD),
+        args_dict.get(RemoteNodeInfoName.SSH_KEY_PATH)
     )
 
 
@@ -47,15 +47,15 @@ def remote_deploy_whl_pkg(args_dict):
     """
         args_dict: (node_id, node_info, src_path, dst_path, ssh_key_path),
     """
-    logger.info(f"node id:{args_dict[REMOTE_NODE_INFO_NAME.NODE_ID]}, " + \
-        f"server ip:{args_dict[REMOTE_NODE_INFO_NAME.NODE_INFO].ip} start deploying...")
+    logger.info(f"node id:{args_dict[RemoteNodeInfoName.NODE_ID]}, " + \
+        f"server ip:{args_dict[RemoteNodeInfoName.NODE_INFO].ip} start deploying...")
     logger.debug(f"All node related info: {args_dict}")
     remote_put(
-        args_dict.get(REMOTE_NODE_INFO_NAME.NODE_ID),
-        args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
-        args_dict.get(REMOTE_NODE_INFO_NAME.SRC_PATH),
-        args_dict.get(REMOTE_NODE_INFO_NAME.DST_PATH),
-        args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
+        args_dict.get(RemoteNodeInfoName.NODE_ID),
+        args_dict.get(RemoteNodeInfoName.NODE_INFO),
+        args_dict.get(RemoteNodeInfoName.SRC_PATH),
+        args_dict.get(RemoteNodeInfoName.DST_PATH),
+        args_dict.get(RemoteNodeInfoName.SSH_KEY_PATH)
     )
 
 
@@ -122,11 +122,11 @@ class InstallModule(BaseSubmodule):
         dst_path = "./"
         for node_id, node_info in self.hostfile_info.items():
             args_dict = {
-                REMOTE_NODE_INFO_NAME.NODE_ID: node_id,
-                REMOTE_NODE_INFO_NAME.NODE_INFO: node_info,
-                REMOTE_NODE_INFO_NAME.SRC_PATH: src_path,
-                REMOTE_NODE_INFO_NAME.DST_PATH: dst_path,
-                REMOTE_NODE_INFO_NAME.SSH_KEY_PATH: args.ssh_key_path,
+                RemoteNodeInfoName.NODE_ID: node_id,
+                RemoteNodeInfoName.NODE_INFO: node_info,
+                RemoteNodeInfoName.SRC_PATH: src_path,
+                RemoteNodeInfoName.DST_PATH: dst_path,
+                RemoteNodeInfoName.SSH_KEY_PATH: args.ssh_key_path,
             }
             args_dict_list.append(args_dict)
         return args_dict_list
@@ -152,10 +152,10 @@ class InstallModule(BaseSubmodule):
         args_dict_list = []
         for node_id, node_info in self.hostfile_info.items():
             args_dict = {
-                REMOTE_NODE_INFO_NAME.NODE_ID: node_id,
-                REMOTE_NODE_INFO_NAME.NODE_INFO: node_info,
-                REMOTE_NODE_INFO_NAME.CMD: self._gen_install_cmd(args),
-                REMOTE_NODE_INFO_NAME.SSH_KEY_PATH: args.ssh_key_path,
+                RemoteNodeInfoName.NODE_ID: node_id,
+                RemoteNodeInfoName.NODE_INFO: node_info,
+                RemoteNodeInfoName.CMD: self._gen_install_cmd(args),
+                RemoteNodeInfoName.SSH_KEY_PATH: args.ssh_key_path,
             }
             args_dict_list.append(args_dict)
         return args_dict_list

@@ -15,18 +15,19 @@
 import sys
 import argparse
 from ais_bench.net_test.sub_module.sub_module_factory import sub_module_switch, sub_module_factory
-from ais_bench.net_test.common.consts import OP_TASK, SUB_MODULE_NAME
+from ais_bench.net_test.common.consts import OP_TASK, SubModuleName
 from ais_bench.net_test.ssh.ssh_operation import remote_exec
 
 SUB_MODULE_LIST = [
-    SUB_MODULE_NAME.RUN,
-    SUB_MODULE_NAME.INSTALL,
+    SubModuleName.RUN,
+    SubModuleName.INSTALL,
 ]
+
 
 def get_separated_argv():
     origin_args = sys.argv
     if origin_args[1] not in SUB_MODULE_LIST and origin_args[1] != "-h" and origin_args[1] != "--help":
-        origin_args.insert(1, SUB_MODULE_NAME.RUN) # default run
+        origin_args.insert(1, SubModuleName.RUN) # default run
 
     for i, arg in enumerate(origin_args):
         if arg in OP_TASK:

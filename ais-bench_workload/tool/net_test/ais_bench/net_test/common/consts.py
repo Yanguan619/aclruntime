@@ -17,20 +17,21 @@ import platform
 DEFAULT_ENV_SCRIPT_PATH = "/usr/local/Ascend/ascend-toolkit/set_env.sh"
 DEFAULT_SSH_KEY_PATH = "/root/.ssh/id_rsa"
 
-class PACKAGE_INFO:
+
+class PackageInfo:
     version = "1.1.0"
 
 
-class SUB_MODULE_NAME:
+class SubModuleName:
     RUN = "run"  # 正常运行模式
     INSTALL = "install"  # 分布式安装模式
 
 
-class RUN_MODE_NAME:
+class RunModeName:
     FULL = "full"
 
 
-class REMOTE_NODE_INFO_NAME:
+class RemoteNodeInfoName:
     NODE_ID = "node_id"
     NODE_INFO = "node_info"
     CMD = "cmd"
@@ -39,12 +40,12 @@ class REMOTE_NODE_INFO_NAME:
     SSH_KEY_PATH = "ssh_key_path"
 
 
-class INT_LIMIT:
+class IntLimit:
     PORT_MAX = 65535  # linux端口最大取值限制
     UINT64_MAX = (1 << 64) - 1
 
 
-class LENGTH_LIMIT:
+class LengthLimit:
     MAX_IPV4_LENGTH = 15  # ipv4 格式IP最长限制
     MAX_PORT_STR_LENGTH = 6  # port 字符串长度限制
     MAX_UINT64_STR_LENGTH = 20  # 2^64的数字字符串长度
@@ -56,7 +57,7 @@ class LENGTH_LIMIT:
     NPU_PROCESS_NAME_LENGTH = 15 # npu-smi 进程长度限制
 
 
-class STRING_PATTERN:
+class StringPattern:
     LEGAL_IPV4_PATTERN = r'^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
     GET_DEVICE_COUNT_PER_NPU_PATTERN = r'Chip Count\s*:\s*(\d+)'
     LEGAL_LINUX_USERNAME_PATTERN = r'^[a-zA-Z_]([a-zA-Z0-9_-]*[a-zA-Z0-9_]+)*$'
@@ -76,7 +77,7 @@ class RET:
     FAILED = 1
 
 
-class TIME_OUT:
+class TimeOut:
     NORMAL_SSH_EXEC_TIMEOUT = 6000
 
 
@@ -102,4 +103,4 @@ OP_CMD_HELP_INFO = "\t[-b,--minbytes <min size in bytes>] \n\t" + \
                    "[-c,--check <result verification> 0:disabled 1:enabled.] \n\t" + \
                    "[-p,--npus <npus used for one node>] \n\t"
 
-DEFAULT_WHL_PATH = f"ais_bench_net_test-{PACKAGE_INFO.version}-py3-none-{sys.platform}_{platform.machine()}.whl"
+DEFAULT_WHL_PATH = f"ais_bench_net_test-{PackageInfo.version}-py3-none-{sys.platform}_{platform.machine()}.whl"

@@ -13,5 +13,21 @@
 # limitations under the License.
 
 import os
+import ast
+
+
+def file_context_verify(file_path):
+    with open(file_path, 'r') as file:
+        content = file.read()
+
+    try:
+        ast.parse(content)
+    except SyntaxError as e:
+        raise ValueError(f"文件包含语法错误：{e}")
+    return content
+
+
 cur_path = os.path.dirname(os.path.realpath(__file__))
-exec(open(os.path.join(cur_path, "net_test/__main__.py")).read())
+file_path = os.path.join(cur_path, "net_test/__main__.py")
+verified_content = file_context_verify(file_path)
+exec(verified_content)

@@ -13,7 +13,7 @@
 # limitations under the License.
 import argparse
 import re
-from ais_bench.net_test.common.consts import INT_LIMIT, LENGTH_LIMIT, STRING_PATTERN
+from ais_bench.net_test.common.consts import IntLimit, LengthLimit, StringPattern
 from ais_bench.net_test.common.utils import get_actual_device_count, compare_bytes_string
 from ais_bench.net_test.security.file_checker import check_linux_readable_file
 from ais_bench.net_test.security.standard_consts import PermForbid
@@ -44,57 +44,55 @@ def arg_check_ssh_key_path_legalty(value):
 
 
 def arg_check_ipv4_string(value):
-    if len(value) > LENGTH_LIMIT.MAX_IPV4_LENGTH:
+    if len(value) > LengthLimit.MAX_IPV4_LENGTH:
         raise argparse.ArgumentTypeError(
-            f"The length of ipv4_string is over MAX_IPV4_LENGTH {LENGTH_LIMIT.MAX_IPV4_LENGTH}!"
+            f"The length of ipv4_string is over MAX_IPV4_LENGTH {LengthLimit.MAX_IPV4_LENGTH}!"
         )
-    if not re.match(STRING_PATTERN.LEGAL_IPV4_PATTERN, value):
+    if not re.match(StringPattern.LEGAL_IPV4_PATTERN, value):
         raise argparse.ArgumentTypeError(f"The format of ipv4_string:{value} is illegal!")
     return value
 
 
 def arg_check_port_range(value):
-    if (len(value) > LENGTH_LIMIT.MAX_PORT_STR_LENGTH):
-        raise argparse.ArgumentTypeError(f"The length of port str is over {LENGTH_LIMIT.MAX_PORT_STR_LENGTH}!")
+    if (len(value) > LengthLimit.MAX_PORT_STR_LENGTH):
+        raise argparse.ArgumentTypeError(f"The length of port str is over {LengthLimit.MAX_PORT_STR_LENGTH}!")
 
     arg_check_nonnegative_integer(value)
 
     ivalue = int(value)
-    if ivalue > INT_LIMIT.PORT_MAX:
+    if ivalue > IntLimit.PORT_MAX:
         raise argparse.ArgumentTypeError(
-            f"The port value:{value} is illegal, legal range is [0, {INT_LIMIT.PORT_MAX}]"
+            f"The port value:{value} is illegal, legal range is [0, {IntLimit.PORT_MAX}]"
         )
     return ivalue
 
 
 def arg_check_positive_integer(value):
     if value is None:
-        return value
-    if len(value) > LENGTH_LIMIT.MAX_UINT64_STR_LENGTH:
+        return
+    if len(value) > LengthLimit.MAX_UINT64_STR_LENGTH:
         raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
     if not value.isdigit():
         raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
     ivalue = int(value)
     if ivalue == 0:
         raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
-    return ivalue
 
 
 def arg_check_nonnegative_integer(value):
     if value is None:
-        return value
-    if len(value) > LENGTH_LIMIT.MAX_UINT64_STR_LENGTH:
+        return
+    if len(value) > LengthLimit.MAX_UINT64_STR_LENGTH:
         raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
     if not value.isdigit():
         raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
     ivalue = int(value)
-    return ivalue
 
 
 def arg_check_bytes_format(value):
-    if not (LENGTH_LIMIT.MIN_BYTES_STR_LENGTH <= len(value) <= LENGTH_LIMIT.MAX_BYTES_STR_LENGTH):
+    if not (LengthLimit.MIN_BYTES_STR_LENGTH <= len(value) <= LengthLimit.MAX_BYTES_STR_LENGTH):
         raise argparse.ArgumentTypeError("Bytes str is not in legal length range " +
-            f"[{LENGTH_LIMIT.MIN_BYTES_STR_LENGTH}, {LENGTH_LIMIT.MAX_BYTES_STR_LENGTH}]")
+            f"[{LengthLimit.MIN_BYTES_STR_LENGTH}, {LengthLimit.MAX_BYTES_STR_LENGTH}]")
     legal_suffix = ["K", "M", "G"]
     if value[-1] not in legal_suffix:
         raise argparse.ArgumentTypeError(f"Bytes str should be end up with {legal_suffix}")

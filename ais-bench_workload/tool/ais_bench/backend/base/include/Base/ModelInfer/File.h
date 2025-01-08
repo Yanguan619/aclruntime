@@ -61,7 +61,7 @@ public:
     File() = default;
     virtual ~File() = default;
     // 安全的创建目录
-    static bool CreateDir(const std::string &path, bool recursion=false, mode_t mode = NORMAL_DIR_MODE_DEFAULT);
+    static bool CreateDir(const std::string &path, bool recursion = false, mode_t mode = NORMAL_DIR_MODE_DEFAULT);
     // 打开文件
     static bool OpenFile(const std::string& path, std::ifstream& ifs, std::ios::openmode mode = std::ios::in);
     static bool OpenFile(const std::string& path, std::ofstream& ofs, std::ios::openmode mode = std::ios::out);

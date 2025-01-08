@@ -34,7 +34,7 @@ void HcclOpBaseTest::init_data_count()
     switch(dtype)
     {
         case HCCL_DATA_TYPE_FP32:
-            data->count = (data->dataSize + sizeof(float) - 1)/sizeof(float); // count向上取整
+            data->count = (data->dataSize + sizeof(float) - 1) / sizeof(float); // count向上取整
             data->typeSize = sizeof(float);
             break;
         case HCCL_DATA_TYPE_INT32:

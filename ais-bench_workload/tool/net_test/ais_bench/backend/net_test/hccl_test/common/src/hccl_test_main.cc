@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
         ret = 0;
         goto hccltesterr2;
     } else if(ret == -1) {
-        // WW入参解析失败
+        // 入参解析失败
         ERROR("This is an error in parse cmd line.");
         goto hccltesterr2;
     }
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     hccl_test->InitCommunicater();
     #endif
 
-    //查找本host上的所有MPI拉起的进程
+    // 查找本host上的所有MPI拉起的进程
     ret = hccl_test->get_mpi_proc();
     if (ret != 0) {
         ERROR("This is an error in get mpi proc.");

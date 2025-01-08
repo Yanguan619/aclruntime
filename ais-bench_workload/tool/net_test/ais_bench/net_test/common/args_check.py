@@ -57,7 +57,7 @@ def arg_check_port_range(value):
     if (len(value) > LengthLimit.MAX_PORT_STR_LENGTH):
         raise argparse.ArgumentTypeError(f"The length of port str is over {LengthLimit.MAX_PORT_STR_LENGTH}!")
 
-    arg_check_nonnegative_integer(value)
+    value = arg_check_nonnegative_integer(value)
 
     ivalue = int(value)
     if ivalue > IntLimit.PORT_MAX:
@@ -69,7 +69,7 @@ def arg_check_port_range(value):
 
 def arg_check_positive_integer(value):
     if value is None:
-        return
+        return value
     if len(value) > LengthLimit.MAX_UINT64_STR_LENGTH:
         raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
     if not value.isdigit():
@@ -77,16 +77,18 @@ def arg_check_positive_integer(value):
     ivalue = int(value)
     if ivalue == 0:
         raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
+    return ivalue
 
 
 def arg_check_nonnegative_integer(value):
     if value is None:
-        return
+        return value
     if len(value) > LengthLimit.MAX_UINT64_STR_LENGTH:
         raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
     if not value.isdigit():
         raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
     ivalue = int(value)
+    return ivalue
 
 
 def arg_check_bytes_format(value):
@@ -97,12 +99,12 @@ def arg_check_bytes_format(value):
     if value[-1] not in legal_suffix:
         raise argparse.ArgumentTypeError(f"Bytes str should be end up with {legal_suffix}")
     value_int = value[:-1]
-    arg_check_positive_integer(value_int)
+    value_int = arg_check_positive_integer(value_int)
     return value
 
 
 def arg_check_device_count_range(value):
-    arg_check_positive_integer(value)
+    value = arg_check_positive_integer(value)
     ivalue = int(value)
     actual_device_count = get_actual_device_count()
     if ivalue > actual_device_count:
@@ -111,7 +113,7 @@ def arg_check_device_count_range(value):
 
 
 def arg_check_device_id_range(value):
-    arg_check_nonnegative_integer(value)
+    value = arg_check_nonnegative_integer(value)
     ivalue = int(value)
     actual_device_count = get_actual_device_count()
     if ivalue > actual_device_count:

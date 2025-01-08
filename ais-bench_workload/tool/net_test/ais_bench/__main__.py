@@ -23,7 +23,7 @@ def file_context_verify(file_path):
     try:
         ast.parse(content)
     except SyntaxError as e:
-        raise ValueError(f"文件包含语法错误：{e}")
+        raise ValueError(f"The file contains syntax errors:{e}")
     return content
 
 

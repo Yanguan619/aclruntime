@@ -24,6 +24,7 @@ from ais_bench.net_test.security.standard_consts import FileSizeLimit, PermForbi
 def _check_str_length(s: str, min_len: int = 0, max_len: int = LengthLimit.MAX_UINT64_STR_LENGTH):
     if len(s) < min_len or len(s) > max_len:
         raise ValueError('The length of input string is not between [{}, {}]'.format(min_len, max_len))
+    return s
 
 
 def check_int_string(x: str, x_min: int = 0, x_max: int = IntLimit.UINT64_MAX):
@@ -34,10 +35,11 @@ def check_int_string(x: str, x_min: int = 0, x_max: int = IntLimit.UINT64_MAX):
     x_int = int(x)
     if x_int < x_min or x_int > x_max:
         raise ValueError('The value of x:{} is not between [{}, {}]'.format(x, x_min, x_max))
+    return x_int
 
 
 def check_positive_int_string(x: str):
-    check_int_string(x, x_min=LengthLimit.MIN_UINT_STR_LENGTH, x_max=IntLimit.UINT64_MAX)
+    return check_int_string(x, x_min=LengthLimit.MIN_UINT_STR_LENGTH, x_max=IntLimit.UINT64_MAX)
 
 
 def _is_regex_full_match(string: str, pattern: str):

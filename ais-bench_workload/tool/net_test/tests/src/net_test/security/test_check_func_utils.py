@@ -23,21 +23,21 @@ class TestCheckFuncUtils(unittest.TestCase):
             _check_str_length("abc", 5, 10)
         with self.assertRaisesRegex(ValueError, 'is not between'):
             _check_str_length("abcdefghijklmno", 5, 10)
-        self.assertEqual(_check_str_length(s := "hello", 3, 10), None)
+        self.assertEqual(_check_str_length(s := "hello", 3, 10), s)
 
     def test_check_int_string(self):
         with self.assertRaisesRegex(ValueError, 'is an invalid positive int value'):
             check_int_string("abc")
         with self.assertRaisesRegex(ValueError, 'is not between'):
             check_int_string(str(1 << 64))  # 超出范围
-        self.assertEqual(check_int_string("123"), None)
+        self.assertEqual(check_int_string("123"), 123)
 
     def test_check_positive_int_string(self):
         for invalid_value in ["0", str(1 << 64)]:
             with self.assertRaisesRegex(ValueError, 'is not between'):
                 check_positive_int_string(invalid_value)
         check_positive_int_string(str((1 << 64) - 1))
-        self.assertEqual(check_positive_int_string("1"), None)
+        self.assertEqual(check_positive_int_string("1"), 1)
 
     def test_is_regex_full_match(self):
         self.assertTrue(_is_regex_full_match("192.168.1.1", StringPattern.LEGAL_IPV4_PATTERN))

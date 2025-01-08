@@ -34,7 +34,7 @@ const int OFFSET_13 = 13;
 const int EIGHT_BIT = 256;
 
 
-static inline float fp32_from_bits(uint32_t w)
+static inline float Fp32FromBits (uint32_t w)
 {
 #if defined(__OPENCL_VERSION__)
     return as_float(w);
@@ -51,7 +51,7 @@ static inline float fp32_from_bits(uint32_t w)
 #endif
 }
 
-static inline uint32_t fp32_to_bits(float f)
+static inline uint32_t Fp32ToBits(float f)
 {
 #if defined(__OPENCL_VERSION__)
     return as_uint(f);
@@ -68,18 +68,18 @@ static inline uint32_t fp32_to_bits(float f)
 #endif
 }
 
-static inline uint16_t fp16_ieee_from_fp32_value(float f)
+static inline uint16_t Fp16IeeeFromFp32Value(float f)
 {
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L) || defined(__GNUC__) && !defined(__STRICT_ANSI__)
     const float scale_to_inf = 0x1.0p+112f;
     const float scale_to_zero = 0x1.0p-110f;
 #else
-    const float scale_to_inf = fp32_from_bits(UINT32_C(0x77800000));
-    const float scale_to_zero = fp32_from_bits(UINT32_C(0x08800000));
+    const float scale_to_inf = Fp32FromBits(UINT32_C(0x77800000));
+    const float scale_to_zero = Fp32FromBits(UINT32_C(0x08800000));
 #endif
     float base = (fabsf(f) * scale_to_inf) * scale_to_zero;
 
-    const uint32_t w = fp32_to_bits(f);
+    const uint32_t w = Fp32ToBits(f);
     const uint32_t shl1_w = w + w;
     const uint32_t sign = w & UINT32_C(0x80000000);
     uint32_t bias = shl1_w & UINT32_C(0xFF000000);
@@ -87,15 +87,15 @@ static inline uint16_t fp16_ieee_from_fp32_value(float f)
         bias = UINT32_C(0x71000000);
     }
 
-    base = fp32_from_bits((bias >> 1) + UINT32_C(0x07800000)) + base;
-    const uint32_t bits = fp32_to_bits(base);
+    base = Fp32FromBits((bias >> 1) + UINT32_C(0x07800000)) + base;
+    const uint32_t bits = Fp32ToBits(base);
     const uint32_t exp_bits = (bits >> OFFSET_13) & UINT32_C(0x00007C00);
     const uint32_t mantissa_bits = bits & UINT32_C(0x00000FFF);
     const uint32_t nonsign = exp_bits + mantissa_bits;
     return (sign >> OFFSET_16) | (shl1_w > UINT32_C(0xFF000000) ? UINT16_C(0x7E00) : nonsign);
 }
 
-static inline uint16_t fp32tobf16(float x)
+static inline uint16_t Fp32ToBf16(float x)
 {
     float y = x;
     int *p = (int *) &y;

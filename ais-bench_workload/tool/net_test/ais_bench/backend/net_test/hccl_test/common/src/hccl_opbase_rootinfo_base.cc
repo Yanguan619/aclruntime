@@ -24,12 +24,12 @@ HcclOpBaseTest::~HcclOpBaseTest()
 
 }
 
-int HcclOpBaseTest::hccl_op_base_test()
+int HcclOpBaseTest::HcclOpBaseTestMain()
 {
     return 0;
 }
 
-void HcclOpBaseTest::init_data_count()
+void HcclOpBaseTest::InitDataCount()
 {
     switch(dtype)
     {
@@ -80,17 +80,17 @@ void HcclOpBaseTest::init_data_count()
     return;
 }
 
-int HcclOpBaseTest::init_buf_val()
+int HcclOpBaseTest::InitBufVal()
 {
     return 0;
 }
 
-int HcclOpBaseTest::check_buf_result()
+int HcclOpBaseTest::CheckBufResult()
 {
     return 0;
 }
 
-void HcclOpBaseTest::no_verification()
+void HcclOpBaseTest::NoVerification()
 {
     check = 0; // 不进行校验
     if (rank_id == root_rank && print_dump) {
@@ -100,31 +100,31 @@ void HcclOpBaseTest::no_verification()
     return;
 }
 
-void HcclOpBaseTest::is_data_overflow()
+void HcclOpBaseTest::IsDataOverflow()
 {
     if (op_type == HCCL_REDUCE_PROD) {
         if (dtype == HCCL_DATA_TYPE_FP16 && rank_size >= 16) {
-            no_verification();
+            NoVerification();
         }
         if (dtype == HCCL_DATA_TYPE_FP32 && rank_size >= 128) {
-            no_verification();
+            NoVerification();
         }
         if (dtype == HCCL_DATA_TYPE_INT8 && rank_size >= 7) {
-            no_verification();
+            NoVerification();
         }
         if (dtype == HCCL_DATA_TYPE_INT32 && rank_size >= 31) {
-            no_verification();
+            NoVerification();
         }
     } else if (op_type == HCCL_REDUCE_SUM) {
         if(dtype == HCCL_DATA_TYPE_INT8 && rank_size >= 63) {
-            no_verification();
+            NoVerification();
         }
     }
 
     return;
 }
 
-int HcclOpBaseTest::print_execution_time(double average_time_us, double algorithm_bandwith_GBytes_s)
+int HcclOpBaseTest::PrintExecutionTime(double average_time_us, double algorithm_bandwith_GBytes_s)
 {
     setvbuf(stdout, NULL, _IOLBF, 0); // 设置printf的缓冲区大小
     // 不开启结果校验场景
@@ -195,7 +195,7 @@ int HcclOpBaseTest::print_execution_time(double average_time_us, double algorith
 }
 
 
-int HcclOpBaseTest::destory_check_buf()
+int HcclOpBaseTest::DestoryCheckBuf()
 {
     return 0;
 }

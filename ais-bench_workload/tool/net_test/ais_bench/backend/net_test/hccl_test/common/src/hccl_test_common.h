@@ -83,34 +83,34 @@ public:
     HcclTest();
     virtual ~HcclTest();
 
-    void print_help();
+    void PrintHelp();
     static struct option longopts[];
 
-    int parse_opt(int opt);
-    int parse_cmd_line(int argc, char* argv[]);
+    int ParseOpt(int opt);
+    int ParseCmdLine(int argc, char* argv[]);
 
-    int check_data_count();
-    int check_cmd_line();
+    int CheckDataCount();
+    int CheckCmdLine();
 
     // 计算当前进程rank号, 同一个服务器内的rank从0开始编号[0,nDev-1]
-    int get_mpi_proc();
+    int GetMpiProc();
 
     int getAviDevs(const char* devs, std::vector<int>& dev_ids);
 
-    virtual int hccl_op_base_test();
+    virtual int HcclOpBaseTestMain();
 
-    int init_hcclComm();
+    int InitHcclComm();
 
-    int opbase_test_by_data_size(HcclTest* hccl_test);
+    int OpbaseTestByDataSize(HcclTest* hccl_test);
 
-    int destory_hcclComm();
+    int DestoryHcclComm();
 
-    int get_env_resource();
-    int release_env_resource();
+    int GetEnvResource();
+    int ReleaseEnvResource();
     int InitCommunicater();
 
 private:
-    int set_device_sat_mode();
+    int SetDeviceSatMode();
 
 public:
     std::shared_ptr<hccl::HcclCommunicater> communicater = nullptr;

@@ -12,14 +12,14 @@
 #include "hccl_check_buf_init.h"
 using namespace hccl;
 
-HcclTest* init_opbase_ptr(HcclTest* opbase)
+HcclTest* InitOpbasePtr(HcclTest* opbase)
 {
     opbase = new HcclOpBaseScatterTest();
 
     return opbase;
 }
 
-void delete_opbase_ptr(HcclTest* opbase)
+void DeleteOpbasePtr(HcclTest* opbase)
 {
     delete opbase;
     opbase = nullptr;
@@ -42,7 +42,7 @@ HcclOpBaseScatterTest::~HcclOpBaseScatterTest()
 
 }
 
-int HcclOpBaseScatterTest::init_buf_val()
+int HcclOpBaseScatterTest::InitBufVal()
 {
     // 初始化校验内存
     ACLCHECK(aclrtMallocHost((void**)&check_buf, malloc_kSize));
@@ -51,7 +51,7 @@ int HcclOpBaseScatterTest::init_buf_val()
     return 0;
 }
 
-int HcclOpBaseScatterTest::check_buf_result()
+int HcclOpBaseScatterTest::CheckBufResult()
 {
     // 获取输出内存
     ACLCHECK(aclrtMallocHost((void**)&recv_buff_temp, malloc_kSize));
@@ -95,30 +95,30 @@ int HcclOpBaseScatterTest::check_buf_result()
     return 0;
 }
 
-void HcclOpBaseScatterTest::cal_execution_time(float time)
+void HcclOpBaseScatterTest::CalExecutionTime(float time)
 {
     double total_time_us = time * 1000;
     double average_time_us = total_time_us / iters;
     double algorithm_bandwith_GBytes_s = malloc_kSize * rank_size / average_time_us * B_US_TO_GB_S;
 
-    print_execution_time(average_time_us, algorithm_bandwith_GBytes_s);
+    PrintExecutionTime(average_time_us, algorithm_bandwith_GBytes_s);
     return;
 }
 
-int HcclOpBaseScatterTest::destory_check_buf()
+int HcclOpBaseScatterTest::DestoryCheckBuf()
 {
     ACLCHECK(aclrtFreeHost(recv_buff_temp));
     ACLCHECK(aclrtFreeHost(check_buf));
     return 0;
 }
 
-int HcclOpBaseScatterTest::hccl_op_base_test() // 主函数
+int HcclOpBaseScatterTest::HcclOpBaseTestMain() // 主函数
 {
     if (op_flag != 0 && rank_id == root_rank) {
         WARN("The -o,--op <sum/prod/min/max> option does not take effect. Check the cmd parameter.\n");
     }
     // 获取数据量和数据类型
-    init_data_count();
+    InitDataCount();
 
     data->count = (data->count + rank_size - 1) / rank_size;
     malloc_kSize = data->count * data->typeSize;
@@ -127,7 +127,7 @@ int HcclOpBaseScatterTest::hccl_op_base_test() // 主函数
     ACLCHECK(aclrtMalloc((void**)&send_buff, malloc_kSize * rank_size, ACL_MEM_MALLOC_HUGE_FIRST));
     ACLCHECK(aclrtMalloc((void**)&recv_buff, malloc_kSize, ACL_MEM_MALLOC_HUGE_FIRST));
 
-    is_data_overflow();
+    IsDataOverflow();
 
     // 初始化输入内存
     ACLCHECK(aclrtMallocHost((void**)&host_buf, malloc_kSize * rank_size));
@@ -140,7 +140,7 @@ int HcclOpBaseScatterTest::hccl_op_base_test() // 主函数
 
     // 准备校验内存
     if (check == 1) {
-        ACLCHECK(init_buf_val());
+        ACLCHECK(InitBufVal());
     }
 
     // 执行集合通信操作
@@ -162,17 +162,17 @@ int HcclOpBaseScatterTest::hccl_op_base_test() // 主函数
     ACLCHECK(aclrtEventElapsedTime(&time, start_event, end_event));
 
     if (check == 1) {
-        ACLCHECK(check_buf_result()); // 校验计算结果
+        ACLCHECK(CheckBufResult()); // 校验计算结果
     }
 
-    cal_execution_time(time);
+    CalExecutionTime(time);
 
     // 销毁集合通信内存资源
     ACLCHECK(aclrtFree(send_buff));
     ACLCHECK(aclrtFree(recv_buff));
     ACLCHECK(aclrtFreeHost(host_buf));
     if (check == 1) {
-        ACLCHECK(destory_check_buf());
+        ACLCHECK(DestoryCheckBuf());
     }
     return 0;
 }

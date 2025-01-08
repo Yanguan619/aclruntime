@@ -8,7 +8,7 @@
 #include "hccl_check_buf_init.h"
 #include <map>
 
-void host_buf_init_fp32(void* dstBuf, u64 count, int val)
+void HostBufInitFp32(void* dstBuf, u64 count, int val)
 {
     float* f_tmp = NULL;
     f_tmp = (float*)dstBuf;
@@ -19,7 +19,7 @@ void host_buf_init_fp32(void* dstBuf, u64 count, int val)
     return;
 }
 
-void host_buf_init_int8(void* dstBuf, u64 count, int val)
+void HostBufInitInt8(void* dstBuf, u64 count, int val)
 {
     char* tmp = NULL;
     tmp = (char*)dstBuf;
@@ -30,7 +30,7 @@ void host_buf_init_int8(void* dstBuf, u64 count, int val)
     return;
 }
 
-void host_buf_init_int32(void* dstBuf, u64 count, int val)
+void HostBufInitInt32(void* dstBuf, u64 count, int val)
 {
     int* t_tmp = NULL;
     t_tmp = (int*)dstBuf;
@@ -41,18 +41,18 @@ void host_buf_init_int32(void* dstBuf, u64 count, int val)
     return;
 }
 
-void host_buf_init_fp16(void* dstBuf, u64 count, int val)
+void HostBufInitFp16(void* dstBuf, u64 count, int val)
 {
     unsigned short* f16_temp = NULL;
     f16_temp = (u16*)dstBuf;
     for(u64 j = 0; j < count; ++j)
     {
-        f16_temp[j] = fp16_ieee_from_fp32_value(val);
+        f16_temp[j] = Fp16IeeeFromFp32Value(val);
     }
     return;
 }
 
-void host_buf_init_int16(void* dstBuf, u64 count, int val)
+void HostBufInitInt16(void* dstBuf, u64 count, int val)
 {
     short* s16_tmp = NULL;
     s16_tmp = (s16*)dstBuf;
@@ -63,7 +63,7 @@ void host_buf_init_int16(void* dstBuf, u64 count, int val)
     return;
 }
 
-void host_buf_init_int64(void* dstBuf, u64 count, int val)
+void HostBufInitInt64(void* dstBuf, u64 count, int val)
 {
     int64_t* tmp_buf = NULL;
     tmp_buf = (int64_t*)dstBuf;
@@ -74,12 +74,12 @@ void host_buf_init_int64(void* dstBuf, u64 count, int val)
     return;
 }
 
-void host_buf_init_bfp16(void* dstBuf, u64 count, int val)
+void HostBufInitBfp16(void* dstBuf, u64 count, int val)
 {
     unsigned short *f16_temp = (u16*)dstBuf;
     for(u64 j = 0; j < count; ++j)
     {
-        f16_temp[j] = fp32tobf16(val);  // fp32转换bf16
+        f16_temp[j] = Fp32ToBf16(val);  // fp32转换bf16
     }
     return;
 }
@@ -93,7 +93,7 @@ void HcclHostBufInit(void* dstBuf, u64 count, int dtype, int val)
     return;
 }
 
-void reduce_check_buf_init_fp32(void* dstBuf, u64 count, int val, int op, int rank_size)
+void ReduceCheckBufInitFp32(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
     float* f_tmp = NULL;
     f_tmp = (float*)dstBuf;
@@ -121,7 +121,7 @@ void reduce_check_buf_init_fp32(void* dstBuf, u64 count, int val, int op, int ra
     return;
 }
 
-void reduce_check_buf_init_int8(void* dstBuf, u64 count, int val, int op, int rank_size)
+void ReduceCheckBufInitInt8(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
     char* tmp = NULL;
     tmp = (char*)dstBuf;
@@ -164,7 +164,7 @@ void reduce_check_buf_init_int8(void* dstBuf, u64 count, int val, int op, int ra
     return;
 }
 
-void reduce_check_buf_init_int32(void* dstBuf, u64 count, int val, int op, int rank_size)
+void ReduceCheckBufInitInt32(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
     int*  t_tmp = NULL;
     t_tmp = (int*)dstBuf;
@@ -192,7 +192,7 @@ void reduce_check_buf_init_int32(void* dstBuf, u64 count, int val, int op, int r
     return;
 }
 
-void reduce_check_buf_init_fp16(void* dstBuf, u64 count, int val, int op, int rank_size)
+void ReduceCheckBufInitFp16(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
     u16* f16_temp = NULL;
     f16_temp = (u16*)dstBuf;
@@ -200,27 +200,27 @@ void reduce_check_buf_init_fp16(void* dstBuf, u64 count, int val, int op, int ra
     {
         for(u64 j = 0; j < count; ++j)
         {
-            f16_temp[j] = fp16_ieee_from_fp32_value(val * rank_size);
+            f16_temp[j] = Fp16IeeeFromFp32Value(val * rank_size);
         }
     }
     else if(op == HCCL_REDUCE_PROD)
     {
         for(u64 j = 0; j < count; ++j)
         {
-            f16_temp[j] = fp16_ieee_from_fp32_value(pow(val, rank_size));
+            f16_temp[j] = Fp16IeeeFromFp32Value(pow(val, rank_size));
         }
     }
     else if(op == HCCL_REDUCE_MIN || op == HCCL_REDUCE_MAX)
     {
         for(u64 j = 0; j < count; ++j)
         {
-            f16_temp[j] = fp16_ieee_from_fp32_value(val);
+            f16_temp[j] = Fp16IeeeFromFp32Value(val);
         }
     }
     return;
 }
 
-void reduce_check_buf_init_int16(void* dstBuf, u64 count, int val, int op, int rank_size)
+void ReduceCheckBufInitInt16(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
     s16* s16_temp = NULL;
     s16_temp = (s16*)dstBuf;
@@ -248,7 +248,7 @@ void reduce_check_buf_init_int16(void* dstBuf, u64 count, int val, int op, int r
     return;
 }
 
-void reduce_check_buf_init_int64(void* dstBuf, u64 count, int val, int op, int rank_size)
+void ReduceCheckBufInitInt64(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
     int64_t* temp = nullptr;
     temp = (int64_t*)dstBuf;
@@ -276,28 +276,28 @@ void reduce_check_buf_init_int64(void* dstBuf, u64 count, int val, int op, int r
     return;
 }
 
-void reduce_check_buf_init_bfp16(void* dstBuf, u64 count, int val, int op, int rank_size)
+void ReduceCheckBufInitBfp16(void* dstBuf, u64 count, int val, int op, int rank_size)
 {
     unsigned short *f16_temp = (u16*)dstBuf;
     if(op == HCCL_REDUCE_SUM)
     {
         for(u64 j = 0; j < count; ++j)
         {
-            f16_temp[j] = fp32tobf16(val * rank_size);
+            f16_temp[j] = Fp32ToBf16(val * rank_size);
         }
     }
     else if(op == HCCL_REDUCE_PROD)
     {
         for(u64 j = 0; j < count; ++j)
         {
-            f16_temp[j] = fp32tobf16(pow(val, rank_size));
+            f16_temp[j] = Fp32ToBf16(pow(val, rank_size));
         }
     }
     else if(op == HCCL_REDUCE_MIN || op == HCCL_REDUCE_MAX)
     {
         for(u64 j = 0; j < count; ++j)
         {
-            f16_temp[j] = fp32tobf16(val);
+            f16_temp[j] = Fp32ToBf16(val);
         }
     }
     return;
@@ -313,7 +313,7 @@ void HcclReduceCheckBufInit(void *dstBuf, u64 count, int dtype, int op, int val,
 }
 
 
-int alltoall_check_result_uint64(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
+int AlltoallCheckResultUint64(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
 {
     int ret = 0;
     u64 *result = NULL;
@@ -333,7 +333,7 @@ int alltoall_check_result_uint64(const void *check_buf, u64 *recv_counts, u64 *r
     return ret;
 }
 
-int alltoall_check_result_fp32(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
+int AlltoallCheckResultFp32(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
 {
     int ret = 0;
     float *result = NULL;
@@ -354,7 +354,7 @@ int alltoall_check_result_fp32(const void *check_buf, u64 *recv_counts, u64 *rec
     return ret;
 }
 
-int alltoall_check_result_int8(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
+int AlltoallCheckResultInt8(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
 {
     int ret = 0;
     char *result = NULL;
@@ -374,7 +374,7 @@ int alltoall_check_result_int8(const void *check_buf, u64 *recv_counts, u64 *rec
     return ret;
 }
 
-int alltoall_check_result_int32(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
+int AlltoallCheckResultInt32(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
 {
     int ret = 0;
     int *result = NULL;
@@ -394,7 +394,7 @@ int alltoall_check_result_int32(const void *check_buf, u64 *recv_counts, u64 *re
     return ret;
 }
 
-int alltoall_check_result_int64(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
+int AlltoallCheckResultInt64(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
 {
     int ret = 0;
     long long *result = NULL;
@@ -414,7 +414,7 @@ int alltoall_check_result_int64(const void *check_buf, u64 *recv_counts, u64 *re
     return ret;
 }
 
-int alltoall_check_result_int16(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
+int AlltoallCheckResultInt16(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
 {
     int ret = 0;
     short *result = NULL;
@@ -434,14 +434,14 @@ int alltoall_check_result_int16(const void *check_buf, u64 *recv_counts, u64 *re
     return ret;
 }
 
-int alltoall_check_result_fp16(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
+int AlltoallCheckResultFp16(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
 {
     int ret = 0;
     u16 *result = NULL;
     for(int i = 0; i < rank_size; ++i)
     {
         float val = i + 1;
-        u16 check_val = fp16_ieee_from_fp32_value(val);
+        u16 check_val = Fp16IeeeFromFp32Value(val);
         result = (u16 *)check_buf + recv_disp[i];
         for(u64 j = 0; j < recv_counts[i]; ++j)
         {
@@ -455,7 +455,7 @@ int alltoall_check_result_fp16(const void *check_buf, u64 *recv_counts, u64 *rec
     return ret;
 }
 
-int alltoall_check_result_uint8(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
+int AlltoallCheckResultUint8(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
 {
     int ret = 0;
     uint8_t *result = NULL;
@@ -475,7 +475,7 @@ int alltoall_check_result_uint8(const void *check_buf, u64 *recv_counts, u64 *re
     return ret;
 }
 
-int alltoall_check_result_uint16(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
+int AlltoallCheckResultUint16(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
 {
     int ret = 0;
     uint16_t *result = NULL;
@@ -495,7 +495,7 @@ int alltoall_check_result_uint16(const void *check_buf, u64 *recv_counts, u64 *r
     return ret;
 }
 
-int alltoall_check_result_uint32(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
+int AlltoallCheckResultUint32(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
 {
     int ret = 0;
     uint32_t *result = NULL;
@@ -515,7 +515,7 @@ int alltoall_check_result_uint32(const void *check_buf, u64 *recv_counts, u64 *r
     return ret;
 }
 
-int alltoall_check_result_bfp16(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
+int AlltoallCheckResultBfp32(const void *check_buf, u64 *recv_counts, u64 *recv_disp, int rank_size, int dtype)
 {
     int ret = 0;
     u16 *result = NULL;
@@ -551,42 +551,42 @@ int HcclAlltoallvCheckResult(void *checkBuf, u64 *recvCounts, u64 *recvDisp, int
 }
 
 std::map<int,HostBufInitFunc> functionMap = {
-    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_FP32, host_buf_init_fp32),
-    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_INT8, host_buf_init_int8),
-    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_UINT8, host_buf_init_int8),
-    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_INT32, host_buf_init_int32),
-    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_UINT32, host_buf_init_int32),
-    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_FP16, host_buf_init_fp16),
-    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_INT16, host_buf_init_int16),
-    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_UINT16, host_buf_init_int16),
-    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_INT64, host_buf_init_int64),
-    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_FP64, host_buf_init_int64),
-    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_UINT64, host_buf_init_int64),
-    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_BFP16, host_buf_init_bfp16)
+    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_FP32, HostBufInitFp32),
+    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_INT8, HostBufInitInt8),
+    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_UINT8, HostBufInitInt8),
+    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_INT32, HostBufInitInt32),
+    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_UINT32, HostBufInitInt32),
+    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_FP16, HostBufInitFp16),
+    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_INT16, HostBufInitInt16),
+    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_UINT16, HostBufInitInt16),
+    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_INT64, HostBufInitInt64),
+    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_FP64, HostBufInitInt64),
+    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_UINT64, HostBufInitInt64),
+    std::pair<int,HostBufInitFunc>(HCCL_DATA_TYPE_BFP16, HostBufInitBfp16)
 };
 
 std::map<int,ReduceCheckBufInitFunc> functionReduceMap = {
-    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_FP32, reduce_check_buf_init_fp32),
-    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_INT8, reduce_check_buf_init_int8),
-    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_INT32, reduce_check_buf_init_int32),
-    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_FP16, reduce_check_buf_init_fp16),
-    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_INT16, reduce_check_buf_init_int16),
-    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_INT64, reduce_check_buf_init_int64),
-    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_UINT64, reduce_check_buf_init_int64),
-    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_BFP16, reduce_check_buf_init_bfp16)
+    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_FP32, ReduceCheckBufInitFp32),
+    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_INT8, ReduceCheckBufInitInt8),
+    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_INT32, ReduceCheckBufInitInt32),
+    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_FP16, ReduceCheckBufInitFp16),
+    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_INT16, ReduceCheckBufInitInt16),
+    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_INT64, ReduceCheckBufInitInt64),
+    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_UINT64, ReduceCheckBufInitInt64),
+    std::pair<int,ReduceCheckBufInitFunc>(HCCL_DATA_TYPE_BFP16, ReduceCheckBufInitBfp16)
 };
 
 std::map<int,AllToAllCheckResult> functionAllToAllMap = {
-    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_UINT64, alltoall_check_result_uint64),
-    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_FP32, alltoall_check_result_fp32),
-    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_INT8, alltoall_check_result_int8),
-    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_INT32, alltoall_check_result_int32),
-    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_INT64, alltoall_check_result_int64),
-    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_INT16, alltoall_check_result_int16),
-    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_FP16, alltoall_check_result_fp16),
-    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_UINT8, alltoall_check_result_uint8),
-    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_UINT16, alltoall_check_result_uint16),
-    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_UINT32, alltoall_check_result_uint32),
-    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_FP64, alltoall_check_result_int64),
-    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_BFP16, alltoall_check_result_bfp16)
+    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_UINT64, AlltoallCheckResultUint64),
+    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_FP32, AlltoallCheckResultFp32),
+    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_INT8, AlltoallCheckResultInt8),
+    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_INT32, AlltoallCheckResultInt32),
+    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_INT64, AlltoallCheckResultInt64),
+    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_INT16, AlltoallCheckResultInt16),
+    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_FP16, AlltoallCheckResultFp16),
+    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_UINT8, AlltoallCheckResultUint8),
+    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_UINT16, AlltoallCheckResultUint16),
+    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_UINT32, AlltoallCheckResultUint32),
+    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_FP64, AlltoallCheckResultInt64),
+    std::pair<int,AllToAllCheckResult>(HCCL_DATA_TYPE_BFP16, AlltoallCheckResultBfp32)
 };

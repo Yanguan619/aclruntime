@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2025 Huawei Technologies Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import logging
 import itertools
 import numpy as np
 
-from ais_bench.infer.common.utils import logger, str_to_uint
+from ais_bench.infer.common.utils import logger, str_to_uint, logger_print
 from ais_bench.infer.common.path_security_check import (ms_open, FileStat, FilePermChoice, MAX_SIZE_LIMITED_CONFIG_FILE,
                                                         MAX_SIZE_LIMITED_NORMAL_FILE, makedirs_safe)
 from ais_bench.infer.args_adapter import AISBenchInferArgsAdapter
@@ -298,7 +298,7 @@ def dymshape_range_run(args: AISBenchInferArgsAdapter):
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, _ = p.communicate(timeout=DYMSHAPE_RANGE_TIMEOUT)
         out_log = stdout.decode('utf-8')
-        logger.info("out log %s", out_log)  # show original log of cmd
+        logger_print(out_log)  # show original log of cmd
         result["result"], result["throughput"] = get_throughtput_from_log(out_log)
         logger.info("dymshape:{} end run result:{}".format(dymshape, result["result"]))
         results.append(result)

@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2025 Huawei Technologies Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import logging
 import numpy as np
 
 from ais_bench.infer.interface import InferSession, MultiDeviceSession
+from ais_bench.infer.common.utils import logger_print
 
 model_path = sys.argv[1]
 
@@ -108,9 +109,9 @@ def infer_pipeline():
     ndata = np.frombuffer(barray)
 
     outputs = session.infer([[ndata], [ndata]])
-    logger.info("outputs:%s type:%s", outputs, type(outputs))
+    logger_print("outputs:%s type:%s", outputs, type(outputs))
 
-    logger.info("static infer avg:%s ms", np.mean(session.sumary().exec_time_list))
+    logger_print("static infer avg:%s ms", np.mean(session.sumary().exec_time_list))
 
 
 def infer_multidevices():

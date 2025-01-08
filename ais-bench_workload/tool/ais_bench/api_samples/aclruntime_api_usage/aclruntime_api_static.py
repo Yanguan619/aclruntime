@@ -1,4 +1,4 @@
-# Copyright (c) 2024-2025 Huawei Technologies Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-import logging
 import aclruntime
 import numpy as np
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
-logger = logging.getLogger(__name__)
+from ais_bench.infer.common.utils import logger_print
 
 
 def aclruntime_api_static():
@@ -48,16 +45,16 @@ def aclruntime_api_static():
     outnames = [meta.name for meta in session.get_outputs()]
     outputs = session.run(outnames, feeds)
 
-    logger.info("outputs: %s", outputs)
+    logger_print("outputs: %s", outputs)
     outarray = []
     for out in outputs:
         # convert acltenor to host memory
         out.to_host()
         # convert acltensor to numpy array
         outarray.append(np.array(out))
-    logger.info("outarray: %s", outarray)
+    logger_print("outarray: %s", outarray)
     # summay inference throughput
-    logger.info("infer avg:%s ms", np.mean(session.sumary().exec_time_list))
+    logger_print("infer avg:%s ms", np.mean(session.sumary().exec_time_list))
 
 
 aclruntime_api_static()

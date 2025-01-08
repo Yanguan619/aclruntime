@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2023 Huawei Technologies Co., Ltd. All rights reserved.
+# Copyright (c) 2023-2025 Huawei Technologies Co., Ltd. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,6 +50,10 @@ MSPROF_BIN_FILE_SUB_PATH = "bin/msprof"
 CANN_PATH = "/usr/local/Ascend/ascend-toolkit/latest"
 
 
+def logger_print(out_log):
+    print(out_log)
+
+    
 # Split a List Into Even Chunks of N Elements
 def list_split(list_a, n, padding_file):
     for x in range(0, len(list_a), n):

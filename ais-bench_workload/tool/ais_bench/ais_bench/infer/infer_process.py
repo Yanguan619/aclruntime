@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2025 Huawei Technologies Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,7 +47,8 @@ from ais_bench.infer.common.miscellaneous import (dymshape_range_run, get_acl_js
 from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
                                    get_fileslist_from_dir, list_split, list_share,
                                    save_data_to_files, create_fake_file_name, logger,
-                                   create_tmp_acl_json, move_subdir, convert_helper, str_to_uint, get_msprof_bin_path)
+                                   logger_print, create_tmp_acl_json, move_subdir, convert_helper, 
+                                   str_to_uint, get_msprof_bin_path)
 from ais_bench.infer.common.path_security_check import (
     is_legal_args_path_string, check_normal_string, FilePermChoice, check_path_legality,
     MAX_SIZE_LIMITED_NORMAL_FILE, makedirs_safe
@@ -63,9 +64,6 @@ PERMISSION_DIR = 0o750
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
-def logger_print(logger_msg):
-
-    logger.info(logger_msg)
 
 def set_session_options(session, args):
     # 增加校验

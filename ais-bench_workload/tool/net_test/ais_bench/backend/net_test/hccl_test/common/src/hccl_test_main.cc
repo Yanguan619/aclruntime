@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 
     int ret = 0;
 
-    //构造执行器
+    // 构造执行器
     HcclTest *hccl_test = nullptr;
     hccl_test = init_opbase_ptr(hccl_test);
     if(hccl_test == nullptr) {
@@ -31,14 +31,14 @@ int main(int argc, char *argv[])
         goto hccltesterr3;
     }
 
-    //解析命令行入参
+    // 解析命令行入参
     ret = hccl_test->parse_cmd_line(argc, argv);
     if (ret == 1) {
-        //启动--help
+        // 启动--help
         ret = 0;
         goto hccltesterr2;
     } else if(ret == -1) {
-        //入参解析失败
+        // WW入参解析失败
         ERROR("This is an error in parse cmd line.");
         goto hccltesterr2;
     }
@@ -55,28 +55,28 @@ int main(int argc, char *argv[])
         goto hccltesterr2;
     }
 
-    //校验命令行参数
+    // 校验命令行参数
     ret = hccl_test->check_cmd_line();
     if (ret != 0) {
         ERROR("This is an error in check cmd line.");
         goto hccltesterr2;
     }
 
-    //获取hccltest的环境变量
+    // 获取hccltest的环境变量
     ret = hccl_test->get_env_resource();
     if (ret != 0) {
         ERROR("This is an error in get env resource.");
         goto hccltesterr1;
     }
 
-    //初始化集合通信域
+    // 初始化集合通信域
     ret = hccl_test->init_hcclComm();
     if (ret != 0) {
         ERROR("This is an error in init hcclComm info.");
         goto hccltesterr2;
     }
 
-    //启动测试
+    // 启动测试
     ret = hccl_test->opbase_test_by_data_size(hccl_test);
     if (ret != 0) {
         ERROR("This is an error in launch op base test by data size.");
@@ -84,23 +84,23 @@ int main(int argc, char *argv[])
     }
 
 hccltesterr0:
-    //销毁集合通信域
+    // 销毁集合通信域
     ret = hccl_test->destory_hcclComm();
     if (ret != 0) {
         ERROR("This is an error in destory hcclComm.");
     }
 hccltesterr1:
-    //销毁环境变量申请的资源
+    // 销毁环境变量申请的资源
     ret = hccl_test->release_env_resource();
     if (ret != 0) {
         ERROR("This is an error in release env resource.");
     }
 hccltesterr2:
-    //删除构造器
+    // 删除构造器
     delete_opbase_ptr(hccl_test);
 hccltesterr3:
     #ifdef MPI_SUPPORT
-    //释放MPI所用资源
+    // 释放MPI所用资源
     MPI_Finalize();
     #endif
     return ret;

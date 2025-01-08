@@ -252,11 +252,11 @@ int HcclTest::check_data_count()
         ERROR("Invalid option: maxbytes < minbytes, Check the [-b,--minbytes] and [-e,--maxbytes] options.");
         return -1;
     } else {
-        if (stepbytes_flag != 0) {// 用户配置了增量步长
+        if (stepbytes_flag != 0) { // 用户配置了增量步长
             data->stepBytes = temp_step_bytes;
-        } else {// 用户未配置增量步长
+        } else { // 用户未配置增量步长
             if (data->maxBytes == data->minBytes) {
-                data->stepBytes = 1;// 用户配置数据量的起始值和结束值相同，但未配置增量步长，为防止进入死循环，设置增量步长为1
+                data->stepBytes = 1; // 用户配置数据量的起始值和结束值相同，但未配置增量步长，为防止进入死循环，设置增量步长为1
             }
             if (data->maxBytes > data->minBytes) {
                 data->stepBytes = (data->maxBytes - data->minBytes)/10;
@@ -307,7 +307,7 @@ int HcclTest::check_cmd_line()
         return -1;
     }
 
-    if (hccl_root >= rank_size || hccl_root < 0) //如果指定的root rank大于等于rank_size
+    if (hccl_root >= rank_size || hccl_root < 0) // 如果指定的root rank大于等于rank_size
     {
         ERROR("[-r,--root <root>] is invalid, root rank must be greater than or equal to 0 and less than or equal to %d.", rank_size - 1);
         return -1;
@@ -354,14 +354,14 @@ int HcclTest::check_cmd_line()
 
 int HcclTest::get_env_resource()
 {
-    //支持profiling
+    // 支持profiling
     const char* profiling_env = getenv("HCCL_TEST_PROFILING");
     if (profiling_env != NULL) {
         profiling_flag = atoi(profiling_env);
     }
 
     if (profiling_flag == 1) {
-        //开启profiling
+        // 开启profiling
         std::string prof_path = "/var/log/npu/profiling";
         aclprofInit(prof_path.c_str(), prof_path.size());
         uint32_t profSwitch = ACL_PROF_ACL_API | ACL_PROF_TASK_TIME | ACL_PROF_AICORE_METRICS | ACL_PROF_AICPU | ACL_PROF_HCCL_TRACE | ACL_PROF_MSPROFTX | ACL_PROF_RUNTIME_API;
@@ -507,12 +507,12 @@ int HcclTest::getAviDevs(const char* devs, std::vector<int>& dev_ids)
 int HcclTest::get_mpi_proc()
 {
     #ifdef MPI_SUPPORT
-    //获取当前进程在所属进程组的编号
+    // 获取当前进程在所属进程组的编号
     MPI_Comm_size(MPI_COMM_WORLD, &proc_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &proc_rank);
     #endif
     #ifndef MPI_SUPPORT
-    //获取当前进程在所属进程组的编号
+    // 获取当前进程在所属进程组的编号
     proc_size = rank_size;
     proc_rank = rank_id;
     #endif
@@ -573,7 +573,7 @@ int HcclTest::set_device_sat_mode()
 
 int HcclTest::init_hcclComm()
 {
-    //设备资源初始化
+    // 设备资源初始化
     ACLCHECK(aclInit(NULL));
 
     // 指定集合通信操作使用的设备
@@ -594,7 +594,7 @@ int HcclTest::init_hcclComm()
     }
 
     #ifdef MPI_SUPPORT
-    //将root_info广播到通信域内的其他rank
+    // 将root_info广播到通信域内的其他rank
     MPI_Bcast(&comm_id, HCCL_ROOT_INFO_BYTES, MPI_CHAR, root_rank, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
     #endif
@@ -614,7 +614,7 @@ int HcclTest::init_hcclComm()
     DEBUG("rank: %d, received rootInfo is: %s", rank_id, rootInfoContent.c_str());
 
 
-    //初始化集合通信域
+    // 初始化集合通信域
     HCCLCHECK(HcclCommInitRootInfo(rank_size, &comm_id, rank_id, &hccl_comm));
 
     ACLCHECK(aclrtCreateEvent(&start_event));
@@ -645,16 +645,16 @@ int HcclTest::opbase_test_by_data_size(HcclTest* hccl_test)
 
 int HcclTest::destory_hcclComm()
 {
-    //销毁任务流
+    // 销毁任务流
     ACLCHECK(aclrtDestroyStream(stream));
 
     ACLCHECK(aclrtDestroyEvent(start_event));
     ACLCHECK(aclrtDestroyEvent(end_event));
-    //销毁集合通信域
+    // 销毁集合通信域
     HCCLCHECK(HcclCommDestroy(hccl_comm));
-    //重置设备
+    // 重置设备
     ACLCHECK(aclrtResetDevice(dev_id));
-    //设备去初始化
+    // 设备去初始化
     ACLCHECK(aclFinalize());
     return 0;
 }

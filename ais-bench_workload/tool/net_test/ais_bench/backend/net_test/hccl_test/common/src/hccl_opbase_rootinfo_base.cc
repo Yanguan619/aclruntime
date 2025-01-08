@@ -34,7 +34,7 @@ void HcclOpBaseTest::init_data_count()
     switch(dtype)
     {
         case HCCL_DATA_TYPE_FP32:
-            data->count = (data->dataSize + sizeof(float) - 1)/sizeof(float); //count向上取整
+            data->count = (data->dataSize + sizeof(float) - 1)/sizeof(float); // count向上取整
             data->typeSize = sizeof(float);
             break;
         case HCCL_DATA_TYPE_INT32:
@@ -92,7 +92,7 @@ int HcclOpBaseTest::check_buf_result()
 
 void HcclOpBaseTest::no_verification()
 {
-    check = 0; //不进行校验
+    check = 0; // 不进行校验
     if (rank_id == root_rank && print_dump) {
         WARN("The calculation result overflows, no verification is performed.");
         print_dump = false;
@@ -127,7 +127,7 @@ void HcclOpBaseTest::is_data_overflow()
 int HcclOpBaseTest::print_execution_time(double average_time_us, double algorithm_bandwith_GBytes_s)
 {
     setvbuf(stdout, NULL, _IOLBF, 0); // 设置printf的缓冲区大小
-    //不开启结果校验场景
+    // 不开启结果校验场景
     if (check == 0)
     {
         if (rank_id == root_rank) {

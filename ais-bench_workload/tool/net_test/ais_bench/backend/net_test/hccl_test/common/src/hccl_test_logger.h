@@ -26,13 +26,6 @@
 #include <iomanip>
 #include <sstream>
 
-
-#ifdef _WIN32
-#define TRIM_FILE_PATH(x) strrchr((x), '\\') ? strrchr((x), '\\') + 1 : (x)
-#else  // Linux/Unix
-#define TRIM_FILE_PATH(x) strrchr((x), '/') ? strrchr((x), '/') + 1 : (x)
-#endif
-
 #define LOG_COLOR_NONE_ "\033[0m"
 #define LOG_COLOR_RED_ "\033[0;31m"
 #define LOG_COLOR_LIGHT_RED_ "\033[1;31m"
@@ -77,14 +70,14 @@ static std::string getCurrentTime()
 #define PRINT_LOG(color, mode,  fmt, ...)                                             \
     do {                                                                         \
         COLORFUL_PRINT_(color, "[%s][%s][%s]" fmt "\n",                     \
-                      getCurrentTime().c_str(), std::string(mode).c_str(), SELF_MODULE_NAME.c_str(), ##__VA_ARGS__);           \
+                      getCurrentTime().c_str(), std::string(mode).c_str(), SELF_MODULE_NAME.c_str(), ##__VA_ARGS__); \
     } while (0)
 
 #define PRINT_LOG_DEBUG(color, mode, fmt, ...)                                             \
     do {                                           \
         COLORFUL_PRINT_(color, "[%s][%s][%s][%s(%d)][%s()]: " fmt "\n",     \
-                      getCurrentTime().c_str(), std::string(mode).c_str(), SELF_MODULE_NAME.c_str(), __FILE__, __LINE__, \
-                      __FUNCTION__, ##__VA_ARGS__);                               \
+                      getCurrentTime().c_str(), std::string(mode).c_str(), SELF_MODULE_NAME.c_str(), __FILE__, \
+                      __LINE__, __FUNCTION__, ##__VA_ARGS__);                               \
     } while (0)
 
 #define LOG_DEBUG 1
@@ -110,7 +103,7 @@ static int GetLogLevel(void)
     return logLevel;
 }
 
-static int g_frizy_log_level = GetLogLevel();
+static int g_frizyLogLevel = GetLogLevel();
 
 #define PRINT_DBG_(mode, fmt, ...) PRINT_LOG_DEBUG(LOG_COLOR_LIGHT_GREEN_, mode, fmt, ##__VA_ARGS__)
 #define PRINT_INFO_(mode, fmt, ...) PRINT_LOG(LOG_COLOR_NONE_, mode, fmt, ##__VA_ARGS__)
@@ -118,16 +111,17 @@ static int g_frizy_log_level = GetLogLevel();
 #define PRINT_ERR_(mode, fmt, ...) PRINT_LOG(LOG_COLOR_LIGHT_RED_, mode, fmt, ##__VA_ARGS__)
 
 #define LOG(level, fmt, ...) do {                      \
-    if (level == LOG_DEBUG) { if (LOG_DEBUG >= g_frizy_log_level) {PRINT_DBG_("DEBUG", fmt, ##__VA_ARGS__);} \
-    } else if (level == LOG_INFO) { if (LOG_INFO >= g_frizy_log_level) {PRINT_INFO_("INFO", fmt, ##__VA_ARGS__);} \
-    } else if (level == LOG_WARNING) { if (LOG_WARNING >= g_frizy_log_level) {PRINT_WARN_("WARN", fmt, ##__VA_ARGS__);} \
-    } else if (level == LOG_ERROR) { if (LOG_ERROR >= g_frizy_log_level) {PRINT_ERR_("ERROR", fmt, ##__VA_ARGS__);} \
+    if (level == LOG_DEBUG) { if (LOG_DEBUG >= g_frizyLogLevel) { \
+        PRINT_DBG_("DEBUG", fmt, ##__VA_ARGS__);} \
+    } else if (level == LOG_INFO) { if (LOG_INFO >= g_frizyLogLevel) { \
+        PRINT_INFO_("INFO", fmt, ##__VA_ARGS__);} \
+    } else if (level == LOG_WARNING) { if (LOG_WARNING >= g_frizyLogLevel) { \
+        PRINT_WARN_("WARN", fmt, ##__VA_ARGS__);} \
+    } else if (level == LOG_ERROR) { if (LOG_ERROR >= g_frizyLogLevel) { \
+        PRINT_ERR_("ERROR", fmt, ##__VA_ARGS__);} \
     } else {                                                     \
     }                                                            \
 } while (0)
-
-
-#define SETLOGLEVEL(level) {g_frizy_log_level = level;}
 
 #define DEBUG(fmt, ...) LOG(LOG_DEBUG, fmt, ##__VA_ARGS__)
 #define INFO(fmt, ...) LOG(LOG_INFO, fmt, ##__VA_ARGS__)

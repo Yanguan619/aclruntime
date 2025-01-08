@@ -25,7 +25,7 @@
 #include "hccl_test_logger.h"
 
 namespace hccl {
-class HcclOpBaseAllreduceTest: public HcclOpBaseTest {
+class HcclOpBaseAllreduceTest : public HcclOpBaseTest {
 public:
     HcclOpBaseAllreduceTest();
     virtual ~HcclOpBaseAllreduceTest();

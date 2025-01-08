@@ -25,7 +25,7 @@
 #include "hccl_test_logger.h"
 
 namespace hccl {
-class HcclOpBaseBrocastTest: public HcclOpBaseTest {
+class HcclOpBaseBrocastTest : public HcclOpBaseTest {
 public:
     HcclOpBaseBrocastTest();
     virtual ~HcclOpBaseBrocastTest();

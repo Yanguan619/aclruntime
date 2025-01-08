@@ -46,10 +46,10 @@ HcclOpBaseAllgathervTest::~HcclOpBaseAllgathervTest()
 
 int HcclOpBaseAllgathervTest::init_buf_val()
 {
-    //初始化输入内存
+    // 初始化输入内存
     ACLCHECK(aclrtMallocHost((void**)&host_buf, malloc_kSize));
     HcclHostBufInit((char*)host_buf, data->count, dtype, val);
-    //初始化校验内存
+    // 初始化校验内存
     ACLCHECK(aclrtMallocHost((void**)&check_buf, malloc_kSize * rank_size));
     HcclHostBufInit((char*)check_buf, data->count * rank_size, dtype, val);
 
@@ -59,7 +59,7 @@ int HcclOpBaseAllgathervTest::init_buf_val()
 
 int HcclOpBaseAllgathervTest::check_buf_result()
 {
-    //获取输出内存
+    // 获取输出内存
     ACLCHECK(aclrtMallocHost((void**)&recv_buff_temp, malloc_kSize * rank_size));
     ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize * rank_size, (void*)recv_buff, malloc_kSize * rank_size, ACL_MEMCPY_DEVICE_TO_HOST));
     int ret = 0;
@@ -118,7 +118,7 @@ int HcclOpBaseAllgathervTest::destory_check_buf()
     return 0;
 }
 
-int HcclOpBaseAllgathervTest::hccl_op_base_test() //主函数
+int HcclOpBaseAllgathervTest::hccl_op_base_test() // 主函数
 {
     if (op_flag != 0 && rank_id == root_rank) {
         WARN("The -o,--op <sum/prod/min/max> option does not take effect. Check the cmd parameter.\n");
@@ -130,11 +130,11 @@ int HcclOpBaseAllgathervTest::hccl_op_base_test() //主函数
     data->count = (data->count + rank_size - 1) / rank_size;
     malloc_kSize = data->count * data->typeSize;
 
-    //申请集合通信操作的内存
+    // 申请集合通信操作的内存
     ACLCHECK(aclrtMalloc((void**)&send_buff, malloc_kSize, ACL_MEM_MALLOC_HUGE_FIRST));
     ACLCHECK(aclrtMalloc((void**)&recv_buff, malloc_kSize * rank_size, ACL_MEM_MALLOC_HUGE_FIRST));
 
-    //申请recv_counts和recv_disp
+    // 申请recv_counts和recv_disp
     auto recv_counts = std::vector<u64>(rank_size, data->count);
     auto recv_disp = std::vector<u64>{0};
     for (size_t i = 1; i < rank_size; ++i) {
@@ -145,7 +145,7 @@ int HcclOpBaseAllgathervTest::hccl_op_base_test() //主函数
         ACLCHECK(init_buf_val()); // 准备校验内存
     }
 
-    //执行集合通信操作
+    // 执行集合通信操作
     for(int j = 0; j < warmup_iters; ++j) {
         HCCLCHECK(
             HcclAllGatherV(
@@ -177,7 +177,7 @@ int HcclOpBaseAllgathervTest::hccl_op_base_test() //主函数
             )
         );
     }
-    //等待stream中集合通信任务执行完成
+    // 等待stream中集合通信任务执行完成
     ACLCHECK(aclrtRecordEvent(end_event, stream));
 
     ACLCHECK(aclrtSynchronizeStream(stream));
@@ -191,7 +191,7 @@ int HcclOpBaseAllgathervTest::hccl_op_base_test() //主函数
 
     int ret = cal_execution_time(time);
 
-    //销毁集合通信内存资源
+    // 销毁集合通信内存资源
     ACLCHECK(aclrtFree(send_buff));
     ACLCHECK(aclrtFree(recv_buff));
     if (check == 1) {

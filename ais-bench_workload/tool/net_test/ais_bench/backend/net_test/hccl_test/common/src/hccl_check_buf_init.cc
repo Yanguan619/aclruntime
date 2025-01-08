@@ -79,7 +79,7 @@ void host_buf_init_bfp16(void* dstBuf, u64 count, int val)
     unsigned short *f16_temp = (u16*)dstBuf;
     for(u64 j = 0; j < count; ++j)
     {
-        f16_temp[j] = fp32tobf16(val);  //fp32转换bf16
+        f16_temp[j] = fp32tobf16(val);  // fp32转换bf16
     }
     return;
 }
@@ -135,19 +135,19 @@ void reduce_check_buf_init_int8(void* dstBuf, u64 count, int val, int op, int ra
             {
                 n = 127;
             }
-            tmp[j] = n;//大于128取127
+            tmp[j] = n; // 大于128取127
         }
     }
     else if(op == HCCL_REDUCE_PROD)
     {
         for(u64 j = 0; j < count; ++j)
         {
-            n = ((int)pow(val % 128, rank_size));//大于128取127
+            n = ((int)pow(val % 128, rank_size)); // 大于128取127
             if(n > 127)
             {
                 n = 127;
             }
-            tmp[j] = n;//大于128取127
+            tmp[j] = n; // 大于128取127
         }
     }
     else if(op == HCCL_REDUCE_MIN || op == HCCL_REDUCE_MAX)
@@ -538,7 +538,7 @@ int alltoall_check_result_bfp16(const void *check_buf, u64 *recv_counts, u64 *re
 int HcclAlltoallvCheckResult(void *checkBuf, u64 *recvCounts, u64 *recvDisp, int rankId, int rankSize, int dtype)
 {
     int ret = 0;
-    if(rankSize < 1)   //接收数据为0则不进行数据校验
+    if(rankSize < 1) // 接收数据为0则不进行数据校验
     {
         return ret;
     }

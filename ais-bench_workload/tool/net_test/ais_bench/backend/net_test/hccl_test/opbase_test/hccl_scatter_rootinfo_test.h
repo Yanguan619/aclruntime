@@ -27,7 +27,7 @@ namespace hccl {
 HcclTest* init_opbase_ptr(HcclTest* opbase);
 void delete_opbase_ptr(HcclTest* opbase);
 
-class HcclOpBaseScatterTest: public HcclOpBaseTest {
+class HcclOpBaseScatterTest : public HcclOpBaseTest {
 public:
     HcclOpBaseScatterTest();
     virtual ~HcclOpBaseScatterTest();

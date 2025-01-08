@@ -29,7 +29,7 @@
 namespace hccl {
 const double B_US_TO_GB_S = 1.0E6 / 1.0E9;
 
-class HcclOpBaseTest: public HcclTest {
+class HcclOpBaseTest : public HcclTest {
 public:
     HcclOpBaseTest();
     virtual ~HcclOpBaseTest();
@@ -48,7 +48,7 @@ public:
     void *recv_buff_temp;
     void *check_buf;
     int check_err = 0;
-    int val = 2; //校验参数
+    int val = 2; // 校验参数
 
 private:
     virtual int init_buf_val();  //（初始化host_buf，初始化check_buf，拷贝到send_buf） 其中需要调用HcclHostBufInit

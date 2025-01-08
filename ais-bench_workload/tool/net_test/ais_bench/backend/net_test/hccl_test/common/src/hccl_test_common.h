@@ -47,7 +47,7 @@ typedef unsigned long long u64;
 struct DataSize {
     u64 minBytes;
     u64 maxBytes;
-    u64 stepBytes= 0;
+    u64 stepBytes = 0;
     double stepFactor;
     u64 count;
     u64 dataSize;
@@ -58,7 +58,7 @@ const int SERVER_MAX_DEV_NUM = 8;
 
 #define ACLCHECK(ret) do { \
     if ((ret) != ACL_SUCCESS) { \
-        ERROR("acl interface return err %s:%d, retcode: %d ", __FILE__, __LINE__, (ret));\
+        ERROR("acl interface return err %s:%d, retcode: %d ", __FILE__, __LINE__, (ret)); \
         return (ret); \
     } \
 } while (0)

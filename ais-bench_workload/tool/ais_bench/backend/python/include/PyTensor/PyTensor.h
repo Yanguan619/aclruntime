@@ -30,7 +30,7 @@ namespace py = pybind11;
 #include "Base/Tensor/TensorBase/TensorBase.h"
 
 template <typename T>
-inline void RegisterEnumTypeToModule(py::module& model, py::enum_<T>& enumClass, const char* name, T value) 
+inline void RegisterEnumTypeToModule(py::module& model, py::enum_<T>& enumClass, const char* name, T value)
 {
     enumClass.value(name, value);
     model.attr(name) = value;

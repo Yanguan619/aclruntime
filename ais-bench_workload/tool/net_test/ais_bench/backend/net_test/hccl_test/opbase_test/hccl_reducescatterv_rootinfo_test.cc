@@ -67,11 +67,13 @@ int HcclOpBaseReducescattervTest::InitBufVal()
         HcclHostBufInit((char*)host_buf, data->count * rank_size, dtype, val);
     } else {
         for (int i = 0; i < rank_size; ++i) {
-            HcclHostBufInit(((char*)host_buf + i * malloc_kSize), data->count, dtype, i + 1); // + i * malloc_kSize 跳到下一块内存中，写数据
+            // + i * malloc_kSize 跳到下一块内存中，写数据
+            HcclHostBufInit(((char*)host_buf + i * malloc_kSize), data->count, dtype, i + 1);
         }
     }
 
-    ACLCHECK(aclrtMemcpy((void*)send_buff, malloc_kSize * rank_size, (void*)host_buf, malloc_kSize * rank_size, ACL_MEMCPY_HOST_TO_DEVICE));
+    ACLCHECK(aclrtMemcpy((void*)send_buff, malloc_kSize * rank_size, (void*)host_buf,
+        malloc_kSize * rank_size, ACL_MEMCPY_HOST_TO_DEVICE));
 
 
     // 初始化校验内存
@@ -88,7 +90,8 @@ int HcclOpBaseReducescattervTest::CheckBufResult()
 {
     //获取输出内存
     ACLCHECK(aclrtMallocHost((void**)&recv_buff_temp, malloc_kSize));
-    ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize, (void*)recv_buff, malloc_kSize, ACL_MEMCPY_DEVICE_TO_HOST));
+    ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize, (void*)recv_buff,
+        malloc_kSize, ACL_MEMCPY_DEVICE_TO_HOST));
 
     int ret = 0;
     switch (dtype) {

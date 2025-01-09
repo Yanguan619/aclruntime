@@ -76,7 +76,8 @@ int HcclOpBaseAllgatherTest::CheckBufResult()
 {
     // 获取输出内存
     ACLCHECK(aclrtMallocHost((void**)&recv_buff_temp, malloc_kSize * rank_size));
-    ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize * rank_size, (void*)recv_buff, malloc_kSize * rank_size, ACL_MEMCPY_DEVICE_TO_HOST));
+    ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize * rank_size, (void*)recv_buff,
+        malloc_kSize * rank_size, ACL_MEMCPY_DEVICE_TO_HOST));
     int ret = 0;
     switch (dtype) {
         case HCCL_DATA_TYPE_FP32:
@@ -153,13 +154,15 @@ int HcclOpBaseAllgatherTest::HcclOpBaseTestMain() // 主函数
 
     // 执行集合通信操作
     for (int j = 0; j < warmup_iters; ++j) {
-        HCCLCHECK(HcclAllGather((void *)send_buff, (void*)recv_buff, data->count, (HcclDataType)dtype, hccl_comm, stream));
+        HCCLCHECK(HcclAllGather((void *)send_buff, (void*)recv_buff, data->count,
+            (HcclDataType)dtype, hccl_comm, stream));
     }
 
     ACLCHECK(aclrtRecordEvent(start_event, stream));
 
     for (int i = 0; i < iters; ++i) {
-        HCCLCHECK(HcclAllGather((void *)send_buff, (void*)recv_buff, data->count, (HcclDataType)dtype, hccl_comm, stream));
+        HCCLCHECK(HcclAllGather((void *)send_buff, (void*)recv_buff, data->count,
+            (HcclDataType)dtype, hccl_comm, stream));
     }
     // 等待stream中集合通信任务执行完成
     ACLCHECK(aclrtRecordEvent(end_event, stream));

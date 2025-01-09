@@ -149,7 +149,8 @@ int HcclOpBaseTest::PrintExecutionTime(double average_time_us, double algorithm_
                 LOG_ORIGIN(" %-15s | %-12s | %-18s | %s", data_size, aveg_time, alg_bandwidth, verification_result);
                 print_header = false;
             }
-            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | NULL", data->dataSize, average_time_us, algorithm_bandwith_GBytes_s);
+            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | NULL", data->dataSize,
+                average_time_us, algorithm_bandwith_GBytes_s);
         }
         return 0;
     }
@@ -193,9 +194,11 @@ int HcclOpBaseTest::PrintExecutionTime(double average_time_us, double algorithm_
         }
 
         if (!result) {
-            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | failed", data->dataSize, average_time_us, algorithm_bandwith_GBytes_s);
+            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | failed", data->dataSize,
+                average_time_us, algorithm_bandwith_GBytes_s);
         } else {
-            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | success", data->dataSize, average_time_us, algorithm_bandwith_GBytes_s);
+            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | success", data->dataSize,
+                average_time_us, algorithm_bandwith_GBytes_s);
         }
     }
     return 0;

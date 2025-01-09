@@ -76,7 +76,8 @@ int HcclOpBaseAllgathervTest::CheckBufResult()
 {
     // 获取输出内存
     ACLCHECK(aclrtMallocHost((void**)&recv_buff_temp, malloc_kSize * rank_size));
-    ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize * rank_size, (void*)recv_buff, malloc_kSize * rank_size, ACL_MEMCPY_DEVICE_TO_HOST));
+    ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize * rank_size, (void*)recv_buff,
+        malloc_kSize * rank_size, ACL_MEMCPY_DEVICE_TO_HOST));
     int ret = 0;
     switch (dtype) {
         case HCCL_DATA_TYPE_FP32:

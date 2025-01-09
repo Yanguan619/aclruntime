@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,14 @@ namespace Base {
             } else if (fname == "pure_infer_data_random") {
                 uint8_t min = 0;
                 uint8_t max = UINT8_MAX - 1; // avoid float ±inf
-                tmpTrans.value = (rand() % (max - min + 1)) + min;
+                int fd = open("/dev/urandom", O_RDONLY);
+                if (fd == -1) {
+                    throw std::runtime_error("Failed to open /dev/urandom");
+                }
+                uint8_t randomByte;
+                read(fd, &randomByte, sizeof(randomByte));
+                close(fd);
+                tmpTrans.value = (randomByte % (max - min + 1)) + min;
             }
             arr.dataHolder->data()[i] = tmpTrans.bytes;
         }

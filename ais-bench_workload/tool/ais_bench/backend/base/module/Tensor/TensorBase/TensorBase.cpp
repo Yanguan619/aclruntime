@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -348,7 +348,7 @@ APP_ERROR TensorBase::CheckBatchTensors(const std::vector<TensorBase> &inputs, c
 {
     auto checkFunc = [checkFirstDim] (const TensorBase &t1, const TensorBase &t2) {
         if (t1.GetShape().size() != t2.GetShape().size()) {
-            ERROR_LOG("dimension is not match (%ld) vs (%ld)", t1.GetShape().size(), t2.GetShape().size());
+            ERROR_LOG("dimension is not match (%lu) vs (%lu)", t1.GetShape().size(), t2.GetShape().size());
             return false;
         }
         if (t1.GetDeviceId() != t2.GetDeviceId()) {
@@ -414,6 +414,10 @@ APP_ERROR TensorBase::BatchConcat(const std::vector<TensorBase> &inputs, TensorB
         batchShape.push_back(inputs[0].GetShape()[i]);
     }
     // malloc
+    if (inputs[0].GetDeviceId() < 0) {
+        ERROR_LOG("Invalid device ID: %d", inputs[0].GetDeviceId());
+        return APP_ERR_INVALID_DEVICE;
+    }
     output = TensorBase(batchShape, inputs[0].GetDataType(), inputs[0].GetTensorType(), inputs[0].GetDeviceId());
     ret = TensorBaseMalloc(output);
     if (ret != APP_ERR_OK) {
@@ -455,6 +459,10 @@ APP_ERROR TensorBase::BatchStack(const std::vector<TensorBase> &inputs, TensorBa
         batchShape.push_back(inputs[0].GetShape()[i]);
     }
     // malloc
+    if (inputs[0].GetDeviceId() < 0) {
+        ERROR_LOG("Invalid device ID: %d", inputs[0].GetDeviceId());
+        return APP_ERR_INVALID_DEVICE;
+    }
     output = TensorBase(batchShape, inputs[0].GetDataType(), inputs[0].GetTensorType(), inputs[0].GetDeviceId());
     ret = TensorBaseMalloc(output);
     if (ret != APP_ERR_OK) {

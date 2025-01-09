@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -199,7 +199,7 @@ Result Utils::SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_
         Utils::SplitStringWithPunctuation(shape_str, shape_tmp, ',');
         int64_t DimsMul = 1;
         for (size_t j = 0; j < shape_tmp.size(); ++j) {
-	        DimsMul = DimsMul * atoi(shape_tmp[j].c_str());
+            DimsMul = DimsMul * atoi(shape_tmp[j].c_str());
         }
         out_namedimsmul_map[name] = DimsMul;
     }
@@ -215,7 +215,7 @@ Result Utils::ReadBinFileToMemory(const std::string fileName, char *ptr, const s
     }
 
     binFile.seekg(0, binFile.end);
-    uint64_t binFileBufferLen = binFile.tellg();
+    uint64_t binFileBufferLen = static_case<uint64_t>(binFile.tellg());
     if (binFileBufferLen == 0) {
         ERROR_LOG("bin file is empty, filename is %s", fileName.c_str());
         binFile.close();
@@ -255,7 +255,8 @@ std::string Utils::MergeStr(std::vector<std::string>& list, const std::string& d
 {
     auto res = std::accumulate(list.begin(), list.end(), std::string(),
     [=](const std::string& a, const std::string& b) -> std::string {
-        return a + (a.length() > 0 ? delimiter : "") + b; });
+        return a + (a.length() > 0 ? delimiter : "") + b; 
+        });
     return res;
 }
 

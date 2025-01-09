@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,11 @@ DynamicAippConfig::DynamicAippConfig()
 {
     isActivated = false;
     modelOK = false;
+    srcImageSizeH = 0;
+    srcImageSizeW = 0;
+    axSwapSwitch = 0;
+    rbuvSwapSwitch = 0;
+    maxBatchSize = 0;
 };
 
 DynamicAippConfig::~DynamicAippConfig()

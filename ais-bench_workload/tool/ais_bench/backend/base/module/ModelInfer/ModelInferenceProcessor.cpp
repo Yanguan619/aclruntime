@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ APP_ERROR ModelInferenceProcessor::GetModelDescInfo()
         info.realsize = info.size;
         info.datatype = (TensorDataType)datatype;
         modelDesc_.inTensorsDesc.push_back(info);
-        modelDesc_.innames2Index[info.name] = index;
+        modelDesc_.innames2Index[info.name] = statci_cast<size_t>(index);
         index++;
     }
 
@@ -689,7 +689,7 @@ APP_ERROR ModelInferenceProcessor::AllocDymAIPPIndexMem()
         MemoryData memdata;
         memdata.size = info.size;
         memdata.type = MemoryData::MemoryType::MEMORY_DEVICE;
-        memdata.deviceId = deviceId_;
+        memdata.deviceId = static_cast<size_t>(deviceId_);
         DEBUG_LOG("debug aipp config index:%d allow size:%d\n", int(index), int(info.size));
         auto ret = MemoryHelper::MxbsMalloc(memdata);
         if (ret != APP_ERR_OK) {
@@ -733,7 +733,7 @@ APP_ERROR ModelInferenceProcessor::AllocDyIndexMem()
 
     dynamicIndexMemory_.size = info.size;
     dynamicIndexMemory_.type = MemoryData::MemoryType::MEMORY_DEVICE;
-    dynamicIndexMemory_.deviceId = deviceId_;
+    dynamicIndexMemory_.deviceId = static_cast<size_t>(deviceId_);
     auto ret = MemoryHelper::MxbsMalloc(dynamicIndexMemory_);
     if (ret != APP_ERR_OK) {
         ERROR_LOG("memory data malloc failed. ret=%d", ret);
@@ -798,11 +798,11 @@ APP_ERROR ModelInferenceProcessor::SetDynamicBatchsize(int batchsize)
         auto tensorEnd = modelDesc_.inTensorsDesc[i].shape.end();
         if (find(tensorBegin, tensorEnd, -1) != tensorEnd) {
             modelDesc_.inTensorsDesc[i].realsize = modelDesc_.inTensorsDesc[i].size *
-                batchsize / dynamicInfo_.dyBatch.maxbatchsize;
+                static_cast<size_t>(batchsize) / dynamicInfo_.dyBatch.maxbatchsize;
         }
     }
 
-    dynamicInfo_.dyBatch.batchSize = batchsize;
+    dynamicInfo_.dyBatch.batchSize = static_cast<uint64_t>(batchsize);
     dynamicInfo_.dynamicType = DYNAMIC_BATCH;
     return APP_ERR_OK;
 }
@@ -914,12 +914,12 @@ APP_ERROR ModelInferenceProcessor::SetDynamicHW(int width, int height)
         auto tensorEnd = modelDesc_.inTensorsDesc[i].shape.end();
         if (find(tensorBegin, tensorEnd, -1) != tensorEnd) {
             modelDesc_.inTensorsDesc[i].realsize = modelDesc_.inTensorsDesc[i].size *
-                width * height / dynamicInfo_.dyHW.maxHWSize;
+                static_cast<size_t>(width) * static_cast<size_t>(height) / dynamicInfo_.dyHW.maxHWSize;
         }
     }
 
-    dynamicInfo_.dyHW.imageSize.width = width;
-    dynamicInfo_.dyHW.imageSize.height = height;
+    dynamicInfo_.dyHW.imageSize.width = static_cast<unsigned int>(width);
+    dynamicInfo_.dyHW.imageSize.height = static_cast<unsigned int>(height);
     dynamicInfo_.dynamicType = DYNAMIC_HW;
     return APP_ERR_OK;
 }
@@ -942,6 +942,12 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
         ERROR_LOG("create acl IO dims failed!%s", e.what());
         fflush(stdout);
         return APP_ERR_ACL_BAD_ALLOC;
+    }
+
+    if (dynamicInfo_.dyDims.pDims == nullptr) {
+        ERROR_LOG("Dereferencing of nullptr");
+        delete[] dims;
+        return APP_ERR_ACL_FAILURE;
     }
 
     Utils::SplitStringSimple(dymdimsStr, dynamicInfo_.dyDims.pDims->dym_dims, ';', ':', ',');
@@ -985,7 +991,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
         }
         size_t inindex = modelDesc_.innames2Index[map.first];   // get intensors index by name
         auto tmpDataType = static_cast<aclDataType>(modelDesc_.inTensorsDesc[inindex].datatype);
-        modelDesc_.inTensorsDesc[inindex].realsize = map.second * aclDataTypeSize(tmpDataType);
+        modelDesc_.inTensorsDesc[inindex].realsize = static_cast<size_t>(map.second) * aclDataTypeSize(tmpDataType);
     }
 
     delete [] dims;
@@ -1002,6 +1008,10 @@ APP_ERROR ModelInferenceProcessor::SetDynamicShape(std::string dymshapeStr)
     FreeDymInfoMem();
     if (dynamicInfo_.dyShape.pShapes == nullptr) {
         dynamicInfo_.dyShape.pShapes = (DyShapeInfo *)calloc(1, sizeof(DyShapeInfo));
+        if (dynamicInfo_.dyShape.pShapes == nullptr) {
+            ERROR_LOG("Failed to allocate memory for DyShapeInfo");
+            return APP_ERR_ACL_FAILURE;
+        }
     }
 
     std::map<string, std::vector<int64_t>> name2shapesmap;
@@ -1033,7 +1043,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicShape(std::string dymshapeStr)
         }
         size_t inindex = modelDesc_.innames2Index[map.first];   // get intensors index by name
         auto tmpDataType = static_cast<aclDataType>(modelDesc_.inTensorsDesc[inindex].datatype);
-        modelDesc_.inTensorsDesc[inindex].realsize = map.second * aclDataTypeSize(tmpDataType);
+        modelDesc_.inTensorsDesc[inindex].realsize = map.second * static_cast<size_t>(aclDataTypeSize(tmpDataType));
     }
 
     dynamicInfo_.dynamicType = DYNAMIC_SHAPE;

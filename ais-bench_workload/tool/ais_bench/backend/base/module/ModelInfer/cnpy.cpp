@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,7 +114,7 @@ void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape
     std::smatch sm;
     shape.clear();
 
-    if ( loc2 <= loc1) {
+    if (loc2 <= loc1) {
         throw std::runtime_error("')' is not bebind '(' in npy file header");
     }
 
@@ -136,7 +136,11 @@ void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape
 
     std::string strWs = header.substr(loc1 + 2);
     loc2 = strWs.find("'");
-    wordSize = atoi(strWs.substr(0, loc2).c_str());
+    int tempWordSize = atoi(strWs.substr(0, loc2).c_str());
+    if (tempWordSize < 0) {
+        throw std::runtime_error("ParseNpyHeader: invalid word size in header.");
+    }
+    wordSize = static_cast<size_t>(tempWordSize);
 }
 
 cnpy::NpyArray LoadNpyFile(FILE *fp)
@@ -159,6 +163,10 @@ cnpy::NpyArray LoadNpyFile(FILE *fp)
 
 cnpy::NpyArray cnpy::NpyLoad(std::string fname)
 {
+    if (!File::CheckFileBeforeRead(fname, FileType::NUMPY)) {
+        throw std::runtime_error("NppLoad: fname is illegal" + fname);
+    }
+
     FILE *fp = fopen(fname.c_str(), "rb");
 
     if (!fp) {
@@ -183,7 +191,7 @@ cnpy::NpyArray cnpy::BinLoad(std::string fname)
     std::size_t size = 0;
     file.seekg(0, std::ios::end);
     try {
-        size = file.tellg();
+        size = static_cast<std::size_t>(file.tellg());
     } catch (exception &e) {
         file.close();
         throw std::runtime_error("BinLoad: file size out of range");

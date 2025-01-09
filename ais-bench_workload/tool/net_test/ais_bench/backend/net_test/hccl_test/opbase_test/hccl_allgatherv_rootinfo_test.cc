@@ -27,8 +27,7 @@ void DeleteOpbasePtr(HcclTest* opbase)
     return;
 }
 
-namespace hccl
-{
+namespace hccl {
 HcclOpBaseAllgathervTest::HcclOpBaseAllgathervTest() : HcclOpBaseTest()
 {
 
@@ -63,8 +62,7 @@ int HcclOpBaseAllgathervTest::CheckBufResult()
     ACLCHECK(aclrtMallocHost((void**)&recv_buff_temp, malloc_kSize * rank_size));
     ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize * rank_size, (void*)recv_buff, malloc_kSize * rank_size, ACL_MEMCPY_DEVICE_TO_HOST));
     int ret = 0;
-    switch(dtype)
-    {
+    switch (dtype) {
         case HCCL_DATA_TYPE_FP32:
             ret = CheckBufResultFloat((char*)recv_buff_temp, (char*)check_buf, data->count * rank_size);
             break;
@@ -94,8 +92,7 @@ int HcclOpBaseAllgathervTest::CheckBufResult()
             ERROR("No match datatype.");
             break;
     }
-    if(ret != 0)
-    {
+    if (ret != 0) {
         check_err++;
     }
     return 0;
@@ -146,7 +143,7 @@ int HcclOpBaseAllgathervTest::HcclOpBaseTestMain() // 主函数
     }
 
     // 执行集合通信操作
-    for(int j = 0; j < warmup_iters; ++j) {
+    for (int j = 0; j < warmup_iters; ++j) {
         HCCLCHECK(
             HcclAllGatherV(
                 (void *)send_buff,
@@ -163,7 +160,7 @@ int HcclOpBaseAllgathervTest::HcclOpBaseTestMain() // 主函数
 
     ACLCHECK(aclrtRecordEvent(start_event, stream));
 
-    for(int i = 0; i < iters; ++i) {
+    for (int i = 0; i < iters; ++i) {
         HCCLCHECK(
             HcclAllGatherV(
                 (void *)send_buff,

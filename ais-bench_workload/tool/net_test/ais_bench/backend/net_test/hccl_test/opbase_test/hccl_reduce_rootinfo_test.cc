@@ -25,8 +25,7 @@ void DeleteOpbasePtr(HcclTest* opbase)
     return;
 }
 
-namespace hccl
-{
+namespace hccl {
 HcclOpBaseReduceTest::HcclOpBaseReduceTest() : HcclOpBaseTest()
 {
 
@@ -52,7 +51,7 @@ int HcclOpBaseReduceTest::InitBufVal()
 
     // 初始化校验内存
     ACLCHECK(aclrtMallocHost((void**)&check_buf, malloc_kSize));
-    if(rank_id == root_rank) {
+    if (rank_id == root_rank) {
         HcclReduceCheckBufInit((char*)check_buf, data->count, dtype, op_type, val, rank_size);
     }
     return 0;
@@ -64,13 +63,12 @@ int HcclOpBaseReduceTest::CheckBufResult()
     ACLCHECK(aclrtMallocHost((void**)&recv_buff_temp, malloc_kSize));
     ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize, (void*)recv_buff, malloc_kSize, ACL_MEMCPY_DEVICE_TO_HOST));
 
-    if(rank_id != root_rank) {
+    if (rank_id != root_rank) {
         return 0;
     }
 
     int ret = 0;
-    switch(dtype)
-    {
+    switch (dtype) {
         case HCCL_DATA_TYPE_FP32:
             ret = CheckBufResultFloat((char*)recv_buff_temp, (char*)check_buf, data->count);
             break;
@@ -93,8 +91,7 @@ int HcclOpBaseReduceTest::CheckBufResult()
             ERROR("No match datatype.");
             break;
     }
-    if(ret != 0)
-    {
+    if (ret != 0) {
         check_err++;
     }
     return 0;
@@ -135,13 +132,13 @@ int HcclOpBaseReduceTest::HcclOpBaseTestMain() // 主函数
     }
 
     // 执行集合通信操作
-    for(int j = 0; j < warmup_iters; ++j) {
+    for (int j = 0; j < warmup_iters; ++j) {
         HCCLCHECK(HcclReduce((void *)send_buff, (void*)recv_buff, data->count, (HcclDataType)dtype, (HcclReduceOp)op_type, root_rank, hccl_comm, stream));
     }
 
     ACLCHECK(aclrtRecordEvent(start_event, stream));
 
-    for(int i = 0; i < iters; ++i) {
+    for (int i = 0; i < iters; ++i) {
         HCCLCHECK(HcclReduce((void *)send_buff, (void*)recv_buff, data->count, (HcclDataType)dtype, (HcclReduceOp)op_type, root_rank, hccl_comm, stream));
     }
     // 等待stream中集合通信任务执行完成

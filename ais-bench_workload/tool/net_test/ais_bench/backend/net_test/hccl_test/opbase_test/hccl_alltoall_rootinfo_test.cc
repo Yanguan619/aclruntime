@@ -56,16 +56,14 @@ int HcclOpBaseAlltoallTest::CheckBufResult()
 
     u64* recv_counts = (unsigned long long *)malloc(rank_size * sizeof(unsigned long long));
     u64* recv_disp = (unsigned long long *)malloc(rank_size * sizeof(unsigned long long));
-    for(int i = 0; i < rank_size; ++i)
-    {
+    for (int i = 0; i < rank_size; ++i) {
         recv_counts[i] = data->count / rank_size;
         recv_disp[i] = i * data->count / rank_size;
     }
 
     int ret = 0;
     ret = HcclAlltoallvCheckResult(check_buf, recv_counts, recv_disp, rank_id, rank_size, dtype);
-    if(ret != 0)
-    {
+    if (ret != 0) {
         check_err++;
     }
     free(recv_counts);
@@ -114,14 +112,14 @@ int HcclOpBaseAlltoallTest::HcclOpBaseTestMain() // 主函数
     recvCount_ = data->count / rank_size;
 
     // 执行集合通信操作
-    for(int j = 0; j < warmup_iters; ++j) {
+    for (int j = 0; j < warmup_iters; ++j) {
         HCCLCHECK(HcclAlltoAll((void *)send_buff, sendCount_, (HcclDataType)dtype,\
             (void*)recv_buff, recvCount_, (HcclDataType)dtype, hccl_comm, stream));
     }
 
     ACLCHECK(aclrtRecordEvent(start_event, stream));
 
-    for(int i = 0; i < iters; ++i) {
+    for (int i = 0; i < iters; ++i) {
         HCCLCHECK(HcclAlltoAll((void *)send_buff, sendCount_, (HcclDataType)dtype,\
             (void*)recv_buff, recvCount_, (HcclDataType)dtype, hccl_comm, stream));
     }

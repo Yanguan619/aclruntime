@@ -26,8 +26,7 @@ void DeleteOpbasePtr(HcclTest* opbase)
     return;
 }
 
-namespace hccl
-{
+namespace hccl {
 HcclOpBaseScatterTest::HcclOpBaseScatterTest() : HcclOpBaseTest()
 {
     host_buf = nullptr;
@@ -57,8 +56,7 @@ int HcclOpBaseScatterTest::CheckBufResult()
     ACLCHECK(aclrtMallocHost((void**)&recv_buff_temp, malloc_kSize));
     ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize, (void*)recv_buff, malloc_kSize, ACL_MEMCPY_DEVICE_TO_HOST));
     int ret = 0;
-    switch (dtype)
-    {
+    switch (dtype) {
         case HCCL_DATA_TYPE_FP32:
             ret = CheckBufResultFloat((char*)recv_buff_temp, (char*)check_buf, data->count);
             break;
@@ -88,8 +86,7 @@ int HcclOpBaseScatterTest::CheckBufResult()
             ERROR("no match datatype\n");
             break;
     }
-    if(ret != 0)
-    {
+    if (ret != 0) {
         check_err++;
     }
     return 0;
@@ -132,7 +129,7 @@ int HcclOpBaseScatterTest::HcclOpBaseTestMain() // 主函数
     // 初始化输入内存
     ACLCHECK(aclrtMallocHost((void**)&host_buf, malloc_kSize * rank_size));
     if (rank_id == root_rank) {
-        for (int i=0; i < rank_size; ++i) {
+        for (int i = 0; i < rank_size; ++i) {
             HcclHostBufInit((char*)host_buf + data->count * data->typeSize * i, data->count, dtype, i+1);
         }
         ACLCHECK(aclrtMemcpy((void*)send_buff, malloc_kSize * rank_size, (void*)host_buf, malloc_kSize * rank_size, ACL_MEMCPY_HOST_TO_DEVICE));

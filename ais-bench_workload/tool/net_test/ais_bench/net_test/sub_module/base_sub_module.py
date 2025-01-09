@@ -35,7 +35,7 @@ class NodeInfo:
 class BaseSubmodule(metaclass=ABCMeta):
     def __init__(self, name) -> None:
         self.name = name
-        self.hostfile_info = {} # {node_id: NodeInfo}
+        self.hostfile_info = {}  # {node_id: NodeInfo}
         self.arg_adapter = BaseArgsAdapter()
 
     @staticmethod
@@ -45,11 +45,11 @@ class BaseSubmodule(metaclass=ABCMeta):
             raise ValueError(f"node_info line: {info_list} missing enough params!")
         while len(info_list) < OTHERS.NODE_INFO_MAX_COUNT:
             info_list.append("")
-        check_positive_integer_str(info_list[1]) # device_count, empty is legal
-        check_positive_integer_str(info_list[3]) # port, empty is legal
-        info_list[1] = int(info_list[1]) # device_count,
-        info_list[2] = info_list[2] if info_list[2] else "root" # user, default is root
-        info_list[3] = int(info_list[3]) if info_list[3] else 22 # port, default is 22
+        check_positive_integer_str(info_list[1])  # device_count, empty is legal
+        check_positive_integer_str(info_list[3])  # port, empty is legal
+        info_list[1] = int(info_list[1])  # device_count,
+        info_list[2] = info_list[2] if info_list[2] else "root"  # user, default is root
+        info_list[3] = int(info_list[3]) if info_list[3] else 22  # port, default is 22
         return tuple(info_list)
 
     @abstractmethod
@@ -60,13 +60,13 @@ class BaseSubmodule(metaclass=ABCMeta):
         self.parser.add_argument(
             "--hostfile",
             "-f",
-            type=arg_check_hostfile_legalty, # int
+            type=arg_check_hostfile_legalty,  # int
             help="required, npus used for one node"
         )
         self.parser.add_argument(
             "--ssh_key_path",
             "-skp",
-            type=arg_check_ssh_key_path_legalty, # str
+            type=arg_check_ssh_key_path_legalty,  # str
             help="optional, default /root/.ssh/id_rsa, ssh key path"
         )
         self.parser.add_argument(
@@ -108,6 +108,7 @@ class BaseSubmodule(metaclass=ABCMeta):
                 if node_info.ip not in ip_list:
                     ip_list.append(node_info.ip)
                 else:
-                    raise ValueError(f"in hostfile, line:{count + 1}, get repeated node ip:{node_info.ip}, please check")
+                    raise ValueError(
+                        f"in hostfile, line:{count + 1}, get repeated node ip:{node_info.ip}, please check")
                 self.hostfile_info[count] = node_info
                 count += 1

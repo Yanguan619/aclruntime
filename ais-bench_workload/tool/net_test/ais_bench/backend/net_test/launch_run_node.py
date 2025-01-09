@@ -33,7 +33,11 @@ def run_hccl_test_exec_command(cmd_list):
             sys.stdout.write(line.decode('utf-8'))
             sys.stdout.flush()
 
-    _, stderr = p.communicate()
+    try:
+        _, stderr = p.communicate(timeout=10)
+    except subprocess.TimeoutExpired:
+        p.kill()
+        _, stderr = p.communicate()
 
     # 等待命令执行完成
     return_code = p.wait()

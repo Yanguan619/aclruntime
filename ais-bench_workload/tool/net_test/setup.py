@@ -1,4 +1,4 @@
-# Copyright (c) 2024-2024 Huawei Technologies Co., Ltd.
+# Copyright (c) 2024-2025 Huawei Technologies Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ import platform
 import subprocess
 from setuptools import setup, find_packages  # type: ignore
 from setuptools.command.install_scripts import install_scripts
-from ais_bench.net_test.common.consts import PACKAGE_INFO
+from ais_bench.net_test.common.consts import PackageInfo
 
 CUR_DIR_ABS_PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -53,7 +53,7 @@ def make_hccl_test_bin():
     try:
         subprocess.run(make_cmd_list, check=True, text=True, capture_output=True)
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"make hccl test failed with return code {e.returncode}: {e.stderr}")
+        raise RuntimeError(f"make hccl test failed with return code {e.returncode}: {e.stderr}") from e
 
 
 def check_all_op_task_bin_exist():
@@ -85,7 +85,7 @@ except Exception:
 
 setup(
     name='ais_bench_net_test',
-    version=PACKAGE_INFO.version,
+    version=PackageInfo.version,
     description='ais_bench net test tools',
     long_description=long_description,
     url=f"gitee repo: Ascend/tools, commit id: {git_hash}, release_date: {git_date}",

@@ -23,10 +23,12 @@
 #include <sys/syscall.h>
 #include "hccl_check_common.h"
 
+const double RESULT_PROCESSION = 0.001;
+const int MULTIPER_100 = 100;
+
 int CheckBufResultFloat(const void *resultBuf, const void *checkBuf, u64 count)
 {
-    u64 i = 0; // j = 0;
-    // int n = 0;
+    u64 i = 0;
     int err = 0;
     float *c_buf = (float *)checkBuf;
     float *result = (float *)resultBuf;
@@ -34,7 +36,7 @@ int CheckBufResultFloat(const void *resultBuf, const void *checkBuf, u64 count)
     for (i = 0; i < count; ++i) {
         if (fabsf(c_buf[i] - result[i]) > HCCL_EPSION_FLOAT) {
             if (fabsf(result[i]) > 0) {
-                if (fabsf(fabsf(c_buf[i] - result[i]) / result[i]) > (HCCL_EPSION_FLOAT * 100)) {
+                if (fabsf(fabsf(c_buf[i] - result[i]) / result[i]) > (HCCL_EPSION_FLOAT * MULTIPER_100)) {
                     if (first_err_pos == ULLONG_MAX) {
                         first_err_pos = i;
                     }

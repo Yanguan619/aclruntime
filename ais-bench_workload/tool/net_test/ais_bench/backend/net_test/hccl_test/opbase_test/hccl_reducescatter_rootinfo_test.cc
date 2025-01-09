@@ -64,8 +64,7 @@ int HcclOpBaseReducescatterTest::InitBufVal()
     if (op_type == HCCL_REDUCE_PROD || dtype == HCCL_DATA_TYPE_INT8) {
         HcclHostBufInit((char*)host_buf, data->count * rank_size, dtype, val);
     } else {
-        for (int i = 0; i < rank_size; ++i)
-        {
+        for (int i = 0; i < rank_size; ++i) {
             // + i * malloc_kSize 跳到下一块内存中，写数据
             HcclHostBufInit(((char*)host_buf + i * malloc_kSize), data->count, dtype, i + 1);
         }

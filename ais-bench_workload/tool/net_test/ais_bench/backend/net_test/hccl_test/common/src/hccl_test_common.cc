@@ -46,12 +46,16 @@ HcclDataType test_types[HCCL_DATA_TYPE_RESERVED] = {
 const char *test_typenames[HCCL_DATA_TYPE_RESERVED] = {"int8", "int16", "int", "fp16", "fp32", "int64", "uint64",
     "uint8", "uint16", "uint32", "fp64", "bfp16"};
 
+const int RATE_TEN = 10;
+const size_t HASH_SHIFT_BITS = 5;
+const size_t MULTIPLIER_1024 = 1024;
+
 int GetHcclOpFromStr (char *str)
 {
     for (int op = 0; op < HCCL_REDUCE_RESERVED; op++) {
-      if (strcmp(str, test_opnames[op]) == 0) {
-        return op;
-      }
+        if (strcmp(str, test_opnames[op]) == 0) {
+            return op;
+        }
     }
 
     return -1;
@@ -60,9 +64,9 @@ int GetHcclOpFromStr (char *str)
 int GetHcclDtypeFromStr(char *str)
 {
     for (int t = 0; t < HCCL_DATA_TYPE_RESERVED; t++) {
-      if (strcmp(str, test_typenames[t]) == 0) {
-        return t;
-      }
+        if (strcmp(str, test_typenames[t]) == 0) {
+            return t;
+        }
     }
     return -1;
 }
@@ -84,7 +88,7 @@ static uint64_t GetHostHash(const char* string)
   // Based on DJB2, result = result * 33 + char
     uint64_t result = 5381;
     for (int c = 0; string[c] != '\0'; c++) {
-        result = ((result << 5) + result) + string[c];
+        result = ((result << HASH_SHIFT_BITS) + result) + string[c];
     }
     return result;
 }
@@ -100,15 +104,15 @@ static long ParseSize(const char *value)
         switch (*size_lit) {
             case 'G':
             case 'g':
-                units = 1024*1024*1024;
+                units = MULTIPLIER_1024 * MULTIPLIER_1024 * MULTIPLIER_1024;
                 break;
             case 'M':
             case 'm':
-                units = 1024*1024;
+                units = MULTIPLIER_1024 * MULTIPLIER_1024;
                 break;
             case 'K':
             case 'k':
-                units = 1024;
+                units = MULTIPLIER_1024;
                 break;
             default:
                 return -1;
@@ -130,11 +134,10 @@ u32 SalStrLen(const char *s, u32 maxLen = INT_MAX)
 int IsAllDigit(const char *strNum)
 {
     // 参数有效性检查
-   if (strNum == NULL)
-   {
-       ERROR("String type number is NULL.");
-       return -1;
-   }
+    if (strNum == NULL) {
+        ERROR("String type number is NULL.");
+        return -1;
+    }
 
     u32 nLength = SalStrLen(strNum);
     for (u32 index = 0; index < nLength; index++) {
@@ -279,7 +282,7 @@ int HcclTest::CheckDataCount()
                 data->stepBytes = 1; // 用户配置数据量的起始值和结束值相同，但未配置增量步长，为防止进入死循环，设置增量步长为1
             }
             if (data->maxBytes > data->minBytes) {
-                data->stepBytes = (data->maxBytes - data->minBytes)/10;
+                data->stepBytes = (data->maxBytes - data->minBytes) / RATE_TEN;
             }
         }
     }

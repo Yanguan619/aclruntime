@@ -16,8 +16,7 @@
 
 #include "hccl_test_communicate.h"
 
-namespace hccl
-{
+namespace hccl {
 const int RETRY_COUNT = 10;
 const int RETRY_INTERVAL = 1; // second
 const int RETRY_TIMES = 5;

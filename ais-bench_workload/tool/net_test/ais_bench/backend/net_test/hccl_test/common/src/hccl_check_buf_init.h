@@ -99,7 +99,8 @@ static inline uint16_t Fp32ToBf16(float x)
 {
     float y = x;
     int *p = (int *) &y;
-    unsigned int exp, man;
+    unsigned int exp;
+    unsigned int man;
     exp = *p & 0x7F800000u;
     man = *p & 0x007FFFFFu;
     if (exp == 0 && man == 0) {

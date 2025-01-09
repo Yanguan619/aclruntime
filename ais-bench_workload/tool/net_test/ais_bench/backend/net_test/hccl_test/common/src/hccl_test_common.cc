@@ -41,8 +41,8 @@ HcclDataType test_types[HCCL_DATA_TYPE_RESERVED] = {
     HCCL_DATA_TYPE_UINT16,  /**< uint16 */
     HCCL_DATA_TYPE_UINT32,  /**< uint32 */
     HCCL_DATA_TYPE_FP64,    /**< fp64 */
-    HCCL_DATA_TYPE_BFP16    /**< bfp16 */
-};
+    HCCL_DATA_TYPE_BFP16};    /**< bfp16 */
+
 const char *test_typenames[HCCL_DATA_TYPE_RESERVED] = {"int8", "int16", "int", "fp16", "fp32", "int64", "uint64",
     "uint8", "uint16", "uint32", "fp64", "bfp16"};
 

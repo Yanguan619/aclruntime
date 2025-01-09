@@ -177,8 +177,7 @@ int HcclOpBaseReducescattervTest::HcclOpBaseTestMain() // 主函数
                 (HcclDataType)dtype,
                 (HcclReduceOp)op_type,
                 hccl_comm,
-                stream
-            )
+                stream)
         );
     }
 
@@ -195,8 +194,7 @@ int HcclOpBaseReducescattervTest::HcclOpBaseTestMain() // 主函数
                 (HcclDataType)dtype,
                 (HcclReduceOp)op_type,
                 hccl_comm,
-                stream
-            )
+                stream)
         );
     }
 

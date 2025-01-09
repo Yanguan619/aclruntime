@@ -170,8 +170,7 @@ int HcclOpBaseAllgathervTest::HcclOpBaseTestMain() // 主函数
                 recv_disp.data(),
                 (HcclDataType)dtype,
                 hccl_comm,
-                stream
-            )
+                stream)
         );
     }
 
@@ -187,8 +186,7 @@ int HcclOpBaseAllgathervTest::HcclOpBaseTestMain() // 主函数
                 recv_disp.data(),
                 (HcclDataType)dtype,
                 hccl_comm,
-                stream
-            )
+                stream)
         );
     }
     // 等待stream中集合通信任务执行完成

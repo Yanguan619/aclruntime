@@ -164,18 +164,18 @@ int HcclOpBaseTest::PrintExecutionTime(double average_time_us, double algorithm_
         check_result[rank_id] = true; // 结果校验成功
     }
 
-    #ifdef MPI_SUPPORT
+#ifdef MPI_SUPPORT
     MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, check_result, sizeof(bool), MPI_BYTE, MPI_COMM_WORLD);
-    #endif
+#endif
 
-    #ifndef MPI_SUPPORT
+#ifndef MPI_SUPPORT
     bool curResuult = check_result[rank_id];
     int ret = communicater->AllGatherInfoToRoot(&check_result, &curResuult, sizeof(bool), rank_size);
     if (ret != 0) {
         ERROR("Rank: %d run all gather root info failed! Print execution time failed!", rank_id);
         return ret;
     }
-    #endif
+#endif
 
 
     if (rank_id == root_rank)

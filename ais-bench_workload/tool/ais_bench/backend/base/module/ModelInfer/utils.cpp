@@ -268,7 +268,7 @@ std::string Utils::MergeStr(std::vector<std::string>& list, const std::string& d
     auto res = std::accumulate(list.begin(), list.end(), std::string(),
     [=](const std::string& a, const std::string& b) -> std::string {
         return a + (a.length() > 0 ? delimiter : "") + b; 
-        });
+    });
     return res;
 }
 

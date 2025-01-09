@@ -43,7 +43,7 @@ APP_ERROR ModelInferenceProcessor::GetModelDescInfo()
         info.realsize = info.size;
         info.datatype = (TensorDataType)datatype;
         modelDesc_.inTensorsDesc.push_back(info);
-        modelDesc_.innames2Index[info.name] = statci_cast<size_t>(index);
+        modelDesc_.innames2Index[info.name] = static_cast<size_t>(index);
         index++;
     }
 

@@ -460,7 +460,7 @@ std::vector<std::string> Utils::SplitStringByComma(const std::string& str)
 bool Utils::IsDymShapeValid(const std::string& str)
 {
     std::vector<std::string> shapeValues = SplitStringByComma(str);
-    if (shapeValues.size() > 6) return false;
+    if (shapeValues.size() == 0 || shapeValues.size() > 6) return false;
     for (std::string value : shapeValues) {
         if (value.empty()) return false;
         if (value[0] < '1' || value[0] > '9') return false;
@@ -468,6 +468,7 @@ bool Utils::IsDymShapeValid(const std::string& str)
             if (value[i] < '0' || value[i] > 9) return false;
         }
     }
+    return true;
 }
 
 bool Utils::IsLegalDymString(const std::string& str)

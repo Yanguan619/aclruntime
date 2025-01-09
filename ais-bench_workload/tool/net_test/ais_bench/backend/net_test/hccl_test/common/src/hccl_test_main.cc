@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <string.h>
 #include <getopt.h>
 #include <stdio.h>
@@ -15,9 +31,9 @@ extern void DeleteOpbasePtr(HcclTest* opbase);
 
 int main(int argc, char *argv[])
 {
-    #ifdef MPI_SUPPORT
+#ifdef MPI_SUPPORT
     MPI_Init(&argc, &argv);
-    #endif
+#endif
     setvbuf(stdout, NULL, _IOLBF, 0); // 设置printf的缓冲区大小
 
     int ret = 0;
@@ -43,10 +59,10 @@ int main(int argc, char *argv[])
         goto hccltesterr2;
     }
 
-    #ifndef MPI_SUPPORT
+#ifndef MPI_SUPPORT
     // 初始化HcclCommunicater
     hccl_test->InitCommunicater();
-    #endif
+#endif
 
     // 查找本host上的所有MPI拉起的进程
     ret = hccl_test->GetMpiProc();
@@ -99,9 +115,9 @@ hccltesterr2:
     // 删除构造器
     DeleteOpbasePtr(hccl_test);
 hccltesterr3:
-    #ifdef MPI_SUPPORT
+#ifdef MPI_SUPPORT
     // 释放MPI所用资源
     MPI_Finalize();
-    #endif
+#endif
     return ret;
 }

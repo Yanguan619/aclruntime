@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <stdio.h>
 #include <math.h>
 #include <unistd.h>
@@ -50,11 +66,13 @@ int HcclOpBaseReducescatterTest::InitBufVal()
     } else {
         for (int i = 0; i < rank_size; ++i)
         {
-            HcclHostBufInit(((char*)host_buf + i * malloc_kSize), data->count, dtype, i + 1); // + i * malloc_kSize 跳到下一块内存中，写数据
+            // + i * malloc_kSize 跳到下一块内存中，写数据
+            HcclHostBufInit(((char*)host_buf + i * malloc_kSize), data->count, dtype, i + 1);
         }
     }
 
-    ACLCHECK(aclrtMemcpy((void*)send_buff, malloc_kSize * rank_size, (void*)host_buf, malloc_kSize * rank_size, ACL_MEMCPY_HOST_TO_DEVICE));
+    ACLCHECK(aclrtMemcpy((void*)send_buff, malloc_kSize * rank_size,
+        (void*)host_buf, malloc_kSize * rank_size, ACL_MEMCPY_HOST_TO_DEVICE));
 
 
     // 初始化校验内存
@@ -71,7 +89,8 @@ int HcclOpBaseReducescatterTest::CheckBufResult()
 {
     // 获取输出内存
     ACLCHECK(aclrtMallocHost((void**)&recv_buff_temp, malloc_kSize));
-    ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize, (void*)recv_buff, malloc_kSize, ACL_MEMCPY_DEVICE_TO_HOST));
+    ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize,
+        (void*)recv_buff, malloc_kSize, ACL_MEMCPY_DEVICE_TO_HOST));
 
     int ret = 0;
     switch (dtype) {
@@ -140,13 +159,15 @@ int HcclOpBaseReducescatterTest::HcclOpBaseTestMain() // 主函数
 
     // 执行集合通信操作
     for (int j = 0; j < warmup_iters; ++j) {
-        HCCLCHECK(HcclReduceScatter((void *)send_buff, (void*)recv_buff, data->count, (HcclDataType)dtype, (HcclReduceOp)op_type, hccl_comm, stream));
+        HCCLCHECK(HcclReduceScatter((void *)send_buff, (void*)recv_buff, data->count,
+            (HcclDataType)dtype, (HcclReduceOp)op_type, hccl_comm, stream));
     }
 
     ACLCHECK(aclrtRecordEvent(start_event, stream));
 
     for (int i = 0; i < iters; ++i) {
-        HCCLCHECK(HcclReduceScatter((void *)send_buff, (void*)recv_buff, data->count, (HcclDataType)dtype, (HcclReduceOp)op_type, hccl_comm, stream));
+        HCCLCHECK(HcclReduceScatter((void *)send_buff, (void*)recv_buff, data->count,
+            (HcclDataType)dtype, (HcclReduceOp)op_type, hccl_comm, stream));
     }
     // 等待stream中集合通信任务执行完成
     ACLCHECK(aclrtRecordEvent(end_event, stream));

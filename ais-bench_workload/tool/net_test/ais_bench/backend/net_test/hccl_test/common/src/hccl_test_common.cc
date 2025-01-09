@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <string.h>
 #include <getopt.h>
 #include <stdlib.h>
@@ -13,19 +29,22 @@
 HcclReduceOp test_ops[HCCL_REDUCE_RESERVED] = {HCCL_REDUCE_SUM, HCCL_REDUCE_PROD, HCCL_REDUCE_MAX, HCCL_REDUCE_MIN};
 const char *test_opnames[HCCL_REDUCE_RESERVED] = {"sum", "prod", "max", "min"};
 
-HcclDataType test_types[HCCL_DATA_TYPE_RESERVED] = {HCCL_DATA_TYPE_INT8,    /**< int8 */
-                                        HCCL_DATA_TYPE_INT16,   /**< int16 */
-                                        HCCL_DATA_TYPE_INT32,   /**< int32 */
-                                        HCCL_DATA_TYPE_FP16,    /**< fp16 */
-                                        HCCL_DATA_TYPE_FP32,    /**< fp32 */
-                                        HCCL_DATA_TYPE_INT64,   /**< int64 */
-                                        HCCL_DATA_TYPE_UINT64,  /**< uint64 */
-                                        HCCL_DATA_TYPE_UINT8,   /**< uint8 */
-                                        HCCL_DATA_TYPE_UINT16,  /**< uint16 */
-                                        HCCL_DATA_TYPE_UINT32,  /**< uint32 */
-                                        HCCL_DATA_TYPE_FP64,    /**< fp64 */
-                                        HCCL_DATA_TYPE_BFP16};
-const char *test_typenames[HCCL_DATA_TYPE_RESERVED] = {"int8", "int16", "int", "fp16", "fp32", "int64", "uint64", "uint8", "uint16", "uint32", "fp64", "bfp16"};
+HcclDataType test_types[HCCL_DATA_TYPE_RESERVED] = {
+    HCCL_DATA_TYPE_INT8,    /**< int8 */
+    HCCL_DATA_TYPE_INT16,   /**< int16 */
+    HCCL_DATA_TYPE_INT32,   /**< int32 */
+    HCCL_DATA_TYPE_FP16,    /**< fp16 */
+    HCCL_DATA_TYPE_FP32,    /**< fp32 */
+    HCCL_DATA_TYPE_INT64,   /**< int64 */
+    HCCL_DATA_TYPE_UINT64,  /**< uint64 */
+    HCCL_DATA_TYPE_UINT8,   /**< uint8 */
+    HCCL_DATA_TYPE_UINT16,  /**< uint16 */
+    HCCL_DATA_TYPE_UINT32,  /**< uint32 */
+    HCCL_DATA_TYPE_FP64,    /**< fp64 */
+    HCCL_DATA_TYPE_BFP16};    /**< bfp16 */
+
+const char *test_typenames[HCCL_DATA_TYPE_RESERVED] = {"int8", "int16", "int", "fp16", "fp32", "int64", "uint64",
+    "uint8", "uint16", "uint32", "fp64", "bfp16"};
 
 int GetHcclOpFromStr (char *str)
 {
@@ -79,20 +98,20 @@ static long ParseSize(const char *value)
     size = strtol(value, &size_lit, 0);
     if (strlen(size_lit) == 1) {
         switch (*size_lit) {
-        case 'G':
-        case 'g':
-            units = 1024*1024*1024;
-            break;
-        case 'M':
-        case 'm':
-            units = 1024*1024;
-            break;
-        case 'K':
-        case 'k':
-            units = 1024;
-            break;
-        default:
-            return -1;
+            case 'G':
+            case 'g':
+                units = 1024*1024*1024;
+                break;
+            case 'M':
+            case 'm':
+                units = 1024*1024;
+                break;
+            case 'K':
+            case 'k':
+                units = 1024;
+                break;
+            default:
+                return -1;
         }
     } else if (strlen(size_lit) == 0) {
         units = 1;
@@ -306,7 +325,8 @@ int HcclTest::CheckCmdLine()
     }
 
     if (hccl_root >= rank_size || hccl_root < 0) { // 如果指定的root rank大于等于rank_size
-        ERROR("[-r,--root <root>] is invalid, root rank must be greater than or equal to 0 and less than or equal to %d.", rank_size - 1);
+        ERROR("[-r,--root <root>] is invalid, root rank must be greater than or equal to 0 \
+            and less than or equal to %d.", rank_size - 1);
         return -1;
     }
 
@@ -321,11 +341,12 @@ int HcclTest::CheckCmdLine()
     }
 
     if (npus < 1 || npus > dev_count) {
-        ERROR("[-p,--npus <npus used for one node>] is invalid, npus must be greater than or equal to 1 and less than or equal to %d.", dev_count);
+        ERROR("[-p,--npus <npus used for one node>] is invalid, npus must be greater than \
+            or equal to 1 and less than or equal to %d.", dev_count);
         return -1;
     }
 
-    #ifndef MPI_SUPPORT
+#ifndef MPI_SUPPORT
     if (server_ip == "") {
         ERROR("[-a,--server_ip <ip of root rank>] is invalid.");
         return -1;
@@ -338,7 +359,7 @@ int HcclTest::CheckCmdLine()
         ERROR("Rank_id shouldn't be larger than rank_size.");
         return -1;
     }
-    #endif
+#endif
 
     return 0;
 }
@@ -355,10 +376,12 @@ int HcclTest::GetEnvResource()
         // 开启profiling
         std::string prof_path = "/var/log/npu/profiling";
         aclprofInit(prof_path.c_str(), prof_path.size());
-        uint32_t profSwitch = ACL_PROF_ACL_API | ACL_PROF_TASK_TIME | ACL_PROF_AICORE_METRICS | ACL_PROF_AICPU | ACL_PROF_HCCL_TRACE | ACL_PROF_MSPROFTX | ACL_PROF_RUNTIME_API;
+        uint32_t profSwitch = ACL_PROF_ACL_API | ACL_PROF_TASK_TIME | ACL_PROF_AICORE_METRICS | ACL_PROF_AICPU | \
+            ACL_PROF_HCCL_TRACE | ACL_PROF_MSPROFTX | ACL_PROF_RUNTIME_API;
         uint32_t deviceIdList = dev_id;
         int devNum = 1;
-        profiling_config = aclprofCreateConfig(&deviceIdList, devNum, ACL_AICORE_PIPE_UTILIZATION, nullptr, profSwitch);
+        profiling_config = aclprofCreateConfig(&deviceIdList, devNum, ACL_AICORE_PIPE_UTILIZATION,
+            nullptr, profSwitch);
         ACLCHECK(aclprofStart(profiling_config));
     }
 
@@ -415,7 +438,7 @@ int HcclTest::ParseOpt(int opt)
         case 'p':
             npus = StrtolAlldigit(optarg);
             break;
-        #ifndef MPI_SUPPORT
+#ifndef MPI_SUPPORT
         case 'a': // serverIP
             server_ip = std::string(optarg);
             break;
@@ -428,7 +451,7 @@ int HcclTest::ParseOpt(int opt)
         case 'k': // rankID
             rank_id = StrtolAlldigit(optarg);
             break;
-        #endif
+#endif
         case 'h':
             PrintHelp();
             return 1;
@@ -447,13 +470,13 @@ int HcclTest::ParseCmdLine(int argc, char* argv[])
     int ret = 0;
     long parsed;
 
-    #ifdef MPI_SUPPORT
+#ifdef MPI_SUPPORT
     std::string optString = "o:d:b:e:i:f:r:n:w:c:p:h";
-    #endif
+#endif
 
-    #ifndef MPI_SUPPORT
+#ifndef MPI_SUPPORT
     std::string optString = "o:d:b:e:i:f:r:n:w:c:p:a:g:j:k:h"; // serverIP, serverPort, rankSize, rankID
-    #endif
+#endif
 
     while (-1 != (opt = getopt_long(argc, argv, optString.c_str(), longopts, &longindex))) {
         ret = ParseOpt(opt);
@@ -493,16 +516,16 @@ int HcclTest::getAviDevs(const char* devs, std::vector<int>& dev_ids)
 
 int HcclTest::GetMpiProc()
 {
-    #ifdef MPI_SUPPORT
+#ifdef MPI_SUPPORT
     // 获取当前进程在所属进程组的编号
     MPI_Comm_size(MPI_COMM_WORLD, &proc_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &proc_rank);
-    #endif
-    #ifndef MPI_SUPPORT
+#endif
+#ifndef MPI_SUPPORT
     // 获取当前进程在所属进程组的编号
     proc_size = rank_size;
     proc_rank = rank_id;
-    #endif
+#endif
 
     ACLCHECK(aclrtGetDeviceCount(&dev_count));
 
@@ -510,10 +533,10 @@ int HcclTest::GetMpiProc()
         npus = dev_count;
     }
 
-    #ifdef MPI_SUPPORT
+#ifdef MPI_SUPPORT
     rank_id = proc_rank;
     rank_size = proc_size;
-    #endif
+#endif
 
     const char* devs = getenv("HCCL_TEST_USE_DEVS");
     if (devs != NULL) {
@@ -572,23 +595,24 @@ int HcclTest::InitHcclComm()
 
     // 在root_rank获取root_info
     if (rank_id == root_rank) {
-        INFO("The minbytes is %llu, maxbytes is %llu, iters is %d, warmup_iters is %d.", data->minBytes, data->maxBytes, iters, warmup_iters);
+        INFO("The minbytes is %llu, maxbytes is %llu, iters is %d, warmup_iters is %d.",
+            data->minBytes, data->maxBytes, iters, warmup_iters);
         HCCLROOTRANKCHECK(HcclGetRootInfo(&comm_id));
     }
 
-    #ifdef MPI_SUPPORT
+#ifdef MPI_SUPPORT
     // 将root_info广播到通信域内的其他rank
     MPI_Bcast(&comm_id, HCCL_ROOT_INFO_BYTES, MPI_CHAR, root_rank, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
-    #endif
+#endif
 
-    #ifndef MPI_SUPPORT
+#ifndef MPI_SUPPORT
     ret = communicater->SynchronizeRootInfo(&comm_id, HCCL_ROOT_INFO_BYTES);
     if (ret != 0) {
         ERROR("Rank: %d run synchronize root info failed!", rank_id);
         return ret;
     }
-    #endif
+#endif
 
     std::string rootInfoContent = "";
     for (int i = 0; i < HCCL_ROOT_INFO_BYTES; ++i) {

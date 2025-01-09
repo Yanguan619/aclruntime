@@ -462,10 +462,10 @@ bool Utils::IsDymShapeValid(const std::string& str)
     std::vector<std::string> shapeValues = SplitStringByComma(str);
     if (shapeValues.size() == 0 || shapeValues.size() > 6) return false;
     for (std::string value : shapeValues) {
-        if (value.empty()) return false;
+        if (value.empty() || value.size() > 4) return false;
         if (value[0] < '1' || value[0] > '9') return false;
         for (size_t i = 1; i < value.size(); ++i) {
-            if (value[i] < '0' || value[i] > 9) return false;
+            if (value[i] < '0' || value[i] > '9') return false;
         }
     }
     return true;

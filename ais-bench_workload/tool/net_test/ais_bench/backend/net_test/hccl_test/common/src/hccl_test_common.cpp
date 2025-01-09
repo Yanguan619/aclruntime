@@ -545,8 +545,7 @@ int HcclTest::GetMpiProc()
         std::vector<int> dev_ids;
         int ret = getAviDevs(devs, dev_ids);
 
-        int local_rank;
-        local_rank = proc_rank % npus;
+        int local_rank = proc_rank % npus;
         for (int i = 0; i < dev_ids.size(); i++) {
             if (local_rank == i) {
                 dev_id = dev_ids[i];

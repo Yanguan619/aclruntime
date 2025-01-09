@@ -53,6 +53,8 @@ class MultiProcessRunner:
 
         if self.task_failed:
             raise RuntimeError("multiprocess runner exec failed!")
+        
+        
     def _run_map(self):
         process_count = len(self.args_dict_list)
         with Pool(processes=process_count) as pool:

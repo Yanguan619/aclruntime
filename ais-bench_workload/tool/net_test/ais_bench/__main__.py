@@ -23,11 +23,10 @@ def file_context_verify(file_path):
     try:
         ast.parse(content)
     except SyntaxError as e:
-        raise ValueError(f"The file contains syntax errors:{e}")
+        raise ValueError("The file contains syntax errors") from e
     return content
 
 
 cur_path = os.path.dirname(os.path.realpath(__file__))
-file_path = os.path.join(cur_path, "net_test/__main__.py")
-verified_content = file_context_verify(file_path)
+verified_content = file_context_verify(os.path.join(cur_path, "net_test/__main__.py"))
 exec(verified_content)

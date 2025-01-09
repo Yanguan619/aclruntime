@@ -28,7 +28,7 @@ def _check_str_length(s: str, min_len: int = 0, max_len: int = LengthLimit.MAX_U
 
 
 def check_int_string(x: str, x_min: int = 0, x_max: int = IntLimit.UINT64_MAX):
-    _check_str_length(x, min_len=LengthLimit.MIN_UINT_STR_LENGTH, max_len=LengthLimit.MAX_UINT64_STR_LENGTH)
+    x = _check_str_length(x, min_len=LengthLimit.MIN_UINT_STR_LENGTH, max_len=LengthLimit.MAX_UINT64_STR_LENGTH)
     if not x.isdigit():
         raise ValueError(f"Input x is an invalid positive int value")
 
@@ -67,8 +67,8 @@ def check_bytes_format(value: str):
         raise ValueError("The format of bytes_string is illegal!")
 
     value_int = value[:-1]
-    check_positive_int_string(value_int)
-    return value_int
+    value_int = check_positive_int_string(value_int)
+    return str(value_int)
 
 
 def check_linux_username(value: str):

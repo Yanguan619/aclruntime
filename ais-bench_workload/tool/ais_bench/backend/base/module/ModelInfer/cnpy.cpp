@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,14 +85,14 @@ void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape
     }
     size_t res = fread(buffer, sizeof(char), 11, fp);
     if (res != 11) { // 11 means buffer size
-        throw std::runtime_error("ParseNpyHeader: failed fread");
+        throw std::runtime_error("Parse npy header: failed fread");
     }
     std::string header = fgets(buffer, 256, fp);
     if (header.size() == 0) {
         throw std::runtime_error("npy header is empty");
     }
     if (header[header.size() - 1] != '\n') {
-        throw std::runtime_error("ParseNpyHeader: the ending of header should be \n.");
+        throw std::runtime_error("Parse npy header: the ending of header should be \n.");
     }
 
     size_t loc1;
@@ -100,7 +100,7 @@ void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape
 
     loc1 = header.find("fortran_order");
     if (loc1 == std::string::npos) {
-        throw std::runtime_error("ParseNpyHeader: failed to find header keyword : 'fortranOrder'");
+        throw std::runtime_error("Parse npy header: failed to find header keyword : 'fortranOrder'");
     }
     loc1 += 16; // 16 menas offset
     fortranOrder = (header.substr(loc1, 4) == "True" ? true :false); // 4 means length of "True"
@@ -108,13 +108,13 @@ void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape
     loc1 = header.find("(");
     loc2 = header.find(")");
     if (loc1 == std::string::npos || loc2 == std::string::npos) {
-        throw std::runtime_error("ParseNpyHeader: failed to find header keyword: '(' or ')'");
+        throw std::runtime_error("Parse npy header: failed to find header keyword: '(' or ')'");
     }
     std::regex numRegex("[0-9][0-9]*");
     std::smatch sm;
     shape.clear();
 
-    if ( loc2 <= loc1) {
+    if (loc2 <= loc1) {
         throw std::runtime_error("')' is not bebind '(' in npy file header");
     }
 
@@ -126,17 +126,21 @@ void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape
 
     loc1 = header.find("descr");
     if (loc1 == std::string::npos) {
-        throw std::runtime_error("ParseNpyHeader: failed to find header keyword : 'descr'");
+        throw std::runtime_error("Parse npy header: failed to find header keyword : 'descr'");
     }
     loc1 += 9; // 9 menas offset
     bool littleEndian = (header[loc1] == '<' || header[loc1] == '|' ? true : false);
     if (!littleEndian) {
-        throw std::runtime_error("ParseNpyHeader: should be little endian.");
+        throw std::runtime_error("Parse npy header: should be little endian.");
     }
 
     std::string strWs = header.substr(loc1 + 2);
     loc2 = strWs.find("'");
-    wordSize = atoi(strWs.substr(0, loc2).c_str());
+    int tempWordSize = atoi(strWs.substr(0, loc2).c_str());
+    if (tempWordSize < 0) {
+        throw std::runtime_error("Parse npy header: invalid word size in header.");
+    }
+    wordSize = static_cast<size_t>(tempWordSize);
 }
 
 cnpy::NpyArray LoadNpyFile(FILE *fp)
@@ -146,30 +150,34 @@ cnpy::NpyArray LoadNpyFile(FILE *fp)
     bool fortranOrder;
     cnpy::ParseNpyHeader(fp, wordSize, shape, fortranOrder);
     if (wordSize > UPPER_BOUND_FILE) {
-        throw std::runtime_error("LoadNpyFile: file size greater than upper bound");
+        throw std::runtime_error("Load npy file: file size greater than upper bound");
     }
 
     cnpy::NpyArray arr(shape, wordSize, fortranOrder);
     size_t nread = fread(arr.Data<char>(), 1, arr.NumBytes(), fp);
     if (nread != arr.NumBytes()) {
-        throw std::runtime_error("LoadNpyFile: failed fread");
+        throw std::runtime_error("Load npy file: failed fread");
     }
     return arr;
 }
 
 cnpy::NpyArray cnpy::NpyLoad(std::string fname)
 {
+    if (!File::CheckFileBeforeRead(fname, FileType::NUMPY)) {
+        throw std::runtime_error("Load npy file: fname is illegal" + fname);
+    }
+
     FILE *fp = fopen(fname.c_str(), "rb");
 
     if (!fp) {
-        throw std::runtime_error("NpyLoad: Unable to open file" + fname);
+        throw std::runtime_error("Load npy file: Unable to open file" + fname);
     }
 
     NpyArray arr = LoadNpyFile(fp);
 
     int ret = fclose(fp);
     if (ret != RET_SUCCESS) {
-        throw std::runtime_error("NpyLoad: Unable to close file" + fname);
+        throw std::runtime_error("Load npy file: Unable to close file" + fname);
     }
     return arr;
 }
@@ -183,10 +191,10 @@ cnpy::NpyArray cnpy::BinLoad(std::string fname)
     std::size_t size = 0;
     file.seekg(0, std::ios::end);
     try {
-        size = file.tellg();
+        size = static_cast<std::size_t>(file.tellg());
     } catch (exception &e) {
         file.close();
-        throw std::runtime_error("BinLoad: file size out of range");
+        throw std::runtime_error("Load bin file: file size out of range");
     }
 
     file.seekg(0, std::ios::beg);
@@ -196,7 +204,7 @@ cnpy::NpyArray cnpy::BinLoad(std::string fname)
         arr.dataHolder = std::make_shared<std::vector<char>>(size);
     } catch (exception &e) {
         file.close();
-        throw std::runtime_error("BinLoad: make dataHolder failed");
+        throw std::runtime_error("Load bin file: make dataHolder failed");
     }
 
     file.read(arr.dataHolder->data(), size);

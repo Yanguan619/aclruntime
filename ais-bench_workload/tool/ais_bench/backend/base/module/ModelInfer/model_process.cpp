@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,9 @@ ModelProcess::ModelProcess()
     input_(nullptr),
     output_(nullptr),
     numInputs_(0),
-    numOutputs_(0)
+    numOutputs_(0),
+    reuseOutput_(false),
+    g_dymindex(0)
 {
     str2aclAippInputFormat["YUV420SP_U8"] = ACL_YUV420SP_U8;
     str2aclAippInputFormat["XRGB8888_U8"] = ACL_XRGB8888_U8;
@@ -284,7 +286,7 @@ Result ModelProcess::SetDynamicShape(
             fflush(stdout);
             return FAILED;
         }
-	    inputDesc = aclCreateTensorDesc(ACL_FLOAT, dims_num[i], arr, ACL_FORMAT_NCHW);
+        inputDesc = aclCreateTensorDesc(ACL_FLOAT, dims_num[i], arr, ACL_FORMAT_NCHW);
         ret = aclmdlSetDatasetTensorDesc(input_, inputDesc, i);
         if (ret != ACL_SUCCESS) {
             ACLERR_LOG(aclGetRecentErrMsg());
@@ -599,7 +601,7 @@ Result ModelProcess::PrintDesc()
     if (batch_info.batchCount != 0) {
         DEBUG_LOG("DynamicBatch:");
         for (size_t i = 0; i < batch_info.batchCount; i++) {
-            PROMPT_MSG("%ld ", batch_info.batch[i]);
+            PROMPT_MSG("%lu ", batch_info.batch[i]);
         }
         PROMPT_MSG("\n");
     }
@@ -613,7 +615,7 @@ Result ModelProcess::PrintDesc()
     if (dynamicHW.hwCount != 0) {
         DEBUG_LOG("DynamicHW:");
         for (size_t i = 0; i < dynamicHW.hwCount; i++) {
-            PROMPT_MSG("%ld,%ld ", dynamicHW.hw[i][0], dynamicHW.hw[i][1]);
+            PROMPT_MSG("%lu,%lu ", dynamicHW.hw[i][0], dynamicHW.hw[i][1]);
         }
         PROMPT_MSG("\n");
     }
@@ -690,7 +692,7 @@ Result ModelProcess::UpdateInputsReuse(const std::vector<int> &inOutRelation)
         aclError ret;
         if (tmpRelation[i] < 0) {
             continue;
-        } else if (tmpRelation[i] < outputsNum) {
+        } else if (tmpRelation[i] < static_cast<int>(outputsNum)) {
             aclDataBuffer* tmpInputData = aclmdlGetDatasetBuffer(input_, i);
             aclDataBuffer* tmpOutputData = aclmdlGetDatasetBuffer(output_, tmpRelation[i]);
             if (aclGetDataBufferSizeV2(tmpInputData) != aclGetDataBufferSizeV2(tmpOutputData)
@@ -743,7 +745,7 @@ Result ModelProcess::UpdateInputsMemcpy(const std::vector<int> &inOutRelation)
         aclError ret;
         if (tmpRelation[i] < 0) {
             continue;
-        } else if (tmpRelation[i] < outputsNum) {
+        } else if (tmpRelation[i] < static_cast<int>(outputsNum)) {
             aclDataBuffer* tmpInputData = aclmdlGetDatasetBuffer(input_, i);
             aclDataBuffer* tmpOutputData = aclmdlGetDatasetBuffer(output_, tmpRelation[i]);
             if (aclGetDataBufferSizeV2(tmpInputData) > aclGetDataBufferSizeV2(tmpOutputData)) {
@@ -933,7 +935,7 @@ Result ModelProcess::CreateOutput()
     for (size_t i = 0; i < outputNum; ++i) {
         size_t buffer_size = 0;
         if (g_output_size.empty() == false) {
-            buffer_size = g_output_size[i];
+            buffer_size = static_cast<size_t>(g_output_size[i]);
         } else {
             buffer_size = aclmdlGetOutputSizeByIndex(modelDesc_, i);
         }
@@ -1276,10 +1278,10 @@ size_t ModelProcess::GetOutTensorLen(size_t i, bool is_dymshape)
     size_t len;
     GetMaxBatchSize(maxBatchSize);
     if (is_dymshape) {
-	    aclTensorDesc *outputDesc = aclmdlGetDatasetTensorDesc(output_, i);
-	    len = aclGetTensorDescSize(outputDesc);
+        aclTensorDesc *outputDesc = aclmdlGetDatasetTensorDesc(output_, i);
+        len = aclGetTensorDescSize(outputDesc);
     } else {
-	    len = aclGetDataBufferSizeV2(dataBuffer);
+        len = aclGetDataBufferSizeV2(dataBuffer);
     }
     return len;
 }
@@ -1347,7 +1349,7 @@ int ModelProcess::CheckDymAIPPInputExist()
             dataNeedDynamicAipp.push_back(index);
         }
     }
-    int aippNum = dataNeedDynamicAipp.size();
+    int aippNum = static_cast<int>(dataNeedDynamicAipp.size());
     return aippNum;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2024 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ static std::vector<std::string> SplitPath(const std::string &path)
     return tokens;
 }
 
-std::string File::GetAbsPath(const std::string &originPath) 
+std::string File::GetAbsPath(const std::string &originPath)
 {
     std::string fullPath = GetFullPath(originPath);
     if (fullPath.empty()) {
@@ -150,7 +150,7 @@ bool File::IsDirReadable(const std::string& path)
     return (access(path.c_str(), R_OK) == 0) && (access(path.c_str(), X_OK) == 0);
 }
 
-bool File::IsPathExist(const std::string& path) 
+bool File::IsPathExist(const std::string& path)
 {
     struct stat buffer;
     return (stat(path.c_str(), &buffer) == 0);
@@ -210,7 +210,7 @@ bool File::IsRegularFile(const std::string& path)
     return false;
 }
 
-bool File::IsDir(const std::string& path) 
+bool File::IsDir(const std::string& path)
 {
     struct stat buffer;
     if (stat(path.c_str(), &buffer) == 0) {
@@ -347,7 +347,6 @@ bool File::DeleteFile(const std::string &path)
 static bool CreateDirAux(const std::string& path, bool recursion, mode_t mode)
 {
     std::string parent = File::GetParentDir(path);
-
     if (!File::IsPathExist(parent)) {
         if (!recursion) {
             ERROR_LOG("dir path not exist");

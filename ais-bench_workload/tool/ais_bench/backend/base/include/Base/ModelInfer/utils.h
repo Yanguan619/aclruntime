@@ -87,6 +87,7 @@ public:
     static bool TailContain(const std::string& str, const std::string& tail);
     static bool IsValidInteger(const std::string& str);
     static bool IsLegalDymString(const std::string& str);
+    static uint8_t CreateRandomNum();
 };
 
 #endif

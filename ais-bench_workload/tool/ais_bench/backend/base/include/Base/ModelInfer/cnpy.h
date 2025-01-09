@@ -46,7 +46,7 @@ struct NpyArray {
     NpyArray(const std::vector<size_t> &shape, size_t wordSize, bool fortranOrder)
         : shape(shape), wordSize(wordSize), fortranOrder(fortranOrder), numVals(1)
     {
-        numVals = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<size_t>());
+        numVals = std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1), std::multiplies<size_t>());
         dataHolder = std::make_shared<std::vector<char>>(numVals * wordSize);
     }
 
@@ -114,6 +114,9 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
     if (data == nullptr) {
         throw std::runtime_error("NpySave: origin data is null");
     }
+    if (!File::CheckFileBeforeCreateOrWrite(fname)) {
+        throw std::runtime_error("NpySave: invalid file path");
+    }
     if (mode == "w") {
         if (access(fname.c_str(), F_OK) == 0 && remove(fname.c_str()) != 0) {
             ERROR_LOG("existing file %s cannot be removed", fname.c_str());
@@ -154,7 +157,7 @@ void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, 
         trueDataShape = shape;
     }
     std::vector<char> header = CreateNpyHeader<T>(trueDataShape);
-    size_t nels = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<size_t>());
+    size_t nels = std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1), std::multiplies<size_t>());
     if (fp == nullptr) {
         throw std::runtime_error("NpySave: file stream is null");
     }
@@ -201,7 +204,7 @@ template <typename T> std::vector<char> CreateNpyHeader(const std::vector<size_t
         dict += ",";
     }
     dict += "), }";
-    int remainder = 16 - (10 + dict.size()) % 16;
+    size_t remainder = 16 - (10 + dict.size()) % 16;
     dict.insert(dict.end(), remainder, ' ');
     dict.back() = '\n';
 

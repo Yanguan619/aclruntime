@@ -23,13 +23,13 @@
 #include <cmath>
 #include <cstdint>
 #include <hccl/hccl_types.h>
-#include "hccl_reduce_rootinfo_test.h"
+#include "hccl_reducescatterv_rootinfo_test.h"
 #include "hccl_opbase_rootinfo_base.h"
 #include "hccl_check_buf_init.h"
 using namespace hccl;
 HcclTest* InitOpbasePtr(HcclTest* opbase)
 {
-    opbase = new HcclOpBaseReduceTest();
+    opbase = new HcclOpBaseReducescattervTest();
 
     return opbase;
 }
@@ -42,47 +42,53 @@ void DeleteOpbasePtr(HcclTest* opbase)
 }
 
 namespace hccl {
-HcclOpBaseReduceTest::HcclOpBaseReduceTest() : HcclOpBaseTest()
+HcclOpBaseReducescattervTest::HcclOpBaseReducescattervTest() : HcclOpBaseTest()
 {
-
     host_buf = nullptr;
     recv_buff_temp = nullptr;
     check_buf = nullptr;
     send_buff = nullptr;
     recv_buff = nullptr;
+    send_counts = nullptr;
+    send_disp = nullptr;
 }
 
-HcclOpBaseReduceTest::~HcclOpBaseReduceTest()
+HcclOpBaseReducescattervTest::~HcclOpBaseReducescattervTest()
 {
-
 }
 
-int HcclOpBaseReduceTest::InitBufVal()
+int HcclOpBaseReducescattervTest::InitBufVal()
 {
     // 初始化输入内存
-    ACLCHECK(aclrtMallocHost((void**)&host_buf, malloc_kSize));
-    HcclHostBufInit((char*)host_buf, data->count, dtype, val);
+    ACLCHECK(aclrtMallocHost((void**)&host_buf, malloc_kSize * rank_size));
+    if (op_type == HCCL_REDUCE_PROD || dtype == HCCL_DATA_TYPE_INT8) {
+        HcclHostBufInit((char*)host_buf, data->count * rank_size, dtype, val);
+    } else {
+        for (int i = 0; i < rank_size; ++i) {
+            // + i * malloc_kSize 跳到下一块内存中，写数据
+            HcclHostBufInit(((char*)host_buf + i * malloc_kSize), data->count, dtype, i + 1);
+        }
+    }
 
-    ACLCHECK(aclrtMemcpy((void*)send_buff, malloc_kSize, (void*)host_buf, malloc_kSize, ACL_MEMCPY_HOST_TO_DEVICE));
+    ACLCHECK(aclrtMemcpy((void*)send_buff, malloc_kSize * rank_size, (void*)host_buf,
+        malloc_kSize * rank_size, ACL_MEMCPY_HOST_TO_DEVICE));
 
     // 初始化校验内存
     ACLCHECK(aclrtMallocHost((void**)&check_buf, malloc_kSize));
-    if (rank_id == root_rank) {
+    if (op_type == HCCL_REDUCE_PROD || dtype == HCCL_DATA_TYPE_INT8) {
         HcclReduceCheckBufInit((char*)check_buf, data->count, dtype, op_type, val, rank_size);
+    } else {
+        HcclReduceCheckBufInit(check_buf, data->count, dtype, op_type, rank_id + 1, rank_size);
     }
     return 0;
 }
 
-int HcclOpBaseReduceTest::CheckBufResult()
+int HcclOpBaseReducescattervTest::CheckBufResult()
 {
-    // 获取输出内存
+    //获取输出内存
     ACLCHECK(aclrtMallocHost((void**)&recv_buff_temp, malloc_kSize));
     ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize, (void*)recv_buff,
         malloc_kSize, ACL_MEMCPY_DEVICE_TO_HOST));
-
-    if (rank_id != root_rank) {
-        return 0;
-    }
 
     int ret = 0;
     switch (dtype) {
@@ -114,16 +120,16 @@ int HcclOpBaseReduceTest::CheckBufResult()
     return 0;
 }
 
-int HcclOpBaseReduceTest::CalExecutionTime(float time)
+int HcclOpBaseReducescattervTest::CalExecutionTime(float time)
 {
-    double total_time_us = time * 1000;
-    double average_time_us = total_time_us / iters;
-    double algorithm_bandwith_GBytes_s = malloc_kSize / average_time_us * B_US_TO_GB_S;
+    double total_time_us              = time * 1000;
+    double average_time_us            = total_time_us / iters;
+    double algorithm_bandwith_GBytes_s = malloc_kSize * rank_size / average_time_us * B_US_TO_GB_S;
 
     return PrintExecutionTime(average_time_us, algorithm_bandwith_GBytes_s);
 }
 
-int HcclOpBaseReduceTest::DestoryCheckBuf()
+int HcclOpBaseReducescattervTest::DestoryCheckBuf()
 {
     ACLCHECK(aclrtFreeHost(host_buf));
     ACLCHECK(aclrtFreeHost(recv_buff_temp));
@@ -131,15 +137,16 @@ int HcclOpBaseReduceTest::DestoryCheckBuf()
     return 0;
 }
 
-int HcclOpBaseReduceTest::HcclOpBaseTestMain() // 主函数
+int HcclOpBaseReducescattervTest::HcclOpBaseTestMain() // 主函数
 {
     // 获取数据量和数据类型
     InitDataCount();
 
+    data->count = (data->count + rank_size - 1) / rank_size;
     malloc_kSize = data->count * data->typeSize;
 
     // 申请集合通信操作的内存
-    ACLCHECK(aclrtMalloc((void**)&send_buff, malloc_kSize, ACL_MEM_MALLOC_HUGE_FIRST));
+    ACLCHECK(aclrtMalloc((void**)&send_buff, malloc_kSize * rank_size, ACL_MEM_MALLOC_HUGE_FIRST));
     ACLCHECK(aclrtMalloc((void**)&recv_buff, malloc_kSize, ACL_MEM_MALLOC_HUGE_FIRST));
 
     IsDataOverflow();
@@ -148,18 +155,46 @@ int HcclOpBaseReduceTest::HcclOpBaseTestMain() // 主函数
         ACLCHECK(InitBufVal()); // 准备校验内存
     }
 
+    // 申请sendcounts和send_disp
+    auto send_counts = std::vector<u64>(rank_size, data->count);
+    auto send_disp = std::vector<u64>{0};
+    for (size_t i = 1; i < rank_size; ++i) {
+        send_disp.emplace_back(send_disp[i - 1] + send_counts[i - 1]);
+    }
+
     // 执行集合通信操作
     for (int j = 0; j < warmup_iters; ++j) {
-        HCCLCHECK(HcclReduce((void *)send_buff, (void*)recv_buff, data->count, (HcclDataType)dtype,
-            (HcclReduceOp)op_type, root_rank, hccl_comm, stream));
+        HCCLCHECK(
+            HcclReduceScatterV(
+                (void *)send_buff,
+                send_counts.data(),
+                send_disp.data(),
+                (void*)recv_buff,
+                data->count,
+                (HcclDataType)dtype,
+                (HcclReduceOp)op_type,
+                hccl_comm,
+                stream)
+        );
     }
 
     ACLCHECK(aclrtRecordEvent(start_event, stream));
 
     for (int i = 0; i < iters; ++i) {
-        HCCLCHECK(HcclReduce((void *)send_buff, (void*)recv_buff, data->count, (HcclDataType)dtype,
-            (HcclReduceOp)op_type, root_rank, hccl_comm, stream));
+        HCCLCHECK(
+            HcclReduceScatterV(
+                (void *)send_buff,
+                send_counts.data(),
+                send_disp.data(),
+                (void*)recv_buff,
+                data->count,
+                (HcclDataType)dtype,
+                (HcclReduceOp)op_type,
+                hccl_comm,
+                stream)
+        );
     }
+
     // 等待stream中集合通信任务执行完成
     ACLCHECK(aclrtRecordEvent(end_event, stream));
 

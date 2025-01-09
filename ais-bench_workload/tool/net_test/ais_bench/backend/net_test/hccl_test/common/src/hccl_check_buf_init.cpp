@@ -24,6 +24,9 @@
 #include "hccl_check_buf_init.h"
 #include <map>
 
+const double RESULT_PROCESSION = 0.001;
+const int BIT_SIZE_128 = 128;
+
 void HostBufInitFp32(void* dstBuf, u64 count, int val)
 {
     float* f_tmp = NULL;
@@ -39,7 +42,7 @@ void HostBufInitInt8(void* dstBuf, u64 count, int val)
     char* tmp = NULL;
     tmp = (char*)dstBuf;
     for (u64 j = 0; j < count; ++j) {
-        tmp[j] = val % 128;
+        tmp[j] = val % BIT_SIZE_128;
     }
     return;
 }
@@ -128,26 +131,26 @@ void ReduceCheckBufInitInt8(void* dstBuf, u64 count, int val, int op, int rank_s
     int n = 0;
     if (op == HCCL_REDUCE_SUM) {
         for (u64 j = 0; j < count; ++j) {
-            n = (val % 128) * rank_size;
-            if (n > 127) {
-                n = 127;
+            n = (val % BIT_SIZE_128) * rank_size;
+            if (n > BIT_SIZE_128 - 1) {
+                n = BIT_SIZE_128 - 1;
             }
             tmp[j] = n; // 大于128取127
         }
     } else if (op == HCCL_REDUCE_PROD) {
         for (u64 j = 0; j < count; ++j) {
-            n = ((int)pow(val % 128, rank_size)); // 大于128取127
-            if (n > 127) {
-                n = 127;
+            n = ((int)pow(val % BIT_SIZE_128, rank_size)); // 大于128取127
+            if (n > BIT_SIZE_128 - 1) {
+                n = BIT_SIZE_128 - 1;
             }
             tmp[j] = n; // 大于128取127
         }
     } else if (op == HCCL_REDUCE_MIN || op == HCCL_REDUCE_MAX) {
         for (u64 j = 0; j < count; ++j) {
-            if (val > 127) {
-                val = 127;
+            if (val > BIT_SIZE_128 - 1) {
+                val = BIT_SIZE_128 - 1;
             }
-            tmp[j] = val % 128;
+            tmp[j] = val % BIT_SIZE_128;
         }
     }
     return;
@@ -240,8 +243,7 @@ void ReduceCheckBufInitBfp16(void* dstBuf, u64 count, int val, int op, int rank_
         for (u64 j = 0; j < count; ++j) {
             f16_temp[j] = Fp32ToBf16(val * rank_size);
         }
-    }
-    else if (op == HCCL_REDUCE_PROD) {
+    } else if (op == HCCL_REDUCE_PROD) {
         for (u64 j = 0; j < count; ++j) {
             f16_temp[j] = Fp32ToBf16(pow(val, rank_size));
         }

@@ -46,7 +46,6 @@ void DeleteOpbasePtr(HcclTest* opbase)
 namespace hccl {
 HcclOpBaseAllgatherTest::HcclOpBaseAllgatherTest() : HcclOpBaseTest()
 {
-
     host_buf = nullptr;
     recv_buff_temp = nullptr;
     check_buf = nullptr;
@@ -56,7 +55,6 @@ HcclOpBaseAllgatherTest::HcclOpBaseAllgatherTest() : HcclOpBaseTest()
 
 HcclOpBaseAllgatherTest::~HcclOpBaseAllgatherTest()
 {
-
 }
 
 int HcclOpBaseAllgatherTest::InitBufVal()

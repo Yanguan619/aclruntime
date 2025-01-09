@@ -24,6 +24,12 @@
 #include <hccl/hccl_types.h>
 #include "hccl_opbase_rootinfo_base.h"
 
+const size_t RANK_SIZE_LIMIT_7 = 7;
+const size_t RANK_SIZE_LIMIT_16 = 16;
+const size_t RANK_SIZE_LIMIT_31 = 31;
+const size_t RANK_SIZE_LIMIT_63 = 63;
+const size_t RANK_SIZE_LIMIT_128 = 128;
+
 namespace hccl {
 HcclOpBaseTest::HcclOpBaseTest()
 {
@@ -36,7 +42,6 @@ HcclOpBaseTest::HcclOpBaseTest()
 
 HcclOpBaseTest::~HcclOpBaseTest()
 {
-
 }
 
 int HcclOpBaseTest::HcclOpBaseTestMain()
@@ -117,20 +122,20 @@ void HcclOpBaseTest::NoVerification()
 void HcclOpBaseTest::IsDataOverflow()
 {
     if (op_type == HCCL_REDUCE_PROD) {
-        if (dtype == HCCL_DATA_TYPE_FP16 && rank_size >= 16) {
+        if (dtype == HCCL_DATA_TYPE_FP16 && rank_size >= RANK_SIZE_LIMIT_16) {
             NoVerification();
         }
-        if (dtype == HCCL_DATA_TYPE_FP32 && rank_size >= 128) {
+        if (dtype == HCCL_DATA_TYPE_FP32 && rank_size >= RANK_SIZE_LIMIT_128) {
             NoVerification();
         }
-        if (dtype == HCCL_DATA_TYPE_INT8 && rank_size >= 7) {
+        if (dtype == HCCL_DATA_TYPE_INT8 && rank_size >= RANK_SIZE_LIMIT_7) {
             NoVerification();
         }
-        if (dtype == HCCL_DATA_TYPE_INT32 && rank_size >= 31) {
+        if (dtype == HCCL_DATA_TYPE_INT32 && rank_size >= RANK_SIZE_LIMIT_31) {
             NoVerification();
         }
     } else if (op_type == HCCL_REDUCE_SUM) {
-        if (dtype == HCCL_DATA_TYPE_INT8 && rank_size >= 63) {
+        if (dtype == HCCL_DATA_TYPE_INT8 && rank_size >= RANK_SIZE_LIMIT_63) {
             NoVerification();
         }
     }
@@ -177,9 +182,7 @@ int HcclOpBaseTest::PrintExecutionTime(double average_time_us, double algorithm_
     }
 #endif
 
-
-    if (rank_id == root_rank)
-    {
+    if (rank_id == root_rank) {
         bool result = true;
         for (int p = 0; p < rank_size; p++) {
             if (check_result[p] == false) {

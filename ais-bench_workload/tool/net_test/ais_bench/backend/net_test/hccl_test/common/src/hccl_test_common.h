@@ -79,6 +79,9 @@ const int SERVER_MAX_DEV_NUM = 8;
 
 namespace hccl {
 class HcclTest {
+private:
+    int SetDeviceSatMode();
+
 public:
     HcclTest();
     virtual ~HcclTest();
@@ -108,9 +111,6 @@ public:
     int GetEnvResource();
     int ReleaseEnvResource();
     int InitCommunicater();
-
-private:
-    int SetDeviceSatMode();
 
 public:
     std::shared_ptr<hccl::HcclCommunicater> communicater = nullptr;

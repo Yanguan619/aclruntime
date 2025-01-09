@@ -44,7 +44,6 @@ void DeleteOpbasePtr(HcclTest* opbase)
 namespace hccl {
 HcclOpBaseReducescatterTest::HcclOpBaseReducescatterTest() : HcclOpBaseTest()
 {
-
     host_buf = nullptr;
     recv_buff_temp = nullptr;
     check_buf = nullptr;
@@ -54,7 +53,6 @@ HcclOpBaseReducescatterTest::HcclOpBaseReducescatterTest() : HcclOpBaseTest()
 
 HcclOpBaseReducescatterTest::~HcclOpBaseReducescatterTest()
 {
-
 }
 
 int HcclOpBaseReducescatterTest::InitBufVal()
@@ -64,8 +62,7 @@ int HcclOpBaseReducescatterTest::InitBufVal()
     if (op_type == HCCL_REDUCE_PROD || dtype == HCCL_DATA_TYPE_INT8) {
         HcclHostBufInit((char*)host_buf, data->count * rank_size, dtype, val);
     } else {
-        for (int i = 0; i < rank_size; ++i)
-        {
+        for (int i = 0; i < rank_size; ++i) {
             // + i * malloc_kSize 跳到下一块内存中，写数据
             HcclHostBufInit(((char*)host_buf + i * malloc_kSize), data->count, dtype, i + 1);
         }
@@ -73,7 +70,6 @@ int HcclOpBaseReducescatterTest::InitBufVal()
 
     ACLCHECK(aclrtMemcpy((void*)send_buff, malloc_kSize * rank_size,
         (void*)host_buf, malloc_kSize * rank_size, ACL_MEMCPY_HOST_TO_DEVICE));
-
 
     // 初始化校验内存
     ACLCHECK(aclrtMallocHost((void**)&check_buf, malloc_kSize));

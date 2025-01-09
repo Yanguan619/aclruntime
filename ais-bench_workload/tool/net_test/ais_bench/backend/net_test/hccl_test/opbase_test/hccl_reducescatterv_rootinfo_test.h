@@ -24,8 +24,7 @@
 #include "hccl_opbase_rootinfo_base.h"
 #include "hccl_test_logger.h"
 
-namespace hccl
-{
+namespace hccl {
     HcclTest* InitOpbasePtr(HcclTest* opbase);
     void DeleteOpbasePtr(HcclTest* opbase);
 

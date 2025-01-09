@@ -54,7 +54,6 @@ HcclOpBaseScatterTest::HcclOpBaseScatterTest() : HcclOpBaseTest()
 
 HcclOpBaseScatterTest::~HcclOpBaseScatterTest()
 {
-
 }
 
 int HcclOpBaseScatterTest::InitBufVal()

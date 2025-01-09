@@ -28,7 +28,6 @@ HcclCommunicater::HcclCommunicater(
     const int rankID
 ): m_serverIP(serverIP), m_serverPort(serverPort), m_rankSize(rankSize), m_rankID(rankID)
 {
-
 }
 
 HcclCommunicater::~HcclCommunicater()
@@ -138,7 +137,6 @@ int HcclCommunicater::ClientRecv(
             DEBUG("rank: %d, client received from server success!", m_rankID);
             return 0;
         }
-
     }
     ERROR("Rank: %d, client received from server failed!", m_rankID);
     return -1;

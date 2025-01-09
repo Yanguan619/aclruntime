@@ -498,7 +498,6 @@ int HcclTest::ParseCmdLine(int argc, char* argv[])
 
 int HcclTest::getAviDevs(const char* devs, std::vector<int>& dev_ids)
 {
-
     std::string use_devs(devs);
     std::string pattern = ",";
     std::string::size_type pos;
@@ -622,7 +621,6 @@ int HcclTest::InitHcclComm()
         rootInfoContent = rootInfoContent + comm_id.internal[i];
     }
     DEBUG("rank: %d, received rootInfo is: %s", rank_id, rootInfoContent.c_str());
-
 
     // 初始化集合通信域
     HCCLCHECK(HcclCommInitRootInfo(rank_size, &comm_id, rank_id, &hccl_comm));

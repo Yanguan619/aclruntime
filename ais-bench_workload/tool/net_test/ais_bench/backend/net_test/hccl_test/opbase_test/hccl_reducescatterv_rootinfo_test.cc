@@ -44,7 +44,6 @@ void DeleteOpbasePtr(HcclTest* opbase)
 namespace hccl {
 HcclOpBaseReducescattervTest::HcclOpBaseReducescattervTest() : HcclOpBaseTest()
 {
-
     host_buf = nullptr;
     recv_buff_temp = nullptr;
     check_buf = nullptr;
@@ -56,7 +55,6 @@ HcclOpBaseReducescattervTest::HcclOpBaseReducescattervTest() : HcclOpBaseTest()
 
 HcclOpBaseReducescattervTest::~HcclOpBaseReducescattervTest()
 {
-
 }
 
 int HcclOpBaseReducescattervTest::InitBufVal()
@@ -74,7 +72,6 @@ int HcclOpBaseReducescattervTest::InitBufVal()
 
     ACLCHECK(aclrtMemcpy((void*)send_buff, malloc_kSize * rank_size, (void*)host_buf,
         malloc_kSize * rank_size, ACL_MEMCPY_HOST_TO_DEVICE));
-
 
     // 初始化校验内存
     ACLCHECK(aclrtMallocHost((void**)&check_buf, malloc_kSize));

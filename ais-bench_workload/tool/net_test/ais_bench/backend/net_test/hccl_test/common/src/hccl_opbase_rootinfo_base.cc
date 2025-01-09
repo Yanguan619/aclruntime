@@ -42,7 +42,6 @@ HcclOpBaseTest::HcclOpBaseTest()
 
 HcclOpBaseTest::~HcclOpBaseTest()
 {
-
 }
 
 int HcclOpBaseTest::HcclOpBaseTestMain()
@@ -182,7 +181,6 @@ int HcclOpBaseTest::PrintExecutionTime(double average_time_us, double algorithm_
         return ret;
     }
 #endif
-
 
     if (rank_id == root_rank) {
         bool result = true;

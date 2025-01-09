@@ -215,7 +215,7 @@ Result Utils::ReadBinFileToMemory(const std::string fileName, char *ptr, const s
     }
 
     binFile.seekg(0, binFile.end);
-    uint64_t binFileBufferLen = static_case<uint64_t>(binFile.tellg());
+    uint64_t binFileBufferLen = static_cast<uint64_t>(binFile.tellg());
     if (binFileBufferLen == 0) {
         ERROR_LOG("bin file is empty, filename is %s", fileName.c_str());
         binFile.close();

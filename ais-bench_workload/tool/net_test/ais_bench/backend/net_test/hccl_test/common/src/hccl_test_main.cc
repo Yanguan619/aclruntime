@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     // 构造执行器
     HcclTest *hccl_test = nullptr;
     hccl_test = InitOpbasePtr(hccl_test);
-    if(hccl_test == nullptr) {
+    if (hccl_test == nullptr) {
         ERROR("Init hccl executor failed.");
         ret = -1;
         goto hccltesterr3;
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
         // 启动--help
         ret = 0;
         goto hccltesterr2;
-    } else if(ret == -1) {
+    } else if (ret == -1) {
         // 入参解析失败
         ERROR("This is an error in parse cmd line.");
         goto hccltesterr2;

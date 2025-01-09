@@ -47,11 +47,10 @@ int HcclOpBaseReducescattervTest::InitBufVal()
 {
     // 初始化输入内存
     ACLCHECK(aclrtMallocHost((void**)&host_buf, malloc_kSize * rank_size));
-    if(op_type == HCCL_REDUCE_PROD || dtype == HCCL_DATA_TYPE_INT8) {
+    if (op_type == HCCL_REDUCE_PROD || dtype == HCCL_DATA_TYPE_INT8) {
         HcclHostBufInit((char*)host_buf, data->count * rank_size, dtype, val);
     } else {
-        for(int i = 0; i < rank_size; ++i)
-        {
+        for (int i = 0; i < rank_size; ++i) {
             HcclHostBufInit(((char*)host_buf + i * malloc_kSize), data->count, dtype, i + 1); // + i * malloc_kSize 跳到下一块内存中，写数据
         }
     }
@@ -61,7 +60,7 @@ int HcclOpBaseReducescattervTest::InitBufVal()
 
     // 初始化校验内存
     ACLCHECK(aclrtMallocHost((void**)&check_buf, malloc_kSize));
-    if(op_type == HCCL_REDUCE_PROD || dtype == HCCL_DATA_TYPE_INT8) {
+    if (op_type == HCCL_REDUCE_PROD || dtype == HCCL_DATA_TYPE_INT8) {
         HcclReduceCheckBufInit((char*)check_buf, data->count, dtype, op_type, val, rank_size);
     } else {
         HcclReduceCheckBufInit(check_buf, data->count, dtype, op_type, rank_id + 1, rank_size);
@@ -76,8 +75,7 @@ int HcclOpBaseReducescattervTest::CheckBufResult()
     ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize, (void*)recv_buff, malloc_kSize, ACL_MEMCPY_DEVICE_TO_HOST));
 
     int ret = 0;
-    switch(dtype)
-    {
+    switch (dtype) {
         case HCCL_DATA_TYPE_FP32:
             ret = CheckBufResultFloat((char*)recv_buff_temp, (char*)check_buf, data->count);
             break;
@@ -100,8 +98,7 @@ int HcclOpBaseReducescattervTest::CheckBufResult()
             ERROR("No match datatype.");
             break;
     }
-    if(ret != 0)
-    {
+    if (ret != 0) {
         check_err++;
     }
     return 0;
@@ -150,7 +147,7 @@ int HcclOpBaseReducescattervTest::HcclOpBaseTestMain() // 主函数
     }
 
     // 执行集合通信操作
-    for(int j = 0; j < warmup_iters; ++j) {
+    for (int j = 0; j < warmup_iters; ++j) {
         HCCLCHECK(
             HcclReduceScatterV(
                 (void *)send_buff,
@@ -168,7 +165,7 @@ int HcclOpBaseReducescattervTest::HcclOpBaseTestMain() // 主函数
 
     ACLCHECK(aclrtRecordEvent(start_event, stream));
 
-    for(int i = 0; i < iters; ++i) {
+    for (int i = 0; i < iters; ++i) {
         HCCLCHECK(
             HcclReduceScatterV(
                 (void *)send_buff,

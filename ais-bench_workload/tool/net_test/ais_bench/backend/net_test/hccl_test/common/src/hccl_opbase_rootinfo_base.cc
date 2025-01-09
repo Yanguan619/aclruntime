@@ -8,8 +8,7 @@
 #include <hccl/hccl_types.h>
 #include "hccl_opbase_rootinfo_base.h"
 
-namespace hccl
-{
+namespace hccl {
 HcclOpBaseTest::HcclOpBaseTest()
 {
     host_buf = nullptr;
@@ -31,8 +30,7 @@ int HcclOpBaseTest::HcclOpBaseTestMain()
 
 void HcclOpBaseTest::InitDataCount()
 {
-    switch(dtype)
-    {
+    switch (dtype) {
         case HCCL_DATA_TYPE_FP32:
             data->count = (data->dataSize + sizeof(float) - 1) / sizeof(float); // count向上取整
             data->typeSize = sizeof(float);
@@ -116,7 +114,7 @@ void HcclOpBaseTest::IsDataOverflow()
             NoVerification();
         }
     } else if (op_type == HCCL_REDUCE_SUM) {
-        if(dtype == HCCL_DATA_TYPE_INT8 && rank_size >= 63) {
+        if (dtype == HCCL_DATA_TYPE_INT8 && rank_size >= 63) {
             NoVerification();
         }
     }
@@ -128,11 +126,9 @@ int HcclOpBaseTest::PrintExecutionTime(double average_time_us, double algorithm_
 {
     setvbuf(stdout, NULL, _IOLBF, 0); // 设置printf的缓冲区大小
     // 不开启结果校验场景
-    if (check == 0)
-    {
+    if (check == 0) {
         if (rank_id == root_rank) {
-            if (print_header)
-            {
+            if (print_header) {
                 INFO("Test result without check is:");
                 LOG_ORIGIN(" %-15s | %-12s | %-18s | %s", data_size, aveg_time, alg_bandwidth, verification_result);
                 print_header = false;
@@ -144,8 +140,7 @@ int HcclOpBaseTest::PrintExecutionTime(double average_time_us, double algorithm_
 
     // 开启结果校验，部分rank结果校验失败场景
     bool check_result[rank_size];
-    if (check_err != 0)
-    {
+    if (check_err != 0) {
         check_result[rank_id] = false; // 结果校验失败
         ERROR("Rank id %d, check result failed.", rank_id);
     } else {
@@ -169,23 +164,19 @@ int HcclOpBaseTest::PrintExecutionTime(double average_time_us, double algorithm_
     if (rank_id == root_rank)
     {
         bool result = true;
-        for (int p = 0; p < rank_size; p++)
-        {
-            if (check_result[p] == false)
-            {
+        for (int p = 0; p < rank_size; p++) {
+            if (check_result[p] == false) {
                 result = false;
                 break;
             }
         }
-        if (print_header)
-        {
+        if (print_header) {
             INFO("Test result with check is:");
             LOG_ORIGIN(" %-15s | %-12s | %-18s | %s", data_size, aveg_time, alg_bandwidth, verification_result);
             print_header = false;
         }
 
-        if (!result)
-        {
+        if (!result) {
             LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | failed", data->dataSize, average_time_us, algorithm_bandwith_GBytes_s);
         } else {
             LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | success", data->dataSize, average_time_us, algorithm_bandwith_GBytes_s);

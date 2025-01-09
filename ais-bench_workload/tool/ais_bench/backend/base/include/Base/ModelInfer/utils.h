@@ -87,6 +87,8 @@ public:
     static bool TailContain(const std::string& str, const std::string& tail);
     static bool IsValidInteger(const std::string& str);
     static bool IsLegalDymString(const std::string& str);
+    static std::vector<std::string> SplitStringByComma(const std::string& str);
+    static bool IsDymShapeValid(const std::string& str);
 };
 
 #endif

@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import numpy as np
+
 from ais_bench.infer.interface import InferSession
+from ais_bench.infer.common.utils import logger_print
 
 
 def infer_pipeline_api_dymdims():
@@ -30,7 +32,7 @@ def infer_pipeline_api_dymdims():
     feeds_list = [feeds, feeds]
     # execute inference, inputs is ndarray list and outputs is ndarray list
     outputs = session.infer_pipeline(feeds_list, mode='dymdims')
-    print(f"outputs: {outputs}")
+    logger_print("outputs: %s", outputs)
     # free model resource and device context of session
     session.free_resource()
 

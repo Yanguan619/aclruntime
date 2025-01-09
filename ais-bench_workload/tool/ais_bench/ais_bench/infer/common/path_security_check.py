@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import stat
 import re
 import logging
 
-
 MAX_SIZE_UNLIMITED = -1  # 不限制，必须显式表示不限制，读取必须传入
 MAX_SIZE_LIMITED_CONFIG_FILE = 10 * 1024 * 1024  # 10M 普通配置文件，可以根据实际要求变更
 MAX_SIZE_LIMITED_NORMAL_FILE = 4 * 1024 * 1024 * 1024  # 4G 普通模型文件，可以根据实际要求变更
@@ -27,7 +26,7 @@ MAX_SIZE_LIMITED_MODEL_FILE = 100 * 1024 * 1024 * 1024  # 100G 超大模型文�
 
 PATH_WHITE_LIST_REGEX_WIN = re.compile(r"[^_:\\A-Za-z0-9/.-]")
 PATH_WHITE_LIST_REGEX = re.compile(r"[^_A-Za-z0-9/.-]")
-NORMAL_STR_WHITE_LIST_REGEX = re.compile(r"[^_A-Za-z0-9\"'><=\[\])(,}{: /.~-]") # 常规字符串
+NORMAL_STR_WHITE_LIST_REGEX = re.compile(r"[^_A-Za-z0-9\"'><=\[\])(,}{: /.~-]")  # 常规字符串
 
 PERMISSION_NORMAL = 0o640  # 普通文件
 PERMISSION_KEY = 0o600  # 密钥文件
@@ -41,9 +40,8 @@ logging.addLevelName(SOLUTION_LEVEL_WIN, "SOLUTION_WIN")
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
-
 SOLUTION_BASE_LOC = '\"gitee repo: Ascend/tools, path:tools/ais_bench-workload/tool/ais_bench/README.md, ' + \
-    'chapter:'
+                    'chapter:'
 SOFT_LINK_SUB_CHAPTER = ' FAQ/security_error/soft_link_error_log_solution\"'
 PATH_LENGTH_SUB_CHAPTER = ' FAQ/security_error/path_length_overflow_error_log_solution\"'
 OWNER_SUB_CHAPTER = ' FAQ/security_error/owner_or_ownergroup_error_log_solution\"'
@@ -55,7 +53,7 @@ MAX_LINUX_BASE_NAME_LENGTH = 255
 MAX_WIN_ABS_PATH_LENGTH = 260
 
 
-class FILE_PERM_CHOICE:
+class FilePermChoice:
     WRITE = "write"
     READ = "read"
     NONE = "none"
@@ -76,13 +74,13 @@ def is_platform(platform: str):
 def is_legal_path_length(path):
     if len(path) > MAX_LINUX_ABS_PATH_LENGTH and not is_platform("win"):  # linux total path length limit
         logger.error(f"file total path's length out of range ({MAX_LINUX_ABS_PATH_LENGTH}), " + \
-            "please check the file(or directory) path")
+                     "please check the file(or directory) path")
         solution_log(SOLUTION_BASE_LOC + PATH_LENGTH_SUB_CHAPTER)
         return False
 
     if len(path) > MAX_WIN_ABS_PATH_LENGTH and is_platform("win"):  # windows total path length limit
         logger.error(f"file total path's length out of range ({MAX_WIN_ABS_PATH_LENGTH}), " + \
-            "please check the file(or directory) path")
+                     "please check the file(or directory) path")
         solution_log_win(SOLUTION_BASE_LOC + PATH_LENGTH_SUB_CHAPTER)
         return False
 
@@ -90,7 +88,7 @@ def is_legal_path_length(path):
     for dirname in dirnames:
         if len(dirname) > MAX_LINUX_BASE_NAME_LENGTH:  # linux single file path length limit
             logger.error(f"file base name length out of range ({MAX_LINUX_BASE_NAME_LENGTH}), " + \
-                "please check the file(or directory) path")
+                         "please check the file(or directory) path")
             solution_log(SOLUTION_BASE_LOC + PATH_LENGTH_SUB_CHAPTER)
             return False
     return True
@@ -183,14 +181,14 @@ class FileStat:
     def is_user_and_group_owner(self):
         return self.is_owner and self.is_group_owner
 
-    def is_basically_legal(self, perm=FILE_PERM_CHOICE.NONE):
+    def is_basically_legal(self, perm=FilePermChoice.NONE):
         if is_platform("win"):
             return self.check_windows_permission(perm)
         else:
             return self.check_linux_permission(perm)
 
-    def check_linux_permission(self, perm=FILE_PERM_CHOICE.NONE):
-        if not self.is_exists and perm != FILE_PERM_CHOICE.WRITE:
+    def check_linux_permission(self, perm=FilePermChoice.NONE):
+        if not self.is_exists and perm != FilePermChoice.WRITE:
             logger.error(f"path: {self.file} not exist, please check if file or dir is exist")
             return False
         if self.is_softlink:
@@ -203,7 +201,7 @@ class FileStat:
             )
             solution_log(SOLUTION_BASE_LOC + OWNER_SUB_CHAPTER)
             return False
-        if perm == FILE_PERM_CHOICE.READ:
+        if perm == FilePermChoice.READ:
             if self.permission & READ_FILE_NOT_PERMITTED_STAT > 0:
                 logger.error(
                     f"The file {self.file} is group writable, or is others writable, as import file(or directory), "
@@ -218,7 +216,7 @@ class FileStat:
                 )
                 solution_log(SOLUTION_BASE_LOC + PERMISSION_SUB_CHAPTER)
                 return False
-        elif perm == FILE_PERM_CHOICE.WRITE and self.is_exists:
+        elif perm == FilePermChoice.WRITE and self.is_exists:
             if self.permission & WRITE_FILE_NOT_PERMITTED_STAT > 0:
                 logger.error(
                     f"The file {self.file} is group writable, or is others writable, as export file(or directory), "
@@ -235,8 +233,8 @@ class FileStat:
                 return False
         return True
 
-    def check_windows_permission(self, perm=FILE_PERM_CHOICE.NONE):
-        if not self.is_exists and perm != FILE_PERM_CHOICE.WRITE:
+    def check_windows_permission(self, perm=FilePermChoice.NONE):
+        if not self.is_exists and perm != FilePermChoice.WRITE:
             logger.error(f"path: {self.file} not exist, please check if file or dir is exist")
             return False
         if self.is_softlink:
@@ -312,7 +310,7 @@ def ms_open(file, mode="r", max_size=None, softlink=False, write_permission=PERM
         flags = flags | os.O_TRUNC | os.O_CREAT
     if "a" in mode:
         flags = flags | os.O_APPEND | os.O_CREAT
-    return os.fdopen(os.open(file, flags, mode=write_permission), mode, **kwargs) # ms_open函数中，file在之前已经完成校验了
+    return os.fdopen(os.open(file, flags, mode=write_permission), mode, **kwargs)  # ms_open函数中，file在之前已经完成校验了
 
 
 def check_normal_string(str_to_check):
@@ -322,16 +320,17 @@ def check_normal_string(str_to_check):
         raise ValueError(f"string: {str_to_check} contain illegal char")
 
 
-def check_path_legality(path, perm=FILE_PERM_CHOICE.WRITE, max_size=MAX_SIZE_LIMITED_CONFIG_FILE, is_file=True, suffix=None):
+def check_path_legality(path, perm=FilePermChoice.WRITE, max_size=MAX_SIZE_LIMITED_CONFIG_FILE, is_file=True,
+                        suffix=None):
     try:
         file_stat = FileStat(path)
     except Exception as err:
         raise ValueError(f"The path string is illegal. Please check.") from err
     if is_file != file_stat.is_file:
         if is_file:
-            raise ValueError(f"The path:{path} is not a file.") # check path string content when init FileStat
+            raise ValueError(f"The path:{path} is not a file.")  # check path string content when init FileStat
         else:
-            raise ValueError(f"The path:{path} is not a directory.") # check path string content when init FileStat
+            raise ValueError(f"The path:{path} is not a directory.")  # check path string content when init FileStat
     if not file_stat.is_basically_legal(perm):
         raise ValueError(f"The path:{path} is illegal. Please check the error log for more detail.")
     if suffix and file_stat.is_file and not file_stat.is_legal_file_type(suffix):

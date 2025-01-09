@@ -1,12 +1,26 @@
+# Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 import re
 import argparse
-from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE, check_path_legality
+from ais_bench.infer.common.path_security_check import FileStat, FilePermChoice, check_path_legality
 
-OM_MODEL_MAX_SIZE = 10 * 1024 * 1024 * 1024 # 10GB
-ACL_JSON_MAX_SIZE = 8 * 1024 # 8KB
-AIPP_CONFIG_MAX_SIZE = 12.5 * 1024 # 12.5KB
-CPP_INT_MAX_SIZE = 2147483647 # 2^31 - 1
+OM_MODEL_MAX_SIZE = 10 * 1024 * 1024 * 1024  # 10GB
+ACL_JSON_MAX_SIZE = 8 * 1024  # 8KB
+AIPP_CONFIG_MAX_SIZE = 12.5 * 1024  # 12.5KB
+CPP_INT_MAX_SIZE = 2147483647  # 2^31 - 1
 INPUT_LIST_MAX_SIZE = 1024
 INPUT_NAME_LENGTH_MAX = 256
 LOOP_MAX_SIZE = 100000
@@ -26,7 +40,7 @@ def check_dym_str_format(dym_str: str, regular_compression: str):
             raise ValueError("dymshape range string's format is illegal! input info format wrong!")
         if len(input_name_and_value[0]) < 0 or len(input_name_and_value[0]) > INPUT_NAME_LENGTH_MAX:
             raise ValueError("dymshape range string's format is illegal! " + \
-                f"input name len is output of [1, {INPUT_LIST_MAX_SIZE}]")
+                             f"input name len is output of [1, {INPUT_LIST_MAX_SIZE}]")
         if re.compile(r"[^_A-Za-z0-9/.-]").search(input_name_and_value[0]):
             raise ValueError("dymshape range string's format is illegal! input name contain illegal char!")
         if not re.fullmatch(regular_compression, input_name_and_value[1]):
@@ -46,9 +60,9 @@ def check_dym_string(value):
 def check_dym_range_string(value):
     if not value:
         return value
-    if os.path.exists(value): # another kind of input(path type)
+    if os.path.exists(value):  # another kind of input(path type)
         try:
-            check_path_legality(value, perm=FILE_PERM_CHOICE.READ, suffix=["info"])
+            check_path_legality(value, perm=FilePermChoice.READ, suffix=["info"])
         except ValueError as err:
             raise argparse.ArgumentTypeError(f"file contain dymShape range is not a legal path") from err
     else:
@@ -85,26 +99,28 @@ def str2bool(v):
 def check_positive_integer(value):
     if not value.isdigit():
         raise argparse.ArgumentTypeError("%s contains special characters other than numbers." % value)
-    try :
+    try:
         ivalue = int(value)
-    except ValueError:
-        raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value))
+    except ValueError as e:
+        raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value)) from e
     if ivalue <= 0:
         raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
     if ivalue > CPP_INT_MAX_SIZE:
         raise argparse.ArgumentError("%s is an invalid cpp int value" % value)
     return ivalue
 
+
 def check_loop_size(value):
     if not value.isdigit():
         raise argparse.ArgumentTypeError("%s contains special characters other than numbers." % value)
-    try :
+    try:
         ivalue = int(value)
-    except ValueError:
-        raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value))
+    except ValueError as e:
+        raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value)) from e
     if ivalue <= 0 or ivalue > LOOP_MAX_SIZE:
         raise argparse.ArgumentTypeError("%s is an invalid loop size value" % value)
     return ivalue
+
 
 def check_batchsize_valid(value):
     # default value is None
@@ -118,10 +134,10 @@ def check_batchsize_valid(value):
 def check_nonnegative_integer(value):
     if not value.isdigit():
         raise argparse.ArgumentTypeError("%s contains special characters other than numbers." % value)
-    try :
+    try:
         ivalue = int(value)
-    except ValueError:
-        raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value))
+    except ValueError as e:
+        raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value)) from e
     if ivalue < 0:
         raise argparse.ArgumentTypeError("%s is an invalid nonnegative int value" % value)
     if ivalue > CPP_INT_MAX_SIZE:
@@ -175,10 +191,10 @@ def check_device_range_valid(value):
                 raise argparse.ArgumentTypeError("device:{} is invalid. valid value range is [{}, {}]".format(
                     ivalue, min_value, max_value))
             return ivalue
-    except ValueError:
+    except ValueError as e:
         raise argparse.ArgumentTypeError("Argument npu-id invalid input value: {}. "
-                                         "Please provide a valid integer or a comma-separated list of integers.".format(value))
-
+                                         "Please provide a valid integer or a comma-separated list of integers.".format(
+            value)) from e
 
 
 def check_om_path_legality(value):
@@ -187,7 +203,7 @@ def check_om_path_legality(value):
         file_stat = FileStat(path_value)
     except Exception as err:
         raise argparse.ArgumentTypeError(f"om path string is illegal. Please check.") from err
-    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
+    if not file_stat.is_basically_legal(FilePermChoice.READ):
         raise argparse.ArgumentTypeError(f"om path:{path_value} is illegal. Please check.")
     if not file_stat.is_legal_file_type(["om"]):
         raise argparse.ArgumentTypeError(f"om path:{path_value} is illegal. Please check.")
@@ -207,7 +223,7 @@ def check_input_path_legality(value):
             file_stat = FileStat(input_path)
         except Exception as err:
             raise argparse.ArgumentTypeError(f"input path string is illegal. Please check.") from err
-        if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
+        if not file_stat.is_basically_legal(FilePermChoice.READ):
             raise argparse.ArgumentTypeError(f"input path:{input_path} is illegal. Please check.")
     return value
 
@@ -222,7 +238,7 @@ def check_output_path_legality(value):
         raise argparse.ArgumentTypeError(f"output path string is illegal. Please check.") from err
     if not file_stat.is_dir and file_stat.is_exists:
         raise argparse.ArgumentTypeError(f"output path is not a directory")
-    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.WRITE):
+    if not file_stat.is_basically_legal(FilePermChoice.WRITE):
         raise argparse.ArgumentTypeError(f"output path:{path_value} is illegal. Please check.")
     return path_value
 
@@ -235,7 +251,7 @@ def check_acl_json_path_legality(value):
         file_stat = FileStat(path_value)
     except Exception as err:
         raise argparse.ArgumentTypeError(f"acl json path string is illegal. Please check.") from err
-    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
+    if not file_stat.is_basically_legal(FilePermChoice.READ):
         raise argparse.ArgumentTypeError(f"acl json path:{path_value} is illegal. Please check.")
     if not file_stat.is_legal_file_type(["json"]):
         raise argparse.ArgumentTypeError(f"acl json path:{path_value} is illegal. Please check.")
@@ -252,7 +268,7 @@ def check_aipp_config_path_legality(value):
         file_stat = FileStat(path_value)
     except Exception as err:
         raise argparse.ArgumentTypeError(f"aipp config path string is illegal. Please check.") from err
-    if not file_stat.is_basically_legal(FILE_PERM_CHOICE.READ):
+    if not file_stat.is_basically_legal(FilePermChoice.READ):
         raise argparse.ArgumentTypeError(f"aipp config path:{path_value} is illegal. Please check.")
     if not file_stat.is_legal_file_type(["config"]):
         raise argparse.ArgumentTypeError(f"aipp config path:{path_value} is illegal. Please check.")

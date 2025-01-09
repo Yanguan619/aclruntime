@@ -197,7 +197,8 @@ class FileStat:
             return False
         if not self.is_user_or_group_owner and self.is_exists:
             logger.error(
-                f"current user isn't path:{self.file}'s owner or ownergroup, make sure current user belong to file(or directory)'s owner or ownergroup"
+                f"current user isn't path:{self.file}'s owner or ownergroup, "
+                f"make sure current user belong to file(or directory)'s owner or ownergroup"
             )
             solution_log(SOLUTION_BASE_LOC + OWNER_SUB_CHAPTER)
             return False
@@ -211,8 +212,9 @@ class FileStat:
                 return False
             if not os.access(self.realpath, os.R_OK) or self.permission & stat.S_IRUSR == 0:
                 logger.error(
-                    f"Current user doesn't have read permission to the file {self.file}, as import file(or directory), "
-                    "permission should be at least 0o400(r--------) "
+                    f"Current user doesn't have read permission to the file {self.file}, "
+                    f"as import file(or directory), "
+                    f"permission should be at least 0o400(r--------) "
                 )
                 solution_log(SOLUTION_BASE_LOC + PERMISSION_SUB_CHAPTER)
                 return False
@@ -226,8 +228,9 @@ class FileStat:
                 return False
             if not os.access(self.realpath, os.W_OK):
                 logger.error(
-                    f"Current user doesn't have write permission to the file {self.file}, as export file(or directory), "
-                    "permission should be at least 0o200(-w-------) "
+                    f"Current user doesn't have write permission to the file {self.file}, "
+                    f"as export file(or directory), "
+                    f"permission should be at least 0o200(-w-------) "
                 )
                 solution_log(SOLUTION_BASE_LOC + PERMISSION_SUB_CHAPTER)
                 return False

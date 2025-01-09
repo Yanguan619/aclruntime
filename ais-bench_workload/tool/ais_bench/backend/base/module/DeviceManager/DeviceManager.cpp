@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -313,7 +313,7 @@ APP_ERROR DeviceManager::CheckDeviceId(int32_t deviceId)
     }
 
     if (deviceId > (int32_t)deviceCount_ - 1) {
-        ERROR_LOG("deviceId(%d) is bigger than or equal to deviceCount(%d)", deviceId, deviceCount_);
+        ERROR_LOG("deviceId(%d) is bigger than or equal to deviceCount(%u)", deviceId, deviceCount_);
         return APP_ERR_COMM_INVALID_PARAM;
     }
     return APP_ERR_OK;

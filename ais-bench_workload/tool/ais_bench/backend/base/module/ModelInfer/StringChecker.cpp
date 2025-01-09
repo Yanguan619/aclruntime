@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2024 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 namespace {
 const std::vector<std::string> INVALID_CHAR = {
-        "\n", "\f", "\r", "\b", "\t", "\v", "\007F", "\000D", "\0008", "\000A", "\000C", "\000B", "\0009",
+    "\n", "\f", "\r", "\b", "\t", "\v", "\007F", "\000D", "\0008", "\000A", "\000C", "\000B", "\0009",
 };
 }
 

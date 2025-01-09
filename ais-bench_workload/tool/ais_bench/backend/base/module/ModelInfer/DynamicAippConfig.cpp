@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,27 @@ DynamicAippConfig::DynamicAippConfig()
 {
     isActivated = false;
     modelOK = false;
+    srcImageSizeH = 0;
+    srcImageSizeW = 0;
+    axSwapSwitch = 0;
+    rbuvSwapSwitch = 0;
+    maxBatchSize = 0;
+    cscParams.cscSwitch = 0;
+    cscParams.cscMatrixR0C0 = 0;
+    cscParams.cscMatrixR0C1 = 0;
+    cscParams.cscMatrixR0C2 = 0;
+    cscParams.cscMatrixR1C0 = 0;
+    cscParams.cscMatrixR1C1 = 0;
+    cscParams.cscMatrixR1C2 = 0;
+    cscParams.cscMatrixR2C0 = 0;
+    cscParams.cscMatrixR2C1 = 0;
+    cscParams.cscMatrixR2C2 = 0;
+    cscParams.cscOutputBias0 = 0;
+    cscParams.cscOutputBias1 = 0;
+    cscParams.cscOutputBias2 = 0;
+    cscParams.cscInputBias0 = 0;
+    cscParams.cscInputBias1 = 0;
+    cscParams.cscInputBias2 = 0;
 };
 
 DynamicAippConfig::~DynamicAippConfig()

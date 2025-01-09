@@ -414,10 +414,6 @@ APP_ERROR TensorBase::BatchConcat(const std::vector<TensorBase> &inputs, TensorB
         batchShape.push_back(inputs[0].GetShape()[i]);
     }
     // malloc
-    if (inputs[0].GetDeviceId() < 0) {
-        ERROR_LOG("Invalid device ID: %d", inputs[0].GetDeviceId());
-        return APP_ERR_INVALID_DEVICE;
-    }
     output = TensorBase(batchShape, inputs[0].GetDataType(), inputs[0].GetTensorType(), inputs[0].GetDeviceId());
     ret = TensorBaseMalloc(output);
     if (ret != APP_ERR_OK) {
@@ -459,10 +455,6 @@ APP_ERROR TensorBase::BatchStack(const std::vector<TensorBase> &inputs, TensorBa
         batchShape.push_back(inputs[0].GetShape()[i]);
     }
     // malloc
-    if (inputs[0].GetDeviceId() < 0) {
-        ERROR_LOG("Invalid device ID: %d", inputs[0].GetDeviceId());
-        return APP_ERR_INVALID_DEVICE;
-    }
     output = TensorBase(batchShape, inputs[0].GetDataType(), inputs[0].GetTensorType(), inputs[0].GetDeviceId());
     ret = TensorBaseMalloc(output);
     if (ret != APP_ERR_OK) {

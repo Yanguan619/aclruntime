@@ -41,10 +41,6 @@ APP_ERROR TensorBuffer::TensorBufferMalloc(TensorBuffer &buffer)
     }
 
     // Malloc
-    if (buffer.deviceId < 0) {
-        ERROR_LOG("Invalid device ID: %d", buffer.deviceId);
-        return APP_ERR_INVALID_DEVICE;
-    }
     Base::MemoryData memorydata(buffer.size, buffer.type, buffer.deviceId);
     ret = MemoryHelper::MxbsMalloc(memorydata);
     if (ret != APP_ERR_OK) {
@@ -147,11 +143,6 @@ APP_ERROR TensorBuffer::CopyBetweenHostDevice(TensorBuffer &dst, const TensorBuf
             ERROR_LOG("set context failed. ret=%d", ret);
             return ret;
         }
-    }
-
-    if (dst.deviceId < 0 || src.deviceId < 0) {
-        ERROR_LOG("Invalid deviceId: %d, %d ", dst.deviceId, src.deviceId);
-        return APP_ERR_INVALID_DEVICE;
     }
 
     MemoryData dstMemory(dst.data.get(), dst.size, dst.type, dst.deviceId);

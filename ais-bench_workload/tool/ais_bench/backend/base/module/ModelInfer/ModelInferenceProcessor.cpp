@@ -932,6 +932,10 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
     FreeDymInfoMem();
     if (dynamicInfo_.dyDims.pDims == nullptr) {
         dynamicInfo_.dyDims.pDims = (DyDimsInfo *)calloc(1, sizeof(DyDimsInfo));
+        if (dynamicInfo_.dyDims.pDims == nullptr) {
+            ERROR_LOG("Dereferencing of nullptr");
+            return APP_ERR_ACL_FAILURE;
+        }
     }
 
     // 如何释放数组 动态
@@ -942,12 +946,6 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
         ERROR_LOG("create acl IO dims failed!%s", e.what());
         fflush(stdout);
         return APP_ERR_ACL_BAD_ALLOC;
-    }
-
-    if (dynamicInfo_.dyDims.pDims == nullptr) {
-        ERROR_LOG("Dereferencing of nullptr");
-        delete[] dims;
-        return APP_ERR_ACL_FAILURE;
     }
 
     Utils::SplitStringSimple(dymdimsStr, dynamicInfo_.dyDims.pDims->dym_dims, ';', ':', ',');

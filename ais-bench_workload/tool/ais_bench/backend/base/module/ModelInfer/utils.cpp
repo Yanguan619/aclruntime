@@ -30,6 +30,18 @@ const size_t INPUT_LIST_MAX_SIZE = 1024;
 const size_t INPUT_NAME_LENGTH_MAX = 256;
 }
 
+uint8_t Utils::CreateRandomNum()
+{
+    int fd = open("/dev/urandom", O_RDONLY);
+    if (fd == -1) {
+        throw std::runtime_error("Failed to open /dev/urandom");
+    }
+    uint8_t randomByte;
+    read(fd, &randomByte, sizeof(randomByte));
+    close(fd);
+    return randomByte;
+}
+
 void Utils::SplitString(std::string& s, std::vector<std::string>& v, char c)
 {
     std::string::size_type pos1;

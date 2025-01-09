@@ -66,24 +66,6 @@ struct CscParams {
     int32_t cscInputBias0;
     int32_t cscInputBias1;
     int32_t cscInputBias2;
-
-    CscParams() : 
-        cscSwitch(0),
-        cscMatrixR0C0(0),
-        cscMatrixR0C1(0),
-        cscMatrixR0C2(0),
-        cscMatrixR1C0(0),
-        cscMatrixR1C1(0),
-        cscMatrixR1C2(0),
-        cscMatrixR2C0(0),
-        cscMatrixR2C1(0),
-        cscMatrixR2C2(0),
-        cscOutputBias0(0),
-        cscOutputBias1(0),
-        cscOutputBias2(0),
-        cscInputBias0(0),
-        cscInputBias1(0),
-        cscInputBias2(0) {}
 };
 
 struct DtcPixelMean {

@@ -45,13 +45,7 @@ namespace Base {
             } else if (fname == "pure_infer_data_random") {
                 uint8_t min = 0;
                 uint8_t max = UINT8_MAX - 1; // avoid float ±inf
-                int fd = open("/dev/urandom", O_RDONLY);
-                if (fd == -1) {
-                    throw std::runtime_error("Failed to open /dev/urandom");
-                }
-                uint8_t randomByte;
-                read(fd, &randomByte, sizeof(randomByte));
-                close(fd);
+                uint8_t randomByte = Utils::CreateRandomNum();
                 tmpTrans.value = (randomByte % (max - min + 1)) + min;
             }
             arr.dataHolder->data()[i] = tmpTrans.bytes;

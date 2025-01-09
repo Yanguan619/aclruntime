@@ -26,6 +26,22 @@ DynamicAippConfig::DynamicAippConfig()
     axSwapSwitch = 0;
     rbuvSwapSwitch = 0;
     maxBatchSize = 0;
+    cscParams.cscSwitch = 0;
+    cscParams.cscMatrixR0C0 = 0;
+    cscParams.cscMatrixR0C1 = 0;
+    cscParams.cscMatrixR0C2 = 0;
+    cscParams.cscMatrixR1C0 = 0;
+    cscParams.cscMatrixR1C1 = 0;
+    cscParams.cscMatrixR1C2 = 0;
+    cscParams.cscMatrixR2C0 = 0;
+    cscParams.cscMatrixR2C1 = 0;
+    cscParams.cscMatrixR2C2 = 0;
+    cscParams.cscOutputBias0 = 0;
+    cscParams.cscOutputBias1 = 0;
+    cscParams.cscOutputBias2 = 0;
+    cscParams.cscInputBias0 = 0;
+    cscParams.cscInputBias1 = 0;
+    cscParams.cscInputBias2 = 0;
 };
 
 DynamicAippConfig::~DynamicAippConfig()

@@ -325,8 +325,8 @@ int HcclTest::CheckCmdLine()
     }
 
     if (hccl_root >= rank_size || hccl_root < 0) { // 如果指定的root rank大于等于rank_size
-        ERROR("[-r,--root <root>] is invalid, root rank must be greater than or equal to 0 " + \
-            "and less than or equal to %d.", rank_size - 1);
+        ERROR("[-r,--root <root>] is invalid, root rank must be greater than or equal to 0 \
+            and less than or equal to %d.", rank_size - 1);
         return -1;
     }
 
@@ -341,8 +341,8 @@ int HcclTest::CheckCmdLine()
     }
 
     if (npus < 1 || npus > dev_count) {
-        ERROR("[-p,--npus <npus used for one node>] is invalid, npus must be greater than " + \
-            "or equal to 1 and less than or equal to %d.", dev_count);
+        ERROR("[-p,--npus <npus used for one node>] is invalid, npus must be greater than \
+            or equal to 1 and less than or equal to %d.", dev_count);
         return -1;
     }
 

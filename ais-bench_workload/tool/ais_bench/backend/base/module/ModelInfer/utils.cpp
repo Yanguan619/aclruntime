@@ -474,6 +474,18 @@ bool Utils::IsDymShapeValid(const std::string& str)
     return true;
 }
 
+bool Utils::IsInputNameValidChar(const std::string& str)
+{
+    const std::vector<char> extendedPattern = { '_', '.', '/', '-' };
+    for (size_t i = 0; i < str.size(); ++i) {
+        auto it = std::find(extendedPattern.begin(), extendedPattern.end(), str[i]);
+        if (it == extendedPattern.end() && !isalnum(str[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool Utils::IsLegalDymString(const std::string& str)
 {
     if (str.size() > DYM_STRING_MAX_LENGTH) {
@@ -512,8 +524,7 @@ bool Utils::IsLegalDymString(const std::string& str)
         }
 
         // 检查非法字符
-        std::regex illegal_char_regex("[^_A-Za-z0-9/.-]");
-        if (std::regex_search(inputName, illegal_char_regex)) {
+        if (!IsInputNameValidChar(inputName)) {
             ERROR_LOG("input name parsed from dymshape string contain illegal char!");
             return false;
         }

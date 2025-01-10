@@ -508,10 +508,10 @@ Result ModelProcess::SetDynamicDims(vector<string> dym_dims)
         try {
             dims.dims[i] = static_cast<int>(std::stol(dym_dims[i]));
         } catch (const std::invalid_argument& e) {
-            ERROR_LOG("Invalid input for conversion: %s", dym_dims[i].c_str())
+            ERROR_LOG("Invalid input for conversion: %s", dym_dims[i].c_str());
             return FAILED;
         } catch (const std::out_of_range& e) {
-            ERROR_LOG("Out of range input for conversion: %s", dym_dims[i].c_str())
+            ERROR_LOG("Out of range input for conversion: %s", dym_dims[i].c_str());
             return FAILED;
         }
     }

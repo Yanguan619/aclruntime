@@ -91,6 +91,7 @@ public:
     static std::vector<std::string> SplitStringByComma(const std::string& str);
     static bool IsDymShapeValid(const std::string& str);
     static bool IsInputNameValidChar(const std::string& str);
+    static uint8_t CreateRandomNum();
 };
 
 #endif

@@ -7,7 +7,7 @@ from ais_bench.net_test.security.check_func_utils import (
     check_bytes_format, check_linux_username,
     _find_executable, check_executable
 )
-from ais_bench.net_test.common.consts import STRING_PATTERN
+from ais_bench.net_test.common.consts import StringPattern
 from tests.utils import FileCreationForTesting
 
 
@@ -40,8 +40,8 @@ class TestCheckFuncUtils(unittest.TestCase):
         self.assertEqual(check_positive_int_string("1"), 1)
 
     def test_is_regex_full_match(self):
-        self.assertTrue(_is_regex_full_match("192.168.1.1", STRING_PATTERN.LEGAL_IPV4_PATTERN))
-        self.assertFalse(_is_regex_full_match("256.256.256.256", STRING_PATTERN.LEGAL_IPV4_PATTERN))
+        self.assertTrue(_is_regex_full_match("192.168.1.1", StringPattern.LEGAL_IPV4_PATTERN))
+        self.assertFalse(_is_regex_full_match("256.256.256.256", StringPattern.LEGAL_IPV4_PATTERN))
 
     def test_check_ipv4_string(self):
         for invalid in ["999.999.999.999", "0.0.-1.0", "乱码0.0.256.0", "0.0.0. 0"]:

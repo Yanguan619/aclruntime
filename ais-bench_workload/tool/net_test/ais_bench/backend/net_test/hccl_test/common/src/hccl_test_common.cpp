@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <string.h>
 #include <getopt.h>
 #include <stdlib.h>
@@ -13,43 +29,52 @@
 HcclReduceOp test_ops[HCCL_REDUCE_RESERVED] = {HCCL_REDUCE_SUM, HCCL_REDUCE_PROD, HCCL_REDUCE_MAX, HCCL_REDUCE_MIN};
 const char *test_opnames[HCCL_REDUCE_RESERVED] = {"sum", "prod", "max", "min"};
 
-HcclDataType test_types[HCCL_DATA_TYPE_RESERVED] = {HCCL_DATA_TYPE_INT8,    /**< int8 */
-                                        HCCL_DATA_TYPE_INT16,   /**< int16 */
-                                        HCCL_DATA_TYPE_INT32,   /**< int32 */
-                                        HCCL_DATA_TYPE_FP16,    /**< fp16 */
-                                        HCCL_DATA_TYPE_FP32,    /**< fp32 */
-                                        HCCL_DATA_TYPE_INT64,   /**< int64 */
-                                        HCCL_DATA_TYPE_UINT64,  /**< uint64 */
-                                        HCCL_DATA_TYPE_UINT8,   /**< uint8 */
-                                        HCCL_DATA_TYPE_UINT16,  /**< uint16 */
-                                        HCCL_DATA_TYPE_UINT32,  /**< uint32 */
-                                        HCCL_DATA_TYPE_FP64,    /**< fp64 */
-                                        HCCL_DATA_TYPE_BFP16};
-const char *test_typenames[HCCL_DATA_TYPE_RESERVED] = {"int8", "int16", "int", "fp16", "fp32", "int64", "uint64", "uint8", "uint16", "uint32", "fp64", "bfp16"};
+HcclDataType test_types[HCCL_DATA_TYPE_RESERVED] = {
+    HCCL_DATA_TYPE_INT8,    /**< int8 */
+    HCCL_DATA_TYPE_INT16,   /**< int16 */
+    HCCL_DATA_TYPE_INT32,   /**< int32 */
+    HCCL_DATA_TYPE_FP16,    /**< fp16 */
+    HCCL_DATA_TYPE_FP32,    /**< fp32 */
+    HCCL_DATA_TYPE_INT64,   /**< int64 */
+    HCCL_DATA_TYPE_UINT64,  /**< uint64 */
+    HCCL_DATA_TYPE_UINT8,   /**< uint8 */
+    HCCL_DATA_TYPE_UINT16,  /**< uint16 */
+    HCCL_DATA_TYPE_UINT32,  /**< uint32 */
+    HCCL_DATA_TYPE_FP64,    /**< fp64 */
+    HCCL_DATA_TYPE_BFP16};    /**< bfp16 */
 
-int get_hccl_op_from_str (char *str) {
-    for (int op=0; op < HCCL_REDUCE_RESERVED; op++) {
-      if (strcmp(str, test_opnames[op]) == 0) {
-        return op;
-      }
+const char *test_typenames[HCCL_DATA_TYPE_RESERVED] = {"int8", "int16", "int", "fp16", "fp32", "int64", "uint64",
+    "uint8", "uint16", "uint32", "fp64", "bfp16"};
+
+const int RATE_TEN = 10;
+const size_t HASH_SHIFT_BITS = 5;
+const size_t MULTIPLIER_1024 = 1024;
+
+int GetHcclOpFromStr (char *str)
+{
+    for (int op = 0; op < HCCL_REDUCE_RESERVED; op++) {
+        if (strcmp(str, test_opnames[op]) == 0) {
+            return op;
+        }
     }
 
     return -1;
 }
 
-int get_hccl_dtype_from_str(char *str) {
-    for (int t=0; t < HCCL_DATA_TYPE_RESERVED; t++) {
-      if (strcmp(str, test_typenames[t]) == 0) {
-        return t;
-      }
+int GetHcclDtypeFromStr(char *str)
+{
+    for (int t = 0; t < HCCL_DATA_TYPE_RESERVED; t++) {
+        if (strcmp(str, test_typenames[t]) == 0) {
+            return t;
+        }
     }
     return -1;
 }
 
-static void get_host_name(char* hostName, int maxlen)
+static void GetHostName(char* hostName, int maxlen)
 {
     gethostname(hostName, maxlen);
-    for (int i=0; i< maxlen; i++) {
+    for (int i = 0; i< maxlen; i++) {
         if (hostName[i] == '.') {
             hostName[i] = '\0';
             return;
@@ -58,16 +83,18 @@ static void get_host_name(char* hostName, int maxlen)
     return;
 }
 
-static uint64_t get_host_hash(const char* string) {
+static uint64_t GetHostHash(const char* string)
+{
   // Based on DJB2, result = result * 33 + char
     uint64_t result = 5381;
-    for (int c = 0; string[c] != '\0'; c++){
-        result = ((result << 5) + result) + string[c];
+    for (int c = 0; string[c] != '\0'; c++) {
+        result = ((result << HASH_SHIFT_BITS) + result) + string[c];
     }
     return result;
 }
 
-static long parsesize(const char *value) {
+static long ParseSize(const char *value)
+{
     long long int units;
     long size;
     char* size_lit;
@@ -75,22 +102,22 @@ static long parsesize(const char *value) {
     size = strtol(value, &size_lit, 0);
     if (strlen(size_lit) == 1) {
         switch (*size_lit) {
-        case 'G':
-        case 'g':
-            units = 1024*1024*1024;
-            break;
-        case 'M':
-        case 'm':
-            units = 1024*1024;
-            break;
-        case 'K':
-        case 'k':
-            units = 1024;
-            break;
-        default:
-            return -1;
+            case 'G':
+            case 'g':
+                units = MULTIPLIER_1024 * MULTIPLIER_1024 * MULTIPLIER_1024;
+                break;
+            case 'M':
+            case 'm':
+                units = MULTIPLIER_1024 * MULTIPLIER_1024;
+                break;
+            case 'K':
+            case 'k':
+                units = MULTIPLIER_1024;
+                break;
+            default:
+                return -1;
         }
-    } else if (strlen(size_lit) == 0){
+    } else if (strlen(size_lit) == 0) {
         units = 1;
     } else {
         return -1;
@@ -99,21 +126,20 @@ static long parsesize(const char *value) {
     return size * units;
 }
 
-u32 sal_str_len(const char *s, u32 maxLen = INT_MAX)
+u32 SalStrLen(const char *s, u32 maxLen = INT_MAX)
 {
     return strnlen(s, maxLen);
 }
 
-int is_all_digit(const char *strNum)
+int IsAllDigit(const char *strNum)
 {
     // 参数有效性检查
-   if (strNum == NULL)
-   {
-       ERROR("String type number is NULL.");
-       return -1;
-   }
+    if (strNum == NULL) {
+        ERROR("String type number is NULL.");
+        return -1;
+    }
 
-    u32 nLength = sal_str_len(strNum);
+    u32 nLength = SalStrLen(strNum);
     for (u32 index = 0; index < nLength; index++) {
         if (!isdigit(strNum[index])) {
             ERROR("In judge all digit, check isdigit failed.");
@@ -123,9 +149,9 @@ int is_all_digit(const char *strNum)
     return 0;
 }
 
-long strtol_alldigit(const char *optarg)
+long StrtolAlldigit(const char *optarg)
 {
-    long ret = is_all_digit(optarg);
+    long ret = IsAllDigit(optarg);
     if (ret != 0) {
         return ret;
     }
@@ -133,8 +159,7 @@ long strtol_alldigit(const char *optarg)
     return strtol(optarg, NULL, 0);
 }
 
-namespace hccl
-{
+namespace hccl {
 HcclTest::HcclTest()
 {
     data = new DataSize;
@@ -151,8 +176,7 @@ HcclTest::~HcclTest()
 
 
 #ifdef MPI_SUPPORT
-struct option HcclTest::longopts[] =
-{
+struct option HcclTest::longopts[] = {
     {"op", required_argument, 0, 'o'},
     {"datatype", required_argument, 0, 'd'},
     {"minbytes", required_argument, 0, 'b'},
@@ -169,8 +193,7 @@ struct option HcclTest::longopts[] =
 #endif
 
 #ifndef MPI_SUPPORT
-struct option HcclTest::longopts[] =
-{
+struct option HcclTest::longopts[] = {
     {"op", required_argument, 0, 'o'},
     {"datatype", required_argument, 0, 'd'},
     {"minbytes", required_argument, 0, 'b'},
@@ -191,7 +214,7 @@ struct option HcclTest::longopts[] =
 #endif
 
 #ifdef MPI_SUPPORT
-void HcclTest::print_help()
+void HcclTest::PrintHelp()
 {
     INFO("USAGE: ./test \n\t"
     "[-b,--minbytes <min size in bytes>] \n\t"
@@ -211,7 +234,7 @@ void HcclTest::print_help()
 #endif
 
 #ifndef MPI_SUPPORT
-void HcclTest::print_help()
+void HcclTest::PrintHelp()
 {
     INFO("USAGE: ./test \n\t"
     "[-b,--minbytes <min size in bytes>] \n\t"
@@ -234,7 +257,7 @@ void HcclTest::print_help()
 }
 #endif
 
-int HcclTest::check_data_count()
+int HcclTest::CheckDataCount()
 {
     if (data_parsed_begin < 0 || data_parsed_end < 0) {
         ERROR("Invalid size specified for [-b,--minbytes] or [-e,--maxbytes]");
@@ -252,14 +275,14 @@ int HcclTest::check_data_count()
         ERROR("Invalid option: maxbytes < minbytes, Check the [-b,--minbytes] and [-e,--maxbytes] options.");
         return -1;
     } else {
-        if (stepbytes_flag != 0) {// 用户配置了增量步长
+        if (stepbytes_flag != 0) { // 用户配置了增量步长
             data->stepBytes = temp_step_bytes;
-        } else {// 用户未配置增量步长
+        } else { // 用户未配置增量步长
             if (data->maxBytes == data->minBytes) {
-                data->stepBytes = 1;// 用户配置数据量的起始值和结束值相同，但未配置增量步长，为防止进入死循环，设置增量步长为1
+                data->stepBytes = 1; // 用户配置数据量的起始值和结束值相同，但未配置增量步长，为防止进入死循环，设置增量步长为1
             }
             if (data->maxBytes > data->minBytes) {
-                data->stepBytes = (data->maxBytes - data->minBytes)/10;
+                data->stepBytes = (data->maxBytes - data->minBytes) / RATE_TEN;
             }
         }
     }
@@ -276,23 +299,20 @@ int HcclTest::check_data_count()
     return 0;
 }
 
-int HcclTest::check_cmd_line()
+int HcclTest::CheckCmdLine()
 {
     int ret = 0;
-    ret = check_data_count();
-    if (ret != 0)
-    {
+    ret = CheckDataCount();
+    if (ret != 0) {
         return ret;
     }
 
-    if (dtype == -1)
-    {
+    if (dtype == -1) {
         ERROR("[-d,--datatype] is invalid, Use [-h,--help] to check the correct input parameter.\n");
         return -1;
     }
 
-    if (op_type == -1)
-    {
+    if (op_type == -1) {
         ERROR("[-o,--op] is invalid, Use [-h,--help] to check the correct input parameter.");
         return -1;
     }
@@ -307,74 +327,71 @@ int HcclTest::check_cmd_line()
         return -1;
     }
 
-    if (hccl_root >= rank_size || hccl_root < 0) //如果指定的root rank大于等于rank_size
-    {
-        ERROR("[-r,--root <root>] is invalid, root rank must be greater than or equal to 0 and less than or equal to %d.", rank_size - 1);
+    if (hccl_root >= rank_size || hccl_root < 0) { // 如果指定的root rank大于等于rank_size
+        ERROR("[-r,--root <root>] is invalid, root rank must be greater than or equal to 0 \
+            and less than or equal to %d.", rank_size - 1);
         return -1;
     }
 
-    if (check != 1 && check != 0)
-    {
+    if (check != 1 && check != 0) {
         ERROR("[-c,--check] is invalid, check should be 0 or 1");
         return -1;
     }
 
-    if (dev_count == 0)
-    {
+    if (dev_count == 0) {
         ERROR("The number of device is 0.Check whether the package is correct.");
         return -1;
     }
 
-    if (npus < 1 || npus > dev_count)
-    {
-        ERROR("[-p,--npus <npus used for one node>] is invalid, npus must be greater than or equal to 1 and less than or equal to %d.", dev_count);
+    if (npus < 1 || npus > dev_count) {
+        ERROR("[-p,--npus <npus used for one node>] is invalid, npus must be greater than \
+            or equal to 1 and less than or equal to %d.", dev_count);
         return -1;
     }
 
-    #ifndef MPI_SUPPORT
-    if (server_ip == "")
-    {
+#ifndef MPI_SUPPORT
+    if (server_ip == "") {
         ERROR("[-a,--server_ip <ip of root rank>] is invalid.");
         return -1;
     }
-    if (server_port == -1)
-    {
+    if (server_port == -1) {
         ERROR("[-a,--server_port <port of root rank>] is invalid.");
         return -1;
     }
-    if (rank_id >= rank_size)
-    {
+    if (rank_id >= rank_size) {
         ERROR("Rank_id shouldn't be larger than rank_size.");
         return -1;
     }
-    #endif
+#endif
 
     return 0;
 }
 
-int HcclTest::get_env_resource()
+int HcclTest::GetEnvResource()
 {
-    //支持profiling
+    // 支持profiling
     const char* profiling_env = getenv("HCCL_TEST_PROFILING");
     if (profiling_env != NULL) {
         profiling_flag = atoi(profiling_env);
     }
 
     if (profiling_flag == 1) {
-        //开启profiling
+        // 开启profiling
         std::string prof_path = "/var/log/npu/profiling";
         aclprofInit(prof_path.c_str(), prof_path.size());
-        uint32_t profSwitch = ACL_PROF_ACL_API | ACL_PROF_TASK_TIME | ACL_PROF_AICORE_METRICS | ACL_PROF_AICPU | ACL_PROF_HCCL_TRACE | ACL_PROF_MSPROFTX | ACL_PROF_RUNTIME_API;
+        uint32_t profSwitch = ACL_PROF_ACL_API | ACL_PROF_TASK_TIME | ACL_PROF_AICORE_METRICS | ACL_PROF_AICPU | \
+            ACL_PROF_HCCL_TRACE | ACL_PROF_MSPROFTX | ACL_PROF_RUNTIME_API;
         uint32_t deviceIdList = dev_id;
         int devNum = 1;
-        profiling_config = aclprofCreateConfig(&deviceIdList, devNum, ACL_AICORE_PIPE_UTILIZATION, nullptr, profSwitch);
+        profiling_config = aclprofCreateConfig(&deviceIdList, devNum, ACL_AICORE_PIPE_UTILIZATION,
+            nullptr, profSwitch);
         ACLCHECK(aclprofStart(profiling_config));
     }
 
     return 0;
 }
 
-int HcclTest::release_env_resource()
+int HcclTest::ReleaseEnvResource()
 {
     if (profiling_flag == 1) {
         ACLCHECK(aclprofStop(profiling_config));
@@ -384,18 +401,18 @@ int HcclTest::release_env_resource()
     return 0;
 }
 
-int HcclTest::parse_opt(int opt)
+int HcclTest::ParseOpt(int opt)
 {
-    switch(opt) {
+    switch (opt) {
         case 'b':
-            data_parsed_begin = parsesize(optarg);
+            data_parsed_begin = ParseSize(optarg);
             break;
         case 'e':
-            data_parsed_end = parsesize(optarg);
+            data_parsed_end = ParseSize(optarg);
             break;
         case 'i':
             stepbytes_flag++;
-            temp_step_bytes = strtol_alldigit(optarg);
+            temp_step_bytes = StrtolAlldigit(optarg);
             break;
         case 'f':
             stepfactor_flag++;
@@ -403,43 +420,43 @@ int HcclTest::parse_opt(int opt)
             data->stepFactor = strtof(optarg, &temp);
             break;
         case 'n':
-            iters = strtol_alldigit(optarg);
+            iters = StrtolAlldigit(optarg);
             break;
         case 'o':
             op_flag++;
-            op_type = get_hccl_op_from_str(optarg);
+            op_type = GetHcclOpFromStr(optarg);
             break;
         case 'd':
-            dtype = get_hccl_dtype_from_str(optarg);
+            dtype = GetHcclDtypeFromStr(optarg);
             break;
         case 'r':
-            hccl_root = strtol_alldigit(optarg);
+            hccl_root = StrtolAlldigit(optarg);
             break;
         case 'w':
-            warmup_iters = strtol_alldigit(optarg);
+            warmup_iters = StrtolAlldigit(optarg);
             break;
         case 'c':
-            check = strtol_alldigit(optarg);
+            check = StrtolAlldigit(optarg);
             break;
         case 'p':
-            npus = strtol_alldigit(optarg);
+            npus = StrtolAlldigit(optarg);
             break;
-        #ifndef MPI_SUPPORT
+#ifndef MPI_SUPPORT
         case 'a': // serverIP
             server_ip = std::string(optarg);
             break;
         case 'g': // serverPort
-            server_port = strtol_alldigit(optarg);
+            server_port = StrtolAlldigit(optarg);
             break;
         case 'j': // rankSize
-            rank_size = strtol_alldigit(optarg);
+            rank_size = StrtolAlldigit(optarg);
             break;
         case 'k': // rankID
-            rank_id = strtol_alldigit(optarg);
+            rank_id = StrtolAlldigit(optarg);
             break;
-        #endif
+#endif
         case 'h':
-            print_help();
+            PrintHelp();
             return 1;
         default:
             ERROR("invalid option ");
@@ -449,26 +466,24 @@ int HcclTest::parse_opt(int opt)
     return 0;
 }
 
-int HcclTest::parse_cmd_line(int argc, char* argv[])
+int HcclTest::ParseCmdLine(int argc, char* argv[])
 {
     int opt = -1;
     int longindex = 0;
     int ret = 0;
     long parsed;
 
-    #ifdef MPI_SUPPORT
+#ifdef MPI_SUPPORT
     std::string optString = "o:d:b:e:i:f:r:n:w:c:p:h";
-    #endif
+#endif
 
-    #ifndef MPI_SUPPORT
+#ifndef MPI_SUPPORT
     std::string optString = "o:d:b:e:i:f:r:n:w:c:p:a:g:j:k:h"; // serverIP, serverPort, rankSize, rankID
-    #endif
+#endif
 
-    while(-1 != (opt = getopt_long(argc, argv, optString.c_str(), longopts, &longindex)))
-    {
-        ret = parse_opt(opt);
-        if (ret != 0)
-        {
+    while (-1 != (opt = getopt_long(argc, argv, optString.c_str(), longopts, &longindex))) {
+        ret = ParseOpt(opt);
+        if (ret != 0) {
             return ret;
         }
     }
@@ -483,17 +498,14 @@ int HcclTest::parse_cmd_line(int argc, char* argv[])
 
 int HcclTest::getAviDevs(const char* devs, std::vector<int>& dev_ids)
 {
-
     std::string use_devs(devs);
     std::string pattern = ",";
     std::string::size_type pos;
     use_devs += pattern;
     size_t val_size = use_devs.size();
-    for(size_t i = 0; i < val_size; ++i)
-    {
+    for (size_t i = 0; i < val_size; ++i) {
         pos = use_devs.find(pattern, i);
-        if(pos < val_size)
-        {
+        if (pos < val_size) {
             std::string s = use_devs.substr(i, pos);
             int tmp_rank = atoi(s.c_str());
             dev_ids.push_back(tmp_rank);
@@ -504,18 +516,18 @@ int HcclTest::getAviDevs(const char* devs, std::vector<int>& dev_ids)
     return 0;
 }
 
-int HcclTest::get_mpi_proc()
+int HcclTest::GetMpiProc()
 {
-    #ifdef MPI_SUPPORT
-    //获取当前进程在所属进程组的编号
+#ifdef MPI_SUPPORT
+    // 获取当前进程在所属进程组的编号
     MPI_Comm_size(MPI_COMM_WORLD, &proc_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &proc_rank);
-    #endif
-    #ifndef MPI_SUPPORT
-    //获取当前进程在所属进程组的编号
+#endif
+#ifndef MPI_SUPPORT
+    // 获取当前进程在所属进程组的编号
     proc_size = rank_size;
     proc_rank = rank_id;
-    #endif
+#endif
 
     ACLCHECK(aclrtGetDeviceCount(&dev_count));
 
@@ -523,23 +535,19 @@ int HcclTest::get_mpi_proc()
         npus = dev_count;
     }
 
-    #ifdef MPI_SUPPORT
+#ifdef MPI_SUPPORT
     rank_id = proc_rank;
     rank_size = proc_size;
-    #endif
+#endif
 
     const char* devs = getenv("HCCL_TEST_USE_DEVS");
-    if(devs != NULL)
-    {
+    if (devs != NULL) {
         std::vector<int> dev_ids;
         int ret = getAviDevs(devs, dev_ids);
 
-        int local_rank;
-        local_rank = proc_rank % npus;
-        for(int i = 0; i < dev_ids.size(); i++)
-        {
-            if (local_rank == i)
-            {
+        int local_rank = proc_rank % npus;
+        for (int i = 0; i < dev_ids.size(); i++) {
+            if (local_rank == i) {
                 dev_id = dev_ids[i];
                 break;
             }
@@ -551,12 +559,12 @@ int HcclTest::get_mpi_proc()
     return 0;
 }
 
-int HcclTest::hccl_op_base_test()
+int HcclTest::HcclOpBaseTestMain()
 {
     return 0;
 }
 
-int HcclTest::set_device_sat_mode()
+int HcclTest::SetDeviceSatMode()
 {
     const char *soc_name_ptr = aclrtGetSocName();
     if (soc_name_ptr == nullptr) {
@@ -571,41 +579,41 @@ int HcclTest::set_device_sat_mode()
     return 0;
 }
 
-int HcclTest::init_hcclComm()
+int HcclTest::InitHcclComm()
 {
-    //设备资源初始化
+    // 设备资源初始化
     ACLCHECK(aclInit(NULL));
 
     // 指定集合通信操作使用的设备
     ACLCHECK(aclrtSetDevice(dev_id));
 
     // 关闭溢出检测
-    int ret = set_device_sat_mode();
-    if (ret != 0)
-    {
+    int ret = SetDeviceSatMode();
+    if (ret != 0) {
         ERROR("Close over float detector failed, Detailed logs are stored in path: ~/ascend/log/");
         return ret;
     }
 
     // 在root_rank获取root_info
-    if(rank_id == root_rank) {
-        INFO("The minbytes is %llu, maxbytes is %llu, iters is %d, warmup_iters is %d.", data->minBytes, data->maxBytes, iters, warmup_iters);
+    if (rank_id == root_rank) {
+        INFO("The minbytes is %llu, maxbytes is %llu, iters is %d, warmup_iters is %d.",
+            data->minBytes, data->maxBytes, iters, warmup_iters);
         HCCLROOTRANKCHECK(HcclGetRootInfo(&comm_id));
     }
 
-    #ifdef MPI_SUPPORT
-    //将root_info广播到通信域内的其他rank
+#ifdef MPI_SUPPORT
+    // 将root_info广播到通信域内的其他rank
     MPI_Bcast(&comm_id, HCCL_ROOT_INFO_BYTES, MPI_CHAR, root_rank, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
-    #endif
+#endif
 
-    #ifndef MPI_SUPPORT
+#ifndef MPI_SUPPORT
     ret = communicater->SynchronizeRootInfo(&comm_id, HCCL_ROOT_INFO_BYTES);
     if (ret != 0) {
         ERROR("Rank: %d run synchronize root info failed!", rank_id);
         return ret;
     }
-    #endif
+#endif
 
     std::string rootInfoContent = "";
     for (int i = 0; i < HCCL_ROOT_INFO_BYTES; ++i) {
@@ -613,8 +621,7 @@ int HcclTest::init_hcclComm()
     }
     DEBUG("rank: %d, received rootInfo is: %s", rank_id, rootInfoContent.c_str());
 
-
-    //初始化集合通信域
+    // 初始化集合通信域
     HCCLCHECK(HcclCommInitRootInfo(rank_size, &comm_id, rank_id, &hccl_comm));
 
     ACLCHECK(aclrtCreateEvent(&start_event));
@@ -626,16 +633,14 @@ int HcclTest::init_hcclComm()
 }
 
 
-int HcclTest::opbase_test_by_data_size(HcclTest* hccl_test)
+int HcclTest::OpbaseTestByDataSize(HcclTest* hccl_test)
 {
     int ret = 0;
-    for (data->dataSize = data->minBytes;\
-        data->dataSize <= data->maxBytes;\
-        (data->stepFactor <= 1.0 ? data->dataSize += data->stepBytes : data->dataSize *= data->stepFactor))
-    {
-        ret = hccl_test->hccl_op_base_test();
-        if (ret != 0)
-        {
+    for (data->dataSize = data->minBytes; \
+        data->dataSize <= data->maxBytes; \
+        (data->stepFactor <= 1.0 ? data->dataSize += data->stepBytes : data->dataSize *= data->stepFactor)) {
+        ret = hccl_test->HcclOpBaseTestMain();
+        if (ret != 0) {
             ERROR("Execute hccl op test failed, Detailed logs are stored in path: ~/ascend/log/");
             return ret;
         }
@@ -643,18 +648,18 @@ int HcclTest::opbase_test_by_data_size(HcclTest* hccl_test)
     return 0;
 }
 
-int HcclTest::destory_hcclComm()
+int HcclTest::DestoryHcclComm()
 {
-    //销毁任务流
+    // 销毁任务流
     ACLCHECK(aclrtDestroyStream(stream));
 
     ACLCHECK(aclrtDestroyEvent(start_event));
     ACLCHECK(aclrtDestroyEvent(end_event));
-    //销毁集合通信域
+    // 销毁集合通信域
     HCCLCHECK(HcclCommDestroy(hccl_comm));
-    //重置设备
+    // 重置设备
     ACLCHECK(aclrtResetDevice(dev_id));
-    //设备去初始化
+    // 设备去初始化
     ACLCHECK(aclFinalize());
     return 0;
 }

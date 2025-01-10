@@ -20,8 +20,10 @@ import aclruntime
 from ais_bench.infer.common.logger import logger
 from ais_bench.infer.dym_aipp_manager import DymAippManager
 from ais_bench.infer.interface_check import (check_model_path_legality, check_acl_json_path_legality,
-    check_device_range_valid, check_positive_integer, check_custom_size, check_bool_value,
-    check_in_out_list, check_loop_size, check_list, check_dict, MODEL_INPUT_TENSOR_COUNT_MAX)
+                                             check_device_range_valid, check_positive_integer, check_custom_size,
+                                             check_bool_value,
+                                             check_in_out_list, check_loop_size, check_list, check_dict,
+                                             MODEL_INPUT_TENSOR_COUNT_MAX)
 
 TORCH_TENSOR_LIST = [
     'torch.FloatTensor', 'torch.DoubleTensor', 'torch.HalfTensor', 'torch.BFloat16Tensor',
@@ -33,7 +35,7 @@ NP_TYPE_LIST = [
     np.uint32, np.float16, np.float32, np.float64
 ]
 
-PIPELINE_API_SAMPLE_COUNT_MAX = 512
+PIPELINE_API_SAMPLE_COUNT_MAX = 512  
 ITERATION_TIMES_MAX = 65536
 MAX_DEVICE_COUNT = 32
 MAX_PROCESS_COUNT_PER_DEVICE = 32
@@ -204,7 +206,7 @@ class InferSession:
         check_bool_value(out_array)
         check_custom_size(custom_sizes, mode)
         for feed in feeds:
-            if type(feed) is np.ndarray:
+            if isinstance(feed, np.ndarray):
                 infer_input = feed
                 if not infer_input.flags.c_contiguous:
                     infer_input = np.ascontiguousarray(infer_input)
@@ -214,7 +216,7 @@ class InferSession:
                 if not infer_input.flags.c_contiguous:
                     infer_input = np.ascontiguousarray(infer_input)
                 shapes.append([feed.size])
-            elif type(feed) is aclruntime.Tensor:
+            elif isinstance(feed, aclruntime.Tensor):
                 infer_input = feed
                 shapes.append(infer_input.shape)
             elif hasattr(feed, 'type') and feed.type() in TORCH_TENSOR_LIST:
@@ -253,7 +255,7 @@ class InferSession:
             inputs = []
             shapes = []
             for feed in feeds:
-                if type(feed) is np.ndarray:
+                if isinstance(feed, np.ndarray):
                     infer_input = feed
                     if not infer_input.flags.c_contiguous:
                         infer_input = np.ascontiguousarray(infer_input)
@@ -263,7 +265,7 @@ class InferSession:
                     if not infer_input.flags.c_contiguous:
                         infer_input = np.ascontiguousarray(infer_input)
                     shape = [feed.size]
-                elif type(feed) is aclruntime.Tensor:
+                elif isinstance(feed, aclruntime.Tensor):
                     infer_input = np.array(feed)
                     shape = infer_input.shape
                 elif hasattr(feed, 'type') and feed.type() in TORCH_TENSOR_LIST:
@@ -301,7 +303,7 @@ class InferSession:
         inputs = []
         shapes = []
         for feed in feeds:
-            if type(feed) is np.ndarray:
+            if isinstance(feed, np.ndarray):
                 infer_input = feed
                 if not infer_input.flags.c_contiguous:
                     infer_input = np.ascontiguousarray(infer_input)
@@ -337,7 +339,7 @@ class InferSession:
         return outputs
 
     def infer_iteration(self, feeds, in_out_list=None, iteration_times=1, mode='static',
-            custom_sizes=100000):
+                        custom_sizes=100000):
         '''
         Parameters:
             feeds: input datas
@@ -368,7 +370,6 @@ class InferSession:
         self.convert_tensors_to_host(outputs)
         # convert tensor to narray
         return self.convert_tensors_to_arrays(outputs)
-
 
     def summary(self):
         return self.session.sumary()
@@ -449,7 +450,7 @@ class MultiDeviceSession():
     def summary(self):
         return self.summary
 
-    def infer(self, device_feeds:dict, mode='static', custom_sizes=100000):
+    def infer(self, device_feeds: dict, mode='static', custom_sizes=100000):
         '''
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
@@ -480,7 +481,7 @@ class MultiDeviceSession():
         self.summary.clear()
         while outputs_queue.qsize() != 0:
             ret = outputs_queue.get()
-            if type(ret) == list:
+            if isinstance(ret, list):
                 if (not outputs_dict.get(ret[0])):
                     outputs_dict.update({ret[0]: []})
                     self.summary.update({ret[0]: []})
@@ -489,7 +490,7 @@ class MultiDeviceSession():
                 logger.info(f"device {ret[0]}, start_time:{ret[2]}, end_time:{ret[3]}")
         return outputs_dict
 
-    def infer_pipeline(self, device_feeds_list:dict, mode='static', custom_sizes=100000):
+    def infer_pipeline(self, device_feeds_list: dict, mode='static', custom_sizes=100000):
         '''
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
@@ -520,7 +521,7 @@ class MultiDeviceSession():
         self.summary.clear()
         while outputs_queue.qsize() != 0:
             ret = outputs_queue.get()
-            if type(ret) == list:
+            if isinstance(ret, list):
                 if (not outputs_dict.get(ret[0])):
                     outputs_dict.update({ret[0]: []})
                     self.summary.update({ret[0]: []})
@@ -529,7 +530,8 @@ class MultiDeviceSession():
                 logger.info(f"device {ret[0]}, start_time:{ret[2]}, end_time:{ret[3]}")
         return outputs_dict
 
-    def infer_iteration(self, device_feeds:dict, in_out_list=None, iteration_times=1, mode='static', custom_sizes=None):
+    def infer_iteration(self, device_feeds: dict, in_out_list=None, iteration_times=1, mode='static',
+                        custom_sizes=None):
         '''
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
@@ -561,7 +563,7 @@ class MultiDeviceSession():
         self.summary.clear()
         while outputs_queue.qsize() != 0:
             ret = outputs_queue.get()
-            if type(ret) == list:
+            if isinstance(ret, list):
                 if (not outputs_dict.get(ret[0])):
                     outputs_dict.update({ret[0]: []})
                     self.summary.update({ret[0]: []})
@@ -599,7 +601,7 @@ class MultiDeviceSession():
         return
 
     def subprocess_infer_iteration(self, outputs_queue, device_id, feeds, in_out_list=None,
-            iteration_times=1, mode='static', custom_sizes=None):
+                                   iteration_times=1, mode='static', custom_sizes=None):
         sub_session = InferSession(
             device_id=device_id,
             model_path=self.model_path,

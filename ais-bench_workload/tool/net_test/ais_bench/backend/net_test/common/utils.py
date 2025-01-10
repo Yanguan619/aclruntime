@@ -15,7 +15,7 @@
 import re
 import subprocess
 
-from ais_bench.backend.net_test.common.consts import STRING_PATTERN, OTHERS
+from ais_bench.backend.net_test.common.consts import StringPattern, OTHERS
 from ais_bench.backend.net_test.common.logger import logger
 
 

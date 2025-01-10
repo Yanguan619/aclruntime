@@ -1,7 +1,22 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "hccl_test_communicate.h"
 
-namespace hccl
-{
+namespace hccl {
 const int RETRY_COUNT = 10;
 const int RETRY_INTERVAL = 1; // second
 const int RETRY_TIMES = 5;
@@ -13,7 +28,6 @@ HcclCommunicater::HcclCommunicater(
     const int rankID
 ): m_serverIP(serverIP), m_serverPort(serverPort), m_rankSize(rankSize), m_rankID(rankID)
 {
-
 }
 
 HcclCommunicater::~HcclCommunicater()
@@ -123,7 +137,6 @@ int HcclCommunicater::ClientRecv(
             DEBUG("rank: %d, client received from server success!", m_rankID);
             return 0;
         }
-
     }
     ERROR("Rank: %d, client received from server failed!", m_rankID);
     return -1;

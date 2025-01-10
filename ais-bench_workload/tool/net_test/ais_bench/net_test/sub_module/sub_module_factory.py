@@ -16,11 +16,11 @@ from ais_bench.net_test.sub_module.run_module import RunModule
 from ais_bench.net_test.sub_module.install_module import InstallModule
 
 from ais_bench.net_test.common.logger import logger
-from ais_bench.net_test.common.consts import SUB_MODULE_NAME
+from ais_bench.net_test.common.consts import SubModuleName
 
 sub_module_switch = {
-    SUB_MODULE_NAME.RUN: RunModule,
-    SUB_MODULE_NAME.INSTALL: InstallModule,
+    SubModuleName.RUN: RunModule,
+    SubModuleName.INSTALL: InstallModule,
 }
 
 

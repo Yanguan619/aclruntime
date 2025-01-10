@@ -1,4 +1,4 @@
- # Copyright (c) 2024-2024 Huawei Technologies Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
 import aclruntime
 import numpy as np
 
+from ais_bench.infer.common.utils import logger_print
+
 def aclruntime_api_dymhw():
     device_id = 0
     model_path = "../sampledata/add_model/model/add_model_dymhw.om"
@@ -25,7 +27,7 @@ def aclruntime_api_dymhw():
 
     shapes = []
     feeds = []
-    #create new numpy data according inputs info
+    # create new numpy data according inputs info
     shape0 = [1, 3, 32, 32]
     ndata0 = np.full(shape0, 1).astype(np.float32)
     shape1 = [1, 3, 32, 32]
@@ -52,15 +54,16 @@ def aclruntime_api_dymhw():
     outnames = [meta.name for meta in session.get_outputs()]
     outputs = session.run(outnames, feeds)
 
-    print(f"outputs: {outputs}")
+    logger_print("outputs: %s", outputs)
     outarray = []
     for out in outputs:
         # convert acltenor to host memory
         out.to_host()
         # convert acltensor to numpy array
         outarray.append(np.array(out))
-    print(outarray)
+    logger_print("outarray: %s", outarray)
     # summay inference throughput
-    print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
+    logger_print("infer avg:%s ms", np.mean(session.sumary().exec_time_list))
+
 
 aclruntime_api_dymhw()

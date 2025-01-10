@@ -14,8 +14,9 @@
 
 import os
 import shutil
-from ais_bench.net_test.common.consts import LENGTH_LIMIT
-from ais_bench.net_test.security.standard_consts import STAT_STRING_IDX, PERM_STRING_IDX, FileSizeLimit
+from ais_bench.net_test.common.consts import LengthLimit
+from ais_bench.net_test.security.standard_consts import StatStringIdx, PermStringIdx, FileSizeLimit
+
 
 def is_disk_space_enough(path, need_size):
     _, _, free_space = shutil.disk_usage(path)
@@ -36,7 +37,7 @@ def check_positive_integer_str(value):
         raise ValueError(f"int string to check is not a string")
     if not value:
         return
-    if len(value) > LENGTH_LIMIT.MAX_UINT64_STR_LENGTH:
+    if len(value) > LengthLimit.MAX_UINT64_STR_LENGTH:
         raise ValueError(f"int string to check is over length limit")
     if not value.isdigit():
         raise ValueError(f"int string to check is an invalid positive int value")
@@ -46,20 +47,20 @@ def check_positive_integer_str(value):
 
 
 def check_linux_file_stat_string_from_shell(file_info: list, user: str, is_default_path: bool = False):
-    if len(file_info) < STAT_STRING_IDX.SIZE + 1:
+    if len(file_info) < StatStringIdx.SIZE + 1:
         raise ValueError(f"current/remote path is not a file")
 
-    owner = file_info[STAT_STRING_IDX.USER]
+    owner = file_info[StatStringIdx.USER]
     if not is_default_path and owner != user:
         raise ValueError(f"current/remote user: {user} is not the owner of file")
 
-    permission = file_info[STAT_STRING_IDX.PERMISSION]
+    permission = file_info[StatStringIdx.PERMISSION]
     if permission[0] != "-":
         raise ValueError(f"current/remote file is a softlink!")
 
-    if permission[PERM_STRING_IDX.S_IWGRP] != "-" or permission[PERM_STRING_IDX.S_IWOTH] != "-":
+    if permission[PermStringIdx.S_IWGRP] != "-" or permission[PermStringIdx.S_IWOTH] != "-":
         raise ValueError(f"current/remote file could be write by group/other user!")
 
-    file_size = int(file_info[STAT_STRING_IDX.SIZE])
+    file_size = int(file_info[StatStringIdx.SIZE])
     if file_size > FileSizeLimit.NORMAL_EXEC_FILE:
         raise ValueError(f"current/remote file's should not be over {FileSizeLimit.NORMAL_EXEC_FILE} Bytes")

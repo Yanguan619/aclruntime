@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ APP_ERROR TensorBuffer::TensorBufferMalloc(TensorBuffer &buffer)
 APP_ERROR TensorBuffer::CheckCopyValid(const TensorBuffer &buffer1, const TensorBuffer &buffer2)
 {
     if (buffer1.size != buffer2.size) {
-        ERROR_LOG("param1 data size(%ld) not match to param2 size(%ld)", buffer1.size, buffer2.size);
+        ERROR_LOG("param1 data size(%lu) not match to param2 size(%lu)", buffer1.size, buffer2.size);
         return APP_ERR_COMM_INVALID_PARAM;
     }
 

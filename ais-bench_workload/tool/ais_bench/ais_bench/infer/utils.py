@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ from ais_bench.infer.args_check import (
 )
 
 
-class INT_ARGS_MAX:
+class IntArgsMax:
     THREADS = 64
     WARMUP_COUNT = 10000
     BATCHSIZE = 4096
@@ -31,16 +31,16 @@ class INT_ARGS_MAX:
 
 
 def check_int_args_max_limit(args):
-    if args.threads > INT_ARGS_MAX.THREADS:
-        raise ValueError(f"--threads: {args.threads} is over {INT_ARGS_MAX.THREADS}")
-    if args.warmup_count > INT_ARGS_MAX.WARMUP_COUNT:
-        raise ValueError(f"--warmup_count: {args.warmup_count} is over {INT_ARGS_MAX.WARMUP_COUNT}")
-    if args.batchsize is not None and args.batchsize > INT_ARGS_MAX.BATCHSIZE:
-        raise ValueError(f"--batchsize: {args.batchsize} is over {INT_ARGS_MAX.BATCHSIZE}")
-    if args.dym_batch > INT_ARGS_MAX.DYMBATCH:
-        raise ValueError(f"--dymBatch: {args.dym_batch} is over {INT_ARGS_MAX.DYMBATCH}")
-    if args.output_batchsize_axis > INT_ARGS_MAX.BATCHSIZE_AXIS:
-        raise ValueError(f"--output_batchsize_axis: {args.output_batchsize_axis} is over {INT_ARGS_MAX.BATCHSIZE_AXIS}")
+    if args.threads > IntArgsMax.THREADS:
+        raise ValueError(f"--threads: {args.threads} is over {IntArgsMax.THREADS}")
+    if args.warmup_count > IntArgsMax.WARMUP_COUNT:
+        raise ValueError(f"--warmup_count: {args.warmup_count} is over {IntArgsMax.WARMUP_COUNT}")
+    if args.batchsize is not None and args.batchsize > IntArgsMax.BATCHSIZE:
+        raise ValueError(f"--batchsize: {args.batchsize} is over {IntArgsMax.BATCHSIZE}")
+    if args.dym_batch > IntArgsMax.DYMBATCH:
+        raise ValueError(f"--dymBatch: {args.dym_batch} is over {IntArgsMax.DYMBATCH}")
+    if args.output_batchsize_axis > IntArgsMax.BATCHSIZE_AXIS:
+        raise ValueError(f"--output_batchsize_axis: {args.output_batchsize_axis} is over {IntArgsMax.BATCHSIZE_AXIS}")
 
 
 def get_args():
@@ -205,7 +205,7 @@ def get_args():
         type=check_nonnegative_integer,
         default=1,
         help="Warmup count before inference"
-        )
+    )
     parser.add_argument(
         "--dymShape_range",
         dest="dym_shape_range",

@@ -1,4 +1,4 @@
-# Copyright (c) Huawei Technologies Co., Ltd. 2023-2024. All rights reserved.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ais_bench.infer.common.logger import logger
 from configparser import ConfigParser
+
+from ais_bench.infer.common.logger import logger
 import aclruntime
 
 AIPP_HEAD_STR = 'aipp_op'
@@ -61,7 +62,7 @@ class DymAippManager:
 
     def load_aipp_config_content(self):
         session_list = self.cfg.sections()
-        #多个aipp输入不支持
+        # 多个aipp输入不支持
         if (session_list.count(AIPP_HEAD_STR) != 1):
             logger.error("nums of section aipp_op in .config file is not supported, please check it!")
             raise ValueError('wrong aipp config file content!')
@@ -92,7 +93,7 @@ class DymAippManager:
             value = self.cfg.getint(head_name, key_name)
         except Exception as err:
             raise ValueError("get int type value from aipp config file failed, " + \
-                f"head name:{head_name}, key name:{key_name}") from err
+                             f"head name:{head_name}, key name:{key_name}") from err
         return value
 
     def _get_float_safe(self, head_name: str, key_name: str):
@@ -100,7 +101,7 @@ class DymAippManager:
             value = self.cfg.getfloat(head_name, key_name)
         except Exception as err:
             raise ValueError("get float type value from aipp config file failed, " + \
-                f"head name:{head_name}, key name:{key_name}") from err
+                             f"head name:{head_name}, key name:{key_name}") from err
         return value
 
     def _aipp_set_input_format(self):
@@ -168,7 +169,8 @@ class DymAippManager:
                 'input_bias_0', 'input_bias_1', 'input_bias_2'
             ]
             for option in options:
-                tmp_csc_params.append(0 if option_list.count(option) == 0 else self._get_int_safe(AIPP_HEAD_STR, option))
+                tmp_csc_params.append(
+                    0 if option_list.count(option) == 0 else self._get_int_safe(AIPP_HEAD_STR, option))
 
             range_ok = True
             for i in range(1, 9):
@@ -196,10 +198,12 @@ class DymAippManager:
             tmp_crop_params = list()
             tmp_crop_params.append(tmp_crop_switch)
             tmp_crop_params.append(
-                0 if option_list.count('load_start_pos_w') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'load_start_pos_w')
+                0 if option_list.count('load_start_pos_w') == 0 else self._get_int_safe(AIPP_HEAD_STR,
+                                                                                        'load_start_pos_w')
             )
             tmp_crop_params.append(
-                0 if option_list.count('load_start_pos_h') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'load_start_pos_h')
+                0 if option_list.count('load_start_pos_h') == 0 else self._get_int_safe(AIPP_HEAD_STR,
+                                                                                        'load_start_pos_h')
             )
             tmp_crop_params.append(
                 0 if option_list.count('crop_size_w') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'crop_size_w')
@@ -234,16 +238,20 @@ class DymAippManager:
             tmp_padding_params = list()
             tmp_padding_params.append(tmp_padding_switch)
             tmp_padding_params.append(
-                0 if option_list.count('top_padding_size') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'top_padding_size')
+                0 if option_list.count('top_padding_size') == 0 else self._get_int_safe(AIPP_HEAD_STR,
+                                                                                        'top_padding_size')
             )
             tmp_padding_params.append(
-                0 if option_list.count('bottom_padding_size') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'bottom_padding_size')
+                0 if option_list.count('bottom_padding_size') == 0 else self._get_int_safe(AIPP_HEAD_STR,
+                                                                                           'bottom_padding_size')
             )
             tmp_padding_params.append(
-                0 if option_list.count('left_padding_size') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'left_padding_size')
+                0 if option_list.count('left_padding_size') == 0 else self._get_int_safe(AIPP_HEAD_STR,
+                                                                                         'left_padding_size')
             )
             tmp_padding_params.append(
-                0 if option_list.count('right_padding_size') == 0 else self._get_int_safe(AIPP_HEAD_STR, 'right_padding_size')
+                0 if option_list.count('right_padding_size') == 0 else self._get_int_safe(AIPP_HEAD_STR,
+                                                                                          'right_padding_size')
             )
 
             range_ok = True
@@ -329,4 +337,3 @@ class DymAippManager:
             raise ValueError('wrong aipp config file content!')
 
         self.session.aipp_set_pixel_var_reci(tmp_reci_params)
-

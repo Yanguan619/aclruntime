@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,18 @@ const mode_t CREATE_FILE_MODE = S_IRUSR | S_IWUSR | S_IRGRP;
 const size_t DYM_STRING_MAX_LENGTH = 4096;
 const size_t INPUT_LIST_MAX_SIZE = 1024;
 const size_t INPUT_NAME_LENGTH_MAX = 256;
+}
+
+uint8_t Utils::CreateRandomNum()
+{
+    int fd = open("/dev/urandom", O_RDONLY);
+    if (fd == -1) {
+        throw std::runtime_error("Failed to open /dev/urandom");
+    }
+    uint8_t randomByte;
+    read(fd, &randomByte, sizeof(randomByte));
+    close(fd);
+    return randomByte;
 }
 
 void Utils::SplitString(std::string& s, std::vector<std::string>& v, char c)
@@ -199,7 +211,7 @@ Result Utils::SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_
         Utils::SplitStringWithPunctuation(shape_str, shape_tmp, ',');
         int64_t DimsMul = 1;
         for (size_t j = 0; j < shape_tmp.size(); ++j) {
-	        DimsMul = DimsMul * atoi(shape_tmp[j].c_str());
+            DimsMul = DimsMul * atoi(shape_tmp[j].c_str());
         }
         out_namedimsmul_map[name] = DimsMul;
     }
@@ -215,7 +227,7 @@ Result Utils::ReadBinFileToMemory(const std::string fileName, char *ptr, const s
     }
 
     binFile.seekg(0, binFile.end);
-    uint64_t binFileBufferLen = binFile.tellg();
+    uint64_t binFileBufferLen = static_cast<uint64_t>(binFile.tellg());
     if (binFileBufferLen == 0) {
         ERROR_LOG("bin file is empty, filename is %s", fileName.c_str());
         binFile.close();
@@ -255,7 +267,8 @@ std::string Utils::MergeStr(std::vector<std::string>& list, const std::string& d
 {
     auto res = std::accumulate(list.begin(), list.end(), std::string(),
     [=](const std::string& a, const std::string& b) -> std::string {
-        return a + (a.length() > 0 ? delimiter : "") + b; });
+        return a + (a.length() > 0 ? delimiter : "") + b; 
+    });
     return res;
 }
 

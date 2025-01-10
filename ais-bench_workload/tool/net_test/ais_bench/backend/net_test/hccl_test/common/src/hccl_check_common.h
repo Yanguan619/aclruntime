@@ -28,9 +28,8 @@
 #include <hccl/hccl_types.h>
 #include "hccl_test_common.h"
 
-//#ifdef USE_HCCL_API
 
-//浮点数计算精度，当前算误差百分比
+// 浮点数计算精度，当前算误差百分比
 #define HCCL_EPSION_FLOAT 0.000001
 
 extern int CheckBufResultFloat(const void* resultBuf, const void* checkBuf, unsigned long long count);

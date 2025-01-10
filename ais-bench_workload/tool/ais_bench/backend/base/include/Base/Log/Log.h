@@ -39,10 +39,12 @@ using namespace std;
 namespace Base {
 class LogCtrl {
 public:
-    static void SetLogLevel(int level) {
+    static void SetLogLevel(int level)
+    {
         frizyLogLevel = level;
     }
-    static bool CheckLogLevel(int level) {
+    static bool CheckLogLevel(int level)
+    {
         return level >= frizyLogLevel;
     }
 private:

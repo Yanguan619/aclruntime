@@ -1,4 +1,4 @@
-# Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+# Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
 
 import re
 from ais_bench.infer.args_check import (OM_MODEL_MAX_SIZE, ACL_JSON_MAX_SIZE, LOOP_MAX_SIZE,
-    CPP_INT_MAX_SIZE, INPUT_LIST_MAX_SIZE, INPUT_NAME_LENGTH_MAX)
-from ais_bench.infer.common.path_security_check import FileStat, FILE_PERM_CHOICE, check_path_legality
+                                        CPP_INT_MAX_SIZE, INPUT_LIST_MAX_SIZE, INPUT_NAME_LENGTH_MAX)
+from ais_bench.infer.common.path_security_check import FileStat, FilePermChoice, check_path_legality
 
-CUSTOME_SIZE_MAX_SIZE = 16 * 1024 * 1024 * 1024 # 16 GB
+CUSTOME_SIZE_MAX_SIZE = 16 * 1024 * 1024 * 1024  # 16 GB
 CUSTOM_MAX_COUNT = 256
 MODEL_INPUT_TENSOR_COUNT_MAX = 1024
 
@@ -25,13 +25,13 @@ MODEL_INPUT_TENSOR_COUNT_MAX = 1024
 def check_model_path_legality(value):
     if not value:
         raise RuntimeError("empty model path!")
-    check_path_legality(value, FILE_PERM_CHOICE.READ, max_size=OM_MODEL_MAX_SIZE, suffix=["om"])
+    check_path_legality(value, FilePermChoice.READ, max_size=OM_MODEL_MAX_SIZE, suffix=["om"])
 
 
 def check_acl_json_path_legality(value):
     if not value:
         return
-    check_path_legality(value, FILE_PERM_CHOICE.READ, max_size=ACL_JSON_MAX_SIZE, suffix=["json"])
+    check_path_legality(value, FilePermChoice.READ, max_size=ACL_JSON_MAX_SIZE, suffix=["json"])
 
 
 def check_device_range_valid(value):
@@ -46,7 +46,7 @@ def check_device_range_valid(value):
 
 
 def check_output_dir_legality(value):
-    check_path_legality(value, FILE_PERM_CHOICE.READ, is_file=False)
+    check_path_legality(value, FilePermChoice.READ, is_file=False)
 
 
 def check_positive_integer(value):
@@ -122,14 +122,14 @@ def check_bool_value(value):
         raise TypeError(f"value:{value} is not a bool!")
 
 
-def check_dym_hw_list(hw_list:list):
+def check_dym_hw_list(hw_list: list):
     if len(hw_list) != 2:
         raise ValueError("int count not match, legal format of dymHW string is \"int,int\"")
-    try :
+    try:
         h = int(hw_list[0])
         w = int(hw_list[1])
     except ValueError as err:
-        raise ValueError("data type not match, legal format of dymHW string is \"int,int\"")
+        raise ValueError("data type not match, legal format of dymHW string is \"int,int\"") from err
     if h < 1 or h > CPP_INT_MAX_SIZE:
         raise ValueError(f"height of dym_hw string is out of range [1, {CPP_INT_MAX_SIZE}]")
     if w < 1 or w > CPP_INT_MAX_SIZE:

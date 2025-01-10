@@ -11,14 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from ais_bench.net_test.common.consts import REMOTE_NODE_INFO_NAME
+from ais_bench.net_test.common.consts import RemoteNodeInfoName
 from ais_bench.net_test.ssh.ssh_operation import remote_exec_file_check
 
+
 def remote_run_env_check(args_dict):
-    if (args_dict.get(REMOTE_NODE_INFO_NAME.CMD).split(";")[0].split()[0] == "source"):
-        env_path = args_dict.get(REMOTE_NODE_INFO_NAME.CMD).split(";")[0].split()[1]
+    if (args_dict.get(RemoteNodeInfoName.CMD).split(";")[0].split()[0] == "source"):
+        env_path = args_dict.get(RemoteNodeInfoName.CMD).split(";")[0].split()[1]
         remote_exec_file_check(
             env_path,
-            args_dict.get(REMOTE_NODE_INFO_NAME.NODE_INFO),
-            args_dict.get(REMOTE_NODE_INFO_NAME.SSH_KEY_PATH)
+            args_dict.get(RemoteNodeInfoName.NODE_INFO),
+            args_dict.get(RemoteNodeInfoName.SSH_KEY_PATH)
         )

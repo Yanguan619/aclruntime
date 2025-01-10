@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <stdio.h>
 #include <math.h>
 #include <unistd.h>
@@ -8,8 +24,13 @@
 #include <hccl/hccl_types.h>
 #include "hccl_opbase_rootinfo_base.h"
 
-namespace hccl
-{
+const size_t RANK_SIZE_LIMIT_7 = 7;
+const size_t RANK_SIZE_LIMIT_16 = 16;
+const size_t RANK_SIZE_LIMIT_31 = 31;
+const size_t RANK_SIZE_LIMIT_63 = 63;
+const size_t RANK_SIZE_LIMIT_128 = 128;
+
+namespace hccl {
 HcclOpBaseTest::HcclOpBaseTest()
 {
     host_buf = nullptr;
@@ -21,20 +42,18 @@ HcclOpBaseTest::HcclOpBaseTest()
 
 HcclOpBaseTest::~HcclOpBaseTest()
 {
-
 }
 
-int HcclOpBaseTest::hccl_op_base_test()
+int HcclOpBaseTest::HcclOpBaseTestMain()
 {
     return 0;
 }
 
-void HcclOpBaseTest::init_data_count()
+void HcclOpBaseTest::InitDataCount()
 {
-    switch(dtype)
-    {
+    switch (dtype) {
         case HCCL_DATA_TYPE_FP32:
-            data->count = (data->dataSize + sizeof(float) - 1)/sizeof(float); //count向上取整
+            data->count = (data->dataSize + sizeof(float) - 1) / sizeof(float); // count向上取整
             data->typeSize = sizeof(float);
             break;
         case HCCL_DATA_TYPE_INT32:
@@ -80,19 +99,19 @@ void HcclOpBaseTest::init_data_count()
     return;
 }
 
-int HcclOpBaseTest::init_buf_val()
+int HcclOpBaseTest::InitBufVal()
 {
     return 0;
 }
 
-int HcclOpBaseTest::check_buf_result()
+int HcclOpBaseTest::CheckBufResult()
 {
     return 0;
 }
 
-void HcclOpBaseTest::no_verification()
+void HcclOpBaseTest::NoVerification()
 {
-    check = 0; //不进行校验
+    check = 0; // 不进行校验
     if (rank_id == root_rank && print_dump) {
         WARN("The calculation result overflows, no verification is performed.");
         print_dump = false;
@@ -100,102 +119,96 @@ void HcclOpBaseTest::no_verification()
     return;
 }
 
-void HcclOpBaseTest::is_data_overflow()
+void HcclOpBaseTest::IsDataOverflow()
 {
     if (op_type == HCCL_REDUCE_PROD) {
-        if (dtype == HCCL_DATA_TYPE_FP16 && rank_size >= 16) {
-            no_verification();
+        if (dtype == HCCL_DATA_TYPE_FP16 && rank_size >= RANK_SIZE_LIMIT_16) {
+            NoVerification();
         }
-        if (dtype == HCCL_DATA_TYPE_FP32 && rank_size >= 128) {
-            no_verification();
+        if (dtype == HCCL_DATA_TYPE_FP32 && rank_size >= RANK_SIZE_LIMIT_128) {
+            NoVerification();
         }
-        if (dtype == HCCL_DATA_TYPE_INT8 && rank_size >= 7) {
-            no_verification();
+        if (dtype == HCCL_DATA_TYPE_INT8 && rank_size >= RANK_SIZE_LIMIT_7) {
+            NoVerification();
         }
-        if (dtype == HCCL_DATA_TYPE_INT32 && rank_size >= 31) {
-            no_verification();
+        if (dtype == HCCL_DATA_TYPE_INT32 && rank_size >= RANK_SIZE_LIMIT_31) {
+            NoVerification();
         }
     } else if (op_type == HCCL_REDUCE_SUM) {
-        if(dtype == HCCL_DATA_TYPE_INT8 && rank_size >= 63) {
-            no_verification();
+        if (dtype == HCCL_DATA_TYPE_INT8 && rank_size >= RANK_SIZE_LIMIT_63) {
+            NoVerification();
         }
     }
 
     return;
 }
 
-int HcclOpBaseTest::print_execution_time(double average_time_us, double algorithm_bandwith_GBytes_s)
+int HcclOpBaseTest::PrintExecutionTime(double average_time_us, double algorithm_bandwith_GBytes_s)
 {
     setvbuf(stdout, NULL, _IOLBF, 0); // 设置printf的缓冲区大小
-    //不开启结果校验场景
-    if (check == 0)
-    {
+    // 不开启结果校验场景
+    if (check == 0) {
         if (rank_id == root_rank) {
-            if (print_header)
-            {
+            if (print_header) {
                 INFO("Test result without check is:");
                 LOG_ORIGIN(" %-15s | %-12s | %-18s | %s", data_size, aveg_time, alg_bandwidth, verification_result);
                 print_header = false;
             }
-            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | NULL", data->dataSize, average_time_us, algorithm_bandwith_GBytes_s);
+            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | NULL", data->dataSize,
+                average_time_us, algorithm_bandwith_GBytes_s);
         }
         return 0;
     }
 
     // 开启结果校验，部分rank结果校验失败场景
     bool check_result[rank_size];
-    if (check_err != 0)
-    {
+    if (check_err != 0) {
         check_result[rank_id] = false; // 结果校验失败
         ERROR("Rank id %d, check result failed.", rank_id);
     } else {
         check_result[rank_id] = true; // 结果校验成功
     }
 
-    #ifdef MPI_SUPPORT
+#ifdef MPI_SUPPORT
     MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, check_result, sizeof(bool), MPI_BYTE, MPI_COMM_WORLD);
-    #endif
+#endif
 
-    #ifndef MPI_SUPPORT
+#ifndef MPI_SUPPORT
     bool curResuult = check_result[rank_id];
     int ret = communicater->AllGatherInfoToRoot(&check_result, &curResuult, sizeof(bool), rank_size);
     if (ret != 0) {
         ERROR("Rank: %d run all gather root info failed! Print execution time failed!", rank_id);
         return ret;
     }
-    #endif
+#endif
 
-
-    if (rank_id == root_rank)
-    {
+    if (rank_id == root_rank) {
         bool result = true;
-        for (int p = 0; p < rank_size; p++)
-        {
-            if (check_result[p] == false)
-            {
+        for (int p = 0; p < rank_size; p++) {
+            if (check_result[p] == false) {
                 result = false;
                 break;
             }
         }
-        if (print_header)
-        {
+        if (print_header) {
             INFO("Test result with check is:");
             LOG_ORIGIN(" %-15s | %-12s | %-18s | %s", data_size, aveg_time, alg_bandwidth, verification_result);
             print_header = false;
         }
 
-        if (!result)
-        {
-            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | failed", data->dataSize, average_time_us, algorithm_bandwith_GBytes_s);
+        if (!result) {
+            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | failed", data->dataSize,
+                average_time_us, algorithm_bandwith_GBytes_s);
         } else {
-            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | success", data->dataSize, average_time_us, algorithm_bandwith_GBytes_s);
+            LOG_ORIGIN(" %-17llu | %-14.2f | %-20.5f | success", data->dataSize,
+                average_time_us, algorithm_bandwith_GBytes_s);
         }
     }
     return 0;
 }
 
 
-int HcclOpBaseTest::destory_check_buf()
+int HcclOpBaseTest::DestoryCheckBuf()
 {
     return 0;
 }

@@ -43,7 +43,7 @@ int CheckBufResultFloat(const void *resultBuf, const void *checkBuf, u64 count)
                     err++;
                 }
             } else {
-                if (fabsf(c_buf[i] - result[i]) > 0.001) {
+                if (fabsf(c_buf[i] - result[i]) > RESULT_PROCESSION) {
                     if (first_err_pos == ULLONG_MAX) {
                         first_err_pos = i;
                     }

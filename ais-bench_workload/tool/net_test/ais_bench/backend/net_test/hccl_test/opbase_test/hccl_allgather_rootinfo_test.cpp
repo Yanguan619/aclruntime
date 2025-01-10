@@ -176,7 +176,7 @@ int HcclOpBaseAllgatherTest::HcclOpBaseTestMain() // 主函数
 
     int ret = CalExecutionTime(time);
 
-    //销毁集合通信内存资源
+    // 销毁集合通信内存资源
     ACLCHECK(aclrtFree(send_buff));
     ACLCHECK(aclrtFree(recv_buff));
     if (check == 1) {

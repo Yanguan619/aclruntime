@@ -39,6 +39,7 @@
 #include "Base/ModelInfer/cnpy.h"
 #include "Base/Tensor/TensorBase/TensorBase.h"
 
+const int INPUT_DYM_SHAPE_MAX_LENGTH = 30;
 
 typedef enum Result {
     SUCCESS = 0,
@@ -87,6 +88,9 @@ public:
     static bool TailContain(const std::string& str, const std::string& tail);
     static bool IsValidInteger(const std::string& str);
     static bool IsLegalDymString(const std::string& str);
+    static std::vector<std::string> SplitStringByComma(const std::string& str);
+    static bool IsDymShapeValid(const std::string& str);
+    static bool IsInputNameValidChar(const std::string& str);
     static uint8_t CreateRandomNum();
 };
 

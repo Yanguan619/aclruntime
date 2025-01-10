@@ -457,6 +457,48 @@ bool Utils::IsValidInteger(const std::string& str)
     return true;
 }
 
+std::vector<std::string> Utils::SplitStringByComma(const std::string& str)
+{
+    if (str.size() > INPUT_DYM_SHAPE_MAX_LENGTH) {
+        throw std::runtime_error("Input dymShpae out of length");
+    }
+    std::vector<std::string> res;
+    std::stringstream ss(str);
+    std::string token;
+
+    while (std::getline(ss, token, ',')) {
+        res.push_back(token);
+    }
+
+    return res;
+}
+
+bool Utils::IsDymShapeValid(const std::string& str)
+{
+    std::vector<std::string> shapeValues = SplitStringByComma(str);
+    if (shapeValues.size() == 0 || shapeValues.size() > 6) return false;
+    for (std::string value : shapeValues) {
+        if (value.empty() || value.size() > 4) return false;
+        if (value[0] < '1' || value[0] > '9') return false;
+        for (size_t i = 1; i < value.size(); ++i) {
+            if (value[i] < '0' || value[i] > '9') return false;
+        }
+    }
+    return true;
+}
+
+bool Utils::IsInputNameValidChar(const std::string& str)
+{
+    const std::vector<char> extendedPattern = { '_', '.', '/', '-' };
+    for (size_t i = 0; i < str.size(); ++i) {
+        auto it = std::find(extendedPattern.begin(), extendedPattern.end(), str[i]);
+        if (it == extendedPattern.end() && !isalnum(str[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool Utils::IsLegalDymString(const std::string& str)
 {
     if (str.size() > DYM_STRING_MAX_LENGTH) {
@@ -495,15 +537,13 @@ bool Utils::IsLegalDymString(const std::string& str)
         }
 
         // 检查非法字符
-        std::regex illegal_char_regex("[^_A-Za-z0-9/.-]");
-        if (std::regex_search(inputName, illegal_char_regex)) {
+        if (!IsInputNameValidChar(inputName)) {
             ERROR_LOG("input name parsed from dymshape string contain illegal char!");
             return false;
         }
 
-        // 检查值是否符合正则表达式
-        std::regex compression_regex("[1-9][0-9]{0,4}(\\,[1-9][0-9]{0,4}){0,6}");
-        if (!std::regex_match(inputValue, compression_regex)) {
+        // 检查值是否符合规则：[1-9][0-9]{0,4}(\\,[1-9][0-9]{0,4}){0,6}
+        if (!IsDymShapeValid(inputValue)) {
             ERROR_LOG("the format of shape string parsed from dymshape string is illegal!");
             return false;
         }

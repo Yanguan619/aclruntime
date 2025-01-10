@@ -136,7 +136,7 @@ void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape
 
     std::string strWs = header.substr(loc1 + 2);
     loc2 = strWs.find("'");
-    std::string tempWordSizeStr = strWs.substr(0, loc2)
+    std::string tempWordSizeStr = strWs.substr(0, loc2);
     try {
         int tempWordSize = std::stoi(tempWordSizeStr);
         if (tempWordSize < 0) {

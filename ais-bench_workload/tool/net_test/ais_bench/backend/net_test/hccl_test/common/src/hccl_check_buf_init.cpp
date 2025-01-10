@@ -443,7 +443,7 @@ int AlltoallCheckResultBfp32(const void *check_buf, u64 *recv_counts, u64 *recv_
         u16 check_val = i + 1;
         result = (u16 *)check_buf + recv_disp[i];
         for (u64 j = 0; j < recv_counts[i]; ++j) {
-            if (fabs(result[j] - check_val) / abs(result[j]) > 0.001) {
+            if (fabs(result[j] - check_val) / abs(result[j]) > RESULT_PROCESSION) {
                 ERROR("Check data from rank %d  result[%llu] error, exp:%d, act:%d", i, j, check_val, result[j]);
                 ret++;
             }

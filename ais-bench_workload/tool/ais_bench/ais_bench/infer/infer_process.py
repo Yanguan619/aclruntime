@@ -90,7 +90,7 @@ def set_session_options(session, args):
 
     if not args.auto_set_dymshape_mode and not args.auto_set_dymdims_mode:
         if args.batchsize < 0 :
-            if  not args.dym_batch and not args.dym_dims and not args.dym_shape:
+            if not args.dym_batch and not args.dym_dims and not args.dym_shape:
                 raise RuntimeError('dynamic batch om model detected, but dymbatch, dymdims or dymshape not set!')
 
     if aipp_batchsize < 0:
@@ -120,7 +120,7 @@ def set_session_options(session, args):
         customsizes = [str_to_uint(n) for n in args.output_size.split(',')]
         check_list(customsizes, max_len=CUSTOM_MAX_COUNT, allow_empty=False, data_type=int)
         check_custom_size(customsizes)
-        logger.debug("set customsize:%s",customsizes)
+        logger.debug("set customsize:%s", customsizes)
         session.set_custom_outsize(customsizes)
 
 
@@ -159,7 +159,7 @@ def set_dymdims_shape(session, inputs):
         dydim = f"{intensors_desc[i].name}:{shapes}"
         shape_list.append(dydim)
     dydims = ';'.join(shape_list)
-    logger.debug("set dymdims shape:%s",dydims)
+    logger.debug("set dymdims shape:%s", dydims)
     session.set_dynamic_dims(dydims)
     summary.add_batchsize(inputs[0].shape[0])
 
@@ -800,7 +800,7 @@ def infer_process(args:AISBenchInferArgsAdapter):
         dymshape_range_run(args)
         return 0
 
-    if isinstance(args.device,list):
+    if isinstance(args.device, list):
         # args has multiple device, run single process for each device
         ret = multidevice_run(args)
         return ret

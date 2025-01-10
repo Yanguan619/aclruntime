@@ -81,24 +81,6 @@ class InferSession:
             "dymshape": self._dymshape_prepare
         }
 
-    @staticmethod
-    def convert_tensors_to_host(tensors):
-        for tensor in tensors:
-            tensor.to_host()
-
-    @staticmethod
-    def convert_tensors_to_arrays(tensors):
-        arrays = []
-        for tensor in tensors:
-            # convert acltensor to numpy array
-            arrays.append(np.array(tensor))
-        return arrays
-
-    @staticmethod
-    def finalize():
-        if hasattr(aclruntime.InferenceSession, 'finalize'):
-            aclruntime.InferenceSession.finalize()
-
     def get_inputs(self):
         """
         get inputs info of model
@@ -430,6 +412,24 @@ class InferSession:
             raise RuntimeError('custom_sizes:{} type:{} invalid'.format(
                 custom_sizes, type(custom_sizes)))
         self.session.set_custom_outsize(custom_sizes)
+
+    @staticmethod
+    def convert_tensors_to_host(tensors):
+        for tensor in tensors:
+            tensor.to_host()
+
+    @staticmethod
+    def convert_tensors_to_arrays(tensors):
+        arrays = []
+        for tensor in tensors:
+            # convert acltensor to numpy array
+            arrays.append(np.array(tensor))
+        return arrays
+
+    @staticmethod
+    def finalize():
+        if hasattr(aclruntime.InferenceSession, 'finalize'):
+            aclruntime.InferenceSession.finalize()
 
 
 class MultiDeviceSession():

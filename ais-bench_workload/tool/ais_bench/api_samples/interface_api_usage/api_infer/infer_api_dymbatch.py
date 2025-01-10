@@ -17,6 +17,7 @@ import numpy as np
 from ais_bench.infer.interface import InferSession
 from ais_bench.infer.common.utils import logger_print
 
+
 def infer_api_dymbatch():
     device_id = 0
     model_path = "../../sampledata/add_model/model/add_model_dymbatch.om"

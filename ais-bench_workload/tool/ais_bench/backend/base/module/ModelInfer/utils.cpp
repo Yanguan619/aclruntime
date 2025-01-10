@@ -446,6 +446,9 @@ bool Utils::IsValidInteger(const std::string& str)
 
 std::vector<std::string> Utils::SplitStringByComma(const std::string& str)
 {
+    if (str.size() > INPUT_DYM_SHAPE_MAX_LENGTH) {
+        throw std::runtime_error("Input dymShpae out of length");
+    }
     std::vector<std::string> res;
     std::stringstream ss(str);
     std::string token;

@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import sys
 import logging
+
+
+def console_origin(line):
+    sys.stdout.write(line.decode('utf-8'))
+    sys.stdout.flush()
+
 
 MODULE_NAME = "AIS_BENCH_NET_TEST_BKD"
 ENV_DEBUG_SWITCH = "AIS_BENCH_NET_TEST_BKD_DEBUG_SWITCH"

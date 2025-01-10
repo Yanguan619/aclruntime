@@ -18,7 +18,7 @@ import multiprocessing as mpc
 import paramiko
 import scp
 
-from ais_bench.net_test.common.logger import logger
+from ais_bench.net_test.common.logger import logger, console_origin
 from ais_bench.net_test.common.consts import TimeOut, DEFAULT_ENV_SCRIPT_PATH
 from ais_bench.net_test.sub_module.base_sub_module import NodeInfo
 from ais_bench.net_test.security.file_checker import check_linux_path_format
@@ -48,11 +48,6 @@ class SSHRemotePutError(Exception):
 SSH_EXCEPTION_LIST = [
     SSHConnectError, SSHKeyExistsError, SSHRemoteExecError, SSHCheckValueError, SSHRemotePutError
 ]
-
-
-def console_origin(line):
-    sys.stdout.write(line)
-    sys.stdout.flush()
 
 
 def ssh_client_connect(ssh_client, node_info: NodeInfo, ssh_key_path: str = ""):

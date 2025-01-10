@@ -40,6 +40,8 @@
 #include "Base/Tensor/TensorBase/TensorBase.h"
 
 
+const int EXPECTED_INPUT_INFO_SIZE = 2;
+
 typedef enum Result {
     SUCCESS = 0,
     FAILED = 1
@@ -71,8 +73,6 @@ public:
     static std::string printCurrentTime();
 
     static double printDiffTime(time_t begin, time_t end);
-
-    static int ToInt(std::string &str);
 
     static Result ReadBinFileToMemory(const std::string fileName,  char *ptr, const size_t size, size_t &offset);
     static Result FillFileContentToMemory(const std::string file, char* ptr, const size_t size, size_t &offset);

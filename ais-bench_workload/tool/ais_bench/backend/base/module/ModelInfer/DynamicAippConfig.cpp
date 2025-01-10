@@ -106,33 +106,33 @@ APP_ERROR DynamicAippConfig::SetAxSwapSwitch(int asSwitch)
 
 APP_ERROR DynamicAippConfig::SetCscParams(std::vector<int> cscInputParams)
 {
-    cscParams.cscSwitch = cscInputParams[0];
-    cscParams.cscMatrixR0C0 = cscInputParams[1];
-    cscParams.cscMatrixR0C1 = cscInputParams[2];
-    cscParams.cscMatrixR0C2 = cscInputParams[3];
-    cscParams.cscMatrixR1C0 = cscInputParams[4];
-    cscParams.cscMatrixR1C1 = cscInputParams[5];
-    cscParams.cscMatrixR1C2 = cscInputParams[6];
-    cscParams.cscMatrixR2C0 = cscInputParams[7];
-    cscParams.cscMatrixR2C1 = cscInputParams[8];
-    cscParams.cscMatrixR2C2 = cscInputParams[9];
-    cscParams.cscOutputBias0 = cscInputParams[10];
-    cscParams.cscOutputBias1 = cscInputParams[11];
-    cscParams.cscOutputBias2 = cscInputParams[12];
-    cscParams.cscInputBias0 = cscInputParams[13];
-    cscParams.cscInputBias1 = cscInputParams[14];
-    cscParams.cscInputBias2 = cscInputParams[15];
+    cscParams.cscSwitch = cscInputParams[CSC_SWITCH];
+    cscParams.cscMatrixR0C0 = cscInputParams[CSC_MATRIX_R0C0];
+    cscParams.cscMatrixR0C1 = cscInputParams[CSC_MATRIX_R0C1];
+    cscParams.cscMatrixR0C2 = cscInputParams[CSC_MATRIX_R0C2];
+    cscParams.cscMatrixR1C0 = cscInputParams[CSC_MATRIX_R1C0];
+    cscParams.cscMatrixR1C1 = cscInputParams[CSC_MATRIX_R1C1];
+    cscParams.cscMatrixR1C2 = cscInputParams[CSC_MATRIX_R1C2];
+    cscParams.cscMatrixR2C0 = cscInputParams[CSC_MATRIX_R2C0];
+    cscParams.cscMatrixR2C1 = cscInputParams[CSC_MATRIX_R2C1];
+    cscParams.cscMatrixR2C2 = cscInputParams[CSC_MATRIX_R2C2];
+    cscParams.cscOutputBias0 = cscInputParams[CSC_OUTPUT_BIAS0];
+    cscParams.cscOutputBias1 = cscInputParams[CSC_OUTPUT_BIAS1];
+    cscParams.cscOutputBias2 = cscInputParams[CSC_OUTPUT_BIAS2];
+    cscParams.cscInputBias0 = cscInputParams[CSC_INPUT_BIAS0];
+    cscParams.cscInputBias1 = cscInputParams[CSC_INPUT_BIAS1];
+    cscParams.cscInputBias2 = cscInputParams[CSC_INPUT_BIAS2];
     return APP_ERR_OK;
 }
 
 APP_ERROR DynamicAippConfig::SetCropParams(std::vector<int> cropInputParams)
 {
     CropParams tmpCrop;
-    tmpCrop.cropSwitch = cropInputParams[0];
-    tmpCrop.loadStartPosW = cropInputParams[1];
-    tmpCrop.loadStartPosH = cropInputParams[2];
-    tmpCrop.cropSizeW = cropInputParams[3];
-    tmpCrop.cropSizeH = cropInputParams[4];
+    tmpCrop.cropSwitch = cropInputParams[INPUT_PARAM0_INDEX];
+    tmpCrop.loadStartPosW = cropInputParams[INPUT_PARAM1_INDEX];
+    tmpCrop.loadStartPosH = cropInputParams[INPUT_PARAM2_INDEX];
+    tmpCrop.cropSizeW = cropInputParams[INPUT_PARAM3_INDEX];
+    tmpCrop.cropSizeH = cropInputParams[INPUT_PARAM4_INDEX];
     for (size_t batchIndex = 0; batchIndex < maxBatchSize; batchIndex++) {
         cropParams.insert(std::make_pair(batchIndex, tmpCrop));
     }
@@ -142,11 +142,11 @@ APP_ERROR DynamicAippConfig::SetCropParams(std::vector<int> cropInputParams)
 APP_ERROR DynamicAippConfig::SetPaddingParams(std::vector<int> padInputParams)
 {
     PaddingParams tmpPad;
-    tmpPad.paddingSwitch = padInputParams[0];
-    tmpPad.paddingSizeTop = padInputParams[1];
-    tmpPad.paddingSizeBottom = padInputParams[2];
-    tmpPad.paddingSizeLeft = padInputParams[3];
-    tmpPad.paddingSizeRight = padInputParams[4];
+    tmpPad.paddingSwitch = padInputParams[INPUT_PARAM0_INDEX];
+    tmpPad.paddingSizeTop = padInputParams[INPUT_PARAM1_INDEX];
+    tmpPad.paddingSizeBottom = padInputParams[INPUT_PARAM2_INDEX];
+    tmpPad.paddingSizeLeft = padInputParams[INPUT_PARAM3_INDEX];
+    tmpPad.paddingSizeRight = padInputParams[INPUT_PARAM4_INDEX];
     for (size_t batchIndex = 0; batchIndex < maxBatchSize; batchIndex++) {
         paddingParams.insert(std::make_pair(batchIndex, tmpPad));
     }
@@ -156,10 +156,10 @@ APP_ERROR DynamicAippConfig::SetPaddingParams(std::vector<int> padInputParams)
 APP_ERROR DynamicAippConfig::SetDtcPixelMean(std::vector<int> meanInputParams)
 {
     DtcPixelMean tmpMean;
-    tmpMean.dtcPixelMeanChn0 = meanInputParams[0];
-    tmpMean.dtcPixelMeanChn1 = meanInputParams[1];
-    tmpMean.dtcPixelMeanChn2 = meanInputParams[2];
-    tmpMean.dtcPixelMeanChn3 = meanInputParams[3];
+    tmpMean.dtcPixelMeanChn0 = meanInputParams[PIXEL_CHN0_INDEX];
+    tmpMean.dtcPixelMeanChn1 = meanInputParams[PIXEL_CHN1_INDEX];
+    tmpMean.dtcPixelMeanChn2 = meanInputParams[PIXEL_CHN2_INDEX];
+    tmpMean.dtcPixelMeanChn3 = meanInputParams[PIXEL_CHN3_INDEX];
     for (size_t batchIndex = 0; batchIndex < maxBatchSize; batchIndex++) {
         dtcPixelMeanParams.insert(std::make_pair(batchIndex, tmpMean));
     }
@@ -169,10 +169,10 @@ APP_ERROR DynamicAippConfig::SetDtcPixelMean(std::vector<int> meanInputParams)
 APP_ERROR DynamicAippConfig::SetDtcPixelMin(std::vector<float> minInputParams)
 {
     DtcPixelMin tmpMin;
-    tmpMin.dtcPixelMinChn0 = minInputParams[0];
-    tmpMin.dtcPixelMinChn1 = minInputParams[1];
-    tmpMin.dtcPixelMinChn2 = minInputParams[2];
-    tmpMin.dtcPixelMinChn3 = minInputParams[3];
+    tmpMin.dtcPixelMinChn0 = minInputParams[PIXEL_CHN0_INDEX];
+    tmpMin.dtcPixelMinChn1 = minInputParams[PIXEL_CHN1_INDEX];
+    tmpMin.dtcPixelMinChn2 = minInputParams[PIXEL_CHN2_INDEX];
+    tmpMin.dtcPixelMinChn3 = minInputParams[PIXEL_CHN3_INDEX];
     for (size_t batchIndex = 0; batchIndex < maxBatchSize; batchIndex++) {
         dtcPixelMinParams.insert(std::make_pair(batchIndex, tmpMin));
     }
@@ -182,10 +182,10 @@ APP_ERROR DynamicAippConfig::SetDtcPixelMin(std::vector<float> minInputParams)
 APP_ERROR DynamicAippConfig::SetPixelVarReci(std::vector<float> reciInputParams)
 {
     PixelVarReci tmpReci;
-    tmpReci.dtcPixelVarReciChn0 = reciInputParams[0];
-    tmpReci.dtcPixelVarReciChn1 = reciInputParams[1];
-    tmpReci.dtcPixelVarReciChn2 = reciInputParams[2];
-    tmpReci.dtcPixelVarReciChn3 = reciInputParams[3];
+    tmpReci.dtcPixelVarReciChn0 = reciInputParams[PIXEL_CHN0_INDEX];
+    tmpReci.dtcPixelVarReciChn1 = reciInputParams[PIXEL_CHN1_INDEX];
+    tmpReci.dtcPixelVarReciChn2 = reciInputParams[PIXEL_CHN2_INDEX];
+    tmpReci.dtcPixelVarReciChn3 = reciInputParams[PIXEL_CHN3_INDEX];
     for (size_t batchIndex = 0; batchIndex < maxBatchSize; batchIndex++) {
         pixelVarReciParams.insert(std::make_pair(batchIndex, tmpReci));
     }

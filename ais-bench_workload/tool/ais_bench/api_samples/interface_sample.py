@@ -109,7 +109,7 @@ def infer_pipeline():
     ndata = np.frombuffer(barray)
 
     outputs = session.infer([[ndata], [ndata]])
-    logger_print("outputs:%s type:%s", outputs, type(outputs))
+    logger_print("outputs:%s type:%s" % outputs, type(outputs))
 
     logger_print("static infer avg:%s ms", np.mean(session.sumary().exec_time_list))
 

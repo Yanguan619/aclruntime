@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import numpy as np
 
 from ais_bench.infer.interface import InferSession
@@ -20,7 +21,8 @@ from ais_bench.infer.common.utils import logger_print
 
 def infer_api_static():
     device_id = 0
-    model_path = "../../sampledata/add_model/model/add_model_bs1.om"
+    data_dir = os.getenv("AISBENCH_INFER_DT_TESTDATA_PATH", "../../sampledata/")
+    model_path = os.path.join(data_dir, "add_model/model/add_model_bs1.om")
     # create session of om model for inference
     session = InferSession(device_id, model_path)
     # create new numpy data according inputs info
@@ -31,7 +33,7 @@ def infer_api_static():
     feeds = [ndata0, ndata1]
     # execute inference, inputs is ndarray list and outputs is ndarray list
     outputs = session.infer(feeds, mode='static')
-    logger_print("outputs: %s", outputs)
+    logger_print("outputs: %s" % outputs)
     # free model resource and device context of session
     session.free_resource()
 

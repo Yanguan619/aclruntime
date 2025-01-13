@@ -51,6 +51,7 @@ function env_set()
 {
     export PYTHONPATH=$CUR_PATH:$PYTHONPATH
     export MSAME_BIN_PATH=$MSAME_PATH
+    export AISBENCH_INFER_DT_TESTDATA_PATH=$CUR_PATH/testdata
 }
 
 function data_generate()

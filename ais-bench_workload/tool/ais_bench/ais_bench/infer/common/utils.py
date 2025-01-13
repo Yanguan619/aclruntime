@@ -50,10 +50,10 @@ MSPROF_BIN_FILE_SUB_PATH = "bin/msprof"
 CANN_PATH = "/usr/local/Ascend/ascend-toolkit/latest"
 
 
-def logger_print(out_log):
-    print(out_log)
+def logger_print(*args, **kwargs):
+    print(*args, **kwargs)
 
-    
+
 # Split a List Into Even Chunks of N Elements
 def list_split(list_a, n, padding_file):
     for x in range(0, len(list_a), n):

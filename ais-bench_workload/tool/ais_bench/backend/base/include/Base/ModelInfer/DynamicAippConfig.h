@@ -22,34 +22,34 @@
 #include "Base/ErrorCode/ErrorCode.h"
 
 namespace Base {
-const int CROP_SIZE_W_DEFAULT = 416;
-const int CROP_SIZE_H_DEFAULT = 416;
-const size_t PIXEL_CHN3_INDEX = 3;
-const size_t PIXEL_CHN2_INDEX = 2;
-const size_t PIXEL_CHN1_INDEX = 1;
-const size_t PIXEL_CHN0_INDEX = 0;
-const size_t INPUT_PARAM4_INDEX = 4;
-const size_t INPUT_PARAM3_INDEX = 3;
-const size_t INPUT_PARAM2_INDEX = 2;
-const size_t INPUT_PARAM1_INDEX = 1;
-const size_t INPUT_PARAM0_INDEX = 0;
+constexpr int CROP_SIZE_W_DEFAULT = 416;
+constexpr int CROP_SIZE_H_DEFAULT = 416;
+constexpr size_t PIXEL_CHN3_INDEX = 3;
+constexpr size_t PIXEL_CHN2_INDEX = 2;
+constexpr size_t PIXEL_CHN1_INDEX = 1;
+constexpr size_t PIXEL_CHN0_INDEX = 0;
+constexpr size_t INPUT_PARAM4_INDEX = 4;
+constexpr size_t INPUT_PARAM3_INDEX = 3;
+constexpr size_t INPUT_PARAM2_INDEX = 2;
+constexpr size_t INPUT_PARAM1_INDEX = 1;
+constexpr size_t INPUT_PARAM0_INDEX = 0;
 
-const size_t CSC_SWITCH = 0;
-const size_t CSC_MATRIX_R0C0 = 1;
-const size_t CSC_MATRIX_R0C1 = 2;
-const size_t CSC_MATRIX_R0C2 = 3;
-const size_t CSC_MATRIX_R1C0 = 4;
-const size_t CSC_MATRIX_R1C1 = 5;
-const size_t CSC_MATRIX_R1C2 = 6;
-const size_t CSC_MATRIX_R2C0 = 7;
-const size_t CSC_MATRIX_R2C1 = 8;
-const size_t CSC_MATRIX_R2C2 = 9;
-const size_t CSC_OUTPUT_BIAS0 = 10;
-const size_t CSC_OUTPUT_BIAS1 = 11;
-const size_t CSC_OUTPUT_BIAS2 = 12;
-const size_t CSC_INPUT_BIAS0 = 13;
-const size_t CSC_INPUT_BIAS1 = 14;
-const size_t CSC_INPUT_BIAS2 = 15;
+constexpr size_t CSC_SWITCH = 0;
+constexpr size_t CSC_MATRIX_R0C0 = 1;
+constexpr size_t CSC_MATRIX_R0C1 = 2;
+constexpr size_t CSC_MATRIX_R0C2 = 3;
+constexpr size_t CSC_MATRIX_R1C0 = 4;
+constexpr size_t CSC_MATRIX_R1C1 = 5;
+constexpr size_t CSC_MATRIX_R1C2 = 6;
+constexpr size_t CSC_MATRIX_R2C0 = 7;
+constexpr size_t CSC_MATRIX_R2C1 = 8;
+constexpr size_t CSC_MATRIX_R2C2 = 9;
+constexpr size_t CSC_OUTPUT_BIAS0 = 10;
+constexpr size_t CSC_OUTPUT_BIAS1 = 11;
+constexpr size_t CSC_OUTPUT_BIAS2 = 12;
+constexpr size_t CSC_INPUT_BIAS0 = 13;
+constexpr size_t CSC_INPUT_BIAS1 = 14;
+constexpr size_t CSC_INPUT_BIAS2 = 15;
 
 struct CropParams {
     int8_t cropSwitch;

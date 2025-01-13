@@ -194,7 +194,7 @@ Result Utils::SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_
     for (size_t i = 0; i < in_dym_shape_str.size(); ++i) {
         size_t pos = in_dym_shape_str[i].rfind(':');
         if (pos == in_dym_shape_str[i].npos) {
-            ERROR_LOG("find no : split i:%zu str:%s\n", i, in_dym_shape_str[i].c_str());
+            ERROR_LOG("find no : split i:%zu str:%s", i, in_dym_shape_str[i].c_str());
             return FAILED;
         }
         name = in_dym_shape_str[i].substr(0, pos);
@@ -207,10 +207,10 @@ Result Utils::SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_
             try {
                 DimsMul *= std::stoll(shape_tmp[j]);
             } catch (const std::invalid_argument& e) {
-                ERROR_LOG("Invalid argument: %s\n", shape_tmp[j].c_str());
+                ERROR_LOG("Invalid argument: %s", shape_tmp[j].c_str());
                 return FAILED;
             } catch (const std::out_of_range& e) {
-                ERROR_LOG("Out of range: %s\n", shape_tmp[j].c_str());
+                ERROR_LOG("Out of range: %s", shape_tmp[j].c_str());
                 return FAILED;
             }
         }
@@ -247,7 +247,7 @@ Result Utils::ReadBinFileToMemory(const std::string fileName, char *ptr, const s
         binFile.close();
         return FAILED;
     }
-    DEBUG_LOG("Readbin file:%s offset:%zu len:%zu\n", fileName.c_str(), offset, binFileBufferLen);
+    DEBUG_LOG("Readbin file:%s offset:%zu len:%zu", fileName.c_str(), offset, binFileBufferLen);
     binFile.read(static_cast<char*>(ptr + offset), binFileBufferLen);
     binFile.close();
     offset += binFileBufferLen;

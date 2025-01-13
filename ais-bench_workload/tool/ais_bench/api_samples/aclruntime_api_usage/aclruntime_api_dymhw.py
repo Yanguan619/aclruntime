@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import aclruntime
 import numpy as np
 
@@ -20,7 +21,8 @@ from ais_bench.infer.common.utils import logger_print
 
 def aclruntime_api_dymhw():
     device_id = 0
-    model_path = "../sampledata/add_model/model/add_model_dymhw.om"
+    data_dir = os.getenv("AISBENCH_INFER_DT_TESTDATA_PATH", "../sampledata/")
+    model_path = os.path.join(data_dir, "add_model/model/add_model_dymhw.om")
 
     # create session of om model for inference
     options = aclruntime.session_options()
@@ -55,16 +57,16 @@ def aclruntime_api_dymhw():
     outnames = [meta.name for meta in session.get_outputs()]
     outputs = session.run(outnames, feeds)
 
-    logger_print("outputs: %s", outputs)
+    logger_print("outputs: %s" % outputs)
     outarray = []
     for out in outputs:
         # convert acltenor to host memory
         out.to_host()
         # convert acltensor to numpy array
         outarray.append(np.array(out))
-    logger_print("outarray: %s", outarray)
+    logger_print("outarray: %s" % outarray)
     # summay inference throughput
-    logger_print("infer avg:%s ms", np.mean(session.sumary().exec_time_list))
+    logger_print("infer avg:%s ms" % np.mean(session.sumary().exec_time_list))
 
 
 aclruntime_api_dymhw()

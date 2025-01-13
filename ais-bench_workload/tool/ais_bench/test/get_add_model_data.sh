@@ -43,7 +43,7 @@ convert_dymbatch_om()
 # 动态分辨率转换
 convert_dymwh_om()
 {
-    local _om_path_pre="$MODEL_PATH/add_model_dymwh"
+    local _om_path_pre="$MODEL_PATH/add_model_dymhw"
     local _om_path="$_om_path_pre.om"
     local _input_shape="input1:1,3,-1,-1;input2:1,3,-1,-1"
     local _dymhw="32,32;64,64"
@@ -57,7 +57,7 @@ convert_dymwh_om()
 # 动态dims转换
 convert_dymdim_om()
 {
-    local _om_path_pre="$MODEL_PATH/add_model_dymdim"
+    local _om_path_pre="$MODEL_PATH/add_model_dymdims"
     local _om_path="$_om_path_pre.om"
     local _input_shape="input1:-1,3,-1,-1;input2:-1,3,-1,-1"
     local _dymdim="1,32,32,1,32,32;4,64,64,4,64,64"

@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import numpy as np
 
 from ais_bench.infer.interface import MultiDeviceSession
 from ais_bench.infer.common.utils import logger_print
 
 
-def multidevice_infer_iteration_static():
+def multidevice_infer_iteration_api():
     device_id = 0
-    model_path = "../../sampledata/add_model/model/add_model_bs1.om"
+    data_dir = os.getenv("AISBENCH_INFER_DT_TESTDATA_PATH", "../../sampledata/")
+    model_path = os.path.join(data_dir, "add_model/model/add_model_bs1.om")
     iteration_times = 1000
     in_out_list = [-1, 0]
     # create multidevice session of om model for inference
@@ -34,7 +36,7 @@ def multidevice_infer_iteration_static():
     device_feeds = {device_id: [[ndata1, ndata2], [ndata1, ndata2]]}
     # in is numpy list and output is numpy list
     outputs = multi_session.infer_iteration(device_feeds, in_out_list, iteration_times, mode='static')
-    logger_print("outputs: %s", outputs)
+    logger_print("outputs: %s" % outputs)
 
 
-multidevice_infer_iteration_static()
+multidevice_infer_iteration_api()

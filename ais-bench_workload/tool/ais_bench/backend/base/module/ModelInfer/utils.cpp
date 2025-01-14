@@ -44,10 +44,8 @@ uint8_t Utils::CreateRandomNum()
 
 void Utils::SplitString(std::string& s, std::vector<std::string>& v, char c)
 {
-    std::string::size_type pos1;
-    std::string::size_type pos2;
-    pos2 = s.find(c);
-    pos1 = 0;
+    std::string::size_type pos1 = 0;
+    std::string::size_type pos2 = s.find(c);
     while (std::string::npos != pos2) {
         std::string s1 = s.substr(pos1, pos2 - pos1);
         size_t n = s1.find_last_not_of(" \r\n\t");
@@ -187,11 +185,6 @@ void Utils::SplitStringWithPunctuation(string str, vector<string> &out, char spl
     }
 }
 
-int Utils::ToInt(string &str)
-{
-    return atoi(str.c_str());
-}
-
 Result Utils::SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_str,
     std::map<string, int64_t> &out_namedimsmul_map)
 {
@@ -201,7 +194,7 @@ Result Utils::SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_
     for (size_t i = 0; i < in_dym_shape_str.size(); ++i) {
         size_t pos = in_dym_shape_str[i].rfind(':');
         if (pos == in_dym_shape_str[i].npos) {
-            ERROR_LOG("find no : split i:%zu str:%s\n", i, in_dym_shape_str[i].c_str());
+            ERROR_LOG("find no : split i:%zu str:%s", i, in_dym_shape_str[i].c_str());
             return FAILED;
         }
         name = in_dym_shape_str[i].substr(0, pos);
@@ -211,7 +204,15 @@ Result Utils::SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_
         Utils::SplitStringWithPunctuation(shape_str, shape_tmp, ',');
         int64_t DimsMul = 1;
         for (size_t j = 0; j < shape_tmp.size(); ++j) {
-            DimsMul = DimsMul * atoi(shape_tmp[j].c_str());
+            try {
+                DimsMul *= std::stoll(shape_tmp[j]);
+            } catch (const std::invalid_argument& e) {
+                ERROR_LOG("Invalid argument: %s", shape_tmp[j].c_str());
+                return FAILED;
+            } catch (const std::out_of_range& e) {
+                ERROR_LOG("Out of range: %s", shape_tmp[j].c_str());
+                return FAILED;
+            }
         }
         out_namedimsmul_map[name] = DimsMul;
     }
@@ -246,7 +247,7 @@ Result Utils::ReadBinFileToMemory(const std::string fileName, char *ptr, const s
         binFile.close();
         return FAILED;
     }
-    DEBUG_LOG("Readbin file:%s offset:%zu len:%zu\n", fileName.c_str(), offset, binFileBufferLen);
+    DEBUG_LOG("Readbin file:%s offset:%zu len:%zu", fileName.c_str(), offset, binFileBufferLen);
     binFile.read(static_cast<char*>(ptr + offset), binFileBufferLen);
     binFile.close();
     offset += binFileBufferLen;
@@ -525,14 +526,15 @@ bool Utils::IsLegalDymString(const std::string& str)
         while (std::getline(iss2, infoStr, ':')) {
             inputInfo.push_back(infoStr);
         }
-        if (inputInfo.size() != 2) {
+        if (inputInfo.size() != EXPECTED_INPUT_INFO_SIZE) {
             ERROR_LOG("the format of input info parsed from dymshape string is wrong!");
             return false;
         }
         std::string inputName = inputInfo[0];
         std::string inputValue = inputInfo[1];
         if (inputName.length() < 0 || inputName.length() > INPUT_NAME_LENGTH_MAX) {
-            ERROR_LOG("the length of input name parsed from dymshape string is output of [1, %zu]", INPUT_LIST_MAX_SIZE);
+            ERROR_LOG("the length of input name parsed from dymshape string is output of [1, %zu]", 
+                        INPUT_LIST_MAX_SIZE);
             return false;
         }
 

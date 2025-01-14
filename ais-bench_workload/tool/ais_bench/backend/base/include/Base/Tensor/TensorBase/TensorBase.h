@@ -25,6 +25,9 @@
 
 #include "Base/MemoryHelper/MemoryHelper.h"
 #include "Base/ErrorCode/ErrorCode.h"
+#include "Base/Tensor/TensorShape/TensorShape.h"
+#include "Base/Tensor/TensorBuffer/TensorBuffer.h"
+
 namespace Base {
 enum TensorDataType {
     TENSOR_DTYPE_UNDEFINED = -1,
@@ -62,8 +65,6 @@ std::string GetTensorDataTypeDesc(TensorDataType type);
 
 MemoryData CopyMemory2DeviceMemory(void *ptr, uint64_t size, int32_t deviceId);
 
-class TensorBuffer;
-class TensorShape;
 class TensorBase {
 public:
     TensorBase();

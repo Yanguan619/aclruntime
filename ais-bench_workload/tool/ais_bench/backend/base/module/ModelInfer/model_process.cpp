@@ -474,16 +474,18 @@ Result ModelProcess::CheckDynamicDims(vector<string> dym_dims, size_t gearCount,
                 ERROR_LOG("dim of dymdims string is illegal!");
                 return FAILED;
             }
+            int dymDims;
             try {
-                if (dims[i].dims[j] != std::stoi(dym_dims[j])) {
-                    break;
-                }
+                dymDims = std::stoi(dym_dims[j]);
             } catch (const std::invalid_argument& e) {
                 ERROR_LOG("Invalid argument: %s", e.what());
                 return FAILED;
             } catch (const std::out_of_range& e) {
                 ERROR_LOG("Out of range: %s", e.what());
                 return FAILED;
+            }
+            if (dims[i].dims[j] != dymDims) {
+                break;
             }
             if (j == dims[i].dimCount - 1) {
                 if_same = true;

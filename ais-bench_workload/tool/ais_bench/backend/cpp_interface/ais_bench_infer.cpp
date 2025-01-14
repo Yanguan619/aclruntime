@@ -92,8 +92,8 @@ int main(int argc, char **argv)
 
     CreatePureInputTensors(indescs, deviceId, intensors);
     for (const auto& tensor : intensors) {
-        PROMPT_MSG("in tensor type:%d size:%lld isDevice:%d\n", 
-                    tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
+        PROMPT_MSG("in tensor type:%d size:%lld isDevice:%d\n",
+                   tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
     }
     if (input.size() != 0) {
         std::vector<std::string> fileName_vec;
@@ -102,8 +102,8 @@ int main(int argc, char **argv)
     } else {
         std::vector<Base::TensorBase> outtensors = session->InferVector(output_names, intensors);
         for (const auto& tensor : outtensors) {
-            PROMPT_MSG("out tensor type:%d size:%lld isDevice:%d\n", 
-                        tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
+            PROMPT_MSG("out tensor type:%d size:%lld isDevice:%d\n",
+                       tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
         }
     }
 

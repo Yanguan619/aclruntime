@@ -39,9 +39,10 @@
 #include "Base/ModelInfer/cnpy.h"
 #include "Base/Tensor/TensorBase/TensorBase.h"
 
-const int INPUT_DYM_SHAPE_MAX_LENGTH = 30;
-
-const int EXPECTED_INPUT_INFO_SIZE = 2;
+constexpr int INPUT_DYM_SHAPE_MAX_LENGTH = 30;
+constexpr int EXPECTED_INPUT_INFO_SIZE = 2;
+constexpr int MAX_SHAPE_VALUES = 6;
+constexpr size_t MAX_SHAPE_VALUE_LENGTH = 4;
 
 typedef enum Result {
     SUCCESS = 0,

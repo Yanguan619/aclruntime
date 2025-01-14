@@ -156,10 +156,10 @@ private:
     int SetDeviceSatMode();
 };
 
-HcclTest* InitOpbasePtr(HcclTest* opbase);
-
-void DeleteOpbasePtr(HcclTest* opbase);
-
 } // namespace hccl
+
+hccl::HcclTest* InitOpbasePtr(hccl::HcclTest* opbase);
+
+void DeleteOpbasePtr(hccl::HcclTest* opbase);
 
 #endif

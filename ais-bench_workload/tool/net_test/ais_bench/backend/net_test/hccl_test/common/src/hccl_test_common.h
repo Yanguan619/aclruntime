@@ -77,9 +77,6 @@ const int SERVER_MAX_DEV_NUM = 8;
     } \
 } while (0)
 
-HcclTest* InitOpbasePtr(HcclTest* opbase);
-void DeleteOpbasePtr(HcclTest* opbase);
-
 namespace hccl {
 class HcclTest {
 public:
@@ -159,5 +156,8 @@ private:
     int SetDeviceSatMode();
 };
 } // namespace hccl
+
+HcclTest* InitOpbasePtr(HcclTest* opbase);
+void DeleteOpbasePtr(HcclTest* opbase);
 
 #endif

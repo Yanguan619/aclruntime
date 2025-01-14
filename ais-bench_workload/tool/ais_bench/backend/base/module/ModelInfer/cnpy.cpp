@@ -137,17 +137,18 @@ void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape
     std::string strWs = header.substr(loc1 + 2);
     loc2 = strWs.find("'");
     std::string tempWordSizeStr = strWs.substr(0, loc2);
+    int tempWordSize;
     try {
-        int tempWordSize = std::stoi(tempWordSizeStr);
-        if (tempWordSize < 0) {
-            throw std::runtime_error("Parse npy header: invalid word size in header.");
-        }
-        wordSize = static_cast<size_t>(tempWordSize);
+        tempWordSize = std::stoi(tempWordSizeStr);
     } catch (const std::invalid_argument& e) {
         throw std::runtime_error("Parse npy header: invalid word size in header");
     } catch (const std::out_of_range& e) {
         throw std::runtime_error("Parse npy header: word size out of range");
     }
+    if (tempWordSize < 0) {
+        throw std::runtime_error("Parse npy header: invalid word size in header.");
+    }
+    wordSize = static_cast<size_t>(tempWordSize);
 }
 
 cnpy::NpyArray LoadNpyFile(FILE *fp)

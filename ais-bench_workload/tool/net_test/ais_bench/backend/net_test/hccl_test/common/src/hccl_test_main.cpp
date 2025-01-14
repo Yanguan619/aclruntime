@@ -26,9 +26,6 @@
 
 using namespace hccl;
 
-extern HcclTest* InitOpbasePtr(HcclTest* opbase);
-extern void DeleteOpbasePtr(HcclTest* opbase);
-
 int main(int argc, char *argv[])
 {
 #ifdef MPI_SUPPORT

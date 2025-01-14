@@ -176,7 +176,12 @@ int HcclCommunicater::ServerGather(
     singleData = static_cast<char*>(malloc(bufferSize * sizeof(char)));
     int ret = SafeCopy(static_cast<char*>(dataBuffer), static_cast<char*>(dataBuffer) + bufferSize,
         static_cast<char*>(dataList)); // copy root rank data
-    if (ret != 0) return ret;
+
+    if (ret != 0) {
+        free(singleData);
+        return ret;
+    }
+
     while (connectedClientCount < m_rankSize - 1) {
         tryConnectCount++;
         if (tryConnectCount >= m_rankSize * RETRY_TIMES) {
@@ -208,7 +213,12 @@ int HcclCommunicater::ServerGather(
         if (send(clientSkt, &clientRank, sizeof(int), 0) <= 0) {continue;}
         DEBUG("server reply rank %d to client success!", clientRank);
         ret = SafeCopy(singleData, singleData + bufferSize, static_cast<char*>(dataList));
-        if (ret != 0) return ret;
+
+        if (ret != 0) {
+            free(singleData);
+            return ret;
+        }
+
         ++connectedClientCount;
         close(clientSkt);
     }

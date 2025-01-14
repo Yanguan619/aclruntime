@@ -18,7 +18,7 @@ import subprocess
 from abc import abstractmethod, ABCMeta
 from ais_bench.net_test.sub_module.base_sub_module import BaseSubmodule
 from ais_bench.net_test.sub_module.utils import remote_run_env_check
-from ais_bench.net_test.common.logger import logger
+from ais_bench.net_test.common.logger import logger, console_origin
 from ais_bench.net_test.ssh.ssh_operation import remote_exec
 from ais_bench.net_test.common.consts import (RunModeName, RemoteNodeInfoName,
                                               OP_TASK, OP_CMD_HELP_INFO, RET, DEFAULT)
@@ -116,13 +116,12 @@ class FullRun(BaseRunMode):
         # 获取实时输出并处理
         for line in iter(p.stdout.readline, b''):
             if line:
-                sys.stdout.write(line.decode('utf-8'))
-                sys.stdout.flush()
+                console_origin(line)
         try:
             _, stderr = p.communicate(timeout=10)
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as e:
             p.kill()
-            _, stderr = p.communicate()
+            raise TimeoutError(f"exec cmd {cmd_list} timeout!") from e
 
         # 等待命令执行完成
         p.wait()

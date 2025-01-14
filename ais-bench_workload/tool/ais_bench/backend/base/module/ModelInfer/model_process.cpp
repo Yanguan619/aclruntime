@@ -232,8 +232,16 @@ Result ModelProcess::CheckDynamicShape(
                 ERROR_LOG("dim of dymshape string is illegal!");
                 return FAILED;
             }
-            num_tmp = atoi(shape_tmp[index].c_str());
-            shape_array_tmp.push_back(num_tmp);
+            try {
+                int64_t num_tmp = std::stol(shape_tmp[index]);
+                shape_array_tmp.push_back(num_tmp);
+            } catch (const std::invalid_argument& e) {
+                ERROR_LOG("Invalid argument: %s", e.what());
+                return FAILED;
+            } catch (const std::out_of_range& e) {
+                ERROR_LOG("Out of range: %s", e.what());
+                return FAILED;
+            }
         }
         dym_shape_map[name] = shape_array_tmp;
     }
@@ -466,8 +474,16 @@ Result ModelProcess::CheckDynamicDims(vector<string> dym_dims, size_t gearCount,
                 ERROR_LOG("dim of dymdims string is illegal!");
                 return FAILED;
             }
-            if (dims[i].dims[j] != atoi(dym_dims[j].c_str())) {
-                break;
+            try {
+                if (dims[i].dims[j] != std::stoi(dym_dims[j])) {
+                    break;
+                }
+            } catch (const std::invalid_argument& e) {
+                ERROR_LOG("Invalid argument: %s", e.what());
+                return FAILED;
+            } catch (const std::out_of_range& e) {
+                ERROR_LOG("Out of range: %s", e.what());
+                return FAILED;
             }
             if (j == dims[i].dimCount - 1) {
                 if_same = true;
@@ -489,7 +505,15 @@ Result ModelProcess::SetDynamicDims(vector<string> dym_dims)
     aclmdlIODims dims;
     dims.dimCount = dym_dims.size();
     for (size_t i = 0; i < dims.dimCount; i++) {
-        dims.dims[i] = atoi(dym_dims[i].c_str());
+        try {
+            dims.dims[i] = static_cast<int>(std::stol(dym_dims[i]));
+        } catch (const std::invalid_argument& e) {
+            ERROR_LOG("Invalid input for conversion: %s", dym_dims[i].c_str());
+            return FAILED;
+        } catch (const std::out_of_range& e) {
+            ERROR_LOG("Out of range input for conversion: %s", dym_dims[i].c_str());
+            return FAILED;
+        }
     }
 
     aclError ret = aclmdlSetInputDynamicDims(modelId_, input_, g_dymindex, &dims);

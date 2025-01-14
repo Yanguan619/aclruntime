@@ -161,7 +161,8 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
             ret = APP_ERR_OK;
             break;
         default:
-            ERROR_LOG("%sFree failed, the module type is not defined, data type:%d", GetError(APP_ERR_ACL_BAD_FREE).c_str(), data.type);
+            ERROR_LOG("%sFree failed, the module type is not defined, data type:%d", 
+                        GetError(APP_ERR_ACL_BAD_FREE).c_str(), data.type);
             return APP_ERR_ACL_BAD_FREE;
     }
     if (ret != APP_ERR_OK) {

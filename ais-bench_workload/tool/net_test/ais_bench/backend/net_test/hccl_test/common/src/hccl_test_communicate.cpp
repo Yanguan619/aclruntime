@@ -14,12 +14,30 @@
  * limitations under the License.
  */
 
+#include <algorithm> // For std::copy_n
 #include "hccl_test_communicate.h"
 
 namespace hccl {
 const int RETRY_COUNT = 10;
 const int RETRY_INTERVAL = 1; // second
 const int RETRY_TIMES = 5;
+
+int SafeCopy(char *SrcAddrStart, char *SrcAddrEnd, char *TargetAddrStart)
+{
+    try {
+        std::copy(SrcAddrStart, SrcAddrEnd, TargetAddrStart);
+    } catch (const std::bad_alloc& e) {
+        ERROR("copy Error occurred. %s", e.what());
+        return 1;
+    } catch (const std::length_error& e) {
+        ERROR("Error: Input sequence has zero length. %s", e.what());
+        return 1;
+    } catch (const std::exception& e) {
+        ERROR("Unexpected error occurred: %s", e.what());
+        return 1;
+    }
+    return 0;
+}
 
 HcclCommunicater::HcclCommunicater(
     const std::string serverIP,
@@ -156,7 +174,9 @@ int HcclCommunicater::ServerGather(
     int clientRank = -1;
     char* singleData = nullptr;
     singleData = static_cast<char*>(malloc(bufferSize * sizeof(char)));
-    memcpy(static_cast<char*>(dataList), static_cast<char*>(dataBuffer), bufferSize); // copy root rank data
+    int ret = SafeCopy(static_cast<char*>(dataBuffer), static_cast<char*>(dataBuffer) + bufferSize,
+        static_cast<char*>(dataList)); // copy root rank data
+    if (ret != 0) return ret;
     while (connectedClientCount < m_rankSize - 1) {
         tryConnectCount++;
         if (tryConnectCount >= m_rankSize * RETRY_TIMES) {
@@ -187,7 +207,8 @@ int HcclCommunicater::ServerGather(
         }
         if (send(clientSkt, &clientRank, sizeof(int), 0) <= 0) {continue;}
         DEBUG("server reply rank %d to client success!", clientRank);
-        memcpy(static_cast<char*>(dataList) + clientRank * bufferSize, singleData, bufferSize);
+        ret = SafeCopy(singleData, singleData + bufferSize, static_cast<char*>(dataList));
+        if (ret != 0) return ret;
         ++connectedClientCount;
         close(clientSkt);
     }

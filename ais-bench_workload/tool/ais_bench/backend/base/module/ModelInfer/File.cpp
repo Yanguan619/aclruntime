@@ -252,7 +252,7 @@ mode_t File::GetFilePermissions(const std::string& path)
     struct stat path_stat;
     if (stat(path.c_str(), &path_stat) != 0) {
         ERROR_LOG("file not exists");
-        return 0777;
+        return FULL_PERMISSIONS;
     }
     mode_t permissions = path_stat.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
     return permissions;

@@ -85,7 +85,7 @@ int HcclOpBaseReducescattervTest::InitBufVal()
 
 int HcclOpBaseReducescattervTest::CheckBufResult()
 {
-    //获取输出内存
+    // 获取输出内存
     ACLCHECK(aclrtMallocHost((void**)&recv_buff_temp, malloc_kSize));
     ACLCHECK(aclrtMemcpy((void*)recv_buff_temp, malloc_kSize, (void*)recv_buff,
         malloc_kSize, ACL_MEMCPY_DEVICE_TO_HOST));

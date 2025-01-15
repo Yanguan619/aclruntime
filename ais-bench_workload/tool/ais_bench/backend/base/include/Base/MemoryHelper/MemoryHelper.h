@@ -35,12 +35,12 @@ struct MemoryData {
     MemoryData(size_t size, MemoryType type = MEMORY_HOST, size_t deviceId = 0)
         : size(size), deviceId(deviceId), type(type) {}
 
-    MemoryData(void* ptrData, size_t size, MemoryType type = MEMORY_HOST, size_t deviceId = 0)
+    MemoryData(void* ptrData, size_t size, MemoryType type = MEMORY_HOST, int32_t deviceId = 0)
         : ptrData(ptrData), size(size), deviceId(deviceId), type(type) {}
 
     void* ptrData = nullptr;
     size_t size;
-    size_t deviceId;
+    int32_t deviceId;
     MemoryType type;
     APP_ERROR (*free)(void*) = nullptr; // 此处是使用void*作为函数传参，使用该函数的场所已保证传入参数是void*
 };

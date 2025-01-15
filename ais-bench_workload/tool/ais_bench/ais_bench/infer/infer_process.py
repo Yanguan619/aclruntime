@@ -39,7 +39,7 @@ from ais_bench.infer.common.io_operations import (create_infileslist_from_inputs
                                           convert_real_files,
                                           PURE_INFER_FAKE_FILE_ZERO,
                                           PURE_INFER_FAKE_FILE_RANDOM,
-                                          PURE_INFER_FAKE_FILE, save_tensors_to_file,
+                                          PURE_INFER_FAKE_FILE, save_tensors_to_file, OutFileInfo,
                                           get_pure_infer_data)
 from ais_bench.infer.summary import summary
 from ais_bench.infer.common.miscellaneous import (dymshape_range_run, get_acl_json_path, version_check,
@@ -229,8 +229,8 @@ def infer_loop_tensor_run(session, args, intensors_desc, infileslist, output_pre
         session.convert_tensors_to_host(outputs)
         if output_prefix is not None:
             save_tensors_to_file(
-                outputs, output_prefix, infiles,
-                args.outfmt, i, args.output_batchsize_axis
+                infiles, args.outfmt, i, args.output_batchsize_axis,
+                OutFileInfo(outputs=outputs,output_prefix=output_prefix)
             )
 
 
@@ -248,8 +248,8 @@ def infer_loop_files_run(session, args, intensors_desc, infileslist, output_pref
         session.convert_tensors_to_host(outputs)
         if output_prefix is not None:
             save_tensors_to_file(
-                outputs, output_prefix, infiles,
-                args.outfmt, i, args.output_batchsize_axis
+                infiles, args.outfmt, i, args.output_batchsize_axis,
+                OutFileInfo(outputs=outputs,output_prefix=output_prefix)
             )
 
 
@@ -270,8 +270,8 @@ def infer_fulltensors_run(session, args, intensors_desc, infileslist, output_pre
         session.convert_tensors_to_host(outputs)
         if output_prefix is not None:
             save_tensors_to_file(
-                outputs, output_prefix, infileslist[i],
-                args.outfmt, i, args.output_batchsize_axis
+                infileslist[i], args.outfmt, i, args.output_batchsize_axis,
+                OutFileInfo(outputs=outputs,output_prefix=output_prefix)
             )
 
 
@@ -286,8 +286,8 @@ def infer_loop_array_run(session, args, intensors_desc, infileslist, output_pref
         session.convert_tensors_to_host(outputs)
         if args.output is not None:
             save_tensors_to_file(
-                outputs, output_prefix, infiles,
-                args.outfmt, i, args.output_batchsize_axis
+                infiles, args.outfmt, i, args.output_batchsize_axis,
+                OutFileInfo(outputs=outputs,output_prefix=output_prefix)
             )
 
 

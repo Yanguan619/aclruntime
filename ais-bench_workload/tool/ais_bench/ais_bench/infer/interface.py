@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import time
+from dataclasses import dataclass
+
 from multiprocessing import Pool
 from multiprocessing import Manager
 import numpy as np
@@ -40,6 +42,13 @@ ITERATION_TIMES_MAX = 65536
 MAX_DEVICE_COUNT = 32
 MAX_PROCESS_COUNT_PER_DEVICE = 32
 MAX_TOTAL_PROCESS_COUNT = 64
+
+@dataclass
+class InferIterationContent:
+    in_out_list: any = None
+    iteration_times: int = 1
+    mode: str = 'static'
+    custom_sizes: any = None
 
 
 class InferSession:
@@ -81,6 +90,24 @@ class InferSession:
             "dymshape": self._dymshape_prepare
         }
 
+    @staticmethod
+    def convert_tensors_to_host(tensors):
+        for tensor in tensors:
+            tensor.to_host()
+
+    @staticmethod
+    def convert_tensors_to_arrays(tensors):
+        arrays = []
+        for tensor in tensors:
+            # convert acltensor to numpy array
+            arrays.append(np.array(tensor))
+        return arrays
+
+    @staticmethod
+    def finalize():
+        if hasattr(aclruntime.InferenceSession, 'finalize'):
+            aclruntime.InferenceSession.finalize()
+            
     def get_inputs(self):
         """
         get inputs info of model
@@ -281,6 +308,42 @@ class InferSession:
             outputs[i] = self.convert_tensors_to_arrays(output)
         return outputs
 
+    def infer_iteration(self, feeds, in_out_list=None, iteration_times=1, mode='static',
+                        custom_sizes=100000):
+        '''
+        Parameters:
+            feeds: input datas
+            in_out_list: relation between current input datas and last output datas.
+                [-1, 0, 1] means inputs[1] uses last outputs[0], inputs[2] uses last outputs[1].
+            iteration_times: inner iteration infer loop times
+            mode: static dymdims dymshape ...
+            custom_sizes: only dymshape needs
+        '''
+        check_list(feeds, max_len=MODEL_INPUT_TENSOR_COUNT_MAX, allow_empty=False)
+        check_custom_size(custom_sizes, mode)
+        check_positive_integer(iteration_times)
+        if iteration_times > ITERATION_TIMES_MAX:
+            raise ValueError(f"iteration times over max limit: {ITERATION_TIMES_MAX}")
+        if not in_out_list:
+            in_out_list = []
+        if in_out_list is not None:
+            check_in_out_list(in_out_list, self.get_inputs(), self.get_outputs())
+
+        inputs, shapes = self._create_device_inputs(feeds)
+
+        # auto set mode
+        if self.infer_mode_switch.get(mode) is not None:
+            self.infer_mode_switch.get(mode)(shapes, custom_sizes)
+
+        outputs = self._inner_iteration_run(inputs, in_out_list, iteration_times)
+
+        self.convert_tensors_to_host(outputs)
+        # convert tensor to narray
+        return self.convert_tensors_to_arrays(outputs)
+
+    def summary(self):
+        return self.session.sumary()
+    
     def _create_device_inputs(self, feeds):
         inputs = []
         shapes = []
@@ -319,42 +382,6 @@ class InferSession:
             outputs = self.session.run(out_names, inputs)
 
         return outputs
-
-    def infer_iteration(self, feeds, in_out_list=None, iteration_times=1, mode='static',
-                        custom_sizes=100000):
-        '''
-        Parameters:
-            feeds: input datas
-            in_out_list: relation between current input datas and last output datas.
-                [-1, 0, 1] means inputs[1] uses last outputs[0], inputs[2] uses last outputs[1].
-            iteration_times: inner iteration infer loop times
-            mode: static dymdims dymshape ...
-            custom_sizes: only dymshape needs
-        '''
-        check_list(feeds, max_len=MODEL_INPUT_TENSOR_COUNT_MAX, allow_empty=False)
-        check_custom_size(custom_sizes, mode)
-        check_positive_integer(iteration_times)
-        if iteration_times > ITERATION_TIMES_MAX:
-            raise ValueError(f"iteration times over max limit: {ITERATION_TIMES_MAX}")
-        if not in_out_list:
-            in_out_list = []
-        if in_out_list is not None:
-            check_in_out_list(in_out_list, self.get_inputs(), self.get_outputs())
-
-        inputs, shapes = self._create_device_inputs(feeds)
-
-        # auto set mode
-        if self.infer_mode_switch.get(mode) is not None:
-            self.infer_mode_switch.get(mode)(shapes, custom_sizes)
-
-        outputs = self._inner_iteration_run(inputs, in_out_list, iteration_times)
-
-        self.convert_tensors_to_host(outputs)
-        # convert tensor to narray
-        return self.convert_tensors_to_arrays(outputs)
-
-    def summary(self):
-        return self.session.sumary()
 
     def _static_prepare(self, shapes, custom_sizes):
         self.set_staticbatch()
@@ -412,24 +439,6 @@ class InferSession:
             raise RuntimeError('custom_sizes:{} type:{} invalid'.format(
                 custom_sizes, type(custom_sizes)))
         self.session.set_custom_outsize(custom_sizes)
-
-    @staticmethod
-    def convert_tensors_to_host(tensors):
-        for tensor in tensors:
-            tensor.to_host()
-
-    @staticmethod
-    def convert_tensors_to_arrays(tensors):
-        arrays = []
-        for tensor in tensors:
-            # convert acltensor to numpy array
-            arrays.append(np.array(tensor))
-        return arrays
-
-    @staticmethod
-    def finalize():
-        if hasattr(aclruntime.InferenceSession, 'finalize'):
-            aclruntime.InferenceSession.finalize()
 
 
 class MultiDeviceSession():
@@ -546,13 +555,18 @@ class MultiDeviceSession():
             raise RuntimeError(f"subprocess count over max permitted count: {MAX_TOTAL_PROCESS_COUNT}")
         p = Pool(subprocess_num)
         outputs_queue = Manager().Queue()
+        infer_iteration_content = InferIterationContent()
+        infer_iteration_content.in_out_list = in_out_list
+        infer_iteration_content.iteration_times = iteration_times
+        infer_iteration_content.mode = mode
+        infer_iteration_content.custom_sizes = custom_sizes
         for device_id, feeds in device_feeds.items():
             check_list(feeds, max_len=MAX_PROCESS_COUNT_PER_DEVICE, allow_empty=False)
             check_device_range_valid(device_id)
             for feed in feeds:
                 p.apply_async(
                     self.subprocess_infer_iteration,
-                    args=(outputs_queue, device_id, feed, in_out_list, iteration_times, mode, custom_sizes),
+                    args=(outputs_queue, device_id, feed, infer_iteration_content),
                     error_callback=self.print_subprocess_run_error
                 )
         p.close()
@@ -600,8 +614,8 @@ class MultiDeviceSession():
         outputs_queue.put([device_id, outputs, start_time, end_time])
         return
 
-    def subprocess_infer_iteration(self, outputs_queue, device_id, feeds, in_out_list=None,
-                                   iteration_times=1, mode='static', custom_sizes=None):
+    def subprocess_infer_iteration(self, outputs_queue, device_id, feeds, 
+                                   infer_iteration_content:InferIterationContent):
         sub_session = InferSession(
             device_id=device_id,
             model_path=self.model_path,
@@ -609,10 +623,14 @@ class MultiDeviceSession():
             debug=self.debug,
             loop=self.loop
         )
-        if in_out_list is not None:
-            check_in_out_list(in_out_list, sub_session.get_inputs(), sub_session.get_outputs())
+        if infer_iteration_content.in_out_list is not None:
+            check_in_out_list(infer_iteration_content.in_out_list, sub_session.get_inputs(), sub_session.get_outputs())
         start_time = time.time()
-        outputs = sub_session.infer_iteration(feeds, in_out_list, iteration_times, mode, custom_sizes)
+        outputs = sub_session.infer_iteration(feeds, 
+                                              infer_iteration_content.in_out_list, 
+                                              infer_iteration_content.iteration_times, 
+                                              infer_iteration_content.mode, 
+                                              infer_iteration_content.custom_sizes)
         end_time = time.time()
         outputs_queue.put([device_id, outputs, start_time, end_time])
         return

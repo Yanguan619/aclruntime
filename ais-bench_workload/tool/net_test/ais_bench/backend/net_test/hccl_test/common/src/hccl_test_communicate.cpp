@@ -24,17 +24,20 @@ const int RETRY_TIMES = 5;
 
 int SafeCopy(char *SrcAddrStart, char *SrcAddrEnd, char *TargetAddrStart)
 {
+    if (SrcAddrStart == nullptr) {
+        ERROR("Try copy safely failed! Src addr is null pointer!");
+    }
     try {
         std::copy(SrcAddrStart, SrcAddrEnd, TargetAddrStart);
     } catch (const std::bad_alloc& e) {
         ERROR("copy Error occurred. %s", e.what());
-        return 1;
+        return -1;
     } catch (const std::length_error& e) {
         ERROR("Error: Input sequence has zero length. %s", e.what());
-        return 1;
+        return -1;
     } catch (const std::exception& e) {
         ERROR("Unexpected error occurred: %s", e.what());
-        return 1;
+        return -1;
     }
     return 0;
 }
@@ -172,15 +175,13 @@ int HcclCommunicater::ServerGather(
     int connectedClientCount = 0;
     int tryConnectCount = 0;
     int clientRank = -1;
-    char* singleData = nullptr;
-    singleData = static_cast<char*>(malloc(bufferSize * sizeof(char)));
+
     int ret = SafeCopy(static_cast<char*>(dataBuffer), static_cast<char*>(dataBuffer) + bufferSize,
         static_cast<char*>(dataList)); // copy root rank data
+    if (ret != 0) return ret;
 
-    if (ret != 0) {
-        free(singleData);
-        return ret;
-    }
+    char* singleData = nullptr;
+    singleData = static_cast<char*>(malloc(bufferSize * sizeof(char)));
 
     while (connectedClientCount < m_rankSize - 1) {
         tryConnectCount++;

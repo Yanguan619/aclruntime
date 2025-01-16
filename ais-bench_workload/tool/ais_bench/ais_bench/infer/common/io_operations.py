@@ -17,6 +17,7 @@ import os
 import random
 import time
 import numpy as np
+from dataclasses import dataclass
 
 from ais_bench.infer.summary import summary
 from ais_bench.infer.common.utils import (
@@ -32,6 +33,12 @@ PURE_INFER_FAKE_FILE = "pure_infer_data"
 PURE_INFER_FAKE_FILE_ZERO = "pure_infer_data_zero"
 PURE_INFER_FAKE_FILE_RANDOM = "pure_infer_data_random"
 PADDING_INFER_FAKE_FILE = "padding_infer_fake_file"
+
+
+@dataclass
+class OutFileInfo:
+    outputs: any
+    output_prefix: str
 
 
 def convert_real_files(files):
@@ -294,12 +301,12 @@ def create_pipeline_fileslist_from_inputs_list(inputs_list, intensors_desc):
     return infileslist
 
 
-def save_tensors_to_file(outputs, output_prefix, infiles_paths, outfmt, index, output_batchsize_axis):
+def save_tensors_to_file(infiles_paths, outfmt, index, output_batchsize_axis, out_file_info:OutFileInfo):
     files_count_perbatch = len(infiles_paths[0])
     if files_count_perbatch == 0:
         raise ValueError("files count per batch is zero")
     infiles_perbatch = np.transpose(infiles_paths)
-    for i, out in enumerate(outputs):
+    for i, out in enumerate(out_file_info.outputs):
         ndata = np.array(out)
         if output_batchsize_axis >= len(ndata.shape):
             logger.error(
@@ -320,7 +327,7 @@ def save_tensors_to_file(outputs, output_prefix, infiles_paths, outfmt, index, o
                     )
                     continue
                 file_path = os.path.join(
-                    output_prefix,
+                    out_file_info.output_prefix,
                     "{}_{}.{}".format(os.path.basename(infiles_perbatch[j][0]).split('.')[0], i, outfmt.lower()),
                 )
                 summary.add_sample_id_infiles(sample_id, infiles_perbatch[j])

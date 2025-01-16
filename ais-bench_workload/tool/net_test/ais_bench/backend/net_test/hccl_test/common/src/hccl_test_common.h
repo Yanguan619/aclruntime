@@ -79,9 +79,6 @@ const int SERVER_MAX_DEV_NUM = 8;
 
 namespace hccl {
 class HcclTest {
-private:
-    int SetDeviceSatMode();
-
 public:
     HcclTest();
     virtual ~HcclTest();
@@ -154,7 +151,15 @@ public:
 
     int profiling_flag = 0;
     aclprofConfig* profiling_config = NULL;
+
+private:
+    int SetDeviceSatMode();
 };
+
 } // namespace hccl
+
+hccl::HcclTest* InitOpbasePtr(hccl::HcclTest* opbase);
+
+void DeleteOpbasePtr(hccl::HcclTest* opbase);
 
 #endif

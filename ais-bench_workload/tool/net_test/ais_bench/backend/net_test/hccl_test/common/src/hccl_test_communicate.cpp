@@ -214,7 +214,6 @@ int HcclCommunicater::ServerGather(
         if (send(clientSkt, &clientRank, sizeof(int), 0) <= 0) {continue;}
         DEBUG("server reply rank %d to client success!", clientRank);
         ret = SafeCopy(singleData, singleData + bufferSize, static_cast<char*>(dataList));
-
         if (ret != 0) {
             free(singleData);
             return ret;

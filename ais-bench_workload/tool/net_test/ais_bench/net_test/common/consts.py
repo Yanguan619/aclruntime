@@ -87,8 +87,7 @@ class DEFAULT:
 
 OP_TASK = [
     "all_reduce_test", "all_gather_test", "alltoall_test", "alltoallv_test",
-    "broadcast_test", "reduce_scatter_test", "reduce_test", "scatter_test",
-    "all_gatherv_test", "reduce_scatterv_test"
+    "broadcast_test", "reduce_scatter_test", "reduce_test", "scatter_test"
 ]
 
 OP_CMD_HELP_INFO = "\t[-b,--minbytes <min size in bytes>] \n\t" + \

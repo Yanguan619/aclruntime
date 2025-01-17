@@ -30,8 +30,6 @@ OP_TASK_LIST = [
     "reduce_scatter_test",
     "reduce_test",
     "scatter_test",
-    "all_gatherv_test",
-    "reduce_scatterv_test",
 ]
 
 

@@ -32,7 +32,7 @@ struct MemoryData {
 
     MemoryData() = default;
 
-    MemoryData(size_t size, MemoryType type = MEMORY_HOST, size_t deviceId = 0)
+    MemoryData(size_t size, MemoryType type = MEMORY_HOST, int32_t deviceId = 0)
         : size(size), deviceId(deviceId), type(type) {}
 
     MemoryData(void* ptrData, size_t size, MemoryType type = MEMORY_HOST, int32_t deviceId = 0)

@@ -37,11 +37,12 @@ NP_TYPE_LIST = [
     np.uint32, np.float16, np.float32, np.float64
 ]
 
-PIPELINE_API_SAMPLE_COUNT_MAX = 512  
+PIPELINE_API_SAMPLE_COUNT_MAX = 512
 ITERATION_TIMES_MAX = 65536
 MAX_DEVICE_COUNT = 32
 MAX_PROCESS_COUNT_PER_DEVICE = 32
 MAX_TOTAL_PROCESS_COUNT = 64
+
 
 @dataclass
 class InferIterationContent:
@@ -107,7 +108,7 @@ class InferSession:
     def finalize():
         if hasattr(aclruntime.InferenceSession, 'finalize'):
             aclruntime.InferenceSession.finalize()
-            
+
     def get_inputs(self):
         """
         get inputs info of model
@@ -343,7 +344,7 @@ class InferSession:
 
     def summary(self):
         return self.session.sumary()
-    
+
     def _create_device_inputs(self, feeds):
         inputs = []
         shapes = []
@@ -614,7 +615,7 @@ class MultiDeviceSession():
         outputs_queue.put([device_id, outputs, start_time, end_time])
         return
 
-    def subprocess_infer_iteration(self, outputs_queue, device_id, feeds, 
+    def subprocess_infer_iteration(self, outputs_queue, device_id, feeds,
                                    infer_iteration_content:InferIterationContent):
         sub_session = InferSession(
             device_id=device_id,
@@ -626,10 +627,10 @@ class MultiDeviceSession():
         if infer_iteration_content.in_out_list is not None:
             check_in_out_list(infer_iteration_content.in_out_list, sub_session.get_inputs(), sub_session.get_outputs())
         start_time = time.time()
-        outputs = sub_session.infer_iteration(feeds, 
-                                              infer_iteration_content.in_out_list, 
-                                              infer_iteration_content.iteration_times, 
-                                              infer_iteration_content.mode, 
+        outputs = sub_session.infer_iteration(feeds,
+                                              infer_iteration_content.in_out_list,
+                                              infer_iteration_content.iteration_times,
+                                              infer_iteration_content.mode,
                                               infer_iteration_content.custom_sizes)
         end_time = time.time()
         outputs_queue.put([device_id, outputs, start_time, end_time])

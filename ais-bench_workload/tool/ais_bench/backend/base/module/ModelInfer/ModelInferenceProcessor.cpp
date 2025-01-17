@@ -689,7 +689,7 @@ APP_ERROR ModelInferenceProcessor::AllocDymAIPPIndexMem()
         MemoryData memdata;
         memdata.size = info.size;
         memdata.type = MemoryData::MemoryType::MEMORY_DEVICE;
-        memdata.deviceId = static_cast<size_t>(deviceId_);
+        memdata.deviceId = deviceId_;
         DEBUG_LOG("debug aipp config index:%d allow size:%d\n", int(index), int(info.size));
         auto ret = MemoryHelper::MxbsMalloc(memdata);
         if (ret != APP_ERR_OK) {
@@ -733,7 +733,7 @@ APP_ERROR ModelInferenceProcessor::AllocDyIndexMem()
 
     dynamicIndexMemory_.size = info.size;
     dynamicIndexMemory_.type = MemoryData::MemoryType::MEMORY_DEVICE;
-    dynamicIndexMemory_.deviceId = static_cast<size_t>(deviceId_);
+    dynamicIndexMemory_.deviceId = deviceId_;
     auto ret = MemoryHelper::MxbsMalloc(dynamicIndexMemory_);
     if (ret != APP_ERR_OK) {
         ERROR_LOG("memory data malloc failed. ret=%d", ret);
@@ -1041,7 +1041,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicShape(std::string dymshapeStr)
         }
         size_t inindex = modelDesc_.innames2Index[map.first];   // get intensors index by name
         auto tmpDataType = static_cast<aclDataType>(modelDesc_.inTensorsDesc[inindex].datatype);
-        modelDesc_.inTensorsDesc[inindex].realsize = map.second * static_cast<int64_t>(aclDataTypeSize(tmpDataType));
+        modelDesc_.inTensorsDesc[inindex].realsize = static_cast<size_t>(map.second) * static_cast<size_t>(aclDataTypeSize(tmpDataType));
     }
 
     dynamicInfo_.dynamicType = DYNAMIC_SHAPE;

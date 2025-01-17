@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import sys
 import subprocess
 from setuptools import setup, find_packages  # type: ignore
-
 
 with open('requirements.txt', encoding='utf-8') as f:
     required = f.read().splitlines()
@@ -40,7 +40,7 @@ setup(
     description='ais_bench tool',
     long_description=long_description,
     url=f"gitee repo: Ascend/tools, commit id: {git_hash}, release_date: {git_date}",
-    release_date = git_date,
+    release_date=git_date,
     packages=packages,
     include_package_data=True,
     keywords='ais_bench tool',

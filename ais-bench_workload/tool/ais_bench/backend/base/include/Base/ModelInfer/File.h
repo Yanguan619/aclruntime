@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2024 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ constexpr mode_t NORMAL_FILE_MODE_DEFAULT = 0640;
 constexpr mode_t READONLY_FILE_MODE_DEFAULT = 0440;
 constexpr mode_t SCRIPT_FILE_MODE_DEFAULT = 0550;
 constexpr mode_t NORMAL_DIR_MODE_DEFAULT = 0750;
+constexpr mode_t FULL_PERMISSIONS = 0777;
 constexpr mode_t READ_FILE_NOT_PERMITTED = S_IWGRP | S_IWOTH;
 constexpr mode_t WRITE_FILE_NOT_PERMITTED = S_IWGRP | S_IWOTH | S_IROTH | S_IXOTH;
 constexpr mode_t CREATE_FILE_MODE_DEFAULT = O_EXCL | O_CREAT;
@@ -61,10 +62,10 @@ public:
     File() = default;
     virtual ~File() = default;
     // 安全的创建目录
-    static bool CreateDir(const std::string &path, bool recursion=false, mode_t mode=NORMAL_DIR_MODE_DEFAULT);
+    static bool CreateDir(const std::string &path, bool recursion = false, mode_t mode = NORMAL_DIR_MODE_DEFAULT);
     // 打开文件
-    static bool OpenFile(const std::string& path, std::ifstream& ifs, std::ios::openmode mode=std::ios::in);
-    static bool OpenFile(const std::string& path, std::ofstream& ofs, std::ios::openmode mode=std::ios::out);
+    static bool OpenFile(const std::string& path, std::ifstream& ifs, std::ios::openmode mode = std::ios::in);
+    static bool OpenFile(const std::string& path, std::ofstream& ofs, std::ios::openmode mode = std::ios::out);
     // 文件夹校验：包括路径长度，文件存在性，软链接，属组，权限
     static bool CheckDir(const std::string &path);
     // 文件权限修改
@@ -109,8 +110,8 @@ public:
     // 校验文件后缀和内容长度
     static bool CheckFileSuffixAndSize(const std::string &path, FileType type);
     // 读文件前的校验
-    static bool CheckFileBeforeRead(const std::string &path, FileType type=FileType::COMMON);
-    static bool CheckFileBeforeCreateOrWrite(const std::string &path, bool overwrite=false);
+    static bool CheckFileBeforeRead(const std::string &path, FileType type = FileType::COMMON);
+    static bool CheckFileBeforeCreateOrWrite(const std::string &path, bool overwrite = false);
 };
 
-#endif //MS_SAFE_CHECK_BASE_FILE_H
+#endif // MS_SAFE_CHECK_BASE_FILE_H

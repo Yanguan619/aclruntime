@@ -23,19 +23,6 @@ class Registry(Iterable[Tuple[str, Any]]):
     The registry that provides name -> object mapping, to support third-party
     users' custom modules.
     """
-    def register(self, obj: Any = None) -> Any:
-        """
-        Register the given object under the the name `obj.__name__`.
-        Can be used as either a decorator or not.See docstring of this class for usage.
-        """
-        if callable(obj):
-            return add(None, obj)
-
-        def add(name: str, obj: Any) -> Any:
-            self[name] = obj
-            return obj
-
-        return lambda x: add(obj, x)
 
     def __init__(self, name: str) -> None:
         """
@@ -44,6 +31,9 @@ class Registry(Iterable[Tuple[str, Any]]):
         """
         self._name: str = name
         self._obj_map: Dict[str, Any] = {}
+    
+    def __iter__(self) -> Iterator[Tuple[str, Any]]:
+        return iter(self._obj_map.items())
 
     def __setitem__(self, name: str, obj: Any) -> None:
         if not callable(obj):
@@ -75,9 +65,20 @@ class Registry(Iterable[Tuple[str, Any]]):
             self._obj_map.items(), headers=table_headers, tablefmt="fancy_grid"
         )
         return "Registry of {}:\n".format(self._name) + table
+    
+    def register(self, obj: Any = None) -> Any:
+        """
+        Register the given object under the the name `obj.__name__`.
+        Can be used as either a decorator or not.See docstring of this class for usage.
+        """
+        if callable(obj):
+            return add(None, obj)
 
-    def __iter__(self) -> Iterator[Tuple[str, Any]]:
-        return iter(self._obj_map.items())
+        def add(name: str, obj: Any) -> Any:
+            self[name] = obj
+            return obj
+
+        return lambda x: add(obj, x)
 
 
 def import_all_modules_for_register(module_paths, base_model_name):

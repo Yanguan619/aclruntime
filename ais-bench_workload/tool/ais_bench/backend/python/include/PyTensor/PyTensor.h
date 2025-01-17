@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,12 @@ namespace py = pybind11;
 
 #include "Base/Tensor/TensorBase/TensorBase.h"
 
-
-#define REGIST_ENUM_TYPE_TO_MODULE(Module, EnumClass, EnumValueName, EnumValue) \
-    (EnumClass).value((EnumValueName), (EnumValue)); \
-    (Module).attr((EnumValueName)) = (EnumValue)
+template <typename T>
+inline void RegisterEnumTypeToModule(py::module& model, py::enum_<T>& enumClass, const char* name, T value)
+{
+    enumClass.value(name, value);
+    model.attr(name) = value;
+}
 
 namespace Base {
 void TensorToHost(TensorBase &tensor);

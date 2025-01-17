@@ -18,19 +18,20 @@ import subprocess
 import getpass
 from multiprocessing import Pool
 
-from ais_bench.net_test.common.consts import STRING_PATTERN, OTHERS, LENGTH_LIMIT
+from ais_bench.net_test.common.consts import StringPattern, OTHERS, LengthLimit
 from ais_bench.net_test.common.logger import logger
+
 
 def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
+        ip = s.getsockname()[0]
     except Exception:
-        IP = '127.0.0.1'
+        ip = '127.0.0.1'
     finally:
         s.close()
-    return IP
+    return ip
 
 
 def get_user_name():
@@ -77,6 +78,6 @@ def compare_bytes_string(min_bytes, max_bytes):
 
 
 def cut_npu_process_name(task_name: str):
-    if len(task_name) > LENGTH_LIMIT.NPU_PROCESS_NAME_LENGTH:
-        return task_name[:LENGTH_LIMIT.NPU_PROCESS_NAME_LENGTH]
+    if len(task_name) > LengthLimit.NPU_PROCESS_NAME_LENGTH:
+        return task_name[:LengthLimit.NPU_PROCESS_NAME_LENGTH]
     return task_name

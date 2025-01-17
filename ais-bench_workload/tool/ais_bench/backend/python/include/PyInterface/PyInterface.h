@@ -1,8 +1,5 @@
-#ifndef PY_INTER_FACE
-#define PY_INTER_FACE
-
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#ifndef PY_INTER_FACE
+#define PY_INTER_FACE
+
 #include "PyTensor/PyTensor.h"
 #include "PyInferenceSession/PyInferenceSession.h"
 

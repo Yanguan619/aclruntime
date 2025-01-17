@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,9 @@
 
 #include "Base/Log/Log.h"
 
-int g_frizyLogLevel = 2;
 const int LOG_BUFFER_SIZE = 1024;
 
 namespace Base {
-void SETLOGLEVEL(int level)
-{
-    g_frizyLogLevel = level;
-}
+int LogCtrl::frizyLogLevel = 2;
 }
 

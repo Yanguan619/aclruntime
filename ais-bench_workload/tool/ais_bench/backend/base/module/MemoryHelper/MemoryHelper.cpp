@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,7 +161,8 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
             ret = APP_ERR_OK;
             break;
         default:
-            ERROR_LOG("%sFree failed, the module type is not defined, data type:%d", GetError(APP_ERR_ACL_BAD_FREE).c_str(), data.type);
+            ERROR_LOG("%sFree failed, the module type is not defined, data type:%d",
+                      GetError(APP_ERR_ACL_BAD_FREE).c_str(), data.type);
             return APP_ERR_ACL_BAD_FREE;
     }
     if (ret != APP_ERR_OK) {

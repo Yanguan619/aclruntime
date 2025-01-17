@@ -16,19 +16,19 @@ import os
 import re
 import shutil
 
-from ais_bench.net_test.common.consts import LENGTH_LIMIT, INT_LIMIT, STRING_PATTERN
+from ais_bench.net_test.common.consts import LengthLimit, IntLimit, StringPattern
 from ais_bench.net_test.security.file_checker import check_linux_executable_file
 from ais_bench.net_test.security.standard_consts import FileSizeLimit, PermForbid
 
 
-def _check_str_length(s: str, min_len: int = 0, max_len: int = LENGTH_LIMIT.MAX_UINT64_STR_LENGTH):
+def _check_str_length(s: str, min_len: int = 0, max_len: int = LengthLimit.MAX_UINT64_STR_LENGTH):
     if len(s) < min_len or len(s) > max_len:
         raise ValueError('The length of input string is not between [{}, {}]'.format(min_len, max_len))
     return s
 
 
-def check_int_string(x: str, x_min: int = 0, x_max: int = INT_LIMIT.UINT64_MAX):
-    _check_str_length(x, min_len=LENGTH_LIMIT.MIN_UINT_STR_LENGTH, max_len=LENGTH_LIMIT.MAX_UINT64_STR_LENGTH)
+def check_int_string(x: str, x_min: int = 0, x_max: int = IntLimit.UINT64_MAX):
+    x = _check_str_length(x, min_len=LengthLimit.MIN_UINT_STR_LENGTH, max_len=LengthLimit.MAX_UINT64_STR_LENGTH)
     if not x.isdigit():
         raise ValueError(f"Input x is an invalid positive int value")
 
@@ -39,7 +39,7 @@ def check_int_string(x: str, x_min: int = 0, x_max: int = INT_LIMIT.UINT64_MAX):
 
 
 def check_positive_int_string(x: str):
-    return check_int_string(x, x_min=LENGTH_LIMIT.MIN_UINT_STR_LENGTH, x_max=INT_LIMIT.UINT64_MAX)
+    return check_int_string(x, x_min=LengthLimit.MIN_UINT_STR_LENGTH, x_max=IntLimit.UINT64_MAX)
 
 
 def _is_regex_full_match(string: str, pattern: str):
@@ -49,33 +49,33 @@ def _is_regex_full_match(string: str, pattern: str):
 
 
 def check_ipv4_string(value: str):
-    if len(value) > LENGTH_LIMIT.MAX_IPV4_LENGTH:
+    if len(value) > LengthLimit.MAX_IPV4_LENGTH:
         raise ValueError(
-            f"The length of ipv4_string is over MAX_IPV4_LENGTH {LENGTH_LIMIT.MAX_IPV4_LENGTH}!"
+            f"The length of ipv4_string is over MAX_IPV4_LENGTH {LengthLimit.MAX_IPV4_LENGTH}!"
         )
-    if not _is_regex_full_match(value, STRING_PATTERN.LEGAL_IPV4_PATTERN):
+    if not _is_regex_full_match(value, StringPattern.LEGAL_IPV4_PATTERN):
         raise ValueError("The format of ipv4_string is illegal!")
     return value
 
 
 def check_bytes_format(value: str):
-    if len(value) > LENGTH_LIMIT.MAX_BYTES_STR_LENGTH:
+    if len(value) > LengthLimit.MAX_BYTES_STR_LENGTH:
         raise ValueError(
-            f"The length of bytes_string is over MAX_BYTES_STR_LENGTH {LENGTH_LIMIT.MAX_BYTES_STR_LENGTH}!"
+            f"The length of bytes_string is over MAX_BYTES_STR_LENGTH {LengthLimit.MAX_BYTES_STR_LENGTH}!"
         )
-    if not _is_regex_full_match(value, STRING_PATTERN.LEGAL_BYTES_FORMAT_PATTERN):
+    if not _is_regex_full_match(value, StringPattern.LEGAL_BYTES_FORMAT_PATTERN):
         raise ValueError("The format of bytes_string is illegal!")
 
     value_int = value[:-1]
-    check_positive_int_string(value_int)
-    return value_int
+    value_int = check_positive_int_string(value_int)
+    return str(value_int)
 
 
 def check_linux_username(value: str):
-    if len(value) > LENGTH_LIMIT.MAX_LINUX_USERNAME_LENGTH or len(value) <= 0:
+    if len(value) > LengthLimit.MAX_LINUX_USERNAME_LENGTH or len(value) <= 0:
         raise ValueError(
-            'The linux username length must be in the range [1, {}]!'.format(LENGTH_LIMIT.MAX_LINUX_USERNAME_LENGTH))
-    if not _is_regex_full_match(value, STRING_PATTERN.LEGAL_LINUX_USERNAME_PATTERN):
+            'The linux username length must be in the range [1, {}]!'.format(LengthLimit.MAX_LINUX_USERNAME_LENGTH))
+    if not _is_regex_full_match(value, StringPattern.LEGAL_LINUX_USERNAME_PATTERN):
         raise ValueError('The linux username format is not valid!'.format(value))
     return value
 

@@ -14,7 +14,7 @@
 
 from multiprocessing import Pool
 from ais_bench.net_test.ssh.ssh_operation import SSH_EXCEPTION_LIST
-from ais_bench.net_test.common.consts import REMOTE_NODE_INFO_NAME
+from ais_bench.net_test.common.consts import RemoteNodeInfoName
 from ais_bench.net_test.common.logger import logger
 
 
@@ -22,6 +22,9 @@ class MultiProcessRunner:
     def __init__(self):
         self.clean_up_cmd = ""
         self.return_code = False
+        self.task_failed = None
+        self.remote_func = None
+        self.args_dict_list = []
 
     def __call__(self, func, args_dict_list, clean_up_cmd=""):
         self.clean_up_cmd = clean_up_cmd
@@ -42,26 +45,27 @@ class MultiProcessRunner:
                 p.apply_async(func, args=(args_dict,), error_callback=_callback)
             p.close()
             p.join()
-        except KeyboardInterrupt:
+        except KeyboardInterrupt as e:
             p.terminate()
             if clean_up_cmd != "":
                 self._clean_up()
-            raise RuntimeError("multiprocess runner is interrupt by keyboard!")
+            raise RuntimeError("multiprocess runner is interrupt by keyboard!") from e
 
         if self.task_failed:
             raise RuntimeError("multiprocess runner exec failed!")
-
-    def _run_map(self, func, args_dict_list):
-        process_count = len(args_dict_list)
+        
+        
+    def _run_map(self):
+        process_count = len(self.args_dict_list)
         with Pool(processes=process_count) as pool:
-            pool.map(func, args_dict_list)
+            pool.map(self.remote_func, self.args_dict_list)
 
     def _clean_up(self):
         for i, _ in enumerate(self.args_dict_list):
-            self.args_dict_list[i][REMOTE_NODE_INFO_NAME.CMD] = self.clean_up_cmd
+            self.args_dict_list[i][RemoteNodeInfoName.CMD] = self.clean_up_cmd
         logger.info("start to clean up remote resource ...")
         try:
-            self._run_map(self.remote_func, self.args_dict_list)
+            self._run_map()
         except Exception as err:
             logger.error(f"clean up remote resource failed, error log: {err}")
         logger.info("clean up remote resource success!")

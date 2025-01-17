@@ -191,7 +191,7 @@ class TestClass:
 
     def test_infer_iteration_api_dymwh_multidevice(self):
         device_id = TestCommonClass.default_device_id
-        model_path = self.get_add_model_dynamic('dymwh')
+        model_path = self.get_add_model_dynamic('dymhw')
         multi_session = MultiDeviceSession(model_path)
 
         # create new numpy data according inputs info
@@ -206,7 +206,7 @@ class TestClass:
 
     def test_infer_iteration_api_dymdim_multidevice(self):
         device_id = TestCommonClass.default_device_id
-        model_path = self.get_add_model_dynamic('dymdim')
+        model_path = self.get_add_model_dynamic('dymdims')
         multi_session = MultiDeviceSession(model_path)
 
         # create new numpy data according inputs info

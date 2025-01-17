@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,8 @@ int main(int argc, char **argv)
 
     CreatePureInputTensors(indescs, deviceId, intensors);
     for (const auto& tensor : intensors) {
-        PROMPT_MSG("in tensor type:%d size:%lld isDevice:%d\n", tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
+        PROMPT_MSG("in tensor type:%d size:%lld isDevice:%d\n",
+                   tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
     }
     if (input.size() != 0) {
         std::vector<std::string> fileName_vec;
@@ -101,7 +102,8 @@ int main(int argc, char **argv)
     } else {
         std::vector<Base::TensorBase> outtensors = session->InferVector(output_names, intensors);
         for (const auto& tensor : outtensors) {
-            PROMPT_MSG("out tensor type:%d size:%lld isDevice:%d\n", tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
+            PROMPT_MSG("out tensor type:%d size:%lld isDevice:%d\n",
+                       tensor.GetTensorType(), tensor.GetSize(), tensor.IsDevice());
         }
     }
 

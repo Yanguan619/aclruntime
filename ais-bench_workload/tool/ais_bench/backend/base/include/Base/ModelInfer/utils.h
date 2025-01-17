@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,10 @@
 #include "Base/ModelInfer/cnpy.h"
 #include "Base/Tensor/TensorBase/TensorBase.h"
 
+constexpr int INPUT_DYM_SHAPE_MAX_LENGTH = 30;
+constexpr int EXPECTED_INPUT_INFO_SIZE = 2;
+constexpr int MAX_SHAPE_VALUES = 6;
+constexpr size_t MAX_SHAPE_VALUE_LENGTH = 4;
 
 typedef enum Result {
     SUCCESS = 0,
@@ -72,8 +76,6 @@ public:
 
     static double printDiffTime(time_t begin, time_t end);
 
-    static int ToInt(std::string &str);
-
     static Result ReadBinFileToMemory(const std::string fileName,  char *ptr, const size_t size, size_t &offset);
     static Result FillFileContentToMemory(const std::string file, char* ptr, const size_t size, size_t &offset);
 
@@ -87,6 +89,10 @@ public:
     static bool TailContain(const std::string& str, const std::string& tail);
     static bool IsValidInteger(const std::string& str);
     static bool IsLegalDymString(const std::string& str);
+    static std::vector<std::string> SplitStringByComma(const std::string& str);
+    static bool IsDymShapeValid(const std::string& str);
+    static bool IsInputNameValidChar(const std::string& str);
+    static uint8_t CreateRandomNum();
 };
 
 #endif

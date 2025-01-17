@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2024 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,4 +44,4 @@ public:
     static std::vector<std::string> Split(const std::string &str, const std::string &delimiter);
 };
 
-#endif //MS_SAFE_CHECK_BASE_STRINGCHECKER_H
+#endif // MS_SAFE_CHECK_BASE_STRINGCHECKER_H

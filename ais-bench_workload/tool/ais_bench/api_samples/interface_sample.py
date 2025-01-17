@@ -1,4 +1,4 @@
-# Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import logging
 import numpy as np
 
 from ais_bench.infer.interface import InferSession, MultiDeviceSession
+from ais_bench.infer.common.utils import logger_print
 
 model_path = sys.argv[1]
 
@@ -41,7 +42,7 @@ def infer_simple():
     logger.info(f"static infer avg:{np.mean(session.sumary().exec_time_list)} ms")
 
 
-def infer_iteration_withD2H():
+def infer_iteration_with_d2h():
     # only for single_op_add_model
     device_id = 0
     loop_times = 1  # same infer loop times
@@ -51,13 +52,13 @@ def infer_iteration_withD2H():
     shape = session.get_inputs()[0].shape
     ndata = np.full(shape, 1).astype(np.float32)
     outputs = session.infer([ndata, ndata])
-    for i in range(iteration_times - 1):
+    for _ in range(iteration_times - 1):
         outputs = session.infer([outputs[0], ndata])
     logger.info(f"outputs:{outputs} type:{type(outputs)}")
     logger.info(f"static infer avg:{np.mean(session.sumary().exec_time_list)} ms")
 
 
-def infer_iteration_withoutD2H():
+def infer_iteration_without_d2h():
     # only for single_op_add_model
     device_id = 0
     loop_times = 1  # same infer loop times
@@ -108,9 +109,9 @@ def infer_pipeline():
     ndata = np.frombuffer(barray)
 
     outputs = session.infer([[ndata], [ndata]])
-    print("outputs:{} type:{}".format(outputs, type(outputs)))
+    logger_print("outputs:%s type:%s" % outputs, type(outputs))
 
-    print("static infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
+    logger_print("static infer avg:%s ms", np.mean(session.sumary().exec_time_list))
 
 
 def infer_multidevices():
@@ -235,16 +236,8 @@ def get_model_info():
         )
 
 
-#
 start = time.time()
-# infer_simple()
-# infer_iteration_withD2H()
-# infer_multidevices()
-# infer_multidevices_iteration()
 infer_multidevices_pipeline()
-# infer_iteration_withoutD2H()
-# infer_dymbatch()
-# infer_dymhw()
 end = time.time()
 e2e_cost = end - start
 logger.info(f"endtoend time:{e2e_cost} sec")

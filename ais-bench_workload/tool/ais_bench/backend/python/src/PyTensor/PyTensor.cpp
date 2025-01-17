@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -190,23 +190,23 @@ TensorBase BatchVector(const std::vector<TensorBase> &tensors, const bool &keepD
 void RegistPyTensorEnumType(py::module &m)
 {
     auto dtype = py::enum_<Base::TensorDataType>(m, "dtype");
-    REGIST_ENUM_TYPE_TO_MODULE(m, dtype, "int8", Base::TensorDataType::TENSOR_DTYPE_INT8);
-    REGIST_ENUM_TYPE_TO_MODULE(m, dtype, "uint8", Base::TensorDataType::TENSOR_DTYPE_UINT8);
-    REGIST_ENUM_TYPE_TO_MODULE(m, dtype, "int16", Base::TensorDataType::TENSOR_DTYPE_INT16);
-    REGIST_ENUM_TYPE_TO_MODULE(m, dtype, "uint16", Base::TensorDataType::TENSOR_DTYPE_UINT16);
-    REGIST_ENUM_TYPE_TO_MODULE(m, dtype, "int32", Base::TensorDataType::TENSOR_DTYPE_INT32);
-    REGIST_ENUM_TYPE_TO_MODULE(m, dtype, "uint32", Base::TensorDataType::TENSOR_DTYPE_UINT32);
-    REGIST_ENUM_TYPE_TO_MODULE(m, dtype, "int64", Base::TensorDataType::TENSOR_DTYPE_INT64);
-    REGIST_ENUM_TYPE_TO_MODULE(m, dtype, "uint64", Base::TensorDataType::TENSOR_DTYPE_UINT64);
-    REGIST_ENUM_TYPE_TO_MODULE(m, dtype, "float16", Base::TensorDataType::TENSOR_DTYPE_FLOAT16);
-    REGIST_ENUM_TYPE_TO_MODULE(m, dtype, "float32", Base::TensorDataType::TENSOR_DTYPE_FLOAT32);
-    REGIST_ENUM_TYPE_TO_MODULE(m, dtype, "double", Base::TensorDataType::TENSOR_DTYPE_DOUBLE64);
-    REGIST_ENUM_TYPE_TO_MODULE(m, dtype, "bool", Base::TensorDataType::TENSOR_DTYPE_BOOL);
+    RegisterEnumTypeToModule(m, dtype, "int8", Base::TensorDataType::TENSOR_DTYPE_INT8);
+    RegisterEnumTypeToModule(m, dtype, "uint8", Base::TensorDataType::TENSOR_DTYPE_UINT8);
+    RegisterEnumTypeToModule(m, dtype, "int16", Base::TensorDataType::TENSOR_DTYPE_INT16);
+    RegisterEnumTypeToModule(m, dtype, "uint16", Base::TensorDataType::TENSOR_DTYPE_UINT16);
+    RegisterEnumTypeToModule(m, dtype, "int32", Base::TensorDataType::TENSOR_DTYPE_INT32);
+    RegisterEnumTypeToModule(m, dtype, "uint32", Base::TensorDataType::TENSOR_DTYPE_UINT32);
+    RegisterEnumTypeToModule(m, dtype, "int64", Base::TensorDataType::TENSOR_DTYPE_INT64);
+    RegisterEnumTypeToModule(m, dtype, "uint64", Base::TensorDataType::TENSOR_DTYPE_UINT64);
+    RegisterEnumTypeToModule(m, dtype, "float16", Base::TensorDataType::TENSOR_DTYPE_FLOAT16);
+    RegisterEnumTypeToModule(m, dtype, "float32", Base::TensorDataType::TENSOR_DTYPE_FLOAT32);
+    RegisterEnumTypeToModule(m, dtype, "double", Base::TensorDataType::TENSOR_DTYPE_DOUBLE64);
+    RegisterEnumTypeToModule(m, dtype, "bool", Base::TensorDataType::TENSOR_DTYPE_BOOL);
 
     auto memoryType = py::enum_<Base::MemoryData::MemoryType>(m, "type");
-    REGIST_ENUM_TYPE_TO_MODULE(m, memoryType, "memory_host", Base::MemoryData::MemoryType::MEMORY_HOST);
-    REGIST_ENUM_TYPE_TO_MODULE(m, memoryType, "memory_device", Base::MemoryData::MemoryType::MEMORY_DEVICE);
-    REGIST_ENUM_TYPE_TO_MODULE(m, memoryType, "memory_dvpp", Base::MemoryData::MemoryType::MEMORY_DVPP);
+    RegisterEnumTypeToModule(m, memoryType, "memory_host", Base::MemoryData::MemoryType::MEMORY_HOST);
+    RegisterEnumTypeToModule(m, memoryType, "memory_device", Base::MemoryData::MemoryType::MEMORY_DEVICE);
+    RegisterEnumTypeToModule(m, memoryType, "memory_dvpp", Base::MemoryData::MemoryType::MEMORY_DVPP);
 }
 
 void RegistPyTensorModule(py::module &m)

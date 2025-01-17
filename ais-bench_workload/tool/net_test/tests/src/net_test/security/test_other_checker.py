@@ -3,8 +3,8 @@ from unittest.mock import patch
 
 from ais_bench.net_test.security.other_checker import (check_linux_file_stat_string_from_shell,
     is_disk_space_enough, check_positive_integer_str, is_memory_enough)
-from ais_bench.net_test.common.consts import LENGTH_LIMIT
-from ais_bench.net_test.security.standard_consts import STAT_STRING_IDX, FileSizeLimit
+from ais_bench.net_test.common.consts import LengthLimit
+from ais_bench.net_test.security.standard_consts import StatStringIdx, FileSizeLimit
 
 class TestCheckFuncUtils(unittest.TestCase):
     def setUp(self):
@@ -30,7 +30,7 @@ class TestCheckFuncUtils(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "is not a string"):
             check_positive_integer_str(["a"])
 
-        long_str = "1" * (LENGTH_LIMIT.MAX_UINT64_STR_LENGTH + 1)
+        long_str = "1" * (LengthLimit.MAX_UINT64_STR_LENGTH + 1)
         with self.assertRaisesRegex(ValueError, "is over length limit"):
             check_positive_integer_str(long_str)
 
@@ -45,7 +45,7 @@ class TestCheckFuncUtils(unittest.TestCase):
         size = 10000
         standard_str_list = ["-rwxr-xr-x", "1", user, user, size]
 
-        short_list = ["a" for i in range(STAT_STRING_IDX.SIZE)]
+        short_list = ["a" for i in range(StatStringIdx.SIZE)]
         with self.assertRaisesRegex(ValueError, "path is not a file"):
             check_linux_file_stat_string_from_shell(short_list, user)
 

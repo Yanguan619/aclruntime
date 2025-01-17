@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,9 @@
 
 #include "Base/MemoryHelper/MemoryHelper.h"
 #include "Base/ErrorCode/ErrorCode.h"
+#include "Base/Tensor/TensorShape/TensorShape.h"
+#include "Base/Tensor/TensorBuffer/TensorBuffer.h"
+
 namespace Base {
 enum TensorDataType {
     TENSOR_DTYPE_UNDEFINED = -1,
@@ -62,8 +65,6 @@ std::string GetTensorDataTypeDesc(TensorDataType type);
 
 MemoryData CopyMemory2DeviceMemory(void *ptr, uint64_t size, int32_t deviceId);
 
-class TensorBuffer;
-class TensorShape;
 class TensorBase {
 public:
     TensorBase();

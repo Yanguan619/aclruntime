@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ PyInferenceSession::~PyInferenceSession()
 
 void PyInferenceSession::Init(const std::string &modelPath, std::shared_ptr<SessionOptions> options)
 {
-    SETLOGLEVEL(options->log_level);
+    LogCtrl::SetLogLevel(options->log_level);
     DeviceManager::GetInstance()->SetAclJsonPath(options->aclJsonPath);
     APP_ERROR ret = TensorContext::GetInstance()->CreateContext(deviceId_, contextIndex_);
     if (ret != APP_ERR_OK) {

@@ -19,7 +19,7 @@ import socket
 from multiprocessing import Pool
 from ais_bench.backend.net_test.common.consts import RET
 from ais_bench.net_test.security.file_checker import check_linux_executable_file
-from ais_bench.backend.net_test.common.logger import logger
+from ais_bench.backend.net_test.common.logger import logger, console_origin
 
 CUR_DIR_ABS_PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -30,10 +30,13 @@ def run_hccl_test_exec_command(cmd_list):
     # 获取实时输出并处理
     for line in iter(p.stdout.readline, b''):
         if line:
-            sys.stdout.write(line.decode('utf-8'))
-            sys.stdout.flush()
+            console_origin(line)
 
-    _, stderr = p.communicate()
+    try:
+        _, stderr = p.communicate(timeout=10)
+    except subprocess.TimeoutExpired as e:
+        p.kill()
+        raise TimeoutError(f"exec cmd {cmd_list} timeout!") from e
 
     # 等待命令执行完成
     return_code = p.wait()

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,9 @@ ModelProcess::ModelProcess()
     input_(nullptr),
     output_(nullptr),
     numInputs_(0),
-    numOutputs_(0)
+    numOutputs_(0),
+    reuseOutput_(false),
+    g_dymindex(0)
 {
     str2aclAippInputFormat["YUV420SP_U8"] = ACL_YUV420SP_U8;
     str2aclAippInputFormat["XRGB8888_U8"] = ACL_XRGB8888_U8;
@@ -230,8 +232,16 @@ Result ModelProcess::CheckDynamicShape(
                 ERROR_LOG("dim of dymshape string is illegal!");
                 return FAILED;
             }
-            num_tmp = atoi(shape_tmp[index].c_str());
-            shape_array_tmp.push_back(num_tmp);
+            try {
+                int64_t num_tmp = std::stol(shape_tmp[index]);
+                shape_array_tmp.push_back(num_tmp);
+            } catch (const std::invalid_argument& e) {
+                ERROR_LOG("Invalid argument: %s", e.what());
+                return FAILED;
+            } catch (const std::out_of_range& e) {
+                ERROR_LOG("Out of range: %s", e.what());
+                return FAILED;
+            }
         }
         dym_shape_map[name] = shape_array_tmp;
     }
@@ -284,7 +294,7 @@ Result ModelProcess::SetDynamicShape(
             fflush(stdout);
             return FAILED;
         }
-	    inputDesc = aclCreateTensorDesc(ACL_FLOAT, dims_num[i], arr, ACL_FORMAT_NCHW);
+        inputDesc = aclCreateTensorDesc(ACL_FLOAT, dims_num[i], arr, ACL_FORMAT_NCHW);
         ret = aclmdlSetDatasetTensorDesc(input_, inputDesc, i);
         if (ret != ACL_SUCCESS) {
             ACLERR_LOG(aclGetRecentErrMsg());
@@ -464,7 +474,17 @@ Result ModelProcess::CheckDynamicDims(vector<string> dym_dims, size_t gearCount,
                 ERROR_LOG("dim of dymdims string is illegal!");
                 return FAILED;
             }
-            if (dims[i].dims[j] != atoi(dym_dims[j].c_str())) {
+            int dymDims;
+            try {
+                dymDims = std::stoi(dym_dims[j]);
+            } catch (const std::invalid_argument& e) {
+                ERROR_LOG("Invalid argument: %s", e.what());
+                return FAILED;
+            } catch (const std::out_of_range& e) {
+                ERROR_LOG("Out of range: %s", e.what());
+                return FAILED;
+            }
+            if (dims[i].dims[j] != dymDims) {
                 break;
             }
             if (j == dims[i].dimCount - 1) {
@@ -487,7 +507,15 @@ Result ModelProcess::SetDynamicDims(vector<string> dym_dims)
     aclmdlIODims dims;
     dims.dimCount = dym_dims.size();
     for (size_t i = 0; i < dims.dimCount; i++) {
-        dims.dims[i] = atoi(dym_dims[i].c_str());
+        try {
+            dims.dims[i] = static_cast<int>(std::stol(dym_dims[i]));
+        } catch (const std::invalid_argument& e) {
+            ERROR_LOG("Invalid input for conversion: %s", dym_dims[i].c_str());
+            return FAILED;
+        } catch (const std::out_of_range& e) {
+            ERROR_LOG("Out of range input for conversion: %s", dym_dims[i].c_str());
+            return FAILED;
+        }
     }
 
     aclError ret = aclmdlSetInputDynamicDims(modelId_, input_, g_dymindex, &dims);
@@ -599,7 +627,7 @@ Result ModelProcess::PrintDesc()
     if (batch_info.batchCount != 0) {
         DEBUG_LOG("DynamicBatch:");
         for (size_t i = 0; i < batch_info.batchCount; i++) {
-            PROMPT_MSG("%ld ", batch_info.batch[i]);
+            PROMPT_MSG("%lu ", batch_info.batch[i]);
         }
         PROMPT_MSG("\n");
     }
@@ -613,7 +641,7 @@ Result ModelProcess::PrintDesc()
     if (dynamicHW.hwCount != 0) {
         DEBUG_LOG("DynamicHW:");
         for (size_t i = 0; i < dynamicHW.hwCount; i++) {
-            PROMPT_MSG("%ld,%ld ", dynamicHW.hw[i][0], dynamicHW.hw[i][1]);
+            PROMPT_MSG("%lu,%lu ", dynamicHW.hw[i][0], dynamicHW.hw[i][1]);
         }
         PROMPT_MSG("\n");
     }
@@ -690,7 +718,7 @@ Result ModelProcess::UpdateInputsReuse(const std::vector<int> &inOutRelation)
         aclError ret;
         if (tmpRelation[i] < 0) {
             continue;
-        } else if (tmpRelation[i] < outputsNum) {
+        } else if (tmpRelation[i] < static_cast<int>(outputsNum)) {
             aclDataBuffer* tmpInputData = aclmdlGetDatasetBuffer(input_, i);
             aclDataBuffer* tmpOutputData = aclmdlGetDatasetBuffer(output_, tmpRelation[i]);
             if (aclGetDataBufferSizeV2(tmpInputData) != aclGetDataBufferSizeV2(tmpOutputData)
@@ -743,7 +771,7 @@ Result ModelProcess::UpdateInputsMemcpy(const std::vector<int> &inOutRelation)
         aclError ret;
         if (tmpRelation[i] < 0) {
             continue;
-        } else if (tmpRelation[i] < outputsNum) {
+        } else if (tmpRelation[i] < static_cast<int>(outputsNum)) {
             aclDataBuffer* tmpInputData = aclmdlGetDatasetBuffer(input_, i);
             aclDataBuffer* tmpOutputData = aclmdlGetDatasetBuffer(output_, tmpRelation[i]);
             if (aclGetDataBufferSizeV2(tmpInputData) > aclGetDataBufferSizeV2(tmpOutputData)) {
@@ -933,7 +961,7 @@ Result ModelProcess::CreateOutput()
     for (size_t i = 0; i < outputNum; ++i) {
         size_t buffer_size = 0;
         if (g_output_size.empty() == false) {
-            buffer_size = g_output_size[i];
+            buffer_size = static_cast<size_t>(g_output_size[i]);
         } else {
             buffer_size = aclmdlGetOutputSizeByIndex(modelDesc_, i);
         }
@@ -1276,10 +1304,10 @@ size_t ModelProcess::GetOutTensorLen(size_t i, bool is_dymshape)
     size_t len;
     GetMaxBatchSize(maxBatchSize);
     if (is_dymshape) {
-	    aclTensorDesc *outputDesc = aclmdlGetDatasetTensorDesc(output_, i);
-	    len = aclGetTensorDescSize(outputDesc);
+        aclTensorDesc *outputDesc = aclmdlGetDatasetTensorDesc(output_, i);
+        len = aclGetTensorDescSize(outputDesc);
     } else {
-	    len = aclGetDataBufferSizeV2(dataBuffer);
+        len = aclGetDataBufferSizeV2(dataBuffer);
     }
     return len;
 }
@@ -1347,7 +1375,7 @@ int ModelProcess::CheckDymAIPPInputExist()
             dataNeedDynamicAipp.push_back(index);
         }
     }
-    int aippNum = dataNeedDynamicAipp.size();
+    int aippNum = static_cast<int>(dataNeedDynamicAipp.size());
     return aippNum;
 }
 

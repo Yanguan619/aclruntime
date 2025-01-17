@@ -17,6 +17,7 @@ import sys
 
 from ais_bench.net_test.security.standard_consts import PlatformSupport
 
+
 def get_platform():
     if sys.platform.startswith(PlatformSupport.LINUX):
         return PlatformSupport.LINUX

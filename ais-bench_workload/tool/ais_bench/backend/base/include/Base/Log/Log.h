@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Technologies Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,22 +36,39 @@ using namespace std;
 #define LOG_WARNING_LEVEL 3
 #define LOG_ERROR_LEVEL 4
 
-extern int g_frizyLogLevel;
-
 namespace Base {
-void SETLOGLEVEL(int level);
+class LogCtrl {
+public:
+    static void SetLogLevel(int level)
+    {
+        frizyLogLevel = level;
+    }
+    static bool CheckLogLevel(int level)
+    {
+        return level >= frizyLogLevel;
+    }
+private:
+    LogCtrl() = delete;
+    ~LogCtrl() = delete;
+
+    static int frizyLogLevel;
+};
 }
 
 
-#define DEBUG_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_DEBUG_LEVEL) \
+#define DEBUG_LOG(fmt, args...)  do { if (Base::LogCtrl::CheckLogLevel(LOG_DEBUG_LEVEL)) \
     { printf("[DEBUG] " fmt "\n", ##args); fflush(stdout); } } while (0)
-#define INFO_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_INFO_LEVEL) \
+#define INFO_LOG(fmt, args...)  do { if (Base::LogCtrl::CheckLogLevel(LOG_INFO_LEVEL)) \
     { printf("[INFO] " fmt "\n", ##args); fflush(stdout); } } while (0)
-#define WARN_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_WARNING_LEVEL) \
+#define WARN_LOG(fmt, args...)  do { if (Base::LogCtrl::CheckLogLevel(LOG_WARNING_LEVEL)) \
     { printf("[WARN] " fmt "\n", ##args); fflush(stdout); } } while (0)
-#define ERROR_LOG(fmt, args...)  do { if (g_frizyLogLevel <= LOG_ERROR_LEVEL) \
+#define ERROR_LOG(fmt, args...)  do { if (Base::LogCtrl::CheckLogLevel(LOG_ERROR_LEVEL)) \
     { printf("[ERROR] " fmt "\n", ##args); fflush(stdout); } } while (0)
-#define ACLERR_LOG(ErrMsg) printf("[ACL ERROR] %s\n", ErrMsg)
 #define PROMPT_MSG(fmt, args...) printf(fmt, ##args)
+
+inline void ACLERR_LOG(const char* ErrMsg)
+{
+    printf("[ACL ERROR] %s\n", ErrMsg);
+}
 
 #endif  // CORE_LOG_H

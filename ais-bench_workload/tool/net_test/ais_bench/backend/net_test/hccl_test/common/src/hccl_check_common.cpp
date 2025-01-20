@@ -34,17 +34,18 @@ int CheckBufResultFloat(const void *resultBuf, const void *checkBuf, u64 count)
     float *result = (float *)resultBuf;
     u64 first_err_pos = ULLONG_MAX;
     for (i = 0; i < count; ++i) {
-        if (fabsf(c_buf[i] - result[i]) > HCCL_EPSION_FLOAT) {
-            if (fabsf(result[i]) > 0) {
-                if (fabsf(fabsf(c_buf[i] - result[i]) / result[i]) <= (HCCL_EPSION_FLOAT * MULTIPER_100)) continue;
-            } else {
-                if (fabsf(c_buf[i] - result[i]) <= RESULT_PROCESSION) continue;
-            }
-            if (first_err_pos == ULLONG_MAX) {
-                first_err_pos = i;
-            }
-            err++;
+        if (fabsf(c_buf[i] - result[i]) <= HCCL_EPSION_FLOAT) {
+            continue;
         }
+        if (fabsf(result[i]) > 0) {
+            if (fabsf(fabsf(c_buf[i] - result[i]) / result[i]) <= (HCCL_EPSION_FLOAT * MULTIPER_100)) continue;
+        } else {
+            if (fabsf(c_buf[i] - result[i]) <= RESULT_PROCESSION) continue;
+        }
+        if (first_err_pos == ULLONG_MAX) {
+            first_err_pos = i;
+        }
+        err++;
     }
 
     if (err > 0) {

@@ -16,8 +16,8 @@ import math
 import os
 import random
 import time
-import numpy as np
 from dataclasses import dataclass
+import numpy as np
 
 from ais_bench.infer.summary import summary
 from ais_bench.infer.common.utils import (

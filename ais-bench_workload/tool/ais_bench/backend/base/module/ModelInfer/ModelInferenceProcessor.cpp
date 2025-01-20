@@ -1041,7 +1041,8 @@ APP_ERROR ModelInferenceProcessor::SetDynamicShape(std::string dymshapeStr)
         }
         size_t inindex = modelDesc_.innames2Index[map.first];   // get intensors index by name
         auto tmpDataType = static_cast<aclDataType>(modelDesc_.inTensorsDesc[inindex].datatype);
-        modelDesc_.inTensorsDesc[inindex].realsize = static_cast<size_t>(map.second) * static_cast<size_t>(aclDataTypeSize(tmpDataType));
+        modelDesc_.inTensorsDesc[inindex].realsize = static_cast<size_t>(map.second) * \
+                                                     static_cast<size_t>(aclDataTypeSize(tmpDataType));
     }
 
     dynamicInfo_.dynamicType = DYNAMIC_SHAPE;

@@ -47,7 +47,7 @@ from ais_bench.infer.common.miscellaneous import (dymshape_range_run, get_acl_js
 from ais_bench.infer.common.utils import (get_file_content, get_file_datasize,
                                    get_fileslist_from_dir, list_split, list_share,
                                    save_data_to_files, create_fake_file_name, logger,
-                                   logger_print, create_tmp_acl_json, move_subdir, convert_helper, 
+                                   logger_print, create_tmp_acl_json, move_subdir, convert_helper,
                                    str_to_uint, get_msprof_bin_path)
 from ais_bench.infer.common.path_security_check import (
     is_legal_args_path_string, check_normal_string, FilePermChoice, check_path_legality,
@@ -230,7 +230,7 @@ def infer_loop_tensor_run(session, args, intensors_desc, infileslist, output_pre
         if output_prefix is not None:
             save_tensors_to_file(
                 infiles, args.outfmt, i, args.output_batchsize_axis,
-                OutFileInfo(outputs=outputs,output_prefix=output_prefix)
+                OutFileInfo(outputs=outputs, output_prefix=output_prefix)
             )
 
 
@@ -249,7 +249,7 @@ def infer_loop_files_run(session, args, intensors_desc, infileslist, output_pref
         if output_prefix is not None:
             save_tensors_to_file(
                 infiles, args.outfmt, i, args.output_batchsize_axis,
-                OutFileInfo(outputs=outputs,output_prefix=output_prefix)
+                OutFileInfo(outputs=outputs, output_prefix=output_prefix)
             )
 
 
@@ -271,7 +271,7 @@ def infer_fulltensors_run(session, args, intensors_desc, infileslist, output_pre
         if output_prefix is not None:
             save_tensors_to_file(
                 infileslist[i], args.outfmt, i, args.output_batchsize_axis,
-                OutFileInfo(outputs=outputs,output_prefix=output_prefix)
+                OutFileInfo(outputs=outputs, output_prefix=output_prefix)
             )
 
 
@@ -287,7 +287,7 @@ def infer_loop_array_run(session, args, intensors_desc, infileslist, output_pref
         if args.output is not None:
             save_tensors_to_file(
                 infiles, args.outfmt, i, args.output_batchsize_axis,
-                OutFileInfo(outputs=outputs,output_prefix=output_prefix)
+                OutFileInfo(outputs=outputs, output_prefix=output_prefix)
             )
 
 
@@ -313,7 +313,7 @@ def get_file_name(file_path: str, suffix: str, res_file_path: list) -> list:
             if file.endswith(suffix):
                 # 组合文件的完整路径
                 res_file_path.append(os.path.join(root, file))
-                
+
     return res_file_path
 
 

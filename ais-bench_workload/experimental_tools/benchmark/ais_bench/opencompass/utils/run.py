@@ -127,19 +127,10 @@ def get_config_from_arg(args) -> Config:
                     if k.endswith(dataset_key_suffix):
                         datasets += cfg[k]
     else:
-        dataset = {'path': args.custom_dataset_path}
-        if args.custom_dataset_infer_method is not None:
-            dataset['infer_method'] = args.custom_dataset_infer_method
-        if args.custom_dataset_data_type is not None:
-            dataset['data_type'] = args.custom_dataset_data_type
-        if args.custom_dataset_meta_path is not None:
-            dataset['meta_path'] = args.custom_dataset_meta_path
-        dataset = make_custom_dataset_config(dataset)
-        datasets.append(dataset)
-
+        raise ValueError('You must specify "--datasets"')
     # parse model args
-    if not args.models and not args.hf_path:
-        raise ValueError('You must specify a config file path, or specify --models and --datasets, or specify HuggingFace model parameters and --datasets.')
+    if not args.models:
+        raise ValueError('You must specify a config file path, or specify --models and --datasets.')
     models = []
     script_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(script_dir)
@@ -158,27 +149,7 @@ def get_config_from_arg(args) -> Config:
                     raise ValueError(f'Config file {model[1]} does not contain "models" field')
                 models += cfg['models']
     else:
-        if args.hf_type == 'chat':
-            mod = HuggingFacewithChatTemplate
-        else:
-            mod = HuggingFaceBaseModel
-        model = dict(type=f'{mod.__module__}.{mod.__name__}',
-                     abbr=args.hf_path.split('/')[-1] + '_hf',
-                     path=args.hf_path,
-                     model_kwargs=args.model_kwargs,
-                     tokenizer_path=args.tokenizer_path,
-                     tokenizer_kwargs=args.tokenizer_kwargs,
-                     generation_kwargs=args.generation_kwargs,
-                     peft_path=args.peft_path,
-                     peft_kwargs=args.peft_kwargs,
-                     max_seq_len=args.max_seq_len,
-                     max_out_len=args.max_out_len,
-                     batch_size=args.batch_size,
-                     pad_token_id=args.pad_token_id,
-                     stop_words=args.stop_words,
-                     run_cfg=dict(num_gpus=args.hf_num_gpus))
-        logger.debug(f'Using model: {model}')
-        models.append(model)
+        raise ValueError('You must specify "--models"')
 
     # parse summarizer args
     summarizer_arg = args.summarizer if args.summarizer is not None else 'example'

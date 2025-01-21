@@ -199,16 +199,16 @@ def parse_hf_args(hf_parser):
     hf_parser.add_argument('--stop-words', nargs='+', default=[], help='The stop words for the HuggingFace model')
 
 
-def parse_custom_dataset_args(custom_dataset_parser):
-    """These args are all for the quick construction of custom datasets."""
-    custom_dataset_parser.add_argument('--custom-dataset-path', type=str)
-    custom_dataset_parser.add_argument('--custom-dataset-meta-path', type=str)
-    custom_dataset_parser.add_argument('--custom-dataset-data-type',
-                                       type=str,
-                                       choices=['mcq', 'qa'])
-    custom_dataset_parser.add_argument('--custom-dataset-infer-method',
-                                       type=str,
-                                       choices=['gen', 'ppl'])
+# def parse_custom_dataset_args(custom_dataset_parser):
+#     """These args are all for the quick construction of custom datasets."""
+#     custom_dataset_parser.add_argument('--custom-dataset-path', type=str)
+#     custom_dataset_parser.add_argument('--custom-dataset-meta-path', type=str)
+#     custom_dataset_parser.add_argument('--custom-dataset-data-type',
+#                                        type=str,
+#                                        choices=['mcq', 'qa'])
+#     custom_dataset_parser.add_argument('--custom-dataset-infer-method',
+#                                        type=str,
+#                                        choices=['gen', 'ppl'])
 
 
 def main():
@@ -308,82 +308,82 @@ def main():
         runner(tasks)
 
     # evaluate
-    if args.mode in ['all', 'eval']:
-        # When user have specified --slurm or --dlc, or have not set
-        # "eval" in config, we will provide a default configuration
-        # for eval
-        if (args.dlc or args.slurm) and cfg.get('eval', None):
-            logger.warning('You have set "eval" in the config, but '
-                           'also specified --slurm or --dlc. '
-                           'The "eval" configuration will be overridden by '
-                           'your runtime arguments.')
+    # if args.mode in ['all', 'eval']:
+    #     # When user have specified --slurm or --dlc, or have not set
+    #     # "eval" in config, we will provide a default configuration
+    #     # for eval
+    #     if (args.dlc or args.slurm) and cfg.get('eval', None):
+    #         logger.warning('You have set "eval" in the config, but '
+    #                        'also specified --slurm or --dlc. '
+    #                        'The "eval" configuration will be overridden by '
+    #                        'your runtime arguments.')
 
-        if args.dlc or args.slurm or cfg.get('eval', None) is None:
-            fill_eval_cfg(cfg, args)
-        if args.dump_eval_details:
-            cfg.eval.runner.task.dump_details = True
-        if args.dump_extract_rate:
-            cfg.eval.runner.task.cal_extract_rate = True
-        if args.partition is not None:
-            if RUNNERS.get(cfg.eval.runner.type) == SlurmRunner:
-                cfg.eval.runner.partition = args.partition
-                cfg.eval.runner.quotatype = args.quotatype
-            else:
-                logger.warning('SlurmRunner is not used, so the partition '
-                               'argument is ignored.')
-        if args.debug:
-            cfg.eval.runner.debug = True
-        if args.lark:
-            cfg.eval.runner.lark_bot_url = cfg['lark_bot_url']
-        cfg.eval.partitioner['out_dir'] = osp.join(cfg['work_dir'], 'results/')
-        partitioner = PARTITIONERS.build(cfg.eval.partitioner)
-        tasks = partitioner(cfg)
-        if args.dry_run:
-            return
-        runner = RUNNERS.build(cfg.eval.runner)
+    #     if args.dlc or args.slurm or cfg.get('eval', None) is None:
+    #         fill_eval_cfg(cfg, args)
+    #     if args.dump_eval_details:
+    #         cfg.eval.runner.task.dump_details = True
+    #     if args.dump_extract_rate:
+    #         cfg.eval.runner.task.cal_extract_rate = True
+    #     if args.partition is not None:
+    #         if RUNNERS.get(cfg.eval.runner.type) == SlurmRunner:
+    #             cfg.eval.runner.partition = args.partition
+    #             cfg.eval.runner.quotatype = args.quotatype
+    #         else:
+    #             logger.warning('SlurmRunner is not used, so the partition '
+    #                            'argument is ignored.')
+    #     if args.debug:
+    #         cfg.eval.runner.debug = True
+    #     if args.lark:
+    #         cfg.eval.runner.lark_bot_url = cfg['lark_bot_url']
+    #     cfg.eval.partitioner['out_dir'] = osp.join(cfg['work_dir'], 'results/')
+    #     partitioner = PARTITIONERS.build(cfg.eval.partitioner)
+    #     tasks = partitioner(cfg)
+    #     if args.dry_run:
+    #         return
+    #     runner = RUNNERS.build(cfg.eval.runner)
 
-        # For meta-review-judge in subjective evaluation
-        if isinstance(tasks, list) and len(tasks) != 0 and isinstance(
-                tasks[0], list):
-            for task_part in tasks:
-                runner(task_part)
-        else:
-            runner(tasks)
+    #     # For meta-review-judge in subjective evaluation
+    #     if isinstance(tasks, list) and len(tasks) != 0 and isinstance(
+    #             tasks[0], list):
+    #         for task_part in tasks:
+    #             runner(task_part)
+    #     else:
+    #         runner(tasks)
 
     # visualize
-    if args.mode in ['all', 'eval', 'viz']:
-        summarizer_cfg = cfg.get('summarizer', {})
+    # if args.mode in ['all', 'eval', 'viz']:
+    #     summarizer_cfg = cfg.get('summarizer', {})
 
-        # For subjective summarizer
-        if summarizer_cfg.get('function', None):
-            main_summarizer_cfg = copy.deepcopy(summarizer_cfg)
-            grouped_datasets = {}
-            for dataset in cfg.datasets:
-                prefix = dataset['abbr'].split('_')[0]
-                if prefix not in grouped_datasets:
-                    grouped_datasets[prefix] = []
-                grouped_datasets[prefix].append(dataset)
-            all_grouped_lists = []
-            for prefix in grouped_datasets:
-                all_grouped_lists.append(grouped_datasets[prefix])
-            dataset_score_container = []
-            for dataset in all_grouped_lists:
-                temp_cfg = copy.deepcopy(cfg)
-                temp_cfg.datasets = dataset
-                summarizer_cfg = dict(type=dataset[0]['summarizer']['type'], config=temp_cfg)
-                summarizer = build_from_cfg(summarizer_cfg)
-                dataset_score = summarizer.summarize(time_str=cfg_time_str)
-                if dataset_score:
-                    dataset_score_container.append(dataset_score)
-            main_summarizer_cfg['config'] = cfg
-            main_summarizer = build_from_cfg(main_summarizer_cfg)
-            main_summarizer.summarize(time_str=cfg_time_str, subjective_scores=dataset_score_container)
-        else:
-            if not summarizer_cfg or summarizer_cfg.get('type', None) is None:
-                summarizer_cfg['type'] = DefaultSummarizer
-            summarizer_cfg['config'] = cfg
-            summarizer = build_from_cfg(summarizer_cfg)
-            summarizer.summarize(time_str=cfg_time_str)
+    #     # For subjective summarizer
+    #     if summarizer_cfg.get('function', None):
+    #         main_summarizer_cfg = copy.deepcopy(summarizer_cfg)
+    #         grouped_datasets = {}
+    #         for dataset in cfg.datasets:
+    #             prefix = dataset['abbr'].split('_')[0]
+    #             if prefix not in grouped_datasets:
+    #                 grouped_datasets[prefix] = []
+    #             grouped_datasets[prefix].append(dataset)
+    #         all_grouped_lists = []
+    #         for prefix in grouped_datasets:
+    #             all_grouped_lists.append(grouped_datasets[prefix])
+    #         dataset_score_container = []
+    #         for dataset in all_grouped_lists:
+    #             temp_cfg = copy.deepcopy(cfg)
+    #             temp_cfg.datasets = dataset
+    #             summarizer_cfg = dict(type=dataset[0]['summarizer']['type'], config=temp_cfg)
+    #             summarizer = build_from_cfg(summarizer_cfg)
+    #             dataset_score = summarizer.summarize(time_str=cfg_time_str)
+    #             if dataset_score:
+    #                 dataset_score_container.append(dataset_score)
+    #         main_summarizer_cfg['config'] = cfg
+    #         main_summarizer = build_from_cfg(main_summarizer_cfg)
+    #         main_summarizer.summarize(time_str=cfg_time_str, subjective_scores=dataset_score_container)
+    #     else:
+    #         if not summarizer_cfg or summarizer_cfg.get('type', None) is None:
+    #             summarizer_cfg['type'] = DefaultSummarizer
+    #         summarizer_cfg['config'] = cfg
+    #         summarizer = build_from_cfg(summarizer_cfg)
+    #         summarizer.summarize(time_str=cfg_time_str)
 
 
 

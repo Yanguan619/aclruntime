@@ -6,14 +6,8 @@ from typing import List, Tuple, Union
 import tabulate
 from mmengine.config import Config
 
-from ais_bench.benchmark.datasets.custom import make_custom_dataset_config
-from ais_bench.benchmark.models import (VLLM, HuggingFace, HuggingFaceBaseModel,
-                                HuggingFaceCausalLM, HuggingFaceChatGLM3,
-                                HuggingFacewithChatTemplate,
-                                TurboMindModelwithChatTemplate,
-                                VLLMwithChatTemplate)
 from ais_bench.benchmark.partitioners import NaivePartitioner, NumWorkerPartitioner
-from ais_bench.benchmark.runners import DLCRunner, LocalRunner, SlurmRunner
+from ais_bench.benchmark.runners import LocalAPIRunner
 from ais_bench.benchmark.tasks import OpenICLEvalTask, OpenICLInferTask
 from ais_bench.benchmark.utils import get_logger, match_files
 
@@ -69,19 +63,6 @@ def match_cfg_file(workdir: Union[str, List[str]],
 
         raise ValueError(err_msg)
     return files
-
-
-def try_fill_in_custom_cfgs(config):
-    for i, dataset in enumerate(config['datasets']):
-        if 'type' not in dataset:
-            config['datasets'][i] = make_custom_dataset_config(dataset)
-    if 'model_dataset_combinations' not in config:
-        return config
-    for mdc in config['model_dataset_combinations']:
-        for i, dataset in enumerate(mdc['datasets']):
-            if 'type' not in dataset:
-                mdc['datasets'][i] = make_custom_dataset_config(dataset)
-    return config
 
 
 def get_config_from_arg(args) -> Config:
@@ -196,19 +177,8 @@ def fill_infer_cfg(cfg, args):
             task=dict(type=get_config_type(OpenICLInferTask)),
             lark_bot_url=cfg['lark_bot_url'],
         )), )
-    if args.slurm:
-        new_cfg['infer']['runner']['type'] = get_config_type(SlurmRunner)
-        new_cfg['infer']['runner']['partition'] = args.partition
-        new_cfg['infer']['runner']['quotatype'] = args.quotatype
-        new_cfg['infer']['runner']['qos'] = args.qos
-        new_cfg['infer']['runner']['retry'] = args.retry
-    elif args.dlc:
-        new_cfg['infer']['runner']['type'] = get_config_type(DLCRunner)
-        new_cfg['infer']['runner']['aliyun_cfg'] = Config.fromfile(
-            args.aliyun_cfg)
-        new_cfg['infer']['runner']['retry'] = args.retry
-    else:
-        new_cfg['infer']['runner']['type'] = get_config_type(LocalRunner)
-        new_cfg['infer']['runner'][
-            'max_workers_per_gpu'] = args.max_workers_per_gpu
+
+    new_cfg['infer']['runner']['type'] = get_config_type(LocalAPIRunner)
+    new_cfg['infer']['runner'][
+        'max_workers_per_gpu'] = args.max_workers_per_gpu
     cfg.merge_from_dict(new_cfg)

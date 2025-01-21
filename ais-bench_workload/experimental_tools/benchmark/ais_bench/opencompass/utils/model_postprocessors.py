@@ -4,7 +4,7 @@ from typing import Union
 
 from tqdm import tqdm
 
-from opencompass.registry import TEXT_POSTPROCESSORS
+from ais_bench.benchmark.registry import TEXT_POSTPROCESSORS
 
 from .postprocessors.naive import NaiveExtractor, format_input_naive
 from .postprocessors.xfinder.extractor import Extractor

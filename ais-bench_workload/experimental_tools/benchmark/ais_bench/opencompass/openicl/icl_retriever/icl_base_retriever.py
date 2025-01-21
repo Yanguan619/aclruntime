@@ -4,8 +4,8 @@ from typing import Dict, List, Optional
 
 from mmengine.dist import is_main_process
 
-from opencompass.openicl.icl_prompt_template import PromptTemplate
-from opencompass.utils.prompt import PromptList
+from ais_bench.benchmark.openicl.icl_prompt_template import PromptTemplate
+from ais_bench.benchmark.utils.prompt import PromptList
 
 
 class BaseRetriever:

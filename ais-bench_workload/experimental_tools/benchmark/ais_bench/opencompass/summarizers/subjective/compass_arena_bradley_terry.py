@@ -19,13 +19,13 @@ from scipy.optimize import minimize
 from scipy.special import expit
 from tqdm import tqdm
 
-from opencompass.summarizers import DefaultSubjectiveSummarizer
-from opencompass.summarizers.default_subjective import \
+from ais_bench.benchmark.summarizers import DefaultSubjectiveSummarizer
+from ais_bench.benchmark.summarizers.default_subjective import \
     model_abbr_from_cfg_used_in_summarizer
-from opencompass.utils import (LarkReporter, dataset_abbr_from_cfg,
+from ais_bench.benchmark.utils import (LarkReporter, dataset_abbr_from_cfg,
                                get_infer_output_path, get_logger,
                                model_abbr_from_cfg)
-from opencompass.utils.prompt import get_prompt_hash
+from ais_bench.benchmark.utils.prompt import get_prompt_hash
 
 STYLE_CONTROL_VARIABLES_V1 = [
     'sum_assistant_tokens',

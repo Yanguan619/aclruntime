@@ -7,8 +7,8 @@ from typing import List, Optional
 import torch.nn.functional as F
 from tqdm import trange
 
-from opencompass.models import BaseModel
-from opencompass.registry import ICL_INFERENCERS
+from ais_bench.benchmark.models import BaseModel
+from ais_bench.benchmark.registry import ICL_INFERENCERS
 
 from ..icl_prompt_template import PromptTemplate
 from ..icl_retriever import BaseRetriever

@@ -5,9 +5,9 @@ from os import environ
 
 from datasets import Dataset, DatasetDict
 
-from opencompass.openicl import BaseEvaluator
-from opencompass.registry import LOAD_DATASET, TEXT_POSTPROCESSORS
-from opencompass.utils import get_data_path
+from ais_bench.benchmark.openicl import BaseEvaluator
+from ais_bench.benchmark.registry import LOAD_DATASET, TEXT_POSTPROCESSORS
+from ais_bench.benchmark.utils import get_data_path
 
 from .base import BaseDataset
 

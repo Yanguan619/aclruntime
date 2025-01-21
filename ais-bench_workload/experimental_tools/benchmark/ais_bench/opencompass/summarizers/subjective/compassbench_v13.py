@@ -13,8 +13,8 @@ import pandas as pd
 from mmengine import ConfigDict
 from tabulate import tabulate
 
-from opencompass.partitioners.sub_naive import remove_duplicate_pairs
-from opencompass.utils import dataset_abbr_from_cfg, model_abbr_from_cfg
+from ais_bench.benchmark.partitioners.sub_naive import remove_duplicate_pairs
+from ais_bench.benchmark.utils import dataset_abbr_from_cfg, model_abbr_from_cfg
 
 from .compass_arena import (check_position_bias,
                             model_abbr_from_cfg_used_in_summarizer)

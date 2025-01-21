@@ -14,7 +14,7 @@ try:
 except ImportError:
     from_csv = None
 
-from opencompass.utils import model_abbr_from_cfg
+from ais_bench.benchmark.utils import model_abbr_from_cfg
 
 from .alignmentbench import AlignmentBenchSummarizer, post_process_alignbench
 from .subjective_post_process import post_process_autoj, post_process_judgelm

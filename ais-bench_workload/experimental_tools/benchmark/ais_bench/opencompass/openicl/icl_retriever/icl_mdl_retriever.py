@@ -7,10 +7,10 @@ import torch
 import tqdm
 from transformers import AutoModelForCausalLM
 
-from opencompass.openicl.icl_prompt_template import PromptTemplate
-from opencompass.openicl.icl_retriever.icl_topk_retriever import TopkRetriever
-from opencompass.openicl.utils.logging import get_logger
-from opencompass.registry import ICL_PROMPT_TEMPLATES, ICL_RETRIEVERS
+from ais_bench.benchmark.openicl.icl_prompt_template import PromptTemplate
+from ais_bench.benchmark.openicl.icl_retriever.icl_topk_retriever import TopkRetriever
+from ais_bench.benchmark.openicl.utils.logging import get_logger
+from ais_bench.benchmark.registry import ICL_PROMPT_TEMPLATES, ICL_RETRIEVERS
 
 logger = get_logger(__name__)
 

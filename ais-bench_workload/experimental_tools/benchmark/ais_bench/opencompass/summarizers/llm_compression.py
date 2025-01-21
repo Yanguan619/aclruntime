@@ -7,8 +7,8 @@ import mmengine
 import pandas as pd
 from mmengine import ConfigDict
 
-from opencompass.utils import dataset_abbr_from_cfg
-from opencompass.utils.prompt import get_prompt_hash
+from ais_bench.benchmark.utils import dataset_abbr_from_cfg
+from ais_bench.benchmark.utils.prompt import get_prompt_hash
 
 from .default import DefaultSummarizer
 

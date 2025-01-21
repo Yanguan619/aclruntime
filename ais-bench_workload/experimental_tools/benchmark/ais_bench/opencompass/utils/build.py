@@ -2,7 +2,7 @@ import copy
 
 from mmengine.config import ConfigDict
 
-from opencompass.registry import LOAD_DATASET, MODELS
+from ais_bench.benchmark.registry import LOAD_DATASET, MODELS
 
 
 def build_dataset_from_cfg(dataset_cfg: ConfigDict):

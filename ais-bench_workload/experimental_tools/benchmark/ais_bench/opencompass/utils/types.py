@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Union
 from datasets import Dataset, DatasetDict
 from mmengine.config import Config
 
-from opencompass.registry import TASKS
+from ais_bench.benchmark.registry import TASKS
 
 
 def get_type_from_cfg(cfg: Union[Config, Dict]) -> Any:

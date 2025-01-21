@@ -5,8 +5,8 @@ from typing import Optional
 import numpy as np
 from tqdm import trange
 
-from opencompass.openicl.icl_retriever import BaseRetriever
-from opencompass.openicl.utils.logging import get_logger
+from ais_bench.benchmark.openicl.icl_retriever import BaseRetriever
+from ais_bench.benchmark.openicl.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

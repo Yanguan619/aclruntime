@@ -98,7 +98,7 @@ def parse_requirements(fname='requirements.txt', with_version=True):
 
 
 def get_version():
-    version_file = 'ais_bench/opencompass/__init__.py'
+    version_file = 'ais_bench/benchmark/__init__.py'
     with open(version_file, 'r', encoding='utf-8') as f:
         exec(compile(f.read(), version_file, 'exec'))
     return locals()['__version__']
@@ -106,11 +106,11 @@ def get_version():
 
 def do_setup():
     setup(
-        name='opencompass',
+        name='ais_bench_benchmark',
         author='OpenCompass Contributors',
         version=get_version(),
         description='A comprehensive toolkit for large model evaluation',
-        url='https://github.com/open-compass/opencompass',
+        url='https://gitee.com/ascend/tools/',
         long_description=readme(),
         long_description_content_type='text/markdown',
         maintainer='OpenCompass Authors',
@@ -154,7 +154,7 @@ def do_setup():
         ],
         entry_points={
             'console_scripts': [
-                'opencompass = ais_bench.opencompass.cli.main:main',
+                'ais_bench = ais_bench.benchmark.cli.main:main',
             ],
         },
     )

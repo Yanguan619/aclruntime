@@ -4,13 +4,13 @@ from typing import Dict, List, Optional
 import mmengine
 from mmengine.config import ConfigDict
 
-from opencompass.openicl.icl_evaluator import BaseEvaluator
-from opencompass.openicl.icl_inferencer import GenInferencer
-from opencompass.openicl.icl_retriever import ZeroRetriever
-from opencompass.registry import (DICT_POSTPROCESSORS, ICL_PROMPT_TEMPLATES,
+from ais_bench.benchmark.openicl.icl_evaluator import BaseEvaluator
+from ais_bench.benchmark.openicl.icl_inferencer import GenInferencer
+from ais_bench.benchmark.openicl.icl_retriever import ZeroRetriever
+from ais_bench.benchmark.registry import (DICT_POSTPROCESSORS, ICL_PROMPT_TEMPLATES,
                                   TEXT_POSTPROCESSORS)
-from opencompass.utils import build_dataset_from_cfg, build_model_from_cfg
-from opencompass.utils.logging import get_logger
+from ais_bench.benchmark.utils import build_dataset_from_cfg, build_model_from_cfg
+from ais_bench.benchmark.utils.logging import get_logger
 
 
 class GenericLLMEvaluator(BaseEvaluator):
@@ -103,7 +103,7 @@ class GenericLLMEvaluator(BaseEvaluator):
                     'reference', references)
         else:
             # build a default dataset just for comparison
-            from opencompass.datasets.lmeval import LMEvalDataset
+            from ais_bench.benchmark.datasets.lmeval import LMEvalDataset
 
             input_columns = list(prediction_dict.keys())
             if references:

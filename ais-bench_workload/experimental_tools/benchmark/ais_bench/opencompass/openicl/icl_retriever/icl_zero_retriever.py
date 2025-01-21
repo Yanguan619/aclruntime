@@ -2,9 +2,9 @@
 
 from typing import List, Optional
 
-from opencompass.openicl.icl_retriever import BaseRetriever
-from opencompass.registry import ICL_RETRIEVERS
-from opencompass.utils.logging import get_logger
+from ais_bench.benchmark.openicl.icl_retriever import BaseRetriever
+from ais_bench.benchmark.registry import ICL_RETRIEVERS
+from ais_bench.benchmark.utils.logging import get_logger
 
 
 @ICL_RETRIEVERS.register_module()

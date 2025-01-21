@@ -7,11 +7,11 @@ import mmengine
 from mmengine import is_list_of
 from tqdm import tqdm
 
-from opencompass.models import APITemplateParser as _APITemplateParser
-from opencompass.models import BaseModel
-from opencompass.models import LMTemplateParser as _LMTemplateParser
-from opencompass.registry import ICL_INFERENCERS
-from opencompass.utils.prompt import PromptList
+from ais_bench.benchmark.models import APITemplateParser as _APITemplateParser
+from ais_bench.benchmark.models import BaseModel
+from ais_bench.benchmark.models import LMTemplateParser as _LMTemplateParser
+from ais_bench.benchmark.registry import ICL_INFERENCERS
+from ais_bench.benchmark.utils.prompt import PromptList
 
 from ..icl_prompt_template import PromptTemplate
 from ..icl_retriever import BaseRetriever

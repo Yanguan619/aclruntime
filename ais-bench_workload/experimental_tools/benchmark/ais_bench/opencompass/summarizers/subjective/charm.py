@@ -13,7 +13,7 @@ import pandas as pd
 from mmengine import ConfigDict
 from prettytable import from_csv
 
-from opencompass.utils import (build_dataset_from_cfg, dataset_abbr_from_cfg,
+from ais_bench.benchmark.utils import (build_dataset_from_cfg, dataset_abbr_from_cfg,
                                model_abbr_from_cfg)
 
 from .utils import get_outdir

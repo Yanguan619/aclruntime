@@ -3,8 +3,8 @@ import os.path as osp
 import types
 from typing import List
 
-from opencompass.models.lagent import LagentAgent
-from opencompass.registry import ICL_INFERENCERS
+from ais_bench.benchmark.models.lagent import LagentAgent
+from ais_bench.benchmark.registry import ICL_INFERENCERS
 
 from ..utils.logging import get_logger
 from .icl_base_inferencer import dump_results_dict

@@ -7,7 +7,7 @@ from typing import Any, Optional
 from lagent.actions.base_action import BaseAction
 from lagent.schema import ActionReturn, ActionStatusCode
 
-from opencompass.datasets.mbpp import TimeOutException, swallow_io, time_limit
+from ais_bench.benchmark.datasets.mbpp import TimeOutException, swallow_io, time_limit
 
 
 class GenericRuntime:

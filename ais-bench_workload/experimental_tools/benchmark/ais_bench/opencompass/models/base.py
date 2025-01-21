@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import torch
 from mmengine import dist
 
-from opencompass.utils.prompt import PromptList
+from ais_bench.benchmark.utils.prompt import PromptList
 
 PromptType = Union[PromptList, str]
 
@@ -239,7 +239,7 @@ class BaseModel:
             tokens = self.encode(inputs)
             length = self.get_token_len(inputs)
             if length > 2048:
-                from opencompass.utils import get_logger
+                from ais_bench.benchmark.utils import get_logger
                 get_logger().info(f'Large tokens nums: {length}')
             size = torch.tensor([tokens.shape], dtype=torch.long)
         else:

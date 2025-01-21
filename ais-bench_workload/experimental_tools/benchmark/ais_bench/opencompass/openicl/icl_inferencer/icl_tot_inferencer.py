@@ -10,8 +10,8 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-from opencompass.models.base import BaseModel
-from opencompass.registry import ICL_INFERENCERS, TOT_WRAPPER
+from ais_bench.benchmark.models.base import BaseModel
+from ais_bench.benchmark.registry import ICL_INFERENCERS, TOT_WRAPPER
 
 from ..icl_prompt_template import PromptTemplate
 from ..icl_retriever import BaseRetriever
@@ -25,9 +25,6 @@ logger = get_logger(__name__)
 class ToTInferencer(GenInferencer):
     """Tree-of-Thought Inferencer class to evaluate by tree style reasoning
     paths.
-    Doc: https://opencompass.readthedocs.io/en/latest/prompt/
-         chain_of_thought.html
-    Official tot paper: https://arxiv.org/pdf/2305.10601.pdf
 
 
     Attributes:

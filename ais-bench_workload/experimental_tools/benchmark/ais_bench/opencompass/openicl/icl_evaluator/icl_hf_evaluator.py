@@ -6,7 +6,7 @@ import evaluate
 import numpy as np
 from datasets import Dataset
 
-from opencompass.registry import ICL_EVALUATORS
+from ais_bench.benchmark.registry import ICL_EVALUATORS
 
 from .icl_base_evaluator import BaseEvaluator
 
@@ -74,7 +74,7 @@ class HuggingfaceEvaluator(BaseEvaluator):
                 f'length. len(predictions): {len(predictions)}, '
                 f'len(references): {len(references)}'
             }
-        # use codes pre-downloaded to opencompass repo, avoid downloading
+        # use codes pre-downloaded to repo, avoid downloading
         local_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                   'hf_metrics', self.metric + '.py')
         if os.path.exists(local_path):

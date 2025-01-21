@@ -2,8 +2,8 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-from opencompass.models.base import BaseModel
-from opencompass.utils import get_logger
+from ais_bench.benchmark.models.base import BaseModel
+from ais_bench.benchmark.utils import get_logger
 
 try:
     from vllm import LLM, SamplingParams

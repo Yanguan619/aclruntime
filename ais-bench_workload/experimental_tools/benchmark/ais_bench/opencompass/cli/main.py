@@ -9,11 +9,11 @@ from datetime import datetime
 
 from mmengine.config import Config, DictAction
 
-from opencompass.registry import PARTITIONERS, RUNNERS, build_from_cfg
-from opencompass.runners import SlurmRunner
-from opencompass.summarizers import DefaultSummarizer
-from opencompass.utils import LarkReporter, get_logger
-from opencompass.utils.run import (fill_eval_cfg, fill_infer_cfg,
+from ais_bench.benchmark.registry import PARTITIONERS, RUNNERS, build_from_cfg
+from ais_bench.benchmark.runners import SlurmRunner
+from ais_bench.benchmark.summarizers import DefaultSummarizer
+from ais_bench.benchmark.utils import LarkReporter, get_logger
+from ais_bench.benchmark.utils.run import (fill_eval_cfg, fill_infer_cfg,
                                    get_config_from_arg)
 
 

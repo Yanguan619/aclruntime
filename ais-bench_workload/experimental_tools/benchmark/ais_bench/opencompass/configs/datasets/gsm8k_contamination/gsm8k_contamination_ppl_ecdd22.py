@@ -1,8 +1,8 @@
-from opencompass.openicl.icl_prompt_template import PromptTemplate
-from opencompass.openicl.icl_retriever import ZeroRetriever
-from opencompass.openicl.icl_inferencer import PPLOnlyInferencer
-from opencompass.openicl.icl_evaluator import AveragePPLEvaluator
-from opencompass.datasets import GSM8KDataset, GSM8KReferenceSkywork
+from ais_bench.benchmark.openicl.icl_prompt_template import PromptTemplate
+from ais_bench.benchmark.openicl.icl_retriever import ZeroRetriever
+from ais_bench.benchmark.openicl.icl_inferencer import PPLOnlyInferencer
+from ais_bench.benchmark.openicl.icl_evaluator import AveragePPLEvaluator
+from ais_bench.benchmark.datasets import GSM8KDataset, GSM8KReferenceSkywork
 
 gsm8k_datasets = []
 

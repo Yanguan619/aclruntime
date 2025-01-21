@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Union
 import numpy as np
 from scipy.stats import hypergeom
 
-from opencompass.registry import ICL_EVALUATORS
+from ais_bench.benchmark.registry import ICL_EVALUATORS
 
 from .icl_base_evaluator import BaseEvaluator
 
@@ -85,7 +85,6 @@ class GPassKEvaluator(BaseEvaluator):
 
     @property
     def output_dir(self):
-        # please see opencompass/opencompass/tasks/openicl_eval.py Line 197-200
         return self._out_dir
 
     @abstractmethod

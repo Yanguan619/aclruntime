@@ -1,5 +1,5 @@
-from opencompass.registry import ICL_EVALUATORS
-from opencompass.utils.text_postprocessors import general_postprocess
+from ais_bench.benchmark.registry import ICL_EVALUATORS
+from ais_bench.benchmark.utils.text_postprocessors import general_postprocess
 
 from .icl_base_evaluator import BaseEvaluator
 

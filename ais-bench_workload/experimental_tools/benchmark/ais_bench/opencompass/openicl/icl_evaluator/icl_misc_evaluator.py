@@ -1,4 +1,4 @@
-from opencompass.registry import ICL_EVALUATORS
+from ais_bench.benchmark.registry import ICL_EVALUATORS
 
 from .icl_base_evaluator import BaseEvaluator
 

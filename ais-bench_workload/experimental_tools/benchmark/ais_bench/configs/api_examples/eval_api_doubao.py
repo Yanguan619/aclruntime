@@ -1,13 +1,13 @@
 from mmengine.config import read_base
-from opencompass.models import Doubao
-from opencompass.partitioners import NaivePartitioner
-from opencompass.runners.local_api import LocalAPIRunner
-from opencompass.tasks import OpenICLInferTask
+from ais_bench.benchmark.models import Doubao
+from ais_bench.benchmark.partitioners import NaivePartitioner
+from ais_bench.benchmark.runners.local_api import LocalAPIRunner
+from ais_bench.benchmark.tasks import OpenICLInferTask
 
 with read_base():
-    # from opencompass.configs.datasets.collections.chat_medium import datasets
-    from opencompass.configs.summarizers.medium import summarizer
-    from opencompass.configs.datasets.ceval.ceval_gen import ceval_datasets
+    # from ais_bench.benchmark.configs.datasets.collections.chat_medium import datasets
+    from ais_bench.benchmark.configs.summarizers.medium import summarizer
+    from ais_bench.benchmark.configs.datasets.ceval.ceval_gen import ceval_datasets
 
 datasets = [
     *ceval_datasets,

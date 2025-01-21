@@ -6,8 +6,8 @@ from typing import Dict, List, Optional, Tuple
 
 from mmengine.config import ConfigDict
 
-from opencompass.registry import PARTITIONERS
-from opencompass.utils import (deal_with_judge_model_abbr,
+from ais_bench.benchmark.registry import PARTITIONERS
+from ais_bench.benchmark.utils import (deal_with_judge_model_abbr,
                                get_infer_output_path, model_abbr_from_cfg)
 
 from .naive import NaivePartitioner

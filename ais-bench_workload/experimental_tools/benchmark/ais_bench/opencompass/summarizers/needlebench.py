@@ -19,13 +19,13 @@ from matplotlib.colors import LinearSegmentedColormap
 from mmengine import ConfigDict
 from tqdm import tqdm
 
-from opencompass.summarizers.default import (
+from ais_bench.benchmark.summarizers.default import (
     METRIC_BLACKLIST, METRIC_WHITELIST, DefaultSummarizer,
     model_abbr_from_cfg_used_in_summarizer)
-from opencompass.utils import (LarkReporter, dataset_abbr_from_cfg,
+from ais_bench.benchmark.utils import (LarkReporter, dataset_abbr_from_cfg,
                                get_infer_output_path, get_logger,
                                model_abbr_from_cfg)
-from opencompass.utils.prompt import get_prompt_hash
+from ais_bench.benchmark.utils.prompt import get_prompt_hash
 
 model_name_mapping = {
     'llama-2-7b-chat-hf': 'LLaMA-2-7B',

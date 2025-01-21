@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 
 from mmengine.config import ConfigDict
 
-from opencompass.utils import (dataset_abbr_from_cfg, get_logger,
+from ais_bench.benchmark.utils import (dataset_abbr_from_cfg, get_logger,
                                model_abbr_from_cfg, task_abbr_from_cfg)
 
 

@@ -9,8 +9,8 @@ from queue import Queue
 from time import sleep
 from typing import Dict, List, Optional, Tuple, Union
 
-from opencompass.utils import get_logger
-from opencompass.utils.prompt import PromptList
+from ais_bench.benchmark.utils import get_logger
+from ais_bench.benchmark.utils.prompt import PromptList
 
 from .base import BaseModel
 

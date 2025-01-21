@@ -6,8 +6,8 @@ from typing import Dict, List, Optional
 import mmengine
 from mmengine.config import Config, ConfigDict
 
-from opencompass.registry import PARTITIONERS
-from opencompass.utils import (build_dataset_from_cfg, dataset_abbr_from_cfg,
+from ais_bench.benchmark.registry import PARTITIONERS
+from ais_bench.benchmark.utils import (build_dataset_from_cfg, dataset_abbr_from_cfg,
                                get_infer_output_path)
 
 from .base import BasePartitioner

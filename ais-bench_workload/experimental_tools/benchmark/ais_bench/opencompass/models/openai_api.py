@@ -12,8 +12,8 @@ import jieba
 import requests
 from tqdm import tqdm
 
-from opencompass.registry import MODELS
-from opencompass.utils.prompt import PromptList
+from ais_bench.benchmark.registry import MODELS
+from ais_bench.benchmark.utils.prompt import PromptList
 
 from .base_api import BaseAPIModel
 

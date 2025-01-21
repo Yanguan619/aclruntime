@@ -4,7 +4,7 @@ from typing import Optional
 import pandas as pd
 from mmengine.evaluator import BaseMetric
 
-from opencompass.registry import METRICS
+from ais_bench.benchmark.registry import METRICS
 
 
 @METRICS.register_module()

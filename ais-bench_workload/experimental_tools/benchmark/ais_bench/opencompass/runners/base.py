@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Tuple
 
 from mmengine.config import Config, ConfigDict
 
-from opencompass.utils import LarkReporter, get_logger
+from ais_bench.benchmark.utils import LarkReporter, get_logger
 
 
 class BaseRunner:

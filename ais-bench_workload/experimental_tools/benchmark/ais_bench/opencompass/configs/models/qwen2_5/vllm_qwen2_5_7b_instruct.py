@@ -1,4 +1,4 @@
-from opencompass.models import VLLMwithChatTemplate
+from ais_bench.benchmark.models import VLLMwithChatTemplate
 
 models = [
     dict(

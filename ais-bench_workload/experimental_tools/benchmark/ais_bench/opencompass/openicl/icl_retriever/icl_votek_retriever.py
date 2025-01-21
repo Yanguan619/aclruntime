@@ -9,7 +9,7 @@ from typing import Optional
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-from opencompass.openicl.icl_retriever.icl_topk_retriever import TopkRetriever
+from ais_bench.benchmark.openicl.icl_retriever.icl_topk_retriever import TopkRetriever
 
 
 class VotekRetriever(TopkRetriever):

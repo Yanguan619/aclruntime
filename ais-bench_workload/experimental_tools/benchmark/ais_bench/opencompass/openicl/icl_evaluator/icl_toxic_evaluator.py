@@ -7,8 +7,8 @@ from typing import List
 import numpy as np
 from mmengine import ProgressBar
 
-from opencompass.openicl.icl_evaluator import BaseEvaluator
-from opencompass.registry import ICL_EVALUATORS
+from ais_bench.benchmark.openicl.icl_evaluator import BaseEvaluator
+from ais_bench.benchmark.registry import ICL_EVALUATORS
 
 try:
     from googleapiclient import discovery

@@ -14,7 +14,7 @@ try:
 except ImportError:
     from_csv = None
 
-from opencompass.utils import model_abbr_from_cfg
+from ais_bench.benchmark.utils import model_abbr_from_cfg
 
 from .utils import get_judgeanswer_and_reference, get_outdir
 

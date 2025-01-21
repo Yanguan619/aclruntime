@@ -1,10 +1,10 @@
-from opencompass.openicl.icl_prompt_template import PromptTemplate
-from opencompass.openicl.icl_retriever import ZeroRetriever
-from opencompass.openicl.icl_inferencer import GenInferencer
-from opencompass.datasets import GSM8KDataset, gsm8k_dataset_postprocess
-from opencompass.datasets import MATHEvaluator, math_postprocess_v2
-from opencompass.utils.model_postprocessors import navie_model_postprocess
-from opencompass.utils.postprocessors.naive import MATH_NAVIE_PROMPT_TEMPLATE
+from ais_bench.benchmark.openicl.icl_prompt_template import PromptTemplate
+from ais_bench.benchmark.openicl.icl_retriever import ZeroRetriever
+from ais_bench.benchmark.openicl.icl_inferencer import GenInferencer
+from ais_bench.benchmark.datasets import GSM8KDataset, gsm8k_dataset_postprocess
+from ais_bench.benchmark.datasets import MATHEvaluator, math_postprocess_v2
+from ais_bench.benchmark.utils.model_postprocessors import navie_model_postprocess
+from ais_bench.benchmark.utils.postprocessors.naive import MATH_NAVIE_PROMPT_TEMPLATE
 
 gsm8k_reader_cfg = dict(input_columns=['question'], output_column='answer')
 
@@ -44,7 +44,7 @@ gsm8k_datasets = [
     dict(
         abbr='gsm8k',
         type=GSM8KDataset,
-        path='opencompass/gsm8k',
+        path='ais_bench/benchmark/gsm8k',
         reader_cfg=gsm8k_reader_cfg,
         infer_cfg=gsm8k_infer_cfg,
         eval_cfg=gsm8k_eval_cfg,

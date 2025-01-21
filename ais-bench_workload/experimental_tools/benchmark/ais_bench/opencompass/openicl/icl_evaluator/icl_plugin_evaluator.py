@@ -21,7 +21,7 @@ class TEvalEvaluator:
 
     def __init__(self, subset) -> None:
 
-        from opencompass.datasets.teval.evaluators import (
+        from ais_bench.benchmark.datasets.teval.evaluators import (
             InstructEvaluator, PlanningEvaluator,
             ReasonRetrieveUnderstandEvaluator, ReviewEvaluator)
 

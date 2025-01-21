@@ -1,7 +1,7 @@
 import re
 from typing import Callable, Optional, Union
 
-from opencompass.registry import TEXT_POSTPROCESSORS
+from ais_bench.benchmark.registry import TEXT_POSTPROCESSORS
 
 
 @TEXT_POSTPROCESSORS.register_module('general')

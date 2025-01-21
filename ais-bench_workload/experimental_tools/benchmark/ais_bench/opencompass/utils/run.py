@@ -6,16 +6,16 @@ from typing import List, Tuple, Union
 import tabulate
 from mmengine.config import Config
 
-from opencompass.datasets.custom import make_custom_dataset_config
-from opencompass.models import (VLLM, HuggingFace, HuggingFaceBaseModel,
+from ais_bench.benchmark.datasets.custom import make_custom_dataset_config
+from ais_bench.benchmark.models import (VLLM, HuggingFace, HuggingFaceBaseModel,
                                 HuggingFaceCausalLM, HuggingFaceChatGLM3,
                                 HuggingFacewithChatTemplate,
                                 TurboMindModelwithChatTemplate,
                                 VLLMwithChatTemplate)
-from opencompass.partitioners import NaivePartitioner, NumWorkerPartitioner
-from opencompass.runners import DLCRunner, LocalRunner, SlurmRunner
-from opencompass.tasks import OpenICLEvalTask, OpenICLInferTask
-from opencompass.utils import get_logger, match_files
+from ais_bench.benchmark.partitioners import NaivePartitioner, NumWorkerPartitioner
+from ais_bench.benchmark.runners import DLCRunner, LocalRunner, SlurmRunner
+from ais_bench.benchmark.tasks import OpenICLEvalTask, OpenICLInferTask
+from ais_bench.benchmark.utils import get_logger, match_files
 
 logger = get_logger()
 

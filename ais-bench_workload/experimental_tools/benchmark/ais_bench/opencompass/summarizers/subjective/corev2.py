@@ -15,8 +15,8 @@ try:
 except ImportError:
     from_csv = None
 
-from opencompass.partitioners.sub_naive import remove_duplicate_pairs
-from opencompass.utils import dataset_abbr_from_cfg, model_abbr_from_cfg
+from ais_bench.benchmark.partitioners.sub_naive import remove_duplicate_pairs
+from ais_bench.benchmark.utils import dataset_abbr_from_cfg, model_abbr_from_cfg
 
 
 def match_general_answer(s):

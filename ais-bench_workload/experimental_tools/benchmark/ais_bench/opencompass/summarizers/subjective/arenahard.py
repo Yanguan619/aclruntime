@@ -22,8 +22,8 @@ from sklearn.linear_model import LogisticRegression
 from tabulate import tabulate
 from tqdm import tqdm
 
-from opencompass.partitioners.sub_naive import remove_duplicate_pairs
-from opencompass.utils import dataset_abbr_from_cfg, model_abbr_from_cfg
+from ais_bench.benchmark.partitioners.sub_naive import remove_duplicate_pairs
+from ais_bench.benchmark.utils import dataset_abbr_from_cfg, model_abbr_from_cfg
 
 from .utils import get_outdir
 

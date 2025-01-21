@@ -3,8 +3,8 @@ from typing import Dict, List, Optional
 
 from mmengine.config import Config, ConfigDict
 
-from opencompass.registry import PARTITIONERS
-from opencompass.utils import get_infer_output_path
+from ais_bench.benchmark.registry import PARTITIONERS
+from ais_bench.benchmark.utils import get_infer_output_path
 
 from .base import BasePartitioner
 

@@ -10,9 +10,9 @@ from mmengine import ConfigDict
 from rich import print
 from rich.table import Table
 
-from opencompass.utils import (dataset_abbr_from_cfg, get_infer_output_path,
+from ais_bench.benchmark.utils import (dataset_abbr_from_cfg, get_infer_output_path,
                                get_logger, model_abbr_from_cfg)
-from opencompass.utils.prompt import get_prompt_hash
+from ais_bench.benchmark.utils.prompt import get_prompt_hash
 
 METRIC_WHITELIST = ['score', 'auc_score', 'accuracy', 'humaneval_pass@1', 'rouge1', 'avg_toxicity_score', 'bleurt_diff', 'matthews_correlation', 'truth']
 METRIC_BLACKLIST = ['bp', 'sys_len', 'ref_len']

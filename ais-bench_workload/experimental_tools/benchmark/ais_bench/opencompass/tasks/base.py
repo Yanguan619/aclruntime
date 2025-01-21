@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from mmengine.config import ConfigDict
 
-from opencompass.utils import get_infer_output_path, task_abbr_from_cfg
+from ais_bench.benchmark.utils import get_infer_output_path, task_abbr_from_cfg
 
 
 def extract_role_pred(s: str, begin_str: Optional[str],

@@ -1,7 +1,7 @@
 import torch
 from mmengine.evaluator import BaseMetric
 
-from opencompass.registry import METRICS
+from ais_bench.benchmark.registry import METRICS
 
 EVAL_DIM_MAPPING = {
     1: 'Scene Understanding',

@@ -1,4 +1,4 @@
-from opencompass.registry import DICT_POSTPROCESSORS
+from ais_bench.benchmark.registry import DICT_POSTPROCESSORS
 
 
 @DICT_POSTPROCESSORS.register_module('base')

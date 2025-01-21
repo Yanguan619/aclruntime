@@ -15,35 +15,35 @@ class Registry(OriginalRegistry):
         return super().register_module(name, force, module)
 
 
-PARTITIONERS = Registry('partitioner', locations=['opencompass.partitioners'])
-RUNNERS = Registry('runner', locations=['opencompass.runners'])
-TASKS = Registry('task', locations=['opencompass.tasks'])
-MODELS = Registry('model', locations=['opencompass.models'])
+PARTITIONERS = Registry('partitioner', locations=['ais_bench.benchmark.partitioners'])
+RUNNERS = Registry('runner', locations=['ais_bench.benchmark.runners'])
+TASKS = Registry('task', locations=['ais_bench.benchmark.tasks'])
+MODELS = Registry('model', locations=['ais_bench.benchmark.models'])
 # TODO: LOAD_DATASET -> DATASETS
-LOAD_DATASET = Registry('load_dataset', locations=['opencompass.datasets'])
+LOAD_DATASET = Registry('load_dataset', locations=['ais_bench.benchmark.datasets'])
 TEXT_POSTPROCESSORS = Registry(
-    'text_postprocessors', locations=['opencompass.utils.text_postprocessors'])
+    'text_postprocessors', locations=['ais_bench.benchmark.utils.text_postprocessors'])
 DICT_POSTPROCESSORS = Registry(
-    'dict_postprocessors', locations=['opencompass.utils.dict_postprocessors'])
+    'dict_postprocessors', locations=['ais_bench.benchmark.utils.dict_postprocessors'])
 
-EVALUATORS = Registry('evaluators', locations=['opencompass.evaluators'])
+EVALUATORS = Registry('evaluators', locations=['ais_bench.benchmark.evaluators'])
 
 ICL_INFERENCERS = Registry('icl_inferencers',
-                           locations=['opencompass.openicl.icl_inferencer'])
+                           locations=['ais_bench.benchmark.openicl.icl_inferencer'])
 ICL_RETRIEVERS = Registry('icl_retrievers',
-                          locations=['opencompass.openicl.icl_retriever'])
+                          locations=['ais_bench.benchmark.openicl.icl_retriever'])
 ICL_DATASET_READERS = Registry(
     'icl_dataset_readers',
-    locations=['opencompass.openicl.icl_dataset_reader'])
+    locations=['ais_bench.benchmark.openicl.icl_dataset_reader'])
 ICL_PROMPT_TEMPLATES = Registry(
     'icl_prompt_templates',
-    locations=['opencompass.openicl.icl_prompt_template'])
+    locations=['ais_bench.benchmark.openicl.icl_prompt_template'])
 ICL_EVALUATORS = Registry('icl_evaluators',
-                          locations=['opencompass.openicl.icl_evaluator'])
+                          locations=['ais_bench.benchmark.openicl.icl_evaluator'])
 METRICS = Registry('metric',
                    parent=MMENGINE_METRICS,
-                   locations=['opencompass.metrics'])
-TOT_WRAPPER = Registry('tot_wrapper', locations=['opencompass.datasets'])
+                   locations=['ais_bench.benchmark.metrics'])
+TOT_WRAPPER = Registry('tot_wrapper', locations=['ais_bench.benchmark.datasets'])
 
 
 def build_from_cfg(cfg):

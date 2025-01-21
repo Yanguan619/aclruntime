@@ -7,8 +7,8 @@ import mmengine
 import torch
 from tqdm import tqdm
 
-from opencompass.models.base import BaseModel
-from opencompass.registry import ICL_INFERENCERS
+from ais_bench.benchmark.models.base import BaseModel
+from ais_bench.benchmark.registry import ICL_INFERENCERS
 
 from ..icl_prompt_template import PromptTemplate
 from ..icl_retriever import BaseRetriever

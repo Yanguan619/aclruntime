@@ -4,9 +4,9 @@ from typing import Optional
 
 from tqdm import trange
 
-from opencompass.openicl.icl_retriever import BaseRetriever
-from opencompass.openicl.utils.logging import get_logger
-from opencompass.registry import ICL_RETRIEVERS
+from ais_bench.benchmark.openicl.icl_retriever import BaseRetriever
+from ais_bench.benchmark.openicl.utils.logging import get_logger
+from ais_bench.benchmark.registry import ICL_RETRIEVERS
 
 logger = get_logger(__name__)
 

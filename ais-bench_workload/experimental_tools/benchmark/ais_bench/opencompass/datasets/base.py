@@ -3,7 +3,7 @@ from typing import Dict, Optional, Union
 
 from datasets import Dataset, DatasetDict
 
-from opencompass.openicl import DatasetReader
+from ais_bench.benchmark.openicl import DatasetReader
 
 
 class BaseDataset:

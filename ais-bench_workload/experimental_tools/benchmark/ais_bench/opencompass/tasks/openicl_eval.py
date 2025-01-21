@@ -15,10 +15,10 @@ import mmengine
 from mmengine.config import Config, ConfigDict
 from mmengine.utils import mkdir_or_exist
 
-from opencompass.registry import (ICL_EVALUATORS, MODELS, TASKS,
+from ais_bench.benchmark.registry import (ICL_EVALUATORS, MODELS, TASKS,
                                   TEXT_POSTPROCESSORS)
-from opencompass.tasks.base import BaseTask, extract_role_pred
-from opencompass.utils import (build_dataset_from_cfg, dataset_abbr_from_cfg,
+from ais_bench.benchmark.tasks.base import BaseTask, extract_role_pred
+from ais_bench.benchmark.utils import (build_dataset_from_cfg, dataset_abbr_from_cfg,
                                get_infer_output_path, get_logger,
                                task_abbr_from_cfg)
 
@@ -134,7 +134,7 @@ class OpenICLEvalTask(BaseTask):
                     and 'meta_template' in self.model_cfg
                     and not MODELS.get(self.model_cfg['type']).is_api):
                 # Create a prompt template for role config parsing
-                from opencompass.models.base import LMTemplateParser
+                from ais_bench.benchmark.models.base import LMTemplateParser
                 parser = LMTemplateParser(self.model_cfg['meta_template'])
                 role = parser.roles[self.eval_cfg['pred_role']]
                 if sc_size is not None:

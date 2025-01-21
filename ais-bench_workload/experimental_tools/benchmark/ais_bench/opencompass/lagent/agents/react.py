@@ -150,7 +150,7 @@ class CIReAct(ReAct):
         """Reset history and reset action if suit the case."""
         self._session_history = []
         # hard code here
-        from opencompass.lagent.actions.ipython_interpreter import \
+        from ais_bench.benchmark.lagent.actions.ipython_interpreter import \
             IPythonInterpreter
         b = IPythonInterpreter()
         b.reset()

@@ -14,8 +14,8 @@ Take GSM8K as an example, you can add the following lines to the configuration f
 
 ```python
 ...
-from opencompass.utils.model_postprocessors import navie_model_postprocess
-from opencompass.utils.postprocessors.naive import MATH_NAVIE_PROMPT_TEMPLATE
+from ais_bench.benchmark.utils.model_postprocessors import navie_model_postprocess
+from ais_bench.benchmark.utils.postprocessors.naive import MATH_NAVIE_PROMPT_TEMPLATE
 
 ...
 

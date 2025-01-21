@@ -13,10 +13,10 @@ import mmengine
 from mmengine.config import ConfigDict
 from tqdm import tqdm
 
-from opencompass.registry import RUNNERS, TASKS
-from opencompass.tasks import OpenICLInferTask
-from opencompass.tasks.base import BaseTask
-from opencompass.utils import (build_dataset_from_cfg, build_model_from_cfg,
+from ais_bench.benchmark.registry import RUNNERS, TASKS
+from ais_bench.benchmark.tasks import OpenICLInferTask
+from ais_bench.benchmark.tasks.base import BaseTask
+from ais_bench.benchmark.utils import (build_dataset_from_cfg, build_model_from_cfg,
                                get_infer_output_path, get_logger,
                                task_abbr_from_cfg)
 
@@ -68,7 +68,7 @@ def redirect_std_to_file(filename: str):
             h.stream = sys.stdout
     # special treat for icl_gen_inferencer logger
     gen_logger = logging.getLogger(
-        'opencompass.openicl.icl_inferencer.icl_gen_inferencer')
+        'ais_bench.benchmark.openicl.icl_inferencer.icl_gen_inferencer')
     for h in gen_logger.handlers:
         if isinstance(h, logging.StreamHandler):
             h.stream = sys.stdout
@@ -86,7 +86,7 @@ def reset_std():
             h.stream = sys.stdout
     # special treat for icl_gen_inferencer logger
     gen_logger = logging.getLogger(
-        'opencompass.openicl.icl_inferencer.icl_gen_inferencer')
+        'ais_bench.benchmark.openicl.icl_inferencer.icl_gen_inferencer')
     for h in gen_logger.handlers:
         if isinstance(h, logging.StreamHandler):
             h.stream = sys.stdout
@@ -174,7 +174,7 @@ class LocalAPIRunner(BaseRunner):
         self.concurrent_users = concurrent_users
         assert task['type'] in [
             'OpenICLInferTask',
-            'opencompass.tasks.OpenICLInferTask',
+            'ais_bench.benchmark.tasks.OpenICLInferTask',
         ], 'Only supported for api infer task.'
 
     def launch(self, tasks: List[Dict[str, Any]]) -> List[Tuple[str, int]]:

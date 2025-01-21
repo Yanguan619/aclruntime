@@ -6,8 +6,8 @@ from typing import Optional
 import numpy as np
 import tqdm
 
-from opencompass.openicl.icl_retriever.icl_topk_retriever import TopkRetriever
-from opencompass.openicl.utils.logging import get_logger
+from ais_bench.benchmark.openicl.icl_retriever.icl_topk_retriever import TopkRetriever
+from ais_bench.benchmark.openicl.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

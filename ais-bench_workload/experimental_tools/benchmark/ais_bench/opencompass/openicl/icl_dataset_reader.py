@@ -7,9 +7,9 @@ import torch
 from datasets import Dataset, DatasetDict
 from transformers import AutoTokenizer
 
-from opencompass.openicl.icl_prompt_template import PromptTemplate
-from opencompass.registry import ICL_DATASET_READERS
-from opencompass.utils.types import (_check_dataset, _check_str,
+from ais_bench.benchmark.openicl.icl_prompt_template import PromptTemplate
+from ais_bench.benchmark.registry import ICL_DATASET_READERS
+from ais_bench.benchmark.utils.types import (_check_dataset, _check_str,
                                      _check_type_list)
 
 

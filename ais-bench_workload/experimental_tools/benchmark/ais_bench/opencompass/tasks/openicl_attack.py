@@ -7,10 +7,10 @@ from typing import Any
 from mmengine.config import Config, ConfigDict
 from mmengine.utils import mkdir_or_exist
 
-from opencompass.registry import (ICL_INFERENCERS, ICL_PROMPT_TEMPLATES,
+from ais_bench.benchmark.registry import (ICL_INFERENCERS, ICL_PROMPT_TEMPLATES,
                                   ICL_RETRIEVERS, TASKS)
-from opencompass.tasks.base import BaseTask
-from opencompass.utils import (build_dataset_from_cfg, build_model_from_cfg,
+from ais_bench.benchmark.tasks.base import BaseTask
+from ais_bench.benchmark.utils import (build_dataset_from_cfg, build_model_from_cfg,
                                get_infer_output_path, get_logger,
                                task_abbr_from_cfg)
 

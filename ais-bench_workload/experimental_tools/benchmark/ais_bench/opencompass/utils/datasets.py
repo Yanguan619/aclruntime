@@ -4,7 +4,7 @@ from .datasets_info import DATASETS_MAPPING, DATASETS_URL
 from .logging import get_logger
 
 USER_HOME = os.path.expanduser("~")
-DEFAULT_DATA_FOLDER = os.path.join(USER_HOME, '.cache/opencompass/')
+DEFAULT_DATA_FOLDER = os.path.join(USER_HOME, '.cache/ais_bench_benchmark')
 
 
 def get_data_path(dataset_id: str, local_mode: bool = False):

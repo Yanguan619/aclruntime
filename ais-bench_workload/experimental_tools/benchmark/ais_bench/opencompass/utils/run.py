@@ -95,20 +95,6 @@ def get_config_from_arg(args) -> Config:
 
     if args.config:
         config = Config.fromfile(args.config, format_python_code=False)
-        config = try_fill_in_custom_cfgs(config)
-        # set infer accelerator if needed
-        if args.accelerator in ['vllm', 'lmdeploy']:
-            config['models'] = change_accelerator(config['models'], args.accelerator)
-            if config.get('eval', {}).get('partitioner', {}).get('models') is not None:
-                config['eval']['partitioner']['models'] = change_accelerator(config['eval']['partitioner']['models'], args.accelerator)
-            if config.get('eval', {}).get('partitioner', {}).get('base_models') is not None:
-                config['eval']['partitioner']['base_models'] = change_accelerator(config['eval']['partitioner']['base_models'], args.accelerator)
-            if config.get('eval', {}).get('partitioner', {}).get('compare_models') is not None:
-                config['eval']['partitioner']['compare_models'] = change_accelerator(config['eval']['partitioner']['compare_models'], args.accelerator)
-            if config.get('eval', {}).get('partitioner', {}).get('judge_models') is not None:
-                config['eval']['partitioner']['judge_models'] = change_accelerator(config['eval']['partitioner']['judge_models'], args.accelerator)
-            if config.get('judge_models') is not None:
-                config['judge_models'] = change_accelerator(config['judge_models'], args.accelerator)
         return config
 
     # parse dataset args
@@ -193,9 +179,7 @@ def get_config_from_arg(args) -> Config:
                      run_cfg=dict(num_gpus=args.hf_num_gpus))
         logger.debug(f'Using model: {model}')
         models.append(model)
-    # set infer accelerator if needed
-    if args.accelerator in ['vllm', 'lmdeploy']:
-        models = change_accelerator(models, args.accelerator)
+
     # parse summarizer args
     summarizer_arg = args.summarizer if args.summarizer is not None else 'example'
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -227,115 +211,6 @@ def get_config_from_arg(args) -> Config:
     return Config(dict(models=models, datasets=datasets, summarizer=summarizer), format_python_code=False)
 
 
-def change_accelerator(models, accelerator):
-    models = models.copy()
-    logger = get_logger()
-    model_accels = []
-    for model in models:
-        logger.info(f'Transforming {model["abbr"]} to {accelerator}')
-        # change HuggingFace model to VLLM or LMDeploy
-        if model['type'] in [HuggingFace, HuggingFaceCausalLM, HuggingFaceChatGLM3, f'{HuggingFaceBaseModel.__module__}.{HuggingFaceBaseModel.__name__}']:
-            gen_args = dict()
-            if model.get('generation_kwargs') is not None:
-                generation_kwargs = model['generation_kwargs'].copy()
-                gen_args['temperature'] = generation_kwargs.get('temperature', 0.001)
-                gen_args['top_k'] = generation_kwargs.get('top_k', 1)
-                gen_args['top_p'] = generation_kwargs.get('top_p', 0.9)
-                gen_args['stop_token_ids'] = generation_kwargs.get('eos_token_id', None)
-                generation_kwargs['stop_token_ids'] = generation_kwargs.get('eos_token_id', None)
-                generation_kwargs.pop('eos_token_id') if 'eos_token_id' in generation_kwargs else None
-            else:
-                # if generation_kwargs is not provided, set default values
-                generation_kwargs = dict()
-                gen_args['temperature'] = 0.0
-                gen_args['top_k'] = 1
-                gen_args['top_p'] = 0.9
-                gen_args['stop_token_ids'] = None
-
-            if accelerator == 'lmdeploy':
-                logger.info(f'Transforming {model["abbr"]} to {accelerator}')
-                mod = TurboMindModelwithChatTemplate
-                acc_model = dict(
-                    type=f'{mod.__module__}.{mod.__name__}',
-                    abbr=model['abbr'].replace('hf', 'lmdeploy') if '-hf' in model['abbr'] else model['abbr'] + '-lmdeploy',
-                    path=model['path'],
-                    engine_config=dict(session_len=model['max_seq_len'],
-                                       max_batch_size=model['batch_size'],
-                                       tp=model['run_cfg']['num_gpus']),
-                    gen_config=dict(top_k=gen_args['top_k'],
-                                    temperature=gen_args['temperature'],
-                                    top_p=gen_args['top_p'],
-                                    max_new_tokens=model['max_out_len'],
-                                    stop_words=gen_args['stop_token_ids']),
-                    max_out_len=model['max_out_len'],
-                    max_seq_len=model['max_seq_len'],
-                    batch_size=model['batch_size'],
-                    run_cfg=model['run_cfg'],
-                )
-                for item in ['meta_template']:
-                    if model.get(item) is not None:
-                        acc_model[item] = model[item]
-            elif accelerator == 'vllm':
-                logger.info(f'Transforming {model["abbr"]} to {accelerator}')
-
-                acc_model = dict(
-                    type=f'{VLLM.__module__}.{VLLM.__name__}',
-                    abbr=model['abbr'].replace('hf', 'vllm') if '-hf' in model['abbr'] else model['abbr'] + '-vllm',
-                    path=model['path'],
-                    model_kwargs=dict(tensor_parallel_size=model['run_cfg']['num_gpus'], max_model_len=model.get('max_seq_len', None)),
-                    max_out_len=model['max_out_len'],
-                    max_seq_len=model.get('max_seq_len', None),
-                    batch_size=model['batch_size'],
-                    generation_kwargs=generation_kwargs,
-                    run_cfg=model['run_cfg'],
-                )
-                for item in ['meta_template', 'end_str']:
-                    if model.get(item) is not None:
-                        acc_model[item] = model[item]
-            else:
-                raise ValueError(f'Unsupported accelerator {accelerator} for model type {model["type"]}')
-        elif model['type'] in [HuggingFacewithChatTemplate, f'{HuggingFacewithChatTemplate.__module__}.{HuggingFacewithChatTemplate.__name__}']:
-            if accelerator == 'vllm':
-                mod = VLLMwithChatTemplate
-                acc_model = dict(
-                    type=f'{mod.__module__}.{mod.__name__}',
-                    abbr=model['abbr'].replace('hf', 'vllm') if '-hf' in model['abbr'] else model['abbr'] + '-vllm',
-                    path=model['path'],
-                    model_kwargs=dict(tensor_parallel_size=model['run_cfg']['num_gpus'], max_model_len=model.get('max_seq_len', None)),
-                    max_seq_len=model.get('max_seq_len', None),
-                    max_out_len=model['max_out_len'],
-                    batch_size=16,
-                    run_cfg=model['run_cfg'],
-                    stop_words=model.get('stop_words', []),
-                )
-            elif accelerator == 'lmdeploy':
-                mod = TurboMindModelwithChatTemplate
-                acc_model = dict(
-                    type=f'{mod.__module__}.{mod.__name__}',
-                    abbr=model['abbr'].replace('hf', 'lmdeploy') if '-hf' in model['abbr'] else model['abbr'] + '-lmdeploy',
-                    path=model['path'],
-                    engine_config=dict(
-                        max_batch_size=model.get('batch_size', 16),
-                        tp=model['run_cfg']['num_gpus'],
-                        session_len=model.get('max_seq_len', None),
-                        max_new_tokens=model['max_out_len']
-                    ),
-                    gen_config=dict(top_k=1, temperature=1e-6, top_p=0.9),
-                    max_seq_len=model.get('max_seq_len', None),
-                    max_out_len=model['max_out_len'],
-                    batch_size=16,
-                    run_cfg=model['run_cfg'],
-                    stop_words=model.get('stop_words', []),
-                )
-            else:
-                raise ValueError(f'Unsupported accelerator {accelerator} for model type {model["type"]}')
-        else:
-            acc_model = model
-            logger.warning(f'Unsupported model type {model["type"]}, will keep the original model.')
-        model_accels.append(acc_model)
-    return model_accels
-
-
 def get_config_type(obj) -> str:
     return f'{obj.__module__}.{obj.__name__}'
 
@@ -364,32 +239,5 @@ def fill_infer_cfg(cfg, args):
     else:
         new_cfg['infer']['runner']['type'] = get_config_type(LocalRunner)
         new_cfg['infer']['runner'][
-            'max_workers_per_gpu'] = args.max_workers_per_gpu
-    cfg.merge_from_dict(new_cfg)
-
-
-def fill_eval_cfg(cfg, args):
-    new_cfg = dict(
-        eval=dict(partitioner=dict(type=get_config_type(NaivePartitioner)),
-                  runner=dict(
-                      max_num_workers=args.max_num_workers,
-                      debug=args.debug,
-                      task=dict(type=get_config_type(OpenICLEvalTask)),
-                      lark_bot_url=cfg['lark_bot_url'],
-                  )))
-    if args.slurm:
-        new_cfg['eval']['runner']['type'] = get_config_type(SlurmRunner)
-        new_cfg['eval']['runner']['partition'] = args.partition
-        new_cfg['eval']['runner']['quotatype'] = args.quotatype
-        new_cfg['eval']['runner']['qos'] = args.qos
-        new_cfg['eval']['runner']['retry'] = args.retry
-    elif args.dlc:
-        new_cfg['eval']['runner']['type'] = get_config_type(DLCRunner)
-        new_cfg['eval']['runner']['aliyun_cfg'] = Config.fromfile(
-            args.aliyun_cfg)
-        new_cfg['eval']['runner']['retry'] = args.retry
-    else:
-        new_cfg['eval']['runner']['type'] = get_config_type(LocalRunner)
-        new_cfg['eval']['runner'][
             'max_workers_per_gpu'] = args.max_workers_per_gpu
     cfg.merge_from_dict(new_cfg)

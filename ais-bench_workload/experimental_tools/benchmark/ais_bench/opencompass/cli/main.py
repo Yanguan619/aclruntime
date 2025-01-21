@@ -23,19 +23,19 @@ def parse_args():
 
     # add mutually exclusive args `--slurm` `--dlc`, defaults to local runner
     # if "infer" or "eval" not specified
-    launch_method = parser.add_mutually_exclusive_group()
-    launch_method.add_argument('--slurm',
-                               action='store_true',
-                               default=False,
-                               help='Whether to force tasks to run with srun. '
-                               'If True, `--partition(-p)` must be set. '
-                               'Defaults to False')
-    launch_method.add_argument('--dlc',
-                               action='store_true',
-                               default=False,
-                               help='Whether to force tasks to run on dlc. If '
-                               'True, `--aliyun-cfg` must be set. Defaults'
-                               ' to False')
+    # launch_method = parser.add_mutually_exclusive_group()
+    # launch_method.add_argument('--slurm',
+    #                            action='store_true',
+    #                            default=False,
+    #                            help='Whether to force tasks to run with srun. '
+    #                            'If True, `--partition(-p)` must be set. '
+    #                            'Defaults to False')
+    # launch_method.add_argument('--dlc',
+    #                            action='store_true',
+    #                            default=False,
+    #                            help='Whether to force tasks to run on dlc. If '
+    #                            'True, `--aliyun-cfg` must be set. Defaults'
+    #                            ' to False')
     # Add shortcut parameters (models, datasets and summarizer)
     parser.add_argument('--models', nargs='+', help='', default=None)
     parser.add_argument('--datasets', nargs='+', help='', default=None)
@@ -53,12 +53,12 @@ def parse_args():
                         'to run',
                         action='store_true',
                         default=False)
-    parser.add_argument(
-        '-a', '--accelerator',
-        help='Infer accelerator, support vllm and lmdeploy now.',
-        choices=['vllm', 'lmdeploy', None],
-        default=None,
-        type=str)
+    # parser.add_argument(
+    #     '-a', '--accelerator',
+    #     help='Infer accelerator, support vllm and lmdeploy now.',
+    #     choices=['vllm', 'lmdeploy', None],
+    #     default=None,
+    #     type=str)
     parser.add_argument('-m',
                         '--mode',
                         help='Running mode. You can choose "infer" if you '
@@ -104,11 +104,11 @@ def parse_args():
                         'in the config.',
                         type=int,
                         default=1)
-    parser.add_argument('--max-workers-per-gpu',
-                        help='Max task to run in parallel on one GPU. '
-                        'It will only be used in the local runner.',
-                        type=int,
-                        default=1)
+    # parser.add_argument('--max-workers-per-gpu',
+    #                     help='Max task to run in parallel on one GPU. '
+    #                     'It will only be used in the local runner.',
+    #                     type=int,
+    #                     default=1)
     parser.add_argument(
         '--retry',
         help='Number of retries if the job failed when using slurm or dlc. '
@@ -128,75 +128,75 @@ def parse_args():
         action='store_true',
     )
     # set srun args
-    slurm_parser = parser.add_argument_group('slurm_args')
-    parse_slurm_args(slurm_parser)
-    # set dlc args
-    dlc_parser = parser.add_argument_group('dlc_args')
-    parse_dlc_args(dlc_parser)
-    # set hf args
-    hf_parser = parser.add_argument_group('hf_args')
-    parse_hf_args(hf_parser)
-    # set custom dataset args
-    custom_dataset_parser = parser.add_argument_group('custom_dataset_args')
-    parse_custom_dataset_args(custom_dataset_parser)
+    # slurm_parser = parser.add_argument_group('slurm_args')
+    # parse_slurm_args(slurm_parser)
+    # # set dlc args
+    # dlc_parser = parser.add_argument_group('dlc_args')
+    # parse_dlc_args(dlc_parser)
+    # # set hf args
+    # hf_parser = parser.add_argument_group('hf_args')
+    # parse_hf_args(hf_parser)
+    # # set custom dataset args
+    # custom_dataset_parser = parser.add_argument_group('custom_dataset_args')
+    # parse_custom_dataset_args(custom_dataset_parser)
     args = parser.parse_args()
-    if args.slurm:
-        assert args.partition is not None, (
-            '--partition(-p) must be set if you want to use slurm')
-    if args.dlc:
-        assert os.path.exists(args.aliyun_cfg), (
-            'When launching tasks using dlc, it needs to be configured '
-            'in "~/.aliyun.cfg", or use "--aliyun-cfg $ALiYun-CFG_Path"'
-            ' to specify a new path.')
+    # if args.slurm:
+    #     assert args.partition is not None, (
+    #         '--partition(-p) must be set if you want to use slurm')
+    # if args.dlc:
+    #     assert os.path.exists(args.aliyun_cfg), (
+    #         'When launching tasks using dlc, it needs to be configured '
+    #         'in "~/.aliyun.cfg", or use "--aliyun-cfg $ALiYun-CFG_Path"'
+    #         ' to specify a new path.')
     return args
 
 
-def parse_slurm_args(slurm_parser):
-    """These args are all for slurm launch."""
-    slurm_parser.add_argument('-p',
-                              '--partition',
-                              help='Slurm partition name',
-                              default=None,
-                              type=str)
-    slurm_parser.add_argument('-q',
-                              '--quotatype',
-                              help='Slurm quota type',
-                              default=None,
-                              type=str)
-    slurm_parser.add_argument('--qos',
-                              help='Slurm quality of service',
-                              default=None,
-                              type=str)
+# def parse_slurm_args(slurm_parser):
+#     """These args are all for slurm launch."""
+#     slurm_parser.add_argument('-p',
+#                               '--partition',
+#                               help='Slurm partition name',
+#                               default=None,
+#                               type=str)
+#     slurm_parser.add_argument('-q',
+#                               '--quotatype',
+#                               help='Slurm quota type',
+#                               default=None,
+#                               type=str)
+#     slurm_parser.add_argument('--qos',
+#                               help='Slurm quality of service',
+#                               default=None,
+#                               type=str)
 
 
-def parse_dlc_args(dlc_parser):
-    """These args are all for dlc launch."""
-    dlc_parser.add_argument('--aliyun-cfg',
-                            help='The config path for aliyun config',
-                            default='~/.aliyun.cfg',
-                            type=str)
+# def parse_dlc_args(dlc_parser):
+#     """These args are all for dlc launch."""
+#     dlc_parser.add_argument('--aliyun-cfg',
+#                             help='The config path for aliyun config',
+#                             default='~/.aliyun.cfg',
+#                             type=str)
 
 
 
 
-def parse_hf_args(hf_parser):
-    """These args are all for the quick construction of HuggingFace models."""
-    hf_parser.add_argument('--hf-type', type=str, choices=['base', 'chat'], default='chat', help='The type of the HuggingFace model, base or chat')
-    hf_parser.add_argument('--hf-path', type=str, help='The path to the HuggingFace model, e.g. "facebook/opt-125m", required')
-    hf_parser.add_argument('--model-kwargs', nargs='+', action=DictAction, default={}, help='The kwargs for the HuggingFace model')
-    hf_parser.add_argument('--tokenizer-path', type=str, help='The path to the HuggingFace tokenizer, same as --hf-path if not specified')
-    hf_parser.add_argument('--tokenizer-kwargs', nargs='+', action=DictAction, default={}, help='The kwargs for the tokenizer')
-    hf_parser.add_argument('--peft-path', type=str, help='The path to the PEFT model')
-    hf_parser.add_argument('--peft-kwargs', nargs='+', action=DictAction, default={}, help='The kwargs for the PEFT model')
-    hf_parser.add_argument('--generation-kwargs', nargs='+', action=DictAction, default={}, help='The kwargs for the generation')
-    hf_parser.add_argument('--max-seq-len', type=int, help='The max sequence length for the HuggingFace model')
-    hf_parser.add_argument('--max-out-len', type=int, default=256, help='The max output length for the HuggingFace model')
-    hf_parser.add_argument('--min-out-len', type=int, default=1, help='The min output length for the HuggingFace model')
-    hf_parser.add_argument('--batch-size', type=int, default=8, help='The batch size for the HuggingFace model')
-    hf_parser.add_argument('--num-gpus', type=int, default=None, help='Deprecated, please use --hf-num-gpus instead')
-    hf_parser.add_argument('--hf-num-gpus', type=int, default=1, help='The number of GPUs for the HuggingFace model passed via cli')
-    hf_parser.add_argument('--pad-token-id', type=int, help='The pad token id for the HuggingFace model')
-    hf_parser.add_argument('--stop-words', nargs='+', default=[], help='The stop words for the HuggingFace model')
+# def parse_hf_args(hf_parser):
+#     """These args are all for the quick construction of HuggingFace models."""
+#     hf_parser.add_argument('--hf-type', type=str, choices=['base', 'chat'], default='chat', help='The type of the HuggingFace model, base or chat')
+#     hf_parser.add_argument('--hf-path', type=str, help='The path to the HuggingFace model, e.g. "facebook/opt-125m", required')
+#     hf_parser.add_argument('--model-kwargs', nargs='+', action=DictAction, default={}, help='The kwargs for the HuggingFace model')
+#     hf_parser.add_argument('--tokenizer-path', type=str, help='The path to the HuggingFace tokenizer, same as --hf-path if not specified')
+#     hf_parser.add_argument('--tokenizer-kwargs', nargs='+', action=DictAction, default={}, help='The kwargs for the tokenizer')
+#     hf_parser.add_argument('--peft-path', type=str, help='The path to the PEFT model')
+#     hf_parser.add_argument('--peft-kwargs', nargs='+', action=DictAction, default={}, help='The kwargs for the PEFT model')
+#     hf_parser.add_argument('--generation-kwargs', nargs='+', action=DictAction, default={}, help='The kwargs for the generation')
+#     hf_parser.add_argument('--max-seq-len', type=int, help='The max sequence length for the HuggingFace model')
+#     hf_parser.add_argument('--max-out-len', type=int, default=256, help='The max output length for the HuggingFace model')
+#     hf_parser.add_argument('--min-out-len', type=int, default=1, help='The min output length for the HuggingFace model')
+#     hf_parser.add_argument('--batch-size', type=int, default=8, help='The batch size for the HuggingFace model')
+#     hf_parser.add_argument('--num-gpus', type=int, default=None, help='Deprecated, please use --hf-num-gpus instead')
+#     hf_parser.add_argument('--hf-num-gpus', type=int, default=1, help='The number of GPUs for the HuggingFace model passed via cli')
+#     hf_parser.add_argument('--pad-token-id', type=int, help='The pad token id for the HuggingFace model')
+#     hf_parser.add_argument('--stop-words', nargs='+', default=[], help='The stop words for the HuggingFace model')
 
 
 # def parse_custom_dataset_args(custom_dataset_parser):

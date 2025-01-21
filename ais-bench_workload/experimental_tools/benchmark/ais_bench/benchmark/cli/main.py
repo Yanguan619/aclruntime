@@ -12,8 +12,7 @@ from mmengine.config import Config, DictAction
 from ais_bench.benchmark.registry import PARTITIONERS, RUNNERS, build_from_cfg
 from ais_bench.benchmark.summarizers import DefaultSummarizer
 from ais_bench.benchmark.utils import LarkReporter, get_logger
-from ais_bench.benchmark.utils.run import (fill_eval_cfg, fill_infer_cfg,
-                                   get_config_from_arg)
+from ais_bench.benchmark.utils.run import (fill_infer_cfg, get_config_from_arg)
 
 
 def parse_args():

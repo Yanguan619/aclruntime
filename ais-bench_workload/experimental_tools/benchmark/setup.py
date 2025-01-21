@@ -107,7 +107,6 @@ def get_version():
 def do_setup():
     setup(
         name='ais_bench_benchmark',
-        author='OpenCompass Contributors',
         version=get_version(),
         description='A comprehensive toolkit for large model evaluation',
         url='https://gitee.com/ascend/tools/',
@@ -119,9 +118,6 @@ def do_setup():
         python_requires='>=3.8.0',
         install_requires=parse_requirements('requirements/runtime.txt'),
         extras_require={
-            'lmdeploy':
-            parse_requirements('requirements/lmdeploy.txt') +
-            parse_requirements('requirements/runtime.txt'),
             'vllm':
             parse_requirements('requirements/vllm.txt') +
             parse_requirements('requirements/runtime.txt'),
@@ -143,6 +139,7 @@ def do_setup():
             'evaluation',
             'benchmark',
             'llm',
+            'AISBench',
         ],
         classifiers=[
             'Programming Language :: Python :: 3.8',

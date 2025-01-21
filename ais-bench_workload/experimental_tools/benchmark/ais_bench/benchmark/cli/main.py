@@ -10,7 +10,6 @@ from datetime import datetime
 from mmengine.config import Config, DictAction
 
 from ais_bench.benchmark.registry import PARTITIONERS, RUNNERS, build_from_cfg
-from ais_bench.benchmark.runners import SlurmRunner
 from ais_bench.benchmark.summarizers import DefaultSummarizer
 from ais_bench.benchmark.utils import LarkReporter, get_logger
 from ais_bench.benchmark.utils.run import (fill_eval_cfg, fill_infer_cfg,
@@ -173,13 +172,6 @@ def main():
         if args.dlc or args.slurm or cfg.get('infer', None) is None:
             fill_infer_cfg(cfg, args)
 
-        if args.partition is not None:
-            if RUNNERS.get(cfg.infer.runner.type) == SlurmRunner:
-                cfg.infer.runner.partition = args.partition
-                cfg.infer.runner.quotatype = args.quotatype
-        else:
-            logger.warning('SlurmRunner is not used, so the partition '
-                           'argument is ignored.')
         if args.debug:
             cfg.infer.runner.debug = True
         if args.lark:

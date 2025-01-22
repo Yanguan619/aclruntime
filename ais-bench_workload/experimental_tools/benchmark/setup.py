@@ -98,7 +98,7 @@ def parse_requirements(fname='requirements.txt', with_version=True):
 
 
 def get_version():
-    version_file = 'ais_bench/opencompass/__init__.py'
+    version_file = 'ais_bench/benchmark/__init__.py'
     with open(version_file, 'r', encoding='utf-8') as f:
         exec(compile(f.read(), version_file, 'exec'))
     return locals()['__version__']
@@ -106,11 +106,10 @@ def get_version():
 
 def do_setup():
     setup(
-        name='opencompass',
-        author='OpenCompass Contributors',
+        name='ais_bench_benchmark',
         version=get_version(),
         description='A comprehensive toolkit for large model evaluation',
-        url='https://github.com/open-compass/opencompass',
+        url='https://gitee.com/ascend/tools/',
         long_description=readme(),
         long_description_content_type='text/markdown',
         maintainer='OpenCompass Authors',
@@ -119,9 +118,6 @@ def do_setup():
         python_requires='>=3.8.0',
         install_requires=parse_requirements('requirements/runtime.txt'),
         extras_require={
-            'lmdeploy':
-            parse_requirements('requirements/lmdeploy.txt') +
-            parse_requirements('requirements/runtime.txt'),
             'vllm':
             parse_requirements('requirements/vllm.txt') +
             parse_requirements('requirements/runtime.txt'),
@@ -143,6 +139,7 @@ def do_setup():
             'evaluation',
             'benchmark',
             'llm',
+            'AISBench',
         ],
         classifiers=[
             'Programming Language :: Python :: 3.8',
@@ -154,7 +151,7 @@ def do_setup():
         ],
         entry_points={
             'console_scripts': [
-                'opencompass = ais_bench.opencompass.cli.main:main',
+                'ais_bench = ais_bench.benchmark.cli.main:main',
             ],
         },
     )

@@ -63,7 +63,7 @@ class BaseAPIModel(BaseModel):
 
         Args:
             inputs (List[PromptType]): A list of strings or PromptDicts.
-                The PromptDict should be organized in OpenCompass'
+                The PromptDict should be organized in AISBench'
                 API format.
             max_out_len (int): The maximum length of the output.
 

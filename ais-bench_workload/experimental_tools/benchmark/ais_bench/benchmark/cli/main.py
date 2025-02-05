@@ -14,6 +14,8 @@ from ais_bench.benchmark.summarizers import DefaultSummarizer
 from ais_bench.benchmark.utils import LarkReporter, get_logger
 from ais_bench.benchmark.utils.run import (fill_infer_cfg, get_config_from_arg)
 
+def get_current_time_str():
+    return datetime.now().strftime('%Y%m%d_%H%M%S')
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Run an evaluation task')
@@ -80,24 +82,6 @@ def parse_args():
                         'in the config.',
                         type=int,
                         default=1)
-    parser.add_argument(
-        '--retry',
-        help='Number of retries if the job failed when using slurm or dlc. '
-        'Will be overrideen by the "retry" argument in the config.',
-        type=int,
-        default=2)
-    parser.add_argument(
-        '--dump-eval-details',
-        help='Whether to dump the evaluation details, including the '
-        'correctness of each sample, bpb, etc.',
-        action='store_true',
-    )
-    parser.add_argument(
-        '--dump-extract-rate',
-        help='Whether to dump the evaluation details, including the '
-        'correctness of each sample, bpb, etc.',
-        action='store_true',
-    )
 
     args = parser.parse_args()
     return args
@@ -105,11 +89,6 @@ def parse_args():
 
 def main():
     args = parse_args()
-
-    if args.num_gpus is not None:
-        raise ValueError('The `--num-gpus` argument is deprecated, please use '
-                         '`--hf-num-gpus` to describe number of gpus used for '
-                         'the HuggingFace model instead.')
 
     if args.dry_run:
         args.debug = True
@@ -123,7 +102,7 @@ def main():
         cfg.setdefault('work_dir', os.path.join('outputs', 'default'))
 
     # cfg_time_str defaults to the current time
-    cfg_time_str = dir_time_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+    cfg_time_str = dir_time_str = get_current_time_str()
     if args.reuse:
         if args.reuse == 'latest':
             if not os.path.exists(cfg.work_dir) or not os.listdir(
@@ -162,13 +141,8 @@ def main():
         # When user have specified --slurm or --dlc, or have not set
         # "infer" in config, we will provide a default configuration
         # for infer
-        if (args.dlc or args.slurm) and cfg.get('infer', None):
-            logger.warning('You have set "infer" in the config, but '
-                           'also specified --slurm or --dlc. '
-                           'The "infer" configuration will be overridden by '
-                           'your runtime arguments.')
 
-        if args.dlc or args.slurm or cfg.get('infer', None) is None:
+        if cfg.get('infer', None) is None:
             fill_infer_cfg(cfg, args)
 
         if args.debug:

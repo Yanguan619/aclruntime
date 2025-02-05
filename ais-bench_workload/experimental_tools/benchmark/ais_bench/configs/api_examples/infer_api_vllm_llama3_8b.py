@@ -1,5 +1,5 @@
 from mmengine.config import read_base
-from ais_bench.benchmark.models import Doubao
+from ais_bench.benchmark.models import VLLMCustomAPI
 from ais_bench.benchmark.partitioners import NaivePartitioner
 from ais_bench.benchmark.runners.local_api import LocalAPIRunner
 from ais_bench.benchmark.tasks import OpenICLInferTask
@@ -7,28 +7,29 @@ from ais_bench.benchmark.tasks import OpenICLInferTask
 with read_base():
     # from ais_bench.benchmark.configs.datasets.collections.chat_medium import datasets
     from ais_bench.benchmark.configs.summarizers.medium import summarizer
-    from ais_bench.benchmark.configs.datasets.ceval.ceval_gen import ceval_datasets
+    from ais_bench.benchmark.configs.datasets.gsm8k.gsm8k_gen import gsm8k_datasets
 
 datasets = [
-    *ceval_datasets,
+    *gsm8k_datasets,
 ]
+
 
 models = [
     dict(
-        abbr='Doubao-pro-128k',
-        type=Doubao,
-        path='ep-xxxxxx',
-        accesskey='Your_AK',
-        secretkey='Your_SK',
-        generation_kwargs={
-            'temperature': 0.1,
-            'top_p': 0.9,
-        },
-        query_per_second=1,
-        max_out_len=2048,
-        max_seq_len=2048,
-        batch_size=8),
+        type=VLLMCustomAPI,
+        abbr='vllm-api-llama3-8b', # for llama3 llama3.1 llama3.2
+        path='', # VLLMCustomAPI auto get path from server
+        max_seq_len = 4096,
+        query_per_second = 1,
+        rpm_verbose = False,
+        retry = 2,
+        host_ip = "localhost",
+        host_port = 8080,
+        enable_ssl = False,
+        max_out_len=512,
+    )
 ]
+
 
 infer = dict(partitioner=dict(type=NaivePartitioner),
              runner=dict(
@@ -37,4 +38,4 @@ infer = dict(partitioner=dict(type=NaivePartitioner),
                  concurrent_users=2,
                  task=dict(type=OpenICLInferTask)), )
 
-work_dir = 'outputs/api_doubao/'
+work_dir = 'outputs/api_vllm_llama3-8b/'

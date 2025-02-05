@@ -172,10 +172,6 @@ class LocalAPIRunner(BaseRunner):
         super().__init__(task=task, debug=debug, lark_bot_url=lark_bot_url)
         self.max_num_workers = max_num_workers
         self.concurrent_users = concurrent_users
-        assert task['type'] in [
-            'OpenICLInferTask',
-            'ais_bench.benchmark.tasks.OpenICLInferTask',
-        ], 'Only supported for api infer task.'
 
     def launch(self, tasks: List[Dict[str, Any]]) -> List[Tuple[str, int]]:
         """Launch multiple tasks.

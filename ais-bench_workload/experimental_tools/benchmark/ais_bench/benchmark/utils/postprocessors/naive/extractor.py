@@ -1,4 +1,4 @@
-# Naive model extractor for OpenCompass, modified from xFinder: https://github.com/IAAR-Shanghai/xFinder # noqa
+# Naive model extractor for AISBench, modified from xFinder: https://github.com/IAAR-Shanghai/xFinder # noqa
 import json
 import time
 from logging import getLogger

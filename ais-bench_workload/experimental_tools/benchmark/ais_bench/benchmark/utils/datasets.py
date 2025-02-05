@@ -17,7 +17,8 @@ def get_data_path(dataset_id: str, local_mode: bool = False):
             ModelScope/HuggignFace repo
     """
     # update the path with CACHE_DIR
-    cache_dir = os.environ.get('COMPASS_DATA_CACHE', '')
+    default_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../") # site-package
+    cache_dir = os.environ.get('AIS_BENCH_DATASETS_CACHE', default_dir)
 
     # For absolute path customized by the users
     if dataset_id.startswith('/'):
@@ -30,3 +31,5 @@ def get_data_path(dataset_id: str, local_mode: bool = False):
             raise FileExistsError(f'Dataset path: {local_path} is not exist!')
         else:
             return local_path
+    else:
+        raise FileExistsError('Dataset path is not empty!')

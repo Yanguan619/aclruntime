@@ -79,8 +79,8 @@ def get_config_from_arg(args) -> Config:
         return config
 
     # parse dataset args
-    if not args.datasets and not args.custom_dataset_path:
-        raise ValueError('You must specify "--datasets" or "--custom-dataset-path" if you do not specify a config file path.')
+    if not args.datasets:
+        raise ValueError('You must specify "--datasets" if you do not specify a config file path.')
     datasets = []
     if args.datasets:
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -133,7 +133,7 @@ def get_config_from_arg(args) -> Config:
         raise ValueError('You must specify "--models"')
 
     # parse summarizer args
-    summarizer_arg = args.summarizer if args.summarizer is not None else 'example'
+    summarizer_arg = args.summarizer if args.summarizer is not None else 'medium.py'
     script_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(script_dir)
     default_configs_dir = os.path.join(parent_dir, 'configs')
@@ -169,16 +169,14 @@ def get_config_type(obj) -> str:
 
 def fill_infer_cfg(cfg, args):
     new_cfg = dict(infer=dict(
-        partitioner=dict(type=get_config_type(NumWorkerPartitioner),
-                         num_worker=args.max_num_workers),
+        partitioner=dict(type=get_config_type(NaivePartitioner)),
         runner=dict(
             max_num_workers=args.max_num_workers,
+            concurrent_users=2,
             debug=args.debug,
             task=dict(type=get_config_type(OpenICLInferTask)),
             lark_bot_url=cfg['lark_bot_url'],
         )), )
 
     new_cfg['infer']['runner']['type'] = get_config_type(LocalAPIRunner)
-    new_cfg['infer']['runner'][
-        'max_workers_per_gpu'] = args.max_workers_per_gpu
     cfg.merge_from_dict(new_cfg)

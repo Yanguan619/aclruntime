@@ -28,7 +28,7 @@ def model_abbr_from_cfg_used_in_summarizer(model):
 
 
 class DefaultSubjectiveSummarizer:
-    """Default summarizer in OpenCompass.
+    """Default summarizer in AISBench.
 
     Args:
         config (ConfigDict): The configuration object of the evaluation task. It's expected to be filled out at runtime.

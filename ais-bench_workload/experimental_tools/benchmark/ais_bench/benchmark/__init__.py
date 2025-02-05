@@ -1,4 +1,4 @@
-__version__ = '0.3.9'
+__version__ = '0.0.1'
 
 
 def _warn_about_config_migration():

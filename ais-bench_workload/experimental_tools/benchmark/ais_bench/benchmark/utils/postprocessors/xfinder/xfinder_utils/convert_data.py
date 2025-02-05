@@ -1,4 +1,4 @@
-# Convert OpenCompass prediction data to XFinder format
+# Convert AISBench prediction data to XFinder format
 import copy
 import json
 import re

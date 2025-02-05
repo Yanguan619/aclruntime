@@ -158,7 +158,7 @@ class OpenAI(BaseAPIModel):
 
         Args:
             inputs (List[PromptType]): A list of strings or PromptDicts.
-                The PromptDict should be organized in OpenCompass'
+                The PromptDict should be organized in AISBench'
                 API format.
             max_out_len (int): The maximum length of the output.
             temperature (float): What sampling temperature to use,
@@ -187,7 +187,7 @@ class OpenAI(BaseAPIModel):
 
         Args:
             inputs (PromptType): A string or PromptDict.
-                The PromptDict should be organized in OpenCompass'
+                The PromptDict should be organized in AISBench'
                 API format.
             max_out_len (int): The maximum length of the output.
             temperature (float): What sampling temperature to use,

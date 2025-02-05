@@ -397,7 +397,7 @@ def merge_dataframes(model_name, dataset_abbrs, parsed_data):
     return merged_df
 
 class NeedleBenchSummarizer(DefaultSummarizer):
-    """NeedleBench summarizer in OpenCompass.
+    """NeedleBench summarizer in AISBench.
 
     Args:
         config (ConfigDict): The configuration object of the evaluation task. It's expected to be filled out at runtime.
@@ -542,7 +542,7 @@ class NeedleBenchSummarizer(DefaultSummarizer):
         save_results_to_plots(output_path)
 
 class NeedleBenchATCSummarizer(DefaultSummarizer):
-    """NeedleBench-ATC summarizer in OpenCompass.
+    """NeedleBench-ATC summarizer in AISBench.
 
     Args:
         config (ConfigDict): The configuration object of the evaluation task. It's expected to be filled out at runtime.

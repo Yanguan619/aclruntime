@@ -16,28 +16,26 @@ _nameToLevel = {
 
 
 def get_logger(log_level='INFO', filter_duplicate_level=None) -> MMLogger:
-    """Get the logger for OpenCompass.
+    """Get the logger for AISBench.
 
     Args:
         log_level (str): The log level. Default: 'INFO'. Choices are 'DEBUG',
             'INFO', 'WARNING', 'ERROR', 'CRITICAL'.
     """
-    if not MMLogger.check_instance_created('OpenCompass'):
-        logger = MMLogger.get_instance('OpenCompass',
-                                       logger_name='OpenCompass',
+    if not MMLogger.check_instance_created('AISBench'):
+        logger = MMLogger.get_instance('AISBench',
+                                       logger_name='AISBench',
                                        log_level=log_level)
     else:
-        logger = MMLogger.get_instance('OpenCompass')
+        logger = MMLogger.get_instance('AISBench')
 
     if filter_duplicate_level is None:
-        # export OPENCOMPASS_FILTER_DUPLICATE_LEVEL=error
-        # export OPENCOMPASS_FILTER_DUPLICATE_LEVEL=error,warning
         filter_duplicate_level = os.getenv(
-            'OPENCOMPASS_FILTER_DUPLICATE_LEVEL', None)
+            'AISBENCH_FILTER_DUPLICATE_LEVEL', None)
 
     if filter_duplicate_level:
         logger.addFilter(
-            FilterDuplicateMessage('OpenCompass', filter_duplicate_level))
+            FilterDuplicateMessage('AISBench', filter_duplicate_level))
 
     return logger
 

@@ -112,7 +112,7 @@ def do_setup():
         url='https://gitee.com/ascend/tools/',
         long_description=readme(),
         long_description_content_type='text/markdown',
-        maintainer='OpenCompass Authors',
+        maintainer='AISBench Authors',
         cmdclass={'download_nltk': DownloadNLTK},
         setup_requires=['nltk==3.8'],
         python_requires='>=3.8.0',

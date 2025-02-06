@@ -178,7 +178,7 @@ def main():
     if args.mode in ['all', 'eval']:
         # "eval" in config, we will provide a default configuration
         # for eval
-        if args.dlc or args.slurm or cfg.get('eval', None) is None:
+        if cfg.get('eval', None) is None:
             fill_eval_cfg(cfg, args)
         if args.dump_eval_details:
             cfg.eval.runner.task.dump_details = True

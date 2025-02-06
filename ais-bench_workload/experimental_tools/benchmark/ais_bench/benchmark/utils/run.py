@@ -180,3 +180,18 @@ def fill_infer_cfg(cfg, args):
 
     new_cfg['infer']['runner']['type'] = get_config_type(LocalAPIRunner)
     cfg.merge_from_dict(new_cfg)
+
+
+def fill_eval_cfg(cfg, args):
+    new_cfg = dict(eval=dict(
+        partitioner=dict(type=get_config_type(NaivePartitioner)),
+        runner=dict(
+            max_num_workers=args.max_num_workers,
+            concurrent_users=2,
+            debug=args.debug,
+            task=dict(type=get_config_type(OpenICLEvalTask)),
+            lark_bot_url=cfg['lark_bot_url'],
+        )), )
+
+    new_cfg['eval']['runner']['type'] = get_config_type(LocalAPIRunner)
+    cfg.merge_from_dict(new_cfg)

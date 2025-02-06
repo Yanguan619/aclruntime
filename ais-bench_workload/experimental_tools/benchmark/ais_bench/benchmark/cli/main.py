@@ -12,7 +12,7 @@ from mmengine.config import Config, DictAction
 from ais_bench.benchmark.registry import PARTITIONERS, RUNNERS, build_from_cfg
 from ais_bench.benchmark.summarizers import DefaultSummarizer
 from ais_bench.benchmark.utils import LarkReporter, get_logger
-from ais_bench.benchmark.utils.run import (fill_infer_cfg, get_config_from_arg)
+from ais_bench.benchmark.utils.run import (fill_infer_cfg, fill_eval_cfg, get_config_from_arg)
 
 def get_current_time_str():
     return datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -83,6 +83,20 @@ def parse_args():
                         type=int,
                         default=1)
 
+    # evaluatation add
+    parser.add_argument(
+        '--dump-eval-details',
+        help='Whether to dump the evaluation details, including the '
+        'correctness of each sample, bpb, etc.',
+        action='store_true',
+    )
+    parser.add_argument(
+        '--dump-extract-rate',
+        help='Whether to dump the evaluation details, including the '
+        'correctness of each sample, bpb, etc.',
+        action='store_true',
+    )
+
     args = parser.parse_args()
     return args
 
@@ -138,10 +152,8 @@ def main():
         LarkReporter(cfg['lark_bot_url']).post(content)
 
     if args.mode in ['all', 'infer']:
-        # When user have specified --slurm or --dlc, or have not set
         # "infer" in config, we will provide a default configuration
         # for infer
-
         if cfg.get('infer', None) is None:
             fill_infer_cfg(cfg, args)
 
@@ -162,6 +174,33 @@ def main():
                 cfg.attack.dataset = task.datasets[0][0].abbr
                 task.attack = cfg.attack
         runner(tasks)
+
+    if args.mode in ['all', 'eval']:
+        # "eval" in config, we will provide a default configuration
+        # for eval
+        if args.dlc or args.slurm or cfg.get('eval', None) is None:
+            fill_eval_cfg(cfg, args)
+        if args.dump_eval_details:
+            cfg.eval.runner.task.dump_details = True
+        if args.dump_extract_rate:
+            cfg.eval.runner.task.cal_extract_rate = True
+        if args.debug:
+            cfg.eval.runner.debug = True
+        if args.lark:
+            cfg.eval.runner.lark_bot_url = cfg['lark_bot_url']
+        cfg.eval.partitioner['out_dir'] = osp.join(cfg['work_dir'], 'results/')
+        partitioner = PARTITIONERS.build(cfg.eval.partitioner)
+        tasks = partitioner(cfg)
+        if args.dry_run:
+            return
+        runner = RUNNERS.build(cfg.eval.runner)
+
+        # For meta-review-judge in subjective evaluation
+        if isinstance(tasks, list) and len(tasks) != 0 and isinstance(tasks[0], list):
+            for task_part in tasks:
+                runner(task_part)
+        else:
+            runner(tasks)
 
 
 if __name__ == '__main__':

@@ -85,6 +85,13 @@ def parse_args():
 
     # evaluatation add
     parser.add_argument(
+        '--max-workers-per-gpu',
+        help='Max task to run in parallel on one GPU. '
+        'It will only be used in the local runner.',
+        type=int,
+        default=1
+    )
+    parser.add_argument(
         '--dump-eval-details',
         help='Whether to dump the evaluation details, including the '
         'correctness of each sample, bpb, etc.',

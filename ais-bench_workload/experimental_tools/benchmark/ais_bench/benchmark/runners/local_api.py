@@ -172,6 +172,7 @@ class LocalAPIRunner(BaseRunner):
         super().__init__(task=task, debug=debug, lark_bot_url=lark_bot_url)
         self.max_num_workers = max_num_workers
         self.concurrent_users = concurrent_users
+        get_logger().info(f"task type is {task['type']}")
 
     def launch(self, tasks: List[Dict[str, Any]]) -> List[Tuple[str, int]]:
         """Launch multiple tasks.

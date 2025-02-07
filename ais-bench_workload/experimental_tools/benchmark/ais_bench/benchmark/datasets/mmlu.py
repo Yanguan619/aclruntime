@@ -16,7 +16,7 @@ class MMLUDataset(BaseDataset):
 
     @staticmethod
     def load(path: str, name: str, **kwargs):
-        path = get_data_path(path)
+        path = get_data_path(path, local_mode=True)
         dataset = DatasetDict()
         for split in ['dev', 'test']:
             raw_data = []

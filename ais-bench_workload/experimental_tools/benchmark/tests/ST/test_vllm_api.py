@@ -127,6 +127,15 @@ class TestClass:
             data = json.load(file)
         assert data.get("accuracy") is not None
 
+        # check vis
+        vis_csv_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.csv")
+        assert os.path.exists(vis_csv_path)
+        vis_txt_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.txt")
+        assert os.path.exists(vis_txt_path)
+        vis_md_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.md")
+        assert os.path.exists(vis_md_path)
+
+
     def test_vllm_api_all_baichuan2_7b_default(self, monkeypatch):
         fake_prediction = "test_response_for_baichuan2_7b"
         fake_time_str = "fake_time_baichuan2"
@@ -151,6 +160,14 @@ class TestClass:
         with open(results_json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
         assert data.get("accuracy") is not None
+
+        # check vis
+        vis_csv_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.csv")
+        assert os.path.exists(vis_csv_path)
+        vis_txt_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.txt")
+        assert os.path.exists(vis_txt_path)
+        vis_md_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.md")
+        assert os.path.exists(vis_md_path)
 
     def test_vllm_api_all_llama3_8b_default(self, monkeypatch):
         fake_prediction = "test_response_for_llama3_8b"
@@ -177,5 +194,12 @@ class TestClass:
             data = json.load(file)
         assert data.get("accuracy") is not None
 
+        # check vis
+        vis_csv_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.csv")
+        assert os.path.exists(vis_csv_path)
+        vis_txt_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.txt")
+        assert os.path.exists(vis_txt_path)
+        vis_md_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.md")
+        assert os.path.exists(vis_md_path)
 
 

@@ -1,9 +1,9 @@
-from opencompass.openicl.icl_prompt_template import PromptTemplate
-from opencompass.openicl.icl_retriever import FixKRetriever
-from opencompass.openicl.icl_inferencer import GenInferencer
-from opencompass.openicl.icl_evaluator import AccwithDetailsEvaluator
-from opencompass.datasets import MMLUDataset
-from opencompass.utils.text_postprocessors import first_option_postprocess
+from ais_bench.benchmark.openicl.icl_prompt_template import PromptTemplate
+from ais_bench.benchmark.openicl.icl_retriever import FixKRetriever
+from ais_bench.benchmark.openicl.icl_inferencer import GenInferencer
+from ais_bench.benchmark.openicl.icl_evaluator import AccwithDetailsEvaluator
+from ais_bench.benchmark.datasets import MMLUDataset
+from ais_bench.benchmark.utils.text_postprocessors import first_option_postprocess
 
 # None of the mmlu dataset in huggingface is correctly parsed, so we use our own dataset reader
 # Please download the dataset from https://people.eecs.berkeley.edu/~hendrycks/data.tar

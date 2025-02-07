@@ -54,6 +54,8 @@ class TestClass:
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._generate", lambda *arg: fake_prediction)
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         main()
+
+        # check infer out
         infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/vllm-api-qwen2-7b-instruct/gsm8k.json")
         assert os.path.exists(infer_outputs_json_path)
         with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
@@ -71,6 +73,8 @@ class TestClass:
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._generate", lambda *arg: fake_prediction)
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         main()
+
+        # check infer out
         infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/vllm-api-baichuan2-7b-base/gsm8k.json")
         assert os.path.exists(infer_outputs_json_path)
         with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
@@ -88,6 +92,8 @@ class TestClass:
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._generate", lambda *arg: fake_prediction)
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         main()
+
+        # check infer out
         infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/vllm-api-llama3-8b/gsm8k.json")
         assert os.path.exists(infer_outputs_json_path)
         with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
@@ -106,6 +112,8 @@ class TestClass:
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._generate", lambda *arg: fake_prediction)
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         main()
+
+        # check infer out
         infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/vllm-api-qwen2-7b-instruct/gsm8k.json")
         assert os.path.exists(infer_outputs_json_path)
         with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
@@ -113,6 +121,7 @@ class TestClass:
         assert len(data) == GSK8K_DATA_COUNT
         assert data.get(f"{GSK8K_DATA_COUNT - 1}").get("prediction") == fake_prediction
 
+        # check eval out
         results_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/results/vllm-api-qwen2-7b-instruct/gsm8k.json")
         with open(results_json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
@@ -128,6 +137,8 @@ class TestClass:
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._generate", lambda *arg: fake_prediction)
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         main()
+
+        # check infer out
         infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/vllm-api-baichuan2-7b-base/gsm8k.json")
         assert os.path.exists(infer_outputs_json_path)
         with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
@@ -135,6 +146,7 @@ class TestClass:
         assert len(data) == GSK8K_DATA_COUNT
         assert data.get(f"{GSK8K_DATA_COUNT - 1}").get("prediction") == fake_prediction
 
+        # check eval out
         results_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/results/vllm-api-baichuan2-7b-base/gsm8k.json")
         with open(results_json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
@@ -150,6 +162,8 @@ class TestClass:
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._generate", lambda *arg: fake_prediction)
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         main()
+
+        # check infer out
         infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/vllm-api-llama3-8b/gsm8k.json")
         assert os.path.exists(infer_outputs_json_path)
         with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
@@ -157,6 +171,7 @@ class TestClass:
         assert len(data) == GSK8K_DATA_COUNT
         assert data.get(f"{GSK8K_DATA_COUNT - 1}").get("prediction") == fake_prediction
 
+        # check eval out
         results_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/results/vllm-api-llama3-8b/gsm8k.json")
         with open(results_json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)

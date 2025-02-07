@@ -69,7 +69,7 @@ Let's think step by step
 Answer:
 '''),
     retriever=dict(type=ZeroRetriever),
-    inferencer=dict(type=GenInferencer, max_out_len=512))
+    inferencer=dict(type=GenInferencer, max_out_len=512, batch_size=2))
 
 gsm8k_eval_cfg = dict(
     evaluator=dict(type=Gsm8kEvaluator),

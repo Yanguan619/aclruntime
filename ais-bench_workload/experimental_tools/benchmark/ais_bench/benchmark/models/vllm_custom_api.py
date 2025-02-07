@@ -88,7 +88,7 @@ class VLLMCustomAPI(BaseAPIModel):
         Returns:
             List[str]: A list of generated strings.
         """
-
+        self.logger.info(f"len of inputs is {len(inputs)}")
         with ThreadPoolExecutor() as executor:
             results = list(
                 tqdm(executor.map(self._generate, inputs,

@@ -136,9 +136,9 @@ class GenInferencer(BaseInferencer):
         start_time_stamp = time.time()
         num_sample = 0
         for datum in tqdm(dataloader, disable=not self.is_main_process):
-            if ds_reader.output_column and self.batch_size > 1:
+            if ds_reader.output_column and self.batch_size is not None:
                 entry, golds = list(zip(*datum))
-            elif ds_reader.output_column and self.batch_size == 1:
+            elif ds_reader.output_column and self.batch_size is None:
                 entry = [datum[0]]
                 golds = [datum[1]]
             else:

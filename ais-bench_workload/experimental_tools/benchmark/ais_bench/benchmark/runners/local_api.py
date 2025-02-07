@@ -173,6 +173,10 @@ class LocalAPIRunner(BaseRunner):
         self.max_num_workers = max_num_workers
         self.concurrent_users = concurrent_users
         get_logger().info(f"task type is {task['type']}")
+        assert task['type'] in [
+            'OpenICLInferTask',
+            'ais_bench.benchmark.tasks.openicl_infer.OpenICLInferTask',
+        ], 'Only supported for api infer task.'
 
     def launch(self, tasks: List[Dict[str, Any]]) -> List[Tuple[str, int]]:
         """Launch multiple tasks.

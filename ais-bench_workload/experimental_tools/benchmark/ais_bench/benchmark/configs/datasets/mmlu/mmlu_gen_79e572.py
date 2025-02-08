@@ -88,7 +88,7 @@ for _name in mmlu_all_sets:
             ice_token='</E>',
         ),
         retriever=dict(type=FixKRetriever, fix_id_list=[0, 1, 2, 3, 4]),
-        inferencer=dict(type=GenInferencer),
+        inferencer=dict(type=GenInferencer, max_out_len=1),
     )
 
     mmlu_eval_cfg = dict(

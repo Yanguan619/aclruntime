@@ -145,7 +145,6 @@ class PPLInferencer(BaseInferencer):
 
             # 5.2 Get PPL
             logger.info(f"Calculating PPL for prompts labeled '{label}'")
-            logger.info(f"len of prompt_list: {len(prompt_list)}, bs: {self.batch_size}, main process: {self.is_main_process}")
             for idx in trange(0, len(prompt_list), self.batch_size, disable=not self.is_main_process):
                 sub_prompt_list = prompt_list[idx:idx + self.batch_size]
                 with torch.no_grad():

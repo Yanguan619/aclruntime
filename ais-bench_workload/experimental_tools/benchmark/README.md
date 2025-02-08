@@ -25,7 +25,7 @@ pip3 intall -r requirements/api.txt
 ```
 
 ## 数据集准备
-从opencompass的release中下载[数据集](https://github.com/open-compass/opencompass/releases/tag/0.2.2.rc1)
+从opencompass的release中下载[数据集](https://github.com/open-compass/ais_bench/datasets/releases/tag/0.2.2.rc1)
 `OpenCompassData-core-20240207.zip`已经包含了gsm8k的数据集，解压`OpenCompassData-core-20240207.zip`后将其中的gsm8k文件夹放置到
 `ais_bench/datasets/`路径下。
 

@@ -1,13 +1,74 @@
 import os
+import json
+import zipfile
+import hashlib
+import urllib.request
+
 from .fileio import download_and_extract_archive
 from .datasets_info import DATASETS_MAPPING, DATASETS_URL
 from .logging import get_logger
 
 USER_HOME = os.path.expanduser("~")
 DEFAULT_DATA_FOLDER = os.path.join(USER_HOME, '.cache/ais_bench_benchmark')
+DATASETS_URL_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../ais_bench/datasets/datasets_urls.json")
 
 
-def get_data_path(dataset_id: str, local_mode: bool = False):
+def calculate_sha256(file_path):
+    # 创建一个SHA-256哈希对象
+    sha256_hash = hashlib.sha256()
+    try:
+        with open(file_path, 'rb') as file:
+            # 逐块读取文件内容
+            for chunk in iter(lambda: file.read(4096), b""):
+                # 更新哈希对象
+                sha256_hash.update(chunk)
+        # 获取最终的SHA-256哈希值
+        return sha256_hash.hexdigest()
+    except FileNotFoundError:
+        return None
+
+
+def verify_sha256(file_path, expected_sha256):
+    # 计算文件的SHA-256哈希值
+    actual_sha256 = calculate_sha256(file_path)
+    if actual_sha256 is not None:
+        # 比较计算得到的哈希值与期望的哈希值
+        if actual_sha256 == expected_sha256:
+            return
+        else:
+            raise ValueError("Sha-256 hash info check failed!")
+
+
+def auto_download_dataset(path: str):
+    if os.path.exists(path):
+        return
+
+    dataset_name = os.path.basename(path)
+    save_path = os.path.dirname(path)
+
+    with open(DATASETS_URL_CONFIG_PATH, "r") as file:
+        urls_data = json.load(file)
+
+    url = urls_data.get(dataset_name, None).get("url", None)
+
+    # download dataset zip
+    try:
+        urllib.request.urlretrieve(url, save_path)
+    except Exception as err:
+        raise RuntimeError(f"auto download dataset: {dataset_name} failed!") from err
+
+    get_logger().info(f"auto download dataset: {dataset_name}")
+
+    # check hash info
+    hash_info = urls_data.get(dataset_name, None).get("hash_info", None)
+    zip_path = os.path.join(save_path, os.path.basename(url))
+    verify_sha256(zip_path, hash_info)
+
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(path)
+
+
+def get_data_path(dataset_id: str, local_mode: bool = True):
     """return dataset id when getting data from ModelScope/HuggingFace repo, otherwise just
     return local path as is.
 
@@ -27,6 +88,8 @@ def get_data_path(dataset_id: str, local_mode: bool = False):
     # For relative path, with CACHE_DIR
     if local_mode:
         local_path = os.path.join(cache_dir, dataset_id)
+        auto_download_dataset(local_path)
+
         if not os.path.exists(local_path):
             raise FileExistsError(f'Dataset path: {local_path} is not exist!')
         else:

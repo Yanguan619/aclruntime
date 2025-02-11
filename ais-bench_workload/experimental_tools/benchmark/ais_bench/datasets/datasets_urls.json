@@ -1,0 +1,286 @@
+{
+    "crowspairs_cn": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/crowspairs_cn.zip",
+        "hash_info": "1da07cf48b59c333813f150d072f0fec121596a681adc645b9a74a705d8115a2"
+    },
+    "humaneval": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/humaneval.zip",
+        "hash_info": "7235a529b5e417b935d05e95fc93c8728a54f8c5c274b4d804b8472c08d7e94b"
+    },
+    "anli": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/anli.zip",
+        "hash_info": "0e53a3cfae27cab26f18642e9b1d4b3e76bb209dceb1341868593e17781443b2"
+    },
+    "LCSTS": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/LCSTS.zip",
+        "hash_info": "5d8c3d892b48e5a7515465c7f64a9d1f6d8d6725abb6e5a7ab77e5fcc96269fd"
+    },
+    "CDME": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/CDME.zip",
+        "hash_info": "173f1d9f513e81ac014cd6472b5c23a266d34c44974b6fc8162298503a7e3a20"
+    },
+    "subjective": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/subjective.zip",
+        "hash_info": "7df08bb299155965cc53599996fae4339db8b4171c52b58ec63f70bac0ec73f3"
+    },
+    "svamp": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/svamp.zip",
+        "hash_info": "baaeb21edadcf0b4045e31a9b0476daf61eeb16f287bc36bca276280c1778b5b"
+    },
+    "xlsum": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/xlsum.zip",
+        "hash_info": "ca8ef9f5c7f3a45d4daa38b1fae74817d1a7b15fb73dbdbc0806b58537258d66"
+    },
+    "strategyqa": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/strategyqa.zip",
+        "hash_info": "c6914fb51c5e35d60b29b8c1dbf4f76eebb271a471d90038a41e803ec1db4c36"
+    },
+    "cmmlu": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/cmmlu.zip",
+        "hash_info": "095f4778b0e08affc583cb8891aa7ecfeee8cc61f5b889f8dcfe348743f09cb0"
+    },
+    "flores200_dataset": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/flores200_dataset.zip",
+        "hash_info": "b236c085e3c982dcf082ff6fe6a25ca254e721a1444e725c80d67d9b002aa848"
+    },
+    "ds1000_data": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/ds1000_data.zip",
+        "hash_info": "1723945db37f721a9a282bb9451465c7f7dc891485e2bea08d5c179f5b6da781"
+    },
+    "ARC": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/ARC.zip",
+        "hash_info": "996478b5ee426f6c6f5153ce3bab9dbefe42b1c26c1e9aa75b40dd2424dbe9d0"
+    },
+    "mmlu": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/mmlu.zip",
+        "hash_info": "67af4b7417a395e85e8b97f3b98ab19ec7263e17c805eb8159b39252568cbd47"
+    },
+    "Xsum": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/Xsum.zip",
+        "hash_info": "56e1db0e77beaf429fd3e771b37f5611fda7b5c1c132a2e815f568e4cf0ea7d3"
+    },
+    "CMB": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/CMB.zip",
+        "hash_info": "1bbc21f4b8971128e46870697de956a81ed13b72c675e18ed9907196a19d9141"
+    },
+    "FewCLUE": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/FewCLUE.zip",
+        "hash_info": "10e3ec40395bf7275e75abfa818e6de7917d45980690c6507561db7a4f52fb86"
+    },
+    "py150": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/py150.zip",
+        "hash_info": "5c5fa0a8ddac04147e0d2ca13821d63e554d8c5b4733f5537f42083e63a49d1a"
+    },
+    "SQuAD2.0": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/SQuAD2.0.zip",
+        "hash_info": "27da93652bcf135a5a07713d6d69c77c74c494ee9904b19befd82a6dc6d79f03"
+    },
+    "openbookqa": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/openbookqa.zip",
+        "hash_info": "7182e08b127370f793fdcbed94700e089a2f9295e34e147af2a65ddc80d83ca9"
+    },
+    "nq_cn": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/nq_cn.zip",
+        "hash_info": "6da023db2d07b321fce2e2b7363007069e8bb1cf2bb6bd071493e743ceeb7a7c"
+    },
+    "HungarianExamMath": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/HungarianExamMath.zip",
+        "hash_info": "fd6fddbe3001c122ee9abaecc65c11851023e45a9a20aa7e702b22593b347e25"
+    },
+    "scibench": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/scibench.zip",
+        "hash_info": "39cb00d4b6b7966ac3a1647f188bfa48d44c6edd89ffda8c063e27e8ecd60c60"
+    },
+    "gsm8k": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/gsm8k.zip",
+        "hash_info": "0a6b858c4c647e9d33a0c39bda0281915724e7d032e8f04b1701111cc7c1e38b"
+    },
+    "summedits": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/summedits.zip",
+        "hash_info": "b955f6781310f650832dea1508c8ee5c38f05b5f9d60a0d3ee23451108f818ab"
+    },
+    "flores_first100": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/flores_first100.zip",
+        "hash_info": "fec45c9689c851e014e5bbc770a6ea40b29c4ba9e6d09284d0ebdfc28e18e9a7"
+    },
+    "CLUE": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/CLUE.zip",
+        "hash_info": "3df66470c6c28a29b2bf0107d733964f6db24738ca084967f5d3e2c6e20defb5"
+    },
+    "mbpp": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/mbpp.zip",
+        "hash_info": "2578c4b1a41d45c60fcdf15c72ac151dbb276d952bfd031fec39179ac8e498fb"
+    },
+    "BBH": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/BBH.zip",
+        "hash_info": "bb964a5d3d03ee6e6db3078ca537763f47100d6c269802d6d204f52dd1372972"
+    },
+    "InfiniteBench": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/InfiniteBench.zip",
+        "hash_info": "c5189472ae8ce152a19699640d4874d44a0127ca895b7276c657400474ef21ea"
+    },
+    "race": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/race.zip",
+        "hash_info": "f8bda230da1e7179c282614d39720e9519d37998938409e2028e5e6fd377cb55"
+    },
+    "siqa": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/siqa.zip",
+        "hash_info": "9b87b659f810b3be4ae8ffaf141dc911b76f136a61bdce625feb4a0d27730f79"
+    },
+    "humanevalx": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/humanevalx.zip",
+        "hash_info": "f788c738bc114cea5e63ab1e34f7a23391cc0c75d2698819a22f5d72b497e593"
+    },
+    "AGIEval": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/AGIEval.zip",
+        "hash_info": "b88a464a06fd6f6139b7d6128907d1db736f600d5f9e94c0666c06368205e8fb"
+    },
+    "TheoremQA": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/TheoremQA.zip",
+        "hash_info": "c9f47c0425c2f9bf9d7f64e23a4a08963e06f8fa64fc38bf07fd2e771266a2ae"
+    },
+    "lambada": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/lambada.zip",
+        "hash_info": "0ed2b5857b7914af70e799228f7449578ee7c076ccf4d3cefc5463528d3a8be0"
+    },
+    "GAOKAO-BENCH": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/GAOKAO-BENCH.zip",
+        "hash_info": "1566e6d89074b594ea8a5f0d4ae79040ddbecd76539a31dada7d782a62eff4c4"
+    },
+    "humaneval_cn": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/humaneval_cn.zip",
+        "hash_info": "325ed27fbcec2d3adbe29a4321ad65ddb9f16345819b88f68e396259b4310265"
+    },
+    "triviaqa": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/triviaqa.zip",
+        "hash_info": "4b36d187bb22d1e44c9cbc7239e065d204eb763734286c48fbd07abc94b45fe5"
+    },
+    "xstory_cloze": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/xstory_cloze.zip",
+        "hash_info": "99467a963fef27f66872030faa700c1838633090b514e2f7a90795df9badd861"
+    },
+    "cleva": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/cleva.zip",
+        "hash_info": "acaf7ede27ecc90fe32f9449e1f1165283d92d959a712a32a8f9c09f6a59a9a1"
+    },
+    "lawbench": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/lawbench.zip",
+        "hash_info": "9366c39e558bbed665429f12f99a0d7a24662ae906455f9e1286b90c75cfc550"
+    },
+    "piqa": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/piqa.zip",
+        "hash_info": "099294163fb735bebe23b7f92b4cd999abdd3dffd68c9d34723828c1c7485f55"
+    },
+    "math": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/math.zip",
+        "hash_info": "c1c0ba27eca862697692111dc36d19b23a7d3ed91b734c82db5e0b7295a4a18c"
+    },
+    "clozeTest-maxmin": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/clozeTest-maxmin.zip",
+        "hash_info": "a023ab385c0bf0abfc7b226c6b1b39ff100fea1962e93c4167643f5b7b325f1f"
+    },
+    "cibench_dataset": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/cibench_dataset.zip",
+        "hash_info": "1d37cba05243da2a760f7cc8779a2648f88d63920b582c9b41eee3b59c429840"
+    },
+    "SuperGLUE": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/SuperGLUE.zip",
+        "hash_info": "2cf412699313d40d48829a3800291561eded8c81bb169f156c2c8be5ec10885e"
+    },
+    "math401": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/math401.zip",
+        "hash_info": "d5d8b2013d4adcd6a959875bd1189e9097509c50e1d66ece7993f65a5b3de78c"
+    },
+    "nq-open": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/nq-open.zip",
+        "hash_info": "862023a1a2805d9951ee1bb13a4a80d03e5a2c25a52f7a5e3927f71ad87c3753"
+    },
+    "xiezhi": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/xiezhi.zip",
+        "hash_info": "4ae2777c79ceff34044c3325c1a6a7feceb3e8b3a794b034f0e9420d3924f954"
+    },
+    "nq": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/nq.zip",
+        "hash_info": "ed106a1ba2b8718d3640b76730ca63ec5ffc6af221b9814fecfca99cfa476d31"
+    },
+    "commonsenseqa_cn": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/commonsenseqa_cn.zip",
+        "hash_info": "dcf199f29606347a509d73a2f341a66a6f29ce503f9411b5258e192a010e17a1"
+    },
+    "lanQ": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/lanQ.zip",
+        "hash_info": "a235af09d2776b511b893d202cf7d9b3ebf62c650fe8af4f877bba8166ca28e0"
+    },
+    "gpqa": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/gpqa.zip",
+        "hash_info": "91f6f8aca197f1d715c61f820e0b74d0fc0ec335e0e0346fca1693f87c0e4d77"
+    },
+    "MNIST": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/MNIST.zip",
+        "hash_info": "81ab0eda42cdc4a08af0a16bf4ce4b9e409ab96be06c596717131cd2fcea26d3"
+    },
+    "mbpp_cn": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/mbpp_cn.zip",
+        "hash_info": "ab16454c2505d3d697e4a47b709f9270bba74c611f2f23550e2f573abb755356"
+    },
+    "FunctionalMT": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/FunctionalMT.zip",
+        "hash_info": "3bd823bc403a0dac9cfeca23022d9ab50604d937dfad8275fef7c115a358abc1"
+    },
+    "humaneval_multipl-e": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/humaneval_multipl-e.zip",
+        "hash_info": "199bcfb7e14b290eb3d5d24a3f0049408ff6cda7145071904a0cbbd5bcd67b66"
+    },
+    "NPHardEval": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/NPHardEval.zip",
+        "hash_info": "26e9f8ac86f1e4200a615fbc567645e6ae3ea00c805d92aade1ce7380ed39df5"
+    },
+    "drop": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/drop.zip",
+        "hash_info": "abe32328be383e47b41651c30973023bdcfe603fb7650285c44c4393fb979dd5"
+    },
+    "game24": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/game24.zip",
+        "hash_info": "d6483c704bcbbdae5fabdf2ff6531672414a8552d0dc289e177b128b3626bb83"
+    },
+    "commonsenseqa": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/commonsenseqa.zip",
+        "hash_info": "56a4fda3936355fea1bf85964b6d0a59c7a481b12c0d856b45b953e967e78de4"
+    },
+    "winogrande": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/winogrande.zip",
+        "hash_info": "caf4a4b706b12059971558ebb3c5fabbb96497a5372a373afc3f04e6c6e45b99"
+    },
+    "FinanceIQ": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/FinanceIQ.zip",
+        "hash_info": "87874a25a520f9a4333edd01ca10ed7212be8717be81a9ca9194e8fee31e07fc"
+    },
+    "qabench": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/qabench.zip",
+        "hash_info": "cba3a1637418b66241695cc371281b55ae24538e996f27d8a2e49a5f83ab8092"
+    },
+    "mbpp_plus": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/mbpp_plus.zip",
+        "hash_info": "7bd3463155efc932518b3ae7babca22a16c9523d76d846dfd74a165e6cbcd89e"
+    },
+    "ceval": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/ceval.zip",
+        "hash_info": "75d0afe77868782ef773fcf3761309de135b7b650e34fe9ee09bfd499a02bb24"
+    },
+    "MedBench": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/MedBench.zip",
+        "hash_info": "ec57f032eeae86d840ff8cbbddf6bbf37e52f81d215fac46cd4baf64bb98f1b6"
+    },
+    "tydiqa": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/tydiqa.zip",
+        "hash_info": "9cea53556e6d7a77cda56b076b1eb7c8673299e462c9a6add504bc947613cc25"
+    },
+    "teval": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/teval.zip",
+        "hash_info": "9a91055eaf8a38cba496a20419f8c639f4645da4018218d84ab98df56ee127c4"
+    },
+    "hellaswag": {
+        "url": "https://aisbench.obs.cn-north-4.myhuaweicloud.com/datasets/benchmark/hellaswag.zip",
+        "hash_info": "27f1ae7fb56bda66a09cbfdd920b1829c66f5f253a52c97e5dd7ec54543d3e6b"
+    }
+}

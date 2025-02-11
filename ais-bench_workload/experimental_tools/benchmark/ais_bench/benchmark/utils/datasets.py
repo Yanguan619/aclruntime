@@ -65,7 +65,7 @@ class DataSetDownLoader:
         if not os.path.exists(dataset_zip_path):
             url = self.urls_data.get(dataset_name, None).get("url", None)
             try:
-                urllib.request.urlretrieve(url, save_path)
+                urllib.request.urlretrieve(url, dataset_zip_path)
             except Exception as err:
                 raise RuntimeError(f"auto download dataset: {dataset_name} failed!") from err
             get_logger().info(f"auto download dataset: {dataset_name} success")

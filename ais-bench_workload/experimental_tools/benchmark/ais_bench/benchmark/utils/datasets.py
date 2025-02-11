@@ -28,28 +28,21 @@ class DataSetDownLoader:
                 return save_path, basename
         raise ValueError(f"auto download datasets path is illegal!")
 
-
     @classmethod
     def calculate_sha256(cls, file_path):
-        # 创建一个SHA-256哈希对象
         sha256_hash = hashlib.sha256()
         try:
             with open(file_path, 'rb') as file:
-                # 逐块读取文件内容
                 for chunk in iter(lambda: file.read(4096), b""):
-                    # 更新哈希对象
                     sha256_hash.update(chunk)
-            # 获取最终的SHA-256哈希值
             return sha256_hash.hexdigest()
         except FileNotFoundError:
             return None
 
     @classmethod
     def verify_sha256(cls, file_path, expected_sha256):
-        # 计算文件的SHA-256哈希值
         actual_sha256 = cls.calculate_sha256(file_path)
         if actual_sha256 is not None:
-            # 比较计算得到的哈希值与期望的哈希值
             if actual_sha256 == expected_sha256:
                 return
             else:
@@ -62,6 +55,10 @@ class DataSetDownLoader:
 
         save_path, dataset_name = self.get_dataset_info_from_path()
         dataset_dir_path = os.path.join(save_path, dataset_name)
+
+        if not os.path.exists(save_path):
+            os.makedirs(save_path) # need to replace by a safe func
+
         if os.path.exists(dataset_dir_path):
             get_logger().warning(f"Dataset: {dataset_name} is exist, won't auto download")
             return
@@ -86,12 +83,12 @@ class DataSetDownLoader:
         os.remove(dataset_zip_path)
 
 
-def get_data_path(dataset_id: str, local_mode: bool = True):
+def get_data_path(dataset_path: str, local_mode: bool = True):
     """return dataset id when getting data from ModelScope/HuggingFace repo, otherwise just
     return local path as is.
 
     Args:
-        dataset_id (str): dataset id or data path
+        dataset_path (str): data path
         local_mode (bool): whether to use local path or
             ModelScope/HuggignFace repo
     """
@@ -99,13 +96,13 @@ def get_data_path(dataset_id: str, local_mode: bool = True):
     default_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../") # site-package
     cache_dir = os.environ.get('AIS_BENCH_DATASETS_CACHE', default_dir)
 
-    # For absolute path customized by the users
-    if dataset_id.startswith('/'):
-        return dataset_id
+    # For absolute path customized by the users, will not auto download dataset
+    if dataset_path.startswith('/'):
+        return dataset_path
 
     # For relative path, with CACHE_DIR
     if local_mode:
-        local_path = os.path.join(cache_dir, dataset_id)
+        local_path = os.path.join(cache_dir, dataset_path)
 
         # auto download
         downloader = DataSetDownLoader(local_path)

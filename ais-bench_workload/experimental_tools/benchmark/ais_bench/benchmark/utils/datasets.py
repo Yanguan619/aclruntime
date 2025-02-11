@@ -18,18 +18,16 @@ class DataSetDownLoader:
     def __call__(self):
         self.auto_download_dataset()
 
-    @classmethod
-    def get_dataset_info_from_path(cls):
-        path_list = cls.dataset_path.split("/") # only linux
+    def get_dataset_info_from_path(self):
+        path_list = self.dataset_path.split("/") # only linux
         for idx, basename in enumerate(reversed(path_list)):
-            if cls.urls_data.get(basename):
+            if self.urls_data.get(basename):
                 save_path = "/" + "/".join(path_list[:idx - 1])
                 # need to check save_path
                 return save_path, basename
         raise ValueError(f"auto download datasets path is illegal!")
 
-    @classmethod
-    def calculate_sha256(cls, file_path):
+    def calculate_sha256(self, file_path):
         sha256_hash = hashlib.sha256()
         try:
             with open(file_path, 'rb') as file:
@@ -39,9 +37,8 @@ class DataSetDownLoader:
         except FileNotFoundError:
             return None
 
-    @classmethod
-    def verify_sha256(cls, file_path, expected_sha256):
-        actual_sha256 = cls.calculate_sha256(file_path)
+    def verify_sha256(self, file_path, expected_sha256):
+        actual_sha256 = self.calculate_sha256(file_path)
         if actual_sha256 is not None:
             if actual_sha256 == expected_sha256:
                 return

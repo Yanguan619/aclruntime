@@ -4,68 +4,86 @@ import zipfile
 import hashlib
 import urllib.request
 
-from .fileio import download_and_extract_archive
-from .datasets_info import DATASETS_MAPPING, DATASETS_URL
 from .logging import get_logger
 
-USER_HOME = os.path.expanduser("~")
-DEFAULT_DATA_FOLDER = os.path.join(USER_HOME, '.cache/ais_bench_benchmark')
 DATASETS_URL_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../ais_bench/datasets/datasets_urls.json")
 
 
-def calculate_sha256(file_path):
-    # 创建一个SHA-256哈希对象
-    sha256_hash = hashlib.sha256()
-    try:
-        with open(file_path, 'rb') as file:
-            # 逐块读取文件内容
-            for chunk in iter(lambda: file.read(4096), b""):
-                # 更新哈希对象
-                sha256_hash.update(chunk)
-        # 获取最终的SHA-256哈希值
-        return sha256_hash.hexdigest()
-    except FileNotFoundError:
-        return None
+class DataSetDownLoader:
+    def __init__(self, dataset_path):
+        self.dataset_path = os.path.abspath(dataset_path)
+        with open(DATASETS_URL_CONFIG_PATH, "r") as file:
+            self.urls_data = json.load(file)
+
+    def __call__(self):
+        self.auto_download_dataset()
+
+    @classmethod
+    def get_dataset_info_from_path(cls):
+        path_list = cls.dataset_path.split("/") # only linux
+        for idx, basename in enumerate(reversed(path_list)):
+            if cls.urls_data.get(basename):
+                save_path = "/" + "/".join(path_list[:idx - 1])
+                # need to check save_path
+                return save_path, basename
+        raise ValueError(f"auto download datasets path is illegal!")
 
 
-def verify_sha256(file_path, expected_sha256):
-    # 计算文件的SHA-256哈希值
-    actual_sha256 = calculate_sha256(file_path)
-    if actual_sha256 is not None:
-        # 比较计算得到的哈希值与期望的哈希值
-        if actual_sha256 == expected_sha256:
+    @classmethod
+    def calculate_sha256(cls, file_path):
+        # 创建一个SHA-256哈希对象
+        sha256_hash = hashlib.sha256()
+        try:
+            with open(file_path, 'rb') as file:
+                # 逐块读取文件内容
+                for chunk in iter(lambda: file.read(4096), b""):
+                    # 更新哈希对象
+                    sha256_hash.update(chunk)
+            # 获取最终的SHA-256哈希值
+            return sha256_hash.hexdigest()
+        except FileNotFoundError:
+            return None
+
+    @classmethod
+    def verify_sha256(cls, file_path, expected_sha256):
+        # 计算文件的SHA-256哈希值
+        actual_sha256 = cls.calculate_sha256(file_path)
+        if actual_sha256 is not None:
+            # 比较计算得到的哈希值与期望的哈希值
+            if actual_sha256 == expected_sha256:
+                return
+            else:
+                raise ValueError("Sha-256 hash info check failed!")
+
+    def auto_download_dataset(self):
+        # customized dataset path
+        if os.path.exists(self.dataset_path):
             return
-        else:
-            raise ValueError("Sha-256 hash info check failed!")
 
+        save_path, dataset_name = self.get_dataset_info_from_path()
+        dataset_dir_path = os.path.join(save_path, dataset_name)
+        if os.path.exists(dataset_dir_path):
+            get_logger().warning(f"Dataset: {dataset_name} is exist, won't auto download")
+            return
 
-def auto_download_dataset(path: str):
-    if os.path.exists(path):
-        return
+        # download dataset zip
+        dataset_zip_path = dataset_dir_path + ".zip"
+        if not os.path.exists(dataset_zip_path):
+            url = self.urls_data.get(dataset_name, None).get("url", None)
+            try:
+                urllib.request.urlretrieve(url, save_path)
+            except Exception as err:
+                raise RuntimeError(f"auto download dataset: {dataset_name} failed!") from err
+            get_logger().info(f"auto download dataset: {dataset_name} success")
 
-    dataset_name = os.path.basename(path)
-    save_path = os.path.dirname(path)
+        # check hash info
+        hash_info = self.urls_data.get(dataset_name, None).get("hash_info", None)
+        self.verify_sha256(dataset_zip_path, hash_info)
 
-    with open(DATASETS_URL_CONFIG_PATH, "r") as file:
-        urls_data = json.load(file)
+        with zipfile.ZipFile(dataset_zip_path, 'r') as zip_ref:
+            zip_ref.extractall(self.dataset_path)
 
-    url = urls_data.get(dataset_name, None).get("url", None)
-
-    # download dataset zip
-    try:
-        urllib.request.urlretrieve(url, save_path)
-    except Exception as err:
-        raise RuntimeError(f"auto download dataset: {dataset_name} failed!") from err
-
-    get_logger().info(f"auto download dataset: {dataset_name}")
-
-    # check hash info
-    hash_info = urls_data.get(dataset_name, None).get("hash_info", None)
-    zip_path = os.path.join(save_path, os.path.basename(url))
-    verify_sha256(zip_path, hash_info)
-
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(path)
+        os.remove(dataset_zip_path)
 
 
 def get_data_path(dataset_id: str, local_mode: bool = True):
@@ -88,7 +106,10 @@ def get_data_path(dataset_id: str, local_mode: bool = True):
     # For relative path, with CACHE_DIR
     if local_mode:
         local_path = os.path.join(cache_dir, dataset_id)
-        auto_download_dataset(local_path)
+
+        # auto download
+        downloader = DataSetDownLoader(local_path)
+        downloader()
 
         if not os.path.exists(local_path):
             raise FileExistsError(f'Dataset path: {local_path} is not exist!')

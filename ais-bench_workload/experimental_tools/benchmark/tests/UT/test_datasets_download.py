@@ -45,7 +45,8 @@ class TestClass:
     def test_download_without_located_exist_datasets(self, monkeypatch):
         dataset_name = "gsm8k"
         dataset_path = os.path.join(self.datasets_dir, dataset_name)
-        shutil.rmtree(dataset_path)
+        if os.path.exists(dataset_path):
+            shutil.rmtree(dataset_path)
         monkeypatch.setattr("os.environ.get", lambda *arg: self.datasets_dir)
 
         get_data_path(dataset_path)

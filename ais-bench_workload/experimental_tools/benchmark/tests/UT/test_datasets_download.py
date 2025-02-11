@@ -49,7 +49,7 @@ class TestClass:
             shutil.rmtree(dataset_path)
         monkeypatch.setattr("os.environ.get", lambda *arg: self.datasets_dir)
 
-        get_data_path(dataset_path)
+        get_data_path(dataset_name)
 
         # check downloaded
         assert os.path.exists(dataset_path)

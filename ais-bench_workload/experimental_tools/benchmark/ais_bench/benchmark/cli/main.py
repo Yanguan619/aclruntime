@@ -12,7 +12,7 @@ from mmengine.config import Config, DictAction
 from ais_bench.benchmark.registry import PARTITIONERS, RUNNERS, build_from_cfg
 from ais_bench.benchmark.summarizers import DefaultSummarizer
 from ais_bench.benchmark.utils import LarkReporter, get_logger
-from ais_bench.benchmark.utils.run import (fill_infer_cfg, get_config_from_arg)
+from ais_bench.benchmark.utils.run import (fill_infer_cfg, fill_eval_cfg, get_config_from_arg)
 
 def get_current_time_str():
     return datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -83,6 +83,27 @@ def parse_args():
                         type=int,
                         default=1)
 
+    # evaluatation add
+    parser.add_argument(
+        '--max-workers-per-gpu',
+        help='Max task to run in parallel on one GPU. '
+        'It will only be used in the local runner.',
+        type=int,
+        default=1
+    )
+    parser.add_argument(
+        '--dump-eval-details',
+        help='Whether to dump the evaluation details, including the '
+        'correctness of each sample, bpb, etc.',
+        action='store_true',
+    )
+    parser.add_argument(
+        '--dump-extract-rate',
+        help='Whether to dump the evaluation details, including the '
+        'correctness of each sample, bpb, etc.',
+        action='store_true',
+    )
+
     args = parser.parse_args()
     return args
 
@@ -138,10 +159,8 @@ def main():
         LarkReporter(cfg['lark_bot_url']).post(content)
 
     if args.mode in ['all', 'infer']:
-        # When user have specified --slurm or --dlc, or have not set
         # "infer" in config, we will provide a default configuration
         # for infer
-
         if cfg.get('infer', None) is None:
             fill_infer_cfg(cfg, args)
 
@@ -162,6 +181,68 @@ def main():
                 cfg.attack.dataset = task.datasets[0][0].abbr
                 task.attack = cfg.attack
         runner(tasks)
+
+    if args.mode in ['all', 'eval']:
+        # "eval" in config, we will provide a default configuration
+        # for eval
+        if cfg.get('eval', None) is None:
+            fill_eval_cfg(cfg, args)
+        if args.dump_eval_details:
+            cfg.eval.runner.task.dump_details = True
+        if args.dump_extract_rate:
+            cfg.eval.runner.task.cal_extract_rate = True
+        if args.debug:
+            cfg.eval.runner.debug = True
+        if args.lark:
+            cfg.eval.runner.lark_bot_url = cfg['lark_bot_url']
+        cfg.eval.partitioner['out_dir'] = osp.join(cfg['work_dir'], 'results/')
+        partitioner = PARTITIONERS.build(cfg.eval.partitioner)
+        tasks = partitioner(cfg)
+        if args.dry_run:
+            return
+        runner = RUNNERS.build(cfg.eval.runner)
+
+        # For meta-review-judge in subjective evaluation
+        if isinstance(tasks, list) and len(tasks) != 0 and isinstance(tasks[0], list):
+            for task_part in tasks:
+                runner(task_part)
+        else:
+            runner(tasks)
+
+    # visualize
+    if args.mode in ['all', 'eval', 'viz']:
+        summarizer_cfg = cfg.get('summarizer', {})
+
+        # For subjective summarizer
+        if summarizer_cfg.get('function', None):
+            main_summarizer_cfg = copy.deepcopy(summarizer_cfg)
+            grouped_datasets = {}
+            for dataset in cfg.datasets:
+                prefix = dataset['abbr'].split('_')[0]
+                if prefix not in grouped_datasets:
+                    grouped_datasets[prefix] = []
+                grouped_datasets[prefix].append(dataset)
+            all_grouped_lists = []
+            for prefix in grouped_datasets:
+                all_grouped_lists.append(grouped_datasets[prefix])
+            dataset_score_container = []
+            for dataset in all_grouped_lists:
+                temp_cfg = copy.deepcopy(cfg)
+                temp_cfg.datasets = dataset
+                summarizer_cfg = dict(type=dataset[0]['summarizer']['type'], config=temp_cfg)
+                summarizer = build_from_cfg(summarizer_cfg)
+                dataset_score = summarizer.summarize(time_str=cfg_time_str)
+                if dataset_score:
+                    dataset_score_container.append(dataset_score)
+            main_summarizer_cfg['config'] = cfg
+            main_summarizer = build_from_cfg(main_summarizer_cfg)
+            main_summarizer.summarize(time_str=cfg_time_str, subjective_scores=dataset_score_container)
+        else:
+            if not summarizer_cfg or summarizer_cfg.get('type', None) is None:
+                summarizer_cfg['type'] = DefaultSummarizer
+            summarizer_cfg['config'] = cfg
+            summarizer = build_from_cfg(summarizer_cfg)
+            summarizer.summarize(time_str=cfg_time_str)
 
 
 if __name__ == '__main__':

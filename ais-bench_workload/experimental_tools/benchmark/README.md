@@ -3,7 +3,7 @@
 AISBench benchmark评测工具是基于opencompass开发的评测工具，兼容opencompass的配置文件、数据集、模型后端等具体实现。目前支持评测推理精度。
 
 ## 工具安装
-AISBench benchmark是纯python开发的工具，要求`python >= 3.11`
+AISBench benchmark是纯python开发的工具，要求`python >= 3.10`
 本工具的依赖较多，推荐在conda虚拟环境下安装。
 ```shell
 conda create --name ais_bench python=3.10 -y
@@ -111,7 +111,7 @@ ais_bench ais_bench/configs/api_examples/infer_api_vllm_llama3_8b.py
 ```
 
 ### 推理过程查看
-启动推理过程中可以在{work_dir}/{time_label}/logs/infer/{abbr_name}/gskm8k.out 中查看推理结果，例如执行
+启动推理过程中可以在{work_dir}/{time_label}/logs/infer/{abbr_name}/gsm8k.out 中查看推理结果，例如执行
 ```shell
 tail -f outputs/api_vllm_llama3-8b/20250126_165049/logs/infer/vllm-api-llama3-8b/gsm8k.out
 ```
@@ -119,11 +119,37 @@ tail -f outputs/api_vllm_llama3-8b/20250126_165049/logs/infer/vllm-api-llama3-8b
 其中`{work_dir}/{time_label}/`会在工具的打屏中显示
 
 ### 推理结果查看
-推理完成后可以在{work_dir}/{time_label}/predictions/{abbr_name}/gskm8k.json 中查看推理结果，例如执行
+推理完成后可以在{work_dir}/{time_label}/predictions/{abbr_name}/gsm8k.json 中查看推理结果，例如执行
 ```shell
 vim outputs/api_vllm_llama3-8b/20250126_165049/predictions/vllm-api-llama3-8b/gsm8k.json
 ```
 可以看到推理结果
+
+### 测评结果查看
+在{work_dir}/{time_label}/results/{abbr_name}/gsm8k.json中查看评测出的精度，例如执行
+```shell
+vim outputs/api_vllm_llama3-8b/20250126_165049/results/vllm-api-llama3-8b/gsm8k.json
+```
+可以得到类似如下结果：
+```json
+{
+    "accuracy": 59.34
+}
+```
+
+### 测评结果可视化
+评测过程结束后，工具会将markdown格式的结果打印出来，同时会落盘如下三种格式的结果：
+```
+{work_dir}/{time_label}/summary/summary_{time_label}.txt
+{work_dir}/{time_label}/summary/summary_{time_label}.csv
+{work_dir}/{time_label}/summary/summary_{time_label}.md
+```
+例如
+```
+outputs/api_vllm_llama3-8b/20250126_165049/summary/summary_20250126_165049.txt
+outputs/api_vllm_llama3-8b/20250126_165049/summary/summary_20250126_165049.csv
+outputs/api_vllm_llama3-8b/20250126_165049/summary/summary_20250126_165049.md
+```
 
 ## 完整命令行说明
 
@@ -141,3 +167,6 @@ vim outputs/api_vllm_llama3-8b/20250126_165049/predictions/vllm-api-llama3-8b/gs
 |--config-dir|搜索默认models，datasets和summarizers的文件夹路径， 默认ais_bench/benchmark/configs|ais_bench --config-dir /xxx/xxx|
 |--lark/-l|报告运行状态到lark bot的开关|ais_bench --lark|
 |--max-num-workers|并行运行的worker的最大个数，默认1|ais_bench --max-num-workers 1|
+|--max-workers-per-gpu|评测需要用到的npu或gpu数量，需要配置了ASCEND_RT_VISIBLE_DEVICES会使用npu，配置了CUDA_VISIBLE_DEVICES才会使用gpu，否则默认是cpu，此参数无效。此参数默认1|ais_bench --max-workers-per-gpu 1|
+|--dump-eval-details|是否dump出评测过程的细节，开关|ais_bench --dump-eval-details|
+|--dump-extract-rate|是否dump出评测速度，开关|ais_bench --dump-extract-rate|

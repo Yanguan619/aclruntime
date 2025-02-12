@@ -47,7 +47,7 @@ class TestClass:
         dataset_path = os.path.join(self.datasets_dir, dataset_name)
         if os.path.exists(dataset_path):
             shutil.rmtree(dataset_path)
-        monkeypatch.setattr("os.environ.get", lambda *arg: self.datasets_dir)
+        monkeypatch.setattr("ais_bench.benchmark.utils.datasets.get_cache_dir", lambda *arg: self.datasets_dir)
 
         get_data_path(dataset_name)
 

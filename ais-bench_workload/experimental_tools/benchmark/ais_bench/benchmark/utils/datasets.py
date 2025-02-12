@@ -80,6 +80,10 @@ class DataSetDownLoader:
         os.remove(dataset_zip_path)
 
 
+def get_cache_dir(default_dir):
+    return os.environ.get('AIS_BENCH_DATASETS_CACHE', default_dir)
+
+
 def get_data_path(dataset_path: str, local_mode: bool = True):
     """return dataset id when getting data from ModelScope/HuggingFace repo, otherwise just
     return local path as is.
@@ -91,7 +95,7 @@ def get_data_path(dataset_path: str, local_mode: bool = True):
     """
     # update the path with CACHE_DIR
     default_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../") # site-package
-    cache_dir = os.environ.get('AIS_BENCH_DATASETS_CACHE', default_dir)
+    cache_dir = get_cache_dir(default_dir)
 
     # For absolute path customized by the users, will not auto download dataset
     if dataset_path.startswith('/'):

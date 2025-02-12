@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import pytest
 import shutil
 from ais_bench.benchmark.utils.datasets import get_data_path
 
@@ -57,3 +58,53 @@ class TestClass:
         assert not os.path.exists(dataset_path + ".zip")
 
         shutil.rmtree(dataset_path)
+
+    def test_download_sha256_check_failed(self, monkeypatch):
+        dataset_name = "gsm8k"
+        dataset_path = os.path.join(self.datasets_dir, dataset_name)
+        if os.path.exists(dataset_path):
+            shutil.rmtree(dataset_path)
+        monkeypatch.setattr("ais_bench.benchmark.utils.datasets.get_cache_dir", lambda *arg: self.datasets_dir)
+        monkeypatch.setattr("ais_bench.benchmark.utils.datasets.DatasetDownLoader.calculate_sha256", lambda *arg: "fake-value")
+
+        with pytest.raises(ValueError) as e:
+            get_data_path(dataset_name)
+            assert "Sha-256 hash info check failed" in e
+
+        shutil.rmtree(dataset_path)
+
+    def test_download_invalid_dataset_name(self, monkeypatch):
+        dataset_name = "gsm8k-invalid"
+        dataset_path = os.path.join(self.datasets_dir, dataset_name)
+        if os.path.exists(dataset_path):
+            shutil.rmtree(dataset_path)
+        monkeypatch.setattr("ais_bench.benchmark.utils.datasets.get_cache_dir", lambda *arg: self.datasets_dir)
+
+        with pytest.raises(ValueError) as e:
+            get_data_path(dataset_name)
+            assert "Auto download datasets path is illegal" in e
+
+        shutil.rmtree(dataset_path)
+
+    def test_customized_dataset_is_not_an_abspath(self, monkeypatch):
+        dataset_name = "gsm8k"
+        dataset_path = os.path.join(self.datasets_dir, dataset_name)
+        if os.path.exists(dataset_path):
+            shutil.rmtree(dataset_path)
+        monkeypatch.setattr("ais_bench.benchmark.utils.datasets.get_cache_dir", lambda *arg: self.datasets_dir)
+
+        with pytest.raises(TypeError) as e:
+            get_data_path(dataset_name, local_mode=False)
+            assert "Customized dataset path type is not a absolute path" in e
+
+    def test_datasets_not_exist_after_download(self, monkeypatch):
+        dataset_name = "gsm8k"
+        dataset_path = os.path.join(self.datasets_dir, dataset_name)
+        if os.path.exists(dataset_path):
+            shutil.rmtree(dataset_path)
+        monkeypatch.setattr("ais_bench.benchmark.utils.datasets.DatasetDownLoader.__call__", lambda *arg: None)
+
+        with pytest.raises(FileExistsError) as e:
+            get_data_path(dataset_name, local_mode=False)
+            assert "is not exist" in e
+

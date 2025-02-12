@@ -9,7 +9,7 @@ from .logging import get_logger
 DATASETS_URL_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../ais_bench/datasets/datasets_urls.json")
 
 
-class DataSetDownLoader:
+class DatasetDownLoader:
     def __init__(self, dataset_path):
         self.dataset_path = os.path.abspath(dataset_path)
         with open(DATASETS_URL_CONFIG_PATH, "r") as file:
@@ -106,7 +106,7 @@ def get_data_path(dataset_path: str, local_mode: bool = True):
         local_path = os.path.join(cache_dir, dataset_path)
 
         # auto download
-        downloader = DataSetDownLoader(local_path)
+        downloader = DatasetDownLoader(local_path)
         downloader()
 
         if not os.path.exists(local_path):
@@ -114,4 +114,4 @@ def get_data_path(dataset_path: str, local_mode: bool = True):
         else:
             return local_path
     else:
-        raise FileExistsError('Dataset path is not empty!')
+        raise TypeError('Customized dataset path type is not a absolute path!')

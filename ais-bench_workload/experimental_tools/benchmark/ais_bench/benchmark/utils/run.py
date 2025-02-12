@@ -7,7 +7,7 @@ import tabulate
 from mmengine.config import Config
 
 from ais_bench.benchmark.partitioners import NaivePartitioner, NumWorkerPartitioner
-from ais_bench.benchmark.runners import LocalAPIRunner
+from ais_bench.benchmark.runners import LocalAPIRunner, LocalRunner
 from ais_bench.benchmark.tasks import OpenICLEvalTask, OpenICLInferTask
 from ais_bench.benchmark.utils import get_logger, match_files
 
@@ -133,7 +133,7 @@ def get_config_from_arg(args) -> Config:
         raise ValueError('You must specify "--models"')
 
     # parse summarizer args
-    summarizer_arg = args.summarizer if args.summarizer is not None else 'medium.py'
+    summarizer_arg = args.summarizer if args.summarizer is not None else 'medium'
     script_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(script_dir)
     default_configs_dir = os.path.join(parent_dir, 'configs')
@@ -179,4 +179,19 @@ def fill_infer_cfg(cfg, args):
         )), )
 
     new_cfg['infer']['runner']['type'] = get_config_type(LocalAPIRunner)
+    cfg.merge_from_dict(new_cfg)
+
+
+def fill_eval_cfg(cfg, args):
+    new_cfg = dict(eval=dict(
+        partitioner=dict(type=get_config_type(NaivePartitioner)),
+        runner=dict(
+            max_num_workers=args.max_num_workers,
+            debug=args.debug,
+            task=dict(type=get_config_type(OpenICLEvalTask)),
+            lark_bot_url=cfg['lark_bot_url'],
+        )), )
+
+    new_cfg['eval']['runner']['type'] = get_config_type(LocalRunner)
+    new_cfg['eval']['runner']['max_workers_per_gpu'] = args.max_workers_per_gpu
     cfg.merge_from_dict(new_cfg)

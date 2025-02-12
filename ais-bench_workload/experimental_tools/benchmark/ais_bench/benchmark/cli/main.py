@@ -222,11 +222,8 @@ def main():
                 if prefix not in grouped_datasets:
                     grouped_datasets[prefix] = []
                 grouped_datasets[prefix].append(dataset)
-            all_grouped_lists = []
-            for prefix in grouped_datasets:
-                all_grouped_lists.append(grouped_datasets[prefix])
             dataset_score_container = []
-            for dataset in all_grouped_lists:
+            for dataset in grouped_datasets.values():
                 temp_cfg = copy.deepcopy(cfg)
                 temp_cfg.datasets = dataset
                 summarizer_cfg = dict(type=dataset[0]['summarizer']['type'], config=temp_cfg)

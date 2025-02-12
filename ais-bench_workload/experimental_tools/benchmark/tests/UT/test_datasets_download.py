@@ -71,8 +71,6 @@ class TestClass:
             get_data_path(dataset_name)
             assert "Sha-256 hash info check failed" in e
 
-        shutil.rmtree(dataset_path)
-
     def test_download_invalid_dataset_name(self, monkeypatch):
         dataset_name = "gsm8k-invalid"
         dataset_path = os.path.join(self.datasets_dir, dataset_name)
@@ -83,8 +81,6 @@ class TestClass:
         with pytest.raises(ValueError) as e:
             get_data_path(dataset_name)
             assert "Auto download datasets path is illegal" in e
-
-        shutil.rmtree(dataset_path)
 
     def test_customized_dataset_is_not_an_abspath(self, monkeypatch):
         dataset_name = "gsm8k"
@@ -105,6 +101,6 @@ class TestClass:
         monkeypatch.setattr("ais_bench.benchmark.utils.datasets.DatasetDownLoader.__call__", lambda *arg: None)
 
         with pytest.raises(FileExistsError) as e:
-            get_data_path(dataset_name, local_mode=False)
+            get_data_path(dataset_name)
             assert "is not exist" in e
 

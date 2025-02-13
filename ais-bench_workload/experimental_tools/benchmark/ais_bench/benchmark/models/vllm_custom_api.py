@@ -70,7 +70,7 @@ class VLLMCustomAPI(BaseAPIModel):
                          retry=retry,
                          verbose=verbose)
 
-        self.logger.info("Running model path name is: ", path)
+        self.logger.info("Running model path name is: " + path)
         self.path = path
 
     def generate(self,

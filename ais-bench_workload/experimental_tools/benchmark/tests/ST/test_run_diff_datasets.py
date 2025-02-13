@@ -30,7 +30,7 @@ class TestClass:
         if os.path.exists(self.test_data_path):
             shutil.rmtree(self.test_data_path)
         os.makedirs(self.test_data_path)
-        self._set_datasets_config_path()
+        self._set_datasets_config_path(self)
 
     def _set_datasets_config_path(self):
         dataset_configs_base_dir = os.path.abspath(os.path.join(self.cur_dir, "../../ais_bench/benchmark/configs/datasets"))

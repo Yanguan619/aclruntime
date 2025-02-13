@@ -33,7 +33,7 @@ class TestClass:
         self._set_datasets_config_path()
 
     def _set_datasets_config_path(self):
-        dataset_configs_base_dir = os.path.abspath(os.path.join(cls.cur_dir, "../../ais_bench/benchmark/configs/datasets"))
+        dataset_configs_base_dir = os.path.abspath(os.path.join(self.cur_dir, "../../ais_bench/benchmark/configs/datasets"))
         for dataset in DATASETS_CONFIGS_LIST:
             sys.path.append(os.path.join(dataset_configs_base_dir, dataset))
 

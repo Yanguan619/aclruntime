@@ -71,11 +71,6 @@ def parse_args():
         help='Use the custom config directory instead of config/ to '
         'search the configs for datasets, models and summarizers',
         type=str)
-    parser.add_argument('-l',
-                        '--lark',
-                        help='Report the running status to lark bot',
-                        action='store_true',
-                        default=False)
     parser.add_argument('--max-num-workers',
                         help='Max number of workers to run in parallel. '
                         'Will be overrideen by the "max_num_workers" argument '
@@ -151,13 +146,6 @@ def main():
     # types cannot be serialized
     cfg = Config.fromfile(output_config_path, format_python_code=False)
 
-    # report to lark bot if specify --lark
-    if not args.lark:
-        cfg['lark_bot_url'] = None
-    elif cfg.get('lark_bot_url', None):
-        content = f'{getpass.getuser()}\'s task has been launched!'
-        LarkReporter(cfg['lark_bot_url']).post(content)
-
     if args.mode in ['all', 'infer']:
         # "infer" in config, we will provide a default configuration
         # for infer
@@ -166,8 +154,6 @@ def main():
 
         if args.debug:
             cfg.infer.runner.debug = True
-        if args.lark:
-            cfg.infer.runner.lark_bot_url = cfg['lark_bot_url']
         cfg.infer.partitioner['out_dir'] = osp.join(cfg['work_dir'],
                                                     'predictions/')
         partitioner = PARTITIONERS.build(cfg.infer.partitioner)
@@ -193,8 +179,6 @@ def main():
             cfg.eval.runner.task.cal_extract_rate = True
         if args.debug:
             cfg.eval.runner.debug = True
-        if args.lark:
-            cfg.eval.runner.lark_bot_url = cfg['lark_bot_url']
         cfg.eval.partitioner['out_dir'] = osp.join(cfg['work_dir'], 'results/')
         partitioner = PARTITIONERS.build(cfg.eval.partitioner)
         tasks = partitioner(cfg)

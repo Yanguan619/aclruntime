@@ -165,7 +165,6 @@ outputs/api_vllm_llama3-8b/20250126_165049/summary/summary_20250126_165049.md
 |--reuse/-r|重复使用的时间戳文件夹，--work_dir必须设置为outputs/default，默认寻找outputs/default下最新的文件夹|ais_bench --reuse <br> ais_bench -r 20250126_144254|
 |--work_dir/-w|工作路径，默认outputs/default|ais_bench --work_dir /path/to/work <br> ais_bench -w /path/to/work|
 |--config-dir|搜索默认models，datasets和summarizers的文件夹路径， 默认ais_bench/benchmark/configs|ais_bench --config-dir /xxx/xxx|
-|--lark/-l|报告运行状态到lark bot的开关|ais_bench --lark|
 |--max-num-workers|并行运行的worker的最大个数，默认1|ais_bench --max-num-workers 1|
 |--max-workers-per-gpu|评测需要用到的npu或gpu数量，需要配置了ASCEND_RT_VISIBLE_DEVICES会使用npu，配置了CUDA_VISIBLE_DEVICES才会使用gpu，否则默认是cpu，此参数无效。此参数默认1|ais_bench --max-workers-per-gpu 1|
 |--dump-eval-details|是否dump出评测过程的细节，开关|ais_bench --dump-eval-details|

@@ -18,7 +18,6 @@ models = [
     dict(
         type=VLLMCustomAPI,
         abbr='vllm-api-general',
-        path='', # VLLMCustomAPI auto get path from server
         max_seq_len = 4096,
         query_per_second = 1,
         rpm_verbose = False,

@@ -175,7 +175,6 @@ def fill_infer_cfg(cfg, args):
             concurrent_users=2,
             debug=args.debug,
             task=dict(type=get_config_type(OpenICLInferTask)),
-            lark_bot_url=cfg['lark_bot_url'],
         )), )
 
     new_cfg['infer']['runner']['type'] = get_config_type(LocalAPIRunner)
@@ -189,7 +188,6 @@ def fill_eval_cfg(cfg, args):
             max_num_workers=args.max_num_workers,
             debug=args.debug,
             task=dict(type=get_config_type(OpenICLEvalTask)),
-            lark_bot_url=cfg['lark_bot_url'],
         )), )
 
     new_cfg['eval']['runner']['type'] = get_config_type(LocalRunner)

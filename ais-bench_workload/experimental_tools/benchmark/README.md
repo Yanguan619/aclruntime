@@ -170,11 +170,126 @@ outputs/api_vllm_general/20250126_165049/summary/summary_20250126_165049.md
 |--summarizer|指定数据集汇总任务名称（对应ais_bench/benchmark/configs/summarizers路径下一个已经实现的默认模型配置文件）|--summarizer medium|
 |--debug|debug模式开关，加或者不加|--debug|
 |--dry-run|dry run模式（只打屏不实际跑任务）开关，加或者不加|--dry-run|
-|--mode/-m|可选["all", "infer", "eval", "viz"]，默认"all"，当前两种模式效果完全一样|--mode infer <br>-m all|
-|--reuse/-r|重复使用的时间戳文件夹，寻找--work_dir指定的工作路径下最新的文件夹|--reuse <br>-r 20250126_144254|
+|--mode/-m|可选["all", "infer", "eval", "viz"]，默认"all"，每个模式如何运行参考"运行模式说明"|--mode infer <br>-m all|
+|--reuse/-r|重复使用的时间戳文件夹，寻找--work_dir指定的工作路径下时间戳最新的文件夹|--reuse <br>-r 20250126_144254|
 |--work-dir/-w|工作路径，默认outputs/default| --work-dir /path/to/work <br>-w /path/to/work|
 |--config-dir|搜索默认models，datasets和summarizers的文件夹路径， 默认ais_bench/benchmark/configs|--config-dir /xxx/xxx|
 |--max-num-workers|并行运行的worker的最大个数，默认1|--max-num-workers 1|
 |--max-workers-per-gpu|评测需要用到的npu或gpu数量，当前评测只能使用cpu，此参数无实际效果。此参数默认取值为1|--max-workers-per-gpu 1|
 |--dump-eval-details|是否dump出评测过程的细节，开关|--dump-eval-details|
 |--dump-extract-rate|是否dump出评测速度，开关|--dump-extract-rate|
+
+## 运行模式说明
+### all 模式
+
+all模式下评测工具会完整得跑一遍评测流程：
+```mermaid
+graph LR;
+A[基于给定数据集执行推理] --> B((推理结果));
+B --> C[基于推理结果测评]
+C --> D((精度数据))
+D --> E[基于精度数据汇总呈现]
+E --> F((呈现结果))
+```
+
+命令示例：
+```shell
+ais_bench --models vllm_api_general --datasets gsm8k_gen --mode all
+```
+
+生成结构目录结构：
+```bash
+outputs/default/
+├── 20200220_120000
+├── 20230220_183030     # 每个实验一个文件夹
+│   ├── configs         # 用于记录的已转储的配置文件。如果在同一个实验文件夹中重新运行了不同的实验，可能会保留多个配置
+│   ├── logs            # 推理和评估阶段的日志文件
+│   │   ├── eval
+│   │   └── infer
+│   ├── predictions   # 每个任务的推理结果
+│   ├── results       # 每个任务的评估结果
+│   └── summary       # 单个实验的汇总评估结果
+├── ...
+```
+
+### infer模式
+
+infer模式下评测工具仅会跑出数据集的推理结果：
+```mermaid
+graph LR;
+A[基于给定数据集执行推理] --> B((推理结果));
+```
+命令示例：
+```shell
+ais_bench --models vllm_api_general --datasets gsm8k_gen --mode infer
+```
+
+生成结构目录结构：
+```bash
+outputs/default/
+├── 20200220_120000
+├── 20230220_183030     # 每个实验一个文件夹
+│   ├── configs         # 用于记录的已转储的配置文件。如果在同一个实验文件夹中重新运行了不同的实验，可能会保留多个配置
+│   ├── logs            # 推理和评估阶段的日志文件
+│   │   ├── eval
+│   │   └── infer
+│   ├── predictions   # 每个任务的推理结果
+├── ...
+```
+
+### eval模式
+eval模式下评测工具会基于已有的推理结果跑一遍评测流程和结果呈现的流程，需要结合--reuse命令使用：
+```mermaid
+graph LR;
+B((推理结果)) --> C[基于推理结果测评]
+C --> D((精度数据))
+D --> E[基于精度数据汇总呈现]
+E --> F((呈现结果))
+```
+
+命令示例：
+```shell
+ais_bench --models vllm_api_general --datasets gsm8k_gen --mode all
+```
+
+生成结构目录结构：
+```bash
+outputs/default/
+├── 20200220_120000
+├── 20230220_183030     # 每个实验一个文件夹
+│   ├── configs         # 用于记录的已转储的配置文件。如果在同一个实验文件夹中重新运行了不同的实验，可能会保留多个配置
+│   ├── logs            # 推理和评估阶段的日志文件
+│   │   ├── eval
+│   │   └── infer
+│   ├── predictions   # 每个任务的推理结果
+│   ├── results       # 每个任务的评估结果 (eval新增)
+├── ...
+```
+
+### viz模式
+viz模式下评测工具会基于已有的精度数据跑一遍结果呈现的流程，需要结合--reuse命令使用：
+```mermaid
+graph LR;
+D((精度数据)) --> E[基于精度数据汇总呈现]
+E --> F((呈现结果))
+```
+
+命令示例：
+```shell
+ais_bench --models vllm_api_general --datasets gsm8k_gen --mode all
+```
+
+生成结构目录结构：
+```bash
+outputs/default/
+├── 20200220_120000
+├── 20230220_183030     # 每个实验一个文件夹
+│   ├── configs         # 用于记录的已转储的配置文件。如果在同一个实验文件夹中重新运行了不同的实验，可能会保留多个配置
+│   ├── logs            # 推理和评估阶段的日志文件
+│   │   ├── eval
+│   │   └── infer
+│   ├── predictions   # 每个任务的推理结果
+│   ├── results       # 每个任务的评估结果
+│   └── summary       # 单个实验的汇总评估结果 (viz新增)
+├── ...
+```

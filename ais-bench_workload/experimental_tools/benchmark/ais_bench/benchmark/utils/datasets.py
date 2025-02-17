@@ -25,7 +25,7 @@ class DatasetDownLoader:
                 save_path = "/" + "/".join(path_list[:idx - 1])
                 # need to check save_path
                 return save_path, basename
-        raise ValueError(f"auto download datasets path is illegal!")
+        raise ValueError(f"Auto download datasets path is illegal!")
 
     def calculate_sha256(self, file_path):
         sha256_hash = hashlib.sha256()
@@ -39,7 +39,7 @@ class DatasetDownLoader:
 
     def verify_sha256(self, file_path, expected_sha256):
         actual_sha256 = self.calculate_sha256(file_path)
-        if actual_sha256 is not None:
+        if expected_sha256 is not None:
             if actual_sha256 == expected_sha256:
                 return
             else:
@@ -64,11 +64,14 @@ class DatasetDownLoader:
         dataset_zip_path = dataset_dir_path + ".zip"
         if not os.path.exists(dataset_zip_path):
             url = self.urls_data.get(dataset_name, None).get("url", None)
+            if url is None:
+                raise ValueError(f"Url of datasets: {dataset_name} is None, " + \
+                                "please check the content of {DATASETS_URL_CONFIG_PATH}")
             try:
                 urllib.request.urlretrieve(url, dataset_zip_path)
             except Exception as err:
-                raise RuntimeError(f"auto download dataset: {dataset_name} failed!") from err
-            get_logger().info(f"auto download dataset: {dataset_name} success")
+                raise RuntimeError(f"Auto download dataset: {dataset_name} failed!") from err
+            get_logger().info(f"Auto download dataset: {dataset_name} success")
 
         # check hash info
         hash_info = self.urls_data.get(dataset_name, None).get("hash_info", None)

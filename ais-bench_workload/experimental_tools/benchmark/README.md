@@ -32,7 +32,7 @@ pip3 intall -r requirements/api.txt
 ## 快速入门
 在本工具的评测中，每个评估任务由待评估的模型后端和数据集组成，可以通过两种方式来指定模型和数据集：命令行指定模型和数据集以及在配置文件中指定模型和数据集。由于当前工具支持的模型后端都是服务化api，请先参考[vllm官方文档/启动服务器样例](https://vllm.hyper.ai/docs/tutorials/vLLM-stepbysteb#%E4%B8%89%E5%90%AF%E5%8A%A8-vllm-%E6%9C%8D%E5%8A%A1%E5%99%A8)在gpu服务器上拉起vllm的推理服务。<br>
 ### 命令行指定模型和数据集
-命令行方式指定模型和数据集本质上是调用工具内置的.py配置文件指定的，需要先在`ais_bench/benchmark/configs/models/`中预置的模型配置文件中配置好服务化相关参数，例如我要执行vllm_api_llama3_8b的任务，需要在`ais_bench/benchmark/configs/models/llama/vllm_api_llama3_8b.py`中修改配置：
+命令行方式指定模型和数据集本质上是调用工具内置的.py配置文件指定的，需要先在`ais_bench/benchmark/configs/models/`中预置的模型配置文件中配置好服务化相关参数，例如我要执行vllm_api_llama3_8b的任务，需要在`ais_bench/benchmark/configs/models/vllm_api/vllm_api_general.py`中修改配置：
 
 ```python
 from ais_bench.benchmark.models import VLLMCustomAPI
@@ -40,8 +40,7 @@ from ais_bench.benchmark.models import VLLMCustomAPI
 models = [
     dict(
         type=VLLMCustomAPI,
-        abbr='vllm-api-llama3-8b', # for llama3 llama3.1 llama3.2
-        path='', # VLLMCustomAPI auto get path from server
+        abbr='vllm-api-general',
         max_seq_len = 4096,
         query_per_second = 1,
         rpm_verbose = False,
@@ -55,11 +54,11 @@ models = [
 ```
 修改好配置文件后，执行如下命令启动评测：
 ```
-ais_bench --model vllm_api_llama3_8b --datasets gsm8k_gen
+ais_bench --models vllm_api_general --datasets gsm8k_gen
 ```
 
 ### 配置文件指定模型和数据集
-需要先在源码中提供的样例配置文件`ais_bench/configs/`中预置的模型配置文件中配置好服务化相关参数，例如我要执行的配置文件是`ais_bench/configs/api_examples/infer_api_vllm_llama3_8b.py`中修改配置：
+需要先在源码中提供的样例配置文件`ais_bench/configs/`中预置的模型配置文件中配置好服务化相关参数，例如我要执行的配置文件是`ais_bench/configs/api_examples/infer_api_vllm_general.py`中修改配置：
 
 ```python
 from mmengine.config import read_base
@@ -81,8 +80,7 @@ datasets = [
 models = [
     dict(
         type=VLLMCustomAPI,
-        abbr='vllm-api-llama3-8b', # for llama3 llama3.1 llama3.2
-        path='', # VLLMCustomAPI auto get path from server
+        abbr='vllm-api-general',
         max_seq_len = 4096,
         query_per_second = 1,
         rpm_verbose = False,
@@ -102,18 +100,18 @@ infer = dict(partitioner=dict(type=NaivePartitioner),
                  concurrent_users=2,
                  task=dict(type=OpenICLInferTask)), )
 
-work_dir = 'outputs/api_vllm_llama3-8b/' # 指定落盘文件（执行过程、推理结果等）的落盘文件夹
+work_dir = 'outputs/api_vllm_general/' # 指定落盘文件（执行过程、推理结果等）的落盘文件夹
 
 ```
 修改好配置文件后，执行如下命令启动评测：
 ```
-ais_bench ais_bench/configs/api_examples/infer_api_vllm_llama3_8b.py
+ais_bench ais_bench/configs/api_examples/infer_api_vllm_general.py
 ```
 
 ### 推理过程查看
 启动推理过程中可以在{work_dir}/{time_label}/logs/infer/{abbr_name}/gsm8k.out 中查看推理结果，例如执行
 ```shell
-tail -f outputs/api_vllm_llama3-8b/20250126_165049/logs/infer/vllm-api-llama3-8b/gsm8k.out
+tail -f outputs/api_vllm_general/20250126_165049/logs/infer/vllm-api-general/gsm8k.out
 ```
 可以看到推理过程。
 其中`{work_dir}/{time_label}/`会在工具的打屏中显示
@@ -121,14 +119,14 @@ tail -f outputs/api_vllm_llama3-8b/20250126_165049/logs/infer/vllm-api-llama3-8b
 ### 推理结果查看
 推理完成后可以在{work_dir}/{time_label}/predictions/{abbr_name}/gsm8k.json 中查看推理结果，例如执行
 ```shell
-vim outputs/api_vllm_llama3-8b/20250126_165049/predictions/vllm-api-llama3-8b/gsm8k.json
+vim outputs/api_vllm_general/20250126_165049/predictions/vllm-api-general/gsm8k.json
 ```
 可以看到推理结果
 
 ### 测评结果查看
 在{work_dir}/{time_label}/results/{abbr_name}/gsm8k.json中查看评测出的精度，例如执行
 ```shell
-vim outputs/api_vllm_llama3-8b/20250126_165049/results/vllm-api-llama3-8b/gsm8k.json
+vim outputs/api_vllm_general/20250126_165049/results/vllm-api-general/gsm8k.json
 ```
 可以得到类似如下结果：
 ```json
@@ -146,9 +144,9 @@ vim outputs/api_vllm_llama3-8b/20250126_165049/results/vllm-api-llama3-8b/gsm8k.
 ```
 例如
 ```
-outputs/api_vllm_llama3-8b/20250126_165049/summary/summary_20250126_165049.txt
-outputs/api_vllm_llama3-8b/20250126_165049/summary/summary_20250126_165049.csv
-outputs/api_vllm_llama3-8b/20250126_165049/summary/summary_20250126_165049.md
+outputs/api_vllm_general/20250126_165049/summary/summary_20250126_165049.txt
+outputs/api_vllm_general/20250126_165049/summary/summary_20250126_165049.csv
+outputs/api_vllm_general/20250126_165049/summary/summary_20250126_165049.md
 ```
 
 ## 完整命令行说明

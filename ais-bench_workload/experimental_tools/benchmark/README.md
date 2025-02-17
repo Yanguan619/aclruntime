@@ -3,25 +3,24 @@
 AISBench benchmark评测工具是基于opencompass开发的评测工具，兼容opencompass的配置文件、数据集、模型后端等具体实现。目前支持评测推理精度。
 
 ## 工具安装
-AISBench benchmark是纯python开发的工具，要求`python >= 3.10`
+AISBench benchmark是纯python开发的工具，要求`python == 3.10`
 本工具的依赖较多，推荐在conda虚拟环境下安装。
 ```shell
 conda create --name ais_bench python=3.10 -y
 conda activate ais_bench
 ```
-如果你希望自定义 PyTorch 版本，请参考 官方文档 准备 PyTorch 环境。需要注意的是，本工具 要求 pytorch>=1.13。
 
 目前只支持源码构建安装，请确保安装环境网络畅通：
 
 ```shell
 git clone https://gitee.com/ascend/tools.git
-cd ais-bench_workload/experimental_tools/benchmark
+cd tools/ais-bench_workload/experimental_tools/benchmark
 pip3 install -e ./
 ```
 安装过程中会自动安装基础依赖。
 因为当前工具的模型后端都是服务化api后端，因此需要额外安装服务化的依赖：
 ```shell
-pip3 intall -r requirements/api.txt
+pip3 install -r requirements/api.txt
 ```
 
 ## 数据集准备
@@ -111,6 +110,10 @@ ais_bench ais_bench/configs/api_examples/infer_api_vllm_general.py
 ### 推理过程查看
 启动推理过程中可以在{work_dir}/{time_label}/logs/infer/{abbr_name}/gsm8k.out 中查看推理结果，例如执行
 ```shell
+# 命令行指定模型和数据集运行方式
+tail -f outputs/default/20250126_165049/logs/infer/vllm-api-general/gsm8k.out
+
+# 配置文件指定模型和数据集运行方式
 tail -f outputs/api_vllm_general/20250126_165049/logs/infer/vllm-api-general/gsm8k.out
 ```
 可以看到推理过程。
@@ -119,6 +122,10 @@ tail -f outputs/api_vllm_general/20250126_165049/logs/infer/vllm-api-general/gsm
 ### 推理结果查看
 推理完成后可以在{work_dir}/{time_label}/predictions/{abbr_name}/gsm8k.json 中查看推理结果，例如执行
 ```shell
+# 命令行指定模型和数据集运行方式
+vim outputs/default/20250126_165049/predictions/vllm-api-general/gsm8k.json
+
+# 配置文件指定模型和数据集运行方式
 vim outputs/api_vllm_general/20250126_165049/predictions/vllm-api-general/gsm8k.json
 ```
 可以看到推理结果
@@ -126,6 +133,10 @@ vim outputs/api_vllm_general/20250126_165049/predictions/vllm-api-general/gsm8k.
 ### 测评结果查看
 在{work_dir}/{time_label}/results/{abbr_name}/gsm8k.json中查看评测出的精度，例如执行
 ```shell
+# 命令行指定模型和数据集运行方式
+vim outputs/default/20250126_165049/results/vllm-api-general/gsm8k.json
+
+# 配置文件指定模型和数据集运行方式
 vim outputs/api_vllm_general/20250126_165049/results/vllm-api-general/gsm8k.json
 ```
 可以得到类似如下结果：
@@ -153,17 +164,17 @@ outputs/api_vllm_general/20250126_165049/summary/summary_20250126_165049.md
 
 |命令行参数|简介|样例|
 | ----- | ----- | ---- |
-|config|启动用的配置文件路径(.py)，可以不加，但一定是整个命令行第一个参数|ais_bench xxx/yyy.py|
-|--models|指定模型任务名称（对应ais_bench/benchmark/configs/models路径下一个已经实现的默认模型配置文件），支持传入多个任务名称|ais_bench --model vllm_api_llama3_8b|
-|--datasets|指定数据集任务名称（对应ais_bench/benchmark/configs/datasets路径下一个已经实现的默认数据集配置文件）|ais_bench --model --datasets gsm8k_gen|
-|--summarizer|指定数据集汇总任务名称（对应ais_bench/benchmark/configs/summarizers路径下一个已经实现的默认模型配置文件）|ais_bench --summarizer medium|
-|--debug|debug模式开关，加或者不加|ais_bench --debug|
-|--dry-run|dry run模式（只打屏不实际跑任务）开关，加或者不加|ais_bench --dry-run|
-|--mode/-m|可选["all", "infer"]，默认"all"，当前两种模式效果完全一样|ais_bench --mode infer <br> ais_bench -m all|
-|--reuse/-r|重复使用的时间戳文件夹，--work_dir必须设置为outputs/default，默认寻找outputs/default下最新的文件夹|ais_bench --reuse <br> ais_bench -r 20250126_144254|
-|--work_dir/-w|工作路径，默认outputs/default|ais_bench --work_dir /path/to/work <br> ais_bench -w /path/to/work|
-|--config-dir|搜索默认models，datasets和summarizers的文件夹路径， 默认ais_bench/benchmark/configs|ais_bench --config-dir /xxx/xxx|
-|--max-num-workers|并行运行的worker的最大个数，默认1|ais_bench --max-num-workers 1|
-|--max-workers-per-gpu|评测需要用到的npu或gpu数量，需要配置了ASCEND_RT_VISIBLE_DEVICES会使用npu，配置了CUDA_VISIBLE_DEVICES才会使用gpu，否则默认是cpu，此参数无效。此参数默认1|ais_bench --max-workers-per-gpu 1|
-|--dump-eval-details|是否dump出评测过程的细节，开关|ais_bench --dump-eval-details|
-|--dump-extract-rate|是否dump出评测速度，开关|ais_bench --dump-extract-rate|
+|config|启动用的配置文件路径(.py)，可以不加，<b>但一定是整个命令行第一个参数</b>|ais_bench xxx/yyy.py {其他可选命令}|
+|--models|指定模型任务名称（对应ais_bench/benchmark/configs/models路径下一个已经实现的默认模型配置文件），支持传入多个任务名称|--models vllm_api_llama3_8b|
+|--datasets|指定数据集任务名称（对应ais_bench/benchmark/configs/datasets路径下一个已经实现的默认数据集配置文件）|--datasets gsm8k_gen|
+|--summarizer|指定数据集汇总任务名称（对应ais_bench/benchmark/configs/summarizers路径下一个已经实现的默认模型配置文件）|--summarizer medium|
+|--debug|debug模式开关，加或者不加|--debug|
+|--dry-run|dry run模式（只打屏不实际跑任务）开关，加或者不加|--dry-run|
+|--mode/-m|可选["all", "infer", "eval", "viz"]，默认"all"，当前两种模式效果完全一样|--mode infer <br>-m all|
+|--reuse/-r|重复使用的时间戳文件夹，寻找--work_dir指定的工作路径下最新的文件夹|--reuse <br>-r 20250126_144254|
+|--work-dir/-w|工作路径，默认outputs/default| --work-dir /path/to/work <br>-w /path/to/work|
+|--config-dir|搜索默认models，datasets和summarizers的文件夹路径， 默认ais_bench/benchmark/configs|--config-dir /xxx/xxx|
+|--max-num-workers|并行运行的worker的最大个数，默认1|--max-num-workers 1|
+|--max-workers-per-gpu|评测需要用到的npu或gpu数量，当前评测只能使用cpu，此参数无实际效果。此参数默认取值为1|--max-workers-per-gpu 1|
+|--dump-eval-details|是否dump出评测过程的细节，开关|--dump-eval-details|
+|--dump-extract-rate|是否dump出评测速度，开关|--dump-extract-rate|

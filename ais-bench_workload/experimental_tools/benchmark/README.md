@@ -25,7 +25,7 @@ pip3 install -r requirements/api.txt
 
 ## 数据集准备
 从opencompass的release中下载[数据集](https://github.com/open-compass/opencompass/releases/tag/0.2.2.rc1)
-`OpenCompassData-core-20240207.zip`已经包含了gsm8k的数据集，解压`OpenCompassData-core-20240207.zip`后将其中的gsm8k文件夹放置到
+`OpenCompassData-core-20240207.zip`已经包含了工具支持的2数据集，解压`OpenCompassData-core-20240207.zip`后将其中data文件夹下的对应的数据集文件夹放置到
 `ais_bench/datasets/`路径下。
 
 ## 快速入门
@@ -165,9 +165,9 @@ outputs/api_vllm_general/20250126_165049/summary/summary_20250126_165049.md
 |命令行参数|简介|样例|
 | ----- | ----- | ---- |
 |config|启动用的配置文件路径(.py)，可以不加，<b>但一定是整个命令行第一个参数</b>|ais_bench xxx/yyy.py {其他可选命令}|
-|--models|指定模型任务名称（对应ais_bench/benchmark/configs/models路径下一个已经实现的默认模型配置文件），支持传入多个任务名称|--models vllm_api_llama3_8b|
-|--datasets|指定数据集任务名称（对应ais_bench/benchmark/configs/datasets路径下一个已经实现的默认数据集配置文件）|--datasets gsm8k_gen|
-|--summarizer|指定数据集汇总任务名称（对应ais_bench/benchmark/configs/summarizers路径下一个已经实现的默认模型配置文件）|--summarizer medium|
+|--models|指定模型推理后端任务名称（对应ais_bench/benchmark/configs/models路径下一个已经实现的默认模型配置文件），支持传入多个任务名称，支持的任务范围请参考“任务支持范围”章节|--models vllm_api_llama3_8b|
+|--datasets|指定数据集任务名称（对应ais_bench/benchmark/configs/datasets路径下一个已经实现的默认数据集配置文件），支持的任务范围请参考“任务支持范围”章节|--datasets gsm8k_gen|
+|--summarizer|指定结果总结任务名称（对应ais_bench/benchmark/configs/summarizers路径下一个已经实现的默认模型配置文件），支持的任务范围请参考“任务支持范围”章节|--summarizer medium|
 |--debug|debug模式开关，加或者不加|--debug|
 |--dry-run|dry run模式（只打屏不实际跑任务）开关，加或者不加|--dry-run|
 |--mode/-m|可选["all", "infer", "eval", "viz"]，默认"all"，每个模式如何运行参考"运行模式说明"|--mode infer <br>-m all|
@@ -293,3 +293,20 @@ outputs/default/
 │   └── summary       # 单个实验的汇总评估结果 (viz新增)
 ├── ...
 ```
+
+## 任务支持范围
+### --models支持的模型推理后端
+|任务名称|简介|使用前提|支持的prompt格式(字符串格式或多轮对话)|对应源码配置文件路径|
+| --- | --- | --- | --- | --- |
+|vllm_api_general|通过vllm的api访问vllm的推理服务化，访问服务链接的 v1/completions子服务|基于支持v1/completions子服务的vllm版本，启动vllm推理服务。|字符串格式|[vllm_api_general.py](ais_bench/benchmark/configs/models/vllm_api/vllm_api_general.py)|
+
+### --datasets支持的数据集
+|任务名称|简介|评估指标|few-shot|对应源码配置文件路径|
+| --- | --- | --- | --- | --- |
+|gsm8k_gen|gsm8k数据集生成式任务|准确率(accuracy)|4-shot|[gsm8k_gen_ee684f.py](ais_bench/benchmark/configs/datasets/gsm8k/gsm8k_gen_ee684f.py)|
+|mmlu_gen|mmlu_gen数据集生成式任务|正确率(naive_average)|5-shot|[mmlu_gen.py](ais_bench/benchmark/configs/datasets/mmlu/mmlu_gen_79e572.py)|
+
+### --summarizer支持的结果总结任务
+|任务名称|简介|对应源码配置文件路径|
+| --- | --- | --- |
+|medium|通用结果汇总模板，包含多种基本数据集|[medium.py](ais_bench/benchmark/configs/summarizers/medium.py)|

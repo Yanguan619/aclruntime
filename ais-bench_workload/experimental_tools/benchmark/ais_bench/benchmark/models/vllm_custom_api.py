@@ -88,7 +88,6 @@ class VLLMCustomAPI(BaseAPIModel):
         Returns:
             List[str]: A list of generated strings.
         """
-
         with ThreadPoolExecutor() as executor:
             results = list(
                 tqdm(executor.map(self._generate, inputs,

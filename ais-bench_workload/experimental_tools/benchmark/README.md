@@ -310,3 +310,7 @@ outputs/default/
 |任务名称|简介|对应源码配置文件路径|
 | --- | --- | --- |
 |medium|通用结果汇总模板，包含多种基本数据集|[medium.py](ais_bench/benchmark/configs/summarizers/medium.py)|
+
+
+## 其他特性
+### 自定义数据集

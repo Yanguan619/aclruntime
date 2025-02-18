@@ -1,7 +1,7 @@
 from ais_bench.benchmark.openicl.icl_prompt_template import PromptTemplate
 from ais_bench.benchmark.openicl.icl_retriever import ZeroRetriever
 from ais_bench.benchmark.openicl.icl_inferencer import GenInferencer
-from ais_bench.benchmark.datasets import Aime2024Dataset
+from ais_bench.benchmark.datasets import Aime2024Dataset, MATHEvaluator, math_postprocess_v2
 
 
 aime2024_reader_cfg = dict(

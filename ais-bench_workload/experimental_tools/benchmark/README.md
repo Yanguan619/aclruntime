@@ -303,7 +303,7 @@ outputs/default/
 ### --datasets支持的数据集
 |任务名称|简介|评估指标|few-shot|对应源码配置文件路径|
 | --- | --- | --- | --- | --- |
-|gsm8k_gen|gsm8k数据集生成式任务|准确率(accuracy)|4-shot|[gsm8k_gen_ee684f.py](ais_bench/benchmark/configs/datasets/gsm8k/gsm8k_gen_ee684f.py)|
+|gsm8k_gen|gsm8k数据集生成式任务|准确率(accuracy)|4-shot|[gsm8k_gen.py](ais_bench/benchmark/configs/datasets/gsm8k/gsm8k_gen_ee684f.py)|
 |mmlu_gen|mmlu_gen数据集生成式任务|正确率(naive_average)|5-shot|[mmlu_gen.py](ais_bench/benchmark/configs/datasets/mmlu/mmlu_gen_79e572.py)|
 
 ### --summarizer支持的结果总结任务

@@ -74,7 +74,7 @@ class TestClass:
         vis_md_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.md")
         assert os.path.exists(vis_md_path)
 
-        def test_vllm_api_all_qwen2_7b_ceval(self, monkeypatch):
+    def test_vllm_api_all_qwen2_7b_ceval(self, monkeypatch):
         from ceval_gen_5f30c7_str import ceval_all_sets
         fake_prediction = "A"
         fake_time_str = "fake_time_ceval"

@@ -165,6 +165,8 @@ outputs/api_vllm_general/20250126_165049/summary/summary_20250126_165049.md
 ```shell
 ais_bench [OPTIONS]
 ```
+其中[OPTIONS]为ais_bench的可选参数，具体参数如[参数说明](#参数说明)
+
 ### 命令行示例
 ```shell
 # 命令行指定模型和数据集
@@ -173,6 +175,7 @@ ais_bench --models vllm_api_general --datasets gsm8k_gen
 ais_bench /configs/api_examples/infer_api_vllm_general.py --work-dir /path/to/your/dir
 ```
 
+### 参数说明
 |参数|说明|样例|
 | ----- | ----- | ---- |
 |config|启动用的配置文件路径(.py)，配置文件指定模型和数据集方式的必选配置，与命令行指定模型和数据集方式的参数二选一，为ais_bench命令行的第一个参数|ais_bench xxx/yyy.py {其他可选命令}|

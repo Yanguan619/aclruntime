@@ -3,7 +3,7 @@
 AISBench benchmark评测工具是基于opencompass开发的评测工具，兼容opencompass的配置文件、数据集、模型后端等具体实现。目前支持评测推理精度。
 
 ## 工具安装
-AISBench benchmark是纯python开发的工具，要求`python == 3.10`
+AISBench benchmark是由python开发的工具，要求`python == 3.10`
 本工具的依赖较多，推荐在conda虚拟环境下安装。
 ```shell
 conda create --name ais_bench python=3.10 -y
@@ -29,7 +29,7 @@ pip3 install -r requirements/api.txt
 `ais_bench/datasets/`路径下。
 
 ## 快速入门
-在本工具的评测中，每个评估任务由待评估的模型后端和数据集组成，可以通过两种方式来指定模型和数据集：命令行指定模型和数据集以及在配置文件中指定模型和数据集。由于当前工具支持的模型后端都是服务化api，请先参考[vllm官方文档/启动服务器样例](https://vllm.hyper.ai/docs/tutorials/vLLM-stepbysteb#%E4%B8%89%E5%90%AF%E5%8A%A8-vllm-%E6%9C%8D%E5%8A%A1%E5%99%A8)在gpu服务器上拉起vllm的推理服务。<br>
+在本工具的评测中，每个评估任务由待评估的模型后端和数据集组成，可以通过两种方式来指定模型和数据集：命令行指定模型和数据集以及在配置文件中指定模型和数据集，两种方式二选一。由于当前工具支持的模型后端都是服务化api，请先参考[vllm官方文档/启动服务器样例](https://vllm.hyper.ai/docs/tutorials/vLLM-stepbysteb#%E4%B8%89%E5%90%AF%E5%8A%A8-vllm-%E6%9C%8D%E5%8A%A1%E5%99%A8)在gpu服务器上拉起vllm的推理服务。<br>
 ### 命令行指定模型和数据集
 命令行方式指定模型和数据集本质上是调用工具内置的.py配置文件指定的，需要先在`ais_bench/benchmark/configs/models/`中预置的模型配置文件中配置好服务化相关参数，例如我要执行vllm_api_llama3_8b的任务，需要在`ais_bench/benchmark/configs/models/vllm_api/vllm_api_general.py`中修改配置：
 
@@ -161,28 +161,44 @@ outputs/api_vllm_general/20250126_165049/summary/summary_20250126_165049.md
 ```
 
 ## 完整命令行说明
+### 命令格式说明
+```shell
+ais_bench [OPTIONS]
+```
+### 命令行示例
+```shell
+# 命令行指定模型和数据集
+ais_bench --models vllm_api_general --datasets gsm8k_gen
+# 配置文件指定模型和数据集
+ais_bench /configs/api_examples/infer_api_vllm_general.py --work-dir /path/to/your/dir
+```
 
-|命令行参数|简介|样例|
+|参数|说明|样例|
 | ----- | ----- | ---- |
-|config|启动用的配置文件路径(.py)，可以不加，<b>但一定是整个命令行第一个参数</b>|ais_bench xxx/yyy.py {其他可选命令}|
-|--models|指定模型推理后端任务名称（对应ais_bench/benchmark/configs/models路径下一个已经实现的默认模型配置文件），支持传入多个任务名称，支持的任务范围请参考“任务支持范围”章节|--models vllm_api_llama3_8b|
-|--datasets|指定数据集任务名称（对应ais_bench/benchmark/configs/datasets路径下一个已经实现的默认数据集配置文件），支持的任务范围请参考“任务支持范围”章节|--datasets gsm8k_gen|
-|--summarizer|指定结果总结任务名称（对应ais_bench/benchmark/configs/summarizers路径下一个已经实现的默认模型配置文件），支持的任务范围请参考“任务支持范围”章节|--summarizer medium|
-|--debug|debug模式开关，加或者不加|--debug|
-|--dry-run|dry run模式（只打屏不实际跑任务）开关，加或者不加|--dry-run|
-|--mode/-m|可选["all", "infer", "eval", "viz"]，默认"all"，每个模式如何运行参考"运行模式说明"|--mode infer <br>-m all|
-|--reuse/-r|重复使用的时间戳文件夹，寻找--work_dir指定的工作路径下时间戳最新的文件夹|--reuse <br>-r 20250126_144254|
-|--work-dir/-w|工作路径，默认outputs/default| --work-dir /path/to/work <br>-w /path/to/work|
-|--config-dir|搜索默认models，datasets和summarizers的文件夹路径， 默认ais_bench/benchmark/configs|--config-dir /xxx/xxx|
+|config|启动用的配置文件路径(.py)，配置文件指定模型和数据集方式的必选配置，与命令行指定模型和数据集方式的参数二选一，为ais_bench命令行的第一个参数|ais_bench xxx/yyy.py {其他可选命令}|
+|--models|指定模型推理后端任务名称（对应ais_bench/benchmark/configs/models路径下一个已经实现的默认模型配置文件），支持传入多个任务名称，支持的任务范围请参考[任务支持范围](#任务支持范围)章节<br>命令行指定模型和数据集方式的必选配置，与配置文件指定模型和数据集方式的{config_path} 参数二选一|--models vllm_api_llama3_8b|
+|--datasets|指定数据集任务名称（对应ais_bench/benchmark/configs/datasets路径下一个已经实现的默认数据集配置文件），支持的任务范围请参考[任务支持范围](#任务支持范围)章节<br>命令行指定模型和数据集方式的必选配置，与配置文件指定模型和数据集方式的{config_path} 参数二选一||--datasets gsm8k_gen|
+|--summarizer|指定结果总结任务名称（对应ais_bench/benchmark/configs/summarizers路径下一个已经实现的默认模型配置文件），支持的任务范围请参考[任务支持范围](#任务支持范围)章节|--summarizer medium|
+|--debug|debug模式开关，配置该参数表示开启，未配置表示关闭，默认未配置|--debug|
+|--dry-run|dry run模式（只打屏不实际跑任务）开关，配置该参数表示开启，未配置表示关闭，默认未配置|--dry-run|
+|--mode 或 -m|可选["all", "infer", "eval", "viz"]，默认"all"，每个模式如何运行参考[运行模式说明](#运行模式说明)|--mode infer <br>-m all|
+|--reuse 或 -r|重复使用的时间戳文件夹，寻找--work_dir指定的工作路径下时间戳最新的文件夹|--reuse <br>-r 20250126_144254|
+|--work-dir 或 -w|评测任务的工作路径，用于落盘评测过程中的结果文件，默认outputs/default| --work-dir /path/to/work <br>-w /path/to/work|
+|--config-dir|models，datasets和summarizers配置文件所在的文件夹路径， 默认ais_bench/benchmark/configs|--config-dir /xxx/xxx|
 |--max-num-workers|并行运行的worker的最大个数，默认1|--max-num-workers 1|
-|--max-workers-per-gpu|评测需要用到的npu或gpu数量，当前评测只能使用cpu，此参数无实际效果。此参数默认取值为1|--max-workers-per-gpu 1|
-|--dump-eval-details|是否dump出评测过程的细节，开关|--dump-eval-details|
-|--dump-extract-rate|是否dump出评测速度，开关|--dump-extract-rate|
+|--max-workers-per-gpu|预留参数，暂不支持使用。<br> 评测需要用到的NPU或GPU数量，默认1。|--max-workers-per-gpu 1|
+|--dump-eval-details|是否dump出评测过程细节的开关，配置该参数表示开启，未配置表示关闭，默认未配置|--dump-eval-details|
+|--dump-extract-rate|是否dump出评测速度的开关，配置该参数表示开启，未配置表示关闭，默认未配置|--dump-extract-rate|
 
 ## 运行模式说明
+本节介绍当前ais_bench评测工具支持的评测任务的预设配置，通过ais_bench命令行指定任务名称，即可执行相应的评测任务。
+命令示例如下：
+```shell
+ais_bench --models vllm_api_general --datasets gsm8k_gen --summarizer medium
+```
 ### all 模式
 
-all模式下评测工具会完整得跑一遍评测流程：
+all模式下评测工具会完整执行一次评测流程：
 ```mermaid
 graph LR;
 A[基于给定数据集执行推理] --> B((推理结果));
@@ -249,7 +265,7 @@ E --> F((呈现结果))
 
 命令示例：
 ```shell
-ais_bench --models vllm_api_general --datasets gsm8k_gen --mode all
+ais_bench --models vllm_api_general --datasets gsm8k_gen --mode eval --reuse
 ```
 
 生成结构目录结构：
@@ -276,7 +292,7 @@ E --> F((呈现结果))
 
 命令示例：
 ```shell
-ais_bench --models vllm_api_general --datasets gsm8k_gen --mode all
+ais_bench --models vllm_api_general --datasets gsm8k_gen --mode viz --reuse
 ```
 
 生成结构目录结构：
@@ -298,7 +314,7 @@ outputs/default/
 ### --models支持的模型推理后端
 |任务名称|简介|使用前提|支持的prompt格式(字符串格式或多轮对话)|对应源码配置文件路径|
 | --- | --- | --- | --- | --- |
-|vllm_api_general|通过vllm的api访问vllm的推理服务化，访问服务链接的 v1/completions子服务|基于支持v1/completions子服务的vllm版本，启动vllm推理服务。|字符串格式|[vllm_api_general.py](ais_bench/benchmark/configs/models/vllm_api/vllm_api_general.py)|
+|vllm_api_general|通过vllm的api访问vllm的推理服务化，访问服务链接的 v1/completions子服务|基于支持v1/completions子服务的vllm版本，启动vllm推理服务|字符串格式|[vllm_api_general.py](ais_bench/benchmark/configs/models/vllm_api/vllm_api_general.py)|
 
 ### --datasets支持的数据集
 |任务名称|简介|评估指标|few-shot|对应源码配置文件路径|

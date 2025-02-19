@@ -3,8 +3,7 @@ from ais_bench.benchmark.models import VLLMCustomAPI
 models = [
     dict(
         type=VLLMCustomAPI,
-        abbr='vllm-api-llama3-8b', # for llama3 llama3.1 llama3.2
-        path='', # VLLMCustomAPI auto get path from server
+        abbr='vllm-api-general',
         max_seq_len = 4096,
         query_per_second = 1,
         rpm_verbose = False,

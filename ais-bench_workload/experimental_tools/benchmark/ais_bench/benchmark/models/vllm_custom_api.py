@@ -27,7 +27,6 @@ class VLLMCustomAPI(BaseAPIModel):
     """Model wrapper around OpenAI's models.
 
     Args:
-        path (str, optional): The path of model run in service, default "" means path get from service.
         max_seq_len (int): The maximum allowed sequence length of a model.
             Note that the length of prompt + generated tokens shall not exceed
             this value. Defaults to 2048.
@@ -45,7 +44,6 @@ class VLLMCustomAPI(BaseAPIModel):
     is_api: bool = True
 
     def __init__(self,
-                 path: str = "",
                  max_seq_len: int = 4096,
                  query_per_second: int = 1,
                  rpm_verbose: bool = False,
@@ -60,8 +58,7 @@ class VLLMCustomAPI(BaseAPIModel):
         self.host_port = host_port
         self.enable_ssl = enable_ssl
         self.base_url = self._get_base_url()
-        if not path:
-            path = self._get_service_model_path()
+        path = self._get_service_model_path()
         super().__init__(path=path,
                          max_seq_len=max_seq_len,
                          meta_template=meta_template,

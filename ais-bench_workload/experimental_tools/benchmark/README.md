@@ -178,7 +178,7 @@ ais_bench /configs/api_examples/infer_api_vllm_general.py --work-dir /path/to/yo
 ### 参数说明
 |参数|说明|样例|
 | ----- | ----- | ---- |
-|config|启动用的配置文件路径(.py)，配置文件指定模型和数据集方式的必选配置，与命令行指定模型和数据集方式的参数二选一，为ais_bench命令行的第一个参数|ais_bench xxx/yyy.py {其他可选命令}|
+|config|启动用的配置文件路径(.py)，配置文件指定模型和数据集方式的必选配置，与命令行指定模型和数据集方式的参数二选一，为ais_bench命令行的第一个参数|ais_bench xxx/yyy.py|
 |--models|指定模型推理后端任务名称（对应ais_bench/benchmark/configs/models路径下一个已经实现的默认模型配置文件），支持传入多个任务名称，支持的任务范围请参考[任务支持范围](#任务支持范围)章节<br>命令行指定模型和数据集方式的必选配置，与配置文件指定模型和数据集方式的{config_path} 参数二选一|--models vllm_api_llama3_8b|
 |--datasets|指定数据集任务名称（对应ais_bench/benchmark/configs/datasets路径下一个已经实现的默认数据集配置文件），支持的任务范围请参考[任务支持范围](#任务支持范围)章节<br>命令行指定模型和数据集方式的必选配置，与配置文件指定模型和数据集方式的{config_path} 参数二选一||--datasets gsm8k_gen|
 |--summarizer|指定结果总结任务名称（对应ais_bench/benchmark/configs/summarizers路径下一个已经实现的默认模型配置文件），支持的任务范围请参考[任务支持范围](#任务支持范围)章节|--summarizer medium|

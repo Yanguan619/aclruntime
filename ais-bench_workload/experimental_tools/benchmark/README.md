@@ -25,7 +25,7 @@ pip3 install -r requirements/api.txt
 
 ## 数据集准备
 从opencompass的release中下载[数据集](https://github.com/open-compass/opencompass/releases/tag/0.2.2.rc1)
-`OpenCompassData-core-20240207.zip`已经包含了工具支持的2数据集，解压`OpenCompassData-core-20240207.zip`后将其中data文件夹下的对应的数据集文件夹放置到
+`OpenCompassData-core-20240207.zip`已经包含了工具支持的数据集，解压`OpenCompassData-core-20240207.zip`后将其中data文件夹下的对应的数据集文件夹放置到
 `ais_bench/datasets/`路径下。
 
 ## 快速入门
@@ -311,6 +311,10 @@ outputs/default/
 | --- | --- | --- |
 |medium|通用结果汇总模板，包含多种基本数据集|[medium.py](ais_bench/benchmark/configs/summarizers/medium.py)|
 
+## 自定义配置文件样例列表
+|文件名|简介|
+| --- | --- |
+|[infer_api_vllm_general.py](ais_bench/configs/api_examples/infer_api_vllm_general.py)|基于gsm8k数据集使用vllm api评测，自定义了数据集路径|
 
 ## 其他特性
 ### 自定义数据集

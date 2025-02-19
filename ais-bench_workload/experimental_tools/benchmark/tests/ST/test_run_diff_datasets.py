@@ -43,7 +43,7 @@ class TestClass:
         fake_prediction = "A"
         fake_time_str = "fake_time_mmlu"
         monkeypatch.setattr('sys.argv',
-            ["ais_bench", "--models", "vllm_api_qwen2_7b_instruct", "--datasets", "mmlu_gen",
+            ["ais_bench", "--models", "vllm_api_general", "--datasets", "mmlu_gen",
             "--mode", "all", "-w", self.test_data_path])
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._get_service_model_path", lambda *arg: "qwen2")
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._generate", lambda *arg: fake_prediction)
@@ -52,14 +52,14 @@ class TestClass:
 
         for sub_exam_name in mmlu_all_sets:
             # check infer out
-            infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/vllm-api-qwen2-7b-instruct/lukaemon_mmlu_{sub_exam_name}.json")
+            infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/vllm-api-general/lukaemon_mmlu_{sub_exam_name}.json")
             assert os.path.exists(infer_outputs_json_path)
             with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
             assert data.get(f"0").get("prediction") == fake_prediction
 
             # check eval out
-            results_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/results/vllm-api-qwen2-7b-instruct/lukaemon_mmlu_{sub_exam_name}.json")
+            results_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/results/vllm-api-general/lukaemon_mmlu_{sub_exam_name}.json")
             with open(results_json_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
             assert data.get("accuracy") is not None

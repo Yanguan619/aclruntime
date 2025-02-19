@@ -131,7 +131,6 @@ class MindieStreamApi(BaseAPIModel):
                 raise RuntimeError(f"Process response failed and the reason is {e}")
 
             self.logger.debug(str(response))
-            print(response)
             return ''.join(response)
 
         raise RuntimeError('Calling OpenAI failed after retrying for '

@@ -1,17 +1,3 @@
-# Copyright (c) 2024-2024 Huawei Technologies Co., Ltd.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import os
 import json
 import shutil
@@ -60,7 +46,7 @@ class TestClass:
         fake_prediction = "Aisbench20"
         fake_time_str = "fake_time_mindie_stream_api"
         monkeypatch.setattr('sys.argv',
-            ["ais_bench", "--models", "mindie_stream_api", "--datasets", "gsm8k_gen",
+            ["ais_bench", "--models", "mindie_stream_api_general", "--datasets", "gsm8k_gen",
             "--mode", "infer", "-w", self.test_data_path])
         monkeypatch.setattr(requests, 'post', lambda *args, **kwargs: Response())
         monkeypatch.setattr("ais_bench.benchmark.utils.get_data_path", lambda *arg, **kwargs:"tests/datasets/gsm8k")

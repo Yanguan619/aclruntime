@@ -1,5 +1,5 @@
 from ais_bench.benchmark.openicl.icl_prompt_template import PromptTemplate
-from ais_bench.benchmark.openicl.icl_retriever import ZeroRetriever, FixKRetriever
+from ais_bench.benchmark.openicl.icl_retriever import FixKRetriever
 from ais_bench.benchmark.openicl.icl_inferencer import GenInferencer
 from ais_bench.benchmark.openicl.icl_evaluator import AccEvaluator
 from ais_bench.benchmark.datasets import BoolQDatasetV2

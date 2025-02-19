@@ -194,11 +194,6 @@ ais_bench /configs/api_examples/infer_api_vllm_general.py --work-dir /path/to/yo
 |--dump-extract-rate|是否dump出评测速度的开关，配置该参数表示开启，未配置表示关闭，默认未配置|--dump-extract-rate|
 
 ## 运行模式说明
-本节介绍当前ais_bench评测工具支持的评测任务的预设配置，通过ais_bench命令行指定任务名称，即可执行相应的评测任务。
-命令示例如下：
-```shell
-ais_bench --models vllm_api_general --datasets gsm8k_gen --summarizer medium
-```
 ### all 模式
 
 all模式下评测工具会完整执行一次评测流程：
@@ -314,6 +309,11 @@ outputs/default/
 ```
 
 ## 任务支持范围
+本节介绍当前ais_bench评测工具支持的评测任务的预设配置，通过ais_bench命令行指定任务名称，即可执行相应的评测任务。
+命令示例如下：
+```shell
+ais_bench --models vllm_api_general --datasets gsm8k_gen --summarizer medium
+```
 ### --models支持的模型推理后端
 |任务名称|简介|使用前提|支持的prompt格式(字符串格式或多轮对话)|对应源码配置文件路径|
 | --- | --- | --- | --- | --- |

@@ -19,8 +19,6 @@ class Response:
         for content in self.response:
             yield content.encode()
 
-# def mock_path():
-#     return "tests/datasets/gsm8k"
 class TestClass:
     @classmethod
     def setup_class(cls):

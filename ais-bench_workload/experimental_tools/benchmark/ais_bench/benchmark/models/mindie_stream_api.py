@@ -86,10 +86,10 @@ class MindieStreamApi(BaseAPIModel):
         return results
 
     def _generate(self, input: PromptType, max_out_len: int) -> str:
-        """Generate results given a list of inputs.
+        """Generate result given a input.
 
         Args:
-            inputs (PromptType): A string or PromptDict.
+            input (PromptType): A string or PromptDict.
                 The PromptDict should be organized in AISBench'
                 API format.
             max_out_len (int): The maximum length of the output.
@@ -155,6 +155,7 @@ class MindieStreamApi(BaseAPIModel):
     
     def _stream_data_split(self, stream_data_line):
         stream_data_line = stream_data_line.lstrip("data:").rstrip("\n\0")
+        # 使用正则替换调整数据格式，使其符合 JSON 语法
         stream_data_line = re.sub(r'\}\s*data:{', '} ,{', stream_data_line)
         stream_data_line = '[' + stream_data_line + ']'
         json_obj_arr = json.loads(stream_data_line)

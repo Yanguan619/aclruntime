@@ -53,7 +53,7 @@ class VLLMCustomAPI(BaseAPIModel):
                  host_ip: str = "localhost",
                  host_port: int = 8080,
                  enable_ssl: bool = False,
-                 ):
+                 generation_kwargs: dict = Optional[Dict] = None):
         self.host_ip = host_ip
         self.host_port = host_port
         self.enable_ssl = enable_ssl
@@ -65,7 +65,8 @@ class VLLMCustomAPI(BaseAPIModel):
                          query_per_second=query_per_second,
                          rpm_verbose=rpm_verbose,
                          retry=retry,
-                         verbose=verbose)
+                         verbose=verbose,
+                         generation_kwargs=generation_kwargs)
 
         self.logger.info("Running model path name is: " + path)
         self.path = path
@@ -124,6 +125,7 @@ class VLLMCustomAPI(BaseAPIModel):
                     prompt=input,
                     max_tokens=max_out_len,
                 )
+                data = data | self.generation_kwargs
                 url = os.path.join(self.base_url, "completions")
                 raw_response = requests.post(url, headers=header, data=json.dumps(data))
 

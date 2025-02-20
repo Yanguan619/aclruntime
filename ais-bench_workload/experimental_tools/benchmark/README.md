@@ -329,6 +329,8 @@ ais_bench --models vllm_api_general --datasets gsm8k_gen --summarizer medium
 | --- | --- | --- | --- | --- |
 |gsm8k_gen|gsm8k数据集生成式任务|准确率(accuracy)|4-shot|[gsm8k_gen.py](ais_bench/benchmark/configs/datasets/gsm8k/gsm8k_gen_ee684f.py)|
 |mmlu_gen|mmlu_gen数据集生成式任务|正确率(naive_average)|5-shot|[mmlu_gen.py](ais_bench/benchmark/configs/datasets/mmlu/mmlu_gen_79e572.py)|
+|ceval_gen|ceval_gen数据集生成式任务|正确率(naive_average)|5-shot|[ceval_gen.py](ais_bench/benchmark/configs/datasets/ceval/ceval_gen_5f30c7_str.py),[ceval_gen_2daf24_str.py](ais_bench/benchmark/configs/datasets/ceval/ceval_gen_2daf24_str.py)|
+|SuperGLUE_BoolQ_gen|SuperGLUE_BoolQ_gen数据集生成式任务|正确率(naive_average)|0-shot、5-shot|[SuperGLUE_BoolQ_gen.py](ais_bench\benchmark\configs\datasets\SuperGLUE_BoolQ\SuperGLUE_BoolQ_gen_883d50_str.py),[SuperGLUE_BoolQ_cot_gen_1d56df_str.py](ais_bench\benchmark\configs\datasets\SuperGLUE_BoolQ\SuperGLUE_BoolQ_cot_gen_1d56df_str.py),[SuperGLUE_BoolQ_few_shot_gen_ba58ea_str.py](ais_bench\benchmark\configs\datasets\SuperGLUE_BoolQ\SuperGLUE_BoolQ_few_shot_gen_ba58ea_str.py)|
 
 ### --summarizer支持的结果总结任务
 |任务名称|简介|对应源码配置文件路径|

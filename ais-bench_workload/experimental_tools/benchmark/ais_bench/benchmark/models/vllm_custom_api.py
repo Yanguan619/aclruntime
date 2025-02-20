@@ -53,7 +53,7 @@ class VLLMCustomAPI(BaseAPIModel):
                  host_ip: str = "localhost",
                  host_port: int = 8080,
                  enable_ssl: bool = False,
-                 generation_kwargs: dict = Optional[Dict] = None):
+                 generation_kwargs: Optional[Dict] = None):
         self.host_ip = host_ip
         self.host_port = host_port
         self.enable_ssl = enable_ssl

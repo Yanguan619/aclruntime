@@ -11,6 +11,6 @@ models = [
         host_ip = "localhost",
         host_port = 8080,
         enable_ssl = False,
-        max_out_len=512,
+        max_out_len=4096,
     )
 ]

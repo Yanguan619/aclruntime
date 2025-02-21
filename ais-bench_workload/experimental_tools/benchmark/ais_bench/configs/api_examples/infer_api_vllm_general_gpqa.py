@@ -25,6 +25,13 @@ models = [
         host_ip = "localhost",
         host_port = 8080,
         enable_ssl = False,
+        generation_kwargs = dict(
+            temperature = 0.5,
+            top_k = 10,
+            top_p = 0.95,
+            seed = None,
+            repetition_penalty = 1.03,
+        ),
     )
 ]
 

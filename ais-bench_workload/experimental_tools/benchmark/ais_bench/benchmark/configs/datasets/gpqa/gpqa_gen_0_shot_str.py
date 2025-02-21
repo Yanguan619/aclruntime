@@ -11,15 +11,12 @@ gpqa_reader_cfg = dict(
 gpqa_infer_cfg = dict(
     prompt_template=dict(
         type=PromptTemplate,
-        template=dict(
-            round=[
-                dict(role='HUMAN', prompt='What is the correct answer to this question: {question}\nChoices:\n'
+        template='What is the correct answer to this question: {question}\nChoices:\n'
                                           '(A){A}\n'
                                           '(B){B}\n'
                                           '(C){C}\n'
                                           '(D){D}\n'
                                           'Format your response as follows: "The correct answer is (insert answer here)"'),
-            ], )),
     retriever=dict(type=ZeroRetriever),
     inferencer=dict(type=GenInferencer))
 

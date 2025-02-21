@@ -38,7 +38,7 @@ for split in list(gpqa_subsets.keys()):
         dict(
             abbr='GPQA_' + split,
             type=GPQADataset,
-            path='./data/gpqa/',
+            path='ais_bench/datasets/gpqa/',
             name=gpqa_subsets[split],
             reader_cfg=gpqa_reader_cfg,
             infer_cfg=gpqa_infer_cfg,

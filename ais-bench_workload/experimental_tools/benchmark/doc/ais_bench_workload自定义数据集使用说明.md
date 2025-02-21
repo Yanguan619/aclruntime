@@ -2,7 +2,7 @@
 
 本教程仅供临时性的、非正式的数据集使用，如果所用数据集需要长期使用，或者存在定制化读取 / 推理 / 评测需求的，强烈建议按照新数据集中介绍的方法进行实现。
 
-在本教程中，我们将会介绍如何在不实现 config，不修改 Ais_Bench 源码的情况下，对一新增数据集进行测试的方法。我们支持的任务类型包括选择 (`mcq`) 和问答 (`qa`) 两种，目前 `mcq` 和 `qa` 均仅支持 `gen` 推理。
+在本教程中，我们将会介绍如何在不实现 config，不修改 ais_bench 源码的情况下，对一新增数据集进行测试的方法。我们支持的任务类型包括选择 (`mcq`) 和问答 (`qa`) 两种，目前 `mcq` 和 `qa` 均仅支持 `gen` 推理。
 
 ## 数据集格式
 
@@ -82,7 +82,7 @@ ais_bench \
     --custom-dataset-infer-method gen
 ```
 
-在绝大多数情况下，`--custom-dataset-data-type` 和 `--custom-dataset-infer-method` 可以省略，Ais_Bench 会根据以下逻辑进行设置：
+在绝大多数情况下，`--custom-dataset-data-type` 和 `--custom-dataset-infer-method` 可以省略，ais_bench 会根据以下逻辑进行设置：
 
 - 如果从数据集文件中可以解析出选项，如 `A`, `B`, `C` 等，则认定该数据集为 `mcq`，否则认定为 `qa`。
 - 默认 `infer_method` 为 `gen`。

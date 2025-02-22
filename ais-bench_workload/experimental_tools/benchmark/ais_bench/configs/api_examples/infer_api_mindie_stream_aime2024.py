@@ -28,7 +28,6 @@ models = [
         generation_kwargs = dict(
             temperature = 0.6,
             top_p = 0.95,
-            max_new_tokens = 32768,
             do_sample = True,
             details = True,
         )

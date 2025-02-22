@@ -102,6 +102,8 @@ class MindieStreamApi(BaseAPIModel):
         if max_out_len <= 0:
             return ''
 
+        self.generation_kwargs.update({"max_new_tokens": max_out_len})
+
         max_num_retries = 0
         while max_num_retries < self.retry:
             self.wait()
@@ -136,7 +138,7 @@ class MindieStreamApi(BaseAPIModel):
         raise RuntimeError('Calling OpenAI failed after retrying for '
                            f'{max_num_retries} times. Check the logs for '
                            'details.')
-    
+
     def process_response(self, response):
         for byte_line in response.iter_content(self.max_chunk_size):
             if byte_line == b"\n":
@@ -152,7 +154,7 @@ class MindieStreamApi(BaseAPIModel):
         if cur_line == "engine callback timeout.":
             self.logger.error(f"Engine time out. The tokens generation might be incomplete.")
         return cur_line
-    
+
     def _stream_data_split(self, stream_data_line):
         stream_data_line = stream_data_line.lstrip("data:").rstrip("\n\0")
         # 使用正则替换调整数据格式，使其符合 JSON 语法
@@ -160,7 +162,7 @@ class MindieStreamApi(BaseAPIModel):
         stream_data_line = '[' + stream_data_line + ']'
         json_obj_arr = json.loads(stream_data_line)
         return json_obj_arr
-            
+
     def _get_base_url(self):
         if self.enable_ssl:
             return f"https://{self.host_ip}:{self.host_port}"

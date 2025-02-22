@@ -99,9 +99,22 @@ def parse_args():
         action='store_true',
     )
 
+    # set custom dataset args
+    custom_dataset_parser = parser.add_argument_group('custom_dataset_args')
+    parse_custom_dataset_args(custom_dataset_parser)
+
     args = parser.parse_args()
     return args
 
+def parse_custom_dataset_args(custom_dataset_parser):
+    """These args are all for the quick construction of custom datasets."""
+    custom_dataset_parser.add_argument('--custom-dataset-path', type=str)
+    custom_dataset_parser.add_argument('--custom-dataset-data-type',
+                                       type=str,
+                                       choices=['mcq', 'qa'])
+    custom_dataset_parser.add_argument('--custom-dataset-infer-method',
+                                       type=str,
+                                       choices=['gen'])
 
 def main():
     args = parse_args()

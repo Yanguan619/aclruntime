@@ -6,6 +6,7 @@ from typing import List, Tuple, Union
 import tabulate
 from mmengine.config import Config
 
+from ais_bench.benchmark.datasets.custom import make_custom_dataset_config
 from ais_bench.benchmark.partitioners import NaivePartitioner, NumWorkerPartitioner
 from ais_bench.benchmark.runners import LocalAPIRunner, LocalRunner
 from ais_bench.benchmark.tasks import OpenICLEvalTask, OpenICLInferTask
@@ -64,6 +65,17 @@ def match_cfg_file(workdir: Union[str, List[str]],
         raise ValueError(err_msg)
     return files
 
+def try_fill_in_custom_cfgs(config):
+    for i, dataset in enumerate(config['datasets']):
+        if 'type' not in dataset:
+            config['datasets'][i] = make_custom_dataset_config(dataset)
+    if 'model_dataset_combinations' not in config:
+        return config
+    for mdc in config['model_dataset_combinations']:
+        for i, dataset in enumerate(mdc['datasets']):
+            if 'type' not in dataset:
+                mdc['datasets'][i] = make_custom_dataset_config(dataset)
+    return config
 
 def get_config_from_arg(args) -> Config:
     """Get the config object given args.
@@ -76,11 +88,12 @@ def get_config_from_arg(args) -> Config:
 
     if args.config:
         config = Config.fromfile(args.config, format_python_code=False)
+        config = try_fill_in_custom_cfgs(config)
         return config
 
     # parse dataset args
-    if not args.datasets:
-        raise ValueError('You must specify "--datasets" if you do not specify a config file path.')
+    if not args.datasets and not args.custom_dataset_path:
+        raise ValueError('You must specify "--datasets" or "--custom-dataset-path" if you do not specify a config file path.')
     datasets = []
     if args.datasets:
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -108,7 +121,14 @@ def get_config_from_arg(args) -> Config:
                     if k.endswith(dataset_key_suffix):
                         datasets += cfg[k]
     else:
-        raise ValueError('You must specify "--datasets"')
+        dataset = {'path': args.custom_dataset_path}
+        if args.custom_dataset_infer_method is not None:
+            dataset['infer_method'] = args.custom_dataset_infer_method
+        if args.custom_dataset_data_type is not None:
+            dataset['data_type'] = args.custom_dataset_data_type
+        dataset = make_custom_dataset_config(dataset)
+        datasets.append(dataset)
+        
     # parse model args
     if not args.models:
         raise ValueError('You must specify a config file path, or specify --models and --datasets.')

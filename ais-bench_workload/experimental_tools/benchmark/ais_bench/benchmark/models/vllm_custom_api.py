@@ -24,7 +24,7 @@ PromptType = Union[PromptList, str]
 
 @MODELS.register_module()
 class VLLMCustomAPI(BaseAPIModel):
-    """Model wrapper around OpenAI's models.
+    """Model wrapper around OpenAI's models. vllm 0.6 +
 
     Args:
         max_seq_len (int): The maximum allowed sequence length of a model.
@@ -157,7 +157,7 @@ class VLLMCustomAPI(BaseAPIModel):
 
 @MODELS.register_module()
 class VLLMCustomAPIOld(BaseAPIModel):
-    """Model wrapper around OpenAI's models.
+    """Model wrapper around OpenAI's models. vllm 0.2.6
 
     Args:
         max_seq_len (int): The maximum allowed sequence length of a model.
@@ -191,7 +191,7 @@ class VLLMCustomAPIOld(BaseAPIModel):
         self.host_port = host_port
         self.enable_ssl = enable_ssl
         self.base_url = self._get_base_url()
-        path = self._get_service_model_path()
+        path = "unused"
         super().__init__(path=path,
                          max_seq_len=max_seq_len,
                          meta_template=meta_template,
@@ -200,9 +200,6 @@ class VLLMCustomAPIOld(BaseAPIModel):
                          retry=retry,
                          verbose=verbose,
                          generation_kwargs=generation_kwargs)
-
-        self.logger.info("Running model path name is: " + path)
-        self.path = path
 
     def generate(self,
                  inputs: List[PromptType],
@@ -254,7 +251,6 @@ class VLLMCustomAPIOld(BaseAPIModel):
 
             try:
                 data = dict(
-                    model=self.path,
                     prompt=input,
                     max_tokens=max_out_len,
                 )
@@ -272,9 +268,9 @@ class VLLMCustomAPIOld(BaseAPIModel):
                                   str(raw_response.content))
                 continue
             self.logger.debug(str(response))
-            return response['choices'][0]['text']
+            return response['text'][0]
 
-        raise RuntimeError('Calling OpenAI failed after retrying for '
+        raise RuntimeError('Calling VLLM failed after retrying for '
                            f'{max_num_retries} times. Check the logs for '
                            'details.')
 
@@ -282,7 +278,3 @@ class VLLMCustomAPIOld(BaseAPIModel):
         if self.enable_ssl:
             return f"https://{self.host_ip}:{self.host_port}"
         return f"http://{self.host_ip}:{self.host_port}"
-
-    def _get_service_model_path(self):
-        client = OpenAI(api_key="EMPTY", base_url=self.base_url)
-        return client.models.list().data[0].id

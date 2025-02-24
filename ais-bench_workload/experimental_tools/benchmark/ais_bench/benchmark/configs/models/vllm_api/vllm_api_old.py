@@ -1,9 +1,9 @@
-from ais_bench.benchmark.models import MindieStreamApi
+from ais_bench.benchmark.models import VLLMCustomAPIOld
 
 models = [
     dict(
-        type=MindieStreamApi,
-        abbr='mindie-stream-api',
+        type=VLLMCustomAPIOld,
+        abbr='vllm-api-old',
         max_seq_len = 4096,
         query_per_second = 1,
         rpm_verbose = False,
@@ -15,14 +15,8 @@ models = [
             temperature = 0.5,
             top_k = 10,
             top_p = 0.95,
-            do_sample = True,
             seed = None,
             repetition_penalty = 1.03,
-            details = True,
-            typical_p = 0.5,
-            watermark = False,
-            priority = 5,
-            timeout = None,
         )
     )
 ]

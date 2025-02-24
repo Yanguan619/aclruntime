@@ -6,7 +6,7 @@ from ais_bench.benchmark.tasks import OpenICLInferTask
 
 with read_base():
     # from ais_bench.benchmark.configs.datasets.collections.chat_medium import datasets
-    from ais_bench.benchmark.configs.summarizers.medium import summarizer
+    from ais_bench.benchmark.configs.summarizers.example import summarizer
     from ais_bench.benchmark.configs.datasets.gpqa.gpqa_gen import gpqa_datasets
 
 datasets = [
@@ -26,11 +26,9 @@ models = [
         host_port = 8080,
         enable_ssl = False,
         generation_kwargs = dict(
-            temperature = 0.5,
-            top_k = 10,
+            temperature = 0.6,
             top_p = 0.95,
             seed = None,
-            repetition_penalty = 1.03,
         ),
     )
 ]

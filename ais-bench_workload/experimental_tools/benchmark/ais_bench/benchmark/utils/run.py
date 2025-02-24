@@ -128,7 +128,7 @@ def get_config_from_arg(args) -> Config:
             dataset['data_type'] = args.custom_dataset_data_type
         dataset = make_custom_dataset_config(dataset)
         datasets.append(dataset)
-        
+
     # parse model args
     if not args.models:
         raise ValueError('You must specify a config file path, or specify --models and --datasets.')
@@ -153,7 +153,7 @@ def get_config_from_arg(args) -> Config:
         raise ValueError('You must specify "--models"')
 
     # parse summarizer args
-    summarizer_arg = args.summarizer if args.summarizer is not None else 'example'
+    summarizer_arg = args.summarizer if args.summarizer is not None else 'medium'
     script_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(script_dir)
     default_configs_dir = os.path.join(parent_dir, 'configs')

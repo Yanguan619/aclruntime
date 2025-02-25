@@ -267,7 +267,9 @@ class VLLMCustomAPIOld(BaseAPIModel):
                 self.logger.error('JsonDecode error, got',
                                   str(raw_response.content))
                 continue
-            self.logger.debug(str(response))
+
+            if response.get('text') is None:
+                raise RuntimeError("Get unexpected response: {response} from service!")
             return response['text'][0]
 
         raise RuntimeError('Calling VLLM failed after retrying for '

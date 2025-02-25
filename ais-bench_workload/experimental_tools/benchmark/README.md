@@ -44,10 +44,16 @@ models = [
         query_per_second = 1,
         rpm_verbose = False,
         retry = 2,
-        host_ip = "localhost", # 指定服务化的 host ip
-        host_port = 8080, # 指定服务化的端口
+        host_ip = "localhost",
+        host_port = 8080,
         enable_ssl = False,
-        max_out_len=512,
+        generation_kwargs = dict(
+            temperature = 0.5,
+            top_k = 10,
+            top_p = 0.95,
+            seed = None,
+            repetition_penalty = 1.03,
+        )
     )
 ]
 ```
@@ -342,6 +348,7 @@ ais_bench --models vllm_api_general --datasets gsm8k_gen --summarizer medium
 | --- | --- |
 |[infer_api_vllm_general.py](ais_bench/configs/api_examples/infer_api_vllm_general.py)|基于gsm8k数据集使用vllm api评测，自定义了数据集路径|
 |[infer_api_mindie_stream_general.py](ais_bench/configs/api_examples/infer_api_mindie_stream_general.py)|基于gsm8k数据集使用mindie stream api评测，自定义了数据集路径|
+|[infer_api_mindie_vllm_aime2024.py](ais_bench/configs/api_examples/infer_api_mindie_vllm_aime2024.py)|基于aime2024数据集使用vllm 0.2.6版本格式的api访问mindie service评测，自定义了数据集路径|
 
 ## 其他特性
 ### 自定义数据集

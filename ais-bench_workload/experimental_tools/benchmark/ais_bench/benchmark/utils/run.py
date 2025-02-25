@@ -128,7 +128,7 @@ def get_config_from_arg(args) -> Config:
             dataset['data_type'] = args.custom_dataset_data_type
         dataset = make_custom_dataset_config(dataset)
         datasets.append(dataset)
-        
+
     # parse model args
     if not args.models:
         raise ValueError('You must specify a config file path, or specify --models and --datasets.')

@@ -337,7 +337,8 @@ ais_bench --models vllm_api_general --datasets gsm8k_gen --summarizer medium
 |mmlu_gen|mmlu_gen数据集生成式任务|正确率(naive_average)|5-shot|[mmlu_gen.py](ais_bench/benchmark/configs/datasets/mmlu/mmlu_gen_79e572.py)|
 |ceval_gen|ceval_gen数据集生成式任务|正确率(naive_average)|5-shot|[ceval_gen.py](ais_bench/benchmark/configs/datasets/ceval/ceval_gen_5f30c7_str.py),[ceval_gen_2daf24_str.py](ais_bench/benchmark/configs/datasets/ceval/ceval_gen_2daf24_str.py)|
 |SuperGLUE_BoolQ_gen|SuperGLUE_BoolQ_gen数据集生成式任务|正确率(naive_average)|0-shot、5-shot|[SuperGLUE_BoolQ_gen.py](ais_bench\benchmark\configs\datasets\SuperGLUE_BoolQ\SuperGLUE_BoolQ_gen_883d50_str.py),[SuperGLUE_BoolQ_cot_gen_1d56df_str.py](ais_bench\benchmark\configs\datasets\SuperGLUE_BoolQ\SuperGLUE_BoolQ_cot_gen_1d56df_str.py),[SuperGLUE_BoolQ_few_shot_gen_ba58ea_str.py](ais_bench\benchmark\configs\datasets\SuperGLUE_BoolQ\SuperGLUE_BoolQ_few_shot_gen_ba58ea_str.py)|
-|aime2024_gen|aime2024 数学任务|准确率(accuracy)|0-shot|[aime2024_gen.py](ais_bench/benchmark/configs/datasets/aime2024/aime2024_gen_0_shot_str.py)|
+|aime2024_gen|aime2024 数学任务|准确率accuracy (pass@1)|0-shot|[aime2024_gen.py](ais_bench/benchmark/configs/datasets/aime2024/aime2024_gen_0_shot_str.py)|
+|gpqa_gen|GPQA (Grade-Level Problems in Question Answering) Diamond深度推理和领域专业知识问题任务|准确率accuracy (pass@1)|0-shot|[gpqa_gen.py](ais_bench/benchmark/configs/datasets/gpqa/gpqa_gen_0_shot_str.py)|
 
 ### --summarizer支持的结果总结任务
 |任务名称|简介|对应源码配置文件路径|
@@ -350,6 +351,7 @@ ais_bench --models vllm_api_general --datasets gsm8k_gen --summarizer medium
 |[infer_api_vllm_general.py](ais_bench/configs/api_examples/infer_api_vllm_general.py)|基于gsm8k数据集使用vllm api评测，自定义了数据集路径|
 |[infer_api_mindie_stream_general.py](ais_bench/configs/api_examples/infer_api_mindie_stream_general.py)|基于gsm8k数据集使用mindie stream api评测，自定义了数据集路径|
 |[infer_api_mindie_vllm_aime2024.py](ais_bench/configs/api_examples/infer_api_mindie_vllm_aime2024.py)|基于aime2024数据集使用vllm 0.2.6版本格式的api访问mindie service评测，自定义了数据集路径|
+|[infer_api_mindie_vllm_gpqa.py](ais_bench/configs/api_examples/infer_api_mindie_vllm_gpqa.py)|基于gpqa diamond数据集使用vllm 0.2.6版本格式的api访问mindie service评测，自定义了数据集路径|
 
 ## 其他特性
 ### 自定义数据集

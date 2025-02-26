@@ -173,7 +173,7 @@ class TestClass:
         vis_md_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.md")
         assert os.path.exists(vis_md_path)
 
-    def test_vllm_api_all_qwen2_7b_aime2024(self, monkeypatch):
+    def test_vllm_api_all_qwen2_7b_gpqa(self, monkeypatch):
         fake_prediction = "A"
         fake_time_str = "fake_time_gpqa"
         monkeypatch.setattr('sys.argv',

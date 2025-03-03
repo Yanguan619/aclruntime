@@ -33,10 +33,10 @@ def get_data_path(dataset_path: str, local_mode: bool = True):
         local_path = os.path.join(cache_dir, dataset_path)
 
         if not os.path.exists(local_path):
+            readme_path = os.path.join(default_dir, "README.md")
             raise FileExistsError(f"Dataset path: {local_path} is not exist! " +
                                   "Please check section \"--datasets支持的数据集\" of " +
-                                  f"{os.path.join(default_dir, "README.md")} to check how to " +
-                                  "prepare supported datasets ")
+                                  f"{readme_path} to check how to prepare supported datasets.")
         else:
             return local_path
     else:

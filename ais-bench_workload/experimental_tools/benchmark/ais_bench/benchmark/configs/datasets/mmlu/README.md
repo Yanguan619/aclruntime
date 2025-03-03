@@ -193,4 +193,4 @@ mmlu/
 ### 可用数据集任务
 |任务名称|简介|评估指标|few-shot|prompt格式|对应源码配置文件路径|
 | --- | --- | --- | --- | --- | --- |
-|mmlu_gen|mmlu_gen数据集生成式任务|正确率(naive_average)|5-shot|string|[mmlu_gen.py](ais_bench/benchmark/configs/datasets/mmlu/mmlu_gen_79e572.py)|
+|mmlu_gen|mmlu_gen数据集生成式任务|正确率(naive_average)|5-shot|string|[mmlu_gen.py](mmlu_gen_79e572.py)|

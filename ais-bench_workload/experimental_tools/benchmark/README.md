@@ -335,7 +335,7 @@ ais_bench --models vllm_api_general --datasets gsm8k_gen --summarizer medium
 | ---- | ---- |
 |GSM8K|[ais_bench/benchmark/configs/datasets/gsm8k/README.md](ais_bench/benchmark/configs/datasets/gsm8k/README.md)|
 |MMLU|[ais_bench/benchmark/configs/datasets/mmlu/README.md](ais_bench/benchmark/configs/datasets/mmlu/README.md)|
-|BoolQ|[ais_bench\benchmark\configs\datasets\SuperGLUE_BoolQ\README.md](ais_bench\benchmark\configs\datasets\SuperGLUE_BoolQ\README.md)|
+|BoolQ|[ais_bench/benchmark/configs/datasets/SuperGLUE_BoolQ/README.md](ais_bench/benchmark/configs/datasets/SuperGLUE_BoolQ/README.md)|
 
 ### --summarizer支持的结果总结任务
 |任务名称|简介|对应源码配置文件路径|

@@ -1,5 +1,5 @@
 from mmengine.config import read_base
-from ais_bench.benchmark.models import VLLMCustomAPI
+from ais_bench.benchmark.models import MindieStreamApi
 from ais_bench.benchmark.partitioners import NaivePartitioner
 from ais_bench.benchmark.runners.local_api import LocalAPIRunner
 from ais_bench.benchmark.tasks import OpenICLInferTask
@@ -16,8 +16,8 @@ datasets = [
 
 models = [
     dict(
-        type=VLLMCustomAPI,
-        abbr='vllm-api-general',
+        type=MindieStreamApi,
+        abbr='mindie-stream-api',
         max_seq_len = 4096,
         query_per_second = 1,
         rpm_verbose = False,
@@ -26,11 +26,18 @@ models = [
         host_port = 8080,
         enable_ssl = False,
         generation_kwargs = dict(
-            temperature = 0.5,
+            temperature = 0.5, 
             top_k = 10,
             top_p = 0.95,
+            max_new_tokens = 512,
+            do_sample = True,
             seed = None,
             repetition_penalty = 1.03,
+            details = True,
+            typical_p = 0.5,
+            watermark = False,
+            priority = 5,
+            timeout = None,
         )
     )
 ]
@@ -43,4 +50,4 @@ infer = dict(partitioner=dict(type=NaivePartitioner),
                  concurrent_users=2,
                  task=dict(type=OpenICLInferTask)), )
 
-work_dir = 'outputs/api_vllm_general/'
+work_dir = 'outputs/api-mindie-stream/'

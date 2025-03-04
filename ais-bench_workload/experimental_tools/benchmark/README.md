@@ -329,6 +329,7 @@ ais_bench --models vllm_api_general --datasets gsm8k_gen --summarizer medium
 **注意:** 服务化推理测评api默认使用的url为localhost，端口号为8080，实际使用时需要修改为服务化后端配置的url和端口号
 
 ### --datasets支持的数据集
+--datasets 支持的数据集如下，每个数据集包含多种数据集任务，数据集的获取方式和支持的数据集任务请参考对应数据集的README。
 |数据集|数据集任务README|
 | ---- | ---- |
 |GSM8K|[ais_bench/benchmark/configs/datasets/gsm8k/README.md](ais_bench/benchmark/configs/datasets/gsm8k/README.md)|

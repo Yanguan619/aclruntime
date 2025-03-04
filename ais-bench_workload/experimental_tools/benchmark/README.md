@@ -326,9 +326,7 @@ ais_bench --models vllm_api_general --datasets gsm8k_gen --summarizer medium
 |vllm_api_general|通过vllm的api访问vllm的推理服务化，访问服务链接的 v1/completions子服务|基于支持v1/completions子服务的vllm版本，启动vllm推理服务|字符串格式|[vllm_api_general.py](ais_bench/benchmark/configs/models/vllm_api/vllm_api_general.py)|
 |mindie_stream_api_general|通过mindie的api访问mindie的推理服务化，访问服务链接的 infer子服务|基于支持infer子服务的mindie版本，启动mindie推理服务|字符串格式|[mindie_stream_api_general.py](ais_bench/benchmark/configs/models/mindie_api/mindie_stream_api_general.py)|
 
-### 注意事项
-
-- 服务化推理测评api默认使用的url为localhost，端口号为8080，实际使用时需要修改为服务化后端配置的url和端口号
+**注意:** 服务化推理测评api默认使用的url为localhost，端口号为8080，实际使用时需要修改为服务化后端配置的url和端口号
 
 ### --datasets支持的数据集
 |数据集|数据集任务README|

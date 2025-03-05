@@ -42,7 +42,7 @@
 constexpr int INPUT_DYM_SHAPE_MAX_LENGTH = 30;
 constexpr int EXPECTED_INPUT_INFO_SIZE = 2;
 constexpr int MAX_SHAPE_VALUES = 6;
-constexpr size_t MAX_SHAPE_VALUE_LENGTH = 4;
+constexpr size_t MAX_SHAPE_VALUE_LENGTH = 9;
 
 typedef enum Result {
     SUCCESS = 0,

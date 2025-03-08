@@ -52,6 +52,7 @@ class MindieStreamApi(BaseAPIModel):
         self.host_port = host_port
         self.enable_ssl = enable_ssl
         self.max_chunk_size = 32*2048
+        self.res_key = 'generated_text'
         self.base_url = self._get_base_url()
         super().__init__(path='',
                          max_seq_len=max_seq_len,
@@ -122,9 +123,9 @@ class MindieStreamApi(BaseAPIModel):
                 url = os.path.join(self.base_url, "infer")
                 raw_response = requests.post(url, headers=header, data=json.dumps(data), stream=True)
                 for res_ in self.process_response(raw_response):
-                    if not res_['token']['text']:
-                        break
-                    response.append(res_['token']['text'])
+                    if self.res_key not in res_:
+                        continue
+                    response.append(res_[self.res_key])
 
             except requests.ConnectionError:
                 self.logger.error('Got connection error, retrying...')

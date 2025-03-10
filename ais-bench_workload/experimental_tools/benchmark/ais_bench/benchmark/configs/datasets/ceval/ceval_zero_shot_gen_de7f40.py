@@ -3,7 +3,7 @@ from ais_bench.benchmark.openicl.icl_retriever import ZeroRetriever
 from ais_bench.benchmark.openicl.icl_inferencer import GenInferencer
 from ais_bench.benchmark.openicl.icl_evaluator import AccEvaluator
 from ais_bench.benchmark.datasets import CEvalDataset
-from ais_bench.benchmark.utils.text_postprocessors import first_option_postprocess
+from ais_bench.benchmark.utils.text_postprocessors import first_capital_postprocess
 
 
 ceval_subject_mapping = {
@@ -77,7 +77,7 @@ for _split in ['val']:
 
         ceval_eval_cfg = dict(
             evaluator=dict(type=AccEvaluator),
-            pred_postprocessor=dict(type=first_option_postprocess))
+            pred_postprocessor=dict(type=first_capital_postprocess))
 
         ceval_datasets.append(
             dict(

@@ -3,43 +3,45 @@
 ## 版本配套   
 | 条件 | 要求 | 备注 |
 |---|---|---|
-| CANN版本 | >=5.0.4.6| 请从“[昇腾社区文档中心](https://www.hiascend.com/zh/document)”获取配套CANN版本的安装指南，并参考进行CANN软件安装。 |
-| 硬件要求 | **支持以下产品：**<br>- Atlas训练系列产品<br>- Atlas A2训练系列产品<br>- Atlas推理系列产品（仅支持Tensorlow1.15在线推理特性） | 支持的固件驱动版本与配套CANN软件支持的固件驱动版本相同，开发者可通过“[昇腾社区-固件与驱动](https://www.hiascend.com%2Fhardware%2Ffirmware-drivers%2Fcommunity%3Fproduct%3D2%26model%3D28)”页面根据产品型号与CANN软件版本获取配套的固件与驱动。 |
+| CANN版本 | >=5.0.4.6| 请获取配套版本的“[CANN软件安装指南](https://www.hiascend.com/document/redirect/CannCommercialInstSoftware)”进行CANN软件安装。 |
+| 硬件要求 | **支持以下产品：**<br>- Atlas训练系列产品<br>- Atlas A2训练系列产品| 支持的固件驱动版本与配套CANN软件支持的固件驱动版本相同，开发者可通过“[昇腾社区-固件与驱动](https://www.hiascend.com/hardware/firmware-drivers/community)”页面根据产品型号与CANN软件版本获取配套的固件与驱动。 |
 
 
 ## 功能介绍
-### 简介
-该工具包提供了精度比对常用的功能，当前该工具主要适配Tensorflow训练场景
+该工具包提供了精度比对常用的功能，仅适用于Tensorflow训练场景，主要提供了如下功能：
+- 浮点异常检测
+- 融合异常检测
+- 整网数据比对
+- 随机错误检测
 
-对于常用功能基本可以做到一键操作，同时提供Dump数据/图信息的交互式查询和操作入口
+## 使用须知    
 
-推理场景可直接使用[推理一键式全流程精度比对](https://gitee.com/ascend/tools/tree/master/msquickcmp) 工具
-### 主要功能
-#### 已完成功能
-1. 简化脚本修改【手动/半自动】
-2. TF标杆数据生成【自动/半自动】
-3. 算子溢出检测分析【自动】
-4. 开启GE图Dump和图解析【自动】
-5. 开启数据Dump并进行全网比对【自动】
-6. 查询算子列表/节点信息【手动】
-7. 查询/解析Dump数据信息【手动】
-8. 数据比对【手动】
-### 工具获取
-1. 下载压缩包的方式获取
-   将https://gitee.com/ascend/tools 以压缩包形式下载
-2. 使用git命令方式获取
-3. 移动 tools/precision_tool 子目录至训练工作目录
-### 安装python3三方依赖
-```shell
-pip3 install rich gnureadline pexpect graphviz
-# ubuntu/Debian
-sudo apt-get install graphviz
-# fedora/Centos
-sudo yum install graphviz
-```
-### 工具执行依赖
-* 一般直接在NPU训练环境上部署该脚本，环境上能够正常执行CPU和NPU训练脚本
-* 如果需要进行数据Dump比对，则需要先检查并去除训练脚本内部使用到的随机处理，避免由于输入数据不一致导致数据比对结果不可用
+>  本README仅给出precision_tool工具的使用前提以及相关命令说明，关于此工具不同功能场景下详细的端到端操作可参见配套版本的[“TensorFlow模型迁移指南 > 精度调优”](https://www.hiascend.com/document/redirect/CannCommercialTfAccuracy)手册。
+> 
+## 工具准备
+
+1. 工具包下载（二选一）。
+   - 下载压缩包的方式获取tools仓源码。
+   - 使用git命令，下载tools仓源码，命令示例：
+     ```shell
+     git clone https://gitee.com/ascend/tools.git
+     ```
+2. 移动"tools/precision_tool"子目录至TensorFlow网络训练工作目录。
+
+## 使用前提
+
+1. 安装python3三方依赖
+   ```shell
+   pip3 install rich gnureadline pexpect
+   # ubuntu/Debian
+   sudo apt-get install graphviz
+   # fedora/Centos
+   sudo yum install graphviz
+   ```
+2. 环境上能够正常执行CPU和NPU训练脚本。
+3. 训练脚本去随机处理。
+  
+   如果需要进行整网数据比对（Dump数据比对），需要先检查并去除训练脚本内部使用到的随机处理，避免由于输入数据不一致导致数据比对结果不可用。
     ```python
     # 对于使用tf.random / np.random / (python) random的可以通过固定随机种子的方式固定输入
     # import tf_config.py 默认会设置上述三种random的seed，但由于import位置关系，可能不一定能作用到所有的关联代码，建议在代码确认合适位置手动嵌入
@@ -54,7 +56,7 @@ sudo yum install graphviz
     run_config = tf.estimator.RunConfig(tf_random_seed=1, ...)
     run_config = NPURunConfig(tf_random_seed=1, ...)
     ```
- * **理论上网络中的大多数随机均能通过上面的方式固定, 一般不需要再做下面的这些操作**
+    **理论上网络中的大多数随机处理均能通过上面的方式固定, 其他情况可参考以下示例进行脚本排查（下述仅为典型示例）：**
     ```python
     # 1. 参数初始化中的随机操作
     #    加载checkpoint的方式能够固定大多数初始参数
@@ -84,169 +86,39 @@ sudo yum install graphviz
   
     # 其他......
     ```
-* 该工具基于**NPU的计算图**，**NPU的DUMP数据**，**NPU的溢出检测数据**，**TF的计算图meta文件**，**TF的DUMP数据**进行数据解析和分析。
-这几类依赖数据可以通过以下方式获取（只使用部分工具功能并不需要提前获取所有依赖数据）：
-#### 1. NPU的计算图获取
-   ```
-     注意：NPU的Dump数据和计算图存在一定的对应关系，需要同时获取 
-          避免在自定义的训练脚本中unset DUMP GRAPH相关的环境变量
-   ```
-* 【推荐】方法一：配置2、3依赖中的NPU数据Dump或者overflow检测功能，将自动配置上Dump GE图的环境变量
 
-* 【不推荐】方法二：参考迁移指导中的修改配置，执行NPU脚本，并将获取到的图转存至precision_data图目录
-   ```shell
-   export DUMP_GE_GRAPH=2
-   export DUMP_GRAPH_LEVEL=3
-   export DUMP_GRAPH_PATH=./precision_data/npu/debug_0/graph
-   # 未配置DUMP_GRAPH_PATH时，图文件将保存在脚本执行目录，可以直接转存至precision_data目录
-   mkdir -p ./precision_data/npu/debug_0/graph && mv ge_proto_*.txt ./precision_data/npu/debug_0/graph
-   ```
-#### 2. NPU的DUMP数据获取
-* 【推荐】方法一：在训练脚本中**import precision_tool.tf_config**，并使用precision_tool中提供的辅助命令行执行训练脚本 
-    ``` python
-    # NPU的DUMP获取和溢出检测数据的获取，均可按如下方式修改代码
-    # 注意：参数action可以设置为'dump'或'overflow'
-    # 引用 precision_tool/tf_config.py
-    import precision_tool.tf_config as npu_tf_config
-    
-    # 如果使用的是Estimator的NPURunConfig配置使能NPU，则可以参考以下修改
-    dump_config = npu_tf_config.estimator_dump_config(action='dump') # 新增行
-    npu_config = NPURunConfig(dump_config=dump_config)
-  
-    # 如果使用的是session.run或者使用tf.ConfigProto创建session_config传入tf.estimator.RunConfig的方式使能npu
-    # 可以参考如下修改
-    session_config = npu_tf_config.session_dump_config(session_config, action='dump') # 新增行
-    # tf.estimator
-    run_config = tf.estimator.RunConfig(session_config=session_config,...)
-    # tf.keras
-    npu_keras_sess = set_keras_session_npu_config(config=session_config)
-    # session run
-    with tf.Session(config=npu_config_proto(session_config)):
-        ......
-    
-    # 如果使用的是custom_op方式，则可以参考以下修改
-    config = tf.ConfigProto()
-    custom_op =  config.graph_options.rewrite_options.custom_optimizers.add()
-    custom_op.name =  "NpuOptimizer"
-    custom_op.parameter_map["use_off_line"].b = True
-    custom_op = npu_tf_config.update_custom_op(custom_op, action='dump')   # 新增行
-    ```
 
-* 【不推荐】方法二：参考[精度比对工具使用指南](https://www.hiascend.com/document?tag=community-developer) 修改训练脚本。
-   执行训练脚本，并将dump的数据拷贝到【precision_data/dump/npu/】目录
-#### 3. NPU的溢出检测数据的获取（缺少该数据将无法展示溢出检测结果）
-* 【推荐】方法一：在训练脚本中**import precision_tool.tf_config**，并按【2. NPU的DUMP数据获取】中修改训练代码，使用precision_tool中提供的辅助命令行执行训练脚本
-    ```python
-    # 需要将action设置成'overflow'
-    # 引用 precision_tool/tf_config.py
-    import precision_tool.tf_config as npu_tf_config
-    dump_config = npu_tf_config.estimator_dump_config(action='overflow') # 新增行
-    ```
-* 【不推荐】方法二：参考[使用溢出检测工具分析算子溢出](https://www.hiascend.com/document?tag=community-developer) 修改训练脚本，
-   并将溢出数据拷贝至【precision_tool/dump/overflow/】目录
-
-#### 4. TF的DUMP数据获取（缺少该数据无法使用数据比对功能）(适用于TF 1.15， TF2.x参考tfdbg_ascend)
-* 【推荐】方法一：在CPU/GPU训练脚本中添加tf_debug代码，并使用precision_tool中提供的辅助命令行工具生成标杆DUMP数据
-   ```python
-    import precision_tool.tf_config as npu_tf_config
-    
-    # 如果使用的是Estimator,EstimatorSpec加入training_hooks
-    estim_specs = tf.estimator.EstimatorSpec(training_hooks=[npu_tf_config.estimator_dump()])    
-    
-    # 如果使用的session.run，以下代码在为sess加上了tf_debug的wrapper
-    sess = npu_tf_config.sess_dump(sess=sess)
-   ```
-   ```shell
-   # 1. 执行脚本
-   # 2. 解析tf debug dump文件，生成算子输出tensor文件
-   # 注意：TF dump数据的原理是使用tf_debug的print_tensor(pt)命令实现的，由于训练代码提供了非常灵活的run()接口，
-   #      脚本无法感知用户需要dump的tensor在哪个run阶段，因此需要用户修改训练代码，在执行完正确的run后，立即退出。
-   #      例如，修改代码只执行一个step的训练，根据代码中run的次数，会获取到1~N个离线tf_debug的dump目录
-   #      precision_tool脚本会自动提取最后一个run阶段中出现的所有tensor作为标杆数据。
-   python3.7.5 precision_tool/cli.py tf_dump
+## 配置文件说明
    
-   # 在precision_data/tf/dump/ 目录会存放提取的tensor
-   # 如果获取tensor不符合预期，可以检查下precision_data/dump/cpu_debug/目录, 只保留预期run阶段的tf_debug离线数据
-   # 执行以下命令重新生成
-   rm -rf precision_data/tf/dump/* && python3.7.5 precision_tool/cli.py tf_dump
-   ```
-* 【不推荐】方法二：参考[准备基于GPU/CPU运行生成的npy数据](https://www.hiascend.com/document?tag=community-developer)
-   获取CPU/GPU的TF数据，并拷贝至【precision/dump/cpu/】目录
-#### 5. TF计算图Meta文件的获取（可选）
-* 通过saver保存ckpt获取
-    ```python
-    # 修改CPU/NPU脚本
-    with tf.Session() as sess:
-       # do session.run()
-       saver = tf.train.Saver()
-       # 保存ckpt
-       saver.save(sess, saver_dir)
-    ```
-#### 6. 关闭NPU的融合功能（根据情况启用）
-* NPU会对计算图中的算子进行融合，以提高网络性能，由于大多数融合是自动识别的，可能存在未考虑到的场景，导致精度问题，
-  因此，可以尝试关闭融合定界网络问题是否是由于融合导致。
-  ```python
-    # 关闭融合可以和溢出检测/数据Dump同时进行，启用方法也类似
-    # 引用 precision_tool/tf_config.py
-    import precision_tool.tf_config as npu_tf_config
-    
-    # 如果使用的是Estimator的NPURunConfig配置使能NPU，则可以参考以下修改
-    npu_config = NPURunConfig(fusion_switch_file=npu_tf_config.FUSION_OFF_FILE) # 修改行
-    # 如果需要关闭指定的融合规则，则可以修改precision_tool/fusion_switch.cfg, 并参考如下修改
-    npu_config = NPURunConfig(fusion_switch_file=npu_tf_config.FUSION_SWITCH_FILE) # 关闭特定融合修改行
-  
-    # 如果使用的是session.run或者使用tf.ConfigProto创建session_config传入tf.estimator.RunConfig的方式使能npu
-    # 可以参考如下修改(数据Dump和关闭融合同时使能)
-    session_config = npu_tf_config.session_dump_config(session_config, action='dump|fusion_off') # 新增行
-    session_config = npu_tf_config.session_dump_config(session_config, action='dump|fusion_switch') # 关闭特定融合新增行
-    # tf.estimator
-    run_config = tf.estimator.RunConfig(session_config=session_config,...)
-    # tf.keras
-    npu_keras_sess = set_keras_session_npu_config(config=session_config)
-    # session run
-    with tf.Session(config=npu_config_proto(session_config)):
-        ......
-    # 如果有custom_op,也可以直接使用下面的方式配置
-    custom_op = npu_tf_config.update_custom_op(custom_op=custom_op, action='dump | fusion_off')
-  ```
-## 使用说明
-1.  配置文件precision_tool/config.py（正常默认即可）
-    ```python
-    # 如果需要dump特定曾的数据，则可以修改以下配置项
-    # 一般对比分析dump首层即可
-    # Dump config '0|5|10'
-    TF_DUMP_STEP = '0'
-    
-    # 融合开关配置，可以再该配置文件中配置融合开关的开启和关闭，使用方法参考以下文档：
-    # https://support.huaweicloud.com/tensorflowdevg-cann330alphaXtraining/atlastfadapi_07_0005.html
-    FUSION_SWITCH_FILE = './precision_tool/fusion_switch.cfg'
-    
-    # 依赖run包中的atc和msaccucmp.pyc工具，一般在run包安装目录，配置到父目录即可
-    # 默认run包安装在/usr/local/Ascend，可以不用修改。指定目录安装则需要修改
-    # parent dir path of msaccucmp.pyc and atc, usually run package dir
-    CMD_ROOT_PATH = '/usr/local/'
-    
-    # ASCEND Log Path
-    ASCEND_LOG_PATH = '/root/ascend/log/plog/'
-    
-    # 日志级别及数据分析目录设置
-    # TOOL CONFIG
-    LOG_LEVEL = "NOTSET"
-    # ModelArts场景下，可以根据情况将数据跟目录修改成自定义目录，并在完成后完整下载该目录
-    ROOT_DIR = './'
-    ```
-2. 启动脚本（交互命令行）
-    ```shell
-    python3 ./precision_tool/cli.py 
-    ```
+precision_tool/config.py文件支持的配置如下：
+
+```python
+# 如果需要dump特定step的数据，一般对比分析dump首层即可，即保持默认值，如需指定特定step，可修改以下配置项。若不配置TF_DUMP_STEP，采集所有迭代的dump数据
+# 示例：Dump config '0|5|10'
+TF_DUMP_STEP = '0' 
+
+# 依赖Toolkit包中的atc和msaccucmp.pyc工具，配置为Toolkit包的安装目录
+# 默认Toolkit安装在/usr/local/Ascend，可以不用修改。指定目录安装则需要修改
+CMD_ROOT_PATH = '/usr/local/Ascend'
+```
+
+## 工具命令说明
+
+“precision_tool”工具的启动命令如下所示：
+
+```shell
+python3 ./precision_tool/cli.py 
+```
+进入交互式命令行界面：
+ **PrecisionTool >** 
    
-### 交互模式命令
+支持的交互模式命令说明如下：
 1. ac -l [limit_num] -c
     ```shell
-    # auto check. 自动化检测命令
-    # 列出Fusion信息;解析算子溢出信息;
-    # -c 可选，进行全网比对
-    # -l 可选，限制输出结果的条数（overflow解析的条数等）
+    # auto check，自动化检测命令。
+    # 列出Fusion信息，解析算子溢出信息。
+    # -c：可选，进行全网比对。
+    # -l：可选，限制输出结果的条数（overflow解析的条数等）。
     PrecisionTool > ac -c
    ╭──────────────────────────────────────────────────────────────────────────────────────────────────╮
    │ [TransData][327] trans_TransData_1170                                                            │
@@ -260,18 +132,19 @@ sudo yum install graphviz
     ```
 2. run [command]
     ```shell
-    # 不退出交互命令环境执行shell命令，与内置命令不冲突的可以直接执行，否则需要加run前缀
+    # 不退出交互命令环境执行shell命令，与内置命令不冲突的可以直接执行，否则需要加run前缀。
     PrecisionTool > run vim cli.py
     PrecisionTool > vim cli.py
     ```
 
 3. ls -n [op_name] -t [op_type] -f [fusion_pass] -k [kernel_name]
     ```shell
-    # 通过[算子名]/[算子类型]查询网络里的算子，模糊匹配
-    # -n 算子节点名称
-    # -t  算子类型
-    # -f 融合类型
-    # -k kernel_name
+    # 通过[算子名]/[算子类型]查询网络里的算子，模糊匹配。
+    # -n：可选，算子节点名称。
+    # -t：可选，算子类型。
+    # -f：可选，融合类型。
+    # -k：可选，kernel_name。
+    # 说明：-n与-t需要存在其中一个输入。
     PrecisionTool > ls -t Mul -n mul_3 -f TbeMulti
    [Mul][TbeMultiOutputFusionPass] InceptionV3/InceptionV3/Mixed_5b/Branch_1/mul_3
    [Mul][TbeMultiOutputFusionPass] InceptionV3/InceptionV3/Mixed_5c/Branch_1/mul_3
@@ -281,11 +154,12 @@ sudo yum install graphviz
 
 4. ni (-n) [op_name] -s [save sub graph deep]
     ```shell
-    # 通过[算子名]查询算子节点信息
-    # -n 指定节点名称
-    # -g graph名
-    # -a 显示attr信息
-    # -s 保存一个以当前算子节点为根，深度为参数值的子图
+    # 通过[算子名]查询算子节点信息。
+    # -n：可选，指定节点名称。
+    # -g：可选，graph名称。
+    # -a：可选，显示attr信息。
+    # -s：可选，保存一个以当前算子节点为根，深度为参数值的子图。
+    # 说明：-n与-g需要存在其中一个输入。
    PrecisionTool >  ni gradients/InceptionV3/InceptionV3/Mixed_7a/Branch_0/Maximum_1_grad/GreaterEqual -s 3
    ╭─────────────────── [GreaterEqual]gradients/InceptionV3/InceptionV3/Mixed_7a/Branch_0/Maximum_1_grad/GreaterEqual ────────────────────╮
    │ [GreaterEqual] gradients/InceptionV3/InceptionV3/Mixed_7a/Branch_0/Maximum_1_grad/GreaterEqual                                       │
@@ -313,9 +187,8 @@ sudo yum install graphviz
    
 5. pt (-n) [*.npy] 
     ```shell
-    # 查看某个dump数据块的数据信息
-    # -n 可选，含义是待查看的数据文件名
-    # 默认会将数据保存成 txt
+    # 查看某个dump数据块的数据信息，并保存到txt文件。
+    # -n：可选，待查看的数据文件名。
     PrecisionTool > pt TransData.trans_TransData_1170.327.1619347786532995.input.0.npy 
    ╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
    │ Shape: (32, 8, 8, 320)                                                                                                  │
@@ -330,13 +203,13 @@ sudo yum install graphviz
 
 6. cp (-n) [left *.npy] [right *.npy] -p [print num] -al [atol] -rl [rtol]
     ```shell
-    # 对比两个tensor的数据
-    # -n 指定需要对比的两个numpy名
-    # -p 指定输出的错误数据的个数及前多少个数据
-    # -al/rl 指定相对误差的参数,在两个场景中用到
-    # -s 保存成txt文件，默认打开
-    #   1. np.allclose(left, right, atol=al, rtol=rl)
-    #   2. err_cnt += 1 if abs(data_left[i] - data_right[i]) > (al + rl * abs(data_right[i]))
+    # 对比两个numpy文件中的tensor数据。
+    # -n：必选，指定需要对比的两个numpy文件的文件名。
+    # -p：可选，指定输出前多少个错误数据。
+    # -al/rl：可选，al为绝对误差，rl为相对误差，使用示例如下：
+    #   示例1. np.allclose(left, right, atol=al, rtol=rl)
+    #   示例2. err_cnt += 1 if abs(data_left[i] - data_right[i]) > (al + rl * abs(data_right[i]))
+    # -s：可选，保存成txt文件，默认打开
     PrecisionTool > cp Add.InceptionV3_InceptionV3_Mixed_7a_Branch_0_add_3.323.1619494134703053.output.0.npy InceptionV3_InceptionV3_Mixed_7a_Branch_0_add_3.0.1619492699305998.npy -p 10 -s -al 0.002 -rl 0.005
                       Error Item Table                                        Top Item Table
    ┏━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓ ┏━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
@@ -370,19 +243,19 @@ sudo yum install graphviz
     ```
 
 7. vc -lt [left_path] -rt [right_path] -g [graph]
-   ```python
-    # 用于手动指定两个目录进行整网对比
-    # -lt 必选，其中一个文件目录
-    # -rt 必选，另一个目录，一般是标杆目录 
-    # -g 可选，指定-g将尝试解析graph内的映射关系比对（一般用于NPU和TF之间的数据比对， NPU与NPU之间比对不需要，直接按照算子name对比）
+   ```shell
+    # 用于手动指定两个目录进行整网精度对比
+    # -lt：必选，其中一个文件目录。
+    # -rt：必选，另一个目录，一般是标杆目录。
     # 需要指定到dump数据所在的目录层级，precision_data/npu/debug_0/dump/20220217095546/3/ge_default_20220217095547_1/1/0/
+    # -g：可选，指定-g将尝试解析graph内的映射关系比对（一般用于NPU和TensorFlow之间的数据比对， NPU与NPU之间比对不需要，直接按照算子name对比）
    ```
 8. vcs -f [file_name] -c [cos_sim_threshold] -l [limit]
-   ```python
-    # 查看精度比对结果的概要信息，可以更加预先相似的阈值过滤出低于阈值的算子/信息
-    # -f (--file) 可选，指定csv文件，不设置则默认遍历precision_data/temp/vector_compare/目录下最近产生的对比目录内的所有csv
-    # -c (--cos_sim) 可选，指定筛选所使用的预先相似度阈值，默认0.98
-    # -l (--limit) 可选，指定输出前多少个结果，默认值3
+   ```shell
+    # 查看精度比对结果的概要信息，可以更加预先相似的阈值过滤出低于阈值的算子/信息。
+    # -f (--file)：可选，指定csv文件，不设置则默认遍历precision_data/temp/vector_compare/目录下最近产生的对比目录内的所有csv。
+    # -c (--cos_sim)：可选，指定筛选所使用的预先相似度阈值，默认0.98。
+    # -l (--limit)：可选，指定输出前多少个结果，默认值3。
     PrecisionTool > vcs -c 0.98 -l 2
     2021-05-31 14:48:56 (2344298) -[INFO]Sub path num:[1]. Dirs[['20210529145750']], choose[20210529145750]
     2021-05-31 14:48:56 (2344298) -[DEBUG]Find ['result_20210529145751.csv', 'result_20210529145836.csv', 'result_20210529145837.csv', 'result_20210529145849.csv', 'result_20210529150404.csv', 'result_20210529151102.csv'] result files in dir precision_data/temp/vector_compare/20210529145750
@@ -409,7 +282,8 @@ sudo yum install graphviz
     │  - [0]0.05469               │
     ╰─────────────────────────────╯
    ```
-### Precision_data目录结构
+## Precision_data目录结构介绍
+示例如下：
 ```
 precision_data/
 ├── npu
@@ -437,76 +311,17 @@ precision_data/
         └── 20210510101134
             └── result_123458.csv
 ```
-### 配合msquickcmp一键式推理精度比对工具使用
-- msquickcmp会将中间dump数据和图自动保存在一个时间戳命名的目录内, 可以使用precision_tool工具直接对该目录进行分析
-```python
-output-path/timestamp
-├── dump_data
-├── input
-├── model
-├── result_2021211214657.csv
-└── tmp 
-```
-- 修改配置
-```python
-# file precision_tool/config.py
-# [train/infer] if adapt from msquickcmp result, set net type to infer
-NET_TYPE = 'infer'
-```
-- 执行以下命令
-```shell
-# 前提条件：
-#    当前目录没有precision_data目录（导入过程会新创建一个precision_data,用于保存导入数据）
-#    只有第一次需要使用infer子命令导入，后续直接python3 precision_tool/cli.py
-python3 precision_tool/cli.py infer output-path/timestamp
-```  
 
-### 基于checkpoint进行训练精度分析
-#### 获取checkpoint和网络数据数据
-```python
-from precision_tool.tf_session import PrecisionTfSession
-with PrecisionTfSession() as sess:
-    sess.run()
-# 执行完成后，将在precision_data/tf/checkpoint 目录生成一个checkpoint
-# 在precision_data/tf/checkpoint/inputs目录保存[input_tensor_name].npy的输入数据
-```
-
-#### 使用【train】命令进行cpu和npu dump数据的获取
-```shell
-# train -d [all/npu/cpu] -a [dump|fusion_off|overflow]
-python3 precision_tool/cli.py train -d all -a dump
-```
-
-### TF脚本修改参考
-
-```python
-# 打印动态Scale的Loss值
-loss_scale_manager = ExponentialUpdateLossScaleManager()
-scale_v = sess.run([loss_scale_manager.get_loss_scale()])
-print(">>> Current Loss Scale >>> ", scale_v)
-
-
-with tf.Session() as sess:
-   # do session.run()
-   saver = tf.train.Saver()
-   # 保存ckpt
-   saver.save(sess, saver_dir)
-   # ...
-   # 从ckpt恢复
-   saver.restore(sess, saver_dir)
-   # ...
-   # 保存Tensorboard
-   summary_writer = tf.summary.FileWriter(logdir=log_dir, graph=sess.graph)
-
-```
-
-### F&Q
+## 常见问题处理
 1. 安装gnureadline报错找不到lncurses
+   
+   错误信息如下：
    ```shell
    /usr/bin/ld: cannot find -lncurses
    collect2: error: ld returned 1 exit status
    error: command 'gcc' failed with exit status 1
    ```
+   解决方法如下：
    ```shell
    # 先尝试在本地查找libncurses.so*
    find / -name libncurses.so*
@@ -517,9 +332,3 @@ with tf.Session() as sess:
    # 创建软连接
    ln -s /usr/lib64/libncurses.so.5.9 /usr/lib64/libncurses.so
    ```
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request

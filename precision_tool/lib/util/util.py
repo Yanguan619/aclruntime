@@ -36,7 +36,7 @@ except ImportError as import_error:
     print("Unable to import module: readline. Run 'pip3 install gnureadline pyreadline' to fix it.")
 
 # patterns
-OFFLINE_DUMP_PATTERN = r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)\.?([0-9]+)?\.([0-9]{1,255})"
+OFFLINE_DUMP_PATTERN = r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)\.?([0-9]+)?\.([0-9]{1,255})[.csv]?"
 OFFLINE_DUMP_DECODE_PATTERN = \
     r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})\.?[0-9]?[\.0-9]+?" \
     r"\.([a-z]+)\.([0-9]{1,255})\.npy$"
@@ -48,7 +48,7 @@ OP_DEBUG_NAME = 'OpDebug.Node_OpDebug.taskid.timestamp'
 CPU_DUMP_DECODE_PATTERN = r"^([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})\.npy$"
 CPU_FILE_DECODE_NAME = 'op_name.0(.0).timestamp.npy'
 OP_DEBUG_PATTERN = r"Opdebug\.Node_OpDebug\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})"
-OP_DEBUG_DECODE_PATTERN = r"Opdebug\.Node_OpDebug\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})\.([a-z]+)\.([0-9]{1,255})\.json"
+OP_DEBUG_DECODE_PATTERN = r"Opdebug\.Node_OpDebug\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})[\.0-9]*\.([a-z]+)\.([0-9]{1,255})\.json"
 VECTOR_COMPARE_RESULT_PATTERN = r"result_([0-9]{1,255})\.csv"
 TIMESTAMP_DIR_PATTERN = '[0-9]{1,255}'
 NUMPY_PATTERN = r".*\.npy$"
@@ -188,6 +188,8 @@ class Util(object):
                 file_desc = self._gen_dump_file_info(item[0], match, dir_path)
                 dst_file_name = '.'.join([file_desc.op_type, file_desc.file_name, str(file_desc.task_id),
                                           str(file_desc.stream_id), str(file_desc.timestamp)])
+                if item[1].endswith(Constant.Suffix.CSV):
+                    dst_file_name += '.csv'
                 dst_file = os.path.abspath(os.path.join(dir_path, dst_file_name))
                 if not os.path.islink(src_file):
                     os.rename(src_file, dst_file)
@@ -492,7 +494,7 @@ class Util(object):
 
     @staticmethod
     def _gen_build_graph_file_info(name, match, dir_path):
-        return BuildGraphFileDesc(name, dir_path, -1, int(match.group(1)), match.group(2))
+        return BuildGraphFileDesc(name, dir_path, -1, int(match.group(1)), match.groups()[-1])
 
     @staticmethod
     def _gen_dump_file_info(name, match, dir_path):

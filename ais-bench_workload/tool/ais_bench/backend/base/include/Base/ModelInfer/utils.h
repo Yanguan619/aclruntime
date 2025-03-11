@@ -1,25 +1,27 @@
-/**
-* Copyright 2020 Huawei Technologies Co., Ltd
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-* http://www.apache.org/licenses/LICENSE-2.0
-
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-
-#ifndef _UTILS_H_
-#define _UTILS_H_
+#ifndef UTILS_H_
+#define UTILS_H_
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <regex>
 #include <dirent.h>
+#include <sys/time.h>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -31,13 +33,16 @@
 #include <sys/types.h>
 #include <time.h>
 #include <vector>
-
+#include <climits>
+#include "File.h"
 #include "Base/Log/Log.h"
+#include "Base/ModelInfer/cnpy.h"
+#include "Base/Tensor/TensorBase/TensorBase.h"
 
-// #define INFO_LOG(fmt, args...) fprintf(stdout, "[INFO] " fmt "\n", ##args)
-// #define DEBUG_LOG(fmt, args...) fprintf(stdout, "[DEBUG] " fmt "\n", ##args)
-// #define WARN_LOG(fmt, args...) fprintf(stdout, "[WARN] " fmt "\n", ##args)
-// #define ERROR_LOG(fmt, args...) fprintf(stdout, "[ERROR] " fmt "\n", ##args)
+constexpr int INPUT_DYM_SHAPE_MAX_LENGTH = 30;
+constexpr int EXPECTED_INPUT_INFO_SIZE = 2;
+constexpr int MAX_SHAPE_VALUES = 6;
+constexpr size_t MAX_SHAPE_VALUE_LENGTH = 9;
 
 typedef enum Result {
     SUCCESS = 0,
@@ -49,33 +54,19 @@ typedef enum Result {
 */
 class Utils {
 public:
-    /**
-    * @brief create device buffer of file
-    * @param [in] fileName: file name
-    * @param [out] fileSize: size of file
-    * @return device buffer of file
-    */
-    static void* GetDeviceBufferOfFile(std::string fileName, uint32_t& fileSize);
-
-    /**
-    * @brief create buffer of file
-    * @param [in] fileName: file name
-    * @param [out] fileSize: size of file
-    * @return buffer of pic
-    */
-    static void* ReadBinFile(std::string fileName, uint32_t& fileSize);
 
     static void SplitString(std::string& s, std::vector<std::string>& v, char c);
 
-    static  void SplitStringSimple(std::string str, std::vector<std::string> &out, char split1, char split2, char split3);
+    static  void SplitStringSimple(std::string str, std::vector<std::string> &out, char split1,
+        char split2, char split3);
 
-    static void SplitStringWithSemicolonsAndColons(std::string str, std::vector<std::string> &out, char split1, char split2);
+    static void SplitStringWithSemicolonsAndColons(std::string str, std::vector<std::string> &out,
+        char split1, char split2);
 
     static  void SplitStringWithPunctuation(std::string str, std::vector<std::string> &out, char split);
 
-    static Result SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_str, std::map<string, int64_t> &out_namedimsmul_map);
-
-    static int str2num(char* str);
+    static Result SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_str,
+        std::map<string, int64_t> &out_namedimsmul_map);
 
     static std::string modelName(std::string& s);
 
@@ -83,25 +74,25 @@ public:
 
     static std::string printCurrentTime();
 
-    static void printHelpLetter();
-
     static double printDiffTime(time_t begin, time_t end);
 
-    static double InferenceTimeAverage(double* x, int len);
-
-    static double InferenceTimeAverageWithoutFirst(double* x, int len);
-
-    static void ProfilerJson(bool isprof, std::map<char, std::string>& params);
-
-    static void DumpJson(bool isdump, std::map<char, std::string>& params);
-
-    static int ScanFiles(std::vector<std::string> &fileList, std::string inputDirectory);
-
-    static int ToInt(std::string &str);
-
     static Result ReadBinFileToMemory(const std::string fileName,  char *ptr, const size_t size, size_t &offset);
-    static Result FillFileContentToMemory(const std::string file, char* ptr,const size_t size, size_t &offset);
+    static Result FillFileContentToMemory(const std::string file, char* ptr, const size_t size, size_t &offset);
 
+    static std::string MergeStr(std::vector<std::string>& list, const std::string& delimiter);
+    static std::string GetPrefix(const std::string& outputDir, std::string filePath, const std::string& removeTail);
+    static std::string RemoveSlash(const std::string& name);
+    static std::string CreateDynamicShapeDims(const std::string& name, std::vector<size_t>& shapes);
+    static Result TensorToNumpy(const std::string& outputFileName, Base::TensorBase& output);
+    static Result TensorToBin(const std::string& outputFileName, Base::TensorBase& output);
+    static Result TensorToTxt(const std::string& outputFileName, Base::TensorBase& output);
+    static bool TailContain(const std::string& str, const std::string& tail);
+    static bool IsValidInteger(const std::string& str);
+    static bool IsLegalDymString(const std::string& str);
+    static std::vector<std::string> SplitStringByComma(const std::string& str);
+    static bool IsDymShapeValid(const std::string& str);
+    static bool IsInputNameValidChar(const std::string& str);
+    static uint8_t CreateRandomNum();
 };
 
 #endif

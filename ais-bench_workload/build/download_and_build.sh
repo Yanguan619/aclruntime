@@ -34,14 +34,14 @@ function try_download_stubs_packet(){
     fi
 }
 
-unrar_files()
-{
-	local target_file_=$1
-	local tmp_dir_=$2
-	check_command_exist start && { start winrar e $target_file_ $tmp_dir_;return 0; }
-	check_command_exist unrar && { unrar e $target_file_ $tmp_dir_ ;return 0; }
-	return 1;
-}
+# unrar_files()
+# {
+# 	local target_file_=$1
+# 	local tmp_dir_=$2
+# 	check_command_exist start && { start winrar e $target_file_ $tmp_dir_;return 0; }
+# 	check_command_exist unrar && { unrar e $target_file_ $tmp_dir_ ;return 0; }
+# 	return 1;
+# }
 
 main()
 {
@@ -49,7 +49,13 @@ main()
     local type="$2"
     [ "$2" != "modelarts" ] && type=""
 
-    stubs_packet_url="https://www.aipubservice.com/airesource/tools/20210903%20Stubs%E7%A8%8B%E5%BA%8F.rar"
+    stubs_packet_x86_64_url="https://www.aisbench.com/assets/public/article_attachment/1/file/93fa30f8-ffac-4b99-9da6-78caa62d3df7.gz"
+    stubs_bak_x86_64_url="https://aisbenchtest.obs.cn-north-4.myhuaweicloud.com/stubs_package/Ais-Benchmark-Stubs-x86_64-1.0.tar.gz" # obs link
+    stubs_x86_64_pkg_name="Ais-Benchmark-Stubs-x86_64-1.0.tar.gz"
+    stubs_packet_aarch64_url="https://www.aisbench.com/assets/public/article_attachment/1/file/0796bd4e-136d-45fe-b863-24661679a283.gz"
+    stubs_bak_aarch64_url="https://aisbenchtest.obs.cn-north-4.myhuaweicloud.com/stubs_package/Ais-Benchmark-Stubs-aarch64-1.0.tar.gz" # obs link
+    stubs_aarch64_pkg_name="Ais-Benchmark-Stubs-aarch64-1.0.tar.gz"
+
     tmp_dir="$CURDIR/buildtmpstubs"
     [ -d $tmp_dir ] && rm -rf $tmp_dir
     mkdir -p $tmp_dir
@@ -57,10 +63,16 @@ main()
     check_command_exist git || { echo "git cmd not valid"; return -1; }
     check_command_exist tar || { echo "tar cmd not valid"; return -1; }
 
-    target_file="$tmp_dir/stubs.rar"
-    try_download_stubs_packet $stubs_packet_url $target_file || { echo "donwload stubs failed";return 1; }
-
-    unrar_files $target_file $tmp_dir || { echo "unrar failed"; return 1; }
+    target_file="$tmp_dir/${stubs_x86_64_pkg_name}"
+    try_download_stubs_packet $stubs_packet_x86_64_url $target_file || {
+        echo "donwload x86_64 stubs failed, using bak_url ${stubs_bak_x86_64_url}";
+        try_download_stubs_packet $stubs_bak_x86_64_url $target_file || {  echo "donwload x86_64 stubs failed again!";return 1; }
+    }
+    target_file="$tmp_dir/${stubs_aarch64_pkg_name}"
+    try_download_stubs_packet $stubs_packet_aarch64_url $target_file || {
+        echo "donwload aarch64 stubs failed, using bak_url ${stubs_bak_aarch64_url}";
+        try_download_stubs_packet $stubs_bak_aarch64_url $target_file || {  echo "donwload aarch64 stubs failed again!";return 1; }
+    }
 
     sleep 5
     x86_stubs="$tmp_dir/Ais-Benchmark-Stubs-x86_64-1.0.tar.gz"

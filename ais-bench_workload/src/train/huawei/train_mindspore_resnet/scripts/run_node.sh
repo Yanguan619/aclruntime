@@ -7,24 +7,38 @@
 function get_train_cmd()
 {
     [[ $RANK_SIZE -gt 1 ]] && DISTRUTE_ENABLE="True" || DISTRUTE_ENABLE="False"
+    # 基准代码r2.0.0版本中训练配置文件resnet50_imagenet2012_Boost_config.yaml中，将训练参数output_path改为output_dir
+    CONFIG_PATH=$WORK_PATH/code/config/resnet50_imagenet2012_Boost_config.yaml
+    isexisted=`cat $CONFIG_PATH |grep "output_dir" |grep -v grep |awk -F= 'NR==1{print $NF}'`
+    if [ ! -n "$isexisted" ]; then
+        OUTPUT_PARA_NAME="output_path"
+    else
+        OUTPUT_PARA_NAME="output_dir"
+    fi
+
     train_run_cmd="${PYTHON_COMMAND} -u $WORK_PATH/code/train.py \
         --run_distribute=$DISTRUTE_ENABLE \
         --data_path=${TRAIN_DATA_PATH} \
         --device_num=${DEVICE_NUM}  \
         --epoch_size=${EPOCH_SIZE}  \
-        --output_path="$RUN_PATH"  \
+        --$OUTPUT_PARA_NAME="$RUN_PATH"  \
         --save_checkpoint=True  \
         --save_checkpoint_epochs=${EPOCH_SIZE} \
-        --config_path=$WORK_PATH/code/config/resnet50_imagenet2012_Boost_config.yaml
+        --config_path=$CONFIG_PATH
         "
-        # for mindspore1.5
-        export ENV_FUSION_CLEAR=1
-        export ENV_SINGLE_EVAL=1
-        export SKT_ENABLE=1
+        # # for mindspore1.5
+        # export ENV_FUSION_CLEAR=1
+        # export ENV_SINGLE_EVAL=1
+        # export SKT_ENABLE=1
+    chipname=`npu-smi info -t board  -i 0 -c 0 | grep 'Chip Name' | awk {'print $4'}`
+    export MS_DISABLE_REF_MODE=1
+    export MS_ENABLE_FORMAT_MODE=0
+    export MS_ASCEND_CHECK_OVERFLOW_MODE="SATURATION_MODE"
 }
 
 function get_eval_cmd()
 {
+    chipname=`npu-smi info -t board  -i 0 -c 0 | grep 'Chip Name' | awk {'print $4'}`
     eval_run_cmd="${PYTHON_COMMAND} -u $WORK_PATH/code/eval.py \
          --data_path=${EVAL_DATA_PATH} \
          --config_path=$WORK_PATH/code/config/resnet50_imagenet2012_Boost_config.yaml \

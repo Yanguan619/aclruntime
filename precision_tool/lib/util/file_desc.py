@@ -8,6 +8,7 @@ class FileDesc(object):
         self.dir_path = dir_path
         self.path = os.path.join(dir_path, file_name)
         self.timestamp = timestamp
+        self.idx = 0
         if self.timestamp == -1:
             self.timestamp = os.path.getmtime(self.path)
 
@@ -27,6 +28,7 @@ class NpuDumpFileDesc(FileDesc):
         self.task_id = task_id
         stream_id = 0 if stream_id is None else int(stream_id)
         self.stream_id = stream_id
+        self.idx = dir_path.split(os.sep)[-1]
 
 
 class DumpDecodeFileDesc(NpuDumpFileDesc):

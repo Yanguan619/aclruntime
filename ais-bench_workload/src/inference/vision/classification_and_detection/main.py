@@ -187,3 +187,4 @@ if __name__ == "__main__":
     log.debug("backend:{} model_path:{} input:{} output:{}".format(backend, args.model, args.inputs, args.outputs))
 
     run_loadgen(datasets, backend, postproc, args)
+    backend.session.finalize()

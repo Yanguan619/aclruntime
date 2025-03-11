@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020.Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,33 +22,53 @@
 #include <map>
 #include <memory>
 #include <ostream>
-//#include <glog/logging.h>
-#include <csignal>
-#include <execinfo.h>
-//#include "Base/ErrorCode/ErrorCode.h"
-
 #include <iostream>
+#include <csignal>
+#include <cstdarg>
+#include <execinfo.h>
 
 using namespace std;
+
 #define FILELINE __FILE__, __FUNCTION__, __LINE__
-#define LogDebug  cout  //LOG(INFO)   // VLOG_EVERY_N(Base::LOG_LEVEL_DEBUG, Base::Log::logFlowControlFrequency_)
-#define LogInfo   cout       // LOG(INFO)        //LOG_EVERY_N(INFO, Base::Log::logFlowControlFrequency_)
-#define LogWarn   cout  // LOG(WARNING)    //LOG_EVERY_N(WARNING, Base::Log::logFlowControlFrequency_)
-#define LogError  cout     //LOG(ERROR)    // LOG_EVERY_N(ERROR, Base::Log::logFlowControlFrequency_)
-#define LogFatal  cout      // LOG(FATAL)    //LOG_EVERY_N(FATAL, Base::Log::logFlowControlFrequency_)
 
 #define LOG_DEBUG_LEVEL 1
 #define LOG_INFO_LEVEL 2
 #define LOG_WARNING_LEVEL 3
 #define LOG_ERROR_LEVEL 4
 
-extern int FRIZY_LOG_LEVEL;
+namespace Base {
+class LogCtrl {
+public:
+    static void SetLogLevel(int level)
+    {
+        frizyLogLevel = level;
+    }
+    static bool CheckLogLevel(int level)
+    {
+        return level >= frizyLogLevel;
+    }
+private:
+    LogCtrl() = delete;
+    ~LogCtrl() = delete;
 
-void SETLOGLEVEL(int level);
+    static int frizyLogLevel;
+};
+}
 
-#define DEBUG_LOG(fmt, args...)  do { if (FRIZY_LOG_LEVEL <= LOG_DEBUG_LEVEL) { fprintf(stdout, "[DEBUG] " fmt "\n", ##args); } else {} } while (0)
-#define INFO_LOG(fmt, args...)  do { if (FRIZY_LOG_LEVEL <= LOG_INFO_LEVEL) { fprintf(stdout, "[INFO] " fmt "\n", ##args); } else {} } while (0)
-#define WARN_LOG(fmt, args...)  do { if (FRIZY_LOG_LEVEL <= LOG_WARNING_LEVEL) { fprintf(stdout, "[WARN] " fmt "\n", ##args); } else {} } while (0)
-#define ERROR_LOG(fmt, args...)  do { if (FRIZY_LOG_LEVEL <= LOG_ERROR_LEVEL) { fprintf(stdout, "[ERROR] " fmt "\n", ##args); } else {} } while (0)
+
+#define DEBUG_LOG(fmt, args...)  do { if (Base::LogCtrl::CheckLogLevel(LOG_DEBUG_LEVEL)) \
+    { printf("[DEBUG] " fmt "\n", ##args); fflush(stdout); } } while (0)
+#define INFO_LOG(fmt, args...)  do { if (Base::LogCtrl::CheckLogLevel(LOG_INFO_LEVEL)) \
+    { printf("[INFO] " fmt "\n", ##args); fflush(stdout); } } while (0)
+#define WARN_LOG(fmt, args...)  do { if (Base::LogCtrl::CheckLogLevel(LOG_WARNING_LEVEL)) \
+    { printf("[WARN] " fmt "\n", ##args); fflush(stdout); } } while (0)
+#define ERROR_LOG(fmt, args...)  do { if (Base::LogCtrl::CheckLogLevel(LOG_ERROR_LEVEL)) \
+    { printf("[ERROR] " fmt "\n", ##args); fflush(stdout); } } while (0)
+#define PROMPT_MSG(fmt, args...) printf(fmt, ##args)
+
+inline void ACLERR_LOG(const char* ErrMsg)
+{
+    printf("[ACL ERROR] %s\n", ErrMsg);
+}
 
 #endif  // CORE_LOG_H

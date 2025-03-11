@@ -3,6 +3,8 @@ import os
 import re
 import time
 import sys
+import numpy as np
+from concurrent.futures import ThreadPoolExecutor
 from ..util.util import util
 from ..util.constant import Constant
 from ..util.precision_tool_exception import catch_tool_exception
@@ -104,6 +106,26 @@ class TfDump(object):
                                         os.path.join(cfg.TF_DUMP_DIR, npy_file_name)))
         return pt_command_list
 
+    def _dump_task(self, cmd_line, pt_commands):
+        """Dump task for multi thread"""
+        try:
+            import pexpect
+            import readline
+        except ImportError as import_err:
+            self.log.error("Import failed with err:%s. You can run "
+                           "'pip3 install pexpect gnureadline pyreadline' to fix it.",
+                           import_err)
+            raise PrecisionToolException("Import module error.")
+        tf_dbg = pexpect.spawn(cmd_line)
+        tf_dbg.expect('tfdbg>', timeout=cfg.TF_DEBUG_TIMEOUT)
+        tf_dbg.logfile = sys.stdout.buffer
+        for cmd in pt_commands:
+            self.log.debug(cmd.strip())
+            tf_dbg.sendline(cmd.strip())
+            tf_dbg.expect('tfdbg>', timeout=cfg.TF_DEBUG_TIMEOUT)
+        tf_dbg.sendline('exit')
+        self.log.info('Finish dump tf data')
+
     def _do_run_tf_dbg_dump(self, cmd_line, run_times=2):
         """Run tf debug with pexpect, should set tf debug ui_type='readline'"""
         try:
@@ -133,6 +155,14 @@ class TfDump(object):
         self.log.info("Save tensor name success. Generate tf dump commands from file: %s", cfg.TF_TENSOR_NAMES)
         pt_commands = self._make_pt_commands(cfg.TF_TENSOR_NAMES)
         self.log.info("Pt %d tensors." % len(pt_commands))
+        if cfg.TF_DECODE_THREAD_NUM > 1:
+            tf_dbg.sendline('exit')
+            task_list = np.array_split(pt_commands, cfg.TF_DECODE_THREAD_NUM)
+            with ThreadPoolExecutor(max_workers=cfg.TF_DECODE_THREAD_NUM) as executor:
+                futures = [executor.submit(self._dump_task, cmd_line, task) for task in task_list]
+                for future in futures:
+                    future.result()
+            return
         for cmd in pt_commands:
             self.log.debug(cmd.strip())
             tf_dbg.sendline(cmd.strip())

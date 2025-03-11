@@ -1,5 +1,5 @@
 /*
- * Copyright(C) 2021. Huawei Technologies Co.,Ltd. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "Base/Tensor/TensorBuffer/TensorBuffer.h"
 #include "Base/Tensor/TensorContext/TensorContext.h"
 #include "Base/Log/Log.h"
@@ -21,9 +22,9 @@ namespace Base {
 APP_ERROR TensorBuffer::SetContext() const
 {
     if (IsDevice()) {
-        APP_ERROR ret = TensorContext::GetInstance()->SetContext(deviceId);
+        APP_ERROR ret = TensorContext::GetInstance()->SetContext(deviceId, contextIndex);
         if (ret != APP_ERR_OK) {
-            LogError << "SetContext failed. ret=" << ret << std::endl;
+            ERROR_LOG("set context failed. ret=%d", ret);
             return ret;
         }
     }
@@ -35,7 +36,7 @@ APP_ERROR TensorBuffer::TensorBufferMalloc(TensorBuffer &buffer)
     // SetContext
     APP_ERROR ret = buffer.SetContext();
     if (ret != APP_ERR_OK) {
-        LogError << "SetContext failed. ret=" << ret << std::endl;
+        ERROR_LOG("set context failed. ret=%d", ret);
         return ret;
     }
 
@@ -43,7 +44,7 @@ APP_ERROR TensorBuffer::TensorBufferMalloc(TensorBuffer &buffer)
     Base::MemoryData memorydata(buffer.size, buffer.type, buffer.deviceId);
     ret = MemoryHelper::MxbsMalloc(memorydata);
     if (ret != APP_ERR_OK) {
-        LogError << "MemoryHelper::MxbsMalloc failed. ret=" << ret << std::endl;
+        ERROR_LOG("memory data malloc failed. ret=%d", ret);
         return ret;
     }
     const TensorBuffer buf = buffer;
@@ -59,17 +60,17 @@ APP_ERROR TensorBuffer::TensorBufferMalloc(TensorBuffer &buffer)
 APP_ERROR TensorBuffer::CheckCopyValid(const TensorBuffer &buffer1, const TensorBuffer &buffer2)
 {
     if (buffer1.size != buffer2.size) {
-        LogError << "param1 data size(" << buffer1.size << ") not match to param2 size(" << buffer2.size << ")" << std::endl;
+        ERROR_LOG("param1 data size(%lu) not match to param2 size(%lu)", buffer1.size, buffer2.size);
         return APP_ERR_COMM_INVALID_PARAM;
     }
 
     if (buffer1.data.get() == nullptr) {
-        LogError << "param1 pointer is nullptr" << std::endl;
+        ERROR_LOG("param1 pointer is nullptr");
         return APP_ERR_COMM_INVALID_PARAM;
     }
 
     if (buffer2.data.get() == nullptr) {
-        LogError << "param2 pointer is nullptr" << std::endl;
+        ERROR_LOG("param2 pointer is nullptr");
         return APP_ERR_COMM_INVALID_PARAM;
     }
 
@@ -100,25 +101,38 @@ APP_ERROR TensorBuffer::CopyBetweenHost(TensorBuffer &dst, const TensorBuffer &s
 {
     APP_ERROR ret = CheckCopyValid(dst, src);
     if (ret != APP_ERR_OK) {
-        LogError << "CheckCopyValid failed. ret=" << ret << std::endl;
+        ERROR_LOG("check copy valid failed. ret=%d", ret);
         return ret;
     }
-
-    std::copy((uint8_t*) src.data.get(), (uint8_t*)src.data.get() + src.size, (uint8_t*)dst.data.get());
+    try {
+        std::copy((uint8_t*) src.data.get(), (uint8_t*)src.data.get() + src.size, (uint8_t*)dst.data.get());
+    } catch (const std::bad_alloc& e) {
+        ERROR_LOG("copy Error occurred. %s", e.what());
+        fflush(stdout);
+        return APP_ERR_ACL_BAD_COPY;
+    } catch (const std::length_error& e) {
+        ERROR_LOG("Error: Input sequence has zero length. %s", e.what());
+        fflush(stdout);
+        return APP_ERR_ACL_BAD_COPY;
+    } catch (const std::exception& e) {
+        ERROR_LOG("Unexpected error occurred: %s", e.what());
+        fflush(stdout);
+        return APP_ERR_ACL_BAD_COPY;
+    }
     return APP_ERR_OK;
 }
 APP_ERROR TensorBuffer::CopyBetweenHostDevice(TensorBuffer &dst, const TensorBuffer &src)
 {
     APP_ERROR ret = CheckCopyValid(dst, src);
     if (ret != APP_ERR_OK) {
-        LogError << "CheckCopyValid failed. ret=" << ret << std::endl;
+        ERROR_LOG("check copy valid failed. ret=%d", ret);
         return ret;
     }
 
     if (dst.IsHost() && src.IsDevice()) {
         ret = src.SetContext();
         if (ret != APP_ERR_OK) {
-            LogError << "SetContext failed. ret=" << ret << std::endl;
+            ERROR_LOG("set context failed. ret=%d", ret);
             return ret;
         }
     }
@@ -126,7 +140,7 @@ APP_ERROR TensorBuffer::CopyBetweenHostDevice(TensorBuffer &dst, const TensorBuf
     if (dst.IsDevice() && src.IsHost()) {
         ret = dst.SetContext();
         if (ret != APP_ERR_OK) {
-            LogError << "SetContext failed. ret=" << ret << std::endl;
+            ERROR_LOG("set context failed. ret=%d", ret);
             return ret;
         }
     }
@@ -135,7 +149,7 @@ APP_ERROR TensorBuffer::CopyBetweenHostDevice(TensorBuffer &dst, const TensorBuf
     MemoryData srcMemory(src.data.get(), src.size, src.type, src.deviceId);
     ret = MemoryHelper::MxbsMemcpy(dstMemory, srcMemory, dst.size);
     if (ret != APP_ERR_OK) {
-        LogError << "MemoryHelper::MxbsMemcpy failed. ret=" << ret << std::endl;
+        ERROR_LOG("memory data memcpy failed. ret=%d", ret);
         return ret;
     }
     return APP_ERR_OK;
@@ -144,13 +158,13 @@ APP_ERROR TensorBuffer::CopyBetweenSameDevice(TensorBuffer &dst, const TensorBuf
 {
     APP_ERROR ret = CheckCopyValid(dst, src);
     if (ret != APP_ERR_OK) {
-        LogError << "CheckCopyValid failed. ret=" << ret << std::endl;
+        ERROR_LOG("check copy valid failed. ret=%d", ret);
         return ret;
     }
 
     ret = src.SetContext();
     if (ret != APP_ERR_OK) {
-        LogError << "SetContext failed. ret=" << ret << std::endl;
+        ERROR_LOG("set context failed. ret=%d", ret);
         return ret;
     }
 
@@ -158,7 +172,7 @@ APP_ERROR TensorBuffer::CopyBetweenSameDevice(TensorBuffer &dst, const TensorBuf
     MemoryData srcMemory(src.data.get(), src.size, src.type, src.deviceId);
     ret = MemoryHelper::MxbsMemcpy(dstMemory, srcMemory, dst.size);
     if (ret != APP_ERR_OK) {
-        LogError << "MemoryHelper::MxbsMemcpy failed. ret=" << ret << std::endl;
+        ERROR_LOG("memory data memcpy failed. ret=%d", ret);
         return ret;
     }
     return APP_ERR_OK;
@@ -168,26 +182,26 @@ APP_ERROR TensorBuffer::CopyBetweenDiffDevice(TensorBuffer &dst, const TensorBuf
 {
     APP_ERROR ret = CheckCopyValid(dst, src);
     if (ret != APP_ERR_OK) {
-        LogError << "CheckCopyValid failed. ret=" << ret << std::endl;
+        ERROR_LOG("check copy valid failed. ret=%d", ret);
         return ret;
     }
 
     TensorBuffer host(src.size);
     ret = TensorBuffer::TensorBufferMalloc(host);
     if (ret != APP_ERR_OK) {
-        LogError << "TensorBuffer::TensorBufferMalloc failed. ret=" << ret << std::endl;
+        ERROR_LOG("TensorBuffer malloc failed. ret=%d", ret);
         return ret;
     }
 
     ret = CopyBetweenHostDevice(host, src);
     if (ret != APP_ERR_OK) {
-        LogError << "CopyBetweenHostDevice failed. ret=" << ret << std::endl;
+        ERROR_LOG("copy between host and device failed. ret=%d", ret);
         return ret;
     }
 
     ret = CopyBetweenHostDevice(dst, host);
     if (ret != APP_ERR_OK) {
-        LogError << "CopyBetweenHostDevice failed. ret=" << ret << std::endl;
+        ERROR_LOG("copy between host and device failed. ret=%d", ret);
         return ret;
     }
     return APP_ERR_OK;
@@ -200,7 +214,7 @@ APP_ERROR TensorBuffer::TensorBufferCopy(TensorBuffer &dst, const TensorBuffer &
     }
     APP_ERROR ret = CheckCopyValid(dst, src);
     if (ret != APP_ERR_OK) {
-        LogError << "CheckCopyValid failed. ret=" << ret << std::endl;
+        ERROR_LOG("check copy valid failed. ret=%d", ret);
         return ret;
     }
 
@@ -209,7 +223,7 @@ APP_ERROR TensorBuffer::TensorBufferCopy(TensorBuffer &dst, const TensorBuffer &
     if (copyType == TensorBufferCopyType::HOST_AND_HOST) {
         ret = CopyBetweenHost(dst, src);
         if (ret != APP_ERR_OK) {
-            LogError << "CopyBetweenHost failed. ret=" << ret << std::endl;
+            ERROR_LOG("copy between host failed. ret=%d", ret);
             return ret;
         }
         return APP_ERR_OK;
@@ -218,7 +232,7 @@ APP_ERROR TensorBuffer::TensorBufferCopy(TensorBuffer &dst, const TensorBuffer &
     if (copyType == TensorBufferCopyType::HOST_AND_DEVICE) {
         ret = CopyBetweenHostDevice(dst, src);
         if (ret != APP_ERR_OK) {
-            LogError << "CopyBetweenHostDevice failed. ret=" << ret << std::endl;
+            ERROR_LOG("copy between host and device failed. ret=%d", ret);
             return ret;
         }
         return APP_ERR_OK;
@@ -228,7 +242,7 @@ APP_ERROR TensorBuffer::TensorBufferCopy(TensorBuffer &dst, const TensorBuffer &
     if (copyType == TensorBufferCopyType::DEVICE_AND_SAME_DEVICE) {
         ret = CopyBetweenSameDevice(dst, src);
         if (ret != APP_ERR_OK) {
-            LogError << "CopyBetweenHostDevice failed. ret=" << ret << std::endl;
+            ERROR_LOG("copy between host and device failed. ret=%d", ret);
             return ret;
         }
         return ret;
@@ -236,7 +250,7 @@ APP_ERROR TensorBuffer::TensorBufferCopy(TensorBuffer &dst, const TensorBuffer &
     // device a to device b
     ret = CopyBetweenDiffDevice(dst, src);
     if (ret != APP_ERR_OK) {
-        LogError << "CopyBetweenDiffDevice failed. ret=" << ret << std::endl;
+        ERROR_LOG("copy between different devices failed. ret=%d", ret);
         return ret;
     }
     return APP_ERR_OK;

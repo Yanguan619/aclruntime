@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020.Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 
 #include "Base/Log/Log.h"
-#include "Base/ErrorCode/ErrorCode.h"
 #include "Base/ErrorCode/ErrorCodeThirdParty.h"
+#include "Base/ErrorCode/ErrorCode.h"
 
 namespace {
 template<typename T>
@@ -60,6 +60,9 @@ std::map<int, std::pair<const std::string *, int>> ErrMsgMap = {
 template<typename T>
 static std::string GetErrMsg(T& messages, int offset, int len)
 {
+    if (offset < 0 || len < 0) {
+        return "offset or len in error message should not be negative";
+    }
     return (offset < len) ? messages[offset] : "Undefined error code";
 }
 }
@@ -69,6 +72,7 @@ static std::string GetErrMsg(T& messages, int offset, int len)
  * @param err
  * @return message
  */
+namespace Base {
 std::string GetAppErrCodeInfo(const APP_ERROR err)
 {
     if (err == APP_ERR_ACL_FAILURE) {
@@ -86,7 +90,7 @@ std::string GetAppErrCodeInfo(const APP_ERROR err)
 }
 
 /**
- * @brief Concat the error info with the module name for LogError output
+ * @brief Concat the error info with the module name for LOG_ERROR output
  * @param err
  * @param moduleName
  * @return
@@ -106,8 +110,9 @@ APP_ERROR ConvertReturnCodeToLocal(ReturnCodeType type, int err)
         if (GST_RETURN_CODE_MAP.find(err) != GST_RETURN_CODE_MAP.end()) {
             return GST_RETURN_CODE_MAP[err];
         } else {
-            LogDebug << "type(GST_FLOW_TYPE) can not find error code(" << err << ").";
+            DEBUG_LOG("returnCode type can not find error code(%d).", err);
         }
     }
     return APP_ERR_OK;
+}
 }

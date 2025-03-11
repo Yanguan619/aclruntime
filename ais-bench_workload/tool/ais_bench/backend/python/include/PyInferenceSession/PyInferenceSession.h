@@ -1,5 +1,5 @@
 /*
- * Copyright(C) 2021. Huawei Technologies Co.,Ltd. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <thread>
 
 #ifdef COMPILE_PYTHON_MODULE
 #include <pybind11/pybind11.h>
@@ -30,46 +31,38 @@ namespace py = pybind11;
 #endif
 
 #include "Base/ModelInfer/SessionOptions.h"
+#include "Base/ModelInfer/InferOptions.h"
 
 #include "Base/ModelInfer/AsyncExecutor.h"
 #include "Base/ModelInfer/ModelInferenceProcessor.h"
 #include "Base/Tensor/TensorBase/TensorBase.h"
+#include "Base/ModelInfer/DynamicAippConfig.h"
+#include "Base/ModelInfer/utils.h"
 
 namespace Base {
-
-struct PerfOption {
-    bool skip_transfer = false;
-    int threads = 1;
-    int device_id = 0;
-
-    int loop = 1;
-    int log_level = LOG_INFO_LEVEL;
-    std::string acl_json_path = "";
-
-    int dynamic_type = STATIC_BATCH;
-    int batchsize = 0;
-    int width = 0;
-    int height = 0;
-    std::string dyn_shapes = "";
-    std::string dyn_dims = "";
-
-    std::vector<size_t> custom_output_size;
-};
-
-
-class PyInferenceSession
-{
+class PyInferenceSession {
 public:
     PyInferenceSession(const std::string &modelPath, const uint32_t &deviceId, std::shared_ptr<SessionOptions> options);
     ~PyInferenceSession();
-    
+
     std::vector<TensorBase> InferMap(std::vector<std::string>& output_names, std::map<std::string, TensorBase>& feeds);
     std::vector<TensorBase> InferVector(std::vector<std::string>& output_names, std::vector<TensorBase>& feeds);
 
-    std::vector<TensorBase> InferBaseTensorVector(std::vector<std::string>& output_names, std::vector<Base::BaseTensor>& feeds);
-    void SessionPerf(std::vector<Base::BaseTensor>& feeds, int loop, bool skip_transfer = false);
+    std::vector<TensorBase> FirstInnerInfer(std::vector<std::string>& output_names,
+        std::vector<Base::BaseTensor>& feeds);
+    std::vector<TensorBase> InnerInfer(const std::vector<int>& in_out_list, std::vector<std::string>& output_names,
+        const bool get_outputs, const bool mem_copy);
 
-    APP_ERROR ThreadRunTest(int threadNum, std::vector<std::string>& output_names, std::vector<Base::BaseTensor>& feeds);
+    std::vector<TensorBase> InferBaseTensorVector(std::vector<std::string>& output_names,
+                                                  std::vector<Base::BaseTensor>& feeds);
+    void OnlyInfer(std::vector<BaseTensor> &inputs, std::vector<std::string>& output_names,
+                   std::vector<TensorBase>& outputs);
+    void InferPipeline(std::vector<std::vector<std::string>>& infilesList, std::shared_ptr<InferOptions> inferOption,
+                       std::vector<std::shared_ptr<PyInferenceSession>>& extraSession);
+    std::vector<std::vector<TensorBase>> InferPipelineBaseTensor(std::vector<std::string>& outputNames,
+        std::vector<std::vector<Base::BaseTensor>>& inputsList,
+        std::vector<std::vector<std::vector<size_t>>>& shapesList,
+        bool autoDymShape, bool autoDymDims);
 
     std::vector<std::vector<uint64_t>> GetDynamicHW();
     std::vector<int64_t> GetDynamicBatch();
@@ -78,11 +71,13 @@ public:
     const std::vector<Base::TensorDesc>& GetOutputs();
 
     uint32_t GetDeviceId() const;
+    std::size_t GetContextIndex() const;
     std::string GetDesc();
-
+    std::string GetModelPath();
     std::shared_ptr<SessionOptions> GetOptions();
 
-    const InferSumaryInfo& GetSumaryInfo();
+    const InferSumaryInfo& GetSumaryInfo() const;
+    void MergeSummaryInfo(const InferSumaryInfo& summaryInfo);
 
     int ResetSumaryInfo();
     int SetStaticBatch();
@@ -93,9 +88,28 @@ public:
     int SetDynamicShape(std::string dymshapeStr);
     int SetCustomOutTensorsSize(std::vector<size_t> customOutSize);
 
+    uint64_t GetMaxDymBatchsize();
+    int SetDymAIPPInfoSet();
+    int GetDymAIPPInputExist();
+    int CheckDymAIPPInputExist();
+
+    int AippSetMaxBatchSize(uint64_t batchSize);
+    int SetInputFormat(std::string iptFmt);
+    int SetSrcImageSize(std::vector<int> srcImageSize);
+    int SetRbuvSwapSwitch(int rsSwitch);
+    int SetAxSwapSwitch(int asSwitch);
+    int SetCscParams(std::vector<int> cscParams);
+    int SetCropParams(std::vector<int> cropParams);
+    int SetPaddingParams(std::vector<int> padParams);
+    int SetDtcPixelMean(std::vector<int> meanParams);
+    int SetDtcPixelMin(std::vector<float> minParams);
+    int SetPixelVarReci(std::vector<float> reciParams);
+
     TensorBase CreateTensorFromFilesList(Base::TensorDesc &dstTensorDesc, std::vector<std::string>& filesList);
 
-    int Finalize();
+    static int Finalize();
+    int FreeResource();
+    void SetContext();
 
     Base::ModelInferenceProcessor modelInfer_ = {};
 
@@ -108,6 +122,8 @@ private:
     uint32_t deviceId_ = 0;
     Base::ModelDesc modelDesc_ = {};
     bool InitFlag_ = false;
+    std::string modelPath_ = "";
+    size_t contextIndex_ = 0;
 };
 }
 
@@ -115,6 +131,9 @@ int64_t Perf(const string modelPath, std::vector<Base::BaseTensor> feeds, Base::
 
 #ifdef COMPILE_PYTHON_MODULE
     void RegistInferenceSession(py::module &m);
+    void RegistTensor(py::module &m);
+    void RegistOptions(py::module &m);
+    void RegistAippConfig(py::class_<Base::PyInferenceSession, std::shared_ptr<Base::PyInferenceSession>>& model);
 #endif
 
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright(C) 2020. Huawei Technologies Co.,Ltd. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #ifndef MEMORY_HELPER_H
 #define MEMORY_HELPER_H
 #include <vector>
+#include <mutex>
 #include "Base/ErrorCode/ErrorCode.h"
 #include "acl/acl.h"
 
@@ -32,17 +33,17 @@ struct MemoryData {
 
     MemoryData() = default;
 
-    MemoryData(size_t size, MemoryType type = MEMORY_HOST, size_t deviceId = 0)
+    MemoryData(size_t size, MemoryType type = MEMORY_HOST, int32_t deviceId = 0)
         : size(size), deviceId(deviceId), type(type) {}
 
-    MemoryData(void* ptrData, size_t size, MemoryType type = MEMORY_HOST, size_t deviceId = 0)
+    MemoryData(void* ptrData, size_t size, MemoryType type = MEMORY_HOST, int32_t deviceId = 0)
         : ptrData(ptrData), size(size), deviceId(deviceId), type(type) {}
 
     void* ptrData = nullptr;
     size_t size;
-    size_t deviceId;
+    int32_t deviceId;
     MemoryType type;
-    APP_ERROR (*free)(void*) = nullptr;
+    APP_ERROR (*free)(void*) = nullptr; // 此处是使用void*作为函数传参，使用该函数的场所已保证传入参数是void*
 };
 
 struct BaseTensor {
@@ -69,6 +70,7 @@ struct BaseTensor {
 class MemoryHelper {
 public:
     // malloc memory
+    static APP_ERROR specificMalloc(MemoryData& data);
     static APP_ERROR Malloc(MemoryData& data);
     static APP_ERROR Free(MemoryData& data);
     static APP_ERROR Memset(MemoryData& data, int32_t value, size_t count);
@@ -89,18 +91,20 @@ private:
     static bool IsHostToHost(const MemoryData& dest, const MemoryData& src);
     static bool IsDeviceToDevice(const MemoryData& dest, const MemoryData& src);
     static bool IsHostToDevice(const MemoryData& dest, const MemoryData& src);
+    static void LogErrorInfo();
 };
 
 struct MemorySummary {
     std::vector<float> H2DTimeList;
     std::vector<float> D2HTimeList;
-    void Reset(){
+    void Reset()
+    {
         H2DTimeList.clear();
         D2HTimeList.clear();
     }
+    std::mutex mtx_;
 };
 
 struct MemorySummary* GetMemorySummaryPtr();
-
 }  // namespace Base
 #endif

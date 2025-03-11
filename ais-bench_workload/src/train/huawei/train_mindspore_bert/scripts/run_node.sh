@@ -28,11 +28,15 @@ function get_train_cmd()
         --train_steps=${TRAIN_STEPS} \
         --config_path=$CONFIG_FILE
         "
+
+    export MS_DISABLE_REF_MODE=0
+    export MS_ENABLE_FORMAT_MODE=0
     return 0
 }
 
 function get_eval_cmd()
 {
+    chipname=`npu-smi info -t board  -i 0 -c 0 | grep 'Chip Name' | awk {'print $4'}`
     CONFIG_FILE=$WORK_PATH/code/pretrain_config_Ascend_Boost.yaml
     sed -i "s|eval_data_dir:.*|eval_data_dir: '$EVAL_DATA_PATH'|g" "$CONFIG_FILE"
     sed -i "s|schema_file:.*|schema_file: null|g" "$CONFIG_FILE"

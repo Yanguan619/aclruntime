@@ -19,7 +19,7 @@ check_env_common()
     : "${PYTHON_COMMAND?PYTHON_COMMAND not set}"
 
     # check nodeinfofile exist
-    [[ $RANK_SIZE -le 8 ]] || check_file_valid "${NODEINFO_FILE}" || { echo "nodeinfofile:${NODEINFO_FILE} not valid" ; return 1; }
+    # [[ $RANK_SIZE -le 8 ]] || check_file_valid "${NODEINFO_FILE}" || { echo "nodeinfofile:${NODEINFO_FILE} not valid" ; return 1; }
 
     # check basic command of the main node
     if [ -f "$NODEINFO_FILE" ];then

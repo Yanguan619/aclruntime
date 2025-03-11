@@ -1,76 +1,282 @@
-import os
-import sys
-import re
-from pickle import NONE
-import numpy as np
+# Copyright (c) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-import logging
-logging.basicConfig(stream=sys.stdout, level = logging.INFO,format = '[%(levelname)s] %(message)s')
-logger = logging.getLogger(__name__)
 
-# Split a List Into Even Chunks of N Elements
-def list_split(listA, n, padding_file):
-    for x in range(0, len(listA), n):
-        every_chunk = listA[x: n+x]
+import argparse
+from ais_bench.infer.args_check import (
+    check_dym_string, check_dym_range_string, check_number_list, str2bool, check_positive_integer,
+    check_batchsize_valid, check_nonnegative_integer, check_device_range_valid, check_om_path_legality,
+    check_input_path_legality, check_output_path_legality, check_acl_json_path_legality,
+    check_aipp_config_path_legality, check_loop_size
+)
 
-        if len(every_chunk) < n:
-            every_chunk = every_chunk + \
-                [padding_file for y in range(n-len(every_chunk))]
-        yield every_chunk
 
-def natural_sort(l):
-    convert = lambda text: int(text) if text.isdigit() else text.lower()
-    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
-    return sorted(l, key=alphanum_key)
+class IntArgsMax:
+    THREADS = 64
+    WARMUP_COUNT = 10000
+    BATCHSIZE = 4096
+    DYMBATCH = 4096
+    BATCHSIZE_AXIS = 8
 
-def get_fileslist_from_dir(dir):
-    files_list = []
 
-    if os.path.exists(dir) == False:
-        logger.error('dir:{} not exist'.format(dir))
-        raise RuntimeError()
+def check_int_args_max_limit(args):
+    if args.threads > IntArgsMax.THREADS:
+        raise ValueError(f"--threads: {args.threads} is over {IntArgsMax.THREADS}")
+    if args.warmup_count > IntArgsMax.WARMUP_COUNT:
+        raise ValueError(f"--warmup_count: {args.warmup_count} is over {IntArgsMax.WARMUP_COUNT}")
+    if args.batchsize is not None and args.batchsize > IntArgsMax.BATCHSIZE:
+        raise ValueError(f"--batchsize: {args.batchsize} is over {IntArgsMax.BATCHSIZE}")
+    if args.dym_batch > IntArgsMax.DYMBATCH:
+        raise ValueError(f"--dymBatch: {args.dym_batch} is over {IntArgsMax.DYMBATCH}")
+    if args.output_batchsize_axis > IntArgsMax.BATCHSIZE_AXIS:
+        raise ValueError(f"--output_batchsize_axis: {args.output_batchsize_axis} is over {IntArgsMax.BATCHSIZE_AXIS}")
 
-    for f in os.listdir(dir):
-        if f.endswith(".npy") or f.endswith(".NPY") or f.endswith(".bin") or f.endswith(".BIN"):
-            files_list.append(os.path.join(dir, f))
 
-    if len(files_list) == 0:
-        logger.error('{} of input args not find valid file,valid file format:[*.npy *.NPY *.bin *.BIN]'.format(dir))
-        raise RuntimeError()
-    files_list.sort()
-    return natural_sort(files_list)
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--model",
+        "-m",
+        type=check_om_path_legality,
+        required=True,
+        help="The path of the om model"
+    )
+    parser.add_argument(
+        "--input",
+        "-i",
+        type=check_input_path_legality,
+        default=None,
+        help="Input file or dir"
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=check_output_path_legality,
+        default=None,
+        help="Inference data output path. The inference results are output to \
+             the subdirectory named current date under given output path"
+    )
+    parser.add_argument(
+        "--output_dirname",
+        type=check_output_path_legality,
+        default=None,
+        help="Actual output directory name. \
+             Used with parameter output, cannot be used alone. \
+             The inference result is output to subdirectory named by output_dirname \
+             under  output path. such as --output_dirname 'tmp', \
+             the final inference results are output to the folder of  {$output}/tmp"
+    )
+    parser.add_argument(
+        "--outfmt",
+        default="BIN",
+        choices=["NPY", "BIN", "TXT"],
+        help="Output file format (NPY or BIN or TXT)"
+    )
+    parser.add_argument(
+        "--loop",
+        "-l",
+        type=check_loop_size,
+        default=1,
+        help="The round of the PureInfer."
+    )
+    parser.add_argument(
+        "--debug",
+        type=str2bool,
+        default=False,
+        help="Debug switch,print model information"
+    )
+    parser.add_argument(
+        "--device",
+        "-d",
+        type=check_device_range_valid,
+        default=0,
+        help="The NPU device ID to use.valid value range is [0, 255]"
+    )
+    parser.add_argument(
+        "--dymBatch",
+        dest="dym_batch",
+        type=check_positive_integer,
+        default=0,
+        help="Dynamic batch size param，such as --dymBatch 2"
+    )
+    parser.add_argument(
+        "--dymHW",
+        dest="dym_hw",
+        type=check_dym_string,
+        default=None,
+        help="Dynamic image size param, such as --dymHW \"300,500\""
+    )
+    parser.add_argument(
+        "--dymDims",
+        dest="dym_dims",
+        type=check_dym_string,
+        default=None,
+        help="Dynamic dims param, such as --dymDims \"data:1,600;img_info:1,600\""
+    )
+    parser.add_argument(
+        "--dymShape",
+        dest="dym_shape",
+        type=check_dym_string,
+        default=None,
+        help="Dynamic shape param, such as --dymShape \"data:1,600;img_info:1,600\""
+    )
+    parser.add_argument(
+        "--outputSize",
+        dest="output_size",
+        type=check_number_list,
+        default=None,
+        help="Output size for dynamic shape mode"
+    )
+    parser.add_argument(
+        "--auto_set_dymshape_mode",
+        type=str2bool,
+        default=False,
+        help="Auto_set_dymshape_mode"
+    )
+    parser.add_argument(
+        "--auto_set_dymdims_mode",
+        type=str2bool,
+        default=False,
+        help="Auto_set_dymdims_mode"
+    )
+    parser.add_argument(
+        "--batchsize",
+        type=check_batchsize_valid,
+        default=None,
+        help="Batch size of input tensor"
+    )
+    parser.add_argument(
+        "--pure_data_type",
+        type=str,
+        default="zero",
+        choices=["zero", "random"],
+        help="Null data type for pure inference(zero or random)"
+    )
+    parser.add_argument(
+        "--profiler",
+        type=str2bool,
+        default=False,
+        help="Profiler switch"
+    )
+    parser.add_argument(
+        "--dump",
+        type=str2bool,
+        default=False,
+        help="Dump switch"
+    )
+    parser.add_argument(
+        "--acl_json_path",
+        type=check_acl_json_path_legality,
+        default=None,
+        help="Acl json path for profiling or dump"
+    )
+    parser.add_argument(
+        "--output_batchsize_axis",
+        type=check_nonnegative_integer,
+        default=0,
+        help="Splitting axis number when outputing tensor results, such as --output_batchsize_axis 1"
+    )
+    parser.add_argument(
+        "--run_mode",
+        type=str,
+        default="array",
+        choices=["array", "files", "tensor", "full"],
+        help="Run mode"
+    )
+    parser.add_argument(
+        "--display_all_summary",
+        type=str2bool,
+        default=False,
+        help="Display all summary include h2d d2h info"
+    )
+    parser.add_argument(
+        "--warmup_count",
+        type=check_nonnegative_integer,
+        default=1,
+        help="Warmup count before inference"
+    )
+    parser.add_argument(
+        "--dymShape_range",
+        dest="dym_shape_range",
+        type=check_dym_range_string,
+        default=None,
+        help="Dynamic shape range, such as --dymShape_range \"data:1,600~700;img_info:1,600-700\""
+    )
+    parser.add_argument(
+        "--aipp_config",
+        type=check_aipp_config_path_legality,
+        default=None,
+        help="File type: .config, to set actual aipp params before infer"
+    )
+    parser.add_argument(
+        "--energy_consumption",
+        type=str2bool,
+        default=False,
+        help="Obtain power consumption data for model inference"
+    )
+    parser.add_argument(
+        "--npu_id",
+        type=check_device_range_valid,
+        default=0,
+        help="The NPU ID to use.valid value range is [0, 255]"
+    )
+    parser.add_argument(
+        "--backend",
+        type=str,
+        default=None,
+        choices=["trtexec"],
+        help="Backend trtexec"
+    )
+    parser.add_argument(
+        "--perf",
+        type=str2bool,
+        default=False,
+        help="Perf switch"
+    )
+    parser.add_argument(
+        "--pipeline",
+        type=str2bool,
+        default=False,
+        help="Pipeline switch"
+    )
+    parser.add_argument(
+        "--profiler_rename",
+        type=str2bool,
+        default=True,
+        help="Profiler rename switch"
+    )
+    parser.add_argument(
+        "--dump_npy",
+        type=str2bool,
+        default=False,
+        help="dump data convert to npy"
+    )
+    parser.add_argument(
+        "--divide_input",
+        type=str2bool,
+        default=False,
+        help="Input datas need to be divided to match multi devices or not, \
+            --device should be list, default False"
+    )
+    parser.add_argument(
+        '--threads',
+        dest='threads',
+        type=check_positive_integer,
+        default=1,
+        help="Number of threads for computing. \
+            need to set --pipeline when setting threads number to be more than one."
+    )
+    benchmark_args = parser.parse_args()
 
-def get_file_datasize(file_path):
-    if file_path.endswith(".NPY") or file_path.endswith(".npy"):
-        ndata = np.load(file_path)
-        return ndata.nbytes
-    else:
-        return os.path.getsize(file_path)
-
-def get_file_content(file_path):
-    if file_path.endswith(".NPY") or file_path.endswith(".npy"):
-        return np.load(file_path)
-    else:
-        with open(file_path, 'rb') as fd:
-            barray = fd.read()
-            return np.frombuffer(barray, dtype=np.int8)
-
-def get_ndata_fmt(ndata):
-    if ndata.dtype == np.float32 or ndata.dtype == np.float16 or ndata.dtype == np.float64:
-        fmt = "%f"
-    else:
-        fmt = "%d"
-    return fmt
-
-def save_data_to_files(file_path, ndata):
-    if file_path.endswith(".NPY") or file_path.endswith(".npy"):
-        np.save(file_path, ndata)
-    elif file_path.endswith(".TXT") or file_path.endswith(".txt"):
-        outdata=ndata.reshape(-1, ndata.shape[-1])
-        fmt = get_ndata_fmt(outdata)
-        with open(file_path, 'wb') as f:
-            for i in range(outdata.shape[0]):
-                np.savetxt(f, np.c_[outdata[i]], fmt=fmt, newline=" ")
-                f.write(b"\n")
-    else:
-        ndata.tofile(file_path)
+    return benchmark_args

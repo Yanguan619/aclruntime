@@ -1,5 +1,12 @@
 # 精度问题分析工具
 
+## 版本配套   
+| 条件 | 要求 | 备注 |
+|---|---|---|
+| CANN版本 | >=5.0.4.6| 请从“[昇腾社区文档中心](https://www.hiascend.com/zh/document)”获取配套CANN版本的安装指南，并参考进行CANN软件安装。 |
+| 硬件要求 | **支持以下产品：**<br>- Atlas训练系列产品<br>- Atlas A2训练系列产品<br>- Atlas推理系列产品（仅支持Tensorlow1.15在线推理特性） | 支持的固件驱动版本与配套CANN软件支持的固件驱动版本相同，开发者可通过“[昇腾社区-固件与驱动](https://www.hiascend.com%2Fhardware%2Ffirmware-drivers%2Fcommunity%3Fproduct%3D2%26model%3D28)”页面根据产品型号与CANN软件版本获取配套的固件与驱动。 |
+
+
 ## 功能介绍
 ### 简介
 该工具包提供了精度比对常用的功能，当前该工具主要适配Tensorflow训练场景

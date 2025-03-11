@@ -1,5 +1,5 @@
 /*
- * Copyright(C) 2021. Huawei Technologies Co.,Ltd. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef TENSOR_SHAPE_H
 #define TENSOR_SHAPE_H
 
-#include <cstddef>
-#include <cstdint>
-#include <vector>
-
 namespace Base {
-class TensorShape
-{
+class TensorShape {
 public:
     TensorShape() = default;
     ~TensorShape() = default;
@@ -31,7 +27,7 @@ public:
     TensorShape(std::vector<T> shape)
     {
         shape_.clear();
-        for(auto s:shape) {
+        for (auto s : shape) {
             shape_.push_back((size_t)s);
         }
     }

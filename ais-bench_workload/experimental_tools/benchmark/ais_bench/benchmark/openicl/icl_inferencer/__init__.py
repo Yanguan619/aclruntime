@@ -1,1 +1,0 @@
-from .icl_gen_inferencer import GenInferencer  # noqa

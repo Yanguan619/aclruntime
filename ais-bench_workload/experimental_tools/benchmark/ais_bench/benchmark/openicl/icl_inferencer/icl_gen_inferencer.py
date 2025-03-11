@@ -22,8 +22,6 @@ from .icl_base_inferencer import BaseInferencer, GenInferencerOutputHandler
 
 logger = get_logger(__name__)
 
-GEN_DEFAULT_MAX_OUT_LEN = 512
-
 
 @ICL_INFERENCERS.register_module()
 class GenInferencer(BaseInferencer):
@@ -72,7 +70,7 @@ class GenInferencer(BaseInferencer):
         )
 
         self.gen_field_replace_token = gen_field_replace_token
-        self.max_out_len = max_out_len if max_out_len else GEN_DEFAULT_MAX_OUT_LEN
+        self.max_out_len = max_out_len
         self.min_out_len = min_out_len
         self.stopping_criteria = stopping_criteria
         self.dump_timer = kwargs.get('dump_timer', False)

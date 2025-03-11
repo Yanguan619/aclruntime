@@ -22,9 +22,6 @@
 #include "model_process.h"
 
 
-#include "model_process.h"
-#include "utils.h"
-
 using namespace std;
 namespace {
 bool g_isDevice = true;
@@ -263,11 +260,6 @@ Result ModelProcess::SetDynamicShape(
     std::vector<int64_t> &dims_num
 )
 {
-    return SetDynamicShape(input_, dym_shape_map, dims_num);
-}
-
-Result ModelProcess::SetDynamicShape(void* indatset, std::map<std::string, std::vector<int64_t>> dym_shape_map, std::vector<int64_t> &dims_num)
-{
     aclError ret;
     const char *name = nullptr;
     size_t  input_num = dym_shape_map.size();
@@ -383,11 +375,6 @@ Result ModelProcess::SetDynamicHW(std::pair<uint64_t, uint64_t > dynamicPair)
     return SUCCESS;
 }
 
-Result ModelProcess::SetDynamicHW(std::pair<uint64_t , uint64_t > dynamicPair)
-{
-    return SetDynamicHW(input_, dynamicPair);
-}
-
 Result ModelProcess::CheckDynamicBatchSize(uint64_t dymbatch, bool &is_dymbatch)
 {
     aclmdlBatch batch_info;
@@ -422,12 +409,7 @@ Result ModelProcess::CheckDynamicBatchSize(uint64_t dymbatch, bool &is_dymbatch)
 
 Result ModelProcess::SetDynamicBatchSize(uint64_t batchSize)
 {
-    return SetDynamicBatchSize(input_, batchSize);
-}
-
-Result ModelProcess::SetDynamicBatchSize(void* indatset, uint64_t batchSize)
-{
-    aclError ret = aclmdlSetDynamicBatchSize(modelId_, (aclmdlDataset *)indatset, g_dymindex, batchSize);
+    aclError ret = aclmdlSetDynamicBatchSize(modelId_, input_, g_dymindex, batchSize);
     if (ret != ACL_SUCCESS) {
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("acl set dynamic batch size failed %d", ret);
@@ -520,7 +502,7 @@ Result ModelProcess::CheckDynamicDims(vector<string> dym_dims, size_t gearCount,
     return SUCCESS;
 }
 
-Result ModelProcess::SetDynamicDims(void* indatset, vector<string> dym_dims)
+Result ModelProcess::SetDynamicDims(vector<string> dym_dims)
 {
     aclmdlIODims dims;
     dims.dimCount = dym_dims.size();
@@ -544,11 +526,6 @@ Result ModelProcess::SetDynamicDims(void* indatset, vector<string> dym_dims)
     }
     DEBUG_LOG("set dynamic dims success");
     return SUCCESS;
-}
-
-Result ModelProcess::SetDynamicDims(vector<string> dym_dims)
-{
-    return SetDynamicDims((aclmdlDataset*)input_, dym_dims);
 }
 
 void ModelProcess::GetDymBatchInfo()
@@ -1209,12 +1186,7 @@ void ModelProcess::InitReuseOutput()
 
 Result ModelProcess::Execute()
 {
-    return Execute(input_, output_);
-}
-
-Result ModelProcess::Execute(void* inputDataSet, void* outputDataSet)
-{
-    aclError ret = aclmdlExecute(modelId_, (aclmdlDataset*)inputDataSet, (aclmdlDataset*)outputDataSet);
+    aclError ret = aclmdlExecute(modelId_, input_, output_);
     if (ret != ACL_SUCCESS) {
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("execute model failed, modelId is %u", modelId_);
@@ -1222,19 +1194,6 @@ Result ModelProcess::Execute(void* inputDataSet, void* outputDataSet)
     }
 
     DEBUG_LOG("model execute success");
-    return SUCCESS;
-}
-
-Result ModelProcess::ExecuteAsync(void* inputDataSet, void* outputDataSet, aclrtStream stream)
-{
-    aclError ret = aclmdlExecuteAsync(modelId_, (aclmdlDataset*)inputDataSet, (aclmdlDataset*)outputDataSet, stream);
-    if (ret != ACL_SUCCESS) {
-        cout << aclGetRecentErrMsg() << endl;
-        ERROR_LOG("executeAsync model failed, modelId is %u", modelId_);
-        return FAILED;
-    }
-
-    DEBUG_LOG("model executeAsync success");
     return SUCCESS;
 }
 
@@ -1260,16 +1219,11 @@ void ModelProcess::Unload()
 
 Result ModelProcess::GetCurOutputShape(size_t index, bool is_dymshape, std::vector<int64_t>& shape)
 {
-    return GetCurOutputShape(output_, index, is_dymshape, shape);
-}
-
-Result ModelProcess::GetCurOutputShape(void* outdatset, size_t index, bool is_dymshape, std::vector<int64_t>& shape)
-{
     aclError ret;
     aclmdlIODims ioDims;
     // 对于动态shape场景，通过V2接口获取，其他通过V1接口获取
     if (is_dymshape == true) {
-        aclTensorDesc *outputDesc = aclmdlGetDatasetTensorDesc((aclmdlDataset*)outdatset, index);
+        aclTensorDesc *outputDesc = aclmdlGetDatasetTensorDesc(output_, index);
         size_t dimNums = aclGetTensorDescNumDims(outputDesc);
         if (dimNums == ACL_UNKNOWN_RANK) {
             return FAILED;
@@ -1345,12 +1299,7 @@ Result ModelProcess::GetOutTensorDesc(
 
 size_t ModelProcess::GetOutTensorLen(size_t i, bool is_dymshape)
 {
-    return GetOutTensorLen(output_, i, is_dymshape);
-}
-
-size_t ModelProcess::GetOutTensorLen(void* outdatset, size_t i, bool is_dymshape)
-{
-    aclDataBuffer* dataBuffer = aclmdlGetDatasetBuffer((aclmdlDataset*)outdatset, i);
+    aclDataBuffer* dataBuffer = aclmdlGetDatasetBuffer(output_, i);
     uint64_t maxBatchSize = 0;
     size_t len;
     GetMaxBatchSize(maxBatchSize);

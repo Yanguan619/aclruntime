@@ -14,30 +14,11 @@
  * limitations under the License.
  */
 
-<<<<<<< HEAD
 #ifndef MODEL_PROCESS_H_
 #define MODEL_PROCESS_H_
 #include <string>
 #include <sys/time.h>
 #include "acl/acl.h"
-=======
-* http://www.apache.org/licenses/LICENSE-2.0
-
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-
-#ifndef _MODEL_PROCESS_H_
-#define _MODEL_PROCESS_H_
-
-#include <string>
-
-#include "acl/acl.h"
-
->>>>>>> dev_center
 #include "utils.h"
 #include "Base/Tensor/TensorBase/TensorBase.h"
 #include "Base/ModelInfer/DynamicAippConfig.h"
@@ -127,19 +108,10 @@ public:
     Result SetDynamicDims(std::vector<std::string> dym_dims);
 
     /**
-    * @brief set dynamic input dims with dataset
-    */    
-    Result SetDynamicDims(void* indatset, vector<string> dym_dims);
-
-    /**
     * @brief check dynamic input image size valid
     */
-<<<<<<< HEAD
     Result CheckDynamicShape(std::vector<std::string> dym_shape_tmp, std::map<std::string,
         std::vector<int64_t>> &dym_shape_map, std::vector<int64_t> &dims_num);
-=======
-    Result CheckDynamicShape(std::vector<std::string> dym_shape_tmp, std::map<std::string, std::vector<int64_t>> &dym_shape_map, std::vector<int64_t> &dims_num);
->>>>>>> dev_center
 
     /**
     * @brief set dynamic input dims
@@ -147,26 +119,10 @@ public:
     Result SetDynamicShape(std::map<std::string, std::vector<int64_t>> dym_shape_map, std::vector<int64_t> &dims_num);
 
     /**
-<<<<<<< HEAD
-=======
-    * @brief set dynamic input dims with dataset
-    */    
-    Result SetDynamicShape(void* indatset, std::map<std::string, std::vector<int64_t>> dym_shape_map, std::vector<int64_t> &dims_num);
-
-    /**
->>>>>>> dev_center
     * @brief set dynamic batch size
     */
     Result SetDynamicBatchSize(uint64_t batchSize);
 
-<<<<<<< HEAD
-=======
-    /**
-    * @brief set dynamic batch size with dataset
-    */
-    Result SetDynamicBatchSize(void* indatset, uint64_t batchSize);
-
->>>>>>> dev_center
     /**
     * @brief get max dynamic batch size
     */
@@ -178,7 +134,6 @@ public:
     Result SetDynamicHW(std::pair<uint64_t, uint64_t > dynamicPair);
 
     /**
-<<<<<<< HEAD
     * @brief check model the amount of dynamic aipp input
     */
     int CheckDymAIPPInputExist();
@@ -231,13 +186,6 @@ public:
     */
     Result SetInputAIPP(size_t index, void* pAippDynamicSet);
     /**
-=======
-    * @brief set dynamic image size with dataset
-    */
-    Result SetDynamicHW(void* indatset, std::pair<uint64_t , uint64_t > dynamicPair);
-
-    /**
->>>>>>> dev_center
     * @brief get dynamic input dims info
     */
     void GetDimInfo(size_t gearCount, aclmdlIODims* dims);
@@ -318,18 +266,6 @@ public:
     Result Execute();
 
     /**
-    * @brief model execute with dataset
-    * @return result
-    */
-    Result Execute(void* inputDataSet, void* outputDataSet);
-
-    /**
-    * @brief model execute async with dataset stream
-    * @return result
-    */
-    Result ExecuteAsync(void* inputDataSet, void* outputDataSet, aclrtStream stream);
-
-    /**
     * @brief dump model output result to file
     */
     void DumpModelOutputResult();
@@ -350,23 +286,13 @@ public:
         size_t& format, std::vector<int64_t>& shape, size_t& size);
 
     size_t GetOutTensorLen(size_t i, bool is_dymshape);
-    size_t GetOutTensorLen(void* outdatset, size_t i, bool is_dymshape);
 
     Result GetCurOutputShape(size_t index, bool is_dymshape, std::vector<int64_t>& shape);
-    Result GetCurOutputShape(void* outdatset, size_t index, bool is_dymshape, std::vector<int64_t>& shape);
 
     Result GetMaxDynamicHWSize(size_t &outsize);
 
     void SetExceptionCallBack();
-<<<<<<< HEAD
     void InitReuseOutput();
-=======
-
-    Result CreateDataSet(void* &pDataSet);
-    Result DestroyDataSet(void* pDataSet, bool free_memory_flag);
-    Result AddBufToDataset(void* pDataSet, void* dataBuffer, size_t bufferSize);
-
->>>>>>> dev_center
 private:
     uint32_t modelId_;
     bool reuseOutput_;

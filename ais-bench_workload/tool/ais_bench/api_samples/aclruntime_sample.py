@@ -273,10 +273,3 @@ def infer_dynamic_batchsize():
 
 
 infer_simple()
-#infer_run_simultaneous()
-#infer_dynamicshape()
-#infer_dynamic_dims()
-#infer_dynamics_hw()
-#infer_dynamic_batchsize()
-#get_model_info()
-#acljson_run()

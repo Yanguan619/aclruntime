@@ -33,7 +33,6 @@ namespace py = pybind11;
 #include "Base/ModelInfer/SessionOptions.h"
 #include "Base/ModelInfer/InferOptions.h"
 
-#include "Base/ModelInfer/AsyncExecutor.h"
 #include "Base/ModelInfer/ModelInferenceProcessor.h"
 #include "Base/Tensor/TensorBase/TensorBase.h"
 #include "Base/ModelInfer/DynamicAippConfig.h"
@@ -116,7 +115,6 @@ public:
 private:
     void Init(const std::string &modelPath, std::shared_ptr<SessionOptions> options);
     int Destroy();
-    APP_ERROR InferThreadFunc(std::vector<std::string> output_names, std::vector<Base::BaseTensor> feeds);
 
 private:
     uint32_t deviceId_ = 0;
@@ -126,8 +124,6 @@ private:
     size_t contextIndex_ = 0;
 };
 }
-
-int64_t Perf(const string modelPath, std::vector<Base::BaseTensor> feeds, Base::PerfOption options);
 
 #ifdef COMPILE_PYTHON_MODULE
     void RegistInferenceSession(py::module &m);

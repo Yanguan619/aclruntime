@@ -15,16 +15,8 @@
  */
 
 #include "Base/ModelInfer/ModelInferenceProcessor.h"
-#include "Base/ErrorCode/ErrorCode.h"
 #include "acl/acl.h"
 #include "Base/Log/Log.h"
-
-#include <cstddef>
-#include <string>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/syscall.h>
-#define gettid() syscall(__NR_gettid)
 
 namespace Base {
 APP_ERROR ModelInferenceProcessor::GetModelDescInfo()
@@ -120,7 +112,7 @@ APP_ERROR ModelInferenceProcessor::DeInit(void)
 {
     FreeDyIndexMem();
     FreeDymInfoMem();
-    // DestroyInferCacheData();
+    DestroyInferCacheData();
     processModel.reset();
     dyAippCfg.reset();
     FreeDymAIPPMem();
@@ -262,64 +254,7 @@ APP_ERROR ModelInferenceProcessor::Inference(
         return ret;
     }
     ret = ModelInference_Inner(inputs, outputNames, outputTensors);
-    // DestroyInferCacheData();
-    return ret;
-}
-
-APP_ERROR ModelInferenceProcessor::CreateOutputDataSet(void * &outputDataSet, const std::vector<BaseTensor>& outputs) {
-    Result result = processModel->CreateDataSet(outputDataSet);
-    if (result != SUCCESS){
-        ERROR_LOG("create outputDataset failed ret:%d", result);
-        return APP_ERR_FAILURE;
-    }
-
-    for (const auto& tensor : outputs) {
-        auto result = processModel->AddBufToDataset(outputDataSet, tensor.buf, tensor.size);
-        if (result != SUCCESS) {
-            ERROR_LOG("create outputdataset failed:%d", result);
-            processModel->DestroyDataSet(outputDataSet, false);
-            return APP_ERR_FAILURE;
-        }
-    }
-
-    return APP_ERR_OK;
-}
-
-APP_ERROR ModelInferenceProcessor::CreateInputDataSet(void * &inputDataSet, const std::vector<BaseTensor>& feeds) {
-    std::vector<BaseTensor> inputs;
-    auto ret = CheckInVectorAndFillBaseTensor(feeds, inputs);
-    if (ret != APP_ERR_OK){
-        ERROR_LOG("Check InVector failed ret:%d", ret);
-        return ret;
-    }
-
-    Result result = processModel->CreateDataSet(inputDataSet);
-    if (result != SUCCESS){
-        ERROR_LOG("create inputDataSet failed ret:%d", ret);
-        processModel->DestroyDataSet(inputDataSet, false);
-        return APP_ERR_FAILURE;
-    }
-    return SetInData(inputDataSet, inputs);
-}
-
-APP_ERROR ModelInferenceProcessor::InferenceAsync(void *inputDataSet, void *outputDataSet, aclrtStream stream)
-{
-    return processModel->ExecuteAsync(inputDataSet, outputDataSet, stream);
-}
-
-APP_ERROR ModelInferenceProcessor::DestroyDataSet(void *dataSet) {
-    return processModel->DestroyDataSet(dataSet, false);
-}
-
-std::vector<size_t> ModelInferenceProcessor::CustomOutputsSize() const {
-    return customOutTensorSize_;
-}
-
-std::vector<std::pair<std::string, size_t>> ModelInferenceProcessor::OutputsNameAndSize() const {
-    std::vector<std::pair<std::string, size_t>> ret;
-    for (auto &tensor_desc : modelDesc_.outTensorsDesc) {
-        ret.emplace_back(tensor_desc.name, tensor_desc.size);
-    }
+    DestroyInferCacheData();
     return ret;
 }
 
@@ -495,7 +430,7 @@ APP_ERROR ModelInferenceProcessor::SetInputsData(std::vector<BaseTensor> &inputs
 
     // add data to input dataset
     for (const auto& tensor : inputs) {
-        auto result = processModel->AddBufToDataset(inputDataSet, tensor.buf, tensor.size);
+        auto result = processModel->CreateInput(tensor.buf, tensor.size);
         if (result != SUCCESS) {
             ERROR_LOG("create input dataset failed:%d", result);
             return APP_ERR_ACL_FAILURE;
@@ -683,22 +618,16 @@ APP_ERROR ModelInferenceProcessor::ModelInference_Inner(
         ERROR_LOG("get OutTensors failed ret:%d", ret);
         return ret;
     }
-    ret = APP_ERR_OK;
-
-    DEBUG_LOG("lcm debug tid:%d InferInner end indata:%p outdata:%p", gettid(), inputDataSet, outputDataSet);
-Done:
-    processModel->DestroyDataSet(inputDataSet, false);
-    processModel->DestroyDataSet(outputDataSet, false);
-    DestroyOutMemoryData(outputsMemDataQue);
-    return ret;
+    return APP_ERR_OK;
 }
-APP_ERROR ModelInferenceProcessor::Execute(void* inputDataSet, void* outputDataSet)
+
+APP_ERROR ModelInferenceProcessor::Execute()
 {
     struct timeval start = { 0 };
     struct timeval end = { 0 };
     gettimeofday(&start, nullptr);
 
-    Result result = processModel->Execute(inputDataSet, outputDataSet);
+    Result result = processModel->Execute();
     if (result != SUCCESS) {
         ERROR_LOG("acl execute failed:%d", result);
         return APP_ERR_ACL_FAILURE;

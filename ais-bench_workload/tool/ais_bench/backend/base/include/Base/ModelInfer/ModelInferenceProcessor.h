@@ -19,17 +19,10 @@
 
 #include <memory>
 #include <vector>
-<<<<<<< HEAD
 #include <string>
 #include <algorithm>
 #include <sys/time.h>
 #include "acl/acl.h"
-=======
-
-#include "acl/acl.h"
-
-#include "MirroredMemoryData.h"
->>>>>>> dev_center
 #include "Base/ErrorCode/ErrorCode.h"
 #include "Base/Tensor/TensorBase/TensorBase.h"
 
@@ -47,7 +40,6 @@ if (ret != (expect_value)) { \
 } while (0)
 
 namespace Base {
-<<<<<<< HEAD
 struct BaseTensor {
     void* buf;
     std::vector<int64_t> shape;
@@ -73,11 +65,6 @@ struct BaseTensor {
 };
 
 struct TensorDesc {
-=======
-
-struct TensorDesc
-{
->>>>>>> dev_center
     std::string name;
     TensorDataType datatype;
     size_t format;
@@ -221,7 +208,6 @@ public:
     APP_ERROR SetDynamicShape(std::string dymshapeStr);
     APP_ERROR SetCustomOutTensorsSize(std::vector<size_t> customOutSize);
 
-<<<<<<< HEAD
     uint64_t GetMaxDymBatchsize();
     int GetDymAIPPInputExist();
     APP_ERROR CheckDymAIPPInputExist();
@@ -238,19 +224,10 @@ public:
     APP_ERROR SetDtcPixelMean(std::vector<int> meanParams);
     APP_ERROR SetDtcPixelMin(std::vector<float> minParams);
     APP_ERROR SetPixelVarReci(std::vector<float> reciParams);
-=======
-    APP_ERROR InferenceAsync(void *inputDataSet, void *outputDataSet, aclrtStream stream);
-    APP_ERROR CreateInputDataSet(void * &inputDataSet, const std::vector<BaseTensor>& feeds);
-    APP_ERROR CreateOutputDataSet(void * &outputDataSet, const std::vector<BaseTensor>& feeds);
-    APP_ERROR DestroyDataSet(void *dataSet);
-
-    std::vector<size_t> CustomOutputsSize() const;
-    std::vector<std::pair<std::string, size_t>> OutputsNameAndSize() const;
->>>>>>> dev_center
 
 private:
 
-    APP_ERROR SetDynamicInfo(void *inputDataSet);
+    APP_ERROR SetDynamicInfo();
 
     APP_ERROR AllocDyIndexMem();
     APP_ERROR AllocDymAIPPIndexMem();
@@ -260,28 +237,17 @@ private:
 
     APP_ERROR DestroyOutMemoryData(std::vector<MemoryData>& outputs);
     APP_ERROR CreateOutMemoryData(std::vector<MemoryData>& outputs);
-<<<<<<< HEAD
     APP_ERROR AddOutTensors(std::vector<MemoryData>& outputs, std::vector<std::string> outputNames,
         std::vector<TensorBase>& outputTensors);
-=======
-    APP_ERROR AddOutTensors(void* outputDataSet, std::vector<MemoryData>& outputs, std::vector<std::string> outputNames, std::vector<TensorBase>& outputTensors);
->>>>>>> dev_center
 
     APP_ERROR GetModelDescInfo();
-    // APP_ERROR DestroyInferCacheData();
+    APP_ERROR DestroyInferCacheData();
 
-<<<<<<< HEAD
     APP_ERROR SetInputsData(std::vector<BaseTensor> &inputs);
     APP_ERROR UpdateInputsData(const std::vector<int> &inOutRelation, const bool mem_copy);
     APP_ERROR SetAippConfigData();
     APP_ERROR Execute();
     APP_ERROR GetOutputs(std::vector<std::string> outputNames, std::vector<TensorBase> &outputTensors);
-=======
-    APP_ERROR SetInOutData(std::vector<BaseTensor> &inputs, void *inputDataSet, void *outputDataSet, std::vector<MemoryData> &outputsMemDataQue);
-    APP_ERROR SetInData(void *inputDataSet, std::vector<BaseTensor> &inputs);
-    APP_ERROR Execute(void* inputDataSet, void* outputDataSet);
-    APP_ERROR GetOutputs(void* outputDataSet, std::vector<std::string> outputNames, std::vector<TensorBase> &outputTensors, std::vector<MemoryData> &outputsMemDataQue);
->>>>>>> dev_center
 
     APP_ERROR CheckInVectorAndFillBaseTensor(const std::vector<BaseTensor>& feeds, std::vector<BaseTensor> &inputs);
     APP_ERROR CheckInVectorAndFillBaseTensor(const std::vector<TensorBase>& feeds, std::vector<BaseTensor> &inputs);

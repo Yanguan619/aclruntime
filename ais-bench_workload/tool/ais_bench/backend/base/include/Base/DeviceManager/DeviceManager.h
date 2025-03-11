@@ -25,7 +25,6 @@
 #include "acl/acl_base.h"
 #include "acl/acl_rt.h"
 #include "Base/ErrorCode/ErrorCode.h"
-
 namespace Base {
 const unsigned int DEFAULT_VALUE = 0;
 struct DeviceContext {
@@ -59,7 +58,6 @@ public:
     bool IsInitDevices() const;
     APP_ERROR CheckDeviceId(int32_t deviceId);
     void SetAclJsonPath(std::string aclJsonPath);
-
 private:
     DeviceManager() = default;
     std::mutex mtx_ = {};

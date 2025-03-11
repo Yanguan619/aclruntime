@@ -16,14 +16,11 @@
 
 #include "PyInferenceSession/PyInferenceSession.h"
 
-#include <algorithm>
-#include <chrono>
 #include <exception>
 #include <thread>
 #include <set>
 
 #include "Base/DeviceManager/DeviceManager.h"
-#include "Base/MemoryHelper/MemoryHelper.h"
 #include "Base/Tensor/TensorBuffer/TensorBuffer.h"
 #include "Base/Tensor/TensorShape/TensorShape.h"
 #include "Base/Tensor/TensorContext/TensorContext.h"
@@ -707,74 +704,6 @@ std::shared_ptr<Base::PyInferenceSession> CreateModelInstance(const std::string 
 }
 } // namespace
 
-using TimePointPair = std::pair<std::chrono::steady_clock::time_point, std::chrono::steady_clock::time_point>;
-
-void PerfSingleThread(const string modelPath, std::vector<Base::BaseTensor> feeds, std::shared_ptr<Base::SessionOptions> sess_option, Base::PerfOption perf_option, TimePointPair &start_end_time) {
-    Base::PyInferenceSession sess = Base::PyInferenceSession(modelPath, perf_option.device_id, sess_option);
-    switch (perf_option.dynamic_type) {
-        case Base::DynamicType::DYNAMIC_BATCH:
-            sess.SetDynamicBatchsize(perf_option.batchsize);
-            break;
-        case Base::DynamicType::DYNAMIC_HW:
-            sess.SetDynamicHW(perf_option.width, perf_option.height);
-            break;
-        case Base::DynamicType::DYNAMIC_DIMS:
-            sess.SetDynamicDims(perf_option.dyn_dims);
-            break;
-        case Base::DynamicType::DYNAMIC_SHAPE:
-            sess.SetDynamicShape(perf_option.dyn_shapes);
-            break;
-        default:
-            break;
-    }
-    if (!perf_option.custom_output_size.empty()) {
-        sess.SetCustomOutTensorsSize(perf_option.custom_output_size);
-    }
-    start_end_time.first = std::chrono::steady_clock::now();
-    sess.SessionPerf(feeds, sess_option->loop, perf_option.skip_transfer);
-    start_end_time.second = std::chrono::steady_clock::now();
-}
-
-int64_t Perf(const string modelPath, std::vector<Base::BaseTensor> feeds, Base::PerfOption options) {
-    if (options.threads <= 0 || options.threads > 4) {
-        INFO_LOG("threads(%d) not in valid range [1, 4], fallback to 1.", options.threads);
-        options.threads = 1;
-    }
-    auto sess_option = std::make_shared<Base::SessionOptions>();
-    sess_option->loop = options.loop;
-    sess_option->log_level = options.log_level;
-    sess_option->aclJsonPath = options.acl_json_path;
-    if (options.threads <= 1) {
-        TimePointPair start_end_time{};
-        PerfSingleThread(modelPath, feeds, sess_option, options, start_end_time);
-        return std::chrono::duration_cast<std::chrono::nanoseconds>(start_end_time.second - start_end_time.first).count();
-    }
-    sess_option->loop = options.loop / options.threads;
-    std::vector<std::thread> threads_;
-    std::vector<TimePointPair> exec_time_vec(options.threads);
-    for (int i = 0; i < options.threads; i++) {
-        threads_.emplace_back(PerfSingleThread, modelPath, feeds, sess_option, options, std::ref(exec_time_vec[i]));
-    }
-    for (auto &thread : threads_) {
-        thread.join();
-    }
-
-    auto start_time = std::min_element(
-        exec_time_vec.begin(),
-        exec_time_vec.end(),
-        [](TimePointPair &t0, TimePointPair &t1) {
-            return t0.first < t1.first;
-        });
-    auto end_time = std::max_element(
-        exec_time_vec.begin(),
-        exec_time_vec.end(),
-        [](TimePointPair &t0, TimePointPair &t1) {
-            return t0.second < t1.second;
-        });
-
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(end_time->second - start_time->first).count();
-}
-
 #ifdef COMPILE_PYTHON_MODULE
 void RegistTensor(py::module &m)
 {
@@ -856,24 +785,6 @@ void RegistInferenceSession(py::module &m)
     RegistAippConfig(model);
     RegistOptions(m);
     RegistTensor(m);
-
-    py::class_<Base::PerfOption>(m, "PerfOption")
-        .def(pybind11::init<>())
-        .def_readwrite("threads", &Base::PerfOption::threads)
-        .def_readwrite("device_id", &Base::PerfOption::device_id)
-        .def_readwrite("skip_transfer", &Base::PerfOption::skip_transfer)
-        .def_readwrite("loop", &Base::PerfOption::loop)
-        .def_readwrite("log_level", &Base::PerfOption::log_level)
-        .def_readwrite("acl_json_path", &Base::PerfOption::acl_json_path)
-        .def_readwrite("dynamic_type", &Base::PerfOption::dynamic_type)
-        .def_readwrite("batchsize", &Base::PerfOption::batchsize)
-        .def_readwrite("width", &Base::PerfOption::width)
-        .def_readwrite("height", &Base::PerfOption::height)
-        .def_readwrite("dyn_shapes", &Base::PerfOption::dyn_shapes)
-        .def_readwrite("dyn_dims", &Base::PerfOption::dyn_dims)
-        .def_readwrite("custom_output_size", &Base::PerfOption::custom_output_size);
-
-    m.def("perf", &Perf, "modelPath"_a, "feeds"_a, py::kw_only(), "options"_a);
 
     m.def("model", &CreateModelInstance, "modelPath"_a, "deviceId"_a = 0, "options"_a=py::none());
 }

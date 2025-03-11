@@ -173,21 +173,6 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
     return ret;
 }
 
-APP_ERROR MemoryHelper::MemsetAsync(MemoryData& data, int32_t value, size_t count, aclrtStream stream)
-{
-    if (data.ptrData == nullptr) {
-        LogError << GetError(APP_ERR_COMM_INVALID_POINTER)
-                 << "Memset failed, ptrData is nullptr.";
-        return APP_ERR_COMM_INVALID_POINTER;
-    }
-    APP_ERROR ret = aclrtMemsetAsync(data.ptrData, data.size, value, count, stream);
-    if (ret != APP_ERR_OK) {
-        cout << aclGetRecentErrMsg() << endl;
-        LogError << GetError(ret) << "Memset ptrData failed.";
-    }
-    return ret;
-}
-
 APP_ERROR MemoryHelper::Memset(MemoryData& data, int32_t value, size_t count)
 {
     if (data.ptrData == nullptr) {
@@ -313,16 +298,6 @@ APP_ERROR MemoryHelper::MxbsMalloc(MemoryData& data)
 APP_ERROR MemoryHelper::MxbsFree(MemoryData& data)
 {
     return MemoryHelper::Free(data);
-}
-
-APP_ERROR MemoryHelper::MxbsMemsetAsync(MemoryData& data, int32_t value, size_t count, aclrtStream stream)
-{
-    return MemoryHelper::MemsetAsync(data, value, count, stream);
-}
-
-APP_ERROR MemoryHelper::MxbsMemcpyAsync(MemoryData& dest, const MemoryData& src, size_t count, aclrtStream stream)
-{
-    return MemoryHelper::MemcpyAsync(dest, src, count, stream);
 }
 
 APP_ERROR MemoryHelper::MxbsMemset(MemoryData& data, int32_t value, size_t count)

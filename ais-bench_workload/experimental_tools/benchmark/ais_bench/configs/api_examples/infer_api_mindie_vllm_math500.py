@@ -18,16 +18,16 @@ models = [
     dict(
         type=VLLMCustomAPIOld,
         abbr='mindie-vllm-api-math500',
-        max_seq_len = 4096,
-        query_per_second = 1,
-        rpm_verbose = False,
-        retry = 2,
-        host_ip = "localhost",
-        host_port = 8080,
-        enable_ssl = False,
-        generation_kwargs = dict(
-            temperature = 0,
-            seed = 1,
+        max_seq_len=4096,
+        query_per_second=1,
+        rpm_verbose=False,
+        retry=2,
+        host_ip="localhost",
+        host_port=8080,
+        enable_ssl=False,
+        generation_kwargs=dict(
+            temperature=0,
+            seed=1,
         )
     )
 ]

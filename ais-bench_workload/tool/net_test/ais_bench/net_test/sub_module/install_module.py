@@ -23,7 +23,7 @@ from ais_bench.net_test.sub_module.utils import remote_run_env_check
 from ais_bench.net_test.common.utils import get_ip_address
 from ais_bench.net_test.sub_module.multiprocess_runner import MultiProcessRunner
 from ais_bench.net_test.common.logger import logger
-from ais_bench.net_test.common.consts import RemoteNodeInfoName, DEFAULT_WHL_PATH
+from ais_bench.net_test.common.consts import RemoteNodeInfoName, DEFAULT_WHL_PATH, DEFAULT_ENV_SCRIPT_PATH
 from ais_bench.net_test.ssh.ssh_operation import remote_put, remote_exec
 from ais_bench.net_test.common.args_check import arg_check_whl_legalty
 
@@ -145,6 +145,7 @@ class InstallModule(BaseSubmodule):
 
         cmd = cmd + f";rm -f {pkg_name}" # delete tmp whl pkg
         cmd = "umask 0022;" + cmd # limit remote installed bin file permission
+        args.env_script_path = DEFAULT_ENV_SCRIPT_PATH if not args.env_script_path else args.env_script_path
         cmd = f"source {args.env_script_path};" + cmd
         return cmd
 

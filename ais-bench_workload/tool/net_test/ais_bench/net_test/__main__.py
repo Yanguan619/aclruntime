@@ -17,6 +17,7 @@ import argparse
 from ais_bench.net_test.sub_module.sub_module_factory import sub_module_switch, sub_module_factory
 from ais_bench.net_test.common.consts import OP_TASK, SubModuleName
 from ais_bench.net_test.ssh.ssh_operation import remote_exec
+from ais_bench.net_test.security.check_func_utils import check_normal_str
 
 SUB_MODULE_LIST = [
     SubModuleName.RUN,
@@ -26,6 +27,8 @@ SUB_MODULE_LIST = [
 
 def get_separated_argv():
     origin_args = sys.argv
+    if len[origin_args] == 1:
+        origin_args.append("-h")
     if origin_args[1] not in SUB_MODULE_LIST and origin_args[1] != "-h" and origin_args[1] != "--help":
         origin_args.insert(1, SubModuleName.RUN) # default run
 
@@ -48,6 +51,10 @@ def get_args():
     self_args, op_args = get_separated_argv()
     args = parser.parse_args(self_args[1:])
     args.op_cmds = op_args
+
+    for sub_cmd in args.op_cmds:
+        check_normal_str(sub_cmd)
+
     # to do: op_cmds need to check
     return args, sub_module_instances
 

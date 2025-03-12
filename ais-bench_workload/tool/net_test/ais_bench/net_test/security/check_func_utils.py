@@ -19,6 +19,8 @@ import shutil
 from ais_bench.net_test.common.consts import LengthLimit, IntLimit, StringPattern
 from ais_bench.net_test.security.file_checker import check_linux_executable_file
 from ais_bench.net_test.security.standard_consts import FileSizeLimit, PermForbid
+from ais_bench.net_test.security.string_checker import StringChecker
+from ais_bench.net_test.security.standard_consts import StrWhitePattern
 
 
 def _check_str_length(s: str, min_len: int = 0, max_len: int = LengthLimit.MAX_UINT64_STR_LENGTH):
@@ -98,3 +100,8 @@ def check_executable(value: str):
         if exe_path is None:
             raise ValueError('Cannot find the executable file!')
         return exe_path
+
+def check_normal_str(str_to_check: str):
+    str_check = StringChecker(str_to_check)
+    if not str_check.is_white_pattern_check_ok(StrWhitePattern.NORMAL_STR):
+        raise ValueError("string be checked contains illegal char!")

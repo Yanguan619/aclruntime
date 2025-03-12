@@ -27,7 +27,7 @@ SUB_MODULE_LIST = [
 
 def get_separated_argv():
     origin_args = sys.argv
-    if len[origin_args] == 1:
+    if len(origin_args) == 1:
         origin_args.append("-h")
     if origin_args[1] not in SUB_MODULE_LIST and origin_args[1] != "-h" and origin_args[1] != "--help":
         origin_args.insert(1, SubModuleName.RUN) # default run

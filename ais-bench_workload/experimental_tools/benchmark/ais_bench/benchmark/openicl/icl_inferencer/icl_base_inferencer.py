@@ -48,6 +48,9 @@ class BaseInferencer:
 
         self.max_seq_len = max_seq_len
         self.batch_size = batch_size
+        if self.batch_size > 1000 or self.batch_size < 1:
+            raise ValueError(f"The range of batch_size is [1, 1000], but got {self.batch_size}. "
+                             "Please set it in datasets config")
         self.output_json_filepath = output_json_filepath
         self.output_json_filename = output_json_filename
         self.is_main_process = is_main_process()

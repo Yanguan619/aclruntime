@@ -20,7 +20,7 @@ from ais_bench.net_test.sub_module.base_sub_module import BaseSubmodule
 from ais_bench.net_test.sub_module.utils import remote_run_env_check
 from ais_bench.net_test.common.logger import logger, console_origin
 from ais_bench.net_test.ssh.ssh_operation import remote_exec
-from ais_bench.net_test.common.consts import (RunModeName, RemoteNodeInfoName,
+from ais_bench.net_test.common.consts import (RunModeName, RemoteNodeInfoName, DEFAULT_ENV_SCRIPT_PATH,
                                               OP_TASK, OP_CMD_HELP_INFO, RET, DEFAULT)
 from ais_bench.net_test.common.args_check import (arg_check_positive_integer, arg_check_port_range)
 from ais_bench.net_test.sub_module.multiprocess_runner import MultiProcessRunner
@@ -92,6 +92,7 @@ class FullRun(BaseRunMode):
               f" --server_port {args.link_port} --rank_size {args.rank_size} --node_id {node_id} --op_task"
         for value in args.op_cmds:
             cmd = cmd + " " + value
+        args.env_script_path = DEFAULT_ENV_SCRIPT_PATH if not args.env_script_path else args.env_script_path
         cmd = f"source {args.env_script_path};" + cmd  # activate CANN dependency of nodes
         return cmd
 

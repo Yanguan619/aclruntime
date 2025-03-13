@@ -22,6 +22,7 @@ from ais_bench.net_test.common.consts import OTHERS, DEFAULT_SSH_KEY_PATH, DEFAU
 from ais_bench.net_test.common.args_check import (arg_check_hostfile_legalty, arg_check_ssh_key_path_legalty)
 from ais_bench.net_test.common.utils import get_actual_device_count, get_ip_address, get_user_name, get_default_port
 from ais_bench.net_test.security.file_stat import ms_open
+from ais_bench.net_test.security.check_func_utils import check_ipv4_string
 
 
 class NodeInfo:
@@ -45,6 +46,7 @@ class BaseSubmodule(metaclass=ABCMeta):
             raise ValueError(f"node_info line: {info_list} missing enough params!")
         while len(info_list) < OTHERS.NODE_INFO_MAX_COUNT:
             info_list.append("")
+        check_ipv4_string(info_list[0]) # check ip format
         check_positive_integer_str(info_list[1])  # device_count, empty is legal
         check_positive_integer_str(info_list[3])  # port, empty is legal
         info_list[1] = int(info_list[1])  # device_count,

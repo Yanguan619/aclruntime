@@ -23,6 +23,12 @@ pip3 install -e ./
 pip3 install -r requirements/api.txt
 ```
 
+## 工具卸载
+执行命令：
+```shell
+pip3 uninstall ais_bench_benchmark
+```
+
 ## 快速入门
 在本工具的评测中，每个评估任务由待评估的模型后端和数据集组成，可以通过两种方式来指定模型和数据集：命令行指定模型和数据集以及在配置文件中指定模型和数据集，两种方式二选一。当前工具支持的模型后端都是服务化api，以在gpu上部署的vllm推理服务上评测gsm8k数据集的精度为例，请先参考[vllm官方文档/启动服务器样例](https://vllm.hyper.ai/docs/tutorials/vLLM-stepbysteb#%E4%B8%89%E5%90%AF%E5%8A%A8-vllm-%E6%9C%8D%E5%8A%A1%E5%99%A8)在gpu服务器上拉起vllm的推理服务。<br>
 ### gsm8k数据集准备
@@ -183,8 +189,8 @@ ais_bench ais_bench/configs/api_examples/infer_api_vllm_general.py --debug
 |参数|说明|样例|
 | ----- | ----- | ---- |
 |config|启动用的配置文件路径(.py)，配置文件指定模型和数据集方式的必选配置，与命令行指定模型和数据集方式的参数二选一，为ais_bench命令行的第一个参数。自定义配置文件可参考[自定义配置文件样例列表](#自定义配置文件样例列表)|ais_bench xxx/yyy.py|
-|--models|指定模型推理后端任务名称（对应ais_bench/benchmark/configs/models路径下一个已经实现的默认模型配置文件），支持传入多个任务名称，支持的任务范围请参考[任务支持范围](#任务支持范围)章节<br>命令行指定模型和数据集方式的必选配置，与配置文件指定模型和数据集方式的"config" 参数二选一|--models vllm_api_llama3_8b|
-|--datasets|指定数据集任务名称（对应ais_bench/benchmark/configs/datasets路径下一个已经实现的默认数据集配置文件），支持的任务范围请参考[任务支持范围](#任务支持范围)章节<br>命令行指定模型和数据集方式的必选配置，与配置文件指定模型和数据集方式的"config"参数二选一||--datasets gsm8k_gen|
+|--models|指定模型推理后端任务名称（对应ais_bench/benchmark/configs/models路径下一个已经实现的默认模型配置文件），支持传入多个任务名称，支持的任务范围请参考[任务支持范围](#任务支持范围)章节<br>“命令行指定模型和数据集方式”的必选配置，与“配置文件指定模型和数据集方式”的`config` 参数二选一|--models vllm_api_llama3_8b|
+|--datasets|指定数据集任务名称（对应ais_bench/benchmark/configs/datasets路径下一个已经实现的默认数据集配置文件），支持的任务范围请参考[任务支持范围](#任务支持范围)章节<br>“命令行指定模型和数据集方式”的必选配置，与“配置文件指定模型和数据集方式”的`config`参数二选一||--datasets gsm8k_gen|
 |--summarizer|指定结果总结任务名称（对应ais_bench/benchmark/configs/summarizers路径下一个已经实现的默认模型配置文件），支持的任务范围请参考[任务支持范围](#任务支持范围)章节|--summarizer medium|
 |--debug|debug模式开关，配置该参数表示开启，未配置表示关闭，默认未配置|--debug|
 |--dry-run|dry run模式（只打屏不实际跑任务）开关，配置该参数表示开启，未配置表示关闭，默认未配置|--dry-run|

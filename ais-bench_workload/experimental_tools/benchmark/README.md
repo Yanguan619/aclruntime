@@ -351,3 +351,4 @@ ais_bench --models vllm_api_general --datasets gsm8k_gen --summarizer medium
 
 ## 其他特性
 ### 自定义数据集
+参考文档[自定义数据集使用说明](doc/自定义数据集使用说明.md)

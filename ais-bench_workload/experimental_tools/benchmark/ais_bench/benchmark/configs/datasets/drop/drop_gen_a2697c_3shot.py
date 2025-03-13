@@ -39,14 +39,9 @@ You will be asked to read a passage and answer a question. Think step by step, t
 {{prompt}}'''
 
 drop_infer_cfg = dict(
-    ice_template=dict(
-        type=PromptTemplate,
-        template=template + '\nAnswer: {answers}\n',
-    ),
     prompt_template=dict(
         type=PromptTemplate,
-        template='</E>\n' + template,
-        ice_token='</E>'
+        template=template
         ),
     retriever=dict(type=FixKRetriever, fix_id_list=[0,1,2]),
     inferencer=dict(type=GenInferencer, stopping_criteria=['---', 'Passage', 'Question', 'You will be asked'], max_out_len=32768),
@@ -58,8 +53,7 @@ drop_datasets = [
     dict(
         abbr='drop',
         type=DropOpenAIDataset,
-        path='ais_bench/datasets/drop',
-        file_name='dev.jsonl',
+        path='ais_bench/datasets/drop_simple_eval/dev.jsonl',
         reader_cfg=drop_reader_cfg,
         infer_cfg=drop_infer_cfg,
         eval_cfg=drop_eval_cfg)

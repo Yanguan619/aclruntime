@@ -145,26 +145,17 @@ class MATHDataset(BaseDataset):
         path = get_data_path(path)
         dataset = DatasetDict()
         raw_data = []
-        if environ.get('DATASET_SOURCE') == 'ModelScope':
-            from modelscope import MsDataset
-            ms_dataset = MsDataset.load(path, split='train')
-            for item in ms_dataset:
-                raw_data.append({
-                    'problem':
-                    item['problem'],
-                    'solution':
-                    extract_boxed_answer(item['solution'])
-                })
-        else:
-            file_path = os.path.join(path, file_name)
-            data = json.load(open(file_path))
-            for i in data.keys():
-                raw_data.append({
-                    'problem':
-                    data[i]['problem'],
-                    'solution':
-                    extract_boxed_answer(data[i]['solution'])
-                })
+
+        file_path = os.path.join(path, file_name)
+        data = json.load(open(file_path))
+        for i in data.keys():
+            raw_data.append({
+                'problem':
+                data[i]['problem'],
+                'solution':
+                extract_boxed_answer(data[i]['solution'])
+            })
+
         dataset['test'] = Dataset.from_list(raw_data)
         dataset['train'] = Dataset.from_list(raw_data)
         return dataset

@@ -318,5 +318,4 @@ APP_ERROR DeviceManager::CheckDeviceId(int32_t deviceId)
     }
     return APP_ERR_OK;
 }
-
 }  // namespace Base

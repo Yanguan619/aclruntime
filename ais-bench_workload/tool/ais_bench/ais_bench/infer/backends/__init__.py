@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Copyright (c) 2023-2023 Huawei Technologies Co., Ltd. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,20 +28,3 @@ class BackendFactory:
     @staticmethod
     def create_backend(name):
         return BACKEND_REGISTRY[name]
-=======
-import os
-
-from ais_bench.infer import registry
-
-BACKEND_REGISTRY = registry.Registry("BACKEND_REGISTRY")
-
-registry.import_all_modules_for_register(
-    os.path.dirname(os.path.abspath(__file__)), "ais_bench.infer.backends"
-)
-
-
-class BackendFactory:
-    @staticmethod
-    def create_backend(name):
-        return BACKEND_REGISTRY[name]
->>>>>>> dev_center

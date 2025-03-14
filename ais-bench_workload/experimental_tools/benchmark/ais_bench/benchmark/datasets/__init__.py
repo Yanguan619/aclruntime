@@ -6,3 +6,4 @@ from .mmlu import * # noqa: F401, F403
 from .gpqa import * # noqa: F401, F403
 from .math import * # noqa: F401, F403
 from .drop_simple_eval import * # noqa: F401, F403
+from .synthetic import *

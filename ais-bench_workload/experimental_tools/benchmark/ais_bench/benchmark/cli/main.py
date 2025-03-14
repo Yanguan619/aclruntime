@@ -19,7 +19,7 @@ def get_current_time_str():
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Run an evaluation task')
-    parser.add_argument('config', nargs='?', help='Train config file path')
+    parser.add_argument('config', nargs='?', help='Benchmark config file path')
 
     parser.add_argument('--models', nargs='+', help='', default=None)
     parser.add_argument('--datasets', nargs='+', help='', default=None)
@@ -59,7 +59,7 @@ def parse_args():
     parser.add_argument('-w',
                         '--work-dir',
                         help='Work path, all the outputs will be '
-                        'saved in this path, including the slurm logs, '
+                        'saved in this path, including the predictions, '
                         'the evaluation results, the summary results, etc.'
                         'If not specified, the work_dir will be set to '
                         'outputs/default.',
@@ -94,8 +94,7 @@ def parse_args():
     )
     parser.add_argument(
         '--dump-extract-rate',
-        help='Whether to dump the evaluation details, including the '
-        'correctness of each sample, bpb, etc.',
+        help='Whether to dump the extract rate of evaluation (samples per sec)',
         action='store_true',
     )
 

@@ -36,6 +36,7 @@ class BaseInferencer:
         output_json_filepath: Optional[str] = './icl_inference_output',
         output_json_filename: Optional[str] = 'predictions',
         fix_id_list: Optional[List[int]] = None,
+        is_synthetic: Optional[bool] = False,
         **kwargs,
     ) -> None:
 

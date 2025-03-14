@@ -15,7 +15,7 @@ from tqdm import tqdm
 from ais_bench.benchmark.registry import MODELS
 from ais_bench.benchmark.utils.prompt import PromptList
 
-from .base_api import BaseAPIModel
+from .base_api import BaseAPIModel, handle_synthetic_input
 
 PromptType = Union[PromptList, str]
 OPENAI_API_BASE = os.path.join(
@@ -181,6 +181,7 @@ class OpenAI(BaseAPIModel):
                      desc='Inferencing'))
         return results
 
+    @handle_synthetic_input
     def _generate(self, input: PromptType, max_out_len: int,
                   temperature: float) -> str:
         """Generate results given a list of inputs.

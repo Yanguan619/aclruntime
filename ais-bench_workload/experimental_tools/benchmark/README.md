@@ -14,7 +14,9 @@ conda activate ais_bench
 
 ```shell
 git clone https://gitee.com/ascend/tools.git
-cd tools/ais-bench_workload/experimental_tools/benchmark
+cd tools/
+git checkout develop
+cd ais-bench_workload/experimental_tools/benchmark
 pip3 install -e ./
 ```
 安装过程中会自动安装基础依赖。

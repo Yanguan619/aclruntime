@@ -1,5 +1,5 @@
 from ais_bench.benchmark.openicl.icl_prompt_template import PromptTemplate
-from ais_bench.benchmark.openicl.icl_retriever import FixKRetriever
+from ais_bench.benchmark.openicl.icl_retriever import ZeroRetriever
 from ais_bench.benchmark.openicl.icl_inferencer import GenInferencer
 from ais_bench.benchmark.datasets import DropOpenAIDataset, DropOpenAIEvaluator
 
@@ -43,7 +43,7 @@ drop_infer_cfg = dict(
         type=PromptTemplate,
         template=template
         ),
-    retriever=dict(type=FixKRetriever, fix_id_list=[0,1,2]),
+    retriever=dict(type=ZeroRetriever),
     inferencer=dict(type=GenInferencer, stopping_criteria=['---', 'Passage', 'Question', 'You will be asked'], max_out_len=32768),
     )
 

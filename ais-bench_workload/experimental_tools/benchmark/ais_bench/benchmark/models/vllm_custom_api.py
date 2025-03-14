@@ -269,7 +269,7 @@ class VLLMCustomAPIOld(BaseAPIModel):
                 continue
 
             if response.get('text') is None:
-                raise RuntimeError("Get unexpected response: {response} from service!")
+                raise RuntimeError(f"Get unexpected response: {response} from service!")
             return response['text'][0]
 
         raise RuntimeError('Calling VLLM failed after retrying for '

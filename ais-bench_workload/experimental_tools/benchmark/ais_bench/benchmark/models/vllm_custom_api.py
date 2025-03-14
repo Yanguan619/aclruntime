@@ -17,7 +17,7 @@ from openai import OpenAI
 from ais_bench.benchmark.registry import MODELS
 from ais_bench.benchmark.utils.prompt import PromptList
 
-from ais_bench.benchmark.models.base_api import BaseAPIModel
+from ais_bench.benchmark.models.base_api import BaseAPIModel, handle_synthetic_input
 
 PromptType = Union[PromptList, str]
 
@@ -94,6 +94,7 @@ class VLLMCustomAPI(BaseAPIModel):
                      desc='Inferencing'))
         return results
 
+    @handle_synthetic_input
     def _generate(self, input: PromptType, max_out_len: int) -> str:
         """Generate results given a list of inputs.
 
@@ -224,6 +225,7 @@ class VLLMCustomAPIOld(BaseAPIModel):
                      desc='Inferencing'))
         return results
 
+    @handle_synthetic_input
     def _generate(self, input: PromptType, max_out_len: int) -> str:
         """Generate results given a list of inputs.
 

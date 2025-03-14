@@ -23,15 +23,19 @@ pip3 install -e ./
 pip3 install -r requirements/api.txt
 ```
 
-## 数据集准备
-从opencompass的release中下载[数据集](https://github.com/open-compass/opencompass/releases/tag/0.2.2.rc1)
-`OpenCompassData-core-20240207.zip`已经包含了工具支持的数据集，解压`OpenCompassData-core-20240207.zip`后将其中data文件夹下的对应的数据集文件夹放置到
-`ais_bench/datasets/`路径下。
+## 工具卸载
+执行命令：
+```shell
+pip3 uninstall ais_bench_benchmark
+```
 
 ## 快速入门
-在本工具的评测中，每个评估任务由待评估的模型后端和数据集组成，可以通过两种方式来指定模型和数据集：命令行指定模型和数据集以及在配置文件中指定模型和数据集，两种方式二选一。由于当前工具支持的模型后端都是服务化api，请先参考[vllm官方文档/启动服务器样例](https://vllm.hyper.ai/docs/tutorials/vLLM-stepbysteb#%E4%B8%89%E5%90%AF%E5%8A%A8-vllm-%E6%9C%8D%E5%8A%A1%E5%99%A8)在gpu服务器上拉起vllm的推理服务。<br>
+在本工具的评测中，每个评估任务由待评估的模型后端和数据集组成，可以通过两种方式来指定模型和数据集：命令行指定模型和数据集以及在配置文件中指定模型和数据集，两种方式二选一。当前工具支持的模型后端都是服务化api，以在gpu上部署的vllm推理服务上评测gsm8k数据集的精度为例，请先参考[vllm官方文档/启动服务器样例](https://vllm.hyper.ai/docs/tutorials/vLLM-stepbysteb#%E4%B8%89%E5%90%AF%E5%8A%A8-vllm-%E6%9C%8D%E5%8A%A1%E5%99%A8)在gpu服务器上拉起vllm的推理服务。<br>
+### gsm8k数据集准备
+参考[gsk8k数据集说明](ais_bench/benchmark/configs/datasets/gsm8k/README.md)准备数据集，将数据集放在ais_bench/datasets路径下。
+
 ### 命令行指定模型和数据集
-命令行方式指定模型和数据集本质上是调用工具内置的.py配置文件指定的，需要先在`ais_bench/benchmark/configs/models/`中预置的模型配置文件中配置好服务化相关参数，例如我要执行vllm_api_llama3_8b的任务，需要在`ais_bench/benchmark/configs/models/vllm_api/vllm_api_general.py`中修改配置：
+命令行方式指定模型和数据集本质上是调用工具内置的.py配置文件指定的，需要先在`ais_bench/benchmark/configs/models/`中预置的模型配置文件中配置好服务化相关参数，以执行vllm_api_general的任务为例，需要在`ais_bench/benchmark/configs/models/vllm_api/vllm_api_general.py`中修改配置：
 
 ```python
 from ais_bench.benchmark.models import VLLMCustomAPI
@@ -178,20 +182,20 @@ ais_bench [OPTIONS]
 # 命令行指定模型和数据集
 ais_bench --models vllm_api_general --datasets gsm8k_gen
 # 配置文件指定模型和数据集
-ais_bench /configs/api_examples/infer_api_vllm_general.py --work-dir /path/to/your/dir
+ais_bench ais_bench/configs/api_examples/infer_api_vllm_general.py --debug
 ```
 
 ### 参数说明
 |参数|说明|样例|
 | ----- | ----- | ---- |
-|config|启动用的配置文件路径(.py)，配置文件指定模型和数据集方式的必选配置，与命令行指定模型和数据集方式的参数二选一，为ais_bench命令行的第一个参数|ais_bench xxx/yyy.py|
-|--models|指定模型推理后端任务名称（对应ais_bench/benchmark/configs/models路径下一个已经实现的默认模型配置文件），支持传入多个任务名称，支持的任务范围请参考[任务支持范围](#任务支持范围)章节<br>命令行指定模型和数据集方式的必选配置，与配置文件指定模型和数据集方式的{config_path} 参数二选一|--models vllm_api_llama3_8b|
-|--datasets|指定数据集任务名称（对应ais_bench/benchmark/configs/datasets路径下一个已经实现的默认数据集配置文件），支持的任务范围请参考[任务支持范围](#任务支持范围)章节<br>命令行指定模型和数据集方式的必选配置，与配置文件指定模型和数据集方式的{config_path} 参数二选一||--datasets gsm8k_gen|
+|config|启动用的配置文件路径(.py)，配置文件指定模型和数据集方式的必选配置，与命令行指定模型和数据集方式的参数二选一，为ais_bench命令行的第一个参数。自定义配置文件可参考[自定义配置文件样例列表](#自定义配置文件样例列表)|ais_bench xxx/yyy.py|
+|--models|指定模型推理后端任务名称（对应ais_bench/benchmark/configs/models路径下一个已经实现的默认模型配置文件），支持传入多个任务名称，支持的任务范围请参考[任务支持范围](#任务支持范围)章节<br>此参数在“命令行指定模型和数据集”方式中必须配置，与“配置文件指定模型和数据集”方式中配置的`config` 参数二选一|--models vllm_api_llama3_8b|
+|--datasets|指定数据集任务名称（对应ais_bench/benchmark/configs/datasets路径下一个已经实现的默认数据集配置文件），支持的任务范围请参考[任务支持范围](#任务支持范围)章节<br>此参数在“命令行指定模型和数据集”方式中必须配置，与“配置文件指定模型和数据集”方式中配置的`config`参数二选一||--datasets gsm8k_gen|
 |--summarizer|指定结果总结任务名称（对应ais_bench/benchmark/configs/summarizers路径下一个已经实现的默认模型配置文件），支持的任务范围请参考[任务支持范围](#任务支持范围)章节|--summarizer medium|
 |--debug|debug模式开关，配置该参数表示开启，未配置表示关闭，默认未配置|--debug|
 |--dry-run|dry run模式（只打屏不实际跑任务）开关，配置该参数表示开启，未配置表示关闭，默认未配置|--dry-run|
 |--mode 或 -m|可选["all", "infer", "eval", "viz"]，默认"all"，每个模式如何运行参考[运行模式说明](#运行模式说明)|--mode infer <br>-m all|
-|--reuse 或 -r|重复使用的时间戳文件夹，寻找--work_dir指定的工作路径下时间戳最新的文件夹|--reuse <br>-r 20250126_144254|
+|--reuse 或 -r|指定重复使用的工作路径下的文件夹时间戳，如果此可选命令不加参数，默认寻找--work_dir指定的工作路径下最新的时间戳|--reuse <br>-r 20250126_144254|
 |--work-dir 或 -w|评测任务的工作路径，用于落盘评测过程中的结果文件，默认outputs/default| --work-dir /path/to/work <br>-w /path/to/work|
 |--config-dir|models，datasets和summarizers配置文件所在的文件夹路径， 默认ais_bench/benchmark/configs|--config-dir /xxx/xxx|
 |--max-num-workers|并行运行的worker的最大个数，默认1|--max-num-workers 1|

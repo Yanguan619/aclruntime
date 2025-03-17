@@ -86,7 +86,8 @@ class VLLMCustomAPI(BaseAPIModel):
         Returns:
             List[str]: A list of generated strings.
         """
-        with ThreadPoolExecutor() as executor:
+        batch_size = len(inputs)
+        with ThreadPoolExecutor(max_workers=batch_size) as executor:
             results = list(
                 tqdm(executor.map(self._generate, inputs,
                                   [max_out_len] * len(inputs)),
@@ -114,7 +115,6 @@ class VLLMCustomAPI(BaseAPIModel):
 
         max_num_retries = 0
         while max_num_retries < self.retry:
-            self.wait()
             max_num_retries += 1
             header = {
                 'Content-Type': 'application/json',
@@ -132,6 +132,7 @@ class VLLMCustomAPI(BaseAPIModel):
 
             except requests.ConnectionError:
                 self.logger.error('Got connection error, retrying...')
+                self.wait()
                 continue
             try:
                 response = raw_response.json()
@@ -217,7 +218,8 @@ class VLLMCustomAPIOld(BaseAPIModel):
         Returns:
             List[str]: A list of generated strings.
         """
-        with ThreadPoolExecutor() as executor:
+        batch_size = len(inputs)
+        with ThreadPoolExecutor(max_workers=batch_size) as executor:
             results = list(
                 tqdm(executor.map(self._generate, inputs,
                                   [max_out_len] * len(inputs)),
@@ -245,7 +247,6 @@ class VLLMCustomAPIOld(BaseAPIModel):
 
         max_num_retries = 0
         while max_num_retries < self.retry:
-            self.wait()
             max_num_retries += 1
             header = {
                 'Content-Type': 'application/json',
@@ -262,6 +263,7 @@ class VLLMCustomAPIOld(BaseAPIModel):
 
             except requests.ConnectionError:
                 self.logger.error('Got connection error, retrying...')
+                self.wait()
                 continue
             try:
                 response = raw_response.json()

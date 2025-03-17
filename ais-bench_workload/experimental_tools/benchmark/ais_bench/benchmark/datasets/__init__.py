@@ -8,3 +8,4 @@ from .math import * # noqa: F401, F403
 from .drop_simple_eval import * # noqa: F401, F403
 from .synthetic import *
 from .mmlu_pro import * # noqa: F401, F403
+from .humaneval import * # noqa: F401, F403

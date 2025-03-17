@@ -23,6 +23,7 @@ pip3 install -e ./
 因为当前工具的模型后端都是服务化api后端，因此需要额外安装服务化的依赖：
 ```shell
 pip3 install -r requirements/api.txt
+pip3 install -r requirements/extra.txt
 ```
 
 ## 工具卸载

@@ -43,7 +43,7 @@ class TestClass:
             sys.path.append(os.path.join(dataset_configs_base_dir, dataset))
 
     # mode all
-    def test_vllm_api_all_qwen2_7b_mmlu(self, monkeypatch):
+    def test_vllm_api_all_mmlu_5_shot_str(self, monkeypatch):
         from mmlu_gen_5_shot_str import mmlu_all_sets
         fake_prediction = "Answer: A"
         fake_time_str = "mmlu_gen_5_shot_str"

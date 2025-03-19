@@ -44,27 +44,32 @@ class TestClass:
 
     # mode all
     def test_vllm_api_all_qwen2_7b_mmlu(self, monkeypatch):
-        from mmlu_gen_a484b3 import mmlu_all_sets
-        fake_prediction = "A"
-        fake_time_str = "fake_time_mmlu"
+        from mmlu_gen_5_shot_str import mmlu_all_sets
+        fake_prediction = "Answer: A"
+        fake_time_str = "mmlu_gen_5_shot_str"
+        datasets_abbr_name = "lukaemon_mmlu_"
+        datasets_script_name = "mmlu_gen_5_shot_str"
+
         monkeypatch.setattr('sys.argv',
-            ["ais_bench", "--models", "vllm_api_general", "--datasets", "mmlu_gen",
+            ["ais_bench", "--models", "vllm_api_general", "--datasets", datasets_script_name,
             "--mode", "all", "-w", self.test_data_path])
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._get_service_model_path", lambda *arg: "qwen2")
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._generate", lambda *arg: fake_prediction)
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         main()
 
-        for sub_exam_name in mmlu_all_sets:
+        for category in mmlu_all_sets:
+            curr_datasets_abbr_name = datasets_abbr_name + category
+
             # check infer out
-            infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/vllm-api-general/lukaemon_mmlu_{sub_exam_name}.json")
+            infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/vllm-api-general/{curr_datasets_abbr_name}.json")
             assert os.path.exists(infer_outputs_json_path)
             with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
             assert data.get(f"0").get("prediction") == fake_prediction
 
             # check eval out
-            results_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/results/vllm-api-general/lukaemon_mmlu_{sub_exam_name}.json")
+            results_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/results/vllm-api-general/{curr_datasets_abbr_name}.json")
             with open(results_json_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
             assert data.get("accuracy") is not None
@@ -372,7 +377,7 @@ class TestClass:
         with open(results_json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
         assert data.get("humaneval_pass@1") is not None
-        
+
         # check vis
         vis_csv_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.csv")
         assert os.path.exists(vis_csv_path)
@@ -437,7 +442,7 @@ class TestClass:
 
         for category in categories:
             curr_datasets_abbr_name = datasets_abbr_name + category.replace(" ", "_")
-            
+
             # check infer out
             infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/vllm-api-general/{curr_datasets_abbr_name}.json")
             assert os.path.exists(infer_outputs_json_path)

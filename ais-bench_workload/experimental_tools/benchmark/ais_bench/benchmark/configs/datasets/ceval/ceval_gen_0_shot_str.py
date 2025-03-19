@@ -67,9 +67,9 @@ for _split in ['val']:
     for _name in ceval_all_sets:
         _ch_name = ceval_subject_mapping[_name][1]
         ceval_infer_cfg = dict(
-            ice_template=dict(
+            prompt_template=dict(
                 type=PromptTemplate,
-                template=f'以下是中国关于{_ch_name}考试的单项选择题，请选出其中的正确答案。\n</E>{{question}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\n答案: {{answer}}',
+                template=f'以下是中国关于{_ch_name}考试的单项选择题，请选出其中的正确答案。\n{{question}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\n答案: {{answer}}',
             ),
             retriever=dict(type=ZeroRetriever),
             inferencer=dict(type=GenInferencer, batch_size=1),

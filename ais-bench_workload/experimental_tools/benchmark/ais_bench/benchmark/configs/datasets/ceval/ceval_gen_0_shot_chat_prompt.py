@@ -3,7 +3,7 @@ from ais_bench.benchmark.openicl.icl_retriever import ZeroRetriever
 from ais_bench.benchmark.openicl.icl_inferencer import GenInferencer
 from ais_bench.benchmark.openicl.icl_evaluator import AccEvaluator
 from ais_bench.benchmark.datasets import CEvalDataset
-from ais_bench.benchmark.utils.text_postprocessors import first_capital_postprocess
+from ais_bench.benchmark.utils.text_postprocessors import last_capital_postprocess
 
 
 ceval_subject_mapping = {
@@ -69,7 +69,11 @@ for _split in ['val']:
         ceval_infer_cfg = dict(
             ice_template=dict(
                 type=PromptTemplate,
-                template=f'以下是中国关于{_ch_name}考试的单项选择题，请选出其中的正确答案。\n</E>{{question}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\n答案: {{answer}}',
+                template=dict(
+                    round=[
+                        dict(role='HUMAN', prompt=f'以下是中国关于{_ch_name}考试的单项选择题，请选出其中的正确答案。\n</E>{{question}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\n答案: {{answer}}'),
+                    ],
+                )
             ),
             retriever=dict(type=ZeroRetriever),
             inferencer=dict(type=GenInferencer, batch_size=1),
@@ -77,7 +81,7 @@ for _split in ['val']:
 
         ceval_eval_cfg = dict(
             evaluator=dict(type=AccEvaluator),
-            pred_postprocessor=dict(type=first_capital_postprocess))
+            pred_postprocessor=dict(type=last_capital_postprocess))
 
         ceval_datasets.append(
             dict(

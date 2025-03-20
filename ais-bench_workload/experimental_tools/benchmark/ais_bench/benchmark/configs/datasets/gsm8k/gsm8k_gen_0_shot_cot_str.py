@@ -10,7 +10,7 @@ gsm8k_infer_cfg = dict(
         type=PromptTemplate,
         template="Question: {question}\nLet's think step by step\nAnswer:"),
     retriever=dict(type=ZeroRetriever),
-    inferencer=dict(type=GenInferencer, ))
+    inferencer=dict(type=GenInferencer, batch_size=1))
 
 gsm8k_eval_cfg = dict(evaluator=dict(type=Gsm8kEvaluator),
                       pred_role='BOT',

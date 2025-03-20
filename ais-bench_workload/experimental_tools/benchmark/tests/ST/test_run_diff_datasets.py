@@ -162,9 +162,9 @@ class TestClass:
 
     def test_vllm_api_all_boolq_0_shot_str(self, monkeypatch):
         fake_prediction = "Yes"
-        fake_time_str = "SuperGLUE_BoolQ_gen_O_shot_str"
+        fake_time_str = "SuperGLUE_BoolQ_gen_0_shot_str"
         datasets_abbr_name = "BoolQ"
-        datasets_script_name = "SuperGLUE_BoolQ_gen_O_shot_str"
+        datasets_script_name = "SuperGLUE_BoolQ_gen_0_shot_str"
 
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "vllm_api_general", "--datasets", datasets_script_name,

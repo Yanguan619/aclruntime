@@ -63,7 +63,7 @@ models = [
     )
 ]
 ```
-修改好配置文件后，执行如下命令启动评测：
+修改好配置文件后，执行如下命令启动评测，models配置请参考[models](#--models支持的模型推理后端)，datasets配置请参考[datasets](#--datasets支持的数据集)
 ```
 ais_bench --models vllm_api_general --datasets gsm8k_gen
 ```

@@ -14,6 +14,7 @@ DATASETS_CONFIGS_LIST = [
     "aime2024",
     "gpqa",
     "math",
+    "mmlu_pro",
 ]
 
 class TestClass:

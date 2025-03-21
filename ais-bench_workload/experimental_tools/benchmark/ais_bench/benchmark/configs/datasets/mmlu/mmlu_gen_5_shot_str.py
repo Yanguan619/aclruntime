@@ -100,7 +100,7 @@ for _name in mmlu_all_sets:
         dict(
             abbr=f'lukaemon_mmlu_{_name}',
             type=MMLUDataset,
-            path='ais_bench/datasets/mmlu',
+            path='ais_bench/datasets/mmlu',  # 数据集路径，使用相对路径时相对于源码根路径，支持绝对路径
             name=_name,
             reader_cfg=mmlu_reader_cfg,
             infer_cfg=mmlu_infer_cfg,

@@ -8,7 +8,7 @@ with read_base():
     from ais_bench.benchmark.configs.summarizers.example import summarizer
     from all_dataset_configs import *
 
-datasets = [
+datasets = [ # all_dataset_configs.py中导入了其他数据集配置，可以将gsm8k_0_shot_cot_str替换为其他一个或多个数据集
     *gsm8k_0_shot_cot_str,
 ]
 

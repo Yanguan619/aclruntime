@@ -1,23 +1,22 @@
 from mmengine.config import read_base
-from ais_bench.benchmark.models import VLLMCustomAPI
+from ais_bench.benchmark.models import MindieStreamApi
 from ais_bench.benchmark.partitioners import NaivePartitioner
 from ais_bench.benchmark.runners.local_api import LocalAPIRunner
 from ais_bench.benchmark.tasks import OpenICLInferTask
 
 with read_base():
-    # from ais_bench.benchmark.configs.datasets.collections.chat_medium import datasets
-    from ais_bench.benchmark.configs.summarizers.medium import summarizer
-    from ais_bench.benchmark.configs.datasets.gsm8k.gsm8k_gen import gsm8k_datasets
+    from ais_bench.benchmark.configs.summarizers.example import summarizer
+    from all_dataset_configs import *
 
 datasets = [
-    *gsm8k_datasets,
+    *gsm8k_0_shot_cot_str,
 ]
 
 
 models = [
     dict(
-        type=VLLMCustomAPI,
-        abbr='vllm-api-general',
+        type=MindieStreamApi,
+        abbr='mindie-stream-api-general',
         max_seq_len = 4096,
         query_per_second = 1,
         rpm_verbose = False,
@@ -29,8 +28,15 @@ models = [
             temperature = 0.5,
             top_k = 10,
             top_p = 0.95,
+            max_new_tokens = 512,
+            do_sample = True,
             seed = None,
             repetition_penalty = 1.03,
+            details = True,
+            typical_p = 0.5,
+            watermark = False,
+            priority = 5,
+            timeout = None,
         )
     )
 ]
@@ -43,4 +49,4 @@ infer = dict(partitioner=dict(type=NaivePartitioner),
                  concurrent_users=2,
                  task=dict(type=OpenICLInferTask)), )
 
-work_dir = 'outputs/api_vllm_general/'
+work_dir = 'outputs/api-mindie-stream/'

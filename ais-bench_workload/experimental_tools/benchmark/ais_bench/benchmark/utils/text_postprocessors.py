@@ -59,95 +59,13 @@ def last_capital_postprocess(text: str) -> str:
 
 def first_option_postprocess_v1(text: str, options: str, cushion=True) -> str:
     """Find first valid option for text, prioritizing the latest match in the text."""
-
-    # yapf: disable
-    # flake8: noqa: W605
-    patterns = [
-        f'答案是?\s*([{options}])',
-        f'答案是?\s*：\s*([{options}])',
-        f'答案是?\s*:\s*([{options}])',
-        f'答案选项应?该?是\s*([{options}])',
-        f'答案选项应?该?为\s*([{options}])',
-        f'答案应该?是\s*([{options}])',
-        f'答案应该?选\s*([{options}])',
-        f'答案选项为?\s*：\s*([{options}])',
-        f'答案选项为?\s+\(?\*?\*?([{options}])\*?\*?\)?',
-        f'答案选项是?\s*:\s*([{options}])',
-        f'答案为\s*([{options}])',
-        f'答案选\s*([{options}])',
-        f'选择?\s*([{options}])',
-        f'故选?\s*([{options}])'
-        f'只有选?项?\s?([{options}])\s?是?对',
-        f'只有选?项?\s?([{options}])\s?是?错',
-        f'只有选?项?\s?([{options}])\s?不?正确',
-        f'只有选?项?\s?([{options}])\s?错误',
-        f'说法不?对选?项?的?是\s?([{options}])',
-        f'说法不?正确选?项?的?是\s?([{options}])',
-        f'说法错误选?项?的?是\s?([{options}])',
-        f'([{options}])\s?是正确的',
-        f'([{options}])\s?是正确答案',
-        f'选项\s?([{options}])\s?正确',
-        f'所以答\s?([{options}])',
-        f'所以\s?([{options}][.。$]?$)',
-        f'所有\s?([{options}][.。$]?$)',
-        f'[\s，：:,]([{options}])[。，,\.]?$',
-        f'[\s，,：:][故即]([{options}])[。\.]?$',
-        f'[\s，,：:]因此([{options}])[。\.]?$',
-        f'[是为。]\s?([{options}])[。\.]?$',
-        f'因此\s?([{options}])[。\.]?$',
-        f'显然\s?([{options}])[。\.]?$',
-        f'答案是\s?(\S+)(?:。|$)',
-        f'答案应该是\s?(\S+)(?:。|$)',
-        f'答案为\s?(\S+)(?:。|$)',
-        f'(?i)ANSWER\s*:\s*([{options}])',
-        f'[Tt]he answer is:?\s+\(?([{options}])\)?',
-        f'[Tt]he answer is:?\s+\(?\*?\*?([{options}])\*?\*?\)?',
-        f'[Tt]he answer is option:?\s+\(?([{options}])\)?',
-        f'[Tt]he correct answer is:?\s+\(?([{options}])\)?',
-        f'[Tt]he correct answer is option:?\s+\(?([{options}])\)?',
-        f'[Tt]he correct answer is:?.*?boxed{{([{options}])}}',
-        f'[Tt]he correct option is:?.*?boxed{{([{options}])}}',
-        f'[Tt]he correct answer option is:?.*?boxed{{([{options}])}}',
-        f'[Tt]he answer to the question is:?\s+\(?([{options}])\)?',
-        f'^选项\s?([{options}])',
-        f'^([{options}])\s?选?项',
-        f'(\s|^)[{options}][\s。，,：:\.$]',
-        f'1.\s?(.*?)$',
-        f'1.\s?([{options}])[.。$]?$',
-    ]
-    cushion_patterns = [
-        f'([{options}]):',
-        f'([{options}])',
-    ]
-    # flake8: noqa
-    # yapf: enable
-
-    if cushion:
-        patterns.extend(cushion_patterns)
-
-    text = text.strip()
-    latest_end = -1  # 记录最靠后的匹配位置
-    best_match = None  # 记录最佳匹配的捕获内容
-
-    # 遍历所有正则模式
-    for pattern in patterns:
-        # 查找所有非重叠匹配
-        for match in re.finditer(pattern, text, re.DOTALL):
-            # 提取捕获组内容（优先 group(1)，否则 group(0)）
-            captured = match.group(1) if match.lastindex >= 1 else match.group(0)
-            current_end = match.end()  # 当前匹配的结束位置
-
-            # 如果匹配位置更靠后，更新最佳匹配
-            if current_end > latest_end or (current_end == latest_end and best_match is None):
-                latest_end = current_end
-                best_match = captured
-
-    # 从最佳匹配中提取选项
-    if best_match:
-        for char in options:
-            if char in best_match:
-                return char
-
+    match = re.findall(rf'([{options}])', text)
+    if match:
+        idx_start = -1
+        while len(match) + idx_start >= 0:
+            if first_option_postprocess(text, match[idx_start]) == match[idx_start]:
+                return match[idx_start]
+            idx_start -= 1
     return ''
 
 def first_option_postprocess(text: str, options: str, cushion=True) -> str:

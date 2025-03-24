@@ -63,10 +63,6 @@ def first_option_postprocess_v1(text: str, options: str, cushion=True) -> str:
     # yapf: disable
     # flake8: noqa: W605
     patterns = [
-        # 原 patterns 列表保持不变，此处省略以节省篇幅
-        # ...（原 patterns 内容）
-    ]
-    cushion_patterns = [
         f'答案是?\s*([{options}])',
         f'答案是?\s*：\s*([{options}])',
         f'答案是?\s*:\s*([{options}])',
@@ -118,6 +114,10 @@ def first_option_postprocess_v1(text: str, options: str, cushion=True) -> str:
         f'(\s|^)[{options}][\s。，,：:\.$]',
         f'1.\s?(.*?)$',
         f'1.\s?([{options}])[.。$]?$',
+    ]
+    cushion_patterns = [
+        f'([{options}]):',
+        f'([{options}])',
     ]
     # flake8: noqa
     # yapf: enable

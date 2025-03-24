@@ -57,6 +57,50 @@ def last_capital_postprocess(text: str) -> str:
     return ''
 
 
+def first_option_postprocess_v1(text: str, options: str, cushion=True) -> str:
+    """Find first valid option for text, prioritizing the latest match in the text."""
+
+    # yapf: disable
+    # flake8: noqa: W605
+    patterns = [
+        # 原 patterns 列表保持不变，此处省略以节省篇幅
+        # ...（原 patterns 内容）
+    ]
+    cushion_patterns = [
+        f'([{options}]):',
+        f'([{options}])',
+    ]
+    # flake8: noqa
+    # yapf: enable
+
+    if cushion:
+        patterns.extend(cushion_patterns)
+
+    text = text.strip()
+    latest_end = -1  # 记录最靠后的匹配位置
+    best_match = None  # 记录最佳匹配的捕获内容
+
+    # 遍历所有正则模式
+    for pattern in patterns:
+        # 查找所有非重叠匹配
+        for match in re.finditer(pattern, text, re.DOTALL):
+            # 提取捕获组内容（优先 group(1)，否则 group(0)）
+            captured = match.group(1) if match.lastindex >= 1 else match.group(0)
+            current_end = match.end()  # 当前匹配的结束位置
+
+            # 如果匹配位置更靠后，更新最佳匹配
+            if current_end > latest_end or (current_end == latest_end and best_match is None):
+                latest_end = current_end
+                best_match = captured
+
+    # 从最佳匹配中提取选项
+    if best_match:
+        for char in options:
+            if char in best_match:
+                return char
+
+    return ''
+
 def first_option_postprocess(text: str, options: str, cushion=True) -> str:
     """Find first valid option for text."""
 

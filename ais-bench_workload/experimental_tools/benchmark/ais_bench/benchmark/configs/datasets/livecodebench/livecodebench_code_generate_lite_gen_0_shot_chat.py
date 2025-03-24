@@ -41,7 +41,7 @@ lcb_code_generation_infer_cfg = dict(
         )
     ),
     retriever=dict(type=ZeroRetriever),
-    inferencer=dict(type=GenInferencer, max_out_len=1024)
+    inferencer=dict(type=GenInferencer, batch_size=1)
 )
 
 lcb_code_generation_eval_cfg = dict(

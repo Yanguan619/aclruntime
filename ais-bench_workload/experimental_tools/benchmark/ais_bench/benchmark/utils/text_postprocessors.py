@@ -59,14 +59,9 @@ def last_capital_postprocess(text: str) -> str:
 
 def first_option_postprocess_v1(text: str, options: str, cushion=True) -> str:
     """Find first valid option for text, prioritizing the latest match in the text."""
-    match = re.findall(rf'([{options}])', text)
-    if match:
-        idx_start = -1
-        while len(match) + idx_start >= 0:
-            if first_option_postprocess(text, match[idx_start]) == match[idx_start]:
-                return match[idx_start]
-            idx_start -= 1
-    return ''
+    cut_length = 50
+    cut_text = text[-cut_length:]
+    return first_option_postprocess(cut_text, options, cushion)
 
 def first_option_postprocess(text: str, options: str, cushion=True) -> str:
     """Find first valid option for text."""

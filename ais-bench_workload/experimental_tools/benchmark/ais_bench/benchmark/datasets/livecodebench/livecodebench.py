@@ -10,7 +10,7 @@ from enum import Enum
 
 from datasets import DatasetDict, load_dataset, load_from_disk
 
-from opencompass.utils import get_data_path  # noqa: F401, F403
+from ais_bench.benchmark.utils import get_data_path  # noqa: F401, F403
 
 from ..base import BaseDataset
 from .prompts import SelfRepairPromptConstants  # noqa: F401, F403

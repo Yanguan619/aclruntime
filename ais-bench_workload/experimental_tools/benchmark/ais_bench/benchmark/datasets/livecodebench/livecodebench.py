@@ -97,7 +97,7 @@ class LCBCodeGenerationDataset(BaseDataset):
 
             return item
 
-        path = get_data_path(path, local_mode=local_mode)
+        path = get_data_path(path, local_mode=True)
 
         dataset = load_dataset(
             path,  # 'livecodebench/code_generation_lite'

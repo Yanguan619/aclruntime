@@ -16,7 +16,7 @@ math_infer_cfg = dict(
         template='{problem}\nPlease reason step by step, and put your final answer within \\boxed{}.'
     ),
     retriever=dict(type=ZeroRetriever),
-    inferencer=dict(type=GenInferencer, max_out_len=32768),
+    inferencer=dict(type=GenInferencer, batch_size=16),
 )
 
 # postprocess v2

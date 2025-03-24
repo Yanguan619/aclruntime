@@ -27,7 +27,7 @@ aime2024_datasets = [
     dict(
         abbr='aime2024',
         type=Aime2024Dataset,
-        path='ais_bench/datasets/aime/aime.jsonl',
+        path='ais_bench/datasets/aime/aime.jsonl', # 数据集路径，使用相对路径时相对于源码根路径，支持绝对路径
         reader_cfg=aime2024_reader_cfg,
         infer_cfg=aime2024_infer_cfg,
         eval_cfg=aime2024_eval_cfg

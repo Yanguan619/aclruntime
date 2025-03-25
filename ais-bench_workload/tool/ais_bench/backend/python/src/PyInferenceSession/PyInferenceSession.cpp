@@ -45,6 +45,10 @@ PyInferenceSession::PyInferenceSession(const std::string &modelPath, const uint3
         ERROR_LOG("loop size out of range: loop must be greater than 0 and less than or equal to 100000.");
         throw std::runtime_error("loop num out of range. Please check.");
     }
+    if (options->log_level < LOG_DEBUG_LEVEL || options->log_level > LOG_ERROR_LEVEL) {
+        ERROR_LOG("log level out of range: log level must be greate than 0 and less than 5");
+        throw std::runtime_error("log level out of range. Please check.");
+    }
     if (!File::CheckFileBeforeRead(modelPath, FileType::OM)) {
         ERROR_LOG("model path illegal, please check.");
         throw std::runtime_error("please check model path");

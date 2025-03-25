@@ -3,7 +3,7 @@ from ais_bench.benchmark.openicl.icl_retriever import FixKRetriever, ZeroRetriev
 from ais_bench.benchmark.openicl.icl_inferencer import GenInferencer
 from ais_bench.benchmark.openicl.icl_evaluator import AccEvaluator
 from ais_bench.benchmark.datasets import MMLUDataset
-from ais_bench.benchmark.utils.text_postprocessors import first_option_postprocess
+from ais_bench.benchmark.utils.text_postprocessors import last_option_postprocess
 
 # None of the mmlu dataset in huggingface is correctly parsed, so we use our own dataset reader
 # Please download the dataset from https://people.eecs.berkeley.edu/~hendrycks/data.tar
@@ -77,7 +77,7 @@ mmlu_all_sets = [
 mmlu_datasets = []
 for _name in mmlu_all_sets:
     _hint = f'There is a single choice question about {_name.replace("_", " ")}. Answer the question by replying A, B, C or D. ' + \
-            'The last line of your response should be of the form Answer: $ANSWER (without quotes) where $ANSWER is the answer to the problem.'
+            'The last line of your response should be of the form Answer: $ANSWER (without quotes) where $ANSWER is the answer to the question.'
     mmlu_infer_cfg = dict(
         prompt_template=dict(
             type=PromptTemplate,
@@ -86,7 +86,7 @@ for _name in mmlu_all_sets:
                     dict(
                         role='HUMAN',
                         prompt=
-                        f"{_hint}\nQ: {{input}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\nLet's think step by step."
+                        f"{_hint}\nQuestion: {{input}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\nLet's think step by step."
                     ),
                 ],
             ),
@@ -97,7 +97,7 @@ for _name in mmlu_all_sets:
 
     mmlu_eval_cfg = dict(
         evaluator=dict(type=AccEvaluator),
-        pred_postprocessor=dict(type=first_option_postprocess, options='ABCD'))
+        pred_postprocessor=dict(type=last_option_postprocess, options='ABCD'))
 
     mmlu_datasets.append(
         dict(

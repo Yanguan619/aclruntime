@@ -8,7 +8,7 @@ with read_base():
     from ais_bench.benchmark.configs.datasets.gsm8k.gsm8k_gen_4_shot_cot_str import gsm8k_datasets as gsm8k_4_shot_cot_str
 
     # ceval
-    from ais_bench.benchmark.configs.datasets.ceval.ceval_gen_0_shot_chat_prompt import ceval_datasets as ceval_0_shot_chat
+    from ais_bench.benchmark.configs.datasets.ceval.ceval_gen_0_shot_cot_chat_prompt import ceval_datasets as ceval_0_shot_chat
     from ais_bench.benchmark.configs.datasets.ceval.ceval_gen_0_shot_str import ceval_datasets as ceval_0_shot_str
     from ais_bench.benchmark.configs.datasets.ceval.ceval_gen_5_shot_str import ceval_datasets as ceval_5_shot_str
 

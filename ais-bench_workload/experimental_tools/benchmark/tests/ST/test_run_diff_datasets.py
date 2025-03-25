@@ -563,7 +563,7 @@ class TestClass:
         datasets_abbr_name = "lcb_code_generation"
         datasets_script_name = "livecodebench_code_generate_lite_gen_0_shot_chat"
         monkeypatch.setattr('sys.argv',
-            ["ais_bench", "--models", "vllm_api_general_chat", "--datasets", datasets_script_name,
+            ["ais_bench", "--models", "vllm_api_general_chat", "--datasets", datasets_script_name, "--summarizer", "example"
             "--mode", "all", "-w", self.test_data_path])
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._get_service_model_path", lambda *arg: "qwen2")
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._generate", lambda *arg: fake_prediction)

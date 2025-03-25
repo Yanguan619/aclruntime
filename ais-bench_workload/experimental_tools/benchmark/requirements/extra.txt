@@ -3,4 +3,4 @@
 
 # math500
 latex2sympy2==1.9.1
-math-verify
+math-verify==0.5.2

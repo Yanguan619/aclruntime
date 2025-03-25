@@ -565,8 +565,8 @@ class TestClass:
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "vllm_api_general_chat", "--datasets", datasets_script_name, "--summarizer", "example"
             "--mode", "all", "-w", self.test_data_path])
-        monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._get_service_model_path", lambda *arg: "qwen2")
-        monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._generate", lambda *arg: fake_prediction)
+        monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPIChat._get_service_model_path", lambda *arg: "qwen2")
+        monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPIChat._generate", lambda *arg: fake_prediction)
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         main()
 

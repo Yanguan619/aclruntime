@@ -1,13 +1,9 @@
 from ais_bench.benchmark.openicl.icl_prompt_template import PromptTemplate
 from ais_bench.benchmark.openicl.icl_retriever import ZeroRetriever
 from ais_bench.benchmark.openicl.icl_inferencer import GenInferencer
-from ais_bench.benchmark.datasets import (
-    MATHDataset,
-    MATHEvaluator,
-    math_postprocess_v2,
-    normalize_final_answer,
-)
 
+from ais_bench.benchmark.datasets import MATHDataset
+from ais_bench.benchmark.openicl.icl_evaluator import MATHEvaluator
 math_reader_cfg = dict(input_columns=['problem'], output_column='solution')
 
 math_infer_cfg = dict(
@@ -26,11 +22,7 @@ math_infer_cfg = dict(
     inferencer=dict(type=GenInferencer, batch_size=16),
 )
 
-# postprocess v2
-math_eval_cfg = dict(
-    evaluator=dict(type=MATHEvaluator, version='v2'),
-    pred_postprocessor=dict(type=math_postprocess_v2),
-)
+math_eval_cfg = dict(evaluator=dict(type=MATHEvaluator))
 
 math_datasets = [
     dict(

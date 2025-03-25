@@ -10,3 +10,4 @@ from .synthetic import *
 from .mmlu_pro import * # noqa: F401, F403
 from .humaneval import * # noqa: F401, F403
 from .custom import *
+from .livecodebench import * # noqa: F401, F403

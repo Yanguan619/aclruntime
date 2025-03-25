@@ -51,7 +51,7 @@ class Test:
 class LCBCodeGenerationDataset(BaseDataset):
 
     @staticmethod
-    def load(path: str = 'opencompass/code_generation_lite',
+    def load(path: str = 'ais_bench/datasets/code_generation_lite',
              local_mode: bool = False,
              release_version: str = 'release_v1'):
 

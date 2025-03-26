@@ -23,7 +23,7 @@ LANG_TO_INSTRUCTIONS = {
 
 mgsm_datasets = []
 for lang in ALL_LANGUAGES:
-    mgsm_reader_cfg = dict(input_columns=['question'], output_column='answer_number')
+    mgsm_reader_cfg = dict(input_columns=['question'], output_column='answer')
 
     mgsm_infer_cfg = dict(
         prompt_template=dict(

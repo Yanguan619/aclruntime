@@ -21,25 +21,11 @@ LANG_TO_INSTRUCTIONS = {
     'zh': """解决这个数学问题。在最后一行给出答案前，请提供推理步骤。最后一行应该以 "答案: " 的形式独立给出答案。在 "答案：" 后不要添加除整数答案之外的任何内容。\n\n{question}""",
 }
 
-LANG_TO_ANSWER_PREFIX = {
-    'en': 'Answer',
-    'bn': 'উত্তর',
-    'de': 'Antwort',
-    'es': 'Respuesta',
-    'fr': 'Réponse',
-    'ja': '答え',
-    'ru': 'Ответ',
-    'sw': 'Jibu',
-    'te': 'సమాధానం',
-    'th': 'คำตอบ',
-    'zh': '答案',
-}
-
 mgsm_datasets = []
 for lang in ALL_LANGUAGES:
     mgsm_reader_cfg = dict(
         input_columns=['question'],
-        output_column='answer_number',
+        output_column='answer',
         train_split="train",
         test_split="test",
     )
@@ -52,7 +38,7 @@ for lang in ALL_LANGUAGES:
                     role='HUMAN',
                     prompt=LANG_TO_INSTRUCTIONS[lang],
                 ),
-                dict(role='BOT', prompt=LANG_TO_ANSWER_PREFIX[lang] + ": {answer_number}\n",)
+                dict(role='BOT', prompt="{answer}\n",)
             ]),
         ),
         prompt_template=dict(

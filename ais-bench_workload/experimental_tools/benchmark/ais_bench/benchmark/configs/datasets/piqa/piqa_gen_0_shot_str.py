@@ -32,7 +32,7 @@ piqa_datasets = [
     dict(
         abbr='piqa',
         type=PIQADatasetV2,
-        path='ais-bench/datasets/physicaliqa-train-dev',
+        path='ais_bench/datasets/physicaliqa-train-dev',
         reader_cfg=piqa_reader_cfg,
         infer_cfg=piqa_infer_cfg,
         eval_cfg=piqa_eval_cfg)

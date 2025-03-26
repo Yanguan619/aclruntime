@@ -629,7 +629,7 @@ class TestClass:
         datasets_script_name = "mgsm_gen_0_shot_cot_chat_prompt"
 
         monkeypatch.setattr('sys.argv',
-            ["ais_bench", "--models", "vllm_api_general", "--datasets", datasets_script_name,
+            ["ais_bench", "--models", "vllm_api_general_chat", "--datasets", datasets_script_name,
             "--mode", "all", "-w", self.test_data_path])
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api_chat.VLLMCustomAPIChat._get_service_model_path", lambda *arg: "qwen2")
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api_chat.VLLMCustomAPIChat._generate", lambda *arg: fake_prediction)
@@ -668,7 +668,7 @@ class TestClass:
         datasets_script_name = "mgsm_gen_8_shot_cot_chat_prompt"
 
         monkeypatch.setattr('sys.argv',
-            ["ais_bench", "--models", "vllm_api_general", "--datasets", datasets_script_name,
+            ["ais_bench", "--models", "vllm_api_general_chat", "--datasets", datasets_script_name,
             "--mode", "all", "-w", self.test_data_path])
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api_chat.VLLMCustomAPIChat._get_service_model_path", lambda *arg: "qwen2")
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api_chat.VLLMCustomAPIChat._generate", lambda *arg: fake_prediction)

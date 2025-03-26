@@ -173,7 +173,7 @@ outputs/api_vllm_general/20250126_165049/summary/summary_20250126_165049.md
 ```
 
 ## 完整命令行说明
-### 命令格式说明
+        ### 命令格式说明
 ```shell
 ais_bench [OPTIONS]
 ```
@@ -204,6 +204,9 @@ ais_bench ais_bench/configs/api_examples/infer_api_vllm_general.py --debug
 |--max-workers-per-gpu|预留参数，暂不支持使用。<br> 评测需要用到的NPU或GPU数量，默认1。|--max-workers-per-gpu 1|
 |--dump-eval-details|是否dump出评测过程细节的开关，配置该参数表示开启，未配置表示关闭，默认未配置|--dump-eval-details|
 |--dump-extract-rate|是否dump出评测速度的开关，配置该参数表示开启，未配置表示关闭，默认未配置|--dump-extract-rate|
+|--help、-h|查看当前支持的命令行参数选项|ais_bench -h|
+
+自定义数据集命令行请参考[自定义数据集](#自定义数据集)章节
 
 ## 运行模式说明
 ### all 模式
@@ -217,7 +220,7 @@ C --> D((精度数据))
 D --> E[基于精度数据汇总呈现]
 E --> F((呈现结果))
 ```
-
+    
 命令示例：
 ```shell
 ais_bench --models vllm_api_general --datasets gsm8k_gen --mode all

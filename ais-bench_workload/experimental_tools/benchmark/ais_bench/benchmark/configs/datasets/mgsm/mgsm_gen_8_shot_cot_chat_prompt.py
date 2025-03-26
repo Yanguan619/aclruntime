@@ -48,7 +48,7 @@ for lang in ALL_LANGUAGES:
                 round=[
                     dict(
                         role='HUMAN',
-                        prompt='</E>\n' + LANG_TO_INSTRUCTIONS[lang],
+                        prompt=LANG_TO_INSTRUCTIONS[lang],
                     ),
                 ],
             ),

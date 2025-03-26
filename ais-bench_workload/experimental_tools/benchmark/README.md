@@ -173,7 +173,7 @@ outputs/api_vllm_general/20250126_165049/summary/summary_20250126_165049.md
 ```
 
 ## 完整命令行说明
-        ### 命令格式说明
+### 命令格式说明
 ```shell
 ais_bench [OPTIONS]
 ```
@@ -220,7 +220,7 @@ C --> D((精度数据))
 D --> E[基于精度数据汇总呈现]
 E --> F((呈现结果))
 ```
-    
+
 命令示例：
 ```shell
 ais_bench --models vllm_api_general --datasets gsm8k_gen --mode all

@@ -2,7 +2,7 @@ from ais_bench.benchmark.openicl.icl_prompt_template import PromptTemplate
 from ais_bench.benchmark.openicl.icl_retriever import FixKRetriever
 from ais_bench.benchmark.openicl.icl_inferencer import GenInferencer
 from ais_bench.benchmark.openicl.icl_evaluator import JiebaRougeEvaluator
-from ais_bench.benchmark.datasets import MGSMSDataset, MGSM_Evaluator, mgsm_postprocess, LANG_TO_ANSWER_PREFIX
+from ais_bench.benchmark.datasets import MGSMSDataset, MGSM_Evaluator, mgsm_postprocess
 
 
 ALL_LANGUAGES = ['bn', 'de', 'en', 'es', 'fr', 'ja', 'ru', 'sw', 'te', 'th', 'zh']
@@ -19,6 +19,20 @@ LANG_TO_INSTRUCTIONS = {
     'te': """ఈ గణిత సమస్యను పరిష్కరించండి. చివరి సమాధానాన్ని ఇవ్వదానికి ముందు తర్కాత్మక అదుగులను ఇవ్వండి. చివరి పంక్తిలో మాత్రమే 'సమాధానం:' అనే ఆకారంలో చివరి సమాధానాద్ని ఇవ్వండి సమాధానం: తర్వాత పూర్ణాంక సమాధానానికి తప్పించి ఎదేనా చేర్చవద్దు.\n\n{question}""",
     'th': """แก้ปัญหาคณิตศาสตร์นี้ ให้ให้ขั้นตอนการใช้เหตุผลก่อนที่จะให้คำตอบสุดท้ายในบรรทัดสุดท้ายโดยอยู่ในรูปแบบ "คำตอบ:" ไม่ควรเพิ่มอะไรนอกจากคำตอบที่เป็นจำนวนเต็มหลังจาก "คำตอบ:"\n\n{question}""",
     'zh': """解决这个数学问题。在最后一行给出答案前，请提供推理步骤。最后一行应该以 "答案: " 的形式独立给出答案。在 "答案：" 后不要添加除整数答案之外的任何内容。\n\n{question}""",
+}
+
+LANG_TO_ANSWER_PREFIX = {
+    'en': 'Answer',
+    'bn': 'উত্তর',
+    'de': 'Antwort',
+    'es': 'Respuesta',
+    'fr': 'Réponse',
+    'ja': '答え',
+    'ru': 'Ответ',
+    'sw': 'Jibu',
+    'te': 'సమాధానం',
+    'th': 'คำตอบ',
+    'zh': '答案',
 }
 
 mgsm_datasets = []

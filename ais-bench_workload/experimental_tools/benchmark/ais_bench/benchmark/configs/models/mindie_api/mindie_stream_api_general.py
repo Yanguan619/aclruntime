@@ -3,6 +3,7 @@ from ais_bench.benchmark.models import MindieStreamApi
 models = [
     dict(
         type=MindieStreamApi,
+        path= '',
         abbr='mindie-stream-api',
         max_seq_len = 4096,
         query_per_second = 1,

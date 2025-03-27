@@ -82,7 +82,7 @@ for _name in agieval_single_choice_sets:
                     role='HUMAN', prompt=f'{{question}}\n{{options}}\n{_hint}')
             ])),
         retriever=dict(type=ZeroRetriever),
-        inferencer=dict(type=GenInferencer, max_out_len=1024))
+        inferencer=dict(type=GenInferencer, batch_size=16))
 
     agieval_eval_cfg = dict(
         evaluator=dict(type=AccEvaluator),
@@ -113,7 +113,7 @@ for _name in agieval_multiple_choices_sets:
                     role='HUMAN', prompt=f'{{question}}\n{{options}}\n{_hint}')
             ])),
         retriever=dict(type=ZeroRetriever),
-        inferencer=dict(type=GenInferencer, max_out_len=1024))
+        inferencer=dict(type=GenInferencer, batch_size=16))
 
     agieval_eval_cfg = dict(
         evaluator=dict(type=AccEvaluator),
@@ -141,7 +141,7 @@ for _name in agieval_cloze_sets:
             template=dict(
                 round=[dict(role='HUMAN', prompt=f'{{question}}\n{_hint}')])),
         retriever=dict(type=ZeroRetriever),
-        inferencer=dict(type=GenInferencer, max_out_len=1024))
+        inferencer=dict(type=GenInferencer, batch_size=16))
 
     agieval_eval_cfg = dict(evaluator=dict(type=AGIEvalEvaluator))
 

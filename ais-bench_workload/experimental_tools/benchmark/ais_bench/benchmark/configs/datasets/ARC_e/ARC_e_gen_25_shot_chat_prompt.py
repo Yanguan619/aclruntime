@@ -44,7 +44,7 @@ ARC_c_datasets = [
     dict(
         abbr='ARC-e',
         type=ARCDataset,
-        path='ais_bench/datasets/ARC/ARC-c',
+        path='ais_bench/datasets/ARC/ARC-e',
         name='ARC-Easy',
         reader_cfg=ARC_c_reader_cfg,
         infer_cfg=ARC_c_infer_cfg,

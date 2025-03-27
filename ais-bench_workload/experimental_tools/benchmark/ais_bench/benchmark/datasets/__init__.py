@@ -11,5 +11,6 @@ from .mmlu_pro import * # noqa: F401, F403
 from .humaneval import * # noqa: F401, F403
 from .custom import *
 from .livecodebench import * # noqa: F401, F403
+from .mgsm import * # noqa: F401, F403
 from .piqa import *  # noqa: F401, F403
 from .agieval import * # noqa: F401, F403

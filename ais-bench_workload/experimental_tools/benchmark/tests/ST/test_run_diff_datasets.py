@@ -827,7 +827,7 @@ class TestClass:
         results_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/results/vllm-api-general-chat/{datasets_abbr_name}.json")
         with open(results_json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
-        assert data.get("accuracy") is not None
+        assert data.get("pass@1") is not None
 
         # check vis
         vis_csv_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.csv")
@@ -861,7 +861,7 @@ class TestClass:
         results_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/results/vllm-api-general-chat/{datasets_abbr_name}.json")
         with open(results_json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
-        assert data.get("accuracy") is not None
+        assert data.get("pass@1") is not None
 
         # check vis
         vis_csv_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.csv")

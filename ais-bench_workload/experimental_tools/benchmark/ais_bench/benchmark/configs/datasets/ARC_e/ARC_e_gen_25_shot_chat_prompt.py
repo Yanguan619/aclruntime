@@ -8,8 +8,8 @@ from ais_bench.benchmark.utils.text_postprocessors import last_capital_postproce
 ARC_c_reader_cfg = dict(
     input_columns=['question', 'textA', 'textB', 'textC', 'textD'],
     output_column='answerKey',
-    train_split='ARC-Easy-Dev',
-    test_split='ARC-Challenge-Test',
+    train_split='Dev',
+    test_split='Test',
 )
 
 _hint = f'There is a single choice question. Answer the question by replying A, B, C or D. ' + \

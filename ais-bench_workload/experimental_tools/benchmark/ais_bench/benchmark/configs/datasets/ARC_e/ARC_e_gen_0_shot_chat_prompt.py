@@ -7,7 +7,10 @@ from ais_bench.benchmark.utils.text_postprocessors import last_option_postproces
 
 ARC_e_reader_cfg = dict(
     input_columns=['question', 'textA', 'textB', 'textC', 'textD'],
-    output_column='answerKey')
+    output_column='answerKey',
+    train_split='Dev',
+    test_split='Test',
+)
 
 _hint = f'There is a single choice question. Answer the question by replying A, B, C or D. ' + \
         'The last line of your response should be of the form Answer: $ANSWER (without quotes) where $ANSWER is the answer to the question.'

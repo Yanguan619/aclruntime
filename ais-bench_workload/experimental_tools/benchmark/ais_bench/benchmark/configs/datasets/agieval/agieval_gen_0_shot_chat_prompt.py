@@ -32,6 +32,9 @@ agieval_multiple_choices_sets = [
     'jec-qa-ca',
 ]
 agieval_cloze_sets = ['gaokao-mathcloze', 'math']
+
+agieval_all_sets = agieval_single_choice_sets + agieval_multiple_choices_sets + agieval_cloze_sets
+
 agieval_chinese_sets = [
     'gaokao-chinese',
     'gaokao-english',

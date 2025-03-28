@@ -17,3 +17,4 @@ from .winogrande import * # noqa: F401, F403
 from .mbpp import * # noqa: F401，F403
 from .agieval import * # noqa: F401, F403
 from .hellaswag import * # noqa: F401, F403
+from .triviaqa import * # noqa: F401, F403

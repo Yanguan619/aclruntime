@@ -54,7 +54,7 @@ for k in [5]:
         dict(
             type=TriviaQADataset,
             abbr='triviaqa' if k == 0 else f'triviaqa_{k}shot',
-            path='opencompass/trivia_qa',
+            path='ais_bench/datasets/triviaqa',
             reader_cfg=triviaqa_reader_cfg,
             infer_cfg=triviaqa_infer_cfg,
             eval_cfg=triviaqa_eval_cfg)

@@ -45,7 +45,7 @@ for k in [5]:
                 ice_token='</E>',
             ),
             retriever=dict(type=FixKRetriever, fix_id_list=list(range(k))),
-            inferencer=dict(type=GenInferencer, max_out_len=50),
+            inferencer=dict(type=GenInferencer, batch_size=1),
         )
 
     triviaqa_eval_cfg = dict(evaluator=dict(type=TriviaQAEvaluator), pred_role='BOT')

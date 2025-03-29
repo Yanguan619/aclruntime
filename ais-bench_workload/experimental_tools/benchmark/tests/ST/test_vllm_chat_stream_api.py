@@ -54,6 +54,7 @@ class TestClass:
             ["ais_bench", "--models", "vllm_api_stream_chat", "--datasets", "gsm8k_gen",
             "--mode", "infer", "-w", self.test_data_path])
         monkeypatch.setattr(requests, 'post', lambda *args, **kwargs: Response())
+        monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api_chat.VLLMCustomAPIChatStream._get_service_model_path", lambda *arg: "qwen2")
         monkeypatch.setattr("ais_bench.benchmark.utils.get_data_path", lambda *arg, **kwargs:"tests/datasets/gsm8k")
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg, **kwargs: fake_time_str)
         main()

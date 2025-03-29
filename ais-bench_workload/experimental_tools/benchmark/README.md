@@ -204,7 +204,7 @@ ais_bench ais_bench/configs/api_examples/infer_api_vllm_general.py --debug
 |--max-workers-per-gpu|预留参数，暂不支持使用。<br> 评测需要用到的NPU或GPU数量，默认1。|--max-workers-per-gpu 1|
 |--dump-eval-details|是否dump出评测过程细节的开关，配置该参数表示开启，未配置表示关闭，默认未配置|--dump-eval-details|
 |--dump-extract-rate|是否dump出评测速度的开关，配置该参数表示开启，未配置表示关闭，默认未配置|--dump-extract-rate|
-|--help/-h|查看当前支持的命令行参数选项|ais_bench -h|
+|--help 或 -h|查看当前支持的命令行参数选项|ais_bench -h|
 
 自定义数据集命令行请参考[自定义数据集](#自定义数据集)章节
 

@@ -16,8 +16,8 @@ DATASETS_CONFIGS_LIST = [
     "math",
     "mmlu_pro",
     "mgsm",
-    "agieval"
-    "cmmlu"
+    "agieval",
+    "cmmlu",
 ]
 
 class TestClass:

@@ -211,7 +211,8 @@ class VLLMCustomAPIChatStream(BaseAPIModel):
         self.max_chunk_size = 32*2048
         self.res_key = 'generated_text'
         self.base_url = self._get_base_url()
-        super().__init__(path='',
+        path = self._get_service_model_path()
+        super().__init__(path=path,
                          max_seq_len=max_seq_len,
                          meta_template=meta_template,
                          query_per_second=query_per_second,
@@ -297,7 +298,6 @@ class VLLMCustomAPIChatStream(BaseAPIModel):
                 url = os.path.join(self.base_url, "v1/chat/completions")
                 raw_response = requests.post(url, headers=header, data=json.dumps(data), stream=True)
                 for res_ in self.process_response(raw_response):
-                    self.logger.info(f"res_ is {res_}")
                     if self.res_key not in res_:
                         continue
                     response.append(res_[self.res_key])
@@ -361,3 +361,7 @@ class VLLMCustomAPIChatStream(BaseAPIModel):
         if self.enable_ssl:
             return f"https://{self.host_ip}:{self.host_port}"
         return f"http://{self.host_ip}:{self.host_port}"
+
+    def _get_service_model_path(self):
+        client = OpenAI(api_key="EMPTY", base_url=self.base_url)
+        return client.models.list().data[0].id

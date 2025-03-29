@@ -320,6 +320,7 @@ class VLLMCustomAPIChatStream(BaseAPIModel):
 
     def process_response(self, response):
         for byte_line in response.iter_content(self.max_chunk_size):
+            self.logger.info(byte_line)
             if byte_line == b"\n":
                 continue
             cur_line = self.preprocess_cur_line(byte_line.decode())

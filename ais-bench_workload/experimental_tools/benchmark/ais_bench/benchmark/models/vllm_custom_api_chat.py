@@ -295,7 +295,7 @@ class VLLMCustomAPIChatStream(BaseAPIModel):
                 )
                 data = data | self.generation_kwargs
                 response = list()
-                url = os.path.join(self.base_url, "v1/chat/completions")
+                url = os.path.join(self.base_url, "chat/completions")
                 raw_response = requests.post(url, headers=header, data=json.dumps(data), stream=True)
                 for res_ in self.process_response(raw_response):
                     if self.res_key not in res_:
@@ -359,8 +359,8 @@ class VLLMCustomAPIChatStream(BaseAPIModel):
 
     def _get_base_url(self):
         if self.enable_ssl:
-            return f"https://{self.host_ip}:{self.host_port}"
-        return f"http://{self.host_ip}:{self.host_port}"
+            return f"https://{self.host_ip}:{self.host_port}/v1"
+        return f"http://{self.host_ip}:{self.host_port}/v1"
 
     def _get_service_model_path(self):
         client = OpenAI(api_key="EMPTY", base_url=self.base_url)

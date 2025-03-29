@@ -3,7 +3,7 @@ from ais_bench.benchmark.models import VLLMCustomAPIChatStream
 models = [
     dict(
         type=VLLMCustomAPIChatStream,
-        abbr='vllm-api-general-chat',
+        abbr='vllm-api-stream-chat',
         max_seq_len = 4096,
         query_per_second = 1,
         rpm_verbose = False,

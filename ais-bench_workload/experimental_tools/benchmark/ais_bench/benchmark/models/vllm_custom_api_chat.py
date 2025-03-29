@@ -298,6 +298,7 @@ class VLLMCustomAPIChatStream(BaseAPIModel):
                 url = os.path.join(self.base_url, "chat/completions")
                 raw_response = requests.post(url, headers=header, data=json.dumps(data), stream=True)
                 for res_ in self.process_response(raw_response):
+                    self.logger.info(f"res_: {res_}")
                     if self.res_key not in res_:
                         continue
                     response.append(res_[self.res_key])

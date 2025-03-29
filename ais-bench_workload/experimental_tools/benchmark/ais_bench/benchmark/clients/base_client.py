@@ -118,7 +118,7 @@ class BaseStreamClient(BaseClient, ABC):
     def preprocess_cur_line(self, cur_line: str) -> str:
         if cur_line == "engine callback timeout.":
             self.logger(
-                f"[MIE02E000407] Engine time out. The tokens generation might be incomplete."
+                "[MIE02E000407] Engine time out. The tokens generation might be incomplete."
             )
         return cur_line
 

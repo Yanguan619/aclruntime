@@ -78,9 +78,8 @@ class BaseModel:
         Returns:
             str: The generated string.
         """
-        raise NotImplementedError(f'{self.__class__.__name__} does not support'
-                                  ' gen-based evaluation yet, try ppl-based '
-                                  'instead.')
+        raise NotImplementedError(f'{self.__class__.__name__} does not supported'
+                                  ' to be called in base classes')
 
     @abstractmethod
     def get_ppl(self,

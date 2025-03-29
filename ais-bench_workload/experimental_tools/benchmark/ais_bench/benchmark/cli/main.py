@@ -40,10 +40,9 @@ def parse_args():
                         default=False)
     parser.add_argument('-m',
                         '--mode',
-                        help='Running mode. You can choose "infer" if you '
-                        'only want the inference results, or "eval" if you '
-                        'already have the results and want to evaluate them, '
-                        'or "viz" if you want to visualize the results.',
+                        help='Running mode. Choose "perf" for performance evaluation, "infer" to run inference only, '
+                        '"eval" to evaluate existing inference results, or "viz" to visualize the results. '
+                        'The default mode is "all", which runs all steps.',
                         choices=['all', 'infer', 'eval', 'viz', 'perf'],
                         default='all',
                         type=str)

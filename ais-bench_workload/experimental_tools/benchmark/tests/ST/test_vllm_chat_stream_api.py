@@ -21,7 +21,7 @@ class Response:
                 'model': '/data/weight/DeepSeek-R1-Distill-Qwen-7B/',
                 'choices': [{'index': 0, 'delta': {'content': s}, 'logprobs': None, 'finish_reason': None}]
             }
-            self.response.append(f"data: {json.dumps(data)}\n".encode('utf-8'))
+            self.response.append(f"data: {json.dumps(data)}\n")
     def iter_content(self,*args):
         for content in self.response:
             yield content.encode()

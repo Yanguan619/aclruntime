@@ -41,7 +41,7 @@ with read_base():
     from ais_bench.benchmark.configs.datasets.SuperGLUE_BoolQ.SuperGLUE_BoolQ_gen_0_shot_str import BoolQ_datasets as boolq_0_shot_str
     from ais_bench.benchmark.configs.datasets.SuperGLUE_BoolQ.SuperGLUE_BoolQ_gen_5_shot_str import BoolQ_datasets as boolq_5_shot_str
 
-    #bbh
+    # bbh
     from ais_bench.benchmark.configs.datasets.bbh.bbh_gen_3_shot_cot_chat_1 import bbh_datasets as bbh_3_shot_cot_chat_1
     from ais_bench.benchmark.configs.datasets.bbh.bbh_gen_3_shot_cot_chat_2 import bbh_datasets as bbh_3_shot_cot_chat_2
     from ais_bench.benchmark.configs.datasets.bbh.bbh_gen_3_shot_cot_chat_3 import bbh_datasets as bbh_3_shot_cot_chat_3

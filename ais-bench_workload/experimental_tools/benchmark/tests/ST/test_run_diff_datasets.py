@@ -1189,7 +1189,7 @@ class TestClass:
         vis_md_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.md")
         assert os.path.exists(vis_md_path)
 
-    def test_vllm_api_all_qwen2_7b_bbh_3_shot_cot(self, monkeypatch):
+    def test_vllm_api_general_chat_bbh_3_shot_cot(self, monkeypatch):
         from bbh_subset_settings import settings
         fake_prediction = "So the answer is (A)."
         fake_time_str = "bbh_gen_3_shot_cot_chat_5"

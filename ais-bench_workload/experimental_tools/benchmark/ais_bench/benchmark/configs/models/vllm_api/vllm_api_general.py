@@ -4,6 +4,7 @@ models = [
     dict(
         type=VLLMCustomAPI,
         abbr='vllm-api-general',
+        model="",
         max_seq_len = 4096,
         query_per_second = 1,
         rpm_verbose = False,

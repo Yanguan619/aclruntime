@@ -1192,9 +1192,9 @@ class TestClass:
     def test_vllm_api_general_chat_bbh_3_shot_cot(self, monkeypatch):
         from bbh_subset_settings import settings
         fake_prediction = "So the answer is (A)."
-        fake_time_str = "bbh_gen_3_shot_cot_chat_5"
+        fake_time_str = "bbh_gen_3_shot_cot_chat"
         datasets_abbr_name = "bbh-"
-        datasets_script_name = "bbh_gen_3_shot_cot_chat_5"
+        datasets_script_name = "bbh_gen_3_shot_cot_chat"
 
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "vllm_api_general_chat", "--datasets", datasets_script_name, "--summarizer", "example",

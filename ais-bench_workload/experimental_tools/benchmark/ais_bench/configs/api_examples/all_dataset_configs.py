@@ -42,11 +42,7 @@ with read_base():
     from ais_bench.benchmark.configs.datasets.SuperGLUE_BoolQ.SuperGLUE_BoolQ_gen_5_shot_str import BoolQ_datasets as boolq_5_shot_str
 
     # bbh
-    from ais_bench.benchmark.configs.datasets.bbh.bbh_gen_3_shot_cot_chat_1 import bbh_datasets as bbh_3_shot_cot_chat_1
-    from ais_bench.benchmark.configs.datasets.bbh.bbh_gen_3_shot_cot_chat_2 import bbh_datasets as bbh_3_shot_cot_chat_2
-    from ais_bench.benchmark.configs.datasets.bbh.bbh_gen_3_shot_cot_chat_3 import bbh_datasets as bbh_3_shot_cot_chat_3
-    from ais_bench.benchmark.configs.datasets.bbh.bbh_gen_3_shot_cot_chat_4 import bbh_datasets as bbh_3_shot_cot_chat_4
-    from ais_bench.benchmark.configs.datasets.bbh.bbh_gen_3_shot_cot_chat_5 import bbh_datasets as bbh_3_shot_cot_chat_5
+    from ais_bench.benchmark.configs.datasets.bbh.bbh_gen_3_shot_cot_chat import bbh_datasets as bbh_3_shot_cot_chat
 
     # livecodebench
     from ais_bench.benchmark.configs.datasets.livecodebench.livecodebench_code_generate_lite_gen_0_shot_chat import LCB_datasets as LCB_code_gen_lite_0_shot_chat

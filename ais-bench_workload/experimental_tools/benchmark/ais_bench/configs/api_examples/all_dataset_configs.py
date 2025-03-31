@@ -78,6 +78,14 @@ with read_base():
     from ais_bench.benchmark.configs.datasets.ARC_e.ARC_e_gen_0_shot_chat_prompt import ARC_e_datasets as ARC_e_0_shot_chat
     from ais_bench.benchmark.configs.datasets.ARC_e.ARC_e_gen_25_shot_chat_prompt import ARC_e_datasets as ARC_e_25_shot_chat
 
+    # race
+    ## race-middle
+    from ais_bench.benchmark.configs.datasets.race.race_middle_gen_5_shot_chat import race_datasets as race_middle_5_shot_chat
+    from ais_bench.benchmark.configs.datasets.race.race_middle_gen_5_shot_cot_chat import race_datasets as race_middle_5_shot_cot_chat
+    ## race-high
+    from ais_bench.benchmark.configs.datasets.race.race_high_gen_5_shot_chat import race_datasets as race_high_5_shot_chat
+    from ais_bench.benchmark.configs.datasets.race.race_high_gen_5_shot_cot_chat import race_datasets as race_high_5_shot_cot_chat
+
     # triviaqa
     from ais_bench.benchmark.configs.datasets.triviaqa.triviaqa_gen_5_shot_chat_prompt import triviaqa_datasets as triviaqa_5_shot_chat
 

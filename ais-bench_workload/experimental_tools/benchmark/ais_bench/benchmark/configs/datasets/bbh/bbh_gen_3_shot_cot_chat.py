@@ -41,7 +41,7 @@ bbh_free_form_sets = [
 
 bbh_datasets = []
 for _name in bbh_multiple_choice_sets:
-    with open(os.path.join("ais_bench/datasets/BBH", 'lib_prompt', f'{_name}.txt'), 'r') as f:
+    with open(os.path.join(os.path.dirname(__file__), 'lib_prompt', f'{_name}.txt'), 'r') as f:
         _hint = f.read()
     bbh_infer_cfg = dict(
         prompt_template=dict(
@@ -50,11 +50,11 @@ for _name in bbh_multiple_choice_sets:
                 dict(
                     role='HUMAN',
                     prompt=
-                    f'Follow the given examples and answer the question.\n{_hint}\n\nQ: {{input}}\nA: '
+                    f"Follow the given examples and answer the question.\n{_hint}\n\nQ: {{input}}\nA: Let's think step by step."
                 )
             ])),
         retriever=dict(type=ZeroRetriever),
-        inferencer=dict(type=GenInferencer))
+        inferencer=dict(type=GenInferencer, max_out_len=512))
     bbh_eval_cfg = dict(
         evaluator=dict(type=BBHEvaluator_mcq),
         pred_role='BOT',
@@ -81,11 +81,11 @@ for _name in bbh_free_form_sets:
                 dict(
                     role='HUMAN',
                     prompt=
-                    f'Follow the given examples and answer the question.\n{_hint}\n\nQ: {{input}}\nA: '
+                    f"Follow the given examples and answer the question.\n{_hint}\n\nQ: {{input}}\nA: Let's think step by step."
                 )
             ])),
         retriever=dict(type=ZeroRetriever),
-        inferencer=dict(type=GenInferencer))
+        inferencer=dict(type=GenInferencer, max_out_len=512))
     bbh_eval_cfg = dict(evaluator=dict(type=BBHEvaluator), pred_role='BOT')
 
     bbh_datasets.append(

@@ -1,7 +1,7 @@
 from mmengine.config import read_base
 from ais_bench.benchmark.models import HuggingFacewithChatTemplate
 from ais_bench.benchmark.partitioners import NaivePartitioner
-from ais_bench.benchmark.runners.local import LocalRunner
+from ais_bench.benchmark.runners.local_api import LocalAPIRunner
 from ais_bench.benchmark.tasks import OpenICLInferTask
 
 with read_base():
@@ -11,7 +11,6 @@ with read_base():
 datasets = [ # all_dataset_configs.py中导入了其他数据集配置，可以将gsm8k_0_shot_cot_chat替换为其他一个或多个数据集
     *gsm8k_0_shot_cot_chat,
 ]
-
 
 models = [
     dict(
@@ -43,9 +42,9 @@ models = [
 
 infer = dict(partitioner=dict(type=NaivePartitioner),
              runner=dict(
-                 type=LocalRunner,
+                 type=LocalAPIRunner,
                  max_num_workers=2,
-                 max_workers_per_gpu=1,
+                 concurrent_users=2,
                  task=dict(type=OpenICLInferTask)), )
 
 work_dir = 'outputs/hf-chat-model/'

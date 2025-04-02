@@ -1,7 +1,7 @@
 from mmengine.config import read_base
 from ais_bench.benchmark.models import HuggingFaceBaseModel
 from ais_bench.benchmark.partitioners import NaivePartitioner
-from ais_bench.benchmark.runners.local import LocalRunner
+from ais_bench.benchmark.runners.local_api import LocalAPIRunner
 from ais_bench.benchmark.tasks import OpenICLInferTask
 
 with read_base():
@@ -42,9 +42,9 @@ models = [
 
 infer = dict(partitioner=dict(type=NaivePartitioner),
              runner=dict(
-                 type=LocalRunner,
+                 type=LocalAPIRunner,
                  max_num_workers=2,
-                 max_workers_per_gpu=1,
+                 concurrent_users=2,
                  task=dict(type=OpenICLInferTask)), )
 
 work_dir = 'outputs/hf-base-model/'

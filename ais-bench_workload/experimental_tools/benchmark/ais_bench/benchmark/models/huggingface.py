@@ -5,11 +5,11 @@ import numpy as np
 import torch
 import transformers
 
-from opencompass.models.base import BaseModel
-from opencompass.models.base_api import APITemplateParser
-from opencompass.registry import MODELS
-from opencompass.utils.logging import get_logger
-from opencompass.utils.prompt import PromptList
+from ais_bench.benchmark.models.base import BaseModel
+from ais_bench.benchmark.models.base_api import APITemplateParser
+from ais_bench.benchmark.registry import MODELS
+from ais_bench.benchmark.utils.logging import get_logger
+from ais_bench.benchmark.utils.prompt import PromptList
 
 PromptType = Union[PromptList, str]
 

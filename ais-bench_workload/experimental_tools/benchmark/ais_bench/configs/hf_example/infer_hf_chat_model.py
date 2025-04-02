@@ -1,5 +1,5 @@
 from mmengine.config import read_base
-from ais_bench.benchmark.models import HuggingFaceBaseModel
+from ais_bench.benchmark.models import HuggingFacewithChatTemplate
 from ais_bench.benchmark.partitioners import NaivePartitioner
 from ais_bench.benchmark.runners.local import LocalRunner
 from ais_bench.benchmark.tasks import OpenICLInferTask
@@ -12,10 +12,11 @@ datasets = [ # all_dataset_configs.py中导入了其他数据集配置，可以�
     *gsm8k_0_shot_cot_chat,
 ]
 
+
 models = [
     dict(
-        type=HuggingFaceBaseModel, #  transformers >= 4.33.0 用这个，prompt 构造成字符串格式
-        abbr='hf-base-model',
+        type=HuggingFacewithChatTemplate, #  transformers >= 4.33.0 用这个，prompt 构造成字符串格式
+        abbr='hf-chat-model',
         path='THUDM/chatglm-6b', # path to model dir, current value is just a example
         tokenizer_path='THUDM/chatglm-6b', # path to tokenizer dir, current value is just a example
         model_kwargs=dict( # 模型参数参考 huggingface.co/docs/transformers/v4.50.0/en/model_doc/auto#transformers.AutoModel.from_pretrained
@@ -47,4 +48,4 @@ infer = dict(partitioner=dict(type=NaivePartitioner),
                  max_workers_per_gpu=1,
                  task=dict(type=OpenICLInferTask)), )
 
-work_dir = 'outputs/hf-base-model/'
+work_dir = 'outputs/hf-chat-model/'

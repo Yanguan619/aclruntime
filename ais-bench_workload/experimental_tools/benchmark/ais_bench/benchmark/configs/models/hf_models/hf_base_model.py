@@ -23,6 +23,5 @@ models = [
         max_out_len=100,
         max_seq_len=2048,
         batch_padding=True,
-        run_cfg=dict(num_gpus=1),
     )
 ]

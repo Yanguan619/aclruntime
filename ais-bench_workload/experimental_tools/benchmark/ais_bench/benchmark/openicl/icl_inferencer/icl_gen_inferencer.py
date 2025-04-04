@@ -192,7 +192,10 @@ class GenInferencer(BaseInferencer):
             output_handler.write_to_json(output_json_filepath,
                                          output_json_filename)
             if osp.exists(tmp_json_filepath):
-                os.remove(tmp_json_filepath)
+                try:
+                    os.remove(tmp_json_filepath)
+                except:
+                    logger.warning("tmp file has been removed by other processes")
 
         if self.dump_timer and self.is_main_process:
             timer_filepath = os.path.join(output_json_filepath, 'timer',

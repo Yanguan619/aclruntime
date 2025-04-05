@@ -9,6 +9,11 @@ from ais_bench.benchmark.cli.main import main
 GSK8K_DATA_COUNT = 1319
 
 
+class MockPARunner:
+    def warm_up(self):
+        return "mocked warm up"
+
+
 class TestClass:
     @classmethod
     def setup_class(cls):
@@ -36,11 +41,14 @@ class TestClass:
         datasets_script_name = "gsm8k_gen_4_shot_cot_str"
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "mindie_llm_api_general", "--datasets", datasets_script_name,
-            "--mode", "all", "-w", self.test_data_path, "--summarizer", "example"])
+            "--mode", "all", "-w", self.test_data_path, "--summarizer", "example", "--debug"])
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
+        def mock_get_model_or_runner(self, input_length=1024, output_length=1024):
+            self.pa_runner = MockPARunner()
+            return self.pa_runner
         monkeypatch.setattr(
-            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMAPI.__get_model_or_runner",
-            (lambda self, *arg, **kwargs: None))
+            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMAPI._MindieLLMAPI__get_model_or_runner",
+            mock_get_model_or_runner)
         monkeypatch.setattr(
             "ais_bench.benchmark.models.mindie_llm_api.MindieLLMAPI.generate",
             (lambda self, inputs, *arg, **kwargs: [fake_prediction for _ in range(len(inputs))]))
@@ -50,14 +58,14 @@ class TestClass:
         main()
 
         # check infer out
-        infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/hf-base-model/{datasets_abbr_name}.json")
+        infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/mindie_llm_api_general/{datasets_abbr_name}.json")
         assert os.path.exists(infer_outputs_json_path)
         with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
         assert data.get(f"0").get("prediction") == fake_prediction
 
         # check eval out
-        results_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/results/hf-base-model/{datasets_abbr_name}.json")
+        results_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/results/mindie_llm_api_general/{datasets_abbr_name}.json")
         with open(results_json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
         assert data.get("accuracy") is not None

@@ -18,49 +18,8 @@ DTYPE_MAP = {"bf16": torch.bfloat16, "fp16": torch.float16}
 
 @MODELS.register_module()
 class MindieLLMAPI(BaseModel):
-    """Model wrapper around HuggingFace models.
-
-    Args:
-        path (str): The name or path to HuggingFace's model.
-        hf_cache_dir: Set the cache dir to HF model cache dir. If None, it will
-            use the env variable HF_MODEL_HUB. Defaults to None.
-        max_seq_len (int): The maximum length of the input sequence. Defaults
-            to 2048.
-        tokenizer_path (str): The path to the tokenizer. Defaults to None.
-        tokenizer_kwargs (dict): Keyword arguments for the tokenizer.
-            Defaults to {}.
-        peft_path (str, optional): The name or path to the HuggingFace's PEFT
-            model. If None, the original model will not be converted to PEFT.
-            Defaults to None.
-        tokenizer_only (bool): If True, only the tokenizer will be initialized.
-            Defaults to False.
-        model_kwargs (dict): Keyword arguments for the model, used in loader.
-            Defaults to dict(device_map='auto').
-        meta_template (Dict, optional): The model's meta prompt
-            template if needed, in case the requirement of injecting or
-            wrapping of any meta instructions.
-        extract_pred_after_decode (bool): Whether to extract the prediction
-            string from the decoded output string, instead of extract the
-            prediction tokens before decoding. Defaults to False.
-        batch_padding (bool): If False, inference with be performed in for-loop
-            without batch padding.
-        pad_token_id (int): The id of the padding token. Defaults to None. Use
-            (#vocab + pad_token_id) if get negative value.
-        mode (str, optional): The method of input truncation when input length
-            exceeds max_seq_len. 'mid' represents the part of input to
-            truncate. Defaults to 'none'.
-        use_fastchat_template (str, optional): Whether to use fastchat to get
-            the conversation template. If True, fastchat needs to be
-            implemented first. Defaults to False.
-        end_str (str, optional): Whether to trim generated strings with end_str
-            if the model has special ending strings that are not handled well.
-            Defaults to None.
-
-    Note:
-        About ``extract_pred_after_decode``: Commonly, we should extract the
-        the prediction tokens before decoding. But for some tokenizers using
-        ``sentencepiece``, like LLaMA,  this behavior may change the number of
-        whitespaces, which is harmful for Python programming tasks.
+    """
+    Model wrapper around MindIE-LLM models.
     """
 
     def __init__(self, **kwargs):
@@ -93,10 +52,9 @@ class MindieLLMAPI(BaseModel):
         self.pa_runner = None
 
         self.prepare_environ()
-        self.__get_model_or_runner(self.input_length, self.output_length)
-        if self.pa_runner == None:
-            raise RuntimeError("Model loading failed")
-        self.pa_runner.warm_up()
+        self.get_model_or_runner(self.input_length, self.output_length)
+        self.check_pa_runner()
+        self.warm_up()
 
         super().__init__(path=self.weight_dir,
                          max_seq_len=self.output_length,
@@ -105,7 +63,7 @@ class MindieLLMAPI(BaseModel):
 
     def prepare_environ(self):
         os.environ['ATB_LAYER_INTERNAL_TENSOR_REUSE'] = "1"
-        os.environ['INF_NAN_MODE_ENABLE'] = "0"
+
         os.environ['ATB_OPERATION_EXECUTE_ASYNC'] = "1"
         os.environ['ATB_CONVERT_NCHW_TO_ND'] = "1"
         os.environ['TASK_QUEUE_ENABLE'] = "1"
@@ -113,7 +71,17 @@ class MindieLLMAPI(BaseModel):
         os.environ['ATB_CONTEXT_WORKSPACE_SIZE'] = "0"
         os.environ['ATB_LAUNCH_KERNEL_WITH_TILING'] = "1"
 
-    def __get_model_or_runner(self, input_length, output_length, warmup_bs=0):
+
+    def check_pa_runner(self):
+        if self.pa_runner == None:
+            raise RuntimeError("Model loading failed")
+        
+
+    def warm_up(self):
+        self.pa_runner.warm_up()
+
+
+    def get_model_or_runner(self, input_length, output_length, warmup_bs=0):
 
         try:
             ATB_SPEED_HOME_PATH = os.environ.get("ATB_SPEED_HOME_PATH")

@@ -51,7 +51,6 @@ class MindieLLMAPI(BaseModel):
         self.logger = get_logger()
         self.pa_runner = None
 
-        self.prepare_environ()
         self.get_model_or_runner(self.input_length, self.output_length)
         self.check_pa_runner()
         self.warm_up()
@@ -60,16 +59,14 @@ class MindieLLMAPI(BaseModel):
                          max_seq_len=self.output_length,
                          tokenizer_only=False,
                          meta_template=None)
-
-    def prepare_environ(self):
-        os.environ['ATB_LAYER_INTERNAL_TENSOR_REUSE'] = "1"
-
-        os.environ['ATB_OPERATION_EXECUTE_ASYNC'] = "1"
-        os.environ['ATB_CONVERT_NCHW_TO_ND'] = "1"
-        os.environ['TASK_QUEUE_ENABLE'] = "1"
-        os.environ['ATB_WORKSPACE_MEM_ALLOC_GLOBAL'] = "1"
-        os.environ['ATB_CONTEXT_WORKSPACE_SIZE'] = "0"
-        os.environ['ATB_LAUNCH_KERNEL_WITH_TILING'] = "1"
+        
+        os.environ['ATB_LAYER_INTERNAL_TENSOR_REUSE'] = kwargs.get('atb_layer_internal_tensor_reuse')
+        os.environ['ATB_OPERATION_EXECUTE_ASYNC'] = kwargs.get('atb_operation_execute_async')
+        os.environ['ATB_CONVERT_NCHW_TO_ND'] = kwargs.get('atb_convert_nchw_to_nd')
+        os.environ['TASK_QUEUE_ENABLE'] = kwargs.get('task_queue_enable')
+        os.environ['ATB_WORKSPACE_MEM_ALLOC_GLOBAL'] = kwargs.get('atb_workspace_mem_alloc_global')
+        os.environ['ATB_CONTEXT_WORKSPACE_SIZE'] = kwargs.get('atb_context_workspace_size')
+        os.environ['ATB_LAUNCH_KERNEL_WITH_TILING'] = kwargs.get('atb_launch_kernel_with_tiling')
 
 
     def check_pa_runner(self):

@@ -28,6 +28,15 @@ models = [
         ignore_eos = False,  # 是否忽略推理终止符
         input_length = 4096,  # warm_up参数，input长度
         output_length = 1024,  # warm_up参数，output长度
-        run_cfg = dict(num_gpus=2, num_procs=2)  # 多卡/多机多卡 参数，NPU侧使用torchrun拉起任务
+        run_cfg = dict(num_gpus=2, num_procs=2),  # 多卡/多机多卡 参数，NPU侧使用torchrun拉起任务
+
+        atb_layer_internal_tensor_reuse = "1", # modeltest创建模型实例时默认设定的环境变量
+        atb_operation_execute_async = "1",
+        atb_convert_nchw_to_nd = "1",
+        task_queue_enable = "1",
+        atb_workspace_mem_alloc_global = "1",
+        atb_context_workspace_size = "0",
+        atb_launch_kernel_with_tiling = "1",
+
     )
 ]

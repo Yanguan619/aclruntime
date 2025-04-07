@@ -39,6 +39,13 @@ class OpenICLEvalMergedTask(OpenICLEvalTask):
     def __init__(self, cfg: ConfigDict):
         super().__init__(cfg)
 
+    def get_command(self, cfg_path, template):
+        sys.path.append(os.getcwd())
+        script_path = __file__
+        python = sys.executable
+        command = f'{python} {script_path} {cfg_path}'
+        return template.format(task_cmd=command)
+
     def run(self):
         for model_cfg, dataset_cfgs in zip(self.model_cfgs, self.dataset_cfgs):
             for dataset_cfg in dataset_cfgs:

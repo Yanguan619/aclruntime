@@ -1,5 +1,6 @@
 # flake8: noqa
 # yapf: disable
+import time
 from typing import Dict, List, Optional, Union
 
 import torch
@@ -10,6 +11,7 @@ from opencompass.models.base_api import APITemplateParser
 from opencompass.registry import MODELS
 from opencompass.utils.logging import get_logger
 from opencompass.utils.prompt import PromptList
+from ais_bench.benchmark.models.performance import PerformanceModel
 
 PromptType = Union[PromptList, str]
 
@@ -142,7 +144,7 @@ def _set_model_kwargs_torch_dtype(model_kwargs):
 
 
 @MODELS.register_module()
-class HuggingFacewithChatTemplate(BaseModel):
+class HuggingFacewithChatTemplate(PerformanceModel):
     """Model wrapper for HuggingFace models designed for chat.
 
     Args:
@@ -182,11 +184,16 @@ class HuggingFacewithChatTemplate(BaseModel):
         assert mode in ['none', 'mid']
         self.mode = mode
         self.logger.info(f'using stop words: {self.stop_words}')
+        self.latencies, self.counts, self.timestamps = [], [], []
 
         for k, v in other_kwargs.items():
             if v is not None:
                 self.logger.warning(f'Unused argument {k}={v}')
 
+    def handle_perf_result(self):
+        e2e_latency = max(self.timestamps) - min(self.timestamps)
+        return {"e2e_latency":str(round(e2e_latency, 4)) + ' ms'}
+    
     def _load_tokenizer(self, path: Optional[str], kwargs: dict, pad_token_id: Optional[int] = None):
         from transformers import AutoTokenizer, GenerationConfig
 
@@ -478,7 +485,9 @@ class HuggingFacewithChatTemplate(BaseModel):
         self.logger.info(generation_kwargs)
 
         # step-2: conduct model forward to generate output
+        start_time = time.perf_counter()
         outputs = self.model.generate(**tokens, **generation_kwargs)
+        end_time = time.perf_counter()
         outputs = outputs[:, tokens['input_ids'].shape[1]:]
 
         # step-3: decode the output
@@ -486,7 +495,13 @@ class HuggingFacewithChatTemplate(BaseModel):
         for stop in stopping_criteria:
             decodeds = [t.split(stop)[0] for t in decodeds]
 
-        return decodeds
+        if hasattr(self, "is_performance") and self.is_performance:
+            self.latencies.append(end_time - start_time)
+            self.counts.append(batch_size)
+            self.timestamps.extend([end_time, start_time]) 
+            return None
+        else:
+            return decodeds
 
     def get_token_len(self, prompt: str) -> int:
         m = _convert_chat_messages([prompt])[0]
@@ -534,11 +549,16 @@ class HuggingFaceBaseModel(HuggingFacewithChatTemplate):
             self._load_model(path=path, kwargs=model_kwargs, peft_path=peft_path, peft_kwargs=peft_kwargs)
         self.generation_kwargs = generation_kwargs
         self.stop_words = stop_words
+        self.latencies, self.counts, self.timestamps = [], [], []
 
         for k, v in other_kwargs.items():
             if v is not None:
                 self.logger.warning(f'Unused argument {k}={v}')
 
+    def handle_perf_result(self):
+        e2e_latency = max(self.timestamps) - min(self.timestamps)
+        return {"e2e_latency":str(round(e2e_latency, 4)) + ' ms'}
+    
     def generate(self,
                  inputs: List[str],
                  max_out_len: int,
@@ -580,7 +600,9 @@ class HuggingFaceBaseModel(HuggingFacewithChatTemplate):
         generation_kwargs['pad_token_id'] = self.tokenizer.pad_token_id
 
         # step-2: conduct model forward to generate output
+        start_time = time.perf_counter()
         outputs = self.model.generate(**tokens, **generation_kwargs)
+        end_time = time.perf_counter()
         outputs = outputs[:, tokens['input_ids'].shape[1]:]
 
         # step-3: decode the output
@@ -588,7 +610,13 @@ class HuggingFaceBaseModel(HuggingFacewithChatTemplate):
         for stop in stopping_criteria:
             decodeds = [token.split(stop)[0] for token in decodeds]
 
-        return decodeds
+        if hasattr(self, "is_performance") and self.is_performance:
+            self.latencies.append(end_time - start_time)
+            self.counts.append(batch_size)
+            self.timestamps.extend([end_time, start_time]) 
+            return None
+        else:
+            return decodeds
 
     def get_ppl(self, inputs: List[str], mask_length: Optional[List[int]] = None) -> List[float]:
         """Get perplexity scores given a list of inputs.

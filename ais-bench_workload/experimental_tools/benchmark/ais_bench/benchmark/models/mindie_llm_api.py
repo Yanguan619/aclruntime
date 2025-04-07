@@ -22,7 +22,9 @@ class MindieLLMAPI(BaseModel):
     Model wrapper around MindIE-LLM models.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self,
+                 environ_kwargs: Optional[Dict] = None,
+                 **kwargs):
 
         self.rank = int(os.getenv("RANK", "0"))
         self.local_rank = int(os.getenv("LOCAL_RANK", "0"))
@@ -60,14 +62,8 @@ class MindieLLMAPI(BaseModel):
                          tokenizer_only=False,
                          meta_template=None)
         
-        os.environ['ATB_LAYER_INTERNAL_TENSOR_REUSE'] = kwargs.get('atb_layer_internal_tensor_reuse')
-        os.environ['ATB_OPERATION_EXECUTE_ASYNC'] = kwargs.get('atb_operation_execute_async')
-        os.environ['ATB_CONVERT_NCHW_TO_ND'] = kwargs.get('atb_convert_nchw_to_nd')
-        os.environ['TASK_QUEUE_ENABLE'] = kwargs.get('task_queue_enable')
-        os.environ['ATB_WORKSPACE_MEM_ALLOC_GLOBAL'] = kwargs.get('atb_workspace_mem_alloc_global')
-        os.environ['ATB_CONTEXT_WORKSPACE_SIZE'] = kwargs.get('atb_context_workspace_size')
-        os.environ['ATB_LAUNCH_KERNEL_WITH_TILING'] = kwargs.get('atb_launch_kernel_with_tiling')
-
+        for key, value in environ_kwargs.items():
+            os.environ[key] = value
 
     def check_pa_runner(self):
         if self.pa_runner == None:

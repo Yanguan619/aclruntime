@@ -30,12 +30,14 @@ models = [
         output_length = 1024,  # 初始化推理对象参数，output长度
         run_cfg = dict(num_gpus=2, num_procs=2),  # 多卡/多机多卡 参数，使用torchrun拉起任务
 
-        atb_layer_internal_tensor_reuse = "1", # modeltest创建模型实例时默认设定的环境变量
-        atb_operation_execute_async = "1",
-        atb_convert_nchw_to_nd = "1",
-        task_queue_enable = "1",
-        atb_workspace_mem_alloc_global = "1",
-        atb_context_workspace_size = "0",
-        atb_launch_kernel_with_tiling = "1",
+        environ_kwargs = dict(  # mindie-llm推理后端所需的环境变量配置, 此处是qwen模型所需的环境变量
+            ATB_LAYER_INTERNAL_TENSOR_REUSE = "1",
+            ATB_OPERATION_EXECUTE_ASYNC = "1",
+            ATB_CONVERT_NCHW_TO_ND = "1",
+            TASK_QUEUE_ENABLE = "1",
+            ATB_WORKSPACE_MEM_ALLOC_GLOBAL = "1",
+            ATB_CONTEXT_WORKSPACE_SIZE = "0",
+            ATB_LAUNCH_KERNEL_WITH_TILING = "1",
+        ),
     )
 ]

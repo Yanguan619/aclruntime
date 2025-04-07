@@ -1,8 +1,8 @@
-from ais_bench.benchmark.models import MindieLLMAPI
+from ais_bench.benchmark.models import MindieLLMModel
 
 models = [
     dict(
-        type=MindieLLMAPI,
+        type=MindieLLMModel,
         abbr='mindie-llm-api',
         max_out_len = 512,  # 推理接口调用时设定的最大输出长度，建议与下面的output_length相同
 

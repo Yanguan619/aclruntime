@@ -18,7 +18,7 @@ DTYPE_MAP = {"bf16": torch.bfloat16, "fp16": torch.float16}
 
 
 @MODELS.register_module()
-class MindieLLMAPI(PerformanceModel):
+class MindieLLMModel(PerformanceModel):
     """
     Model wrapper around MindIE-LLM models.
     """

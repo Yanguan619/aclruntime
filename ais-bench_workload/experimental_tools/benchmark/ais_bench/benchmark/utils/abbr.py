@@ -27,6 +27,10 @@ def dataset_abbr_from_cfg(cfg: ConfigDict) -> str:
     return dataset_abbr
 
 
+def merged_dataset_abbr_from_class(cfg: ConfigDict) -> str:
+    return cfg.get('type').split('.')[-1].lower()
+
+
 def task_abbr_from_cfg(task: Dict) -> str:
     """Returns task abbreviation from the task's confg."""
     return '[' + ','.join([

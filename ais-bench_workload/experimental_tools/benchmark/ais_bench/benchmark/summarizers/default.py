@@ -11,8 +11,8 @@ import mmengine
 import tabulate
 from mmengine import ConfigDict
 
-from ais_bench.benchmark.utils import (LarkReporter, dataset_abbr_from_cfg,
-                               get_infer_output_path, get_logger,
+from ais_bench.benchmark.utils import (LarkReporter, dataset_abbr_from_cfg, get_infer_merged_output_path,
+                               get_infer_output_path, get_logger, merged_dataset_abbr_from_class,
                                model_abbr_from_cfg)
 from ais_bench.benchmark.utils.prompt import get_prompt_hash
 
@@ -88,8 +88,14 @@ class DefaultSummarizer:
             parsed_results.setdefault(model_abbr, {})
             raw_results.setdefault(model_abbr, {})
             for dataset in self.dataset_cfgs:
-                dataset_abbr = dataset_abbr_from_cfg(dataset)
-                filepath = get_infer_output_path(model, dataset, osp.join(self.work_dir, 'results'))
+                inferencer = dataset.get('infer_cfg', {}).get('inferencer', {}).get('type', '')
+                if 'GenMergedInferencer' in inferencer:
+                    dataset_abbr = merged_dataset_abbr_from_class(dataset)
+                    filepath = get_infer_merged_output_path(model, dataset, osp.join(self.work_dir, 'results'))
+                else:
+                    dataset_abbr = dataset_abbr_from_cfg(dataset)
+                    filepath = get_infer_output_path(model, dataset, osp.join(self.work_dir, 'results'))
+
                 if not osp.exists(filepath):
                     continue
                 result = mmengine.load(filepath)
@@ -126,7 +132,7 @@ class DefaultSummarizer:
             if 'GenInferencer' in inferencer:
                 dataset_eval_mode[dataset_abbr] = 'gen'
             elif 'GenMergedInferencer' in inferencer:
-                dataset_eval_mode[dataset_abbr] = 'gen'
+                dataset_eval_mode[merged_dataset_abbr_from_class(dataset)] = 'gen'
             elif 'PPLInferencer' in inferencer:
                 dataset_eval_mode[dataset_abbr] = 'ppl'
             elif 'LLInferencer' in inferencer:

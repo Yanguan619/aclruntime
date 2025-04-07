@@ -55,6 +55,8 @@ class DefaultSummarizer:
 
         self.model_cfgs = self.cfg['models']
         self.dataset_cfgs = self.cfg['datasets']
+        self._update_dataset_abbrs()
+
         self.work_dir = self.cfg['work_dir']
         model_abbrs = []
         for model in self.model_cfgs:
@@ -63,6 +65,17 @@ class DefaultSummarizer:
                 continue
             model_abbrs.append(model_abbr)
         self.model_abbrs = model_abbrs
+
+    def _update_dataset_abbrs(self):
+        self.dataset_abbrs = []
+        for dataset in self.dataset_cfgs:
+            inferencer = dataset.get('infer_cfg', {}).get('inferencer', {}).get('type', '')
+            inferencer = inferencer if isinstance(inferencer, str) else inferencer.__name__
+            if 'GenMergedInferencer' in inferencer:
+                dataset_abbr = merged_dataset_abbr_from_class(dataset)
+            else:
+                dataset_abbr = dataset_abbr_from_cfg(dataset)
+            self.dataset_abbrs.append(dataset_abbr)
 
     def _pick_up_results(self):
         """The function reads the numerical results of evaluations from the
@@ -89,6 +102,7 @@ class DefaultSummarizer:
             raw_results.setdefault(model_abbr, {})
             for dataset in self.dataset_cfgs:
                 inferencer = dataset.get('infer_cfg', {}).get('inferencer', {}).get('type', '')
+                inferencer = inferencer if isinstance(inferencer, str) else inferencer.__name__
                 if 'GenMergedInferencer' in inferencer:
                     dataset_abbr = merged_dataset_abbr_from_class(dataset)
                     filepath = get_infer_merged_output_path(model, dataset, osp.join(self.work_dir, 'results'))
@@ -130,10 +144,8 @@ class DefaultSummarizer:
             inferencer = inferencer if isinstance(inferencer, str) else inferencer.__name__
             dataset_abbr = dataset_abbr_from_cfg(dataset)
             if 'GenInferencer' in inferencer:
-                self.logger.info(f"In GenInferencer")
                 dataset_eval_mode[dataset_abbr] = 'gen'
             elif 'GenMergedInferencer' in inferencer:
-                self.logger.info(f"In GenMergedInferencer")
                 dataset_eval_mode[merged_dataset_abbr_from_class(dataset)] = 'gen'
             elif 'PPLInferencer' in inferencer:
                 dataset_eval_mode[dataset_abbr] = 'ppl'
@@ -242,7 +254,7 @@ class DefaultSummarizer:
         return raw_results, parsed_results, dataset_metrics, dataset_eval_mode
 
     def _format_table(self, parsed_results, dataset_metrics, dataset_eval_mode, required_dataset_abbrs=None, skip_all_slash=False):
-        dataset_abbrs = [dataset_abbr_from_cfg(dataset) for dataset in self.dataset_cfgs]
+        dataset_abbrs = self.dataset_abbrs
         prompt_version = {dataset_abbr_from_cfg(d): get_prompt_hash(d)[:6] for d in self.dataset_cfgs}
 
         summarizer_dataset_abbrs = []

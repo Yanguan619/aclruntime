@@ -5,7 +5,6 @@ with read_base():
     from .groups.mmlu import mmlu_summary_groups
     from .groups.cmmlu import cmmlu_summary_groups
     from .groups.ceval import ceval_summary_groups
-    from .groups.ceval_merged import ceval_merged_summary_groups
     from .groups.bbh import bbh_summary_groups
     from .groups.GaokaoBench import GaokaoBench_summary_groups
     from .groups.flores import flores_summary_groups

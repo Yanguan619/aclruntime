@@ -7,6 +7,7 @@ import torch
 import transformers
 
 from ais_bench.benchmark.models.base import BaseModel
+from ais_bench.benchmark.models.performance import PerformanceModel
 from ais_bench.benchmark.models.base_api import APITemplateParser
 from ais_bench.benchmark.registry import MODELS
 from ais_bench.benchmark.utils.logging import get_logger
@@ -17,7 +18,7 @@ DTYPE_MAP = {"bf16": torch.bfloat16, "fp16": torch.float16}
 
 
 @MODELS.register_module()
-class MindieLLMAPI(BaseModel):
+class MindieLLMAPI(PerformanceModel):
     """
     Model wrapper around MindIE-LLM models.
     """
@@ -52,6 +53,7 @@ class MindieLLMAPI(BaseModel):
         self.decode_batch_size = kwargs.get('decode_batch_size')
         self.logger = get_logger()
         self.pa_runner = None
+        self.batch_latencies = []
 
         self.get_model_or_runner(self.input_length, self.output_length)
         self.check_pa_runner()
@@ -61,18 +63,21 @@ class MindieLLMAPI(BaseModel):
                          max_seq_len=self.output_length,
                          tokenizer_only=False,
                          meta_template=None)
-        
+
         for key, value in environ_kwargs.items():
             os.environ[key] = value
 
     def check_pa_runner(self):
         if self.pa_runner == None:
             raise RuntimeError("Model loading failed")
-        
+
 
     def warm_up(self):
         self.pa_runner.warm_up()
 
+    def handle_perf_result(self):
+        e2e_latency = sum(self.batch_latencies)
+        return {"e2e_latency":str(round(e2e_latency, 4)) + ' ms'}
 
     def get_model_or_runner(self, input_length, output_length, warmup_bs=0):
 
@@ -153,13 +158,17 @@ class MindieLLMAPI(BaseModel):
             List[str]: A list of generated strings.
         """
         with torch.no_grad():
-            generate_texts, _, _ = self.pa_runner.infer(inputs,
+            generate_texts, _, e2e_latency_per_bs = self.pa_runner.infer(inputs,
                                                         len(inputs),
                                                         max_out_len,
                                                         self.ignore_eos,
                                                         self.is_chat_model)
-            
-        return generate_texts
+
+        if hasattr(self, "is_performance") and self.is_performance:
+            self.batch_latencies.append(e2e_latency_per_bs)
+            return None
+        else:
+            return generate_texts
 
 
     def get_token_len(self, prompt: str) -> int:

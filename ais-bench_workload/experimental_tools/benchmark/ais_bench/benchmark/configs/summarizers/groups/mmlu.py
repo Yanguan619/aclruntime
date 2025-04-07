@@ -21,6 +21,3 @@ _mmlu_weights = {'college_biology': 144,'college_chemistry': 100,'college_comput
 _mmlu_weights = {'lukaemon_mmlu_' + k : v for k,v in _mmlu_weights.items()}
 mmlu_summary_groups.append({'name': 'mmlu', 'subsets': _mmlu_all})
 mmlu_summary_groups.append({'name': 'mmlu-weighted', 'subsets': _mmlu_all, 'weights': _mmlu_weights})
-
-_mmlu_merged = ['mmludataset']
-mmlu_summary_groups.append({'name': 'mmlu-merged', 'subsets':_mmlu_merged})

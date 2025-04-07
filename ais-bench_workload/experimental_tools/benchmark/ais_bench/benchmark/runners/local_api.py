@@ -19,6 +19,8 @@ from ais_bench.benchmark.tasks.base import BaseTask
 from ais_bench.benchmark.utils import (build_dataset_from_cfg, build_model_from_cfg,
                                get_infer_output_path, get_logger,
                                task_abbr_from_cfg)
+from concurrent.futures import ThreadPoolExecutor
+import threading
 
 from .base import BaseRunner
 
@@ -292,37 +294,83 @@ class LocalAPIRunner(BaseRunner):
             pbar = tqdm(total=len(tasks))
 
             get_logger().info('All the logs and processes for each task'
-                              ' should be checked in each infer/.out file.')
-            with Manager() as manager:
-                tokens = manager.Semaphore(self.concurrent_users)
-                # pbar update has visualization issue when direct
-                # update pbar in callback, need an extra counter
-                pbar_counter = manager.Value('i', 0)
-                status = []
+                            ' should be checked in each infer/.out file.')
 
-                def update(args):
-                    """Update pbar counter when callback."""
-                    pbar_counter.value += 1
+            # Using threading.Semaphore instead of manager.Semaphore
+            tokens = threading.Semaphore(self.concurrent_users)
+            # Using threading.Lock for thread-safe counter updates
+            counter_lock = threading.Lock()
+            pbar_counter = 0
+            # Using threading.Lock for thread-safe status updates
+            status_lock = threading.Lock()
+            status = []
+
+            def update(args):
+                """Update pbar counter when callback."""
+                global pbar_counter
+                with counter_lock:
+                    pbar_counter += 1
+                with status_lock:
                     status.append(args)
 
-                with Pool(processes=self.max_num_workers) as pool:
-                    for task in tasks:
-                        pool.apply_async(submit,
-                                         (task, self.task_cfg['type'], tokens),
-                                         callback=update)
-                    pool.close()
+            with ThreadPoolExecutor(max_workers=self.max_num_workers) as executor:
+                futures = []
+                for task in tasks:
+                    future = executor.submit(
+                        submit,
+                        task,
+                        self.task_cfg['type'],
+                        tokens
+                    )
+                    future.add_done_callback(lambda f: update(f.result()))
+                    futures.append(future)
 
-                    # update progress bar
-                    while True:
-                        cur_count = pbar_counter.value
-                        if cur_count > pbar.n:
-                            pbar.update(cur_count - pbar.n)
-                        # break when all the task finished
-                        if cur_count >= pbar.total:
-                            pbar.close()
-                            break
-                        # sleep to lower the usage
-                        time.sleep(1)
+                # Update progress bar
+                while True:
+                    with counter_lock:
+                        cur_count = pbar_counter
+                    if cur_count > pbar.n:
+                        pbar.update(cur_count - pbar.n)
+                    # Break when all tasks are finished
+                    if cur_count >= pbar.total:
+                        pbar.close()
+                        break
+                    # Sleep to lower CPU usage
+                    time.sleep(1)
+            # pbar = tqdm(total=len(tasks))
 
-                    pool.join()
+            # get_logger().info('All the logs and processes for each task'
+            #                   ' should be checked in each infer/.out file.')
+            # with Manager() as manager:
+            #     tokens = manager.Semaphore(self.concurrent_users)
+            #     # pbar update has visualization issue when direct
+            #     # update pbar in callback, need an extra counter
+            #     pbar_counter = manager.Value('i', 0)
+            #     status = []
+
+            #     def update(args):
+            #         """Update pbar counter when callback."""
+            #         pbar_counter.value += 1
+            #         status.append(args)
+
+            #     with Pool(processes=self.max_num_workers) as pool:
+            #         for task in tasks:
+            #             pool.apply_async(submit,
+            #                              (task, self.task_cfg['type'], tokens),
+            #                              callback=update)
+            #         pool.close()
+
+            #         # update progress bar
+            #         while True:
+            #             cur_count = pbar_counter.value
+            #             if cur_count > pbar.n:
+            #                 pbar.update(cur_count - pbar.n)
+            #             # break when all the task finished
+            #             if cur_count >= pbar.total:
+            #                 pbar.close()
+            #                 break
+            #             # sleep to lower the usage
+            #             time.sleep(1)
+
+            #         pool.join()
         return status

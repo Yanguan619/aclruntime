@@ -99,7 +99,6 @@ class DefaultSummarizer:
                 if not osp.exists(filepath):
                     continue
                 result = mmengine.load(filepath)
-                self.logger.info(f"result: {result}")
                 result.pop('details', None)
                 raw_results[model_abbr][dataset_abbr] = result
                 if 'error' in result:
@@ -377,11 +376,12 @@ class DefaultSummarizer:
 
         # pick up results
         raw_results, parsed_results, dataset_metrics, dataset_eval_mode = self._pick_up_results()
-        self.logger.info(f"raw_results: {raw_results}, parsed_results: {parsed_results}, dataset_metrics: {dataset_metrics}, dataset_eval_mode: {dataset_eval_mode}")
 
         # calculate group metrics
         raw_results, parsed_results, dataset_metrics, dataset_eval_mode = \
             self._calculate_group_metrics(raw_results, parsed_results, dataset_metrics, dataset_eval_mode)
+
+        self.logger.info(f"raw_results: {raw_results}, parsed_results: {parsed_results}, dataset_metrics: {dataset_metrics}, dataset_eval_mode: {dataset_eval_mode}")
 
         # format table
         table = self._format_table(parsed_results, dataset_metrics, dataset_eval_mode, required_dataset_abbrs=self.dataset_abbrs)

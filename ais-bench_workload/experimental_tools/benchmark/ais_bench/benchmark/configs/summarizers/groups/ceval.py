@@ -51,3 +51,6 @@ _ceval_test_weights = {'mao_zedong_thought': 219, 'modern_chinese_history': 212,
 _ceval_test_weights = {'ceval-test-' + k : v for k,v in _ceval_test_weights.items()}
 ceval_summary_groups.append({'name': 'ceval-test', 'subsets': _ceval_all})
 ceval_summary_groups.append({'name': 'ceval-test-weighted', 'subsets': _ceval_all, 'weights': _ceval_test_weights})
+
+_ceval_merged = ['cevaldataset']
+ceval_summary_groups.append({'name': 'ceval-merged', 'subsets':_ceval_merged})

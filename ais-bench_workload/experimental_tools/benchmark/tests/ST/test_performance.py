@@ -212,5 +212,84 @@ class TestClass:
         assert float(data.loc[data['Performance Parameters'] == 'InputTokens', 'Max'].values[0])==float(fake_config['Input']['Params']['MinValue'])
         assert float(data.loc[data['Performance Parameters'] == 'OutputTokens', 'Max'].values[0])==float(fake_config['Output']['Params']['MinValue'])
 
+    def test_hf_base_model_perf_gsm8k(self, monkeypatch):
+        fake_prediction = "12333"
+        fake_perf_result = {"e2e_latency": "23.6 ms"}
+        fake_time_str = "gsm8k_gen_4_shot_str"
+        datasets_abbr_name = "gsm8k"
+        datasets_script_name = "gsm8k_gen_4_shot_cot_str"
+        monkeypatch.setattr('sys.argv',
+            ["ais_bench", "--models", "hf_base_model", "--datasets", datasets_script_name,
+            "--mode", "perf", "-w", self.test_data_path, "--summarizer", "example"])
+        monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33.HuggingFaceBaseModel.generate",
+            (lambda self, inputs, *arg, **kwargs: [fake_prediction for _ in range(len(inputs))]))
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33.HuggingFaceBaseModel.handle_perf_result",
+            (lambda *arg, **kwargs: fake_perf_result))
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33._get_possible_max_seq_len",
+            (lambda *arg, **kwargs: None))
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33.HuggingFaceBaseModel._get_potential_stop_words",
+            (lambda *arg, **kwargs: ['\n']))
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33.HuggingFaceBaseModel._load_tokenizer",
+            (lambda *arg, **kwargs: None))
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33.HuggingFaceBaseModel._load_model",
+            (lambda *arg, **kwargs: None))
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33.HuggingFaceBaseModel.get_token_len",
+            (lambda *arg, **kwargs: 512))
+        main()
+
+        # check perf result
+        infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/hf-base-model/{datasets_abbr_name}/{datasets_abbr_name}.json")
+        assert os.path.exists(infer_outputs_json_path)
+        with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+        assert data == fake_perf_result
+
+    def test_hf_chat_model_perf_synthetic(self, monkeypatch):
+        fake_prediction = "12334"
+        fake_perf_result = {"e2e_latency": "27.7 ms"}
+        fake_time_str = "synthetic_gen_4_shot_str"
+        datasets_abbr_name = "synthetic"
+        datasets_script_name = "synthetic_gen"
+        monkeypatch.setattr('sys.argv',
+            ["ais_bench", "--models", "hf_chat_model", "--datasets", datasets_script_name,
+            "--mode", "perf", "-w", self.test_data_path, "--summarizer", "example"])
+        monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33.HuggingFacewithChatTemplate.generate",
+            (lambda self, inputs, *arg, **kwargs: [fake_prediction for _ in range(len(inputs))]))
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33.HuggingFacewithChatTemplate.handle_perf_result",
+            (lambda *arg, **kwargs: fake_perf_result))
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33._get_possible_max_seq_len",
+            (lambda *arg, **kwargs: None))
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33.HuggingFacewithChatTemplate._get_potential_stop_words",
+            (lambda *arg, **kwargs: ['\n']))
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33.HuggingFacewithChatTemplate._load_tokenizer",
+            (lambda *arg, **kwargs: None))
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33.HuggingFacewithChatTemplate._load_model",
+            (lambda *arg, **kwargs: None))
+        monkeypatch.setattr(
+            "ais_bench.benchmark.models.huggingface_above_v4_33.HuggingFacewithChatTemplate.get_token_len",
+            (lambda *arg, **kwargs: 512))
+        main()
+
+        # check perf result
+        infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/hf-chat-model/{datasets_abbr_name}/{datasets_abbr_name}.json")
+        assert os.path.exists(infer_outputs_json_path)
+        with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+        assert data == fake_perf_result
 
 

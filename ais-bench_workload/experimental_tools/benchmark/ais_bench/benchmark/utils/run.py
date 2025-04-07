@@ -198,8 +198,12 @@ def fill_perf_cfg(cfg, args):
         task=dict(type=get_config_type(OpenICLPerfTask)),
         type=get_config_type(LocalAPIRunner)
     )), )
-    for data_config in cfg['datasets']:
+    if hasattr(cfg, 'models') and len(cfg['models']) > 0 and hasattr(cfg['models'][0], 'abbr') and 'api' in cfg['models'][0]['type'].lower():
+        for data_config in cfg['datasets']:
             data_config['infer_cfg']['inferencer']['type'] = get_config_type(GenPerfInferencer)
+    else:
+        for data_config in cfg['datasets']:
+            data_config['infer_cfg']['inferencer']['type'] = get_config_type(GenModelPerfInferencer)
     cfg.merge_from_dict(new_cfg)
 
 

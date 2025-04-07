@@ -174,14 +174,15 @@ def main():
         runner = RUNNERS.build(cfg.infer.runner)
         runner(tasks)
 
+    if cfg.get('infer', None) is None:
+        if args.merge_ds:
+            fill_merged_infer_cfg(cfg, args)
+        else:
+            fill_infer_cfg(cfg, args)
+
     if args.mode in ['all', 'infer']:
         # "infer" in config, we will provide a default configuration
         # for infer
-        if cfg.get('infer', None) is None:
-            if args.merge_ds:
-                fill_merged_infer_cfg(cfg, args)
-            else:
-                fill_infer_cfg(cfg, args)
 
         if args.debug:
             cfg.infer.runner.debug = True
@@ -200,14 +201,16 @@ def main():
                 task.attack = cfg.attack
         runner(tasks)
 
+    if cfg.get('eval', None) is None:
+        if args.merge_ds:
+            fill_merged_eval_cfg(cfg, args)
+        else:
+            fill_eval_cfg(cfg, args)
+
     if args.mode in ['all', 'eval']:
         # "eval" in config, we will provide a default configuration
         # for eval
-        if cfg.get('eval', None) is None:
-            if args.merge_ds:
-                fill_merged_eval_cfg(cfg, args)
-            else:
-                fill_eval_cfg(cfg, args)
+
         if args.dump_eval_details:
             cfg.eval.runner.task.dump_details = True
         if args.dump_extract_rate:

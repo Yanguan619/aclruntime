@@ -37,7 +37,7 @@ class MindieLLMAPI(BaseModel):
         self.max_position_embedding = kwargs.get('max_position_embedding')
         self.is_chat_model = kwargs.get('is_chat_model')
         self.prefill_batch_size = kwargs.get('prefill_batch_size')
-        self.kw_args = ''
+        self.kw_args = kwargs.get('kw_args')
         self.dp = kwargs.get('dp')
         self.tp = kwargs.get('tp')
         self.sp = kwargs.get('sp')

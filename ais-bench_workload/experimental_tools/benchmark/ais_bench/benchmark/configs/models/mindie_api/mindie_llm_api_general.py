@@ -16,6 +16,7 @@ models = [
         is_chat_model = False,  # 是否使用chat模板
         decode_batch_size = 32,  # decode阶段的batchsize，与数据集推理时设定的batchsize相同
         prefill_batch_size = 0,  # prefill阶段的batchsize
+        kw_args = "",
 
         dp = -1,  # dp tp sp moe_tp pp microbatch_size moe_ep 模型并行参数
         tp = -1,

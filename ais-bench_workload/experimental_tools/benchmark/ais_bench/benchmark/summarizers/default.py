@@ -131,8 +131,10 @@ class DefaultSummarizer:
             inferencer = inferencer if isinstance(inferencer, str) else inferencer.__name__
             dataset_abbr = dataset_abbr_from_cfg(dataset)
             if 'GenInferencer' in inferencer:
+                self.logger.info(f"In GenInferencer")
                 dataset_eval_mode[dataset_abbr] = 'gen'
             elif 'GenMergedInferencer' in inferencer:
+                self.logger.info(f"In GenMergedInferencer")
                 dataset_eval_mode[merged_dataset_abbr_from_class(dataset)] = 'gen'
             elif 'PPLInferencer' in inferencer:
                 dataset_eval_mode[dataset_abbr] = 'ppl'

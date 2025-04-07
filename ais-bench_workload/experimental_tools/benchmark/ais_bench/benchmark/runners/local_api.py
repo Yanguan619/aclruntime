@@ -14,7 +14,7 @@ from mmengine.config import ConfigDict
 from tqdm import tqdm
 
 from ais_bench.benchmark.registry import RUNNERS, TASKS
-from ais_bench.benchmark.tasks import OpenICLInferTask, OpenICLPerfTask
+from ais_bench.benchmark.tasks import OpenICLInferTask, OpenICLPerfTask, OpenICLInferMergedTask
 from ais_bench.benchmark.tasks.base import BaseTask
 from ais_bench.benchmark.utils import (build_dataset_from_cfg, build_model_from_cfg,
                                get_infer_output_path, get_logger,
@@ -62,7 +62,6 @@ def monkey_run_merged(self, tokens: SyncManager.Semaphore):
         self.min_out_len = model_cfg.get("min_out_len", None)
 
         self.model = build_model_from_cfg(model_cfg)
-        self.set_performance_api()
 
         for dataset_cfg in dataset_cfgs:
             self.model_cfg = model_cfg
@@ -184,7 +183,7 @@ def launch(task: BaseTask, tokens: SyncManager.Semaphore):
             origin_run = inferencer.run
             inferencer.run = monkey_run_perf
         elif task.name_prefix == 'OpenICLInferMerged':
-            inferencer = OpenICLPerfTask(task.cfg)
+            inferencer = OpenICLInferMergedTask(task.cfg)
             origin_run = inferencer.run
             inferencer.run = monkey_run_merged
         else:

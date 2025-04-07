@@ -55,7 +55,6 @@ class DefaultSummarizer:
 
         self.model_cfgs = self.cfg['models']
         self.dataset_cfgs = self.cfg['datasets']
-        self._update_dataset_abbrs()
 
         self.work_dir = self.cfg['work_dir']
         model_abbrs = []
@@ -256,6 +255,7 @@ class DefaultSummarizer:
         return raw_results, parsed_results, dataset_metrics, dataset_eval_mode
 
     def _format_table(self, parsed_results, dataset_metrics, dataset_eval_mode, required_dataset_abbrs=None, skip_all_slash=False):
+        self._update_dataset_abbrs()
         dataset_abbrs = self.dataset_abbrs
         prompt_version = {dataset_abbr_from_cfg(d): get_prompt_hash(d)[:6] for d in self.dataset_cfgs}
 
@@ -394,8 +394,6 @@ class DefaultSummarizer:
         # calculate group metrics
         raw_results, parsed_results, dataset_metrics, dataset_eval_mode = \
             self._calculate_group_metrics(raw_results, parsed_results, dataset_metrics, dataset_eval_mode)
-
-        self.logger.info(f"raw_results: {raw_results}, parsed_results: {parsed_results}, dataset_metrics: {dataset_metrics}, dataset_eval_mode: {dataset_eval_mode}")
 
         # format table
         table = self._format_table(parsed_results, dataset_metrics, dataset_eval_mode, required_dataset_abbrs=self.dataset_abbrs)

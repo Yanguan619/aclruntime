@@ -24,6 +24,8 @@ import threading
 
 from .base import BaseRunner
 
+pbar_counter = 0
+
 def monkey_run_perf(self, tokens: SyncManager.Semaphore):
     self.logger.info(f"Task {task_abbr_from_cfg(self.cfg)}")
     for model_cfg, dataset_cfgs in zip(self.model_cfgs, self.dataset_cfgs):
@@ -300,7 +302,6 @@ class LocalAPIRunner(BaseRunner):
             tokens = threading.Semaphore(self.concurrent_users)
             # Using threading.Lock for thread-safe counter updates
             counter_lock = threading.Lock()
-            pbar_counter = 0
             # Using threading.Lock for thread-safe status updates
             status_lock = threading.Lock()
             status = []

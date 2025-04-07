@@ -75,6 +75,8 @@ class DefaultSummarizer:
                 dataset_abbr = merged_dataset_abbr_from_class(dataset)
             else:
                 dataset_abbr = dataset_abbr_from_cfg(dataset)
+            if dataset_abbr in self.dataset_abbrs:
+                continue
             self.dataset_abbrs.append(dataset_abbr)
 
     def _pick_up_results(self):

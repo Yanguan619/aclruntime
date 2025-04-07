@@ -338,40 +338,4 @@ class LocalAPIRunner(BaseRunner):
                         break
                     # Sleep to lower CPU usage
                     time.sleep(1)
-            # pbar = tqdm(total=len(tasks))
-
-            # get_logger().info('All the logs and processes for each task'
-            #                   ' should be checked in each infer/.out file.')
-            # with Manager() as manager:
-            #     tokens = manager.Semaphore(self.concurrent_users)
-            #     # pbar update has visualization issue when direct
-            #     # update pbar in callback, need an extra counter
-            #     pbar_counter = manager.Value('i', 0)
-            #     status = []
-
-            #     def update(args):
-            #         """Update pbar counter when callback."""
-            #         pbar_counter.value += 1
-            #         status.append(args)
-
-            #     with Pool(processes=self.max_num_workers) as pool:
-            #         for task in tasks:
-            #             pool.apply_async(submit,
-            #                              (task, self.task_cfg['type'], tokens),
-            #                              callback=update)
-            #         pool.close()
-
-            #         # update progress bar
-            #         while True:
-            #             cur_count = pbar_counter.value
-            #             if cur_count > pbar.n:
-            #                 pbar.update(cur_count - pbar.n)
-            #             # break when all the task finished
-            #             if cur_count >= pbar.total:
-            #                 pbar.close()
-            #                 break
-            #             # sleep to lower the usage
-            #             time.sleep(1)
-
-            #         pool.join()
         return status

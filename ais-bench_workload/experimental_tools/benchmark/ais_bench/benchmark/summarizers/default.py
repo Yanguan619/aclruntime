@@ -374,6 +374,7 @@ class DefaultSummarizer:
 
         # pick up results
         raw_results, parsed_results, dataset_metrics, dataset_eval_mode = self._pick_up_results()
+        self.logger.info(f"raw_results: {raw_results}, parsed_results: {parsed_results}, dataset_metrics: {dataset_metrics}, dataset_eval_mode: {dataset_eval_mode}")
 
         # calculate group metrics
         raw_results, parsed_results, dataset_metrics, dataset_eval_mode = \

@@ -187,6 +187,7 @@ def main():
             cfg.infer.runner.debug = True
         cfg.infer.partitioner['out_dir'] = osp.join(cfg['work_dir'],
                                                     'predictions/')
+        cfg.dump(output_config_path)
         partitioner = PARTITIONERS.build(cfg.infer.partitioner)
         tasks = partitioner(cfg)
         if args.dry_run:
@@ -214,6 +215,7 @@ def main():
         if args.debug:
             cfg.eval.runner.debug = True
         cfg.eval.partitioner['out_dir'] = osp.join(cfg['work_dir'], 'results/')
+        cfg.dump(output_config_path)
         partitioner = PARTITIONERS.build(cfg.eval.partitioner)
         tasks = partitioner(cfg)
         if args.dry_run:

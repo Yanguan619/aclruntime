@@ -95,7 +95,7 @@ def monkey_run(self, tokens: SyncManager.Semaphore):
         self.batch_size = model_cfg.get('batch_size', 1)
         self.model = build_model_from_cfg(model_cfg)
         # add global tokens for concurrents
-        assert self.model.is_api, 'Only API model is supported.'
+        # assert self.model.is_api, 'Only API model is supported.'
         self.model.tokens = tokens
 
         for dataset_cfg in dataset_cfgs:

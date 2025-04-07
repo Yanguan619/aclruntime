@@ -77,7 +77,7 @@ class MindieLLMModel(PerformanceModel):
 
     def handle_perf_result(self):
         e2e_latency = sum(self.batch_latencies)
-        return {"e2e_latency":str(round(e2e_latency, 4)) + ' ms'}
+        return {"e2e_latency":str(round(e2e_latency * 1000, 4)) + ' ms'}
 
     def get_model_or_runner(self, input_length, output_length, warmup_bs=0):
 

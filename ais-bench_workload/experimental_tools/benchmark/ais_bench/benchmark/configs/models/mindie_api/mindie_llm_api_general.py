@@ -40,6 +40,7 @@ models = [
             ATB_WORKSPACE_MEM_ALLOC_GLOBAL = "1",
             ATB_CONTEXT_WORKSPACE_SIZE = "0",
             ATB_LAUNCH_KERNEL_WITH_TILING = "1",
+            ATB_LLM_BENCHMARK_ENABLE="1",
         ),
     )
 ]

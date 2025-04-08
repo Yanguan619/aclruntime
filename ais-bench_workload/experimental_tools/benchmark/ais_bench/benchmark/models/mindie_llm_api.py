@@ -68,6 +68,11 @@ class MindieLLMModel(PerformanceModel):
         for key, value in environ_kwargs.items():
             os.environ[key] = value
 
+        if environ_kwargs.get("ATB_LLM_BENCHMARK_ENABLE") == "1":
+            cur_dir = os.path.dirname(os.path.abspath(__file__))
+            self.pa_runner_perf_file_path = os.path.join(cur_dir, "../../../benchmark.csv")
+            os.environ["ATB_LLM_BENCHMARK_FILEPATH"] = self.pa_runner_perf_file_path
+
     def check_pa_runner(self):
         if self.pa_runner == None:
             raise RuntimeError("Model loading failed")

@@ -29,6 +29,7 @@ models = [
         ignore_eos = False,  # 是否忽略推理终止符
         input_length = 4096,  # 初始化推理对象参数，input长度
         output_length = 512,  # 初始化推理对象参数，output长度
+        input_token_len = 16,
         run_cfg = dict(num_gpus=2, num_procs=2),  # 多卡/多机多卡 参数，使用torchrun拉起任务
 
         environ_kwargs = dict(  # mindie-llm推理后端所需的环境变量配置, 此处是qwen模型所需的环境变量

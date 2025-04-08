@@ -51,6 +51,7 @@ class MindieLLMModel(PerformanceModel):
         self.input_length = kwargs.get('input_length')
         self.output_length = kwargs.get('output_length')
         self.decode_batch_size = kwargs.get('decode_batch_size')
+        self.input_token_len = kwargs.get('input_token_len', None)
         self.logger = get_logger()
         self.pa_runner = None
         self.batch_latencies = []
@@ -157,6 +158,9 @@ class MindieLLMModel(PerformanceModel):
         Returns:
             List[str]: A list of generated strings.
         """
+        if self.input_token_len is not None: # enable token_input
+            inputs = self._trans_to_input_ids(inputs)
+
         with torch.no_grad():
             generate_texts, _, e2e_latency_per_bs = self.pa_runner.infer(inputs,
                                                         len(inputs),
@@ -170,6 +174,16 @@ class MindieLLMModel(PerformanceModel):
         else:
             return generate_texts
 
+    def _trans_to_input_ids(self, inputs: List[str]):
+        input_ids_list = []
+        for input in inputs:
+            input_ids_list.append(self.tokenizer.encode(input))
+        return input_ids_list
+
+    def _padding_input_ids(self, input_ids: list):
+        while (len(input_ids) < self.input_token_len):
+            input_ids = input_ids.extend(input_ids)
+        return input_ids[:self.input_token_len]
 
     def get_token_len(self, prompt: str) -> int:
         """Get lengths of the tokenized strings.

@@ -2,6 +2,7 @@ from ais_bench.benchmark.models import HuggingFacewithChatTemplate
 
 models = [
     dict(
+        attr="local", # local or service
         type=HuggingFacewithChatTemplate, # transformers >= 4.33.0 用这个，prompt 是构造成对话格式
         abbr='hf-chat-model',
         path='THUDM/chatglm-6b', # path to model dir, current value is just a example

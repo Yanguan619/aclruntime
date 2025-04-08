@@ -3,6 +3,7 @@ from ais_bench.benchmark.models import HuggingFaceCausalLM
 
 models = [
     dict(
+        attr="local", # local or service
         type=HuggingFaceCausalLM, # 通过AutoModelForCausalLM.from_pretrained 加载模型
         abbr='hf-causal-lm',
         path='THUDM/chatglm-6b', # path to model dir, current value is just a example

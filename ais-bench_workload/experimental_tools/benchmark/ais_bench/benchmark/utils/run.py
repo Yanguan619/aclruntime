@@ -189,7 +189,7 @@ def get_config_type(obj) -> str:
 
 def get_models_attr(cfg):
     attr_list = []
-    for model_cfg in cfg['datasets']:
+    for model_cfg in cfg['models']:
         attr = model_cfg.get('attr', 'service') # default service
         if attr not in ['local', 'service']:
             raise ValueError(f"Model config contain illegal attr, model abbr is {model_cfg.get('abbr')}")

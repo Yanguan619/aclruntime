@@ -195,7 +195,6 @@ class MindieLLMModel(PerformanceModel):
                     non_first_token_throughput = len(inputs) / non_first_token_time
                 except ZeroDivisionError:
                     non_first_token_throughput = 0
-                non_first_token_throughput_total_dataset += non_first_token_throughput
                 e2e_throughput = len(inputs) * max_out_len / e2e_latency_per_bs
 
                 self.logger.info(

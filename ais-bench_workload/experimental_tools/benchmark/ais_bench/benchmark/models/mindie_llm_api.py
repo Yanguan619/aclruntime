@@ -215,6 +215,7 @@ class MindieLLMModel(PerformanceModel):
 
                 self.detail_perf_datas.append(
                     dict(
+                        batch_size = len(inputs),
                         seq_len_in = self.input_token_len,
                         seq_len_out = max_out_len,
                         total_time = e2e_latency_per_bs,

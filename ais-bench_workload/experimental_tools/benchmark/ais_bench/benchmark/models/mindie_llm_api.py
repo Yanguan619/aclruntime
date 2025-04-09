@@ -88,7 +88,7 @@ class MindieLLMModel(PerformanceModel):
 
     def handle_perf_result(self, output_filepath):
         e2e_latency = sum(self.batch_latencies)
-        if self.pa_runner_perf_file_path is not None: # get pa runner special performance data
+        if self.pa_runner_perf_file_path is not None and self.input_token_len is not None: # get pa runner special performance data
             if not os.path.exists(output_filepath):
                 os.makedirs(output_filepath, mode=0o750)
             json_path = os.path.join(output_filepath, "pa_runner_special_perf_data.json")
@@ -187,7 +187,7 @@ class MindieLLMModel(PerformanceModel):
 
         if hasattr(self, "is_performance") and self.is_performance:
             self.batch_latencies.append(e2e_latency_per_bs)
-            if self.pa_runner_perf_file_path is not None: # get pa runner special performance data
+            if self.pa_runner_perf_file_path is not None and self.input_token_len is not None: # get pa runner special performance data
                 with open(self.pa_runner_perf_file_path, mode='r', encoding='utf-8') as file:
                     csv_reader = csv.reader(file)
                     next(csv_reader)

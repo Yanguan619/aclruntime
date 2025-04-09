@@ -94,6 +94,7 @@ class MindieLLMModel(PerformanceModel):
             json_path = os.path.join(output_filepath, "pa_runner_special_perf_data.json")
             with open(json_path, "w") as file:
                 json.dump(self.detail_perf_datas, file, ensure_ascii=False, indent=4)
+            self.logger.info(f"PARUNNER special performance datas saved in {json_path}")
 
         return {"e2e_latency":str(round(e2e_latency * 1000, 4)) + ' ms'}
 

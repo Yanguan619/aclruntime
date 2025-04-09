@@ -185,7 +185,7 @@ class MindieLLMModel(PerformanceModel):
         if hasattr(self, "is_performance") and self.is_performance:
             self.batch_latencies.append(e2e_latency_per_bs)
             if self.pa_runner_perf_file_path is not None: # get pa runner special performance data
-                with open('data.csv', mode='r', encoding='utf-8') as file:
+                with open(self.pa_runner_perf_file_path, mode='r', encoding='utf-8') as file:
                     csv_reader = csv.reader(file)
                     next(csv_reader)
                     second_row = next(csv_reader)

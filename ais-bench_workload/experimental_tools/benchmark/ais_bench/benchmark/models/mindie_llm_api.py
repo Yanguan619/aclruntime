@@ -1,6 +1,7 @@
 import os
 import sys
 import csv
+import json
 
 from typing import Dict, List, Optional, Union
 
@@ -87,6 +88,10 @@ class MindieLLMModel(PerformanceModel):
 
     def handle_perf_result(self, output_filepath):
         e2e_latency = sum(self.batch_latencies)
+        if self.pa_runner_perf_file_path is not None: # get pa runner special performance data
+            with open(os.path.join(output_filepath, "pa_runner_special_perf_data.json"), "w", encoding='utf-8') as file:
+                json.dump(self.detail_perf_datas, file, ensure_ascii=False, indent=4)
+
         return {"e2e_latency":str(round(e2e_latency * 1000, 4)) + ' ms'}
 
     def get_model_or_runner(self, input_length, output_length, warmup_bs=0):
@@ -177,47 +182,46 @@ class MindieLLMModel(PerformanceModel):
                                                         self.ignore_eos,
                                                         self.is_chat_model)
 
-        if self.pa_runner_perf_file_path is not None: # get pa runner manul performance data
-            with open('data.csv', mode='r', encoding='utf-8') as file:
-                csv_reader = csv.reader(file)
-                next(csv_reader)
-                second_row = next(csv_reader)
-                first_token_time = float(second_row[4]) / 1000
-                non_first_token_time = float(second_row[5]) / 1000
-            try:
-                non_first_token_throughput = len(inputs) / non_first_token_time
-            except ZeroDivisionError:
-                non_first_token_throughput = 0
-            non_first_token_throughput_total_dataset += non_first_token_throughput
-            e2e_throughput = len(inputs) * max_out_len / e2e_latency_per_bs
-
-            self.logger.info(
-                "seq_len_in: %d, seq_len_out: %d, total_time: %f,"
-                "first_token_time(ms): %f,"
-                "non_first_token_time(ms): %f,"
-                "non_first_token_throughput: %f,"
-                "e2e_time: %f, e2e_throughput: %f",
-                self.input_token_len, max_out_len, e2e_latency_per_bs,
-                first_token_time * 1000,
-                non_first_token_time * 1000,
-                non_first_token_throughput,
-                e2e_latency_per_bs, e2e_throughput
-            )
-
-            self.detail_perf_datas.append(
-                dict(
-                    seq_len_in = self.input_token_len,
-                    seq_len_out = max_out_len,
-                    total_time = e2e_latency_per_bs,
-                    first_token_time = first_token_time * 1000,
-                    non_first_token_time = non_first_token_time * 1000,
-                    e2e_time = e2e_latency_per_bs,
-                    e2e_throughput = e2e_throughput
-                )
-            )
-
         if hasattr(self, "is_performance") and self.is_performance:
             self.batch_latencies.append(e2e_latency_per_bs)
+            if self.pa_runner_perf_file_path is not None: # get pa runner special performance data
+                with open('data.csv', mode='r', encoding='utf-8') as file:
+                    csv_reader = csv.reader(file)
+                    next(csv_reader)
+                    second_row = next(csv_reader)
+                    first_token_time = float(second_row[4]) / 1000
+                    non_first_token_time = float(second_row[5]) / 1000
+                try:
+                    non_first_token_throughput = len(inputs) / non_first_token_time
+                except ZeroDivisionError:
+                    non_first_token_throughput = 0
+                non_first_token_throughput_total_dataset += non_first_token_throughput
+                e2e_throughput = len(inputs) * max_out_len / e2e_latency_per_bs
+
+                self.logger.info(
+                    "seq_len_in: %d, seq_len_out: %d, total_time: %f,"
+                    "first_token_time(ms): %f,"
+                    "non_first_token_time(ms): %f,"
+                    "non_first_token_throughput: %f,"
+                    "e2e_time: %f, e2e_throughput: %f",
+                    self.input_token_len, max_out_len, e2e_latency_per_bs,
+                    first_token_time * 1000,
+                    non_first_token_time * 1000,
+                    non_first_token_throughput,
+                    e2e_latency_per_bs, e2e_throughput
+                )
+
+                self.detail_perf_datas.append(
+                    dict(
+                        seq_len_in = self.input_token_len,
+                        seq_len_out = max_out_len,
+                        total_time = e2e_latency_per_bs,
+                        first_token_time = first_token_time * 1000,
+                        non_first_token_time = non_first_token_time * 1000,
+                        e2e_time = e2e_latency_per_bs,
+                        e2e_throughput = e2e_throughput
+                    )
+                )
             return None
         else:
             return generate_texts

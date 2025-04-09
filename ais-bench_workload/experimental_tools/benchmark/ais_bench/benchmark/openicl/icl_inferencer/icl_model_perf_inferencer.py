@@ -97,8 +97,8 @@ class GenModelPerfInferencer(GenInferencer):
 
         self.model.set_performance()
 
-        output_filepath = output_filepath or self.output_json_filepath
-        output_filename = output_filename or self.output_json_filename
+        output_filepath = output_filepath
+        output_filename = output_filename
 
         logger.info("Starting performance inference process...")
 

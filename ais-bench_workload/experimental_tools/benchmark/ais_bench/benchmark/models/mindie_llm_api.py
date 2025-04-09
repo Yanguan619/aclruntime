@@ -177,6 +177,7 @@ class MindieLLMModel(PerformanceModel):
         """
         if self.input_token_len is not None: # enable token_input
             inputs = self._trans_to_input_ids(inputs)
+            inputs = [self._padding_input_ids(input_ids) for input_ids in inputs]
 
         with torch.no_grad():
             generate_texts, _, e2e_latency_per_bs = self.pa_runner.infer(inputs,

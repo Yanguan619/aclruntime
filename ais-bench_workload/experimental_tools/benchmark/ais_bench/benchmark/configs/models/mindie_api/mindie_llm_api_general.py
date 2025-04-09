@@ -3,6 +3,7 @@ from ais_bench.benchmark.models import MindieLLMModel
 models = [
     dict(
         type=MindieLLMModel,
+        attr="local", # local or service
         abbr='mindie-llm-api',
         max_out_len = 512,  # 推理接口调用时设定的最大输出长度，建议与下面的output_length相同
 

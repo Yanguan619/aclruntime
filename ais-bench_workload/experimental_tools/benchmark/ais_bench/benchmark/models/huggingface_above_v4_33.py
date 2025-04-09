@@ -481,8 +481,8 @@ class HuggingFacewithChatTemplate(PerformanceModel):
         if min_out_len is not None:
             generation_kwargs['min_new_tokens'] = min_out_len
         generation_kwargs['pad_token_id'] = self.tokenizer.pad_token_id
-        self.logger.info('Generation Args of Huggingface: ')
-        self.logger.info(generation_kwargs)
+        self.logger.debug('Generation Args of Huggingface: ')
+        self.logger.debug(generation_kwargs)
 
         # step-2: conduct model forward to generate output
         start_time = time.perf_counter()

@@ -201,8 +201,8 @@ class MindieLLMModel(PerformanceModel):
                     "seq_len_in: %d, seq_len_out: %d, total_time: %f,"
                     "first_token_time(ms): %f,"
                     "non_first_token_time(ms): %f,"
-                    "non_first_token_throughput: %f,"
-                    "e2e_time: %f, e2e_throughput: %f",
+                    "non_first_token_throughput(1/s): %f,"
+                    "e2e_time(s): %f, e2e_throughput(tokens/s): %f",
                     self.input_token_len, max_out_len, e2e_latency_per_bs,
                     first_token_time * 1000,
                     non_first_token_time * 1000,

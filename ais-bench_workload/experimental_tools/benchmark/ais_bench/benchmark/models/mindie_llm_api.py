@@ -59,15 +59,6 @@ class MindieLLMModel(PerformanceModel):
         self.pa_runner = None
         self.batch_latencies = []
 
-        self.get_model_or_runner(self.input_length, self.output_length)
-        self.check_pa_runner()
-        self.warm_up()
-
-        super().__init__(path=self.weight_dir,
-                         max_seq_len=self.output_length,
-                         tokenizer_only=False,
-                         meta_template=None)
-
         for key, value in environ_kwargs.items():
             os.environ[key] = value
 
@@ -77,6 +68,15 @@ class MindieLLMModel(PerformanceModel):
             os.environ["ATB_LLM_BENCHMARK_FILEPATH"] = self.pa_runner_perf_file_path
             self.ignore_eos = True # out len equal to max_out_len
             self.detail_perf_datas = []
+
+        self.get_model_or_runner(self.input_length, self.output_length)
+        self.check_pa_runner()
+        self.warm_up()
+
+        super().__init__(path=self.weight_dir,
+                         max_seq_len=self.output_length,
+                         tokenizer_only=False,
+                         meta_template=None)
 
     def check_pa_runner(self):
         if self.pa_runner == None:
@@ -89,7 +89,8 @@ class MindieLLMModel(PerformanceModel):
     def handle_perf_result(self, output_filepath):
         e2e_latency = sum(self.batch_latencies)
         if self.pa_runner_perf_file_path is not None: # get pa runner special performance data
-            with open(os.path.join(output_filepath, "pa_runner_special_perf_data.json"), "w", encoding='utf-8') as file:
+            json_path = os.path.join(output_filepath, "pa_runner_special_perf_data.json")
+            with open(json_path, "w") as file:
                 json.dump(self.detail_perf_datas, file, ensure_ascii=False, indent=4)
 
         return {"e2e_latency":str(round(e2e_latency * 1000, 4)) + ' ms'}
@@ -198,7 +199,7 @@ class MindieLLMModel(PerformanceModel):
                 e2e_throughput = len(inputs) * max_out_len / e2e_latency_per_bs
 
                 self.logger.info(
-                    "seq_len_in: %d, seq_len_out: %d, total_time: %f,"
+                    "seq_len_in: %d, seq_len_out: %d, total_time(s): %f,"
                     "first_token_time(ms): %f,"
                     "non_first_token_time(ms): %f,"
                     "non_first_token_throughput(1/s): %f,"

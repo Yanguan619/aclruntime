@@ -32,7 +32,7 @@ class TestClass:
     def test_mindie_llm_base_model_all_gsm8k_str(self, monkeypatch):
         fake_prediction = "123"
         fake_time_str = "aime2024_gen_0_shot_str"
-        datasets_abbr_name = "aime"
+        datasets_abbr_name = "aime2024"
         datasets_script_name = "aime2024_gen_0_shot_str"
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "mindie_llm_api_general", "--datasets", datasets_script_name,
@@ -80,7 +80,7 @@ class TestClass:
     def test_mindie_llm_base_model_all_aime_str_perf(self, monkeypatch):
         fake_prediction = "123"
         fake_time_str = "aime2024_gen_0_shot_str_perf"
-        datasets_abbr_name = "aime"
+        datasets_abbr_name = "aime2024"
         datasets_script_name = "aime2024_gen_0_shot_str"
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "mindie_llm_api_general", "--datasets", datasets_script_name,

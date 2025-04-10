@@ -40,7 +40,7 @@ models = [
             ),
         rank_table_file = "",  # rank_table路径
 
-        environ_kwargs = dict(  # mindie-llm推理后端所需的环境变量配置, 具体模型有所需的环境变量
+        environ_kwargs = dict(  # mindie-llm推理后端所需的环境变量配置, 具体模型有对应所需的环境变量
             ATB_LAYER_INTERNAL_TENSOR_REUSE = "1",
             ATB_OPERATION_EXECUTE_ASYNC = "1",
             ATB_CONVERT_NCHW_TO_ND = "1",

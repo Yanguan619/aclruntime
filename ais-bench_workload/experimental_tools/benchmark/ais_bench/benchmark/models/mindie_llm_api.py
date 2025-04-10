@@ -63,10 +63,6 @@ class MindieLLMAPI(BaseModel):
                 os.environ['WORLD_SIZE'] = str(self.world_size)
             except Exception as e:
                 raise TypeError("world_size invalid") from e
-        self.run_cfg = kwargs.get('run_cfg')
-        self.nnodes = self.run_cfg.get('nnodes')
-        self.master_addr = self.run_cfg.get('master_addr')
-        self.check_rank_table()
 
         self.get_model_or_runner(self.input_length, self.output_length)
         self.check_pa_runner()
@@ -85,31 +81,6 @@ class MindieLLMAPI(BaseModel):
 
     def warm_up(self):
         self.pa_runner.warm_up()
-
-
-    def check_rank_table(self):
-        with open(self.rank_table_file, "r") as f:
-            ranktable = json.load(f)
-        world_size = 0
-        server_list = ranktable["server_list"]
-        for server in server_list:
-            world_size += len(server["device"])
-        nnodes = ranktable["server_count"]
-        master_addr = ""
-
-        for server in server_list:
-            for device in server["device"]:
-                if device["rank_id"] == "0":
-                    master_addr = server["server_id"]
-
-        if str(world_size) != self.world_size:
-            self.logger.error("World size does not match with ranktable file")
-
-        if nnodes != self.nnodes:
-            self.logger.error("Node num does not match with ranktable file")
-        
-        if master_addr != self.master_addr:
-            self.logger.error("Master address does not match with ranktable file")
 
 
     def get_model_or_runner(self, input_length, output_length, warmup_bs=0):

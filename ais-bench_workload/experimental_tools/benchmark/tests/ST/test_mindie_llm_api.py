@@ -77,6 +77,7 @@ class TestClass:
         vis_md_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.md")
         assert os.path.exists(vis_md_path)
 
+    # this case monk to model is not effective, need to use ASCEND_RT_VISIBLE_DEVICES
     def test_mindie_llm_base_model_all_aime_str_perf(self, monkeypatch):
         fake_prediction = "123"
         fake_time_str = "aime2024_gen_0_shot_str_perf"

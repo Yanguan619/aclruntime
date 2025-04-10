@@ -124,7 +124,7 @@ class GenModelPerfInferencer(GenInferencer):
             os.makedirs(output_filepath, exist_ok=True)
             dump_results_dict(
                 perf_results,
-                osp.join(output_filepath, output_filename + ".json"),
+                osp.join(output_filepath, output_filename),
             )
         #Summary
         logger.info(f"Performance results is {perf_results}")

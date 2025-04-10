@@ -109,7 +109,7 @@ class TestClass:
         assert os.path.exists(perf_data_path)
         with open(perf_data_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
-        assert data.get("e2e_throughput") is not None
+        assert data.get("e2e_latency") is not None
 
         # check perf special out
         perf_sp_data_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/mindie-llm-api/pa_runner_special_perf_data__{datasets_abbr_name}.json")

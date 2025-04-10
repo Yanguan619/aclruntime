@@ -31,9 +31,9 @@ class TestClass:
 
     def test_mindie_llm_base_model_all_gsm8k_str(self, monkeypatch):
         fake_prediction = "123"
-        fake_time_str = "gsm8k_gen_4_shot_str"
-        datasets_abbr_name = "gsm8k"
-        datasets_script_name = "gsm8k_gen_4_shot_cot_str"
+        fake_time_str = "aime2024_gen_0_shot_str"
+        datasets_abbr_name = "aime"
+        datasets_script_name = "aime2024_gen_0_shot_str"
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "mindie_llm_api_general", "--datasets", datasets_script_name,
             "--mode", "all", "-w", self.test_data_path, "--summarizer", "example"])

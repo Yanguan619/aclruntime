@@ -165,7 +165,7 @@ class OpenICLPerfTask(BaseTask):
             return self.inferencer.get_data_list(retriever, ice_template=ice_template)
 
     def do_performance(self):
-        out_path = get_infer_output_path(
+        out_path = get_perf_output_path(
             self.model_cfg, self.dataset_cfg, osp.join(self.work_dir, "performances")
         )
         out_dir, out_name = osp.split(out_path)

@@ -112,7 +112,7 @@ class TestClass:
         assert data.get("e2e_latency") is not None
 
         # check perf special out
-        perf_sp_data_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/mindie-llm-api/pa_runner_special_perf_data__{datasets_abbr_name}.json")
+        perf_sp_data_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/mindie-llm-api/pa_runner_special_perf_data_{datasets_abbr_name}.json")
         with open(perf_sp_data_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
         for round in data:

@@ -170,7 +170,7 @@ class OpenICLPerfTask(BaseTask):
         )
         out_dir, out_name = osp.split(out_path)
         mkdir_or_exist(out_dir)
-        self.inferencer.inference(self.entry, self.golds, out_path, out_name)
+        self.inferencer.inference(self.entry, self.golds, out_dir, out_name)
 
     def get_log_path(self, file_extension: str = "json") -> str:
         """Get the path to the log file.

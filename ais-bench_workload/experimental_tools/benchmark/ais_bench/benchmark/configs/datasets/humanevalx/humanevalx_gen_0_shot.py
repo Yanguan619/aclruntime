@@ -18,9 +18,7 @@ humanevalx_eval_cfg_dict = {
         evaluator=dict(
             type=HumanevalXEvaluator,
 
-            language=lang,
-            ip_address=
-            'localhost'),
+            language=lang),
         pred_role='BOT')
     for lang in ['python', 'cpp', 'go', 'java', 'js']  # do not support rust now
 }

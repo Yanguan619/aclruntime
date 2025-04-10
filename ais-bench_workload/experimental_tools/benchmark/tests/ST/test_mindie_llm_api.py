@@ -81,7 +81,7 @@ class TestClass:
     def test_mindie_llm_base_model_all_aime_str_perf(self, monkeypatch):
         fake_prediction = "123"
         fake_time_str = "aime2024_gen_0_shot_str_perf"
-        datasets_abbr_name = "aime"
+        datasets_abbr_name = "aime2024dataset"
         datasets_script_name = "aime2024_gen_0_shot_str"
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "mindie_llm_api_general", "--datasets", datasets_script_name,
@@ -112,7 +112,7 @@ class TestClass:
         assert data.get("e2e_throughput") is not None
 
         # check perf special out
-        perf_sp_data_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/mindie-llm-api//pa_runner_special_perf_data__{datasets_abbr_name}.json")
+        perf_sp_data_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/mindie-llm-api/pa_runner_special_perf_data__{datasets_abbr_name}.json")
         with open(perf_sp_data_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
         for key in ["batch_size", "seq_len_in", "seq_len_out", "total_time", "first_token_time", "non_first_token_time", "e2e_time", "e2e_throughput"]:

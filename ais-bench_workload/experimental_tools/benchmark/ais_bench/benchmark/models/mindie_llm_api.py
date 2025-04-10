@@ -91,7 +91,7 @@ class MindieLLMModel(PerformanceModel):
         if self.pa_runner_perf_file_path is not None and self.input_token_len is not None: # get pa runner special performance data
             if not os.path.exists(output_filepath):
                 os.makedirs(output_filepath, mode=0o750)
-            json_path = os.path.join(output_filepath, f"pa_runner_special_perf_data_{output_filename}")
+            json_path = os.path.join(output_filepath, f"pa_runner_special_perf_data_{output_filename}.json")
             with open(json_path, "w") as file:
                 json.dump(self.detail_perf_datas, file, ensure_ascii=False, indent=4)
             self.logger.info(f"PARUNNER special performance datas saved in {json_path}")

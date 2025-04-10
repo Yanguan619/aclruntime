@@ -39,19 +39,19 @@ class TestClass:
             "--mode", "all", "-w", self.test_data_path, "--summarizer", "example"])
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         monkeypatch.setattr(
-            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMAPI.check_pa_runner",
+            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMModel.check_pa_runner",
             (lambda *arg, **kwargs: None))
         monkeypatch.setattr(
-            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMAPI.warm_up",
+            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMModel.warm_up",
             (lambda *arg, **kwargs: None))
         monkeypatch.setattr(
-            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMAPI.get_model_or_runner",
+            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMModel.get_model_or_runner",
             (lambda *arg, **kwargs: None))
         monkeypatch.setattr(
-            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMAPI.generate",
+            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMModel.generate",
             (lambda self, inputs, *arg, **kwargs: [fake_prediction for _ in range(len(inputs))]))
         monkeypatch.setattr(
-            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMAPI.get_token_len",
+            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMModel.get_token_len",
             (lambda *arg, **kwargs: 512))
         main()
 
@@ -86,19 +86,19 @@ class TestClass:
             "--mode", "perf", "-w", self.test_data_path, "--summarizer", "example"])
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         monkeypatch.setattr(
-            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMAPI.check_pa_runner",
+            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMModel.check_pa_runner",
             (lambda *arg, **kwargs: None))
         monkeypatch.setattr(
-            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMAPI.warm_up",
+            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMModel.warm_up",
             (lambda *arg, **kwargs: None))
         monkeypatch.setattr(
-            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMAPI.get_model_or_runner",
+            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMModel.get_model_or_runner",
             (lambda *arg, **kwargs: None))
         monkeypatch.setattr(
-            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMAPI.generate",
+            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMModel.generate",
             (lambda self, inputs, *arg, **kwargs: [fake_prediction for _ in range(len(inputs))]))
         monkeypatch.setattr(
-            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMAPI.get_token_len",
+            "ais_bench.benchmark.models.mindie_llm_api.MindieLLMModel.get_token_len",
             (lambda *arg, **kwargs: 512))
         main()
 

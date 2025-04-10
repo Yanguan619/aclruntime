@@ -23,7 +23,7 @@ class PerformanceModel(BaseModel):
         )
         self.do_performance = False
 
-    def handle_perf_result(self, output_filepath):
+    def handle_perf_result(self, output_filepath, output_filename):
         pass
 
     def set_performance(self):

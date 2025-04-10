@@ -117,7 +117,7 @@ class GenModelPerfInferencer(GenInferencer):
                 data = entry[i:i + self.concurrency]
                 results = self.model.generate_from_template(
                         data, max_out_len=self.max_out_len, **extra_gen_kwargs)
-        perf_results = self.model.handle_perf_result(output_filepath)
+        perf_results = self.model.handle_perf_result(output_filepath, output_filename)
 
         #Save performance results
         if self.is_main_process:

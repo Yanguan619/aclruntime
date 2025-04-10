@@ -555,7 +555,7 @@ class HuggingFaceBaseModel(HuggingFacewithChatTemplate):
             if v is not None:
                 self.logger.warning(f'Unused argument {k}={v}')
 
-    def handle_perf_result(self):
+    def handle_perf_result(self, output_filepath, output_filename):
         e2e_latency = max(self.timestamps) - min(self.timestamps)
         return {"e2e_latency":str(round(e2e_latency, 4)) + ' ms'}
 

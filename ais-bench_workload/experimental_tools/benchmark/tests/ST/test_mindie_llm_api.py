@@ -85,7 +85,6 @@ class TestClass:
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "mindie_llm_api_general", "--datasets", datasets_script_name,
             "--mode", "perf", "-w", self.test_data_path, "--summarizer", "example"])
-        monkeypatch.setattr("ais_bench.benchmark.utils.run.get_models_attr", lambda *arg: "service")
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         monkeypatch.setattr(
             "ais_bench.benchmark.models.mindie_llm_api.MindieLLMModel.check_pa_runner",

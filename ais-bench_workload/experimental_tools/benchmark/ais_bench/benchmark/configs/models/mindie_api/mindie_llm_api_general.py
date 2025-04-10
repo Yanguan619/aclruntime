@@ -1,9 +1,9 @@
-from ais_bench.benchmark.models import MindieLLMAPI
+from ais_bench.benchmark.models import MindieLLMModel
 
 models = [
     dict(
+        type=MindieLLMModel,
         attr="local", # local or service
-        type=MindieLLMAPI,
         abbr='mindie-llm-api',
         max_out_len = 512,  # 推理接口调用时设定的最大输出长度，建议与下面的output_length相同
 
@@ -12,7 +12,7 @@ models = [
         block_size = 128,  # 初始化推理对象所需参数，预先计算内存所需的参数
         model_name = "qwen",  # 模型名称
         data_type = "bf16",  # 模型配置数据类型
-        weight_dir = "/data1/Qwen2.5-7B-Instruct",  # 模型权重路径
+        weight_dir = "/data/Qwen2.5-7B-Instruct",  # 模型权重路径
         max_position_embedding = -1,  # 初始化推理对象所需参数，-1表示使用input_length + output_length
         is_chat_model = False,  # 是否使用chat模板
         decode_batch_size = 32,  # decode阶段的batchsize，与数据集推理时设定的batchsize相同
@@ -31,6 +31,7 @@ models = [
         ignore_eos = False,  # 是否忽略推理终止符
         input_length = 4096,  # 初始化推理对象参数，input长度
         output_length = 1024,  # 初始化推理对象参数，output长度
+        input_token_len = 16,
         run_cfg = dict( # 多卡/多机多卡 参数，使用torchrun拉起任务
             num_gpus=2,     # 当前机器下使用的卡数
             num_procs=2,    # 当前机器下使用的进程数
@@ -39,7 +40,7 @@ models = [
             master_addr="localhost",   # 主机器的IP地址
             ),
         rank_table_file = "",  # rank_table路径
-
+        
         environ_kwargs = dict(  # mindie-llm推理后端所需的环境变量配置, 具体模型有对应所需的环境变量
             ATB_LAYER_INTERNAL_TENSOR_REUSE = "1",
             ATB_OPERATION_EXECUTE_ASYNC = "1",
@@ -54,6 +55,7 @@ models = [
             HCCL_DETERMINISTIC = "true",
             ATB_MATMUL_SHUFFLE_K_ENABLE = "0",
             ENABLE_GREEDY_SEARCH_OPT = "0",   # BoolQ数据数据集精度测评环境变量
+            ATB_LLM_BENCHMARK_ENABLE="1", # dump pa runner特殊的debug性能数据 #
         ),
     )
 ]

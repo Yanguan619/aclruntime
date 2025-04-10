@@ -102,23 +102,16 @@ class TestClass:
             (lambda *arg, **kwargs: 512))
         main()
 
-        # check perf out
+        # check perf standard out
         perf_data_path = os.path.join(self.test_data_path, f"{fake_time_str}/performance/mindie-llm-api/{datasets_abbr_name}.json")
         assert os.path.exists(perf_data_path)
         with open(perf_data_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
-        assert data.get(f"0").get("prediction") == fake_prediction
+        assert data.get("e2e_throughput") is not None
 
-        # check eval out
-        results_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/results/mindie-llm-api/{datasets_abbr_name}.json")
-        with open(results_json_path, 'r', encoding='utf-8') as file:
+        # check perf special out
+        perf_sp_data_path = os.path.join(self.test_data_path, f"{fake_time_str}/results/mindie-llm-api/pa_runner_special_perf_data__{datasets_abbr_name}.json")
+        with open(perf_sp_data_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
-        assert data.get("accuracy") is not None
-
-        # check vis
-        vis_csv_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.csv")
-        assert os.path.exists(vis_csv_path)
-        vis_txt_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.txt")
-        assert os.path.exists(vis_txt_path)
-        vis_md_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.md")
-        assert os.path.exists(vis_md_path)
+        for key in ["batch_size", "seq_len_in", "seq_len_out", "total_time", "first_token_time", "non_first_token_time", "e2e_time", "e2e_throughput"]:
+            assert data.get(key) is not None

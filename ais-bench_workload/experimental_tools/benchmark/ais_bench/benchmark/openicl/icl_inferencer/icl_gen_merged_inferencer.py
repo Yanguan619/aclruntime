@@ -130,6 +130,7 @@ class GenMergedInferencer(GenInferencer):
                 logger.warning('The concurrency is set, continous infer will be turned on, '
                            'intermediate results will not be saved')
             extra_gen_kwargs = self._build_extra_gen_kwargs()
+            num_return_sequences = getattr(self.model, 'generation_kwargs', {}).get('num_return_sequences', 1)
             start_time_stamp = time.time()
             with torch.no_grad():
                 parsed_entries = self.model.parse_template(entry, mode='gen')

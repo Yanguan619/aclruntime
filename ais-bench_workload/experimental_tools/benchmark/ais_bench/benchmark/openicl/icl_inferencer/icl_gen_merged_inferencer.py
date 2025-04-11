@@ -57,13 +57,6 @@ class GenMergedInferencer(GenInferencer):
         )
         self.metrics_calculator = None
         self.concurrency = kwargs.get('concurrency')
-        if self.concurrency:
-            if self.concurrency > 4096 or self.concurrency <= 0:
-                logger.warning(f'concurrency must be in [1, 4096], but get {self.concurrency}, '
-                               'continous infer will not be enable')
-            else:
-                logger.warning('The concurrency is set, continous infer will be turned on, '
-                           'intermediate results will not be saved')
         self.is_synthetic = is_synthetic
 
     def _build_extra_gen_kwargs(self) -> dict:
@@ -130,6 +123,12 @@ class GenMergedInferencer(GenInferencer):
                                          'tmp_' + output_json_filename)
 
         if self.concurrency: # continous batch run
+            if self.concurrency > 4096 or self.concurrency <= 0:
+                logger.warning(f'concurrency must be in [1, 4096], but get {self.concurrency}, '
+                               'continous infer will not be enable')
+            else:
+                logger.warning('The concurrency is set, continous infer will be turned on, '
+                           'intermediate results will not be saved')
             extra_gen_kwargs = self._build_extra_gen_kwargs()
             start_time_stamp = time.time()
             with torch.no_grad():

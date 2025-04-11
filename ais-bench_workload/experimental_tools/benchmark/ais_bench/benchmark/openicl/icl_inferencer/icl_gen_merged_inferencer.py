@@ -124,8 +124,10 @@ class GenMergedInferencer(GenInferencer):
         if total_ds_len != len(golds):
             raise ValueError("length of entry and golds is not equal")
 
-        round = math.ceil(total_ds_len / self.batch_size)
-        for i in tqdm(range(round), desc="Batch Infer Processing", unit="batch", dynamic_ncols=True):
+        end_round = math.ceil(total_ds_len / self.batch_size)
+        start_round = (index + 1) / self.batch_size
+
+        for i in tqdm(range(start_round, end_round), desc="Batch Infer Processing", unit="batch", dynamic_ncols=True):
             if total_ds_len % self.batch_size != 0 and i == round - 1:
                 entry_per_bs = entry[i * self.batch_size:]
                 golds_per_bs = golds[i * self.batch_size:]

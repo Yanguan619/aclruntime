@@ -213,6 +213,12 @@ class GenInferencer(BaseInferencer):
             for datum in tqdm(dataloader, disable=not self.is_main_process):
                 entry, golds = self.extract_data(ds_reader, datum)
                 # 5-1. Inference with local model
+                extra_gen_kwargs = {}
+                sig = inspect.signature(self.model.generate)
+                if 'stopping_criteria' in sig.parameters:
+                    extra_gen_kwargs['stopping_criteria'] = self.stopping_criteria
+                if 'min_out_len' in sig.parameters:
+                    extra_gen_kwargs['min_out_len'] = self.min_out_len
                 with torch.no_grad():
                     parsed_entries = self.model.parse_template(entry, mode='gen')
                     results = self.model.generate_from_template(

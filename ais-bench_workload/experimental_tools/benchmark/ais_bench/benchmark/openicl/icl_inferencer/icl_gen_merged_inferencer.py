@@ -175,7 +175,7 @@ class GenMergedInferencer(GenInferencer):
             start_round = int((index + 1) / self.batch_size)
 
             for i in tqdm(range(start_round, end_round), desc="Batch Infer Processing", unit="batch", dynamic_ncols=True):
-                if total_ds_len % self.batch_size != 0 and i == round - 1:
+                if total_ds_len % self.batch_size != 0 and i == end_round - 1:
                     entry_per_bs = entry[i * self.batch_size:]
                     golds_per_bs = golds[i * self.batch_size:]
                 else:

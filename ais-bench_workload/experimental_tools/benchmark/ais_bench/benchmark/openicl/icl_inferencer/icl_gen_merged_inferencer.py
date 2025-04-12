@@ -173,6 +173,7 @@ class GenMergedInferencer(GenInferencer):
 
             end_round = math.ceil(total_ds_len / self.batch_size)
             start_round = math.floor((index + 1) / self.batch_size)
+            index = self.batch_size * start_round - 1
 
             for i in tqdm(range(start_round, end_round), desc="Batch Infer Processing", unit="batch", dynamic_ncols=True):
                 if total_ds_len % self.batch_size != 0 and i == end_round - 1:

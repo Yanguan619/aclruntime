@@ -99,6 +99,8 @@ class OpenICLEvalMergedTask(OpenICLEvalTask):
             test_set_list = [t_set.map(postprocess) for t_set in test_set_list]
         test_set = concatenate_datasets(test_set_list)
 
+        self.logger.info(f"test_set: {test_set}")
+
         # Load predictions
         filename = get_infer_merged_output_path(
             self.model_cfg, self.dataset_cfg,

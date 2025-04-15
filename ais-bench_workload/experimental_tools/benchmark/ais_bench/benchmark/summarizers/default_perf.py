@@ -71,7 +71,7 @@ class DefaultPerfSummarizer:
 
         for model in self.model_abbrs:
             for dataset in self.dataset_abbrs:
-                perf_result_dir = osp.join(self.work_dir, "performances", model, dataset)
+                perf_result_dir = osp.join(self.work_dir, "performances", model)
                 if osp.exists(osp.join(perf_result_dir, f"{dataset}.csv")):
                     perf_tables[f"{model}/{dataset}"] = self._load_csv_to_table(osp.join(perf_result_dir, f"{dataset}.csv"))
                 elif osp.exists(osp.join(perf_result_dir, f"{dataset}.json")):

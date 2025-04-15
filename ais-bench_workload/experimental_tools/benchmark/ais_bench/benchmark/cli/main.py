@@ -276,6 +276,9 @@ def main():
         if not summarizer_cfg or summarizer_cfg.get('type', None) is None:
             summarizer_cfg['type'] = DefaultPerfSummarizer
         summarizer_cfg['config'] = cfg
+        summarizer_cfg.pop('dataset_abbrs', None)
+        summarizer_cfg.pop('summary_groups', None)
+        summarizer_cfg.pop('prompt_db', None)
         summarizer = build_from_cfg(summarizer_cfg)
         summarizer.summarize()
 

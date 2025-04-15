@@ -69,8 +69,8 @@ class DefaultPerfSummarizer:
         # perf_tables: {"model_abbr/dataset_abbr": result_table}
         perf_tables : Dict[str, []] = {}
 
-        for model in self.model_cfgs:
-            for dataset in self.dataset_cfgs:
+        for model in self.model_abbrs:
+            for dataset in self.dataset_abbrs:
                 perf_result_dir = osp.join(self.work_dir, "performance", model, dataset)
                 if not osp.exists(perf_result_dir):
                     self.logger.warning(f"Can not find performance results of task: {model}/{dataset}, skip.")

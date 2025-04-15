@@ -73,14 +73,14 @@ class DefaultPerfSummarizer:
             for dataset in self.dataset_abbrs:
                 perf_result_dir = osp.join(self.work_dir, "performances", model, dataset)
                 if not osp.exists(perf_result_dir):
-                    self.logger.warning(f"Can not find performance results of task: {model}/{dataset}, skip.")
+                    self.logger.warning(f"Can not find performance results in {perf_result_dir}, skip.")
                     continue
                 if osp.exists(osp.join(perf_result_dir, f"{dataset}.csv")):
                     perf_tables[f"{model}/{dataset}"] = self._load_csv_to_table(osp.join(perf_result_dir, f"{dataset}.csv"))
                 elif osp.exists(osp.join(perf_result_dir, f"{dataset}.json")):
                     perf_tables[f"{model}/{dataset}"] = self._load_json_to_table(osp.join(perf_result_dir, f"{dataset}.json"))
                 else:
-                    self.logger.warning(f"Can not find performance results of in {perf_result_dir}, skip.")
+                    self.logger.warning(f"Can not find performance results in {perf_result_dir}, skip.")
 
         return perf_tables
 

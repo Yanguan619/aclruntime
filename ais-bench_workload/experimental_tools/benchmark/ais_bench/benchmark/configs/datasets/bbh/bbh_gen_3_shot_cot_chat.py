@@ -42,9 +42,9 @@ dataset_path = "ais_bench/datasets/BBH/data" # 数据集路径
 
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../"))
 if not os.path.isabs(dataset_path):
-    shot_file_path = os.path.join(base_path, dataset_path, 'lib_prompt')
+    shot_file_path = os.path.join(base_path, dataset_path, '../lib_prompt')
 else:
-    shot_file_path = os.path.join(dataset_path, 'lib_prompt')
+    shot_file_path = os.path.join(dataset_path, '../lib_prompt')
 
 bbh_datasets = []
 for _name in bbh_multiple_choice_sets:

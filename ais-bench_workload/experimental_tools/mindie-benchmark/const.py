@@ -1,0 +1,58 @@
+class Const:
+    """
+    Class for const
+    """
+    MINDIE_LLM_EXAMPLES = 'mindie_llm_examples'
+    DEFAULT_CONFIG_FILE = 'infer_mindie_llm_general.py'
+    TEMP_CONFIG_FILE = 'temp_modified_config.py'
+    PATH = 'path'
+    DATASETS = 'datasets'
+    BATCH_SIZE = 'batch_size'
+    INPUT_TOKEN_LEN = 'input_token_len'
+    MAX_OUT_LEN = 'max_out_len'
+    ABBR = 'abbr'
+    TASK = 'task'
+    REPLACEMENT_CHARACTER = '_'
+    BS_SEGMENT = '_bs_'
+    DEFAULT_PATH = './'
+    PERFORMANCES = 'performances'
+    OUTPUT_PATH = 'output_path'
+    MODELS = 'models'
+    WORLD_SIZE = 'world_size'
+    UNKNOWN = 'unknown'
+    MODEL_NAME = 'model_name'
+    PERFORMANCE_JSON = 'pa_runner_special_perf_data_gsm8kdataset.json'
+    
+    SEQ_LEN_IN = 'seq_len_in'
+    SEQ_LEN_OUT ='seq_len_out'
+    TOTAL_TIME = 'total_time'
+    FIRST_TOKEN_TIME = 'first_token_time'
+    NON_FIRST_TOKEN_TIME = 'non_first_token_time'
+    NON_FIRST_TOKEN_THROUGHPUT = 'non_first_token_throughput'
+    E2E_THROUGHPUT = 'e2e_throughput'
+    
+    HEADER_MODEL = 'Model'
+    HEADER_BATCH_SIZE = 'Batchsize'
+    HEADER_IN_SEQ = 'In_seq'
+    HEADER_OUT_SEQ = 'Out_seq'
+    HEADER_TIME = 'Total time(s)'
+    HEADER_FIRST_TOKEN_TIME = 'First token time(ms)'
+    HEADER_NON_FIRST_TOKEN_TIME = 'Non-first token time(ms)'
+    HEADER_NON_FIRST_TOKEN_THROUGHPUT = 'Non-first token Throughput(Tokens/s)'
+    HEADER_THROUGHPUT = 'Throughput(Tokens/s)'
+    HEADER_NON_FIRST_TOKEN_THROUGHPUT_AVG = 'Non-first token Throughput Average(Tokens/s)'
+    HEADER_E2E_THROUGHPUT_AVG = 'E2E Throughput Average(Tokens/s)'
+    
+    CSV_HEADER = [
+        HEADER_MODEL,
+        HEADER_BATCH_SIZE,
+        HEADER_IN_SEQ,
+        HEADER_OUT_SEQ,
+        HEADER_TIME,
+        HEADER_FIRST_TOKEN_TIME,
+        HEADER_NON_FIRST_TOKEN_TIME,
+        HEADER_NON_FIRST_TOKEN_THROUGHPUT,
+        HEADER_THROUGHPUT,
+        HEADER_NON_FIRST_TOKEN_THROUGHPUT_AVG,
+        HEADER_E2E_THROUGHPUT_AVG
+    ]

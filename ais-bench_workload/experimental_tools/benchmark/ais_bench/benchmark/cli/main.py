@@ -277,7 +277,7 @@ def main():
             summarizer_cfg['type'] = DefaultPerfSummarizer
         summarizer_cfg['config'] = cfg
         summarizer = build_from_cfg(summarizer_cfg)
-        summarizer.summarize(time_str=cfg_time_str)
+        summarizer.summarize()
 
 
 if __name__ == '__main__':

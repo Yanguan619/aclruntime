@@ -97,7 +97,7 @@ class DefaultPerfSummarizer:
         with open(json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
         for key, value in data.items():
-            table.append[key, value]
+            table.append([key, value])
         return table
 
     def _output_to_screen(self, tables_dict: Dict):

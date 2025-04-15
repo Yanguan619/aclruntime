@@ -103,7 +103,18 @@ class DefaultPerfSummarizer:
     def _output_to_screen(self, tables_dict: Dict):
         for task_name, table in tables_dict.items():
             self.logger.info(f"Performance Results of task: {task_name}: ")
-            print(tabulate.tabulate(table, headers='firstrow', floatfmt='.2f'))
+            print(
+                tabulate.tabulate(
+                    table,
+                    headers='firstrow',
+                    tablefmt="fancy_grid",  # 使用带边框的表格样式
+                    floatfmt=".2f",         # 保留两位小数
+                    numalign="center",      # 数字列居中对齐
+                    stralign="left",        # 文本列左对齐
+                    missingval="N/A",       # 处理空值
+                    colalign=("left",) + ("right",)*(len('firstrow')-1)  # 首列左对齐，其他右对齐
+                )
+            )
 
     def summarize(self):  # noqa
         # pick up results

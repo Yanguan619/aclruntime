@@ -112,7 +112,6 @@ class DefaultPerfSummarizer:
                     numalign="center",      # 数字列居中对齐
                     stralign="left",        # 文本列左对齐
                     missingval="N/A",       # 处理空值
-                    colalign=("left",) + ("right",)*(len('firstrow')-1)  # 首列左对齐，其他右对齐
                 )
             )
 

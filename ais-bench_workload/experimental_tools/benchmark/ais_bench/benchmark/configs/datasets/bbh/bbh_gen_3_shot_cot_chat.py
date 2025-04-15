@@ -38,10 +38,17 @@ bbh_free_form_sets = [
     'causal_judgement',
     'web_of_lies',
 ]
+dataset_path = "ais_bench/datasets/BBH/data" # 数据集路径
+
+base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../"))
+if not os.path.isabs(dataset_path):
+    shot_file_path = os.path.join(base_path, dataset_path, 'lib_prompt')
+else:
+    shot_file_path = os.path.join(dataset_path, 'lib_prompt')
 
 bbh_datasets = []
 for _name in bbh_multiple_choice_sets:
-    with open(os.path.join(os.path.dirname(__file__), 'lib_prompt', f'{_name}.txt'), 'r') as f:
+    with open(os.path.join(shot_file_path, f'{_name}.txt'), 'r') as f:
         _hint = f.read()
     bbh_infer_cfg = dict(
         prompt_template=dict(
@@ -70,14 +77,6 @@ for _name in bbh_multiple_choice_sets:
             reader_cfg=bbh_reader_cfg,
             infer_cfg=bbh_infer_cfg.copy(),
             eval_cfg=bbh_eval_cfg.copy()))
-
-dataset_path = "ais_bench/datasets/BBH/data" # 数据集路径
-
-base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../"))
-if not os.path.isabs(dataset_path):
-    shot_file_path = os.path.join(base_path, dataset_path, 'lib_prompt')
-else:
-    shot_file_path = os.path.join(dataset_path, 'lib_prompt')
 
 for _name in bbh_free_form_sets:
     with open(os.path.join(shot_file_path, f'{_name}.txt'), 'r') as f:

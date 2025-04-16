@@ -50,9 +50,12 @@ def main():
 
     exec_command(modified_config)
 
+    run_cfg = cfg.models[0].get(Const.RUN_CFG, {})
+    node_rank = run_cfg.get(Const.NODE_RANK, 0)
+    
     if not os.path.exists(cfg.work_dir) or not os.listdir(
-                    cfg.work_dir):
-        print('No performance results!')
+                    cfg.work_dir) and node_rank == 0:
+        raise ValueError(f"No performance data found in {cfg.work_dir}. Please check if the run was successful.")
     else:
         dirs = os.listdir(cfg.work_dir)
         dir_time_str = sorted(dirs)[-1]

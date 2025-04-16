@@ -20,6 +20,13 @@ def get_config_from_arg(args):
         else:
             for dataset in cfg.datasets:
                 dataset[Const.PATH] = args.dataset_path
+    
+    if not cfg.models[0].get(Const.BATCH_SIZE, None):
+        for dataset in cfg.datasets:
+            try:
+                del dataset[Const.INFERENCER][Const.INFERENCER][Const.BATCH_SIZE]
+            except (KeyError, TypeError):
+                pass
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     unique_filename = f"temp_modified_config_{uuid.uuid4()}.py"

@@ -64,15 +64,14 @@ def process_task_json(json_path, batch_size, model_name):
 
     for item in data:
         cur_bs = item.get(Const.BATCH_SIZE, 1)
-        if cur_bs < batch_size:
-            continue
-        count += 1
-        for key in sums:
-            if key == Const.NON_FIRST_TOKEN_THROUGHPUT:
-                non_first_token_time = item.get(Const.NON_FIRST_TOKEN_TIME, 0.0)
-                sums[key] += cur_bs / non_first_token_time if non_first_token_time > 0 else 0
-            else:
-                sums[key] += item.get(key, 0.0)
+        if cur_bs >= batch_size or (len(data) == 1 and cur_bs < batch_size):
+            count += 1
+            for key in sums:
+                if key == Const.NON_FIRST_TOKEN_THROUGHPUT:
+                    non_first_token_time = item.get(Const.NON_FIRST_TOKEN_TIME, 0.0)
+                    sums[key] += cur_bs / non_first_token_time if non_first_token_time > 0 else 0
+                else:
+                    sums[key] += item.get(key, 0.0)
     
     for key in sums:
         sums[key] = sums[key] / count if count > 0 else 0

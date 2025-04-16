@@ -8,6 +8,9 @@ from const import Const
 
 def get_config_from_arg(args):
 
+    if not os.path.exists(args.config):
+        raise ValueError(f"Error: Config file {args.config} does not exist.")
+
     cfg = Config.fromfile(args.config)
     
     if not cfg.models:

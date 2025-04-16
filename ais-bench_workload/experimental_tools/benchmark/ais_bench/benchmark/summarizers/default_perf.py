@@ -90,7 +90,7 @@ class DefaultPerfSummarizer:
         return table
 
     def _load_json_to_table(self, json_path):
-        table = [["Performance Parameters", "Avarage"]]
+        table = [["Performance Parameters", "Average"]]
         with open(json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
         for key, value in data.items():

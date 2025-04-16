@@ -118,7 +118,7 @@ def extract_batch_size(folder_name):
 
 def compute_non_first_token_throughput_average(group_data):
     non_first_token_throughput = [data.get(Const.HEADER_NON_FIRST_TOKEN_THROUGHPUT, 0) for data in group_data]
-    if len(non_first_token_throughput) > 1:
+    if len(non_first_token_throughput) > 0:
         non_first_token_throughput_average = sum(non_first_token_throughput) / len(non_first_token_throughput)
     else:
         non_first_token_throughput_average = 0
@@ -128,7 +128,7 @@ def compute_non_first_token_throughput_average(group_data):
 
 def compute_e2e_throughput_average(group_data):
     e2e_throughput = [data.get(Const.HEADER_THROUGHPUT, 0) for data in group_data]
-    if len(e2e_throughput) > 1:
+    if len(e2e_throughput) > 0:
         e2e_throughput_average = sum(e2e_throughput) / len(e2e_throughput)
     else:   
         e2e_throughput_average = 0

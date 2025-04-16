@@ -38,7 +38,7 @@ def parse_args():
     )
     parser.add_argument('--dataset_path', help='The path to the dataset. Default: None.', default=None)
     parser.add_argument('--output_path', help='The path to save the result CSV file. Default: current directory.',
-                        default="")
+                        default="./")
     args = parser.parse_args()
     return args
 
@@ -58,10 +58,9 @@ def main():
         dir_time_str = sorted(dirs)[-1]
         performance_path = os.path.join(cfg.work_dir, dir_time_str, Const.PERFORMANCES)
         cfg[Const.PERFORMANCES] = performance_path
-        output_path = args.output_path if args.ouput_path else Const.DEFAULT_PATH
-        if not os.path.exists(output_path):
-            os.makedirs(output_path, mode=0o750)
-        cfg[Const.OUTPUT_PATH] = output_path
+        if not os.path.exists(args.output_path):
+            os.makedirs(args.output_path, mode=0o750)
+        cfg[Const.OUTPUT_PATH] = args.output_path
 
         process_data(cfg)
 

@@ -56,7 +56,7 @@ class MindieLLMModel(PerformanceModel):
         self.ignore_eos = kwargs.get('ignore_eos')
         self.input_length = kwargs.get('input_length')
         self.output_length = kwargs.get('output_length')
-        self.decode_batch_size = kwargs.get('decode_batch_size')
+        self.batch_size = kwargs.get('batch_size')
         self.input_token_len = kwargs.get('input_token_len', None)
         self.logger = get_logger()
         self.pa_runner = None
@@ -129,7 +129,7 @@ class MindieLLMModel(PerformanceModel):
         trust_remote_code = "trust_remote_code"
 
 
-        prefill_batch_size = self.decode_batch_size if self.prefill_batch_size == 0 else self.prefill_batch_size
+        prefill_batch_size = self.batch_size if self.prefill_batch_size == 0 else self.prefill_batch_size
 
         input_dict = {
             rank: self.rank,
@@ -142,7 +142,7 @@ class MindieLLMModel(PerformanceModel):
                                         if self.max_position_embedding != -1
                                         else input_length + output_length),
             'max_prefill_batch_size': prefill_batch_size,
-            'max_batch_size': warmup_bs if warmup_bs != 0 else self.decode_batch_size,
+            'max_batch_size': warmup_bs if warmup_bs != 0 else self.batch_size,
             max_input_length: input_length,
             max_output_length: output_length,
             'kw_args': self.kw_args,

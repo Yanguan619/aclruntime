@@ -4,7 +4,6 @@ class Const:
     """
     MINDIE_LLM_EXAMPLES = 'mindie_llm_examples'
     DEFAULT_CONFIG_FILE = 'infer_mindie_llm_general.py'
-    TEMP_CONFIG_FILE = 'temp_modified_config.py'
     PATH = 'path'
     DATASETS = 'datasets'
     BATCH_SIZE = 'batch_size'

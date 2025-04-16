@@ -1,4 +1,5 @@
 import os
+import uuid
 from mmengine.config import Config
 
 from utils import process_case_batch
@@ -17,11 +18,12 @@ def get_config_from_arg(args):
         if Const.DATASETS not in cfg.keys() or len(cfg.datasets) < 1:
             print("Warning: dataset_path is specified but no datasets are defined in the config file.")
         else:
-            cfg.datasets[0][Const.PATH] = args.dataset_path
+            for dataset in cfg.datasets:
+                dataset[Const.PATH] = args.dataset_path
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-
-    temp_config_path = os.path.join(script_dir, Const.TEMP_CONFIG_FILE)
+    unique_filename = f"temp_modified_config_{uuid.uuid4()}.py"
+    temp_config_path = os.path.join(script_dir, unique_filename)
 
     cfg.dump(temp_config_path)
     

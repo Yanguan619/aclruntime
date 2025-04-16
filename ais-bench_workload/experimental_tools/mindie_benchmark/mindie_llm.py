@@ -33,8 +33,8 @@ def parse_args():
             '1) A single value (e.g., 1 or [1]), '
             '2) A range (e.g., 1,4 or [1,4]), or '
             '3) Multiple ranges (e.g., [[1,4],[2,8]]). '
-            'Default: 16',
-        default=16
+            'Default: [16]',
+        default=[16]
     )
     parser.add_argument('--dataset_path', help='The path to the dataset. Default: None.', default=None)
     parser.add_argument('--output_path', help='The path to save the result CSV file. Default: current directory.',

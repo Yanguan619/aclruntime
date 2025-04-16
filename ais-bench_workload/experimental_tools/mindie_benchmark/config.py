@@ -21,10 +21,10 @@ def get_config_from_arg(args):
             for dataset in cfg.datasets:
                 dataset[Const.PATH] = args.dataset_path
     
-    if not cfg.models[0].get(Const.BATCH_SIZE, None):
+    if cfg.models[0].get(Const.BATCH_SIZE, None):
         for dataset in cfg.datasets:
             try:
-                del dataset[Const.INFERENCER][Const.INFERENCER][Const.BATCH_SIZE]
+                del dataset[Const.INFER_CFG][Const.INFERENCER][Const.BATCH_SIZE]
             except (KeyError, TypeError):
                 pass
 
@@ -97,6 +97,7 @@ def handle_batch_size_only(model_list, batch_size_list):
             new_model = model.copy()
             new_model.update({
                 Const.BATCH_SIZE: bs,
+                Const.DECODE_BATCH_SIZE: bs,
                 Const.ABBR: (f"{new_model.get(Const.ABBR, Const.TASK)}"
                             f"{Const.REPLACEMENT_CHARACTER}{abbr_num}"
                             f"{Const.BS_SEGMENT}{bs}")
@@ -126,6 +127,7 @@ def handle_both_case_and_batch(model_list, case_pair, batch_size_list):
             new_model = model.copy()
             new_model.update({
                 Const.BATCH_SIZE: bs,
+                Const.DECODE_BATCH_SIZE: bs,
                 Const.INPUT_TOKEN_LEN: case[0],
                 Const.MAX_OUT_LEN: case[1],
                 Const.ABBR: (f"{new_model.get(Const.ABBR, Const.TASK)}"

@@ -60,6 +60,8 @@ def main():
         dirs = os.listdir(cfg.work_dir)
         dir_time_str = sorted(dirs)[-1]
         performance_path = os.path.join(cfg.work_dir, dir_time_str, Const.PERFORMANCES)
+        if not os.path.exists(performance_path):
+            raise ValueError(f"No performance data found in {performance_path}. Please check if the run was successful.")
         cfg[Const.PERFORMANCES] = performance_path
         if not os.path.exists(args.output_path):
             os.makedirs(args.output_path, mode=0o750)

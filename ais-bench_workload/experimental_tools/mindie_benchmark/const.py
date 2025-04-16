@@ -7,6 +7,7 @@ class Const:
     PATH = 'path'
     DATASETS = 'datasets'
     BATCH_SIZE = 'batch_size'
+    DECODE_BATCH_SIZE = 'decode_batch_size'
     INPUT_TOKEN_LEN = 'input_token_len'
     MAX_OUT_LEN = 'max_out_len'
     INFER_CFG = 'infer_cfg'

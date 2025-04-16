@@ -475,7 +475,7 @@ python3 -m ais_bench --model resnet18_bs4_dym_aipp.om --aipp_config actual_aipp_
 ##### 动态batch场景示例，以resnet18模型为例
 ###### atc命令转换出带动态aipp配置的动态batch模型
 ```
-atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_batch_aipp --input_format=NCHW --input_shape="image:-1,3,224,224" --dynamic_batch_size "1,2" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_batch_aipp --input_format=NCHW --input_shape="image:-1,3,224,224" --dynamic_batch_size "1,2" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig
 ```
 ###### ais_bench命令
 ```
@@ -484,7 +484,7 @@ python3 -m ais_bench --model resnet18_dym_batch_aipp.om --aipp_config actual_aip
 ##### 动态宽高场景示例，以resnet18模型为例
 ###### atc命令转换出带动态aipp配置的动态宽高模型
 ```
-atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_image_aipp --input_format=NCHW --input_shape="image:4,3,-1,-1" --dynamic_image_size "112,112;224,224" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig --enable_small_channel=1
+atc --framework=5 --model=./resnet18.onnx --output=resnet18_dym_image_aipp --input_format=NCHW --input_shape="image:4,3,-1,-1" --dynamic_image_size "112,112;224,224" --soc_version=<soc_version> --insert_op_conf=dym_aipp_conf.aippconfig
 ```
 ###### ais_bench命令
 ```

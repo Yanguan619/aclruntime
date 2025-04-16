@@ -24,7 +24,7 @@ def parse_args():
         help='Specify input/output sequence length pairs in the format [[in_len1,out_len1],[in_len2,out_len2], ...]. '
             'Example: [[2048,2048],[1024,1024],[512,512],[256,256]]. '
             'Default: [[2048,2048],[1024,1024],[512,512],[256,256]]',  
-        default=[[2048,2048], [1024,1024], [512,512], [256,256]]
+        default=[[2048,2048],[1024,1024],[512,512],[256,256]]
     )
     parser.add_argument(
         '--batch_size',

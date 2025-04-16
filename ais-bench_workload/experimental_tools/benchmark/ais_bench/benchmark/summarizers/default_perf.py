@@ -111,6 +111,9 @@ class DefaultPerfSummarizer:
                     missingval="N/A",       # 处理空值
                 )
             )
+            model_name = task_name.split("/")[0]
+            perf_result_dir = osp.join(self.work_dir, "performances", model_name)
+            self.logger.info(f"Performance Result files locate in {perf_result_dir}.")
 
     def summarize(self):  # noqa
         # pick up results

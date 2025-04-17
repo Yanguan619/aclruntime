@@ -95,3 +95,6 @@ with read_base():
 
     # humanevalx
     from ais_bench.benchmark.configs.datasets.humanevalx.humanevalx_gen_0_shot import import humanevalx_datasets as humanevalx_0_shot_str
+    
+    # ifeval
+    from ais_bench.benchmark.configs.datasets.ifeval.ifeval_0_shot_gen_str import ifeval_datasets as ifeval_0_shot_gen_str

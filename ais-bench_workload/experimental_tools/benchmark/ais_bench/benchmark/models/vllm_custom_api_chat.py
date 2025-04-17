@@ -215,8 +215,9 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
         self.enable_ssl = enable_ssl
         self.max_chunk_size = 32*2048
         self.base_url = self._get_base_url()
+        self.endpoint_url = os.path.join(self.base_url, "chat/completions")
         self.model = model if model else self._get_service_model_path()
-        self.client = OpenAIChatStreamClient(self.base_url)
+        self.client = OpenAIChatStreamClient(self.endpoint_url)
         super().__init__(path="",
                          max_seq_len=max_seq_len,
                          meta_template=meta_template,
@@ -354,8 +355,8 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
 
     def _get_base_url(self):
         if self.enable_ssl:
-            return f"https://{self.host_ip}:{self.host_port}/v1/chat/completions"
-        return f"http://{self.host_ip}:{self.host_port}/v1/chat/completions"
+            return f"https://{self.host_ip}:{self.host_port}/v1/"
+        return f"http://{self.host_ip}:{self.host_port}/v1/"
 
     def _get_service_model_path(self):
         client = OpenAI(api_key="EMPTY", base_url=self.base_url)

@@ -39,6 +39,7 @@ class OpenAIChatStreamClient(BaseStreamClient, ABC):
         response = {}
         try:
             generated_text = json_content["choices"]["delta"]["content"]
+            print(f"json_content: {json_content}")
         except Exception:
             generated_text = ""
         if generated_text:
@@ -47,7 +48,6 @@ class OpenAIChatStreamClient(BaseStreamClient, ABC):
 
     def update_middle_data(self, res: dict, inputs: MiddleData):
         generated_text = res.get("generated_text", "")
-        print(f"generated_text: {generated_text}")
         if generated_text:
             inputs.output = generated_text
             inputs.num_generated_chars = len(generated_text)

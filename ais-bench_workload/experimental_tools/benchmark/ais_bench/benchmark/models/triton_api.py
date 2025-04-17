@@ -140,9 +140,9 @@ class TritonCustomAPI(BaseAPIModel):
                                   str(raw_response.content))
                 continue
             self.logger.debug(str(response))
-            if response.get('generated_text') is None:
+            if response.get('text_output') is None:
                 raise ValueError(f"Unexpect response: {response}")
-            return response['generated_text']
+            return response['text_output']
 
         raise RuntimeError('Calling triton text API failed after retrying for '
                            f'{max_num_retries} times. Check the logs for '

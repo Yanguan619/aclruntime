@@ -25,7 +25,7 @@ class Const:
     WORLD_SIZE = 'world_size'
     UNKNOWN = 'unknown'
     MODEL_NAME = 'model_name'
-    PERFORMANCE_JSON = 'pa_runner_special_perf_data_gsm8kdataset.json'
+    PERF_JSON_PREFIX = "pa_runner_special_perf_data_"
     
     SEQ_LEN_IN = 'seq_len_in'
     SEQ_LEN_OUT ='seq_len_out'

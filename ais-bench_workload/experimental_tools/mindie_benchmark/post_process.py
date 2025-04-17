@@ -1,5 +1,6 @@
 import os
 import re
+import glob
 from collections import defaultdict
 import json
 import csv
@@ -30,9 +31,8 @@ def get_grouped_data(performance_path, model_name):
             print(f"Skip {task_name}: {e}")
             continue
 
-        json_file = Const.PERFORMANCE_JSON
+        json_path = find_performance_json(task_input_dir)
 
-        json_path = os.path.join(task_input_dir, json_file)
         if not os.path.exists(json_path):
             print(f"Warning: {json_path} not found, skip")
             continue
@@ -43,6 +43,12 @@ def get_grouped_data(performance_path, model_name):
         except Exception as e:
             print(f"Process failed: {task_name}, error: {e}")
     return grouped_data
+
+
+def find_performance_json(task_dir):
+    pattern = os.path.join(task_dir, f"{Const.PERF_JSON_PREFIX}*.json")
+    matched_files = glob.glob(pattern)
+    return matched_files[0] if matched_files else None
 
 
 def process_task_json(json_path, batch_size, model_name):
@@ -69,7 +75,7 @@ def process_task_json(json_path, batch_size, model_name):
             for key in sums:
                 if key == Const.NON_FIRST_TOKEN_THROUGHPUT:
                     non_first_token_time = item.get(Const.NON_FIRST_TOKEN_TIME, 0.0)
-                    sums[key] += cur_bs / non_first_token_time if non_first_token_time > 0 else 0
+                    sums[key] += cur_bs / (non_first_token_time / 1000) if non_first_token_time > 0 else 0
                 else:
                     sums[key] += item.get(key, 0.0)
     

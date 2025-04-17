@@ -38,8 +38,8 @@ class OpenAIChatStreamClient(BaseStreamClient, ABC):
     def process_stream_line(self, json_content: dict) -> dict:
         response = {}
         try:
-            generated_text = json_content["choices"]["delta"]["content"]
             print(f"json_content: {json_content}")
+            generated_text = json_content["choices"]["delta"]["content"]
         except Exception:
             generated_text = ""
         if generated_text:

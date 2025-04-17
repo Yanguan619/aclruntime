@@ -38,7 +38,7 @@ def parse_args():
     )
     parser.add_argument('--dataset_path', help='The path to the dataset. Default: None.', default=None)
     parser.add_argument('--output_path', help='The path to save the result CSV file. Default: current directory.',
-                        default="./")
+                        default=Const.DEFAULT_PATH)
     args = parser.parse_args()
     return args
 

@@ -332,28 +332,6 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
                            f'{max_num_retries} times. Check the logs for '
                            'details.')
 
-    def preprocess_cur_line(self, cur_line: str) -> str:
-        if "\ndata" in cur_line:
-            end_ix = cur_line.find("data: [DONE]")
-            cur_line = cur_line if end_ix < 0 else cur_line[:end_ix]
-            data_blocks = cur_line.strip().split('\n\n')
-            merged_data = None
-            for block in data_blocks:
-                # 去掉 "data: " 前缀并解析 JSON
-                json_str = block.replace('data: ', '')
-                data = json.loads(json_str)
-
-                # 如果是第一条数据，初始化 merged_data
-                if merged_data is None:
-                    merged_data = data
-                else:
-                    # 合并 choices
-                    merged_data['choices'].extend(data['choices'])
-            return json.dumps(merged_data)
-        else:
-            end_ix = cur_line.find("data: [DONE]")
-            return cur_line if end_ix < 0 else cur_line[:end_ix]
-
     def _get_base_url(self):
         if self.enable_ssl:
             return f"https://{self.host_ip}:{self.host_port}/v1/"

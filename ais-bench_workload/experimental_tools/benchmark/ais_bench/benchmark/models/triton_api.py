@@ -3,6 +3,7 @@ import os
 import random
 import re
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 from typing import Dict, List, Optional, Union
@@ -21,8 +22,8 @@ PromptType = Union[PromptList, str]
 
 
 @MODELS.register_module()
-class TGICustomAPI(BaseAPIModel):
-    """Model wrapper around TGI's models. TGI 0.9.4
+class TritonCustomAPI(BaseAPIModel):
+    """Model wrapper around Triton's models. TGI 0.9.4
 
     Args:
         max_seq_len (int): The maximum allowed sequence length of a model.
@@ -42,6 +43,7 @@ class TGICustomAPI(BaseAPIModel):
     is_api: bool = True
 
     def __init__(self,
+                 model_name: str = "",
                  max_seq_len: int = 4096,
                  query_per_second: int = 1,
                  rpm_verbose: bool = False,
@@ -55,6 +57,7 @@ class TGICustomAPI(BaseAPIModel):
         self.host_ip = host_ip
         self.host_port = host_port
         self.enable_ssl = enable_ssl
+        self.model_name = model_name
         self.base_url = self._get_base_url()
         super().__init__(path="",
                          max_seq_len=max_seq_len,
@@ -64,6 +67,7 @@ class TGICustomAPI(BaseAPIModel):
                          retry=retry,
                          verbose=verbose,
                          generation_kwargs=generation_kwargs)
+        self.logger.info("Running triton model name is: " + self.model_name)
 
     def generate(self,
                  inputs: List[PromptType],
@@ -118,10 +122,11 @@ class TGICustomAPI(BaseAPIModel):
                 parameters_dict = self.generation_kwargs
                 parameters_dict["max_new_tokens"] = max_out_len
                 data = dict(
-                    inputs=input,
+                    id=str(uuid.uuid4()),
+                    text_input=input,
                     parameters=parameters_dict,
                 )
-                url = os.path.join(self.base_url, "generate")
+                url = os.path.join(self.base_url, f"v2/models/{self.model_name}/generate")
                 raw_response = requests.post(url, headers=header, data=json.dumps(data))
 
             except requests.ConnectionError:
@@ -139,7 +144,7 @@ class TGICustomAPI(BaseAPIModel):
                 raise ValueError(f"Unexpect response: {response}")
             return response['generated_text']
 
-        raise RuntimeError('Calling TGI text API failed after retrying for '
+        raise RuntimeError('Calling triton text API failed after retrying for '
                            f'{max_num_retries} times. Check the logs for '
                            'details.')
 

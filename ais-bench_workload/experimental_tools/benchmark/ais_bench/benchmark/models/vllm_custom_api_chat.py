@@ -199,6 +199,7 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
     is_api: bool = True
 
     def __init__(self,
+                 path,
                  model: str = "",
                  max_seq_len: int = 4096,
                  query_per_second: int = 1,
@@ -218,7 +219,7 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
         self.endpoint_url = os.path.join(self.base_url, "chat/completions")
         self.model = model if model else self._get_service_model_path()
         self.client = OpenAIChatStreamClient(self.endpoint_url)
-        super().__init__(path="",
+        super().__init__(path=path,
                          max_seq_len=max_seq_len,
                          meta_template=meta_template,
                          query_per_second=query_per_second,

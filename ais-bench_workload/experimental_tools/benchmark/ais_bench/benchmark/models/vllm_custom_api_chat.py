@@ -244,6 +244,7 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
             cache_data.input_token_id = token_id
             cache_data.num_input_tokens = len(token_id)
             cache_data.num_input_chars = len(input_dict)
+        return cache_data
 
     def generate(self,
                  inputs: List[PromptType],

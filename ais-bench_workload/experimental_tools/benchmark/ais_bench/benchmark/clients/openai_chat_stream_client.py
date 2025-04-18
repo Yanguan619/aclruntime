@@ -43,6 +43,8 @@ class OpenAIChatStreamClient(BaseStreamClient, ABC):
             generated_text = ""
         if generated_text:
             response.update({"generated_text": generated_text})
+        if self.do_performance:
+            response.update({"token_str": generated_text})
         return response
 
     def update_middle_data(self, res: dict, inputs: MiddleData):

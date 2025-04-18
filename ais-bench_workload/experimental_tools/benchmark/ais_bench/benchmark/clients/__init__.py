@@ -2,3 +2,4 @@ from .mindie_stream_client import MindieStreamClient
 from .openai_chat_stream_client import OpenAIChatStreamClient
 from .tgi_stream_client import TGIStreamClient
 from .triton_stream_client import TritonStreamClient
+from .openai_stream_client import OpenAIStreamClient

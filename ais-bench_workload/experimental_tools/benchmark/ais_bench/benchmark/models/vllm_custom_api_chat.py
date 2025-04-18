@@ -235,8 +235,9 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
             self.logger.error("Tokenizer is not initialized.")
             return 0.0, []
 
+        messages = [self.tokenizer.tokenizer.tokenizer_model.apply_chat_template(m, add_generation_prompt=True, tokenize=False) for m in prompt]
         time_start = time.time()
-        tokens = self.tokenizer.batch_encode_plus(prompt)
+        tokens = self.tokenizer.batch_encode_plus(messages)
         time_cost = (time.time() - time_start) * 1000  # Convert to milliseconds
         return time_cost, tokens
 
@@ -251,6 +252,7 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
         cache_data.input_data = input_dict
 
         if self.do_performance and self.tokenizer:
+
             msgs = self._format_with_fast_chat_template(input_dict)
             time_cost, token_id = self.encode(msgs)
             cache_data.tokenized_time = time_cost

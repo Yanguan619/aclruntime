@@ -47,13 +47,32 @@ class TestClass:
         os.makedirs(self.test_data_path)
 
     #mode infer
-    def test_mindie_stream_api_infer(self, monkeypatch):
+    def test_vllm_chat_stream_api_infer(self, monkeypatch):
         fake_prediction = "Aisbench20"
         fake_time_str = "fake_time_vllm_api_stream_chat"
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "vllm_api_stream_chat", "--datasets", "gsm8k_gen",
             "--mode", "infer", "-w", self.test_data_path])
-        monkeypatch.setattr(requests, 'post', lambda *args, **kwargs: Response())
+        monkeypatch.setattr("urllib3.PoolManager.request", lambda *args, **kwargs: Response())
+        monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api_chat.VLLMCustomAPIChatStream._get_service_model_path", lambda *arg: "qwen2")
+        monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg, **kwargs: fake_time_str)
+        main()
+
+        # check infer out
+        infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/vllm-api-stream-chat/gsm8k.json")
+        with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+        assert os.path.exists(infer_outputs_json_path)
+        assert len(data) == GSK8K_DATA_COUNT
+        assert data.get(f"{GSK8K_DATA_COUNT - 1}").get("prediction") == fake_prediction
+
+    def test_vllm_chat_stream_api_perf(self, monkeypatch):
+        fake_prediction = "Aisbench20"
+        fake_time_str = "fake_time_vllm_api_stream_chat"
+        monkeypatch.setattr('sys.argv',
+            ["ais_bench", "--models", "vllm_api_stream_chat", "--datasets", "gsm8k_gen",
+            "--mode", "infer", "-w", self.test_data_path])
+        monkeypatch.setattr("urllib3.PoolManager.request", lambda *args, **kwargs: Response())
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api_chat.VLLMCustomAPIChatStream._get_service_model_path", lambda *arg: "qwen2")
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg, **kwargs: fake_time_str)
         main()

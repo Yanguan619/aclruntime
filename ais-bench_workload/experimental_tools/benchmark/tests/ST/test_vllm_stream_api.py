@@ -20,7 +20,7 @@ class Response:
                 'object': 'chat.completion.chunk',
                 'created': 1743234544,
                 'model': '/data/weight/DeepSeek-R1-Distill-Qwen-7B/',
-                'choices': [{'index': 0, 'delta': {'content': s}, 'logprobs': None, 'finish_reason': None}]
+                'choices': [{'index': 0, 'text': s, 'logprobs': None, 'finish_reason': None}]
             }
             self.response.append(f"data: {json.dumps(data)}\n")
     def stream(self,*args):

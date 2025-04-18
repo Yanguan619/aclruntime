@@ -229,6 +229,17 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
                          verbose=verbose)
         self.logger.info("Running model path name is: " + self.model)
 
+    def encode(self, prompt: list) -> Tuple[float, List[int]]:
+        """Encode a string into tokens, measuring processing time."""
+        if not self.tokenizer:
+            self.logger.error("Tokenizer is not initialized.")
+            return 0.0, []
+
+        time_start = time.time()
+        tokens = self.tokenizer.batch_encode_plus(prompt)
+        time_cost = (time.time() - time_start) * 1000  # Convert to milliseconds
+        return time_cost, tokens
+
     def prepare_input_data(self, input_dict: Dict) -> MiddleData:
         """Prepare input data, tokenize if performance mode is enabled."""
         rrid = uuid.uuid4().hex
@@ -240,11 +251,12 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
         cache_data.input_data = input_dict
 
         if self.do_performance and self.tokenizer:
-            time_cost, token_id = self.encode(input_dict)
+            msgs = self._format_with_fast_chat_template(input_dict)
+            time_cost, token_id = self.encode(msgs)
             cache_data.tokenized_time = time_cost
             cache_data.input_token_id = token_id
             cache_data.num_input_tokens = len(token_id)
-            cache_data.num_input_chars = len(input_dict)
+            cache_data.num_input_chars = len(msgs[0])
         return cache_data
 
     def generate(self,
@@ -332,6 +344,28 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
         raise RuntimeError('Calling OpenAI failed after retrying for '
                            f'{max_num_retries} times. Check the logs for '
                            'details.')
+
+    def _format_with_fast_chat_template(self, inputs: List[str], name: str='vicuna'):
+        try:
+            from fastchat.model import get_conversation_template
+        except ImportError:
+            raise ModuleNotFoundError('fastchat not found. Please install with\npip install "fschat[model_worker,webui]"')
+
+        outputs = []
+        for _input in inputs:
+            template = get_conversation_template(name)
+            for item in _input:
+                if item['role'] == 'user':
+                    template.append_message(template.roles[0], item['content'])
+                elif item['role'] == 'assistant':
+                    template.append_message(template.roles[1], item['content'])
+                elif item['role'] == 'system':
+                    continue
+                else:
+                    raise ValueError(f"Unknown role {item['role']}")
+            template.append_message(template.roles[1], None)
+            outputs.append(template.get_prompt())
+        return outputs
 
     def _get_base_url(self):
         if self.enable_ssl:

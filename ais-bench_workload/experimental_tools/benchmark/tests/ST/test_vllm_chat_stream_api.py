@@ -95,7 +95,7 @@ class TestClass:
                             'start_time': 1742952029.5993671, 'end_time': 1742952032.299417,
                             'is_success': True, 'is_empty': False}]
         fake_time_str = "aime2024_gen_0_shot_str_perf"
-        datasets_abbr_name = "aime2024"
+        datasets_abbr_name = "aime2024dataset"
         datasets_script_name = "aime2024_gen_0_shot_str"
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "vllm_api_stream_chat", "--datasets", datasets_script_name,

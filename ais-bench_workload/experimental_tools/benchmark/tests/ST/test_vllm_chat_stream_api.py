@@ -22,7 +22,7 @@ class Response:
                 'choices': [{'index': 0, 'delta': {'content': s}, 'logprobs': None, 'finish_reason': None}]
             }
             self.response.append(f"data: {json.dumps(data)}\n")
-    def iter_content(self,*args):
+    def stream(self,*args):
         for content in self.response:
             yield content.encode()
 

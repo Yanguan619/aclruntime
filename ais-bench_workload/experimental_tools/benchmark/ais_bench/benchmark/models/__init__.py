@@ -7,3 +7,5 @@ from .mindie_stream_api import MindieStreamApi
 from .mindie_llm_api import MindieLLMModel
 from .huggingface import HuggingFace, HuggingFaceCausalLM
 from .huggingface_above_v4_33 import HuggingFaceBaseModel, HuggingFacewithChatTemplate
+from .tgi_api import TGICustomAPI
+from .triton_api import TritonCustomAPI

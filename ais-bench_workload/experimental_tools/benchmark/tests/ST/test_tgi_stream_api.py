@@ -16,7 +16,7 @@ class Response:
         self.response = []
         for s in ["A","is","ben", "ch", "20"]:
             data = {
-                "token":{"id":29889,"text":"s","logprob":None,"special":None},"generated_text":None,"details":None
+                "token":{"id":29889,"text":s,"logprob":None,"special":None},"generated_text":None,"details":None
             }
             self.response.append(f"data: {json.dumps(data)}\n")
     def stream(self,*args):

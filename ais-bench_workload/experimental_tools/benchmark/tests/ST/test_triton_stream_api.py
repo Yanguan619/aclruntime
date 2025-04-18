@@ -66,7 +66,7 @@ class TestClass:
         main()
 
         # check infer out
-        infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/tgi-stream-api-general/{datasets_abbr_name}.json")
+        infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/triton-stream-api-general/{datasets_abbr_name}.json")
         assert os.path.exists(infer_outputs_json_path)
         with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)

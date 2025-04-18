@@ -240,7 +240,7 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
         tokens = self.tokenizer.batch_encode_plus(messages)
         time_cost = (time.time() - time_start) * 1000  # Convert to milliseconds
         sum_token_ids = []
-        for token_ids in tokens:
+        for token_ids in tokens.get('input_ids'):
             sum_token_ids.extend(token_ids)
         return time_cost, sum_token_ids
 

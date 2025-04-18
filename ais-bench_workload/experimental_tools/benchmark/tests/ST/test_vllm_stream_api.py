@@ -63,7 +63,7 @@ class TestClass:
         datasets_abbr_name = "aime2024"
         datasets_script_name = "aime2024_gen_0_shot_str"
         monkeypatch.setattr('sys.argv',
-            ["ais_bench", "--models", "vllm_api_stream_chat", "--datasets", datasets_script_name,
+            ["ais_bench", "--models", "vllm_api_general_stream", "--datasets", datasets_script_name,
             "--mode", "infer", "-w", self.test_data_path])
         monkeypatch.setattr("urllib3.PoolManager.request", lambda *args, **kwargs: Response())
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPIStream._get_service_model_path", lambda *arg: "qwen2")
@@ -98,7 +98,7 @@ class TestClass:
         datasets_abbr_name = "aime2024dataset"
         datasets_script_name = "aime2024_gen_0_shot_str"
         monkeypatch.setattr('sys.argv',
-            ["ais_bench", "--models", "vllm_api_stream_chat", "--datasets", datasets_script_name,
+            ["ais_bench", "--models", "vllm_api_general_stream", "--datasets", datasets_script_name,
             "--mode", "perf", "-w", self.test_data_path])
         monkeypatch.setattr("urllib3.PoolManager.request", lambda *args, **kwargs: Response())
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPIStream._get_service_model_path", lambda *arg: "qwen2")

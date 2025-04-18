@@ -16,11 +16,7 @@ class Response:
         self.response = []
         for s in ["A","is","ben", "ch", "20"]:
             data = {
-                'id': 'chatcmpl-edb1d22693f04ff08f25db773b48f44d',
-                'object': 'chat.completion.chunk',
-                'created': 1743234544,
-                'model': '/data/weight/DeepSeek-R1-Distill-Qwen-7B/',
-                'choices': [{'index': 0, 'delta': {'content': s}, 'logprobs': None, 'finish_reason': None}]
+                "token":{"id":29889,"text":"s","logprob":None,"special":None},"generated_text":None,"details":None
             }
             self.response.append(f"data: {json.dumps(data)}\n")
     def stream(self,*args):

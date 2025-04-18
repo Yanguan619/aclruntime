@@ -63,7 +63,7 @@ class TestClass:
         datasets_abbr_name = "aime2024"
         datasets_script_name = "aime2024_gen_0_shot_str"
         monkeypatch.setattr('sys.argv',
-            ["ais_bench", "--models", "vllm_api_stream_chat", "--datasets", datasets_script_name,
+            ["ais_bench", "--models", "tgi_stream_api_general", "--datasets", datasets_script_name,
             "--mode", "infer", "-w", self.test_data_path])
         monkeypatch.setattr("urllib3.PoolManager.request", lambda *args, **kwargs: Response())
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg, **kwargs: fake_time_str)
@@ -97,7 +97,7 @@ class TestClass:
         datasets_abbr_name = "aime2024dataset"
         datasets_script_name = "aime2024_gen_0_shot_str"
         monkeypatch.setattr('sys.argv',
-            ["ais_bench", "--models", "vllm_api_stream_chat", "--datasets", datasets_script_name,
+            ["ais_bench", "--models", "tgi_stream_api_general", "--datasets", datasets_script_name,
             "--mode", "perf", "-w", self.test_data_path])
         monkeypatch.setattr("urllib3.PoolManager.request", lambda *args, **kwargs: Response())
         monkeypatch.setattr("ais_bench.benchmark.models.performance_api.PerformanceAPIModel.get_performance_data", lambda *arg: fake_perf_data)

@@ -6,7 +6,7 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Tuple
 
 import httpx
 import jieba

@@ -3,6 +3,7 @@ import os
 import random
 import re
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 from typing import Dict, List, Optional, Union
@@ -20,6 +21,7 @@ from ais_bench.benchmark.utils.prompt import PromptList
 from ais_bench.benchmark.models.base_api import BaseAPIModel, handle_synthetic_input
 from ais_bench.benchmark.models.performance_api import PerformanceAPIModel
 from ais_bench.benchmark.clients import OpenAIStreamClient
+from ais_bench.benchmark.utils.results import MiddleData
 
 PromptType = Union[PromptList, str]
 
@@ -213,6 +215,25 @@ class VLLMCustomAPIStream(PerformanceAPIModel):
                          generation_kwargs=generation_kwargs)
 
         self.logger.info("Running model path name is: " + self.model)
+
+    def prepare_input_data(self, input_dict: Dict) -> MiddleData:
+        """Prepare input data, tokenize if performance mode is enabled."""
+        rrid = uuid.uuid4().hex
+        cache_data = self.result_cache[rrid]
+        with self.lock:
+            cache_data.data_id = str(self.data_id)
+            self.data_id += 1
+        cache_data.request_id = rrid
+        cache_data.input_data = input_dict.get("prompt")
+
+        if self.do_performance and self.tokenizer:
+            time_cost, token_id = self.encode(input_dict.get("prompt"))
+            cache_data.tokenized_time = time_cost
+            cache_data.input_token_id = token_id
+            cache_data.num_input_tokens = len(token_id)
+            cache_data.num_input_chars = len(input_dict.get("prompt"))
+
+        return cache_data
 
     def generate(self,
                  inputs: List[PromptType],

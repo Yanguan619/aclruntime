@@ -239,7 +239,7 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
         time_start = time.time()
         tokens = self.tokenizer.batch_encode_plus(messages)
         time_cost = (time.time() - time_start) * 1000  # Convert to milliseconds
-        return time_cost, tokens
+        return time_cost, tokens["input_ids"].tolist()
 
     def _input_decode(self, tokens: List):
         if not self.tokenizer:

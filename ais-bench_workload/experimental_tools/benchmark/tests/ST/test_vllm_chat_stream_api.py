@@ -59,7 +59,7 @@ class TestClass:
     # mode infer
     def test_vllm_chat_stream_api_infer(self, monkeypatch):
         fake_prediction = "Aisbench20"
-        fake_time_str = "aime2024_gen_0_shot_str"
+        fake_time_str = "vllm_chat_stream_aime2024_gen_0_shot_str"
         datasets_abbr_name = "aime2024"
         datasets_script_name = "aime2024_gen_0_shot_str"
         monkeypatch.setattr('sys.argv',
@@ -94,7 +94,7 @@ class TestClass:
                             'request_id': '591c69416c694a6ab3194a06d6e1ed17',
                             'start_time': 1742952029.5993671, 'end_time': 1742952032.299417,
                             'is_success': True, 'is_empty': False}]
-        fake_time_str = "aime2024_gen_0_shot_str_perf"
+        fake_time_str = "vllm_chat_stream_aime2024_gen_0_shot_str_perf"
         datasets_abbr_name = "aime2024dataset"
         datasets_script_name = "aime2024_gen_0_shot_str"
         monkeypatch.setattr('sys.argv',

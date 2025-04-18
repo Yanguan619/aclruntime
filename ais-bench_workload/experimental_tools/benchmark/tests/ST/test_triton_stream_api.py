@@ -55,11 +55,11 @@ class TestClass:
     # mode infer
     def test_tgi_stream_api_infer(self, monkeypatch):
         fake_prediction = "Aisbench20"
-        fake_time_str = "tgi_stream_aime2024_gen_0_shot_str"
+        fake_time_str = "triton_stream_aime2024_gen_0_shot_str"
         datasets_abbr_name = "aime2024"
         datasets_script_name = "aime2024_gen_0_shot_str"
         monkeypatch.setattr('sys.argv',
-            ["ais_bench", "--models", "tgi_stream_api_general", "--datasets", datasets_script_name,
+            ["ais_bench", "--models", "triton_stream_api_general", "--datasets", datasets_script_name,
             "--mode", "infer", "-w", self.test_data_path])
         monkeypatch.setattr("urllib3.PoolManager.request", lambda *args, **kwargs: Response())
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg, **kwargs: fake_time_str)
@@ -89,11 +89,11 @@ class TestClass:
                             'request_id': '591c69416c694a6ab3194a06d6e1ed17',
                             'start_time': 1742952029.5993671, 'end_time': 1742952032.299417,
                             'is_success': True, 'is_empty': False}]
-        fake_time_str = "tgi_stream_aime2024_gen_0_shot_str_perf"
+        fake_time_str = "triton_stream_aime2024_gen_0_shot_str_perf"
         datasets_abbr_name = "aime2024dataset"
         datasets_script_name = "aime2024_gen_0_shot_str"
         monkeypatch.setattr('sys.argv',
-            ["ais_bench", "--models", "tgi_stream_api_general", "--datasets", datasets_script_name,
+            ["ais_bench", "--models", "triton_stream_api_general", "--datasets", datasets_script_name,
             "--mode", "perf", "-w", self.test_data_path])
         monkeypatch.setattr("urllib3.PoolManager.request", lambda *args, **kwargs: Response())
         monkeypatch.setattr("ais_bench.benchmark.models.performance_api.PerformanceAPIModel.get_performance_data", lambda *arg: fake_perf_data)
@@ -101,7 +101,7 @@ class TestClass:
         main()
 
         # check perf json
-        infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/tgi-stream-api-general/{datasets_abbr_name}.json")
+        infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/triton-stream-api-general/{datasets_abbr_name}.json")
         assert os.path.exists(infer_outputs_json_path)
         with open(infer_outputs_json_path, 'r') as file:
             data = json.load(file)
@@ -111,7 +111,7 @@ class TestClass:
         assert data['Total Requests'] == len(fake_perf_data)
 
         #check perf csv
-        infer_outputs_csv_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/tgi-stream-api-general/{datasets_abbr_name}.csv")
+        infer_outputs_csv_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/triton-stream-api-general/{datasets_abbr_name}.csv")
         assert os.path.exists(infer_outputs_csv_path)
 
         data = pd.read_csv(infer_outputs_csv_path)

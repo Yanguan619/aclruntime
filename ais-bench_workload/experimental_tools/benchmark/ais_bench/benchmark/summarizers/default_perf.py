@@ -74,10 +74,10 @@ class DefaultPerfSummarizer:
                 perf_result_dir = osp.join(self.work_dir, "performances", model)
                 if osp.exists(osp.join(perf_result_dir, f"{dataset}.csv")):
                     perf_tables[f"{model}/{dataset}"] = self._load_csv_to_table(osp.join(perf_result_dir, f"{dataset}.csv"))
-                elif osp.exists(osp.join(perf_result_dir, f"{dataset}.json")):
+                if osp.exists(osp.join(perf_result_dir, f"{dataset}.json")):
                     perf_tables[f"{model}/{dataset}"] = self._load_json_to_table(osp.join(perf_result_dir, f"{dataset}.json"))
                 else:
-                    self.logger.warning(f"Can not find {dataset} performance results in {perf_result_dir}, skip.")
+                    self.logger.warning(f"Can not find {dataset} common performance results in {perf_result_dir}, skip.")
 
         return perf_tables
 
@@ -90,7 +90,7 @@ class DefaultPerfSummarizer:
         return table
 
     def _load_json_to_table(self, json_path):
-        table = [["Performance Parameters", "Average"]]
+        table = [["Common Metric", "Value"]]
         with open(json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
         for key, value in data.items():

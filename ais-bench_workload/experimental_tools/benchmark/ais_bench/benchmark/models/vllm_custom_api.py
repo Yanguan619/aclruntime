@@ -224,7 +224,7 @@ class VLLMCustomAPIStream(PerformanceAPIModel):
             cache_data.data_id = str(self.data_id)
             self.data_id += 1
         cache_data.request_id = rrid
-        cache_data.input_data = input_dict.get("prompt")
+        cache_data.input_data = input_dict
 
         if self.do_performance and self.tokenizer:
             time_cost, token_id = self.encode(input_dict.get("prompt"))

@@ -276,7 +276,7 @@ models = [
 work_dir = 'outputs/mindie-llm-model/' # 工作路径
 ```
 
-### 单机数据集性能测评
+### 性能测评
 
 MIndIE benchmark工具提供了单机数据集性能测评功能，用户只需配置好数据集、模型、推理参数等信息，即可快速进行单机数据集性能测评。
 
@@ -288,11 +288,11 @@ python mindie_llm.py --config /home/config.py --batch_size 1 --case_pair [[256,2
 命令行参数说明：
 |参数|说明|默认值|
 | ----- | ----- | ----- |
-|config|Ais-bench配置文件路径|ais-bench_workload/experimental_tools/mindie_benchmark/mindie_llm_examples/infer_mindie_llm_general.py|
-|batch_size|数据集的batch_size大小|16|
-|case_pair|输入长度和输出长度的组合，如[[256,256]]表示输入长度为256，输出长度为256|[[2048,2048],[1024,1024],[512,512],[256,256]]|
-|dataset_path|真实数据集路径|无|
-|output_path|性能评测结果输出路径|当前目录|
+|--config|Ais-bench配置文件路径|ais-bench_workload/experimental_tools/mindie_benchmark/mindie_llm_examples/infer_mindie_llm_general.py|
+|--batch_size|数据集的batch_size大小|16|
+|--case_pair|输入长度和输出长度的组合，如[[256,256]]表示输入长度为256，输出长度为256|[[2048,2048],[1024,1024],[512,512],[256,256]]|
+|--dataset_path|真实数据集路径|无|
+|--output_path|性能评测结果输出路径|当前目录|
 
 注意：
 - batch_size支持单个输入，如16或[16]；多个输入，如16,32或[16,32]；多组输入，如[[16,32],[32,64]]，此时组数应与case_pair的组数相同

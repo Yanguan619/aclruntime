@@ -377,3 +377,20 @@ models = [
 
 work_dir = 'outputs/mindie-llm-model/' # 工作路径
 ```
+
+**性能测评结果**
+性能测评结果输出路径下，会生成性能测评结果的csv文件，文件名为performance_pa_batch{batch_size}_tp{world_size}_result.csv。
+
+| 字段                     | 含义                                                         |
+| ------------------------ | ------------------------------------------------------------ |
+| Model                 | 模型名称。        |
+| Batchsize           | 数据集的batch_size大小。 |
+| In_seq       | 推理输入长度。 |
+| Out_seq           | 推理输出长度。  |
+| Total time(s)       | 推理总时长。 |
+| First token time(ms)       | 首token时间。 |
+| Non-first token time(ms)   | 非首token时间。 |
+| Non-first token Throughput(Token/s)       | 非首token吞吐量。 |
+| Throughput(Token/s)       | 吞吐量。 |
+| Non-first token Throughput Average(Token/s)   | 非首token平均吞吐量。 |
+| E2E Throughput Average(Token/s)           | 平均吞吐量。  |

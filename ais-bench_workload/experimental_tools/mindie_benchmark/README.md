@@ -379,6 +379,7 @@ work_dir = 'outputs/mindie-llm-model/' # 工作路径
 ```
 
 **性能测评结果**
+
 性能测评结果输出路径下，会生成性能测评结果的csv文件，文件名为performance_pa_batch{batch_size}_tp{world_size}_result.csv。
 
 | 字段                     | 含义                                                         |

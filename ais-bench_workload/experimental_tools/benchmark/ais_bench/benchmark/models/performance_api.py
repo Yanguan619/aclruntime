@@ -126,7 +126,8 @@ class PerformanceAPIModel(BaseAPIModel):
     def get_performance_data(self) -> List[Dict[str, Any]]:
         """Retrieve performance data from cached results."""
         for key, _ in tqdm(self.result_cache.items(), desc="Encoding output text...", total=len(self.result_cache)):
-            time_cost, self.result_cache[key].num_generated_tokens = self.encode(self.result_cache[key].output)
+            time_cost, tokens = self.encode(self.result_cache[key].output)
+            self.result_cache[key].num_generated_tokens = len(tokens)
 
         performance_data = [
             cache_data.convert_to_performance_data()

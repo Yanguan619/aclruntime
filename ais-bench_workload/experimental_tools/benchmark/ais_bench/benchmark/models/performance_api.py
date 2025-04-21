@@ -4,6 +4,7 @@ import time
 import uuid
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple
+from tqdm import tqdm
 
 from ais_bench.benchmark.utils.results import MiddleData
 from ais_bench.benchmark.utils.tokenizer import BenchmarkTokenizer
@@ -124,6 +125,9 @@ class PerformanceAPIModel(BaseAPIModel):
 
     def get_performance_data(self) -> List[Dict[str, Any]]:
         """Retrieve performance data from cached results."""
+        for key, _ in tqdm(self.result_cache.items(), desc="Encoding output text...", total=len(self.result_cache)):
+            time_cost, self.result_cache[key].num_generated_tokens = self.encode(self.result_cache[key].output)
+
         performance_data = [
             cache_data.convert_to_performance_data()
             for cache_data in self.result_cache.values()

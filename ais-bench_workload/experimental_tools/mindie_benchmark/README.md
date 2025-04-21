@@ -283,21 +283,17 @@ MIndIE benchmark工具提供了单机数据集性能测评功能，用户只需�
 单机场景下拉起任务的指令示例：
 ```shell
 cd ais-bench_workload/experimental_tools/mindie_benchmark
-python mindie_llm.py --config /home/config.py --batch_size 1 --case_pair [[256,256]] --dataset_path /data/gsm8k --output_path /home/output
+python mindie_llm.py --config mindie_llm_examples/infer_mindie_llm_general.py --batch_size 1 --case_pair [[256,256]] --dataset_path /data/gsm8k --output_path /home/output
 ```
 命令行参数说明：
 |参数|说明|默认值|
 | ----- | ----- | ----- |
-|--config|Ais-bench配置文件路径|ais-bench_workload/experimental_tools/mindie_benchmark/mindie_llm_examples/infer_mindie_llm_general.py|
-|--batch_size|数据集的batch_size大小|16|
-|--case_pair|输入长度和输出长度的组合，如[[256,256]]表示输入长度为256，输出长度为256|[[2048,2048],[1024,1024],[512,512],[256,256]]|
-|--dataset_path|真实数据集路径|无|
+|--config|Ais-bench配置文件路径，可以根据用户的实际情况修改。|ais-bench_workload/experimental_tools/mindie_benchmark/mindie_llm_examples/infer_mindie_llm_general.py|
+|--batch_size|数据集的batch_size大小。batch_size支持单个输入，如16或[16]；多个输入，如16,32或[16,32]；多组输入，如[[16,32],[32,64]]，此时组数应与case_pair的组数相同|16|
+|--case_pair|输入长度和输出长度的组合，如[[256,256]]表示输入长度为256，输出长度为256。case_pair接收一组或多组输入，格式为[[seq_in_1,seq_out_1]...,[seq_in_n,seq_out_n]],中间不接受空格。|[[2048,2048],[1024,1024],[512,512],[256,256]]|
+|--dataset_path|真实数据集路径。dataset_path需要用户自行准备数据集，并传入数据集路径|无|
 |--output_path|性能评测结果输出路径|当前目录|
 
-注意：
-- batch_size支持单个输入，如16或[16]；多个输入，如16,32或[16,32]；多组输入，如[[16,32],[32,64]]，此时组数应与case_pair的组数相同
-- case_pair接收一组或多组输入，格式为[[seq_in_1,seq_out_1]...,[seq_in_n,seq_out_n]],中间不接受空格，如[[256,256],[1024,1024]]
-- dataset_path需要用户自行准备数据集，并传入数据集路径
 
 **配置文件参数设定样例：**
 ```python

@@ -81,13 +81,6 @@ class PerformanceAPIModel(BaseAPIModel):
         if not self.do_performance or not self.tokenizer:
             return
 
-        _, data.output_token_id = self.encode(data.output)
-
-        if stream:
-            data.detokenized_time, _ = self.decode_stream(data.output_token_id)
-        else:
-            data.detokenized_time, _ = self.decode(data.output_token_id)
-
         data.is_success = True
 
     def encode(self, prompt: str) -> Tuple[float, List[int]]:

@@ -288,9 +288,9 @@ python mindie_llm.py --config mindie_llm_examples/infer_mindie_llm_general.py --
 命令行参数说明：
 |参数|说明|默认值|
 | ----- | ----- | ----- |
-|--config|Ais-bench配置文件路径，可以根据用户的实际情况修改。|ais-bench_workload/experimental_tools/mindie_benchmark/mindie_llm_examples/infer_mindie_llm_general.py|
+|--config|Ais-bench配置文件路径，可以根据用户的实际情况修改|ais-bench_workload/experimental_tools/mindie_benchmark/mindie_llm_examples/infer_mindie_llm_general.py|
 |--batch_size|数据集的batch_size大小。batch_size支持单个输入，如16或[16]；多个输入，如16,32或[16,32]；多组输入，如[[16,32],[32,64]]，此时组数应与case_pair的组数相同|16|
-|--case_pair|输入长度和输出长度的组合，如[[256,256]]表示输入长度为256，输出长度为256。case_pair接收一组或多组输入，格式为[[seq_in_1,seq_out_1]...,[seq_in_n,seq_out_n]],中间不接受空格。|[[2048,2048],[1024,1024],[512,512],[256,256]]|
+|--case_pair|输入长度和输出长度的组合，如[[256,256]]表示输入长度为256，输出长度为256。case_pair接收一组或多组输入，格式为[[seq_in_1,seq_out_1]...,[seq_in_n,seq_out_n]],中间不接受空格|[[2048,2048],[1024,1024],[512,512],[256,256]]|
 |--dataset_path|真实数据集路径。dataset_path需要用户自行准备数据集，并传入数据集路径|无|
 |--output_path|性能评测结果输出路径|当前目录|
 
@@ -380,14 +380,14 @@ work_dir = 'outputs/mindie-llm-model/' # 工作路径
 
 | 字段                     | 含义                                                         |
 | ------------------------ | ------------------------------------------------------------ |
-| Model                 | 模型名称。        |
-| Batchsize           | 数据集的batch_size大小。 |
-| In_seq       | 推理输入长度。 |
-| Out_seq           | 推理输出长度。  |
-| Total time(s)       | 推理总时长。 |
-| First token time(ms)       | 首token时间。 |
-| Non-first token time(ms)   | 非首token时间。 |
-| Non-first token Throughput(Token/s)       | 非首token吞吐量。 |
-| Throughput(Token/s)       | 吞吐量。 |
-| Non-first token Throughput Average(Token/s)   | 非首token平均吞吐量。 |
-| E2E Throughput Average(Token/s)           | 平均吞吐量。  |
+| Model                 | 模型名称        |
+| Batchsize           | 数据集的batch_size大小 |
+| In_seq       | 推理输入长度 |
+| Out_seq           | 推理输出长度  |
+| Total time(s)       | 推理总时长 |
+| First token time(ms)       | 首token时间 |
+| Non-first token time(ms)   | 非首token时间 |
+| Non-first token Throughput(Token/s)       | 非首token吞吐量 |
+| Throughput(Token/s)       | 吞吐量 |
+| Non-first token Throughput Average(Token/s)   | 非首token平均吞吐量 |
+| E2E Throughput Average(Token/s)           | 平均吞吐量  |

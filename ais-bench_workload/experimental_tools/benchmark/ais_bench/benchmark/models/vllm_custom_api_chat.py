@@ -262,7 +262,6 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
 
         if self.do_performance and self.tokenizer:
             time_cost, token_id = self.encode(input_dict)
-            cache_data.tokenized_time = time_cost
             cache_data.input_token_id = token_id
             cache_data.num_input_tokens = len(token_id)
             cache_data.num_input_chars = len(self._input_decode(token_id))

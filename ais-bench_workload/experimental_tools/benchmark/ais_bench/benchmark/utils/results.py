@@ -71,7 +71,6 @@ class MiddleData:
             * 1000,
             "input_characters_len": len(self.input_data),
             "generate_characters_len": self.num_generated_chars,
-            "tokenizer_time": self.tokenized_time,
             "detokenizer_time": self.detokenized_time,
             "characters_per_token": (
                 self.num_generated_chars / self.num_generated_tokens
@@ -184,7 +183,6 @@ class MetricsCalculator:
             "generate_tokens_len": "OutputTokens",
             "prefill_throughput": "PrefillTokenThroughput",
             "generate_tokens_speed": "OutputTokenThroughput",
-            "tokenizer_time": "Tokenizer",
             "detokenizer_time": "Detokenizer",
             "prefill_batch_size": "PrefillBatchsize",
             "decode_batch_size": "DecoderBatchsize",

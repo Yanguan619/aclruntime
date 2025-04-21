@@ -3,9 +3,10 @@ import os
 import random
 import re
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Tuple
 
 import httpx
 import jieba
@@ -18,6 +19,9 @@ from ais_bench.benchmark.registry import MODELS
 from ais_bench.benchmark.utils.prompt import PromptList
 
 from ais_bench.benchmark.models.base_api import BaseAPIModel, handle_synthetic_input
+from ais_bench.benchmark.models.performance_api import PerformanceAPIModel
+from ais_bench.benchmark.clients import OpenAIChatStreamClient
+from ais_bench.benchmark.utils.results import MiddleData
 
 PromptType = Union[PromptList, str]
 
@@ -174,7 +178,7 @@ class VLLMCustomAPIChat(BaseAPIModel):
 
 
 @MODELS.register_module()
-class VLLMCustomAPIChatStream(BaseAPIModel):
+class VLLMCustomAPIChatStream(PerformanceAPIModel):
     """Model wrapper around OpenAI's models.
 
     Args:
@@ -195,6 +199,7 @@ class VLLMCustomAPIChatStream(BaseAPIModel):
     is_api: bool = True
 
     def __init__(self,
+                 path,
                  model: str = "",
                  max_seq_len: int = 4096,
                  query_per_second: int = 1,
@@ -211,8 +216,10 @@ class VLLMCustomAPIChatStream(BaseAPIModel):
         self.enable_ssl = enable_ssl
         self.max_chunk_size = 32*2048
         self.base_url = self._get_base_url()
-        self.model= model if model else self._get_service_model_path()
-        super().__init__(path="",
+        self.endpoint_url = os.path.join(self.base_url, "chat/completions")
+        self.model = model if model else self._get_service_model_path()
+        self.client = OpenAIChatStreamClient(self.endpoint_url)
+        super().__init__(path=path,
                          max_seq_len=max_seq_len,
                          meta_template=meta_template,
                          query_per_second=query_per_second,
@@ -221,6 +228,45 @@ class VLLMCustomAPIChatStream(BaseAPIModel):
                          generation_kwargs=generation_kwargs,
                          verbose=verbose)
         self.logger.info("Running model path name is: " + self.model)
+
+    def encode(self, prompt: list) -> Tuple[float, List[int]]:
+        """Encode a string into tokens, measuring processing time."""
+        if not self.tokenizer:
+            self.logger.error("Tokenizer is not initialized.")
+            return 0.0, []
+
+        messages = [self.tokenizer.tokenizer.tokenizer_model.apply_chat_template(m, add_generation_prompt=True, tokenize=False) for m in prompt]
+        time_start = time.time()
+        tokens = self.tokenizer.batch_encode_plus(messages)
+        time_cost = (time.time() - time_start) * 1000  # Convert to milliseconds
+        sum_token_ids = []
+        for token_ids in tokens.get('input_ids'):
+            sum_token_ids.extend(token_ids)
+        return time_cost, sum_token_ids
+
+    def _input_decode(self, tokens: List):
+        if not self.tokenizer:
+            self.logger.error("Tokenizer is not initialized.")
+            return []
+        return self.tokenizer.decode(tokens)
+
+    def prepare_input_data(self, input_dict: Dict) -> MiddleData:
+        """Prepare input data, tokenize if performance mode is enabled."""
+        rrid = uuid.uuid4().hex
+        cache_data = self.result_cache[rrid]
+        with self.lock:
+            cache_data.data_id = str(self.data_id)
+            self.data_id += 1
+        cache_data.request_id = rrid
+        cache_data.input_data = input_dict
+
+        if self.do_performance and self.tokenizer:
+            time_cost, token_id = self.encode(input_dict)
+            cache_data.tokenized_time = time_cost
+            cache_data.input_token_id = token_id
+            cache_data.num_input_tokens = len(token_id)
+            cache_data.num_input_chars = len(self._input_decode(token_id))
+        return cache_data
 
     def generate(self,
                  inputs: List[PromptType],
@@ -279,33 +325,21 @@ class VLLMCustomAPIChatStream(BaseAPIModel):
                 messages.append(msg)
 
         self.generation_kwargs.update({"max_tokens": max_out_len})
+        data = dict(
+            model=self.model,
+            stream=True,
+            messages=messages,
+            max_tokens=max_out_len,
+        )
+        data = data | self.generation_kwargs
+        cache_data = self.prepare_input_data(data)
 
         max_num_retries = 0
         while max_num_retries < self.retry:
             max_num_retries += 1
-            header = {
-                'Content-Type': 'application/json',
-            }
-
             try:
-                data = dict(
-                    model=self.model,
-                    stream=True,
-                    messages=messages,
-                    max_tokens=max_out_len,
-                )
-                data = data | self.generation_kwargs
-                response = list()
-                url = os.path.join(self.base_url, "chat/completions")
-                raw_response = requests.post(url, headers=header, data=json.dumps(data), stream=True)
-                for res_ in self.process_response(raw_response):
-                    if res_.get("choices" ) is None:
-                        continue
-                    else:
-                        if res_.get("choices")[0].get('delta') is None:
-                            continue
-                    response.append(res_.get("choices")[0].get('delta').get('content'))
-
+                response = self.client.request(cache_data)
+                self.update_decode(cache_data)
             except requests.ConnectionError:
                 self.logger.error('Got connection error, retrying...')
                 self.wait()
@@ -320,51 +354,10 @@ class VLLMCustomAPIChatStream(BaseAPIModel):
                            f'{max_num_retries} times. Check the logs for '
                            'details.')
 
-    def process_response(self, response):
-        for byte_line in response.iter_content(self.max_chunk_size):
-            if byte_line == b"\n":
-                continue
-            cur_line = self.preprocess_cur_line(byte_line.decode())
-            try:
-                for json_content in self._stream_data_split(cur_line):
-                    yield json_content
-            except Exception as error:
-                raise RuntimeError(f"Request failed and the reason is {error}, response from server is: {cur_line}")
-
-    def preprocess_cur_line(self, cur_line: str) -> str:
-        if "\ndata" in cur_line:
-            end_ix = cur_line.find("data: [DONE]")
-            cur_line = cur_line if end_ix < 0 else cur_line[:end_ix]
-            data_blocks = cur_line.strip().split('\n\n')
-            merged_data = None
-            for block in data_blocks:
-                # 去掉 "data: " 前缀并解析 JSON
-                json_str = block.replace('data: ', '')
-                data = json.loads(json_str)
-
-                # 如果是第一条数据，初始化 merged_data
-                if merged_data is None:
-                    merged_data = data
-                else:
-                    # 合并 choices
-                    merged_data['choices'].extend(data['choices'])
-            return json.dumps(merged_data)
-        else:
-            end_ix = cur_line.find("data: [DONE]")
-            return cur_line if end_ix < 0 else cur_line[:end_ix]
-
-    def _stream_data_split(self, stream_data_line):
-        stream_data_line = stream_data_line.lstrip("data:").rstrip("\n\0")
-        # 使用正则替换调整数据格式，使其符合 JSON 语法
-        stream_data_line = re.sub(r'\}\s*data:{', '} ,{', stream_data_line)
-        stream_data_line = '[' + stream_data_line + ']'
-        json_obj_arr = json.loads(stream_data_line)
-        return json_obj_arr
-
     def _get_base_url(self):
         if self.enable_ssl:
-            return f"https://{self.host_ip}:{self.host_port}/v1"
-        return f"http://{self.host_ip}:{self.host_port}/v1"
+            return f"https://{self.host_ip}:{self.host_port}/v1/"
+        return f"http://{self.host_ip}:{self.host_port}/v1/"
 
     def _get_service_model_path(self):
         client = OpenAI(api_key="EMPTY", base_url=self.base_url)

@@ -1,7 +1,7 @@
 from ais_bench.benchmark.openicl.icl_prompt_template import PromptTemplate
 from ais_bench.benchmark.openicl.icl_retriever import ZeroRetriever
 from ais_bench.benchmark.openicl.icl_inferencer import GenInferencer
-from ais_bench.benchmark.datasets import IFEvalDataset, IFEvaluator
+from ais_bench.benchmark.datasets.ifeval import IFEvalDataset, IFEvaluator
 
 ifeval_reader_cfg = dict(
     input_columns=['prompt'], output_column='reference')

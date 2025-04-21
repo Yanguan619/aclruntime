@@ -452,7 +452,7 @@ class TokenBucket:
             threading.Thread(target=self._add_tokens, daemon=True).start()
         self._tokens.acquire()
         if self.verbose:
-            cur_time = time.time()
+            cur_time = time.perf_counter()
             while not self._request_queue.empty():
                 if cur_time - self._request_queue.queue[0] > 60:
                     self._request_queue.get()

@@ -97,9 +97,9 @@ class PerformanceAPIModel(BaseAPIModel):
             self.logger.error("Tokenizer is not initialized.")
             return 0.0, []
 
-        time_start = time.time()
+        time_start = time.perf_counter()
         tokens = self.tokenizer.encode(prompt)
-        time_cost = (time.time() - time_start) * 1000  # Convert to milliseconds
+        time_cost = (time.perf_counter() - time_start) * 1000  # Convert to milliseconds
         return time_cost, tokens
 
     def decode(self, tokens: List[int]) -> Tuple[List[float], str]:
@@ -108,9 +108,9 @@ class PerformanceAPIModel(BaseAPIModel):
             self.logger.error("Tokenizer is not initialized.")
             return [], ""
 
-        time_start = time.time()
+        time_start = time.perf_counter()
         prompt = self.tokenizer.decode(tokens)
-        time_cost = [(time.time() - time_start) * 1000]  # Convert to milliseconds
+        time_cost = [(time.perf_counter() - time_start) * 1000]  # Convert to milliseconds
         return time_cost, prompt
 
     def decode_stream(self, tokens: List[int]) -> Tuple[List[float], List[str]]:
@@ -121,13 +121,13 @@ class PerformanceAPIModel(BaseAPIModel):
 
         prompt = []
         time_cost = []
-        time_start = time.time()
+        time_start = time.perf_counter()
         for token in tokens:
             prompt.append(self.tokenizer.decode(token))
             time_cost.append(
-                (time.time() - time_start) * 1000
+                (time.perf_counter() - time_start) * 1000
             )  # Convert to milliseconds
-            time_start = time.time()
+            time_start = time.perf_counter()
         return time_cost, prompt
 
     def get_performance_data(self) -> List[Dict[str, Any]]:

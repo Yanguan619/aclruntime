@@ -143,15 +143,15 @@ CONTAINER ID        IMAGE                        COMMAND                  CREATE
 执行命令：bash run_container.sh
 ## 4. ssh登录验证
 
-在其它节点执行 ssh root@{IP} -p 8000
+在其它节点执行 ssh {user}@{IP} -p 8000
 
-示例：ssh root@90.90.66.64 -p 8000（密码root)
+示例：ssh {user}@{IP} -p 8000 {password}
 
 执行结果：
 
 ```
-[root@node66 ~]# ssh root@90.90.66.64 -p 8000
-root@90.90.66.64's password:
+[root@node66 ~]# ssh {user}@{IP} -p 8000
+{usr}@{IP}'s password:
 Welcome to Ubuntu 18.04.5 LTS (GNU/Linux 4.15.0-29-generic aarch64)
 
  * Documentation:  https://help.ubuntu.com
@@ -161,7 +161,7 @@ This system has been minimized by removing packages and content that are
 not required on a system that users do not log into.
 
 To restore this content, you can run the 'unminimize' command.
-Last login: Thu Nov 18 09:10:30 2021 from 90.90.66.66
+Last login: Thu Nov 18 09:10:30 2021 from {IP}
 root@0f6f9971a646:~#
 ```
 

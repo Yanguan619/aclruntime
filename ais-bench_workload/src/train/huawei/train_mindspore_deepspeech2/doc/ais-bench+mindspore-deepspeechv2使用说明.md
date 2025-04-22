@@ -26,30 +26,30 @@ AI Server Benchmark 是按《信息技术 人工智能 服务器系统性能测�
     "server_count": "2",
     "server_list": [
         {
-            "server_id": "90.90.66.64",
+            "server_id": "xx.xx.xx.xx",
             "device": [
-                {"device_id": "0", "device_ip": "192.100.61.14", "rank_id": "0"},
-                {"device_id": "1", "device_ip": "192.100.62.14", "rank_id": "1"},
-                {"device_id": "2", "device_ip": "192.100.63.14", "rank_id": "2"},
-                {"device_id": "3", "device_ip": "192.100.64.14", "rank_id": "3"},
-                {"device_id": "4", "device_ip": "192.100.61.15", "rank_id": "4"},
-                {"device_id": "5", "device_ip": "192.100.62.15", "rank_id": "5"},
-                {"device_id": "6", "device_ip": "192.100.63.15", "rank_id": "6"},
-                {"device_id": "7", "device_ip": "192.100.64.15", "rank_id": "7"}
+                {"device_id": "0", "device_ip": "xx.xx.xx.xx", "rank_id": "0"},
+                {"device_id": "1", "device_ip": "xx.xx.xx.xx", "rank_id": "1"},
+                {"device_id": "2", "device_ip": "xx.xx.xx.xx", "rank_id": "2"},
+                {"device_id": "3", "device_ip": "xx.xx.xx.xx", "rank_id": "3"},
+                {"device_id": "4", "device_ip": "xx.xx.xx.xx", "rank_id": "4"},
+                {"device_id": "5", "device_ip": "xx.xx.xx.xx", "rank_id": "5"},
+                {"device_id": "6", "device_ip": "xx.xx.xx.xx", "rank_id": "6"},
+                {"device_id": "7", "device_ip": "xx.xx.xx.xx", "rank_id": "7"}
             ],
             "host_nic_ip": "reserve"
         },
         {
-            "server_id": "90.90.66.66",
+            "server_id": "xx.xx.xx.xx",
             "device": [
-                {"device_id": "0", "device_ip": "192.100.61.16", "rank_id": "8"},
-                {"device_id": "1", "device_ip": "192.100.62.16", "rank_id": "9"},
-                {"device_id": "2", "device_ip": "192.100.63.16", "rank_id": "10"},
-                {"device_id": "3", "device_ip": "192.100.64.16", "rank_id": "11"},
-                {"device_id": "4", "device_ip": "192.100.61.17", "rank_id": "12"},
-                {"device_id": "5", "device_ip": "192.100.62.17", "rank_id": "13"},
-                {"device_id": "6", "device_ip": "192.100.63.17", "rank_id": "14"},
-                {"device_id": "7", "device_ip": "192.100.64.17", "rank_id": "15"}
+                {"device_id": "0", "device_ip": "xx.xx.xx.xx", "rank_id": "8"},
+                {"device_id": "1", "device_ip": "xx.xx.xx.xx", "rank_id": "9"},
+                {"device_id": "2", "device_ip": "xx.xx.xx.xx", "rank_id": "10"},
+                {"device_id": "3", "device_ip": "xx.xx.xx.xx", "rank_id": "11"},
+                {"device_id": "4", "device_ip": "xx.xx.xx.xx", "rank_id": "12"},
+                {"device_id": "5", "device_ip": "xx.xx.xx.xx", "rank_id": "13"},
+                {"device_id": "6", "device_ip": "xx.xx.xx.xx", "rank_id": "14"},
+                {"device_id": "7", "device_ip": "xx.xx.xx.xx", "rank_id": "15"}
             ],
             "host_nic_ip": "reserve"
         }
@@ -66,15 +66,15 @@ AI Server Benchmark 是按《信息技术 人工智能 服务器系统性能测�
 ```bash
 {
   "cluster": {
-    "90.90.66.64": {    # 节点ip 必须与ranktable中的server_id一一对应
-      "user": "root",   # 用户名 免密可以不用设置
+    "xx.xx.xx.xx": {    # 节点ip 必须与ranktable中的server_id一一对应
+      "user": "xxxx",   # 用户名 免密可以不用设置
       "pd": "xxxx",     # 密码 免密不用设置
-      "port":0          # 容器端口，默认22。可以不设置。本行缺失时，表示测试在该节点本地（非容器）运行，设置时表示在容器中运行并提供指定端口访问能力
+      "port": xx          # 容器端口，默认22。可以不设置。本行缺失时，表示测试在该节点本地（非容器）运行，设置时表示在容器中运行并提供指定端口访问能力
     },
-    "90.90.66.66": {
-      "user": "root",
+    "xx.xx.xx.xx": {
+      "user": "xxxx",
       "pd": "xxxx",
-      "port":1
+      "port": xx
     }
   }
 }

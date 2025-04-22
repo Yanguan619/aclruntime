@@ -110,12 +110,12 @@ local_scp_cmd()
 
 # {
 #  "cluster": {
-#    "90.90.66.64": {
-#         "user": "root",
+#    "xx.xx.xx.xx": {
+#         "user": "xxxx",
 #         "pd": "xx",
-#          "port": 23,
+#          "port": xx,
 #    },
-#    "90.90.66.66": {
+#    "xx.xx.xx.xx": {
 #    }
 #  }
 # }

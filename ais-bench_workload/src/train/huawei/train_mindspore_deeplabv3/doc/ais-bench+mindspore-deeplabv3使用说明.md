@@ -17,15 +17,15 @@ AI Server Benchmark 是按《信息技术 人工智能 服务器系统性能测�
 如果运行设备大于1个设备，那么需要运行设置ssh节点文件。说明节点信息
 {
 "cluster": {
-"90.90.66.62": {    # 节点ip 必须与ranktable中对应
-"user": "root",   # 用户名 免密可以不用设置
+"xx.xx.xx.xx": {    # 节点ip 必须与ranktable中对应
+"user": "xxxx",   # 用户名 免密可以不用设置
 "pd": "xx",  # 密码 免密不用设置
-"port":0   # 端口 默认22  可以不用设置
+"port": xx   # 端口 默认22  可以不用设置
 },
-"90.90.66.64": {
-"user": "root",
+"xx.xx.xx.xx": {
+"user": "xxxx",
 "pd": "xx",
-"port":1
+"port": xx
 }
 }
 }

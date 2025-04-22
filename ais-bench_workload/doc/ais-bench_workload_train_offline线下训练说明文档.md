@@ -132,30 +132,30 @@ GLOG日志级别取值为：0（INFO）、1（WARNING）、2（ERROR）、3（FA
     "server_count": "2",
     "server_list": [
         {
-            "server_id": "90.90.66.64",
+            "server_id": "xx.xx.xx.xx",
             "device": [
-                {"device_id": "0", "device_ip": "192.100.61.14", "rank_id": "0"},
-                {"device_id": "1", "device_ip": "192.100.62.14", "rank_id": "1"},
-                {"device_id": "2", "device_ip": "192.100.63.14", "rank_id": "2"},
-                {"device_id": "3", "device_ip": "192.100.64.14", "rank_id": "3"},
-                {"device_id": "4", "device_ip": "192.100.61.15", "rank_id": "4"},
-                {"device_id": "5", "device_ip": "192.100.62.15", "rank_id": "5"},
-                {"device_id": "6", "device_ip": "192.100.63.15", "rank_id": "6"},
-                {"device_id": "7", "device_ip": "192.100.64.15", "rank_id": "7"}
+                {"device_id": "0", "device_ip": "xx.xx.xx.xx", "rank_id": "0"},
+                {"device_id": "1", "device_ip": "xx.xx.xx.xx", "rank_id": "1"},
+                {"device_id": "2", "device_ip": "xx.xx.xx.xx", "rank_id": "2"},
+                {"device_id": "3", "device_ip": "xx.xx.xx.xx", "rank_id": "3"},
+                {"device_id": "4", "device_ip": "xx.xx.xx.xx", "rank_id": "4"},
+                {"device_id": "5", "device_ip": "xx.xx.xx.xx", "rank_id": "5"},
+                {"device_id": "6", "device_ip": "xx.xx.xx.xx", "rank_id": "6"},
+                {"device_id": "7", "device_ip": "xx.xx.xx.xx", "rank_id": "7"}
             ],
             "host_nic_ip": "reserve"
         },
         {
-            "server_id": "90.90.66.66",
+            "server_id": "xx.xx.xx.xx",
             "device": [
-                {"device_id": "0", "device_ip": "192.100.61.16", "rank_id": "8"},
-                {"device_id": "1", "device_ip": "192.100.62.16", "rank_id": "9"},
-                {"device_id": "2", "device_ip": "192.100.63.16", "rank_id": "10"},
-                {"device_id": "3", "device_ip": "192.100.64.16", "rank_id": "11"},
-                {"device_id": "4", "device_ip": "192.100.61.17", "rank_id": "12"},
-                {"device_id": "5", "device_ip": "192.100.62.17", "rank_id": "13"},
-                {"device_id": "6", "device_ip": "192.100.63.17", "rank_id": "14"},
-                {"device_id": "7", "device_ip": "192.100.64.17", "rank_id": "15"}
+                {"device_id": "0", "device_ip": "xx.xx.xx.xx", "rank_id": "8"},
+                {"device_id": "1", "device_ip": "xx.xx.xx.xx", "rank_id": "9"},
+                {"device_id": "2", "device_ip": "xx.xx.xx.xx", "rank_id": "10"},
+                {"device_id": "3", "device_ip": "xx.xx.xx.xx", "rank_id": "11"},
+                {"device_id": "4", "device_ip": "xx.xx.xx.xx", "rank_id": "12"},
+                {"device_id": "5", "device_ip": "xx.xx.xx.xx", "rank_id": "13"},
+                {"device_id": "6", "device_ip": "xx.xx.xx.xx", "rank_id": "14"},
+                {"device_id": "7", "device_ip": "xx.xx.xx.xx", "rank_id": "15"}
             ],
             "host_nic_ip": "reserve"
         }
@@ -175,16 +175,16 @@ GLOG日志级别取值为：0（INFO）、1（WARNING）、2（ERROR）、3（FA
 ```bash
 {
   "cluster": {
-    "90.90.66.64": {    # 节点IP，必须与rank_table文件中的server_id一一对应
-      "user": "root",   # 节点登录用户名，完成集群节点免密设置可不配置
+    "xx.xx.xx.xx": {    # 节点IP，必须与rank_table文件中的server_id一一对应
+      "user": "xxxx",   # 节点登录用户名，完成集群节点免密设置可不配置
       "pd": "xxxx",     # 节点登录密码，完成集群节点免密设置可不配置
-      "port":0          # 容器端口，默认22。可不设置。删除本参数或配置为22时，表示性能测试在默认22端口通信；设置具体端口号时，表示在容器或者设备中运行并提供指定端口访问能力
+      "port": xx          # 容器端口，默认22。可不设置。删除本参数或配置为22时，表示性能测试在默认22端口通信；设置具体端口号时，表示在容器或者设备中运行并提供指定端口访问能力
 
     },
-    "90.90.66.66": {
-      "user": "root",
+    "xx.xx.xx.xx": {
+      "user": "xxxx",
       "pd": "xxxx",
-      "port":1
+      "port": xx
     }
   }
 }

@@ -132,9 +132,9 @@ function set_powerinfo()
 
 # main()
 # {
-#     export BMC_IP="90.90.66.25"
-#     export BMC_USER="Administrator"
-#     export BMC_PASSWORD="Admin@9000"
+#     export BMC_IP="xx.xx.xx.xx"
+#     export BMC_USER="xxxx"
+#     export BMC_PASSWORD="xxxx"
 #     export BMC_PASSWORD=""
 
 #     calc_powerinfo_backgroud

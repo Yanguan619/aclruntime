@@ -118,10 +118,6 @@ EXPOSE  22
 ```
 docker build -t ascend-mindspore-arm-base:ms1.5 .
 ```
-如果在黄区需要自定义在线安装软件包，请增加代理参数执行以下指令：
-```
-docker build --build-arg http_proxy=http://ptaishanpublic2:Huawei123#10.174.217.27:8080 --build-arg https_proxy=http://ptaishanpublic2:Huawei123#10.174.217.27:8080 --build-arg ftp_proxy=ftp://ptaishanpublic2:Huawei123#10.174.217.27:8080 -t ascend-mindspore-arm-base:ms1.5 .
-```
 
 注意：指令末尾的"."，表示使用当前目录的Dockfile。tag--ms1.5, 请自己决定，这里仅仅示意
 

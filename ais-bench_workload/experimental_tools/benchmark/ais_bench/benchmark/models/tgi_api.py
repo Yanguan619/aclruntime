@@ -59,7 +59,7 @@ class TGICustomAPI(PerformanceAPIModel):
         self.host_port = host_port
         self.enable_ssl = enable_ssl
         self.base_url = self._get_base_url()
-        self.endpoint_url = os.path.join(self.base_url, "generate_stream")
+        self.endpoint_url = os.path.join(self.base_url, "generate")
         self.client = TGITextClient(self.endpoint_url)
 
         super().__init__(path=path,

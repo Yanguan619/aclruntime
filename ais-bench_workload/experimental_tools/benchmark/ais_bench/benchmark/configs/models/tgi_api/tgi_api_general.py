@@ -4,6 +4,7 @@ models = [
     dict(
         attr="service", # local or service
         type=TGICustomAPI,
+        path="",
         abbr='tgi-api-general',
         max_seq_len = 4096,
         query_per_second = 1,

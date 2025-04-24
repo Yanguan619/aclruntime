@@ -305,7 +305,7 @@ class MetricsCalculator:
             self.common_metrics["Request Throughput"] = 0
 
         self.common_metrics["Total Input Tokens"] = sum(self.result["InputTokens"])
-        if self.common_metrics["Total Input Tokens"] != 0 and sum(self.result["TTFT"]) != 0:
+        if self.common_metrics["Total Input Tokens"] != 0 and self.result.get("TTFT") is not None:
             self.common_metrics["Prefill Token Throughput"] = round(
                 1000
                 * self.common_metrics["Total Input Tokens"]

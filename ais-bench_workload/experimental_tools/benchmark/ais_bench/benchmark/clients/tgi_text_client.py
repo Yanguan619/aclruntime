@@ -1,4 +1,5 @@
 from abc import ABC
+import json
 
 from ais_bench.benchmark.clients.base_client import BaseClient
 from ais_bench.benchmark.utils import MiddleData
@@ -13,7 +14,7 @@ class TGITextClient(BaseClient, ABC):
         return dict(inputs=inputs, parameters=parameters)
 
     def process_response(self, response, last_time_point):
-        return response.data.decode()
+        return json.loads(response.data.decode())
 
     def update_middle_data(self, res: dict, inputs: MiddleData):
         generated_text = res.get("generated_text", "")

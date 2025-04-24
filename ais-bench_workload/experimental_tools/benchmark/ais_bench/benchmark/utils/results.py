@@ -1,5 +1,6 @@
 import csv
 import collections
+import math
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -53,9 +54,7 @@ class MiddleData:
             "output": self.output,
             "output_token_id": self.output_token_id,
             "prefill_latency": self.prefill_latency,
-            "prefill_throughput": len(self.input_token_id)
-            / self.prefill_latency
-            * 1000,
+            "prefill_throughput": 0.0 if math.isclose(self.prefill_latency, 0.0) else len(self.input_token_id) / self.prefill_latency * 1000,
             "decode_token_latencies": self.decode_cost[:],
             "last_decode_latency": self.decode_cost[-1] if self.decode_cost else 0.0,
             "decode_max_token_latency": (
@@ -64,9 +63,7 @@ class MiddleData:
             "seq_latency": self.req_latency,
             "input_tokens_len": self.num_input_tokens,
             "generate_tokens_len": self.num_generated_tokens,
-            "generate_tokens_speed": self.num_generated_tokens
-            / self.req_latency
-            * 1000,
+            "generate_tokens_speed": 0.0 if math.isclose(self.req_latency, 0.0) else self.num_generated_tokens / self.req_latency * 1000,
             "input_characters_len": len(self.input_data),
             "generate_characters_len": self.num_generated_chars,
             "characters_per_token": (

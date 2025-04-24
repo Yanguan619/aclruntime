@@ -271,28 +271,17 @@ class SyntheticDataset(BaseDataset):
         raise FileNotFoundError(f"No {search_file} found in directory tree: {normalized_path}")
 
     @staticmethod
-    def generate_valid_random_ids(vocab_size: int,
-                             request_size: int,
-                             all_special_ids: list) -> torch.Tensor:
+    def generate_valid_random_ids(valid_indices, request_size: int) -> torch.Tensor:
         """
         Generates random integers in [0, vocab_size) excluding special IDs.
 
         Args:
-            vocab_size: Upper bound (exclusive) of random numbers
+            valid_indices: valid indices in tokenizer file
             request_size: Number of random values to generate
-            all_special_ids: List of IDs to exclude from generation
 
         Returns:
             Tensor of shape (request_size,) with dtype torch.int64
         """
-        # Create mask of valid IDs
-        valid_ids = torch.ones(vocab_size, dtype=torch.bool)
-        original_array = np.array(all_special_ids)
-        filtered_array = original_array[original_array < vocab_size]
-        valid_ids[filtered_array.tolist()] = False
-
-        # Generate random indices for valid IDs
-        valid_indices = torch.where(valid_ids)[0]
 
         # Randomly select from valid indices
         rand_indices = torch.randint(0, len(valid_indices), (request_size,))
@@ -341,8 +330,17 @@ class SyntheticDataset(BaseDataset):
             self.logger.info(f"Current tokenizer model: {tokenizer_model.__class__.__name__}")
             self.logger.debug(f"Token id range: (0, {vocab_size}) excluding the values {all_special_ids}")
 
+            # Create mask of valid IDs
+            valid_ids = torch.ones(vocab_size, dtype=torch.bool)
+            original_array = np.array(all_special_ids)
+            filtered_array = original_array[original_array < vocab_size]
+            valid_ids[filtered_array.tolist()] = False
+
+            # Generate random indices for valid IDs
+            valid_indices = torch.where(valid_ids)[0]
+
             for _ in tqdm(range(request_count), desc="Constructing synthetic tokenid datasets ..."):
-                input_ids = self.generate_valid_random_ids(vocab_size, request_size, all_special_ids)
+                input_ids = self.generate_valid_random_ids(valid_indices, request_size)
                 decode_str = tokenizer.decode(input_ids)
                 dataset.append({"question":decode_str,"answer":"aaa"})
 

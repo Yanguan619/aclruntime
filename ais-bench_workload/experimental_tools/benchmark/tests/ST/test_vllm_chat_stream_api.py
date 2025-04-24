@@ -53,8 +53,7 @@ class TestClass:
         self.perf_csv_headers = ['Performance Parameters', 'Average', 'Min', 'Max',
                                   'Median', 'P75', 'P90', 'P99', 'N']
         self.perf_csv_params = ['Latency', 'TTFT', 'TPOT', 'InputTokens', 'OutputTokens',
-                                'PrefillTokenThroughput', 'OutputTokenThroughput',
-                                'Tokenizer', 'Detokenizer']
+                                'PrefillTokenThroughput', 'OutputTokenThroughput']
 
     # mode infer
     def test_vllm_chat_stream_api_infer(self, monkeypatch):

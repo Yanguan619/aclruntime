@@ -120,7 +120,7 @@ class MetricsCalculator:
 
     def get_common_res(self, concurrency):
         self.common_metrics.update({"Max Concurrency": concurrency})
-        return self.common_metrics
+        return {k: v for k, v in self.common_metrics.items() if v is not None}
 
     def save_performance(self, out_path: str):
         """
@@ -169,7 +169,7 @@ class MetricsCalculator:
         for key in remove_keys:
             result.pop(key, None)
         mapping = {
-            "seq_latency": "Latency",
+            "seq_latency": "E2EL",
             "prefill_latency": "TTFT",
             "average_decode_latencies": "TPOT",
             "decode_token_latencies": "ITL",
@@ -198,6 +198,11 @@ class MetricsCalculator:
             res = ans.get(key)
             if not res or not res[-1]:
                 ans.pop(key)
+
+        for key in ["TTFT", "TPOT", "ITL"]:
+            if math.isclose(sum(ans[key]), 0):
+                ans.pop(key)
+
         return ans
 
     def calculate(self):
@@ -288,7 +293,7 @@ class MetricsCalculator:
         self.common_metrics["Failed Requests"] = self.data_count - self.success_count
         self.common_metrics["Success Requests"] = self.success_count
         self.common_metrics["Concurrency"] = round(
-            sum(self.result["Latency"]) / self.infer_time / 1000, 4
+            sum(self.result["E2EL"]) / self.infer_time / 1000, 4
         )
         self.common_metrics["Max Concurrency"] = self.common_metrics["Concurrency"]
 
@@ -308,7 +313,7 @@ class MetricsCalculator:
                 4,
             )
         else:
-            self.common_metrics["Prefill Token Throughput"] = 0
+            self.common_metrics["Prefill Token Throughput"] = None
 
         self.common_metrics["Total Output Tokens"] = sum(self.result["OutputTokens"])
         if self.infer_time > 0:
@@ -331,7 +336,7 @@ class MetricsCalculator:
         ms = " ms"
         unit_token = " token/s"
         metrics_units_map = {
-            "Latency": ms,
+            "E2EL": ms,
             "TTFT": ms,
             "TPOT": ms,
             "ITL": ms,

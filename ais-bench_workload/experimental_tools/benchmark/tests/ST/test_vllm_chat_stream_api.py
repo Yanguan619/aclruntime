@@ -52,7 +52,7 @@ class TestClass:
                                'Output Token Throughput', 'Total Token Throughput']
         self.perf_csv_headers = ['Performance Parameters', 'Average', 'Min', 'Max',
                                   'Median', 'P75', 'P90', 'P99', 'N']
-        self.perf_csv_params = ['Latency', 'TTFT', 'TPOT', 'InputTokens', 'OutputTokens',
+        self.perf_csv_params = ['E2EL', 'TTFT', 'TPOT', 'InputTokens', 'OutputTokens',
                                 'PrefillTokenThroughput', 'OutputTokenThroughput']
 
     # mode infer

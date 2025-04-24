@@ -737,6 +737,7 @@ Result ModelProcess::UpdateInputsReuse(const std::vector<int> &inOutRelation)
             }
             if (!reuseOutput_) {
                 (void)aclrtFree(inBuffer);
+                inBuffer = nullptr;
             }
         } else {
             ERROR_LOG("find outputdata index out of range");
@@ -978,6 +979,7 @@ Result ModelProcess::CreateOutput()
             ACLERR_LOG(aclGetRecentErrMsg());
             ERROR_LOG("can't create data buffer, create output failed");
             aclrtFree(outputBuffer);
+            outputBuffer = nullptr;
             return FAILED;
         }
 
@@ -986,7 +988,9 @@ Result ModelProcess::CreateOutput()
             ACLERR_LOG(aclGetRecentErrMsg());
             ERROR_LOG("can't add data buffer, create output failed");
             aclrtFree(outputBuffer);
+            outputBuffer = nullptr;
             aclDestroyDataBuffer(outputData);
+            outputData = nullptr;
             return FAILED;
         }
     }
@@ -1028,8 +1032,10 @@ void ModelProcess::DestroyOutput(bool free_memory_flag = true)
         void* data = aclGetDataBufferAddr(dataBuffer);
         if (free_memory_flag == true) {
             (void)aclrtFree(data);
+            data = nullptr;
         }
         (void)aclDestroyDataBuffer(dataBuffer);
+        dataBuffer = nullptr;
     }
 
     (void)aclmdlDestroyDataset(output_);
@@ -1102,6 +1108,7 @@ Result SaveTensorMemoryToFile(const aclTensorDesc *desc, std::string &prefixName
         ACLERR_LOG(aclGetRecentErrMsg());
         WARN_LOG("exception_cb aclMemcpy failed ret:%d", ret);
         aclrtFreeHost(hostaddr);
+        hostaddr = nullptr;
         return FAILED;
     }
     std::string fileName = prefixName + "_format_" + std::to_string(format) +
@@ -1113,6 +1120,7 @@ Result SaveTensorMemoryToFile(const aclTensorDesc *desc, std::string &prefixName
     }
     outFile.write((char*)hostaddr, len);
     aclrtFreeHost(hostaddr);
+    hostaddr = nullptr;
     outFile.close();
     return SUCCESS;
 }
@@ -1327,6 +1335,7 @@ Result ModelProcess::CreateOutput(void* outputBuffer, size_t bufferSize)
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("can't create data buffer, create output failed");
         aclrtFree(outputBuffer);
+        outputBuffer = nullptr;
         return FAILED;
     }
 

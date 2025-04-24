@@ -17,13 +17,13 @@ from ais_bench.benchmark.utils.prompt import PromptList
 
 from ais_bench.benchmark.models.base_api import BaseAPIModel, handle_synthetic_input
 from ais_bench.benchmark.models.performance_api import PerformanceAPIModel
-from ais_bench.benchmark.clients import TGIStreamClient
+from ais_bench.benchmark.clients import TGIStreamClient, TGITextClient
 
 PromptType = Union[PromptList, str]
 
 
 @MODELS.register_module()
-class TGICustomAPI(BaseAPIModel):
+class TGICustomAPI(PerformanceAPIModel):
     """Model wrapper around TGI's models. TGI 0.9.4
 
     Args:
@@ -44,6 +44,7 @@ class TGICustomAPI(BaseAPIModel):
     is_api: bool = True
 
     def __init__(self,
+                 path: str = "",
                  max_seq_len: int = 4096,
                  query_per_second: int = 1,
                  rpm_verbose: bool = False,
@@ -58,7 +59,10 @@ class TGICustomAPI(BaseAPIModel):
         self.host_port = host_port
         self.enable_ssl = enable_ssl
         self.base_url = self._get_base_url()
-        super().__init__(path="",
+        self.endpoint_url = os.path.join(self.base_url, "generate_stream")
+        self.client = TGITextClient(self.endpoint_url)
+
+        super().__init__(path=path,
                          max_seq_len=max_seq_len,
                          meta_template=meta_template,
                          query_per_second=query_per_second,
@@ -104,44 +108,30 @@ class TGICustomAPI(BaseAPIModel):
         Returns:
             str: The generated string.
         """
-        assert isinstance(input, str)
 
+        assert isinstance(input, str)
         if max_out_len <= 0:
             return ''
+        cache_data = self.prepare_input_data(input)
+        self.generation_kwargs.update({"max_new_tokens": max_out_len})
 
         max_num_retries = 0
         while max_num_retries < self.retry:
             max_num_retries += 1
-            header = {
-                'Content-Type': 'application/json',
-            }
-
             try:
-                parameters_dict = self.generation_kwargs
-                parameters_dict["max_new_tokens"] = max_out_len
-                data = dict(
-                    inputs=input,
-                    parameters=parameters_dict,
-                )
-                url = os.path.join(self.base_url, "generate")
-                raw_response = requests.post(url, headers=header, data=json.dumps(data))
-
+                response = self.client.request(cache_data, self.generation_kwargs)
+                self.update_decode(cache_data)
             except requests.ConnectionError:
                 self.logger.error('Got connection error, retrying...')
                 self.wait()
                 continue
-            try:
-                response = raw_response.json()
-            except requests.JSONDecodeError:
-                self.logger.error('JsonDecode error, got',
-                                  str(raw_response.content))
-                continue
-            self.logger.debug(str(response))
-            if response.get('generated_text') is None:
-                raise ValueError(f"Unexpect response: {response}")
-            return response['generated_text']
+            except Exception as e:
+                raise RuntimeError(f"Process response failed and the reason is {e}")
 
-        raise RuntimeError('Calling TGI text API failed after retrying for '
+            self.logger.debug(str(response))
+            return ''.join(response)
+
+        raise RuntimeError('Calling TGI Text API failed after retrying for '
                            f'{max_num_retries} times. Check the logs for '
                            'details.')
 

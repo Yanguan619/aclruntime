@@ -18,11 +18,7 @@ cd ais-bench_workload/experimental_tools/mindie_benchmark # mindie_llm_examples�
 
 MindIE容器安装昇腾社区文档：[拉取镜像方式安装MIndIE](https://www.hiascend.com/document/detail/zh/mindie/100/envdeployment/instg/mindie_instg_0021.html)。
 
-注：由于AISBench benchmark声明支持`python == 3.10`，而MindIE容器仅提供了`python == 3.11`版本，需要在执行AISBench的安装前在MIndIE容器中执行以下命令安装额外依赖，安装完依赖后，在容器内进行AISBench benchmark工具的安装即可，无需构造conda环境。
-```shell
-# 在MIndIE容器中额外安装指定版本的pyext包
-pip3 install pyext==0.5
-```
+注：在容器内进行AISBench benchmark工具的安装即可，无需构造conda环境。
 
 AISBench benchmark安装参考：[AISBench benchmark安装方法](https://gitee.com/aisbench/benchmark/blob/master/README.md#%E5%B7%A5%E5%85%B7%E5%AE%89%E8%A3%85)
 

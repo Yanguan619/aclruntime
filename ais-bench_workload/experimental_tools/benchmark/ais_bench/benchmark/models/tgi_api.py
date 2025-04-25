@@ -27,6 +27,7 @@ class TGICustomAPI(PerformanceAPIModel):
     """Model wrapper around TGI's models. TGI 0.9.4
 
     Args:
+        path (str): The path of model.
         max_seq_len (int): The maximum allowed sequence length of a model.
             Note that the length of prompt + generated tokens shall not exceed
             this value. Defaults to 2048.

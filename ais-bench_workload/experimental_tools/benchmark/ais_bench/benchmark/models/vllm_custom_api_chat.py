@@ -79,7 +79,7 @@ class VLLMCustomAPIChat(PerformanceAPIModel):
 
         self.logger.info("Running model path name is: " + self.model)
 
-    def encode(self, prompt: list) -> Tuple[float, List[int]]:
+    def encode_input(self, prompt: list) -> Tuple[float, List[int]]:
         """Encode a string into tokens, measuring processing time."""
         if not self.tokenizer:
             self.logger.error("Tokenizer is not initialized.")
@@ -111,7 +111,7 @@ class VLLMCustomAPIChat(PerformanceAPIModel):
         cache_data.input_data = input_dict
 
         if self.do_performance and self.tokenizer:
-            time_cost, token_id = self.encode(input_dict)
+            time_cost, token_id = self.encode_input(input_dict)
             cache_data.input_token_id = token_id
             cache_data.num_input_tokens = len(token_id)
             cache_data.num_input_chars = len(self._input_decode(token_id))
@@ -264,7 +264,7 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
                          verbose=verbose)
         self.logger.info("Running model path name is: " + self.model)
 
-    def encode(self, prompt: list) -> Tuple[float, List[int]]:
+    def encode_input(self, prompt: list) -> Tuple[float, List[int]]:
         """Encode a string into tokens, measuring processing time."""
         if not self.tokenizer:
             self.logger.error("Tokenizer is not initialized.")
@@ -296,7 +296,7 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
         cache_data.input_data = input_dict
 
         if self.do_performance and self.tokenizer:
-            time_cost, token_id = self.encode(input_dict)
+            time_cost, token_id = self.encode_input(input_dict)
             cache_data.input_token_id = token_id
             cache_data.num_input_tokens = len(token_id)
             cache_data.num_input_chars = len(self._input_decode(token_id))

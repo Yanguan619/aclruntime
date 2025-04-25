@@ -13,7 +13,10 @@ class TGITextClient(BaseClient, ABC):
         return dict(inputs=inputs, parameters=parameters)
 
     def update_middle_data(self, res: dict, inputs: MiddleData):
-        generated_text = res.get("generated_text", "")
+        try:
+            generated_text = res["generated_text"]
+        except Exception as e:
+            raise RuntimeError(f"Process response failed and the reason is {e}")
         if generated_text:
             inputs.output = generated_text
             inputs.num_generated_chars = len(generated_text)

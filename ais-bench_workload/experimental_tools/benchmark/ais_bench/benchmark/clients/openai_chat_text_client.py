@@ -1,10 +1,10 @@
 from abc import ABC
 
-from ais_bench.benchmark.clients.base_client import BaseStreamClient
+from ais_bench.benchmark.clients.base_client import BaseClient
 from ais_bench.benchmark.utils import MiddleData
 
 
-class OpenAIChatTextClient(BaseStreamClient, ABC):
+class OpenAIChatTextClient(BaseClient, ABC):
     def construct_request_body(
         self,
         inputs: dict,

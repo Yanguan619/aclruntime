@@ -68,7 +68,7 @@ class VLLMCustomAPIChat(PerformanceAPIModel):
         self.model= model if model else self._get_service_model_path()
         self.client = OpenAIChatTextClient(self.endpoint_url)
 
-        super().__init__(path="",
+        super().__init__(path=path,
                          max_seq_len=max_seq_len,
                          meta_template=meta_template,
                          query_per_second=query_per_second,

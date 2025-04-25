@@ -199,7 +199,7 @@ class MetricsCalculator:
             if not res or not res[-1]:
                 ans.pop(key)
 
-        for key in ["TTFT", "TPOT", "ITL"]:
+        for key in ["TTFT", "TPOT", "ITL", "PrefillTokenThroughput"]:
             if math.isclose(sum(ans[key]), 0):
                 ans.pop(key)
 
@@ -313,7 +313,7 @@ class MetricsCalculator:
                 4,
             )
         else:
-            self.common_metrics["Prefill Token Throughput"] = None
+            self.common_metrics.pop("Prefill Token Throughput", None)
 
         self.common_metrics["Total Output Tokens"] = sum(self.result["OutputTokens"])
         if self.infer_time > 0:

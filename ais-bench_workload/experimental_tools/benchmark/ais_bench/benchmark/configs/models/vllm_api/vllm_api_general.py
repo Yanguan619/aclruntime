@@ -5,6 +5,7 @@ models = [
         attr="service", # local or service
         type=VLLMCustomAPI,
         abbr='vllm-api-general',
+        path="",
         model="",
         max_seq_len = 4096,
         query_per_second = 1,

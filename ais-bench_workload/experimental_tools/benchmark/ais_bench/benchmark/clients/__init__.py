@@ -5,3 +5,4 @@ from .triton_stream_client import TritonStreamClient
 from .openai_stream_client import OpenAIStreamClient
 from .tgi_text_client import TGITextClient
 from .triton_text_client import TritonTextClient
+from .openai_text_client import OpenAITextClient

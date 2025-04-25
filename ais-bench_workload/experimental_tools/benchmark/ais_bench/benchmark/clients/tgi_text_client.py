@@ -13,9 +13,6 @@ class TGITextClient(BaseClient, ABC):
     ) -> dict:
         return dict(inputs=inputs, parameters=parameters)
 
-    def process_response(self, response, last_time_point):
-        return json.loads(response.data.decode())
-
     def update_middle_data(self, res: dict, inputs: MiddleData):
         generated_text = res.get("generated_text", "")
         if generated_text:

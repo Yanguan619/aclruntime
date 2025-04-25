@@ -20,14 +20,14 @@ from ais_bench.benchmark.utils.prompt import PromptList
 
 from ais_bench.benchmark.models.base_api import BaseAPIModel, handle_synthetic_input
 from ais_bench.benchmark.models.performance_api import PerformanceAPIModel
-from ais_bench.benchmark.clients import OpenAIChatStreamClient
+from ais_bench.benchmark.clients import OpenAIChatStreamClient, OpenAIChatTextClient
 from ais_bench.benchmark.utils.results import MiddleData
 
 PromptType = Union[PromptList, str]
 
 
 @MODELS.register_module()
-class VLLMCustomAPIChat(BaseAPIModel):
+class VLLMCustomAPIChat(PerformanceAPIModel):
     """Model wrapper around OpenAI's models. vllm 0.6 +
 
     Args:
@@ -48,6 +48,7 @@ class VLLMCustomAPIChat(BaseAPIModel):
     is_api: bool = True
 
     def __init__(self,
+                 path: str = "",
                  model: str = "",
                  max_seq_len: int = 4096,
                  query_per_second: int = 1,
@@ -63,7 +64,10 @@ class VLLMCustomAPIChat(BaseAPIModel):
         self.host_port = host_port
         self.enable_ssl = enable_ssl
         self.base_url = self._get_base_url()
+        self.endpoint_url = os.path.join(self.base_url, "chat/completions")
         self.model= model if model else self._get_service_model_path()
+        self.client = OpenAIChatTextClient(self.endpoint_url)
+
         super().__init__(path="",
                          max_seq_len=max_seq_len,
                          meta_template=meta_template,
@@ -74,6 +78,44 @@ class VLLMCustomAPIChat(BaseAPIModel):
                          generation_kwargs=generation_kwargs)
 
         self.logger.info("Running model path name is: " + self.model)
+
+    def encode(self, prompt: list) -> Tuple[float, List[int]]:
+        """Encode a string into tokens, measuring processing time."""
+        if not self.tokenizer:
+            self.logger.error("Tokenizer is not initialized.")
+            return 0.0, []
+
+        messages = [self.tokenizer.tokenizer.tokenizer_model.apply_chat_template(m, add_generation_prompt=True, tokenize=False) for m in prompt]
+        time_start = time.perf_counter()
+        tokens = self.tokenizer.batch_encode_plus(messages)
+        time_cost = (time.perf_counter() - time_start) * 1000  # Convert to milliseconds
+        sum_token_ids = []
+        for token_ids in tokens.get('input_ids'):
+            sum_token_ids.extend(token_ids)
+        return time_cost, sum_token_ids
+
+    def _input_decode(self, tokens: List):
+        if not self.tokenizer:
+            self.logger.error("Tokenizer is not initialized.")
+            return []
+        return self.tokenizer.decode(tokens)
+
+    def prepare_input_data(self, input_dict: Dict) -> MiddleData:
+        """Prepare input data, tokenize if performance mode is enabled."""
+        rrid = uuid.uuid4().hex
+        cache_data = self.result_cache[rrid]
+        with self.lock:
+            cache_data.data_id = str(self.data_id)
+            self.data_id += 1
+        cache_data.request_id = rrid
+        cache_data.input_data = input_dict
+
+        if self.do_performance and self.tokenizer:
+            time_cost, token_id = self.encode(input_dict)
+            cache_data.input_token_id = token_id
+            cache_data.num_input_tokens = len(token_id)
+            cache_data.num_input_chars = len(self._input_decode(token_id))
+        return cache_data
 
     def generate(self,
                  inputs: List[PromptType],
@@ -131,39 +173,32 @@ class VLLMCustomAPIChat(BaseAPIModel):
                     msg['role'] = 'system'
                 messages.append(msg)
 
+        self.generation_kwargs.update({"max_tokens": max_out_len})
+        data = dict(
+            model=self.model,
+            messages=messages,
+            max_tokens=max_out_len,
+        )
+        data = data | self.generation_kwargs
+        cache_data = self.prepare_input_data(data)
+
         max_num_retries = 0
         while max_num_retries < self.retry:
             max_num_retries += 1
-            header = {
-                'Content-Type': 'application/json',
-            }
-
             try:
-                data = dict(
-                    model=self.model,
-                    messages=messages,
-                    max_tokens=max_out_len,
-                )
-                data = data | self.generation_kwargs
-                url = os.path.join(self.base_url, "chat/completions")
-                raw_response = requests.post(url, headers=header, data=json.dumps(data))
-
+                response = self.client.request(cache_data)
+                self.update_decode(cache_data)
             except requests.ConnectionError:
                 self.logger.error('Got connection error, retrying...')
                 self.wait()
                 continue
-            try:
-                response = raw_response.json()
-            except requests.JSONDecodeError:
-                self.logger.error('JsonDecode error, got',
-                                  str(raw_response.content))
-                continue
-            self.logger.debug(str(response))
-            if response.get('choices') is None:
-                raise ValueError(f"Unexpect response: {response}")
-            return  response['choices'][0]['message']['content'].strip()
+            except Exception as e:
+                raise RuntimeError(f"Process response failed and the reason is {e}")
 
-        raise RuntimeError('Calling OpenAI failed after retrying for '
+            self.logger.debug(str(response))
+            return ''.join(response)
+
+        raise RuntimeError('Calling OpenAI Chat Stream API failed after retrying for '
                            f'{max_num_retries} times. Check the logs for '
                            'details.')
 
@@ -349,7 +384,7 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
             self.logger.debug(str(response))
             return ''.join(response)
 
-        raise RuntimeError('Calling OpenAI failed after retrying for '
+        raise RuntimeError('Calling OpenAI Chat Stream API failed after retrying for '
                            f'{max_num_retries} times. Check the logs for '
                            'details.')
 

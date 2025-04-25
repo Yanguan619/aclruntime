@@ -1,5 +1,4 @@
 from abc import ABC
-import json
 
 import uuid
 from ais_bench.benchmark.clients.base_client import BaseClient

@@ -5,6 +5,7 @@ import sys
 import logging
 import pytest
 import requests
+import pandas as pd
 from unittest.mock import patch
 from ais_bench.benchmark.cli.main import main
 
@@ -14,7 +15,10 @@ class Response:
     def __init__(self):
         self.response = []
         for s in ["A","is","ben", "ch", "20"]:
-            self.response.append(f"data: {{\"prefill_time\":100,\"decode_time\":100,\"token\":{{\"id\":0,\"text\":\"{s}\"}}}}")
+            data = {
+                "token":{"id": 29889,"text": s}, "generated_text": s,
+            }
+            self.response.append(f"data: {json.dumps(data)}\n")
     def stream(self,*args):
         for content in self.response:
             yield content.encode()
@@ -80,7 +84,7 @@ class TestClass:
                             'generate_tokens_speed': 37.03, 'input_characters_len': 3,
                             'generate_characters_len': 6, 'characters_per_token': 2.0,
                             'prefill_batch_size': 0, 'decode_batch_size': [], 'queue_wait_time': [],
-                            'request_id': '591c69416c694a6ab3194a06d6e1ed17',
+                            'request_id': '591c69416c694a6ab319·4a06d6e1ed17',
                             'start_time': 1742952029.5993671, 'end_time': 1742952032.299417,
                             'is_success': True, 'is_empty': False}]
         fake_time_str = "mindie_stream_aime2024_gen_0_shot_str_perf"

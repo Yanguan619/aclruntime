@@ -30,7 +30,7 @@ class TestClass:
     # mode all
     def test_triton_api_general_all_default(self, monkeypatch):
         fake_prediction = "11"
-        fake_time_str = "aime2024_gen_0_shot_str"
+        fake_time_str = "triton_aime2024_gen_0_shot_str"
         datasets_abbr_name = "aime2024"
         datasets_script_name = "aime2024_gen_0_shot_str"
 

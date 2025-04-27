@@ -70,7 +70,7 @@ class TestClass:
         assert data.get(f"{AIME_DATA_COUNT - 1}").get("prediction") == fake_prediction
 
     # mode perf
-    def test_tgi_stream_api_perf(self, monkeypatch):
+    def test_mindie_stream_api_perf(self, monkeypatch):
         fake_perf_data = [{'id': '0', 'input_data': 'A A', 'input_token_id': [32, 362, 362],
                             'output': ' A A A', 'output_token_id': [362, 362, 362],
                             'prefill_latency': 56.9, 'prefill_throughput': 333.6,

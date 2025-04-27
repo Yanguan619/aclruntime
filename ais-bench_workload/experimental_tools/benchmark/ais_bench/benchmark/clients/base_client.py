@@ -38,9 +38,8 @@ class BaseClient(ABC):
     ) -> dict:
         pass
 
-    @abstractmethod
     def process_response(self, response, last_time_point):
-        pass
+        return json.loads(response.data.decode())
 
     @abstractmethod
     def update_middle_data(self, res, inputs):

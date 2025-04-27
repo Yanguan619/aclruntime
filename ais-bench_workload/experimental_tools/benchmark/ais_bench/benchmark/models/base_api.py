@@ -463,7 +463,7 @@ class TokenBucket:
 
 
 def is_synthetic_string(input):
-    pattern = r'^A+[0-9]+$'
+    pattern = r'^(A\s)+A[0-9]+$'
     return bool(re.match(pattern, input))
 
 

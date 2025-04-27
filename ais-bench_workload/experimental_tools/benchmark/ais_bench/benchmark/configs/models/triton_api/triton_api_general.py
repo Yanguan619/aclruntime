@@ -5,6 +5,7 @@ models = [
         attr="service", # local or service
         type=TritonCustomAPI,
         abbr='triton-api-general',
+        path="",
         model_name='qwen',
         max_seq_len = 4096,
         query_per_second = 1,

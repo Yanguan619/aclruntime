@@ -20,14 +20,14 @@ from ais_bench.benchmark.utils.prompt import PromptList
 
 from ais_bench.benchmark.models.base_api import BaseAPIModel, handle_synthetic_input
 from ais_bench.benchmark.models.performance_api import PerformanceAPIModel
-from ais_bench.benchmark.clients import OpenAIStreamClient
+from ais_bench.benchmark.clients import OpenAIStreamClient, OpenAITextClient
 from ais_bench.benchmark.utils.results import MiddleData
 
 PromptType = Union[PromptList, str]
 
 
 @MODELS.register_module()
-class VLLMCustomAPI(BaseAPIModel):
+class VLLMCustomAPI(PerformanceAPIModel):
     """Model wrapper around OpenAI's models. vllm 0.6 +
 
     Args:
@@ -48,6 +48,7 @@ class VLLMCustomAPI(BaseAPIModel):
     is_api: bool = True
 
     def __init__(self,
+                 path: str = "",
                  model: str = "",
                  max_seq_len: int = 4096,
                  query_per_second: int = 1,
@@ -64,7 +65,10 @@ class VLLMCustomAPI(BaseAPIModel):
         self.enable_ssl = enable_ssl
         self.base_url = self._get_base_url()
         self.model= model if model else self._get_service_model_path()
-        super().__init__(path="",
+        self.endpoint_url = os.path.join(self.base_url, "completions")
+        self.client = OpenAITextClient(self.endpoint_url)
+
+        super().__init__(path=path,
                          max_seq_len=max_seq_len,
                          meta_template=meta_template,
                          query_per_second=query_per_second,
@@ -74,6 +78,24 @@ class VLLMCustomAPI(BaseAPIModel):
                          generation_kwargs=generation_kwargs)
 
         self.logger.info("Running model path name is: " + self.model)
+
+    def prepare_input_data(self, input_dict: Dict) -> MiddleData:
+        """Prepare input data, tokenize if performance mode is enabled."""
+        rrid = uuid.uuid4().hex
+        cache_data = self.result_cache[rrid]
+        with self.lock:
+            cache_data.data_id = str(self.data_id)
+            self.data_id += 1
+        cache_data.request_id = rrid
+        cache_data.input_data = input_dict
+
+        if self.do_performance and self.tokenizer:
+            time_cost, token_id = self.encode(input_dict.get("prompt"))
+            cache_data.input_token_id = token_id
+            cache_data.num_input_tokens = len(token_id)
+            cache_data.num_input_chars = len(input_dict.get("prompt"))
+
+        return cache_data
 
     def generate(self,
                  inputs: List[PromptType],
@@ -117,39 +139,32 @@ class VLLMCustomAPI(BaseAPIModel):
         if max_out_len <= 0:
             return ''
 
+        self.generation_kwargs.update({"max_tokens": max_out_len})
+        data = dict(
+            model=self.model,
+            prompt=input,
+            max_tokens=max_out_len,
+        )
+        data = data | self.generation_kwargs
+        cache_data = self.prepare_input_data(data)
+
         max_num_retries = 0
         while max_num_retries < self.retry:
             max_num_retries += 1
-            header = {
-                'Content-Type': 'application/json',
-            }
-
             try:
-                data = dict(
-                    model=self.model,
-                    prompt=input,
-                    max_tokens=max_out_len,
-                )
-                data = data | self.generation_kwargs
-                url = os.path.join(self.base_url, "completions")
-                raw_response = requests.post(url, headers=header, data=json.dumps(data))
-
+                response = self.client.request(cache_data)
+                self.update_decode(cache_data)
             except requests.ConnectionError:
                 self.logger.error('Got connection error, retrying...')
                 self.wait()
                 continue
-            try:
-                response = raw_response.json()
-            except requests.JSONDecodeError:
-                self.logger.error('JsonDecode error, got',
-                                  str(raw_response.content))
-                continue
-            self.logger.debug(str(response))
-            if response.get('choices') is None:
-                raise ValueError(f"Unexpect response: {response}")
-            return response['choices'][0]['text']
+            except Exception as e:
+                raise RuntimeError(f"Process response failed and the reason is {e}")
 
-        raise RuntimeError('Calling OpenAI failed after retrying for '
+            self.logger.debug(str(response))
+            return ''.join(response)
+
+        raise RuntimeError('Calling OpenAI Stream API failed after retrying for '
                            f'{max_num_retries} times. Check the logs for '
                            'details.')
 
@@ -276,22 +291,6 @@ class VLLMCustomAPIStream(PerformanceAPIModel):
         if max_out_len <= 0:
             return ''
 
-        """Generate result given a input.
-
-        Args:
-            input (PromptType): A string or PromptDict.
-                The PromptDict should be organized in AISBench'
-                API format.
-            max_out_len (int): The maximum length of the output.
-
-        Returns:
-            str: The generated string.
-        """
-        assert isinstance(input, str)
-
-        if max_out_len <= 0:
-            return ''
-
         self.generation_kwargs.update({"max_tokens": max_out_len})
         data = dict(
             model=self.model,
@@ -318,7 +317,7 @@ class VLLMCustomAPIStream(PerformanceAPIModel):
             self.logger.debug(str(response))
             return ''.join(response)
 
-        raise RuntimeError('Calling OpenAI failed after retrying for '
+        raise RuntimeError('Calling OpenAI Stream API failed after retrying for '
                            f'{max_num_retries} times. Check the logs for '
                            'details.')
 

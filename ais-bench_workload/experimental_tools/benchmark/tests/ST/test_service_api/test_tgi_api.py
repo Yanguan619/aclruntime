@@ -6,6 +6,17 @@ import logging
 import pytest
 from ais_bench.benchmark.cli.main import main
 
+class Response:
+    def __init__(self):
+        self.response = []
+        for s in ["A","is","ben", "ch", "20"]:
+            data = {
+                "token":{"id":29889,"text":s,"logprob":None,"special":None},"generated_text":s,"details":None
+            }
+            self.response.append(f"data: {json.dumps(data)}\n")
+    def stream(self,*args):
+        for content in self.response:
+            yield content.encode()
 
 class TestClass:
     @classmethod
@@ -30,7 +41,7 @@ class TestClass:
     # mode all
     def test_tgi_api_general_all_default(self, monkeypatch):
         fake_prediction = "11"
-        fake_time_str = "aime2024_gen_0_shot_str"
+        fake_time_str = "tgi_aime2024_gen_0_shot_str"
         datasets_abbr_name = "aime2024"
         datasets_script_name = "aime2024_gen_0_shot_str"
 

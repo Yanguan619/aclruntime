@@ -8,7 +8,7 @@ from ais_bench.benchmark.utils import MiddleData
 class OpenAITextClient(BaseClient, ABC):
     def construct_request_body(
         self,
-        inputs: MiddleData,
+        inputs: dict,
         parameters: dict = None,
     ) -> dict:
         return inputs

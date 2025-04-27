@@ -18,6 +18,6 @@ class OpenAIChatTextClient(BaseClient, ABC):
         except Exception as e:
             raise RuntimeError(f"Process response failed and the reason is {e}")
         if generated_text:
-            inputs.output == generated_text
+            inputs.output = generated_text
             inputs.num_generated_chars = len(generated_text)
         return generated_text

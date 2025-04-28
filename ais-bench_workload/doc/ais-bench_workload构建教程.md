@@ -55,14 +55,6 @@ ais-bench_workload
 │   └── 制作可ssh登录镜像ascend-mindspore-arm的方法.md
 ├── README.md
 ├── src    # 构建测试软件包的模型保存目录
-│   ├── inference # 推理场景
-│   │   ├── language
-│   │   │   └── bert
-│   │   ├── recommendation
-│   │   │   └── widedeep
-│   │   └── vision
-│   │       ├── classification
-│   │       └── classification_and_detection
 │   └── train  # 训练场景
 │       ├── huawei  # 华为模型
 │       │   ├── train_mindspore_bert
@@ -199,8 +191,8 @@ ais-bench_workload
 | 参数                    | 说明                                                         |
 | ----------------------- | ------------------------------------------------------------ |
 | {stubs_file}            | 选择stubs基础工具包，即选择构建测试软件包使用的aarch64和x86_64平台，必选。取值为Ais-Benchmark-Stubs-aarch64-<package_version>.tar.gz、Ais-Benchmark-Stubs-x86_64-<package_version>.tar.gz |
-| {mode}                  | 选择构建测试软件包的适用场景，必选。取值为：train(训练场景)、inference(推理场景)。对应ais-bench_workload/src目下以及子目录名称。 |
-| {secondary-folder-name} | 二级子目录名称，对应ais-bench_workload/src目录下二级子目录名称，必选。{mode}配置为inference时，表示选择推理模型分类，取值为：language、vision；{mode}配置为train时，表示选择模型品牌，取值为：huawei、nvidia |
+| {mode}                  | 选择构建测试软件包的适用场景，必选。取值为：train(训练场景)。对应ais-bench_workload/src目下以及子目录名称。 |
+| {secondary-folder-name} | 二级子目录名称，对应ais-bench_workload/src目录下二级子目录名称，必选。{mode}配置为train时，表示选择模型品牌，取值为：huawei、nvidia |
 | {third-folder-name}     | 三级子目录名称，对应ais-bench_workload/src目录下三级子目录名称，必选。<br> {secondary-folder-name}配置为language时，取值为bert;<br> {secondary-folder-name}配置为vision时，取值为classification_and_detection<br>  {secondary-folder-name}配置为huawei时，取值为：train_mindspore_bert、train_mindspore_deeplabv3、train_mindspore_deepspeech2、train_mindspore_faster_rcnn、train_mindspore_glm2、train_mindspore_gnmt_v2、train_mindspore_llama、train-mindspore_pangu_alpha、train_mindspore_resnet、train_mindspore_ssd、train_mindspore_widedeep、train_tensorflow_bert_base、train_tensorflow_densenet121、train_tensorflow_mobileneetv2、train_tensorflow_nezha_large、train_tensorflow_resnet50、train_tensorflow_resnet101、train_tensorflow_resnext50、train_tensorflow_ssd_resnet34、train_tensorflow_vgg16、train_tensorflow_yolov3;<br> {secondary-folder-name}配置为nvidia时，取值为train_tensorflow_bert、train_tensorflow_resnet |
 | {version}               | 模型框架版本号，仅{mode}配置为train时支持，可选。取值需通过ais-bench_worload工作目录具体模型目录下的版本文件确认支持的模型框架版本号 |
 | {type}                  | 线上或离线环境，仅{mode}配置为train时支持，可选。取值为“modelarts"，表示构建线上环境的性能测试软件包；不配置本参数时，表示构建离线环境的性能测试软件包 |
@@ -216,20 +208,6 @@ ais-bench_workload
 + 构建aarch64架构训练场景huawei mindspore框架r1.7版本resnet模型modelarts线上运行的性能测试软件包
   ./build.sh  ./Ais-Benchmark-Stubs-aarch64-1.0.tar.gz train huawei train_mindspore_resnet r1.7 modelarts
 
-**推理场景示例如下：**
-
-+ 构建aarch64架构推理场景vision分类classification_and_detection模型的性能测试软件包
-  ./build.sh ../output/Ais-Benchmark-Stubs-aarch64-1.0.tar.gz inference vision classification_and_detection
-+ 构建x86_64架构推理场景vision分类classification_and_detection模型的性能测试软件包
-  ./build.sh ../output/Ais-Benchmark-Stubs-x86_64-1.0.tar.gz inference vision classification_and_detection
-+ 构建aarch64架构推理场景language分类bert模型的性能测试软件包
-  ./build.sh ../output/Ais-Benchmark-Stubs-aarch64-1.0.tar.gz inference language bert
-+ 构建x86_64架构推理场景language分类bert模型的性能测试软件包
-  ./build.sh ../output/Ais-Benchmark-Stubs-x86_64-1.0.tar.gz inference language bert
-+ 构建aarch64架构推理场景recommendation分类bert模型的性能测试软件包
-  ./build.sh ../output/Ais-Benchmark-Stubs-aarch64-1.0.tar.gz inference recommendation widedeep
-+ 构建x86_64架构推理场景recommendation分类widedeep模型的性能测试软件包
-  ./build.sh ../output/Ais-Benchmark-Stubs-x86_64-1.0.tar.gz inference recommendation widedeep
 
 ## FAQ
 

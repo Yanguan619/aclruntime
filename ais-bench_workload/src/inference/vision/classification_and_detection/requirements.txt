@@ -1,5 +1,0 @@
-numpy
-tqdm
-opencv-python
-pycocotools
-scikit-learn

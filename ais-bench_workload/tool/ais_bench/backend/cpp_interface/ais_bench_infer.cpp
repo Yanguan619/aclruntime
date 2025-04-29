@@ -18,6 +18,7 @@
 #include <random>
 #include <memory>
 #include <cassert>
+#include <cstring>
 
 #include "Base/Tensor/TensorBuffer/TensorBuffer.h"
 #include "Base/Tensor/TensorShape/TensorShape.h"
@@ -67,7 +68,15 @@ int str2num(char* str)
 int main(int argc, char **argv)
 {
     const int inputIndex = 3;
+    const size_t loopLength = 5;
+    if (argc < inputIndex) {
+        throw std::runtime_error("The program requires at least two parameters to be input.");
+    }
     std::string modelPath = argv[1];
+    size_t argv2Length = std::strlen(argv[2]);
+    if (argv2Length > loopLength) {
+        throw std::runtime_error("The size of the loop parameter must be less than six digits.");
+    }
     int loop = str2num(argv[2]);
     std::string input;
     if (argc > inputIndex) {

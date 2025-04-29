@@ -315,7 +315,7 @@ class MetricsCalculator:
         else:
             self.common_metrics.pop("Prefill Token Throughput", None)
 
-        self.common_metrics["Total Output Tokens"] = sum(self.result["OutputTokens"])
+        self.common_metrics["Total generated tokens"] = sum(self.result["OutputTokens"])
         if self.infer_time > 0:
             self.common_metrics["Input Token Throughput"] = round(
                 self.common_metrics["Total Input Tokens"] / self.infer_time, 4
@@ -369,7 +369,7 @@ class MetricsCalculator:
             "Total Input Tokens": None,
             "Prefill Token Throughput": unit_token,
             "Input Token Throughput": " s",
-            "Total Output Tokens": None,
+            "Total generated tokens": None,
             "Output Token Throughput": unit_token,
             "Total Token Throughput": unit_token,
         }

@@ -265,7 +265,7 @@ outputs/default/
 |Request Throughput|请求吞吐率|
 |Total Input Tokens|输入总token数|
 |Prefill Token Throughput|prefill吞吐率|
-|Total Output Tokens|输出总token数|
+|Total generated tokens|输出总token数|
 |Input Token Throughput|输入吞吐率|
 |Output Token Throughput|输出吞吐率|
 |Total Token Throughput|总吞吐率|

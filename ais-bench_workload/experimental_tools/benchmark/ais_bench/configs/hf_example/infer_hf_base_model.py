@@ -43,7 +43,6 @@ infer = dict(partitioner=dict(type=NaivePartitioner),
              runner=dict(
                  type=LocalAPIRunner,
                  max_num_workers=2,
-                 concurrent_users=2,
                  task=dict(type=OpenICLInferTask)), )
 
 work_dir = 'outputs/hf-base-model/'

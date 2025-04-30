@@ -5,6 +5,9 @@ import json
 import os
 import os.path as osp
 import time
+import multiprocessing
+from multiprocessing import RLock, freeze_support
+import threading
 from typing import List, Optional, Tuple, Any
 
 import mmengine
@@ -13,7 +16,8 @@ from tqdm import tqdm
 
 from ais_bench.benchmark.models.base import BaseModel
 from ais_bench.benchmark.registry import ICL_INFERENCERS
-from ais_bench.benchmark.utils import batched
+from ais_bench.benchmark.utils import batched, build_model_from_cfg
+
 
 from ..icl_prompt_template import PromptTemplate
 from ..icl_retriever import BaseRetriever
@@ -22,7 +26,23 @@ from .icl_base_inferencer import BaseInferencer, GenInferencerOutputHandler
 
 logger = get_logger(__name__)
 
+MAX_CONCURRENCY_PER_PROCESS = 500
 
+def submit_single_model(model_cfg, mp_queue, **extra_gen_kwargs):
+    model = build_model_from_cfg(model_cfg)
+    if extra_gen_kwargs.get("is_synthetic"):
+        model.set_synthetic()
+    if extra_gen_kwargs.get("do_performance"):
+        model.set_performance()
+    model.generate_from_queue(
+        mp_queue,
+        **extra_gen_kwargs,
+    )
+    if not hasattr(model, "set_performance"):
+        raise AttributeError(f'{model} has no except outputs, please check model config')
+    return model.get_performance_data()
+
+    
 @ICL_INFERENCERS.register_module()
 class GenInferencer(BaseInferencer):
     """Generation Inferencer class to directly evaluate by generation.
@@ -75,12 +95,66 @@ class GenInferencer(BaseInferencer):
         self.min_out_len = min_out_len
         self.stopping_criteria = stopping_criteria
         self.dump_timer = kwargs.get('dump_timer', False)
-        self.concurrency = kwargs.get('concurrency')
+        self.disable_cb = kwargs.get("disable_cb", False)
 
         if self.model.is_api and save_every is None:
             save_every = 1
         self.save_every = save_every
         self.is_synthetic = is_synthetic
+
+    def inference_with_multi_process(
+        self, model, model_cfg, inputs, **extra_gen_kwargs
+    ):
+        if hasattr(model, "sync_rank") and model.sync_rank:
+            inputs = model.sync_inputs(inputs)
+        batch_size = extra_gen_kwargs.get("batch_size", 1)
+        # Maximum MAX_CONCURRENCY_PER_PROCESS concurrency per process, number of processes less than number of cores
+        workers_num = min(
+            multiprocessing.cpu_count(), (batch_size - 1) // MAX_CONCURRENCY_PER_PROCESS + 1
+        )
+        q, r = divmod(batch_size, workers_num)
+        concurrencys = [q + 1] * r + [q] * (workers_num - r)
+        q, r = divmod(len(inputs), workers_num)
+        data_bucket_sizes = [q + 1] * r + [q] * (workers_num - r)
+        results = []
+        if sum(data_bucket_sizes) < len(inputs) or len(inputs) <=0 :
+            logger.error(f"inputs data number incorrect")
+        with multiprocessing.Manager() as manager:
+            data_buckets = []
+            data_index = 0 
+            for bucket_size in data_bucket_sizes:
+                mp_queue = manager.Queue(bucket_size + 1)
+                for _ in range(bucket_size):
+                    mp_queue.put(dict(data_id=data_index, prompt=inputs[data_index]))
+                    data_index += 1
+                mp_queue.put(None)
+                data_buckets.append(mp_queue)
+        
+            query_per_second = model.query_per_second
+            query_per_second_mean = query_per_second / workers_num
+            max_data_bucket_size = max(data_bucket_sizes)
+            # Set the timing of token release according to qps, only one request can hold the token at each moment
+            freeze_support()
+            pool = multiprocessing.Pool(processes=workers_num, initializer=tqdm.set_lock, initargs=(RLock(),))
+            async_results = []
+            for i in range(workers_num):
+                new_gen_kwargs = extra_gen_kwargs.copy()
+                new_gen_kwargs.update({
+                    "concurrency": concurrencys[i],
+                    "data_nums":   data_bucket_sizes[i],
+                    "pos":         i,
+                    "qps":         query_per_second_mean * data_bucket_sizes[i] / max_data_bucket_size
+                })
+                res = pool.apply_async(func=submit_single_model, 
+                                        args=(model_cfg, data_buckets[i],),
+                                        kwds=new_gen_kwargs,
+                                        )
+                async_results.append(res)
+            pool.close()
+            pool.join()
+            for res in async_results:
+                results.extend(res.get())
+        return results
 
     def extract_data(self, ds_reader, datum: Any) -> Tuple[List, List]:
         """
@@ -117,9 +191,13 @@ class GenInferencer(BaseInferencer):
             extra_kwargs['stopping_criteria'] = self.stopping_criteria
         if 'min_out_len' in sig.parameters:
             extra_kwargs['min_out_len'] = self.min_out_len
+        extra_kwargs['is_synthetic'] = self.is_synthetic
         extra_kwargs['batch_size'] = self.batch_size
+        extra_kwargs['max_out_len'] = self.max_out_len
+        if  hasattr(self.model, "set_performance"):
+            extra_kwargs['do_performance'] = self.model.do_performance
         return extra_kwargs
-
+                     
     def inference(self,
                   retriever: BaseRetriever,
                   ice_template: Optional[PromptTemplate] = None,
@@ -161,32 +239,29 @@ class GenInferencer(BaseInferencer):
 
         tmp_json_filepath = os.path.join(output_json_filepath,
                                     'tmp_' + output_json_filename)
-        if self.concurrency:
-            if self.concurrency > 4096 or self.concurrency <= 0:
-                logger.warning(f'concurrency must be in [1, 4096], but get {self.concurrency}, '
-                               'continous infer will not be enable')
-            else:
-                logger.warning('The concurrency is set, continous infer will be turned on, '
-                           'intermediate results will not be saved')
+        if not self.disable_cb :
             start_time_stamp = time.perf_counter()
             entry, golds = self.extract_data(ds_reader, prompt_list)
             with torch.no_grad():
                 parsed_entries = self.model.parse_template(entry, mode='gen')
-                results = self.model.generate_from_template(
-                    entry, max_out_len=self.max_out_len, **extra_gen_kwargs)
-                generated = results
-            index = 0
-            for prompt, prediction, gold in zip(
-                    parsed_entries, batched(generated, num_return_sequences),
-                    golds):
-
+                results = self.inference_with_multi_process(
+                    self.model, self.model_cfg, parsed_entries, **extra_gen_kwargs)
+                results.sort(key=lambda x: x['id'])
+                generated = [result['output'] for result in results]
+            for prediction in batched(results, num_return_sequences):
                 if num_return_sequences == 1:
                     prediction = prediction[0]
-                output_handler.save_results(prompt,
-                                            prediction,
-                                            index,
-                                            gold=gold)
-                index += 1
+                if not prediction.get('is_success'):
+                    pred = ""
+                else:
+                    pred = prediction.get('output')
+                data_id = prediction.get('id')
+                if data_id >= len(golds) or data_id < 0:
+                    raise IndexError(f"No gold of output id {data_id}")
+                output_handler.save_results(parsed_entries[data_id],
+                                            pred,
+                                            data_id,
+                                            gold=golds[data_id])
         else:
             # Create tmp json file for saving intermediate results and future
             # resuming
@@ -213,16 +288,10 @@ class GenInferencer(BaseInferencer):
             for datum in tqdm(dataloader, disable=not self.is_main_process):
                 entry, golds = self.extract_data(ds_reader, datum)
                 # 5-1. Inference with local model
-                extra_gen_kwargs = {}
-                sig = inspect.signature(self.model.generate)
-                if 'stopping_criteria' in sig.parameters:
-                    extra_gen_kwargs['stopping_criteria'] = self.stopping_criteria
-                if 'min_out_len' in sig.parameters:
-                    extra_gen_kwargs['min_out_len'] = self.min_out_len
                 with torch.no_grad():
                     parsed_entries = self.model.parse_template(entry, mode='gen')
                     results = self.model.generate_from_template(
-                        entry, max_out_len=self.max_out_len, **extra_gen_kwargs)
+                        entry, **extra_gen_kwargs)
                     generated = results
 
                 # 5-3. Save current output

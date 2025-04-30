@@ -3,6 +3,7 @@ import json
 import os
 import os.path as osp
 import time
+import multiprocessing
 from typing import List, Optional, Tuple
 
 import mmengine
@@ -55,10 +56,6 @@ class GenPerfInferencer(GenInferencer):
             **kwargs,
         )
         self.metrics_calculator = None
-        self.concurrency = kwargs.get('concurrency')
-        if not self.concurrency:
-            logger.info('"concurrency" is not set, use batchsize instead')
-            self.concurrency = batch_size if batch_size else 1
 
     def get_data_list(
         self,
@@ -89,7 +86,7 @@ class GenPerfInferencer(GenInferencer):
             else [None] * len(entry)
         )
         return entry, golds
-
+         
     def inference(
         self,
         entry: List[str],
@@ -111,31 +108,14 @@ class GenPerfInferencer(GenInferencer):
         start_time_stamp = time.perf_counter()
 
         # Prepare inference parameters
-        extra_gen_kwargs = {}
-        sig = inspect.signature(self.model.generate)
-        if "stopping_criteria" in sig.parameters:
-            extra_gen_kwargs["stopping_criteria"] = self.stopping_criteria
-        if "min_out_len" in sig.parameters:
-            extra_gen_kwargs["min_out_len"] = self.min_out_len
-
-        # Run inference using threading for efficiency
+        extra_gen_kwargs = self._build_extra_gen_kwargs()
+        # Run inference
         with torch.no_grad():
-            parsed_entries = self.model.parse_template(entry, mode="gen")
-            with ThreadPoolExecutor(max_workers=self.concurrency) as executor:
-                results = list(
-                    tqdm(
-                        executor.map(
-                            self.model.generate_single_from_template,
-                            parsed_entries,
-                            [self.max_out_len] * len(parsed_entries),
-                        ),
-                        total=len(parsed_entries),
-                        desc="Inferencing",
-                    )
-                )
-
-        generated = self.model.get_performance_data()
-        preds = self.extract_preds(generated)
+            parsed_entries = self.model.parse_template(entry, mode='gen')
+            results = self.inference_with_multi_process(
+            self.model, self.model_cfg, parsed_entries, **extra_gen_kwargs)
+            results.sort(key=lambda x: x['id'])
+        preds = self.extract_preds(results)
         self.metrics_calculator = MetricsCalculator(preds)
         self.metrics_calculator.calculate()
 
@@ -143,22 +123,27 @@ class GenPerfInferencer(GenInferencer):
             "num_return_sequences", 1
         )
 
-        for index, (prompt, prediction, gold) in enumerate(
-            zip(parsed_entries, batched(results, num_return_sequences), golds)
-        ):
-            output_handler.save_results(
-                prompt,
-                prediction[0] if num_return_sequences == 1 else prediction,
-                index,
-                gold=gold,
-            )
+        for prediction in batched(results, num_return_sequences):
+            if num_return_sequences == 1:
+                prediction = prediction[0]
+            if not prediction.get('is_success'):
+                pred = ""
+            else:
+                pred = prediction.get('output')
+            data_id = prediction.get('id')
+            if data_id >= len(golds) or data_id < 0:
+                raise IndexError(f"No gold of output id {data_id}")
+            output_handler.save_results(parsed_entries[data_id],
+                                        pred,
+                                        data_id,
+                                        gold=golds[data_id])
 
         end_time_stamp = time.perf_counter()
 
         if self.is_main_process:
             os.makedirs(output_filepath, exist_ok=True)
             dump_results_dict(
-                self.metrics_calculator.get_common_res(self.concurrency),
+                self.metrics_calculator.get_common_res(self.batch_size),
                 osp.join(output_filepath, output_filename + ".json"),
             )
             self.metrics_calculator.save_performance(

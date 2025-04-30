@@ -1,7 +1,7 @@
 import os
-import threading
 import time
 import uuid
+import multiprocessing
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple
 from tqdm import tqdm
@@ -33,12 +33,11 @@ class PerformanceAPIModel(BaseAPIModel):
             generation_kwargs,
             verbose,
         )
-        self.data_id = 0
         self.path = path
         self.do_performance = False
+        self.client = None
         self.tokenizer: Optional[BenchmarkTokenizer] = None
         self.result_cache: Dict[str, MiddleData] = defaultdict(MiddleData)
-        self.lock = threading.Lock()
 
     def set_performance(self) -> None:
         """Initialize the tokenizer and enable performance mode."""
@@ -52,36 +51,27 @@ class PerformanceAPIModel(BaseAPIModel):
                 "Please set path in model config if you want to do performance infer"
             )
 
-    def prepare_input_data(self, input_text: str) -> MiddleData:
+    def prepare_input_data(self, input_text: str, data_id:int = -1) -> MiddleData:
         """Prepare input data, tokenize if performance mode is enabled."""
         rrid = uuid.uuid4().hex
         cache_data = self.result_cache[rrid]
-        with self.lock:
-            cache_data.data_id = str(self.data_id)
-            self.data_id += 1
         cache_data.request_id = rrid
+        cache_data.data_id = data_id
         cache_data.input_data = input_text
-
         if self.do_performance and self.tokenizer:
             time_cost, token_id = self.encode(input_text)
             cache_data.input_token_id = token_id
             cache_data.num_input_tokens = len(token_id)
             cache_data.num_input_chars = len(input_text)
-
         return cache_data
 
-    def update_decode(self, data: MiddleData, stream: bool = True) -> None:
+    def set_result(self, data: MiddleData) -> None:
         """Update decoding information for a given request."""
         if not data.output:
             self.logger.warning(
                 f"Request {data.request_id} has no output. Please check the server response."
             )
             data.is_empty = True
-            return
-
-        if not self.do_performance or not self.tokenizer:
-            return
-
         data.is_success = True
 
     def encode(self, prompt: str) -> Tuple[float, List[int]]:
@@ -125,21 +115,20 @@ class PerformanceAPIModel(BaseAPIModel):
 
     def get_performance_data(self) -> List[Dict[str, Any]]:
         """Retrieve performance data from cached results."""
-        for key, _ in tqdm(self.result_cache.items(), desc="Encoding output text...", total=len(self.result_cache)):
-            time_cost, tokens = self.encode(self.result_cache[key].output)
-            self.result_cache[key].num_generated_tokens = len(tokens)
-
+        if self.do_performance:
+            if self.tqdm_pos < 0:
+                pos = None
+            else:
+                pos = 3 * self.tqdm_pos + 2
+            for key, _ in tqdm(self.result_cache.items(), desc="Encoding output text...", position=pos, total=len(self.result_cache)):
+                # Failed requests are not saved
+                if not self.result_cache[key].is_success:
+                    continue
+                time_cost, tokens = self.encode(self.result_cache[key].output)
+                self.result_cache[key].num_generated_tokens = len(tokens)
         performance_data = [
             cache_data.convert_to_performance_data()
             for cache_data in self.result_cache.values()
         ]
-        total_count = len(self.result_cache)
-        success_count = len(performance_data)
-
-        if total_count != success_count:
-            self.logger.warning(
-                f"Total {total_count} requests, {success_count} returned."
-            )
-
         self.result_cache.clear()
         return performance_data

@@ -18,7 +18,7 @@ models = [
         type=VLLMCustomAPIOld,
         abbr='vllm-api-old',
         max_seq_len = 4096,
-        query_per_second = 1,
+        query_per_second = 0,
         rpm_verbose = False,
         retry = 2,
         host_ip = "localhost", # 推理服务的IP
@@ -40,7 +40,6 @@ infer = dict(partitioner=dict(type=NaivePartitioner),
              runner=dict(
                  type=LocalAPIRunner,
                  max_num_workers=2,
-                 concurrent_users=2,
                  task=dict(type=OpenICLInferTask)), )
 
 work_dir = 'outputs/api-vllm-old/'

@@ -10,7 +10,12 @@ class OpenAIChatTextClient(BaseClient, ABC):
         inputs: dict,
         parameters: dict = None,
     ) -> dict:
-        return inputs
+        data = dict(
+            messages = inputs,
+            stream = False,
+        )
+        data = data | parameters
+        return data
 
     def update_middle_data(self, res: dict, inputs: MiddleData):
         try:

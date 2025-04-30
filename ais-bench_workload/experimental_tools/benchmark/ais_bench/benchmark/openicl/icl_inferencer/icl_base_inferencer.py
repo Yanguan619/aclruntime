@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 from ..icl_prompt_template import PromptTemplate
 from ..icl_retriever import BaseRetriever
 
+MAX_BATCH_SIZE = 100000
 
 class BaseInferencer:
     """Base Inferencer class for all evaluation Inferencer.
@@ -46,17 +47,21 @@ class BaseInferencer:
                              'instead.')
 
         self.model = model
+        self.model_cfg = None
 
         self.max_seq_len = max_seq_len
         self.batch_size = batch_size if batch_size else 1
-        if self.batch_size > 4096 or self.batch_size < 1:
-            raise ValueError(f"The range of batch_size is [1, 4096], but got {self.batch_size}. "
+        if self.batch_size > MAX_BATCH_SIZE or self.batch_size < 1:
+            raise ValueError(f"The range of batch_size is [1, {MAX_BATCH_SIZE}], but got {self.batch_size}. "
                              "Please set it in datasets config")
         self.output_json_filepath = output_json_filepath
         self.output_json_filename = output_json_filename
         self.is_main_process = self.is_main_process()
         os.makedirs(self.output_json_filepath, exist_ok=True)
 
+    def update_model_cfg(self, model_cfg):
+        self.model_cfg = model_cfg
+        
     def is_main_process(self):
         if "ASCEND_RT_VISIBLE_DEVICES" in os.environ:
             return int(os.getenv("RANK", "0")) == 0

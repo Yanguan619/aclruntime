@@ -50,7 +50,7 @@ class TestClass:
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "tgi_api_general", "--datasets", datasets_script_name,
             "--mode", "all", "-w", self.test_data_path])
-        monkeypatch.setattr("ais_bench.benchmark.models.tgi_api.TGICustomAPI._generate", lambda *arg: fake_prediction)
+        monkeypatch.setattr("ais_bench.benchmark.clients.TGITextClient.response", lambda *arg: fake_prediction)
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         main()
 

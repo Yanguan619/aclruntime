@@ -14,6 +14,7 @@ models = [
         host_port = 8080, # 推理服务的端口
         enable_ssl = False,
         max_out_len = 512, # 最大输出tokens长度
+        batch_size=1, # 推理的最大并发数
         generation_kwargs = dict( # 后处理参数参考huggingface.github.io/text-generation-inference/
             temperature = 0.5,
             top_k = 10,

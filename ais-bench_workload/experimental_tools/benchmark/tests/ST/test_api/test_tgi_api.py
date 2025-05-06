@@ -5,6 +5,8 @@ import sys
 import logging
 import pytest
 from ais_bench.benchmark.cli.main import main
+import pandas as pd
+
 
 class Response:
     def __init__(self):

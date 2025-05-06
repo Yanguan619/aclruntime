@@ -3,6 +3,7 @@ import json
 import shutil
 from unittest.mock import patch
 from ais_bench.benchmark.cli.main import main
+import pandas as pd
 
 AIME_DATA_COUNT = 30
 

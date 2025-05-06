@@ -10,15 +10,9 @@ import pandas as pd
 
 class Response:
     def __init__(self):
-        self.response = []
-        for s in ["A","is","ben", "ch", "20"]:
-            data = {
-                "token":{"id":29889,"text":s,"logprob":None,"special":None},"generated_text":s,"details":None
-            }
-            self.response.append(f"data: {json.dumps(data)}\n")
-    def stream(self,*args):
-        for content in self.response:
-            yield content.encode()
+        data = {"generated_text": "11"}
+        self.data = f"data: {json.dumps(data)}\n"
+
 
 class TestClass:
     @classmethod
@@ -50,7 +44,7 @@ class TestClass:
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "tgi_api_general", "--datasets", datasets_script_name,
             "--mode", "all", "-w", self.test_data_path])
-        monkeypatch.setattr("ais_bench.benchmark.clients.TGITextClient.request", lambda *arg: fake_prediction)
+        monkeypatch.setattr("urllib3.PoolManager.request", lambda *args, **kwargs: Response())
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         main()
 

@@ -44,12 +44,12 @@ class TestClass:
         os.makedirs(self.test_data_path)
         self.perf_json_keys = ['Benchmark Duration', 'Total Requests', 'Failed Requests', 'Success Requests',
                                'Concurrency', 'Max Concurrency', 'Request Throughput', 'Total Input Tokens',
-                                'Total generated tokens', 'Input Token Throughput',
+                               'Prefill Token Throughput', 'Total generated tokens', 'Input Token Throughput',
                                'Output Token Throughput', 'Total Token Throughput']
         self.perf_csv_headers = ['Performance Parameters', 'Average', 'Min', 'Max',
                                   'Median', 'P75', 'P90', 'P99', 'N']
         self.perf_csv_params = ['E2EL', 'TTFT', 'TPOT', 'InputTokens', 'OutputTokens',
-                                'PrefillTokenThroughput', 'OutputTokenThroughput']
+                                 'OutputTokenThroughput']
 
     # mode infer
     def test_tgi_stream_api_infer(self, monkeypatch):

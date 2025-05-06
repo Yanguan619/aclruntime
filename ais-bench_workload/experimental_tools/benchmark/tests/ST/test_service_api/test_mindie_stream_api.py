@@ -40,7 +40,7 @@ class TestClass:
         os.makedirs(self.test_data_path)
         self.perf_json_keys = ['Benchmark Duration', 'Total Requests', 'Failed Requests', 'Success Requests',
                                'Concurrency', 'Max Concurrency', 'Request Throughput', 'Total Input Tokens',
-                               'Prefill Token Throughput', 'Total generated tokens', 'Input Token Throughput',
+                                'Total generated tokens', 'Input Token Throughput',
                                'Output Token Throughput', 'Total Token Throughput']
         self.perf_csv_headers = ['Performance Parameters', 'Average', 'Min', 'Max',
                                   'Median', 'P75', 'P90', 'P99', 'N']

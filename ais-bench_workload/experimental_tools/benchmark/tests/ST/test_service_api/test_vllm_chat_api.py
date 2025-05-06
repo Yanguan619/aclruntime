@@ -7,7 +7,10 @@ import pytest
 from ais_bench.benchmark.cli.main import main
 
 GSK8K_DATA_COUNT = 1319
-
+class Response:
+    def __init__(self):
+        data = {'choices': [{"message": {"content": "11"}}]}
+        self.data = f"{json.dumps(data)}".encode()
 
 class TestClass:
     @classmethod
@@ -30,7 +33,7 @@ class TestClass:
         os.makedirs(self.test_data_path)
 
     def test_vllm_api_chat_all_gsm8k_str(self, monkeypatch):
-        fake_prediction = "123"
+        fake_prediction = "11"
         fake_time_str = "vllm_chat_aime2024_gen_0_shot_str"
         datasets_abbr_name = "aime2024"
         datasets_script_name = "aime2024_gen_0_shot_str"

@@ -11,7 +11,7 @@ import pandas as pd
 class Response:
     def __init__(self):
         data = {"generated_text": "11"}
-        self.data = f"data: {json.dumps(data)}\n"
+        self.data = f"{json.dumps(data)}"
 
 
 class TestClass:

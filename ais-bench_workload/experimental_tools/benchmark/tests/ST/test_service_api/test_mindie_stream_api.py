@@ -1,11 +1,6 @@
 import os
 import json
 import shutil
-import sys
-import logging
-import pytest
-import requests
-import pandas as pd
 from unittest.mock import patch
 from ais_bench.benchmark.cli.main import main
 

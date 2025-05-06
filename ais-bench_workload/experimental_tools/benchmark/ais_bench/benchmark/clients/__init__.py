@@ -7,3 +7,4 @@ from .tgi_text_client import TGITextClient
 from .triton_text_client import TritonTextClient
 from .openai_text_client import OpenAITextClient
 from .openai_chat_text_client import OpenAIChatTextClient
+from .vllm_text_client import VLLMTextClient

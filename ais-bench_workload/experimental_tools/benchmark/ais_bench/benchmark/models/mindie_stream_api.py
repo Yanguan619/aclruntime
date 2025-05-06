@@ -11,7 +11,7 @@ from ais_bench.benchmark.clients import MindieStreamClient
 from ais_bench.benchmark.models.base_api import handle_synthetic_input
 from ais_bench.benchmark.models.performance_api import PerformanceAPIModel
 
-PromptType = Union[PromptList, str]
+PromptType = Union[PromptList, str, dict]
 
 
 @MODELS.register_module()
@@ -61,7 +61,7 @@ class MindieStreamApi(PerformanceAPIModel):
         self.host_port = host_port
         self.enable_ssl = enable_ssl
         self.url = self._get_base_url()
-        self.client = MindieStreamClient(self.url)
+        self.client = MindieStreamClient(self.url, retry)
 
     def generate(self,
                  inputs: List[PromptType],
@@ -100,31 +100,20 @@ class MindieStreamApi(PerformanceAPIModel):
         Returns:
             str: The generated string.
         """
+        if isinstance(input, dict):
+            data_id = input.get('data_id')
+            input = input.get('prompt')
+        else:
+            data_id = -1
         assert isinstance(input, str)
         if max_out_len <= 0:
             return ''
-        cache_data = self.prepare_input_data(input)
+        cache_data = self.prepare_input_data(input, data_id)
         self.generation_kwargs.update({"max_new_tokens": max_out_len})
 
-        max_num_retries = 0
-        while max_num_retries < self.retry:
-            max_num_retries += 1
-            try:
-                response = self.client.request(cache_data, self.generation_kwargs)
-                self.update_decode(cache_data)
-            except requests.ConnectionError:
-                self.logger.error('Got connection error, retrying...')
-                self.wait()
-                continue
-            except Exception as e:
-                raise RuntimeError(f"Process response failed and the reason is {e}")
-
-            self.logger.debug(str(response))
-            return ''.join(response)
-
-        raise RuntimeError('Calling Mindie Api failed after retrying for '
-                           f'{max_num_retries} times. Check the logs for '
-                           'details.')
+        response = self.client.request(cache_data, self.generation_kwargs)
+        self.set_result(cache_data)
+        return ''.join(response)
 
     def _get_base_url(self):
         if self.enable_ssl:

@@ -49,7 +49,8 @@ class OpenICLPerfTask(BaseTask):
         self.logger = get_logger()
         self.entry = []
         self.golds = []
-        self.inference = None
+        self.inferencer = None
+        self.model_cfg =None
         self.out_path = ""
         self.ice_template = None
         self.prompt_template = None
@@ -129,7 +130,7 @@ class OpenICLPerfTask(BaseTask):
     def set_performance_api(self):
         if not hasattr(self.model, "set_performance"):
             raise TypeError(
-                f"{self.model} not support performance, please check correct model api"
+                f"{self.model} not support performance, please choose correct model api"
             )
         self.model.set_performance()
 
@@ -180,6 +181,7 @@ class OpenICLPerfTask(BaseTask):
             self.model_cfg, self.dataset_cfg, osp.join(self.work_dir, "performances")
         )
         out_dir, out_name = osp.split(out_path)
+        self.inferencer.update_model_cfg(self.model_cfg)
         mkdir_or_exist(out_dir)
         self.inferencer.inference(self.entry, self.golds, out_dir, out_name)
 

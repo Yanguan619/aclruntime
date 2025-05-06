@@ -19,7 +19,7 @@ from ais_bench.benchmark.models.base_api import BaseAPIModel, handle_synthetic_i
 from ais_bench.benchmark.models.performance_api import PerformanceAPIModel
 from ais_bench.benchmark.clients import TGIStreamClient, TGITextClient
 
-PromptType = Union[PromptList, str]
+PromptType = Union[PromptList, str, dict]
 
 
 @MODELS.register_module()
@@ -56,13 +56,6 @@ class TGICustomAPI(PerformanceAPIModel):
                  host_port: int = 8080,
                  enable_ssl: bool = False,
                  generation_kwargs: Optional[Dict] = None):
-        self.host_ip = host_ip
-        self.host_port = host_port
-        self.enable_ssl = enable_ssl
-        self.base_url = self._get_base_url()
-        self.endpoint_url = os.path.join(self.base_url, "generate")
-        self.client = TGITextClient(self.endpoint_url)
-
         super().__init__(path=path,
                          max_seq_len=max_seq_len,
                          meta_template=meta_template,
@@ -71,6 +64,12 @@ class TGICustomAPI(PerformanceAPIModel):
                          retry=retry,
                          verbose=verbose,
                          generation_kwargs=generation_kwargs)
+        self.host_ip = host_ip
+        self.host_port = host_port
+        self.enable_ssl = enable_ssl
+        self.base_url = self._get_base_url()
+        self.endpoint_url = os.path.join(self.base_url, "generate")
+        self.client = TGITextClient(self.endpoint_url, retry)
 
     def generate(self,
                  inputs: List[PromptType],
@@ -110,31 +109,16 @@ class TGICustomAPI(PerformanceAPIModel):
             str: The generated string.
         """
 
-        assert isinstance(input, str)
-        if max_out_len <= 0:
-            return ''
-        cache_data = self.prepare_input_data(input)
+        if isinstance(input, dict):
+            data_id = input.get('data_id')
+            input = input.get('prompt')
+        else:
+            data_id = -1
+        cache_data = self.prepare_input_data(input, data_id)
         self.generation_kwargs.update({"max_new_tokens": max_out_len})
-
-        max_num_retries = 0
-        while max_num_retries < self.retry:
-            max_num_retries += 1
-            try:
-                response = self.client.request(cache_data, self.generation_kwargs)
-                self.update_decode(cache_data)
-            except requests.ConnectionError:
-                self.logger.error('Got connection error, retrying...')
-                self.wait()
-                continue
-            except Exception as e:
-                raise RuntimeError(f"Process response failed and the reason is {e}")
-
-            self.logger.debug(str(response))
-            return ''.join(response)
-
-        raise RuntimeError('Calling TGI Text API failed after retrying for '
-                           f'{max_num_retries} times. Check the logs for '
-                           'details.')
+        response = self.client.request(cache_data, self.generation_kwargs)
+        self.set_result(cache_data)
+        return ''.join(response)
 
     def _get_base_url(self):
         if self.enable_ssl:
@@ -175,22 +159,21 @@ class TGICustomAPIStream(PerformanceAPIModel):
                  host_port: int = 8080,
                  enable_ssl: bool = False,
                  generation_kwargs: Optional[Dict] = None):
+        super().__init__(path=path,
+                        max_seq_len=max_seq_len,
+                        meta_template=meta_template,
+                        query_per_second=query_per_second,
+                        rpm_verbose=rpm_verbose,
+                        retry=retry,
+                        verbose=verbose,
+                        generation_kwargs=generation_kwargs)
         self.host_ip = host_ip
         self.host_port = host_port
         self.enable_ssl = enable_ssl
         self.base_url = self._get_base_url()
         self.generation_kwargs = generation_kwargs
         self.endpoint_url = os.path.join(self.base_url, "generate_stream")
-        self.client = TGIStreamClient(self.endpoint_url)
-
-        super().__init__(path=path,
-                         max_seq_len=max_seq_len,
-                         meta_template=meta_template,
-                         query_per_second=query_per_second,
-                         rpm_verbose=rpm_verbose,
-                         retry=retry,
-                         verbose=verbose,
-                         generation_kwargs=generation_kwargs)
+        self.client = TGIStreamClient(self.endpoint_url, retry)
 
     def generate(self,
                  inputs: List[PromptType],
@@ -229,31 +212,22 @@ class TGICustomAPIStream(PerformanceAPIModel):
         Returns:
             str: The generated string.
         """
+        if isinstance(input, dict):
+            data_id = input.get('data_id')
+            input = input.get('prompt')
+        else:
+            data_id = -1
         assert isinstance(input, str)
         if max_out_len <= 0:
             return ''
-        cache_data = self.prepare_input_data(input)
+        cache_data = self.prepare_input_data(input, data_id)
         self.generation_kwargs.update({"max_new_tokens": max_out_len})
 
-        max_num_retries = 0
-        while max_num_retries < self.retry:
-            max_num_retries += 1
-            try:
-                response = self.client.request(cache_data, self.generation_kwargs)
-                self.update_decode(cache_data)
-            except requests.ConnectionError:
-                self.logger.error('Got connection error, retrying...')
-                self.wait()
-                continue
-            except Exception as e:
-                raise RuntimeError(f"Process response failed and the reason is {e}")
+        response = self.client.request(cache_data, self.generation_kwargs)
+        self.set_result(cache_data)
 
-            self.logger.debug(str(response))
-            return ''.join(response)
+        return ''.join(response)
 
-        raise RuntimeError('Calling TGI Stream API failed after retrying for '
-                           f'{max_num_retries} times. Check the logs for '
-                           'details.')
 
     def _get_base_url(self):
         if self.enable_ssl:

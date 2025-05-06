@@ -1,6 +1,7 @@
 import csv
 import collections
 import math
+from typing import Optional, Dict, Any
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -10,8 +11,8 @@ from ais_bench.benchmark.utils import get_logger
 
 @dataclass
 class MiddleData:
-    data_id: str = ""
-    input_data: str = ""
+    data_id: int = -1
+    input_data: Optional[str] = None
     input_token_id: list[int] = field(default_factory=list)
     num_input_tokens: int = 0
     num_input_chars: int = 0
@@ -54,7 +55,9 @@ class MiddleData:
             "output": self.output,
             "output_token_id": self.output_token_id,
             "prefill_latency": self.prefill_latency,
-            "prefill_throughput": 0.0 if math.isclose(self.prefill_latency, 0.0) else len(self.input_token_id) / self.prefill_latency * 1000,
+            "prefill_throughput": len(self.input_token_id)
+            / self.prefill_latency
+            * 1000 if self.prefill_latency > 0 else 0,
             "decode_token_latencies": self.decode_cost[:],
             "last_decode_latency": self.decode_cost[-1] if self.decode_cost else 0.0,
             "decode_max_token_latency": (
@@ -63,7 +66,9 @@ class MiddleData:
             "seq_latency": self.req_latency,
             "input_tokens_len": self.num_input_tokens,
             "generate_tokens_len": self.num_generated_tokens,
-            "generate_tokens_speed": 0.0 if math.isclose(self.req_latency, 0.0) else self.num_generated_tokens / self.req_latency * 1000,
+            "generate_tokens_speed": self.num_generated_tokens
+            / self.req_latency
+            * 1000 if self.req_latency > 0 else 0,
             "input_characters_len": len(self.input_data),
             "generate_characters_len": self.num_generated_chars,
             "characters_per_token": (
@@ -288,7 +293,7 @@ class MetricsCalculator:
         return statistics
 
     def __calc_common_metrics(self):
-        self.common_metrics["Benchmark Duration"] = round(self.infer_time, 4)
+        self.common_metrics["Benchmark Duration"] = round(self.infer_time * 1000, 4) 
         self.common_metrics["Total Requests"] = self.data_count
         self.common_metrics["Failed Requests"] = self.data_count - self.success_count
         self.common_metrics["Success Requests"] = self.success_count
@@ -368,8 +373,8 @@ class MetricsCalculator:
             "Request Throughput": " req/s",
             "Total Input Tokens": None,
             "Prefill Token Throughput": unit_token,
-            "Input Token Throughput": " s",
-            "Total generated tokens": None,
+            "Input Token Throughput": unit_token,
+            "Total Output Tokens": None,
             "Output Token Throughput": unit_token,
             "Total Token Throughput": unit_token,
         }

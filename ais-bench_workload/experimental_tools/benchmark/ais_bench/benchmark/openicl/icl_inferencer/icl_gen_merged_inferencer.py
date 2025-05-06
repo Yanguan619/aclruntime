@@ -59,22 +59,6 @@ class GenMergedInferencer(GenInferencer):
         self.concurrency = kwargs.get('concurrency')
         self.is_synthetic = is_synthetic
 
-    def _build_extra_gen_kwargs(self) -> dict:
-        """
-        Builds extra keyword arguments for the model's generate method based on its signature.
-
-        Returns:
-            A dictionary of extra keyword arguments.
-        """
-        extra_kwargs = {}
-        sig = inspect.signature(self.model.generate)
-        if 'stopping_criteria' in sig.parameters:
-            extra_kwargs['stopping_criteria'] = self.stopping_criteria
-        if 'min_out_len' in sig.parameters:
-            extra_kwargs['min_out_len'] = self.min_out_len
-        extra_kwargs['batch_size'] = self.batch_size
-        return extra_kwargs
-
     def get_data_list(
         self,
         retriever: BaseRetriever,
@@ -121,34 +105,32 @@ class GenMergedInferencer(GenInferencer):
         output_handler = GenInferencerOutputHandler()
         tmp_json_filepath = os.path.join(output_json_filepath,
                                          'tmp_' + output_json_filename)
+        
+        extra_gen_kwargs = self._build_extra_gen_kwargs()
+        num_return_sequences = getattr(self.model, 'generation_kwargs', {}).get('num_return_sequences', 1)
 
-        if self.concurrency: # continous batch run
-            if self.concurrency > 4096 or self.concurrency <= 0:
-                logger.warning(f'concurrency must be in [1, 4096], but get {self.concurrency}, '
-                               'continous infer will not be enable')
-            else:
-                logger.warning('The concurrency is set, continous infer will be turned on, '
-                           'intermediate results will not be saved')
-            extra_gen_kwargs = self._build_extra_gen_kwargs()
-            num_return_sequences = getattr(self.model, 'generation_kwargs', {}).get('num_return_sequences', 1)
+        if not self.disable_cb :
             start_time_stamp = time.perf_counter()
             with torch.no_grad():
                 parsed_entries = self.model.parse_template(entry, mode='gen')
-                results = self.model.generate_from_template(
-                    entry, max_out_len=self.max_out_len, **extra_gen_kwargs)
-                generated = results
-            index = 0
-            for prompt, prediction, gold in zip(
-                    parsed_entries, batched(generated, num_return_sequences),
-                    golds):
-
+                results = self.inference_with_multi_process(
+                    self.model, self.model_cfg, parsed_entries, **extra_gen_kwargs)
+                results.sort(key=lambda x: x['id'])
+                generated = [result['output'] for result in results]
+            for prediction in batched(results, num_return_sequences):
                 if num_return_sequences == 1:
                     prediction = prediction[0]
-                output_handler.save_results(prompt,
-                                            prediction,
-                                            index,
-                                            gold=gold)
-                index += 1
+                if not prediction.get('is_success'):
+                    pred = ""
+                else:
+                    pred = prediction.get('output')
+                data_id = prediction.get('id')
+                if data_id >= len(golds) or data_id < 0:
+                    raise IndexError(f"No gold of output id {data_id}")
+                output_handler.save_results(parsed_entries[data_id],
+                                            pred,
+                                            data_id,
+                                            gold=golds[data_id])
 
         else: # static batch run
             if osp.exists(tmp_json_filepath):
@@ -184,16 +166,10 @@ class GenMergedInferencer(GenInferencer):
                     golds_per_bs = golds[(i) * self.batch_size: (i + 1) * self.batch_size]
 
                 # 5-1. Inference with local model
-                extra_gen_kwargs = {}
-                sig = inspect.signature(self.model.generate)
-                if 'stopping_criteria' in sig.parameters:
-                    extra_gen_kwargs['stopping_criteria'] = self.stopping_criteria
-                if 'min_out_len' in sig.parameters:
-                    extra_gen_kwargs['min_out_len'] = self.min_out_len
                 with torch.no_grad():
                     parsed_entries = self.model.parse_template(entry_per_bs, mode='gen')
                     results = self.model.generate_from_template(
-                        entry_per_bs, max_out_len=self.max_out_len, **extra_gen_kwargs)
+                        entry_per_bs, **extra_gen_kwargs)
                     generated = results
 
                 num_return_sequences = getattr(self.model, 'generation_kwargs',

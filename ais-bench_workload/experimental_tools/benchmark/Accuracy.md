@@ -14,7 +14,7 @@ models = [
         type=VLLMCustomAPI,
         abbr='vllm-api-general',
         max_seq_len = 4096,
-        query_per_second = 1,
+        query_per_second = 0,
         rpm_verbose = False,
         retry = 2,
         host_ip = "localhost",  # 指定服务化的 host ip
@@ -59,7 +59,7 @@ models = [
         type=VLLMCustomAPI,
         abbr='vllm-api-general',
         max_seq_len = 4096,
-        query_per_second = 1,
+        query_per_second = 0,
         rpm_verbose = False,
         retry = 2,
         host_ip = "localhost", # 指定服务化的 host ip
@@ -74,7 +74,6 @@ infer = dict(partitioner=dict(type=NaivePartitioner),
              runner=dict(
                  type=LocalAPIRunner,
                  max_num_workers=2,
-                 concurrent_users=2,
                  task=dict(type=OpenICLInferTask)), )
 
 work_dir = 'outputs/api_vllm_general/' # 指定落盘文件（执行过程、推理结果等）的落盘文件夹

@@ -70,7 +70,7 @@ class TestClass:
 
     # mode perf
     def test_mindie_stream_api_perf(self, monkeypatch):
-        fake_perf_data = [{'id': 12345, 'input_data': 'A A', 'input_token_id': [32, 362, 362],
+        fake_perf_data = [{'id': 0, 'input_data': 'A A', 'input_token_id': [32, 362, 362],
                             'output': ' A A A', 'output_token_id': [362, 362, 362],
                             'prefill_latency': 56.9,
                             'decode_token_latencies': [26.4, 28.4], 'last_decode_latency': 28.4,

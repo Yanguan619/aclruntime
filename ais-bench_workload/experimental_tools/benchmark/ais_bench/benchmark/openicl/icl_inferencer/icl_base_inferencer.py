@@ -1,17 +1,22 @@
 """Basic Inferencer."""
 import json
 import os
+import re
+import os.path as osp
 from pathlib import Path
 from typing import List, Optional
 
 import numpy as np
+import mmengine
 from mmengine.dist import is_main_process
 from torch.utils.data import DataLoader
 
 from ..icl_prompt_template import PromptTemplate
 from ..icl_retriever import BaseRetriever
+from ais_bench.benchmark.utils import get_logger
 
 MAX_BATCH_SIZE = 100000
+logger = get_logger(__name__)
 
 class BaseInferencer:
     """Base Inferencer class for all evaluation Inferencer.
@@ -120,9 +125,36 @@ class GenInferencerOutputHandler:
 
     def __init__(self) -> None:
         self.results_dict = {}
+    
+    def load_tmp_result(self, tmp_path: str, file_format: str = "json"):
+        if not osp.exists(tmp_path):
+            logger.info(f"No tmp data found, reuse infer not enabled")
+            return
+        if not os.access(tmp_path, os.R_OK | os.W_OK):
+            raise PermissionError(
+                f"Insufficient permissions to access '{tmp_path}': read and write permissions are required."
+            )
+        if osp.isfile(tmp_path):
+            try:
+                self.results_dict = mmengine.load(tmp_path, file_format=file_format)
+            except Exception as e:
+                logger.warning(f"load tmp file failed, reason is {e}")
+        elif osp.isdir(tmp_path):
+            dir_path = Path(tmp_path)
+            pattern = re.compile(r"^tmp_\d+_\d+_\d+\.json$")
+            for file in dir_path.iterdir():
+                if file.is_file() and pattern.match(file.name):
+                    try:
+                        self.results_dict.update(mmengine.load(file, file_format=file_format))
+                    except Exception as e:
+                        logger.warning(f"load failed {file.name}: {e}")
+        if len(self.results_dict) > 0:
+            logger.info(f"Found {len(self.results_dict)} tmp items, run infer task from the last interrupted position")
+        return
 
     def write_to_json(self, save_dir: str, filename: str):
         """Dump the result to a json file."""
+        self.results_dict = dict(sorted(self.results_dict.items(), key=lambda item: int(item[0])))
         dump_results_dict(self.results_dict, Path(save_dir) / filename)
 
     def save_results(self, origin_prompt, prediction, idx, gold=None):

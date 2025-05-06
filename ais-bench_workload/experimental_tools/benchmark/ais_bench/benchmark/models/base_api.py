@@ -3,8 +3,9 @@ import re
 import sys
 import threading
 import time
+import json
+import tempfile
 import warnings
-import multiprocessing
 from tqdm import tqdm
 from abc import abstractmethod
 from copy import deepcopy
@@ -59,11 +60,7 @@ class BaseAPIModel(BaseModel):
         self.meta_template = meta_template
         self.retry = retry
         self.rpm_verbose = rpm_verbose
-        if query_per_second < 0.1:
-            self.logger.info(f"get query_per_second {query_per_second} small than 0.1, all requests will send together!")
-            self.query_per_second = -1
-        else:
-            self.query_per_second = query_per_second
+        self.query_per_second = query_per_second
         self.token_bucket = None
         self.template_parser = APITemplateParser(meta_template)
         self.generation_kwargs = generation_kwargs
@@ -74,6 +71,8 @@ class BaseAPIModel(BaseModel):
         self.post_time = 0
         self.rec_time = 0
         self.start_time = 0
+        self.tmp_result_queue = Queue(-1)
+        self.task_finish = False
 
     @abstractmethod
     def generate(self, inputs: List[PromptType],
@@ -120,9 +119,9 @@ class BaseAPIModel(BaseModel):
         )
         p_log.set_description(desc)
 
-    def draw_plog(self, length, pos):
+    def draw_plog(self, ori_nums, length, pos):
         p_log = tqdm(total=0, desc="", position=3 * pos + 1, bar_format="{desc}", leave=True)
-        with tqdm(total=length, desc=f"Process-{pos} pid:{str(os.getpid())}", delay=0.01, position=3 * pos , ascii=False) as pbar:
+        with tqdm(total=ori_nums, initial=ori_nums - length, desc=f"Process-{pos} pid:{str(os.getpid())}", delay=0.01, position=3 * pos , ascii=False) as pbar:
             prev = 0
             pre_post = 0
             pre_get = 0
@@ -146,12 +145,50 @@ class BaseAPIModel(BaseModel):
                     if cur % LOG_PER_REQUEST == 0 :
                         self.rec_time = time.perf_counter()
                         self.set_description(p_log)
-                if cur >= length:
+                if cur >= length or self.task_finish:
                     self.rec_time = time.perf_counter()
                     self.set_description(p_log)
                     break
                 time.sleep(0.1)
         p_log.close()
+        
+    def save_tmp_result(self, tmp_result_json_path):
+        """Read tmp cache queue to save inference results in real time."""
+        res_cache = dict()
+        cur_res_num = 0
+        def update(tmp_res):
+            data_id = str(tmp_res.get("data_id", "-1"))
+            res_cache[data_id] = dict(
+                origin_prompt=tmp_res.get("origin_prompt"),
+                prediction=tmp_res.get("prediction"),
+            )
+            if tmp_res.get('gold'):
+                res_cache[data_id]['gold'] = tmp_res.get('gold')
+            
+        while True:
+            tmp_res = self.tmp_result_queue.get()
+            if not tmp_res or self.task_finish:
+                while tmp_res:
+                    update(tmp_res)
+                    tmp_res = self.tmp_result_queue.get()
+                self._atomic_dump(res_cache, tmp_result_json_path)
+                break
+            update(tmp_res)
+            cur_res_num += 1
+            if cur_res_num % LOG_PER_REQUEST == 0:
+                self._atomic_dump(res_cache, tmp_result_json_path)
+
+    def _atomic_dump(self, data: dict, target_path: str):
+        """Atomically write JSON data to target_path."""
+        dir_name = os.path.dirname(target_path) or '.'
+        # Write to temporary file in same directory
+        with tempfile.NamedTemporaryFile('w', dir=dir_name, delete=False, encoding='utf-8') as tf:
+            json.dump(data, tf, indent=4, ensure_ascii=False)
+            tf.flush()
+            os.fsync(tf.fileno())
+            temp_path = tf.name
+        # Replace target file atomically
+        os.replace(temp_path, target_path)
     
     def generate_from_queue(
         self,
@@ -172,9 +209,11 @@ class BaseAPIModel(BaseModel):
         Returns:
             None: This method runs until the queue is exhausted and then exits.
         """
-        self.tqdm_pos = extra_gen_kwargs.get("pos")
+        self.tqdm_pos = extra_gen_kwargs.get("process_id")
+        tmp_result_dir = extra_gen_kwargs.get('tmp_result_dir')
         max_out_len = extra_gen_kwargs.get("max_out_len", 1)
         concurrency = extra_gen_kwargs.get("concurrency")
+        ori_nums = extra_gen_kwargs.get("ori_nums")
         data_nums = extra_gen_kwargs.get("data_nums")
         qps = extra_gen_kwargs.get("qps")
         if qps > 0:
@@ -184,19 +223,35 @@ class BaseAPIModel(BaseModel):
         if hasattr(self, 'client'):
             self.client.set_request_counter(self.request_counter)
         
-        draw_thread = threading.Thread(target=self.draw_plog, args=(data_nums, self.tqdm_pos,), daemon=True)
+        if (not hasattr(self, "do_performance")) or (not self.do_performance):
+            os.makedirs(tmp_result_dir, exist_ok=True)
+            tmp_result_json_path = os.path.join(tmp_result_dir, f"tmp_{self.tqdm_pos}_{os.getpid()}_{str(time.time()).split('.')[0]}.json")
+            tmp_save_thread = threading.Thread(target=self.save_tmp_result, args=(tmp_result_json_path,), daemon=True)
+            tmp_save_thread.start()
+        else:
+            tmp_save_thread = None
+        draw_thread = threading.Thread(target=self.draw_plog, args=(ori_nums, data_nums, self.tqdm_pos,), daemon=True)
         draw_thread.start()
-        
         pool_size = concurrency
         self.start_time = time.perf_counter()
-
-        with ThreadPoolExecutor(max_workers=pool_size) as executor:
-            input_data = data_queue.get()
-            while input_data is not None:
-                executor.submit(self._generate, input_data, max_out_len)
+        try:
+            with ThreadPoolExecutor(max_workers=pool_size) as executor:
                 input_data = data_queue.get()
-            data_queue.put(None)
-        draw_thread.join()
+                while input_data is not None:
+                    executor.submit(self._generate, input_data, max_out_len)
+                    input_data = data_queue.get()
+                data_queue.put(None)
+        except Exception as e:
+            self.logger.error(f"Infer task end because erro: {e}")
+        except KeyboardInterrupt:
+            self.logger.warning("Interrupted by user (Ctrl+C).")
+        finally:
+            self.task_finish = True
+            self.tmp_result_queue.put(None)
+            draw_thread.join()
+            if tmp_save_thread:
+                tmp_save_thread.join()
+            
 
     def flush(self):
         """Ensure simultaneous emptying of stdout and stderr when concurrent
@@ -615,5 +670,15 @@ def handle_synthetic_input(func):
             else:
                 input = input_str
         self.acquire()
-        return func(self, input, max_out_len)
+        res = func(self, input, max_out_len)
+        if isinstance(input, dict) and  ((not hasattr(self, "do_performance")) or  (not self.do_performance)):
+            tmp_res = {
+                'data_id': input.get('data_id'),
+                'origin_prompt': input.get('prompt'),
+                'prediction': res,
+            }
+            if input.get('gold'):
+                tmp_res['gold'] = input.get('gold')
+            self.tmp_result_queue.put(tmp_res)
+        return res
     return wrapper

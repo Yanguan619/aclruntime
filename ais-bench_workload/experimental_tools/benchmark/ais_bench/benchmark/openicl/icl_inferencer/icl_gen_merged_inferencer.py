@@ -5,8 +5,8 @@ import os.path as osp
 import time
 from typing import List, Optional, Tuple
 
-import mmengine
 import torch
+import shutil
 from tqdm import tqdm
 import math
 from concurrent.futures import ThreadPoolExecutor
@@ -108,13 +108,19 @@ class GenMergedInferencer(GenInferencer):
         
         extra_gen_kwargs = self._build_extra_gen_kwargs()
         num_return_sequences = getattr(self.model, 'generation_kwargs', {}).get('num_return_sequences', 1)
-
+        all_success = True
         if not self.disable_cb :
+            tmp_json_filepath = os.path.join(output_json_filepath,
+                'tmp_' + output_json_filename.split('.')[0])
+            output_handler.load_tmp_result(tmp_json_filepath)
+            for data_id in output_handler.results_dict.keys():
+                self.tmp_result_ids.append(int(data_id))
+            extra_gen_kwargs.update({"tmp_result_dir": tmp_json_filepath})
             start_time_stamp = time.perf_counter()
             with torch.no_grad():
                 parsed_entries = self.model.parse_template(entry, mode='gen')
                 results = self.inference_with_multi_process(
-                    self.model, self.model_cfg, parsed_entries, **extra_gen_kwargs)
+                    self.model, self.model_cfg, parsed_entries, golds, **extra_gen_kwargs)
                 results.sort(key=lambda x: x['id'])
                 generated = [result['output'] for result in results]
             for prediction in batched(results, num_return_sequences):
@@ -122,6 +128,7 @@ class GenMergedInferencer(GenInferencer):
                     prediction = prediction[0]
                 if not prediction.get('is_success'):
                     pred = ""
+                    all_success = False
                 else:
                     pred = prediction.get('output')
                 data_id = prediction.get('id')
@@ -133,17 +140,10 @@ class GenMergedInferencer(GenInferencer):
                                             gold=golds[data_id])
 
         else: # static batch run
-            if osp.exists(tmp_json_filepath):
-                # TODO: move resume to output handler
-                try:
-                    tmp_result_dict = mmengine.load(tmp_json_filepath)
-                except Exception:
-                    pass
-                else:
-                    output_handler.results_dict = tmp_result_dict
-                    index = len(tmp_result_dict)
-            else:
-                index = 0
+            tmp_json_filepath = os.path.join(output_json_filepath,
+                            'tmp_' + output_json_filename)
+            output_handler.load_tmp_result(tmp_json_filepath)
+            index = len(output_handler.results_dict)
 
             logger.info('Starting inference process...')
 
@@ -201,7 +201,10 @@ class GenMergedInferencer(GenInferencer):
             output_handler.write_to_json(output_json_filepath,
                                          output_json_filename)
             if osp.exists(tmp_json_filepath):
-                os.remove(tmp_json_filepath)
+                if osp.isdir(tmp_json_filepath) and all_success:
+                    shutil.rmtree(tmp_json_filepath)
+                elif osp.isfile(tmp_json_filepath):
+                    os.remove(tmp_json_filepath)
 
         if self.dump_timer and self.is_main_process:
             timer_filepath = os.path.join(output_json_filepath, 'timer',

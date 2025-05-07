@@ -18,6 +18,13 @@ DATASETS_CONFIGS_LIST = [
     "synthetic",
 ]
 
+
+class Response:
+    def __init__(self):
+        data = {'choices': [{"text": "11"}]}
+        self.data = f"{json.dumps(data)}".encode()
+        
+
 class TestClass:
     @classmethod
     def setup_class(cls):
@@ -63,7 +70,7 @@ class TestClass:
             ["ais_bench", "--models", "vllm_api_general", "--datasets", datasets_script_name,
             "--mode", "all", "-w", self.test_data_path])
         monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._get_service_model_path", lambda *arg: "qwen2")
-        monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api.VLLMCustomAPI._generate", lambda *arg: fake_prediction)
+        monkeypatch.setattr("urllib3.PoolManager.request", lambda *args, **kwargs: Response())
         monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg: fake_time_str)
         main()
 
@@ -89,7 +96,7 @@ class TestClass:
         assert os.path.exists(vis_md_path)
 
     def test_perf_mindie_stream_api_qwen2_7b_synthetic_save_result(self, monkeypatch):
-        fake_prediction = [{'id': '0', 'input_data': 'A A', 'input_token_id': [32, 362, 362],
+        fake_prediction = [{'id': 0, 'input_data': 'A A', 'input_token_id': [32, 362, 362],
                             'output': ' A A A', 'output_token_id': [362, 362, 362],
                             'prefill_latency': 56.9, 'prefill_throughput': 333.6,
                             'decode_token_latencies': [26.4, 28.4], 'last_decode_latency': 28.4,

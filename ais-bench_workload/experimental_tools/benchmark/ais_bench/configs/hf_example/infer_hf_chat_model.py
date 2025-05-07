@@ -32,7 +32,8 @@ models = [
             seed = None,
             repetition_penalty = 1.03,
         ),
-        max_out_len=100,
+        max_out_len=100, # 最大输出token长度
+        batch_size=1, # 每次推理batch size
         max_seq_len=2048,
         batch_padding=True,
     )

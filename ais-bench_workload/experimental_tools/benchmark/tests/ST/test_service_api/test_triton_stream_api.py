@@ -49,7 +49,7 @@ class TestClass:
         self.perf_csv_headers = ['Performance Parameters', 'Average', 'Min', 'Max',
                                   'Median', 'P75', 'P90', 'P99', 'N']
         self.perf_csv_params = ['E2EL', 'TTFT', 'TPOT', 'InputTokens', 'OutputTokens',
-                                'PrefillTokenThroughput', 'OutputTokenThroughput']
+                                 'OutputTokenThroughput']
 
     # mode infer
     def test_triton_stream_api_infer(self, monkeypatch):
@@ -75,9 +75,9 @@ class TestClass:
 
     # mode perf
     def test_triton_stream_api_perf(self, monkeypatch):
-        fake_perf_data = [{'id': '0', 'input_data': 'A A', 'input_token_id': [32, 362, 362],
+        fake_perf_data = [{'id': 0, 'input_data': 'A A', 'input_token_id': [32, 362, 362],
                             'output': ' A A A', 'output_token_id': [362, 362, 362],
-                            'prefill_latency': 56.9, 'prefill_throughput': 333.6,
+                            'prefill_latency': 56.9,
                             'decode_token_latencies': [26.4, 28.4], 'last_decode_latency': 28.4,
                             'decode_max_token_latency': 28.4, 'seq_latency': 2700.04,
                             'input_tokens_len': 2, 'generate_tokens_len': 3,

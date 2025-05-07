@@ -170,6 +170,7 @@ class MetricsCalculator:
             "request_id",
             "output",
             "output_token_id",
+            "prefill_throughput",
         ]
         for key in remove_keys:
             result.pop(key, None)
@@ -180,7 +181,6 @@ class MetricsCalculator:
             "decode_token_latencies": "ITL",
             "input_tokens_len": "InputTokens",
             "generate_tokens_len": "OutputTokens",
-            "prefill_throughput": "PrefillTokenThroughput",
             "generate_tokens_speed": "OutputTokenThroughput",
             "prefill_batch_size": "PrefillBatchsize",
             "decode_batch_size": "DecoderBatchsize",
@@ -204,7 +204,7 @@ class MetricsCalculator:
             if not res or not res[-1]:
                 ans.pop(key)
 
-        for key in ["TTFT", "TPOT", "ITL", "PrefillTokenThroughput"]:
+        for key in ["TTFT", "TPOT", "ITL"]:
             if math.isclose(sum(ans[key]), 0):
                 ans.pop(key)
 
@@ -293,7 +293,7 @@ class MetricsCalculator:
         return statistics
 
     def __calc_common_metrics(self):
-        self.common_metrics["Benchmark Duration"] = round(self.infer_time * 1000, 4) 
+        self.common_metrics["Benchmark Duration"] = round(self.infer_time * 1000, 4)
         self.common_metrics["Total Requests"] = self.data_count
         self.common_metrics["Failed Requests"] = self.data_count - self.success_count
         self.common_metrics["Success Requests"] = self.success_count

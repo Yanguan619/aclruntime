@@ -30,7 +30,7 @@ class BaseAPIModel(BaseModel):
 
     Args:
         path (str): The path to the model.
-        query_per_second (int): The maximum queries allowed per second
+        request_rate (int): The maximum queries allowed per second
             between two consecutive calls of the API. Defaults to 1.
         retry (int): Number of retires if the API call fails. Defaults to 2.
         max_seq_len (int): The maximum sequence length of the model. Defaults
@@ -46,7 +46,7 @@ class BaseAPIModel(BaseModel):
 
     def __init__(self,
                  path: str,
-                 query_per_second: int = 1,
+                 request_rate: int = 1,
                  rpm_verbose: bool = False,
                  retry: int = 2,
                  max_seq_len: int = 2048,
@@ -60,7 +60,7 @@ class BaseAPIModel(BaseModel):
         self.meta_template = meta_template
         self.retry = retry
         self.rpm_verbose = rpm_verbose
-        self.query_per_second = query_per_second
+        self.request_rate = request_rate
         self.token_bucket = None
         self.template_parser = APITemplateParser(meta_template)
         self.generation_kwargs = generation_kwargs
@@ -241,10 +241,10 @@ class BaseAPIModel(BaseModel):
                     executor.submit(self._generate, input_data, max_out_len)
                     input_data = data_queue.get()
                 data_queue.put(None)
-        except Exception as e:
-            self.logger.error(f"Infer task end because erro: {e}")
         except KeyboardInterrupt:
             self.logger.warning("Interrupted by user (Ctrl+C).")
+        except Exception as e:
+            self.logger.error(f"Infer task end because erro: {e}")
         finally:
             self.task_finish = True
             self.tmp_result_queue.put(None)
@@ -268,7 +268,7 @@ class BaseAPIModel(BaseModel):
     def acquire(self):
         """Acquire concurrent resources if exists.
 
-        This behavior will fall back to wait with query_per_second if there are
+        This behavior will fall back to wait with request_rate if there are
         no concurrent resources.
         """
         if hasattr(self, 'tokens'):
@@ -608,7 +608,7 @@ class TokenBucket:
     """A token bucket for rate limiting.
 
     Args:
-        query_per_second (float): The rate of the token bucket.
+        request_rate (float): The rate of the token bucket.
     """
 
     def __init__(self, rate, verbose=False):

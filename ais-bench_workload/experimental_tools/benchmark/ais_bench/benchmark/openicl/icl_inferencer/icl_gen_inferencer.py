@@ -140,7 +140,8 @@ class GenInferencer(BaseInferencer):
                             mp_queue.put(dict(data_id=data_index, prompt=inputs[data_index], gold=golds[data_index]))
                             real_data_num += 1
                         except IndexError as e:
-                            logger(f"data index out of range")
+                            logger.error(f"data index out of range")
+                            return results
                     data_index += 1
                     bucket_size -= 1
                 bucket_index += 1
@@ -148,11 +149,11 @@ class GenInferencer(BaseInferencer):
                 data_buckets.append(mp_queue)
                 real_data_nums.append(real_data_num)
         
-            query_per_second = model.query_per_second
-            if query_per_second < 0.1:
-                logger.info(f"get query_per_second {query_per_second} small than 0.1, all requests will send together!")
-                query_per_second = 0
-            query_per_second_mean = query_per_second / workers_num
+            request_rate = model.request_rate
+            if request_rate < 0.1:
+                logger.info(f"get request_rate {request_rate} small than 0.1, all requests will send together!")
+                request_rate = 0
+            request_rate_mean = request_rate / workers_num
             max_data_bucket_size = max(data_bucket_sizes)
             # Set the timing of token release according to qps, only one request can hold the token at each moment
             freeze_support()
@@ -165,7 +166,7 @@ class GenInferencer(BaseInferencer):
                     "ori_nums":    data_bucket_sizes[i],
                     "data_nums":   real_data_nums[i],
                     "process_id":  i,
-                    "qps":         query_per_second_mean * data_bucket_sizes[i] / max_data_bucket_size
+                    "qps":         request_rate_mean * data_bucket_sizes[i] / max_data_bucket_size
                 })
                 res = pool.apply_async(func=submit_single_model, 
                                         args=(model_cfg, data_buckets[i],),

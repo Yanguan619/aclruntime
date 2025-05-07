@@ -236,11 +236,13 @@ class LocalAPIRunner(BaseRunner):
     def __init__(self,
                  task: ConfigDict,
                  max_num_workers: int = 16,
+                 num_prompts: int = None,
                  debug: bool = False,
                  disable_cb: bool = False,
                  lark_bot_url: str = None):
         super().__init__(task=task, debug=debug, lark_bot_url=lark_bot_url)
         self.max_num_workers = max_num_workers
+        self.num_prompts = num_prompts
         self.disable_cb = disable_cb
         get_logger().debug(f"task type is {task['type']}")
         assert task['type'] in [
@@ -269,6 +271,7 @@ class LocalAPIRunner(BaseRunner):
         if self.debug:
             # fall back to LocalRunner debug mode
             for task in tasks:
+                task['num_prompts'] = self.num_prompts
                 task = TASKS.build(dict(cfg=task, type=self.task_cfg['type']))
                 task_name = task.name
                 # get cmd
@@ -291,6 +294,7 @@ class LocalAPIRunner(BaseRunner):
                                 ' should be checked in each infer/.out file.')
             with tqdm(total=len(tasks), desc="Processing tasks") as pbar:
                 for task in tasks:
+                    task['num_prompts'] = self.num_prompts
                     res = submit(task, self.task_cfg['type'])
                     status.append(res)
                     pbar.update(1)
@@ -312,6 +316,7 @@ class LocalAPIRunner(BaseRunner):
 
                 with Pool(processes=self.max_num_workers) as pool:
                     for task in tasks:
+                        task['num_prompts'] = self.num_prompts
                         pool.apply_async(submit,
                                          (task, self.task_cfg['type']),
                                          callback=update)

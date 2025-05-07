@@ -210,6 +210,7 @@ def fill_perf_cfg(cfg, args):
             partitioner=dict(type=get_config_type(PerformancePartitioner)),
             runner=dict(
                 max_num_workers=args.max_num_workers,
+                num_prompts=args.num_prompts,
                 debug=args.debug,
                 disable_cb=args.disable_cb,
                 task=dict(type=get_config_type(OpenICLPerfTask)),

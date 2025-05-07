@@ -39,6 +39,7 @@ class GenPerfInferencer(GenInferencer):
         output_json_filepath: Optional[str] = "./icl_inference_output",
         output_json_filename: Optional[str] = "performances",
         is_synthetic: Optional[bool] = False,
+        num_prompts: int = None,
         **kwargs,
     ):
         super().__init__(
@@ -56,6 +57,7 @@ class GenPerfInferencer(GenInferencer):
             **kwargs,
         )
         self.metrics_calculator = None
+        self.num_prompts = num_prompts
 
     def get_data_list(
         self,
@@ -97,6 +99,9 @@ class GenPerfInferencer(GenInferencer):
         """
         Runs inference on the given entries and logs performance metrics.
         """
+        if self.num_prompts:
+            logger.info(f"The number of prompts to evaluate is {self.num_prompts}")
+            entry = entry[:self.num_prompts]
         if self.is_synthetic:
             self.model.set_synthetic()
 

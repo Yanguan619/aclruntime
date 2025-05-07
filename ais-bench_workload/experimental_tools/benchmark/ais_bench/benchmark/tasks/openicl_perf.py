@@ -140,6 +140,7 @@ class OpenICLPerfTask(BaseTask):
         self._set_default_value(inferencer_cfg, "max_out_len", self.max_out_len)
         self._set_default_value(inferencer_cfg, "min_out_len", self.min_out_len)
         self._set_default_value(inferencer_cfg, "batch_size", self.batch_size)
+        self._set_default_value(inferencer_cfg, "num_prompts", self.num_prompts)
         inferencer_cfg["max_seq_len"] = self.model_cfg.get("max_seq_len")
         self.inferencer = ICL_INFERENCERS.build(inferencer_cfg)
 

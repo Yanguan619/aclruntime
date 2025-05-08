@@ -31,7 +31,7 @@ class TGICustomAPI(PerformanceAPIModel):
         max_seq_len (int): The maximum allowed sequence length of a model.
             Note that the length of prompt + generated tokens shall not exceed
             this value. Defaults to 2048.
-        query_per_second (int): The maximum queries allowed per second
+        request_rate (int): The maximum queries allowed per second
             between two consecutive calls of the API. Defaults to 1.
         retry (int): Number of retires if the API call fails. Defaults to 2.
         meta_template (Dict, optional): The model's meta prompt
@@ -47,7 +47,7 @@ class TGICustomAPI(PerformanceAPIModel):
     def __init__(self,
                  path: str = "",
                  max_seq_len: int = 4096,
-                 query_per_second: int = 1,
+                 request_rate: int = 1,
                  rpm_verbose: bool = False,
                  retry: int = 2,
                  meta_template: Optional[Dict] = None,
@@ -59,7 +59,7 @@ class TGICustomAPI(PerformanceAPIModel):
         super().__init__(path=path,
                          max_seq_len=max_seq_len,
                          meta_template=meta_template,
-                         query_per_second=query_per_second,
+                         request_rate=request_rate,
                          rpm_verbose=rpm_verbose,
                          retry=retry,
                          verbose=verbose,
@@ -134,7 +134,7 @@ class TGICustomAPIStream(PerformanceAPIModel):
         max_seq_len (int): The maximum allowed sequence length of a model.
             Note that the length of prompt + generated tokens shall not exceed
             this value. Defaults to 2048.
-        query_per_second (int): The maximum queries allowed per second
+        request_rate (int): The maximum queries allowed per second
             between two consecutive calls of the API. Defaults to 1.
         retry (int): Number of retires if the API call fails. Defaults to 2.
         meta_template (Dict, optional): The model's meta prompt
@@ -150,7 +150,7 @@ class TGICustomAPIStream(PerformanceAPIModel):
     def __init__(self,
                  max_seq_len: int = 4096,
                  path: str = "",
-                 query_per_second: int = 1,
+                 request_rate: int = 1,
                  rpm_verbose: bool = False,
                  retry: int = 2,
                  meta_template: Optional[Dict] = None,
@@ -162,7 +162,7 @@ class TGICustomAPIStream(PerformanceAPIModel):
         super().__init__(path=path,
                         max_seq_len=max_seq_len,
                         meta_template=meta_template,
-                        query_per_second=query_per_second,
+                        request_rate=request_rate,
                         rpm_verbose=rpm_verbose,
                         retry=retry,
                         verbose=verbose,

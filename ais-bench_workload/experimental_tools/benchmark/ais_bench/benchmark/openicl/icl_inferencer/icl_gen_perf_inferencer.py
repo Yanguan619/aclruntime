@@ -118,7 +118,7 @@ class GenPerfInferencer(GenInferencer):
         with torch.no_grad():
             parsed_entries = self.model.parse_template(entry, mode='gen')
             results = self.inference_with_multi_process(
-            self.model, self.model_cfg, parsed_entries, **extra_gen_kwargs)
+                self.model, self.model_cfg, parsed_entries, golds, **extra_gen_kwargs)
             results.sort(key=lambda x: x['id'])
         preds = self.extract_preds(results)
         self.metrics_calculator = MetricsCalculator(preds)

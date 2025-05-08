@@ -6,12 +6,12 @@ import os
 import os.path as osp
 import time
 import multiprocessing
+from pathlib import Path
 from multiprocessing import RLock, freeze_support
-import threading
 from typing import List, Optional, Tuple, Any
 
-import mmengine
 import torch
+import shutil
 from tqdm import tqdm
 
 from ais_bench.benchmark.models.base import BaseModel
@@ -101,37 +101,59 @@ class GenInferencer(BaseInferencer):
             save_every = 1
         self.save_every = save_every
         self.is_synthetic = is_synthetic
+        self.tmp_result_ids = []
 
     def inference_with_multi_process(
-        self, model, model_cfg, inputs, **extra_gen_kwargs
+        self, model, model_cfg, inputs, golds, **extra_gen_kwargs
     ):
         if hasattr(model, "sync_rank") and model.sync_rank:
             inputs = model.sync_inputs(inputs)
-        batch_size = extra_gen_kwargs.get("batch_size", 1)
+        results = []
+        if len(inputs) <= 0:
+            logger.warning(f"Inputs data number is {len(inputs)}, result will be empty")
+            return results
+        max_concurrency = extra_gen_kwargs.get("batch_size", 1)
         # Maximum MAX_CONCURRENCY_PER_PROCESS concurrency per process, number of processes less than number of cores
         workers_num = min(
-            multiprocessing.cpu_count(), (batch_size - 1) // MAX_CONCURRENCY_PER_PROCESS + 1
+            multiprocessing.cpu_count(), (max_concurrency - 1) // MAX_CONCURRENCY_PER_PROCESS + 1
         )
-        q, r = divmod(batch_size, workers_num)
+        logger.info(f"Concurrency is set to {max_concurrency}, infer with total {workers_num} process")
+        q, r = divmod(max_concurrency, workers_num)
         concurrencys = [q + 1] * r + [q] * (workers_num - r)
+        task_data_num = len(inputs) - len(self.tmp_result_ids)
+        if task_data_num != len(inputs):
+            logger.info(f"{len(self.tmp_result_ids)} requests have been completed, requests remaining: {task_data_num}")
         q, r = divmod(len(inputs), workers_num)
         data_bucket_sizes = [q + 1] * r + [q] * (workers_num - r)
-        results = []
-        if sum(data_bucket_sizes) < len(inputs) or len(inputs) <=0 :
-            logger.error(f"inputs data number incorrect")
         with multiprocessing.Manager() as manager:
             data_buckets = []
+            real_data_nums = []
+            bucket_index = 0
             data_index = 0 
-            for bucket_size in data_bucket_sizes:
+            while data_index <len(inputs):
+                bucket_size = data_bucket_sizes[bucket_index]
                 mp_queue = manager.Queue(bucket_size + 1)
-                for _ in range(bucket_size):
-                    mp_queue.put(dict(data_id=data_index, prompt=inputs[data_index]))
+                real_data_num = 0
+                while bucket_size > 0:
+                    if data_index not in self.tmp_result_ids:
+                        try:
+                            mp_queue.put(dict(data_id=data_index, prompt=inputs[data_index], gold=golds[data_index]))
+                            real_data_num += 1
+                        except IndexError as e:
+                            logger.error(f"data index out of range")
+                            return results
                     data_index += 1
+                    bucket_size -= 1
+                bucket_index += 1
                 mp_queue.put(None)
                 data_buckets.append(mp_queue)
+                real_data_nums.append(real_data_num)
         
-            query_per_second = model.query_per_second
-            query_per_second_mean = query_per_second / workers_num
+            request_rate = model.request_rate
+            if request_rate < 0.1:
+                logger.info(f"get request_rate {request_rate} small than 0.1, all requests will send together!")
+                request_rate = 0
+            request_rate_mean = request_rate / workers_num
             max_data_bucket_size = max(data_bucket_sizes)
             # Set the timing of token release according to qps, only one request can hold the token at each moment
             freeze_support()
@@ -140,14 +162,16 @@ class GenInferencer(BaseInferencer):
             for i in range(workers_num):
                 new_gen_kwargs = extra_gen_kwargs.copy()
                 new_gen_kwargs.update({
-                    "concurrency": concurrencys[i],
-                    "data_nums":   data_bucket_sizes[i],
-                    "pos":         i,
-                    "qps":         query_per_second_mean * data_bucket_sizes[i] / max_data_bucket_size
+                    "concurrency": max(1, concurrencys[i]),
+                    "ori_nums":    data_bucket_sizes[i],
+                    "data_nums":   real_data_nums[i],
+                    "process_id":  i,
+                    "qps":         request_rate_mean * data_bucket_sizes[i] / max_data_bucket_size
                 })
                 res = pool.apply_async(func=submit_single_model, 
                                         args=(model_cfg, data_buckets[i],),
                                         kwds=new_gen_kwargs,
+                                        error_callback=lambda x:logger.error(x)
                                         )
                 async_results.append(res)
             pool.close()
@@ -236,22 +260,27 @@ class GenInferencer(BaseInferencer):
 
         extra_gen_kwargs = self._build_extra_gen_kwargs()
         num_return_sequences = getattr(self.model, 'generation_kwargs', {}).get('num_return_sequences', 1)
-
-        tmp_json_filepath = os.path.join(output_json_filepath,
-                                    'tmp_' + output_json_filename)
+        all_success = True
         if not self.disable_cb :
+            tmp_json_filepath = os.path.join(output_json_filepath,
+                'tmp_' + output_json_filename.split('.')[0])
+            output_handler.load_tmp_result(tmp_json_filepath)
+            for data_id in output_handler.results_dict.keys():
+                self.tmp_result_ids.append(int(data_id))
+            extra_gen_kwargs.update({"tmp_result_dir": tmp_json_filepath})
             start_time_stamp = time.perf_counter()
             entry, golds = self.extract_data(ds_reader, prompt_list)
             with torch.no_grad():
                 parsed_entries = self.model.parse_template(entry, mode='gen')
                 results = self.inference_with_multi_process(
-                    self.model, self.model_cfg, parsed_entries, **extra_gen_kwargs)
+                    self.model, self.model_cfg, parsed_entries, golds, **extra_gen_kwargs)
                 results.sort(key=lambda x: x['id'])
                 generated = [result['output'] for result in results]
             for prediction in batched(results, num_return_sequences):
                 if num_return_sequences == 1:
                     prediction = prediction[0]
                 if not prediction.get('is_success'):
+                    all_success = False
                     pred = ""
                 else:
                     pred = prediction.get('output')
@@ -265,16 +294,10 @@ class GenInferencer(BaseInferencer):
         else:
             # Create tmp json file for saving intermediate results and future
             # resuming
-            index = 0
-            if osp.exists(tmp_json_filepath):
-                # TODO: move resume to output handler
-                try:
-                    tmp_result_dict = mmengine.load(tmp_json_filepath)
-                except Exception:
-                    pass
-                else:
-                    output_handler.results_dict = tmp_result_dict
-                    index = len(tmp_result_dict)
+            tmp_json_filepath = os.path.join(output_json_filepath,
+                            'tmp_' + output_json_filename)
+            output_handler.load_tmp_result(tmp_json_filepath)
+            index = len(output_handler.results_dict)
 
             # 4. Wrap prompts with Dataloader
             logger.info('Starting build dataloader')
@@ -321,8 +344,10 @@ class GenInferencer(BaseInferencer):
             output_handler.write_to_json(output_json_filepath,
                                          output_json_filename)
             if osp.exists(tmp_json_filepath):
-                os.remove(tmp_json_filepath)
-
+                if osp.isdir(tmp_json_filepath) and all_success:
+                    shutil.rmtree(tmp_json_filepath)
+                elif osp.isfile(tmp_json_filepath):
+                    os.remove(tmp_json_filepath)
 
         if self.dump_timer and self.is_main_process:
             timer_filepath = os.path.join(output_json_filepath, 'timer',

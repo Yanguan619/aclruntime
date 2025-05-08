@@ -15,7 +15,7 @@ class PerformanceAPIModel(BaseAPIModel):
     def __init__(
         self,
         path: str,
-        query_per_second: int = 1,
+        request_rate: int = 1,
         rpm_verbose: bool = False,
         retry: int = 2,
         max_seq_len: int = 2048,
@@ -25,7 +25,7 @@ class PerformanceAPIModel(BaseAPIModel):
     ) -> None:
         super().__init__(
             path,
-            query_per_second,
+            request_rate,
             rpm_verbose,
             retry,
             max_seq_len,
@@ -79,7 +79,9 @@ class PerformanceAPIModel(BaseAPIModel):
         if not self.tokenizer:
             self.logger.error("Tokenizer is not initialized.")
             return 0.0, []
-
+        if not isinstance(prompt, str):
+            self.logger.error(f"Invalid input type: expected a string, got {type(prompt)}.")
+            return 0.0, []
         time_start = time.perf_counter()
         tokens = self.tokenizer.encode(prompt)
         time_cost = (time.perf_counter() - time_start) * 1000  # Convert to milliseconds
@@ -126,9 +128,14 @@ class PerformanceAPIModel(BaseAPIModel):
                     continue
                 time_cost, tokens = self.encode(self.result_cache[key].output)
                 self.result_cache[key].num_generated_tokens = len(tokens)
-        performance_data = [
-            cache_data.convert_to_performance_data()
-            for cache_data in self.result_cache.values()
-        ]
-        self.result_cache.clear()
+        performance_data = []
+        try:
+            performance_data = [
+                cache_data.convert_to_performance_data()
+                for cache_data in self.result_cache.values()
+            ]
+        except Exception as e:
+            self.logger.error(f"Error converting performance data: {e}")
+        finally:
+            self.result_cache.clear()
         return performance_data

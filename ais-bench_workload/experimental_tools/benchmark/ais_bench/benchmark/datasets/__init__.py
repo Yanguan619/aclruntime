@@ -25,3 +25,4 @@ from .humanevalx import humanevalx, humaneval_x_eval, humaneval_x_utils
 from .humanevalx.humanevalx import * # noqa: F401, F403
 from .bbh import * # noqa: F401, F403
 from .race import *
+from .lambada import * # noqa: F401, F403

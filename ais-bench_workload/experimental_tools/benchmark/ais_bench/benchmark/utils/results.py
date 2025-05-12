@@ -9,6 +9,20 @@ import copy
 from ais_bench.benchmark.utils import get_logger
 
 
+def data_is_not_empty(data):
+    if isinstance(data, str):
+        return data != ""
+    if isinstance(data, int):
+        return data != 0
+    if isinstance(data, float):
+        return not math.isclose(data, 0.0)
+    if isinstance(data, (list, dict)):
+        return len(data) != 0
+    if data is None:
+        return False
+    return True
+
+
 @dataclass
 class MiddleData:
     data_id: int = -1

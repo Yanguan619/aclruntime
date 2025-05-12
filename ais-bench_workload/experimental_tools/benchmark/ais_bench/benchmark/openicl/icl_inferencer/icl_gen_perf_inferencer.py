@@ -40,6 +40,7 @@ class GenPerfInferencer(GenInferencer):
         output_json_filename: Optional[str] = "performances",
         is_synthetic: Optional[bool] = False,
         num_prompts: int = None,
+        custom_calculator = MetricsCalculator,
         **kwargs,
     ):
         super().__init__(
@@ -58,6 +59,7 @@ class GenPerfInferencer(GenInferencer):
         )
         self.metrics_calculator = None
         self.num_prompts = num_prompts
+        self.custom_calculator = custom_calculator
 
     def get_data_list(
         self,
@@ -88,7 +90,7 @@ class GenPerfInferencer(GenInferencer):
             else [None] * len(entry)
         )
         return entry, golds
-         
+
     def inference(
         self,
         entry: List[str],
@@ -121,7 +123,7 @@ class GenPerfInferencer(GenInferencer):
                 self.model, self.model_cfg, parsed_entries, golds, **extra_gen_kwargs)
             results.sort(key=lambda x: x['id'])
         preds = self.extract_preds(results)
-        self.metrics_calculator = MetricsCalculator(preds)
+        self.metrics_calculator = self.custom_calculator(preds)
         self.metrics_calculator.calculate()
 
         num_return_sequences = getattr(self.model, "generation_kwargs", {}).get(

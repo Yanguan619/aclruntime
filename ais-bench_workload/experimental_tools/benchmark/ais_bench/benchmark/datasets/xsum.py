@@ -1,4 +1,5 @@
 import json
+import os
 from os import environ
 
 from datasets import Dataset
@@ -29,7 +30,8 @@ class XsumDataset(BaseDataset):
                 rows.append({'dialogue': dialogue, 'summary': summary})
             dataset = Dataset.from_list(rows)
         else:
-            with open(path, 'r', errors='ignore') as in_f:
+            devl_path = os.path.join(path, 'dev.jsonl')
+            with open(devl_path, 'r', errors='ignore') as in_f:
                 rows = []
                 for i, line in enumerate(in_f):
                     if i == 1000:

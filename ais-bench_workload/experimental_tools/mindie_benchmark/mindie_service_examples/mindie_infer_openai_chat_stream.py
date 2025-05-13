@@ -15,6 +15,7 @@ models = [
         type=VLLMCustomAPIChatStream,
         abbr='vllm-api-stream-chat',
         model="",
+        path="",
         max_seq_len = 4096,
         request_rate = 0,
         rpm_verbose = False,

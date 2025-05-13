@@ -22,6 +22,7 @@ from ais_bench.benchmark.models.base_api import BaseAPIModel, handle_synthetic_i
 from ais_bench.benchmark.models.performance_api import PerformanceAPIModel
 from ais_bench.benchmark.clients import OpenAIChatStreamClient, OpenAIChatTextClient
 from ais_bench.benchmark.utils.results import MiddleData
+from ais_bench.benchmark.utils.build import build_client_from_cfg
 
 PromptType = Union[PromptList, str, dict]
 
@@ -237,7 +238,15 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
         self.base_url = self._get_base_url()
         self.endpoint_url = os.path.join(self.base_url, "chat/completions")
         self.model = model if model else self._get_service_model_path()
-        self.client = custom_client(self.endpoint_url, retry)
+        self.init_client(custom_client)
+
+    def init_client(self, custom_client):
+        if isinstance(custom_client, dict):
+            custom_client['url'] = self.base_url
+            custom_client['retry'] = self.retry
+            self.client = build_client_from_cfg(custom_client)
+        else:
+            custom_client(self.endpoint_url, self.retry)
 
     def encode_input(self, prompt: list) -> Tuple[float, List[int]]:
         """Encode a string into tokens, measuring processing time."""

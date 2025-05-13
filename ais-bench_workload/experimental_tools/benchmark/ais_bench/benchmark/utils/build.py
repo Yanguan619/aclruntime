@@ -2,7 +2,7 @@ import copy
 
 from mmengine.config import ConfigDict
 
-from ais_bench.benchmark.registry import LOAD_DATASET, MODELS, load_class
+from ais_bench.benchmark.registry import LOAD_DATASET, MODELS, CLIENTS
 
 
 def build_dataset_from_cfg(dataset_cfg: ConfigDict):
@@ -15,8 +15,6 @@ def build_dataset_from_cfg(dataset_cfg: ConfigDict):
 
 def build_model_from_cfg(model_cfg: ConfigDict):
     model_cfg = copy.deepcopy(model_cfg)
-    if isinstance(model_cfg.get('custom_client'), str):
-        model_cfg['custom_client'] = load_class(model_cfg.get('custom_client'))
     model_cfg.pop('run_cfg', None)
     model_cfg.pop('max_out_len', None)
     model_cfg.pop('batch_size', None)
@@ -26,3 +24,6 @@ def build_model_from_cfg(model_cfg: ConfigDict):
     model_cfg.pop('pred_postprocessor', None)
     model_cfg.pop('min_out_len', None)
     return MODELS.build(model_cfg)
+
+def build_client_from_cfg(client_cfg: ConfigDict):
+    return CLIENTS.build(client_cfg)

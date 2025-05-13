@@ -1,7 +1,7 @@
 from abc import ABC
 import json
 
-from ais_bench.benchmark.clients.base_client import BaseStreamClient
+from ais_bench.benchmark.clients import BaseStreamClient
 from ais_bench.benchmark.utils import MiddleData
 
 

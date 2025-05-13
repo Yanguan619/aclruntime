@@ -25,7 +25,7 @@ models = [
         enable_ssl = False,
         max_out_len = 1, # 最大输出tokens长度
         batch_size=10, # 推理的最大并发数
-        custom_client=MindIEOpenAIChatStreamClient,
+        custom_client=dict(type=MindIEOpenAIChatStreamClient),
         generation_kwargs = dict( # 后处理参数参考https://docs.vllm.ai/en/latest/api/inference_params.html#sampling-params 中的Parameters
             temperature = 0,
             ignore_eos = True,

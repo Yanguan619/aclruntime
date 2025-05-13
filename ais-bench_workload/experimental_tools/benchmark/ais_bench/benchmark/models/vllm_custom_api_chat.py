@@ -82,6 +82,11 @@ class VLLMCustomAPIChat(PerformanceAPIModel):
             self.logger.error("Tokenizer is not initialized.")
             return 0.0, []
 
+        assert len(prompt)>0 and isinstance(prompt[0], dict)
+        if "content" in prompt[0] and isinstance(prompt[0]['content'], list):
+            self.logger.warning(f"Input type: expected a string, got list, InputTokens will be 0.")
+            return 0.0, []
+
         messages = self.tokenizer.tokenizer.tokenizer_model.apply_chat_template(prompt, add_generation_prompt=True, tokenize=False)
         time_start = time.perf_counter()
         tokens = self.tokenizer.encode(messages)
@@ -154,7 +159,7 @@ class VLLMCustomAPIChat(PerformanceAPIModel):
         if max_out_len <= 0:
             return ''
 
-        if isinstance(input, str):
+        if isinstance(input, (str, list)):
             messages = [{'role': 'user', 'content': input}]
         else:
             messages = []
@@ -242,6 +247,11 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
         if not self.tokenizer:
             self.logger.error("Tokenizer is not initialized.")
             return 0.0, []
+        
+        assert len(prompt)>0 and isinstance(prompt[0], dict)
+        if "content" in prompt[0] and isinstance(prompt[0]['content'], list):
+            self.logger.warning(f"Input type: expected a string, got list, InputTokens will be 0.")
+            return 0.0, []
 
         messages = self.tokenizer.tokenizer.tokenizer_model.apply_chat_template(prompt, add_generation_prompt=True, tokenize=False)
         time_start = time.perf_counter()
@@ -314,7 +324,7 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
             data_id = -1
         if max_out_len <= 0:
             return ''
-        if isinstance(input, str):
+        if isinstance(input, (str, list)):
             messages = [{'role': 'user', 'content': input}]
         else:
             messages = []

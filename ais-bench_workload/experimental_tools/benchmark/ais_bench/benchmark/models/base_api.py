@@ -244,7 +244,7 @@ class BaseAPIModel(BaseModel):
         except KeyboardInterrupt:
             self.logger.warning("Interrupted by user (Ctrl+C).")
         except Exception as e:
-            self.logger.error(f"Infer task end because erro: {e}")
+            self.logger.error(f"Infer task end because error: {e}")
         finally:
             self.task_finish = True
             self.tmp_result_queue.put(None)
@@ -392,6 +392,10 @@ class APITemplateParser:
         """
         assert isinstance(prompt_template, (str, list, PromptList, tuple))
 
+        #textvqa data
+        if isinstance(prompt_template, list) and len(prompt_template) > 0 \
+                    and isinstance(prompt_template[0], dict):
+            return prompt_template
         if not isinstance(prompt_template, (str, PromptList)):
             return [self.parse_template(p, mode=mode) for p in prompt_template]
 

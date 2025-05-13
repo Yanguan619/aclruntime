@@ -22,13 +22,14 @@ def load_class(class_path):
 
 def get_locations(module_dir):
     locations = [f'ais_bench.benchmark.{module_dir}']
-    custom_loc = f'{CUSTOM_PACKAGE_DIR}.{module_dir}'
-    if CUSTOM_PACKAGE_DIR:
-        try:
-            _ = __import__(custom_loc, fromlist=[True])
-            locations.append(custom_loc)
-        except ImportError:
-            pass
+    if isinstance(CUSTOM_PACKAGE_DIR, List) and len(CUSTOM_PACKAGE_DIR) > 0:
+        for pkg_dir in CUSTOM_PACKAGE_DIR:
+            custom_loc = f'{pkg_dir}.{module_dir}'
+            try:
+                _ = __import__(custom_loc, fromlist=[True])
+                locations.append(custom_loc)
+            except ImportError:
+                continue
     return locations
 
 

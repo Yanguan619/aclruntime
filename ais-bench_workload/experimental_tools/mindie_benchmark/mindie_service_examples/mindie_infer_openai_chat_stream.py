@@ -1,6 +1,6 @@
 from mmengine.config import read_base
 from ais_bench.benchmark.models import VLLMCustomAPIChatStream
-from clients.openai_chat_stream_client import MindIEOpenAIChatStreamClient
+from mindie_ais_bench_backend.clients.openai_chat_stream_client import MindIEOpenAIChatStreamClient
 
 with read_base():
     from ais_bench.benchmark.configs.datasets.synthetic.synthetic_gen import synthetic_datasets
@@ -19,8 +19,8 @@ models = [
         request_rate = 0,
         rpm_verbose = False,
         retry = 2,
-        host_ip = "localhost", # 推理服务的IP
-        host_port = 8080, # 推理服务的端口
+        host_ip = "51.62.3.35", # 推理服务的IP
+        host_port = 8081, # 推理服务的端口
         enable_ssl = False,
         max_out_len = 512, # 最大输出tokens长度
         batch_size=1, # 推理的最大并发数

@@ -242,11 +242,11 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
 
     def init_client(self, custom_client):
         if isinstance(custom_client, dict):
-            custom_client['url'] = self.base_url
+            custom_client['url'] = self.endpoint_url
             custom_client['retry'] = self.retry
             self.client = build_client_from_cfg(custom_client)
         else:
-            custom_client(self.endpoint_url, self.retry)
+            self.client = custom_client(self.endpoint_url, self.retry)
 
     def encode_input(self, prompt: list) -> Tuple[float, List[int]]:
         """Encode a string into tokens, measuring processing time."""

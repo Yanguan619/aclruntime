@@ -1,0 +1,35 @@
+from mmengine.config import read_base
+from ais_bench.benchmark.models import VLLMCustomAPIChatStream
+from clients.openai_chat_stream_client import MindIEOpenAIChatStreamClient
+
+with read_base():
+    from ais_bench.benchmark.configs.datasets.synthetic.synthetic_gen import synthetic_datasets
+
+datasets = [ # all_dataset_configs.py中导入了其他数据集配置，可以将gsm8k_0_shot_cot_chat替换为其他一个或多个数据集
+    *synthetic_datasets,
+]
+
+models = [
+    dict(
+        attr="service", # model or service
+        type=VLLMCustomAPIChatStream,
+        abbr='vllm-api-stream-chat',
+        model="",
+        max_seq_len = 4096,
+        request_rate = 0,
+        rpm_verbose = False,
+        retry = 2,
+        host_ip = "localhost", # 推理服务的IP
+        host_port = 8080, # 推理服务的端口
+        enable_ssl = False,
+        max_out_len = 512, # 最大输出tokens长度
+        batch_size=1, # 推理的最大并发数
+        custom_client=MindIEOpenAIChatStreamClient,
+        generation_kwargs = dict( # 后处理参数参考https://docs.vllm.ai/en/latest/api/inference_params.html#sampling-params 中的Parameters
+            temperature = 0,
+            ignore_eos = True,
+        )
+    )
+]
+
+work_dir = 'outputs/api-vllm-stream-chat/'

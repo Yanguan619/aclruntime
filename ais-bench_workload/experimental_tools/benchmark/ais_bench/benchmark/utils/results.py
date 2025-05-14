@@ -85,6 +85,7 @@ class MiddleData:
             "end_time": self.end_time,
             "is_success": self.is_success,
             "is_empty": self.is_empty,
+            "chunk_time_point_list": self.chunk_time_point_list
         }
 
 

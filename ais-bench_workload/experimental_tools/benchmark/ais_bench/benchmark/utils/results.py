@@ -34,6 +34,7 @@ class MiddleData:
     model_id: str = ""
     is_success: bool = False
     is_empty: bool = False
+    chunk_time_point_list: list[int] = field(default_factory=list)
 
     def is_valid(self):
         """To ensure valid results"""

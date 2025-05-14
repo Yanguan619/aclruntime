@@ -75,7 +75,7 @@ Wake-up time: 5am.
 2pm-3pm: playing tennis at the tennis court.
 3pm-4pm: free.
 The beach closure time: 4pm.
-The only time when Tiffany could have gone to the beach was 3pm to 4pm. So the answer is (D)."'''
+The only time when Tiffany could have gone to the beach was 3pm to 4pm. So the answer is (D).'''
 ,
 "disambiguation_qa" : '''Clarify the meaning of sentences with ambiguous pronouns.
 

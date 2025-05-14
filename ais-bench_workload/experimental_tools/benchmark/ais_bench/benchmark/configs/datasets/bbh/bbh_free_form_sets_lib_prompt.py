@@ -1,4 +1,4 @@
-bbh_free_from_sets_dict = {
+bbh_free_form_sets_dict = {
 "multistep_arithmetic_two" : '''Solve multi-step arithmetic problems.
 
 Q: ((-5 + 9 * -4 - 0) * (4 + -7 + 0 * -5)) =

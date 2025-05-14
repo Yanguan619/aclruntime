@@ -3,8 +3,11 @@ from ais_bench.benchmark.openicl.icl_retriever import ZeroRetriever
 from ais_bench.benchmark.openicl.icl_inferencer import GenInferencer
 from ais_bench.benchmark.openicl.icl_evaluator import AccEvaluator
 from ais_bench.benchmark.datasets import BBHDataset, BBHEvaluator, bbh_mcq_postprocess, BBHEvaluator_mcq
-from bbh_multiple_choice_sets_lib_prompt import bbh_multiple_choice_sets_dict
-from bbh_free_from_sets_lib_prompt import bbh_free_from_sets_dict
+from mmengine.config import read_base
+
+with read_base():
+    from .bbh_multiple_choice_sets_lib_prompt import bbh_multiple_choice_sets_dict  # noqa: F401, F403
+    from .bbh_free_form_sets_lib_prompt import bbh_free_form_sets_dict
 
 bbh_reader_cfg = dict(input_columns=['input'], output_column='target')
 
@@ -73,7 +76,7 @@ for _name in bbh_multiple_choice_sets:
             eval_cfg=bbh_eval_cfg.copy()))
 
 for _name in bbh_free_form_sets:
-    _hint = bbh_free_from_sets_dict[_name]
+    _hint = bbh_free_form_sets_dict[_name]
     bbh_infer_cfg = dict(
         prompt_template=dict(
             type=PromptTemplate,

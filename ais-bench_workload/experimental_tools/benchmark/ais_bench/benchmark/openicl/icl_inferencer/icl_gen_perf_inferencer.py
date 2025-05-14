@@ -15,7 +15,6 @@ from mmengine.config import ConfigDict
 from ais_bench.benchmark.models.base import BaseModel
 from ais_bench.benchmark.registry import ICL_INFERENCERS
 from ais_bench.benchmark.utils import batched
-from ais_bench.benchmark.utils.results import MetricsCalculator
 from ais_bench.benchmark.calculators import DefaultPerfMetricCalculator
 from ais_bench.benchmark.utils.build import build_perf_metric_calculator_from_cfg
 

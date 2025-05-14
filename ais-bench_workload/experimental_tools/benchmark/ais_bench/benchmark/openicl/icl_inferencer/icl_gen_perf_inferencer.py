@@ -150,6 +150,10 @@ class GenPerfInferencer(GenInferencer):
         if self.is_main_process:
             os.makedirs(output_filepath, exist_ok=True)
             dump_results_dict(
+                results,
+                osp.join(output_filepath, output_filename + "_details.json"),
+            )
+            dump_results_dict(
                 self.metrics_calculator.get_common_res(self.batch_size),
                 osp.join(output_filepath, output_filename + ".json"),
             )
@@ -187,3 +191,5 @@ class GenPerfInferencer(GenInferencer):
         preds["is_success"] = [pred.get("is_success", False) for pred in results]
         preds["is_empty"] = [pred.get("is_empty", False) for pred in results]
         return preds
+
+

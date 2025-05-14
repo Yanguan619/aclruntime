@@ -116,6 +116,7 @@ def dump_results_dict(results_dict, filename):
     with open(filename, 'w', encoding='utf-8') as json_file:
         json.dump(results_dict, json_file, indent=4, ensure_ascii=False)
 
+
 class GenInferencerOutputHandler:
     origin_prompt_dict = {}
     output_dict = {}

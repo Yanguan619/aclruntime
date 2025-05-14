@@ -6,7 +6,7 @@ from ais_bench.benchmark.datasets import BBHDataset, BBHEvaluator, bbh_mcq_postp
 from mmengine.config import read_base
 
 with read_base():
-    from .bbh_multiple_choice_sets_lib_prompt import bbh_multiple_choice_sets_dict  # noqa: F401, F403
+    from .bbh_multiple_choice_sets_lib_prompt import bbh_multiple_choice_sets_dict
     from .bbh_free_form_sets_lib_prompt import bbh_free_form_sets_dict
 
 bbh_reader_cfg = dict(input_columns=['input'], output_column='target')

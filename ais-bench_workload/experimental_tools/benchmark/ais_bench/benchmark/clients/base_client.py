@@ -173,9 +173,9 @@ class BaseStreamClient(BaseClient, ABC):
                         response_dict[time_name] = (
                             cur_time_point - last_time_point
                         ) * 1000
+                        response_dict["chunk_time_point"] = cur_time_point * 1000
                     yield response_dict
                     time_name = "decode_time"
                     last_time_point = time.perf_counter()
-                    response_dict["chunk_time_point"] = last_time_point
             except Exception as error:
                 raise ValueError("[Error] %r! Response from server is: %r" % (error, cur_line))

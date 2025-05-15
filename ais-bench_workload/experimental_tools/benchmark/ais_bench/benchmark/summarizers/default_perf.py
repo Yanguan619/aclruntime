@@ -121,11 +121,12 @@ class DefaultPerfSummarizer:
         return table
 
     def _load_json_to_table(self, json_path):
-        table = [["Common Metric", "Value"]]
+        table = [["Common Metric", "Stage", "Value"]]
         with open(json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
-        for key, value in data.items():
-            table.append([key, value])
+        for key, stage_value in data.items():
+            for stage_name, value in stage_value.items():
+                table.append([key, stage_name , value])
         return table
 
     def _output_to_screen(self, tables_dict: Dict):

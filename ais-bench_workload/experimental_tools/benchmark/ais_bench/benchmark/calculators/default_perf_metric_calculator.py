@@ -47,7 +47,7 @@ class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
         self.common_metrics = collections.defaultdict(new_common_result)
 
     def get_common_res(self):
-        return {k: v for k, v in self.common_metrics.items() if v is not None}
+        return {k: {"all": v} for k, v in self.common_metrics.items() if v is not None}
 
     def save_performance(self, out_path: str):
         """
@@ -70,11 +70,11 @@ class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
                 writer = csv.writer(file)
 
                 # Write header: First column is the object name, followed by metric keys
-                writer.writerow(["Performance Parameters"] + headers)
+                writer.writerow(["Performance Parameters"] + ["Stage"] + headers)
 
                 # Write each object's data
                 for obj_name, values in self.metrics.items():
-                    row = [obj_name] + [values.get(key, "") for key in headers]
+                    row = [obj_name] + ["all"] + [values.get(key, "") for key in headers]
                     writer.writerow(row)
 
         except (OSError, IOError) as e:

@@ -1,4 +1,5 @@
 import csv
+import json
 import collections
 import math
 from typing import Optional, Dict, Any
@@ -7,6 +8,11 @@ from dataclasses import dataclass, field
 import numpy as np
 import copy
 from ais_bench.benchmark.utils import get_logger
+
+
+def dump_results_dict(results_dict, filename):
+    with open(filename, 'w', encoding='utf-8') as json_file:
+        json.dump(results_dict, json_file, indent=4, ensure_ascii=False)
 
 
 @dataclass

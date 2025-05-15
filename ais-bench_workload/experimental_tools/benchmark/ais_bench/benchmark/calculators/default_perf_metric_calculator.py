@@ -44,8 +44,7 @@ class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
 
         self.common_metrics = collections.defaultdict(new_common_result)
 
-    def get_common_res(self, concurrency):
-        self.common_metrics.update({"Max Concurrency": concurrency})
+    def get_common_res(self):
         return {k: v for k, v in self.common_metrics.items() if v is not None}
 
     def save_performance(self, out_path: str):
@@ -221,7 +220,7 @@ class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
         self.common_metrics["Concurrency"] = round(
             sum(self.result["E2EL"]) / self.infer_time / 1000, 4
         )
-        self.common_metrics["Max Concurrency"] = self.common_metrics["Concurrency"]
+        self.common_metrics["Max Concurrency"] = self.result["max_concurrency"][0]
 
         try:
             self.common_metrics["Request Throughput"] = round(

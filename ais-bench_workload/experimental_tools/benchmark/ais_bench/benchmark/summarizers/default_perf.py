@@ -86,7 +86,7 @@ class DefaultPerfSummarizer:
                 calc.calculate()
                 output_filepath = osp.join(self.work_dir, "performances", model)
                 dump_results_dict(
-                    calc.get_common_res(self.batch_size),
+                    calc.get_common_res(),
                     osp.join(output_filepath, dataset + ".json"),
                 )
                 calc.save_performance(

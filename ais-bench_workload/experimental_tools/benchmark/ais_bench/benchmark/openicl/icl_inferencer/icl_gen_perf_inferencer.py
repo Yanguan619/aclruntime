@@ -123,6 +123,7 @@ class GenPerfInferencer(GenInferencer):
                 self.model, self.model_cfg, parsed_entries, golds, **extra_gen_kwargs)
             results.sort(key=lambda x: x['id'])
         preds = self.extract_preds(results)
+        preds["max_concurrency"] = [self.batch_size for _ in range(len(preds['id']))]
 
         num_return_sequences = getattr(self.model, "generation_kwargs", {}).get(
             "num_return_sequences", 1

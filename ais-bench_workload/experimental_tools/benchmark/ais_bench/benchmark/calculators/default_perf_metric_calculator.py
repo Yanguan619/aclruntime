@@ -9,7 +9,9 @@ from ais_bench.benchmark.registry import PERF_METRIC_CALCULATORS
 
 @PERF_METRIC_CALCULATORS.register_module()
 class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
-    def __init__(self, result: dict):
+    def __init__(self, perf_details: dict):
+        result = perf_details.get("requests")
+        self.max_concurrency = perf_details["task"]["max_concurrency"]
         self.data_count = len(result["is_success"])
         self.decode_latencies = result["decode_token_latencies"]
         self.success_count = sum(result["is_success"])
@@ -220,7 +222,7 @@ class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
         self.common_metrics["Concurrency"] = round(
             sum(self.result["E2EL"]) / self.infer_time / 1000, 4
         )
-        self.common_metrics["Max Concurrency"] = self.result["max_concurrency"][0]
+        self.common_metrics["Max Concurrency"] = self.max_concurrency
 
         try:
             self.common_metrics["Request Throughput"] = round(

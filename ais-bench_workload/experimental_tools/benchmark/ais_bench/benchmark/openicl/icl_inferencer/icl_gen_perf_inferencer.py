@@ -123,7 +123,7 @@ class GenPerfInferencer(GenInferencer):
                 self.model, self.model_cfg, parsed_entries, golds, **extra_gen_kwargs)
             results.sort(key=lambda x: x['id'])
         preds = self.extract_preds(results)
-        preds["max_concurrency"] = [self.batch_size for _ in range(len(preds['id']))]
+        task_params = {"max_concurrency": self.batch_size}
 
         num_return_sequences = getattr(self.model, "generation_kwargs", {}).get(
             "num_return_sequences", 1
@@ -148,8 +148,12 @@ class GenPerfInferencer(GenInferencer):
 
         if self.is_main_process:
             os.makedirs(output_filepath, exist_ok=True)
+            perf_details = {
+                "task": task_params,
+                "requests": preds,
+            }
             dump_results_dict(
-                preds,
+                perf_details,
                 osp.join(output_filepath, output_filename + "_details.json"),
             )
 

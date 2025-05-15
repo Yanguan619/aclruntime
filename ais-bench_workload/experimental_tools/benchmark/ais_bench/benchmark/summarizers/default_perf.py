@@ -126,7 +126,7 @@ class DefaultPerfSummarizer:
             data = json.load(file)
         for key, stage_value in data.items():
             for stage_name, value in stage_value.items():
-                table.append([key, stage_name , value])
+                table.append([key, stage_name, value])
         return table
 
     def _output_to_screen(self, tables_dict: Dict):

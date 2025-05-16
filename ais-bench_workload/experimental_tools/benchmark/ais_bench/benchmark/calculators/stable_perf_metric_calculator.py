@@ -77,11 +77,11 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
 
         try:
             # Extract headers from the first available entry
-            first_entry = next(iter(self.metrics[self.stage_dict.keys()[0]].values()), None)
+            first_entry = next(iter(self.metrics.values()), None)
             if first_entry is None:
                 raise ValueError("Metrics data structure is invalid.")
 
-            headers = list(first_entry.keys())
+            headers = list(first_entry[self.stage_dict.keys()[0]].keys())
 
             with open(out_path, mode="w", newline="", encoding="utf-8") as file:
                 writer = csv.writer(file)
@@ -91,7 +91,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
 
                 # Write each object's data
                 for obj_name, values in self.metrics.items():
-                    for stage_name, _ in self.stage_dict.items():
+                    for stage_name in self.stage_dict.keys():
                         row = [obj_name] + [stage_name] + [values[stage_name].get(key, "") for key in headers]
                         writer.writerow(row)
 

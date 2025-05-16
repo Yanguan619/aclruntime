@@ -58,6 +58,9 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         for key in keys_list:
             if key not in stages_list:
                 self.stage_dict.pop(key, None)
+        if len(self.stage_dict) == 0:
+            self.logger.warning("Can't find valid stage set, use \"total\" stage.")
+            self.stage_dict[DEFAULT_STAGES[0]] = []
         for key, _ in self.stage_dict.items():
             self.stage_dict[key] = STAGE_SELECT_FUNCS[key](perf_details)
 

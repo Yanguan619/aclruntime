@@ -4,5 +4,9 @@ from ais_bench.benchmark.calculators import StablePerfMetricCalculator
 
 summarizer = dict(
     type=DefaultPerfSummarizer,
-    calculator=dict(type=StablePerfMetricCalculator)
+    calculator=dict(
+        type=StablePerfMetricCalculator,
+        stats_list=["Average", "Min", "Max", "Median", "P75", "P90", "P99"],
+        stages_list=["total", "stable"],
+    )
 )

@@ -6,7 +6,6 @@ import logging
 import pytest
 from ais_bench.benchmark.cli.main import main
 
-GSK8K_DATA_COUNT = 1319
 class Response:
     def __init__(self):
         data = {'choices': [{"text": "11"}]}

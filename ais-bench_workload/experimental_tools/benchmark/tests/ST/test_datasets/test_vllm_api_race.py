@@ -6,10 +6,9 @@ import logging
 import pytest
 from ais_bench.benchmark.cli.main import main
 
-GSK8K_DATA_COUNT = 1319
 class Response:
     def __init__(self):
-        data = {'choices': [{"text": "11"}]}
+        data = {'choices': [{"message": {"content": "11"}}]}
         self.data = f"{json.dumps(data)}".encode()
 
 
@@ -33,13 +32,11 @@ class TestClass:
             shutil.rmtree(self.test_data_path)
         os.makedirs(self.test_data_path)
 
-
-    def test_vllm_api_general_chat_race_middle_5_shot_cot(self, monkeypatch):
-        fake_prediction = "ANSWER: C"
-        fake_time_str = "race_middle_gen_5_shot_cot_chat"
+    def test_vllm_api_chat_all_race_middle_gen_5_shot_cot_chat(self, monkeypatch):
+        fake_prediction = "11"
+        fake_time_str = "vllm_chat_race_middle_gen_5_shot_cot_chat"
         datasets_abbr_name = "race-middle"
         datasets_script_name = "race_middle_gen_5_shot_cot_chat"
-
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "vllm_api_general_chat", "--datasets", datasets_script_name,
             "--mode", "all", "-w", self.test_data_path])
@@ -69,12 +66,12 @@ class TestClass:
         vis_md_path = os.path.join(self.test_data_path, f"{fake_time_str}/summary/summary_{fake_time_str}.md")
         assert os.path.exists(vis_md_path)
 
-    def test_vllm_api_general_chat_race_high_5_shot_cot(self, monkeypatch):
-        fake_prediction = "ANSWER: C"
-        fake_time_str = "race_high_gen_5_shot_cot_chat"
+
+    def test_vllm_api_chat_all_race_high_gen_5_shot_cot_chat(self, monkeypatch):
+        fake_prediction = "11"
+        fake_time_str = "vllm_chat_race_high_gen_5_shot_cot_chat"
         datasets_abbr_name = "race-high"
         datasets_script_name = "race_high_gen_5_shot_cot_chat"
-
         monkeypatch.setattr('sys.argv',
             ["ais_bench", "--models", "vllm_api_general_chat", "--datasets", datasets_script_name,
             "--mode", "all", "-w", self.test_data_path])

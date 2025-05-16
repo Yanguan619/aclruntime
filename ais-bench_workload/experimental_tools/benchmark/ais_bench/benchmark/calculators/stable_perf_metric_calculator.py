@@ -175,7 +175,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
 
             # Assign fixed count value for all metrics
             for key in self.metrics:
-                self.metrics[key][stage_name]["N"] = self.success_count
+                self.metrics[key][stage_name]["N"] = self.success_count[stage_name]
 
     def __statistic_prefill_or_decode_batch_size(self, batch_sizes: list):
         """

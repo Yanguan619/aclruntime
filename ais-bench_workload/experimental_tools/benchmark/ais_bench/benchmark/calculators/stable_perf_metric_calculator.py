@@ -185,7 +185,10 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
                     stats["P99"] = round(np.percentile(value, 99), 4)
 
                 # Store the computed metrics
-                self.metrics[metric][stage_name] = stats
+                if self.metrics.get(metric) is None:
+                    self.metrics[metric] = {stage_name: stats}
+                else:
+                    self.metrics[metric][stage_name] = stats
 
             # Assign fixed count value for all metrics
             for key in self.metrics:
@@ -234,6 +237,14 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         return statistics
 
     def __calc_common_metrics(self):
+        common_metric_names = ["Benchmark Duration", "Total Requests", "Failed Requests", "Success Requests",
+            "Concurrency", "Max Concurrency", "Request Throughput", "Total Input Tokens",
+            "Prefill Token Throughput", "Total generated tokens", "Input Token Throughput",
+            "Output Token Throughput", "Total Token Throughput"]
+        for name in common_metric_names:
+            if self.common_metrics.get(name) is None:
+                self.common_metrics[name] = {}
+
         for stage_name, _ in self.stage_dict.items():
             self.common_metrics["Benchmark Duration"][stage_name] = round(self.infer_time[stage_name] * 1000, 4)
             self.common_metrics["Total Requests"][stage_name] = self.data_count[stage_name]

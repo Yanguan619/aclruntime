@@ -25,25 +25,8 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         self.metrics = {}
         self.common_metrics = {}
 
-        def new_metric_result():
-            return {
-                "Average": 0,
-                "Max": 0,
-                "Min": 0,
-                "Median": 0,
-                "P75": 0,
-                "P90": 0,
-                "P99": 0,
-                "N": 0,
-            }
-
-        def new_common_result():
-            return {"Value": 0}
-
         for stage_name, _ in self.stage_dict.items():
             self._process_result(perf_details.get("requests"), stage_name)
-            self.metrics[stage_name] = collections.defaultdict(new_metric_result)
-            self.common_metrics[stage_name] = collections.defaultdict(new_common_result)
 
         self.logger = get_logger()
 

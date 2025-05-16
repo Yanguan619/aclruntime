@@ -58,7 +58,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         for key in keys_list:
             if key not in stages_list:
                 self.stage_dict.pop(key, None)
-        for key, _ in self.stage_dict:
+        for key, _ in self.stage_dict.items():
             self.stage_dict[key] = STAGE_SELECT_FUNCS[key](perf_details)
 
     def _get_legal_stats_list(self, stats_list):

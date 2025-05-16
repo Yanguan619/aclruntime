@@ -310,7 +310,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         }
 
 
-        for metric, values in self.metrics[stage_name].items():
+        for metric, values in self.metrics.items():
             for stage_name, _ in self.stage_dict.items():
                 if metric not in metrics_units_map or metrics_units_map.get(metric) is None:
                     continue
@@ -334,7 +334,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
             "Total Token Throughput": unit_token,
         }
 
-        for metric, value in self.common_metrics[stage_name].items():
+        for metric, value in self.common_metrics.items():
             for stage_name, _ in self.stage_dict.items():
                 if (
                     metric not in common_metric_units_map

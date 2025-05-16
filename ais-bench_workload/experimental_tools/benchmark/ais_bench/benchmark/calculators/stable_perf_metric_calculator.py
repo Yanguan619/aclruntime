@@ -77,7 +77,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
 
         try:
             # Extract headers from the first available entry
-            first_entry = next(iter(self.metrics.values()), None)
+            first_entry = next(iter(self.metrics[self.stage_dict.keys()[0]].values()), None)
             if first_entry is None:
                 raise ValueError("Metrics data structure is invalid.")
 

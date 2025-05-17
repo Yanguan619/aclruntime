@@ -1,7 +1,7 @@
-project(inference_tools)
+project(ais_bench)
 cmake_minimum_required(VERSION 3.14)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED OFF)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -18,8 +18,8 @@ endif()
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(ENV{PROJECT_ROOT_PATH} "${CMAKE_SOURCE_DIR}")
 include("${CMAKE_SOURCE_DIR}/cmake/utils.cmake")
-add_subdirectory(msit)
+add_subdirectory(backend)
 
 if (DEFINED BUILD_TEST_CASE AND "${BUILD_TEST_CASE}" STREQUAL "True")
-    add_subdirectory(test/UT)
+    add_subdirectory(test/cpp_test)
 endif()

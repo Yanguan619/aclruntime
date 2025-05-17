@@ -10,13 +10,13 @@ eval set -- "${BUILD_ARGS}"
 ARCH_TYPE=$(uname -m)
 BUILD_TYPE=release
 CONCURRENT_JOBS=16
-BUILD_TEST_CASE=False
+BUILD_TEST_CASE=True
 USE_LOCAL_FIRST=False
 PYTHON_VERSION=""
 
 HELP_DOC=$(cat << EOF
 Usage: build.sh [OPTION]...\n
-Build the C++ part of msit.\n
+Build the C++ part of aisbench.\n
 \n
 Arguments:\n
     -a, --arch                    Specify the schema, which generally does not need to be set up.\n
@@ -48,7 +48,7 @@ while true; do
         --local)
             USE_LOCAL_FIRST=True ; shift ;;
         -f | --force-rebuild)
-            rm -rf "${BUILD_PATH}/lib" "${BUILD_PATH}/output" "${BUILD_PATH}/msit/lib/msit_c.so"
+            rm -rf "${BUILD_PATH}/lib" "${BUILD_PATH}/output" "${BUILD_PATH}/backend/lib/_backend_c.so"
             shift ;;
         -t | --test-cases)
             BUILD_TEST_CASE=True ; shift ;;
@@ -68,13 +68,13 @@ cmake -B ${BUILD_OUTPUT_PATH} -S . -DARCH_TYPE=${ARCH_TYPE} -DBUILD_TYPE=${BUILD
 cd ${BUILD_OUTPUT_PATH}
 make -j${CONCURRENT_JOBS}
 
-if [[ ! -e ${BUILD_OUTPUT_PATH}/msit/csrc/libmsit_c.so ]]; then
-    echo "Failed to build libmsit_c.so."
+if [[ ! -e ${BUILD_OUTPUT_PATH}/backend/lib_backend_c.so ]]; then
+    echo "Failed to build lib_backend_c.so."
     exit 1
 fi
 
-if [[ ! -e ${BUILD_PATH}/msit/lib ]]; then
-    mkdir ${BUILD_PATH}/msit/lib
+if [[ ! -e ${BUILD_PATH}/backend/lib ]]; then
+    mkdir ${BUILD_PATH}/backend/lib
 fi
 
-cp ${BUILD_OUTPUT_PATH}/msit/csrc/libmsit_c.so ${BUILD_PATH}/msit/lib/msit_c.so
+cp ${BUILD_OUTPUT_PATH}/backend/lib_backend_c.so ${BUILD_PATH}/backend/lib/_backend_c.so

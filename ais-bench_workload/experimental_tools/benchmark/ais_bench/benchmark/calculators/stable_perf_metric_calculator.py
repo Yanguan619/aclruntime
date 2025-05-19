@@ -35,8 +35,8 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         for id in perf_details["requests"]["id"]:
             request_time_sections.append({
                 "id": id,
-                "start_time": perf_details["requests"]["start_time"],
-                "end_time": perf_details["requests"]["end_time"],
+                "start_time": perf_details["requests"]["start_time"][id],
+                "end_time": perf_details["requests"]["end_time"][id],
             })
 
         sorted_time_sections = sorted(request_time_sections, key=lambda x: x["start_time"])

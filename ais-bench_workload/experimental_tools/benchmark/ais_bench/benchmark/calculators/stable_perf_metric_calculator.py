@@ -9,7 +9,7 @@ from ais_bench.benchmark.registry import PERF_METRIC_CALCULATORS
 from ais_bench.benchmark.calculators.base_perf_metric_calculator import is_legal_percentage_str, DEFAULT_STATS, MAX_STATS_LEN
 
 @PERF_METRIC_CALCULATORS.register_module()
-class StagePerfMetricCalculator(BasePerfMetricCalculator):
+class StablePerfMetricCalculator(BasePerfMetricCalculator):
     def __init__(self, perf_details: dict, stage_info: dict = {}, stats_list: list = DEFAULT_STATS):
         self.logger = get_logger()
         self.stage_dict = {

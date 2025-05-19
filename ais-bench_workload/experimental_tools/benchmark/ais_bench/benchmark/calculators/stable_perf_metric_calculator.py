@@ -47,6 +47,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
                 if working_reqs[k][1] < section["start_time"]:
                     working_reqs.pop(k, None)
             working_reqs[section["id"]] = [section["start_time"], section["end_time"]]
+            print(f"current concurrency: {len(working_reqs)}")
             if len(working_reqs) == self.max_concurrency:
                 id_lists.append(section["id"])
 

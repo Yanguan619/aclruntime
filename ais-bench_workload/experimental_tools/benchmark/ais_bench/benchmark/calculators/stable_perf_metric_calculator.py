@@ -31,7 +31,7 @@ STAGE_SELECT_FUNCS = {
 
 
 @PERF_METRIC_CALCULATORS.register_module()
-class StablePerfMetricCalculator(BasePerfMetricCalculator):
+class StagePerfMetricCalculator(BasePerfMetricCalculator):
     def __init__(self, perf_details: dict, stats_list: list = DEFAULT_STATS, stages_list: list = DEFAULT_STAGES):
         self.logger = get_logger()
         self.stage_dict = {

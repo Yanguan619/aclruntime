@@ -73,6 +73,9 @@ class StagePerfMetricCalculator(BasePerfMetricCalculator):
             if stat not in ["Average", "Min", "Max", "Median"] and not re.match(PERCENTAGE_PATTERN, stat):
                 self.logger.warning(f"Unknown stat: {stat}, won't take effect!")
                 self.stats_list.pop(stat, None)
+        if len(stats_list) == 0:
+            self.logger.warning("Can't find valid stat set, use \"Avarage\" stat.")
+            self.stats_list.append("Average")
 
     def _process_result(self, full_result, stage_name):
         id_list = self.stage_dict.get(stage_name)

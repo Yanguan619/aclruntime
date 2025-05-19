@@ -8,16 +8,17 @@ from ais_bench.benchmark.calculators.base_perf_metric_calculator import BasePerf
 from ais_bench.benchmark.registry import PERF_METRIC_CALCULATORS
 from ais_bench.benchmark.calculators.base_perf_metric_calculator import is_legal_percentage_str, DEFAULT_STATS, MAX_STATS_LEN
 
+
 @PERF_METRIC_CALCULATORS.register_module()
 class StablePerfMetricCalculator(BasePerfMetricCalculator):
     def __init__(self, perf_details: dict, stage_info: dict = {}, stats_list: list = DEFAULT_STATS):
         self.logger = get_logger()
+        self.max_concurrency = perf_details["task"]["max_concurrency"]
         self.stage_dict = {
             "stable": self._get_requests_id(perf_details, stage_info)
         }
         self._get_legal_stats_list(stats_list)
         self.result = {}
-        self.max_concurrency = perf_details["task"]["max_concurrency"]
         self.data_count = {}
         self.decode_latencies = {}
         self.success_count = {}
@@ -30,7 +31,26 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
             self._process_result(perf_details.get("requests"), stage_name)
 
     def _get_requests_id(self, perf_details, stage_info):
-        return perf_details["requests"]["id"]
+        request_time_sections = []
+        for id in perf_details["requests"]["id"]:
+            request_time_sections.append({
+                "id": id,
+                "start_time": perf_details["requests"]["start_time"],
+                "end_time": perf_details["requests"]["end_time"],
+            })
+
+        sorted_time_sections = sorted(request_time_sections, key=lambda x: x["start_time"])
+        id_lists = []
+        working_reqs = {}
+        for i, section in enumerate(sorted_time_sections):
+            for k in list(working_reqs.keys()):
+                if working_reqs[k][1] < section["start_time"]:
+                    working_reqs.pop(k, None)
+            working_reqs[section["id"]] = [section["start_time"], section["end_time"]]
+            if len(working_reqs) == self.max_concurrency:
+                id_lists.append[section["id"]]
+
+        return id_lists
 
     def _get_legal_stats_list(self, stats_list):
         if len(stats_list) > MAX_STATS_LEN:
@@ -52,7 +72,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         self.decode_latencies[stage_name] = result["decode_token_latencies"]
         self.success_count[stage_name] = sum(result["is_success"])
         self.empty_count[stage_name] = sum(result["is_empty"])
-        self.infer_time[stage_name] = max(result["end_time"]) - min(result["start_time"])
+        self.infer_time[stage_name] = max(result["start_time"]) - min(result["start_time"])
         per_request_avg_decode_time = []
         # Compute the average decode latency per request
         for values in self.decode_latencies[stage_name]:

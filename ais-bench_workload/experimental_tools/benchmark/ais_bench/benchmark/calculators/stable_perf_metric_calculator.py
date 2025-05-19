@@ -50,7 +50,8 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
             print(f"current concurrency: {len(working_reqs)}")
             if len(working_reqs) == self.max_concurrency:
                 id_lists.append(section["id"])
-
+        if len(id_lists) == 0:
+            return perf_details["requests"]["id"]
         return id_lists
 
     def _get_legal_stats_list(self, stats_list):

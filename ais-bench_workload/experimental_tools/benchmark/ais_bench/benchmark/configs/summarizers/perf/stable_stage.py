@@ -7,6 +7,5 @@ summarizer = dict(
     calculator=dict(
         type=StagePerfMetricCalculator,
         stats_list=["Average", "Min", "Max", "Median", "P75", "P90", "P99"],
-        stages_list=["total", "stable"],
     )
 )

@@ -1,5 +1,4 @@
 import csv
-import re
 import collections
 import math
 import numpy as np
@@ -7,38 +6,15 @@ import copy
 from ais_bench.benchmark.utils import get_logger
 from ais_bench.benchmark.calculators.base_perf_metric_calculator import BasePerfMetricCalculator
 from ais_bench.benchmark.registry import PERF_METRIC_CALCULATORS
-
-DEFAULT_STATS = [
-    "Average", "Min", "Max", "Median", "P75", "P90", "P99",
-]
-DEFAULT_STAGES = ["total", "stable"]
-MAX_STATS_LEN = 8
-PERCENTAGE_PATTERN = r'^P(0*[1-9]\d{0,1})$' # P1 ~ P99
-
-class StageSelecter:
-    @staticmethod
-    def get_total_stage(perf_details: dict) -> list:
-        return perf_details["requests"]["id"]
-
-    @staticmethod
-    def get_stable_stage(perf_details: dict) -> list:
-        return perf_details["requests"]["id"]
-
-STAGE_SELECT_FUNCS = {
-    DEFAULT_STAGES[0]: StageSelecter.get_total_stage,
-    DEFAULT_STAGES[1]: StageSelecter.get_stable_stage,
-}
-
+from ais_bench.benchmark.calculators.base_perf_metric_calculator import is_legal_percentage_str, DEFAULT_STATS, MAX_STATS_LEN
 
 @PERF_METRIC_CALCULATORS.register_module()
 class StagePerfMetricCalculator(BasePerfMetricCalculator):
-    def __init__(self, perf_details: dict, stats_list: list = DEFAULT_STATS, stages_list: list = DEFAULT_STAGES):
+    def __init__(self, perf_details: dict, stage_info: dict = {}, stats_list: list = DEFAULT_STATS):
         self.logger = get_logger()
         self.stage_dict = {
-            DEFAULT_STAGES[0]: [],
-            DEFAULT_STAGES[1]: [],
+            "stable": self._get_requests_id(perf_details, stage_info)
         }
-        self._update_stage_dict(stages_list, perf_details)
         self._get_legal_stats_list(stats_list)
         self.result = {}
         self.max_concurrency = perf_details["task"]["max_concurrency"]
@@ -53,16 +29,8 @@ class StagePerfMetricCalculator(BasePerfMetricCalculator):
         for stage_name, _ in self.stage_dict.items():
             self._process_result(perf_details.get("requests"), stage_name)
 
-    def _update_stage_dict(self, stages_list, perf_details):
-        keys_list = list(self.stage_dict.keys())
-        for key in keys_list:
-            if key not in stages_list:
-                self.stage_dict.pop(key, None)
-        if len(self.stage_dict) == 0:
-            self.logger.warning("Can't find valid stage set, use \"total\" stage.")
-            self.stage_dict[DEFAULT_STAGES[0]] = []
-        for key, _ in self.stage_dict.items():
-            self.stage_dict[key] = STAGE_SELECT_FUNCS[key](perf_details)
+    def _get_requests_id(self, perf_details, stage_info):
+        return perf_details["request"]["id"]
 
     def _get_legal_stats_list(self, stats_list):
         if len(stats_list) > MAX_STATS_LEN:
@@ -70,7 +38,7 @@ class StagePerfMetricCalculator(BasePerfMetricCalculator):
             stats_list = stats_list[:MAX_STATS_LEN]
         self.stats_list = stats_list
         for stat in stats_list:
-            if stat not in ["Average", "Min", "Max", "Median"] and not re.match(PERCENTAGE_PATTERN, stat):
+            if stat not in ["Average", "Min", "Max", "Median"] and not is_legal_percentage_str(stat):
                 self.logger.warning(f"Unknown stat: {stat}, won't take effect!")
                 self.stats_list.pop(stat, None)
         if len(stats_list) == 0:
@@ -206,7 +174,7 @@ class StagePerfMetricCalculator(BasePerfMetricCalculator):
                             stats[stat] = round(float(max(value)), 4)
                         elif stat == "Median":
                             stats[stat] = round(np.percentile(value, 50), 4)
-                        elif re.match(PERCENTAGE_PATTERN, stat):
+                        elif is_legal_percentage_str(stat):
                             stats[stat] = round(np.percentile(value, int(stat[1:])), 4)
 
                 # Store the computed metrics

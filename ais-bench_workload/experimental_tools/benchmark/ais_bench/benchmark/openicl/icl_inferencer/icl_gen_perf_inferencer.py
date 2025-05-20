@@ -155,6 +155,7 @@ class GenPerfInferencer(GenInferencer):
             dump_results_dict(
                 perf_details,
                 osp.join(output_filepath, output_filename + "_details.json"),
+                False
             )
 
         if self.dump_timer and self.is_main_process:

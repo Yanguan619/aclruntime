@@ -10,9 +10,12 @@ import copy
 from ais_bench.benchmark.utils import get_logger
 
 
-def dump_results_dict(results_dict, filename):
+def dump_results_dict(results_dict, filename, formatted = True):
     with open(filename, 'w', encoding='utf-8') as json_file:
-        json.dump(results_dict, json_file, indent=4, ensure_ascii=False)
+        if formatted:
+            json.dump(results_dict, json_file, indent=4, ensure_ascii=False)
+        else:
+            json.dump(results_dict, json_file, ensure_ascii=False)
 
 
 @dataclass

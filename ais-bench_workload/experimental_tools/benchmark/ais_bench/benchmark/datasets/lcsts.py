@@ -29,8 +29,10 @@ class LCSTSDataset(BaseDataset):
             src_path = osp.join(path, 'test.src.txt')
             tgt_path = osp.join(path, 'test.tgt.txt')
 
-            src_lines = open(src_path, 'r', encoding='utf-8').readlines()
-            tgt_lines = open(tgt_path, 'r', encoding='utf-8').readlines()
+            with open(src_path, 'r', encoding='utf-8') as f:
+                src_lines = f.readlines()
+            with open(tgt_path, 'r', encoding='utf-8') as f:
+                tgt_lines = f.readlines()
 
             data = {'content': [], 'abst': []}
 

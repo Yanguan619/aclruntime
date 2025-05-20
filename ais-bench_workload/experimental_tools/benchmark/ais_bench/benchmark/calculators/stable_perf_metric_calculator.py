@@ -56,12 +56,13 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
             elif len(working_reqs) >= int(self.max_concurrency * (1 - WAVE_OFFSET)) and len(id_lists) > 0:
                 id_lists.append(section["id"])
                 last_stable_reqs = copy.deepcopy(working_reqs)
+        if len(id_lists) == 0:
+            self.stage_section[0] = min(perf_details["requests"]["start_time"]) # total start time
+            self.stage_section[1] = max(perf_details["requests"]["end_time"]) # total end time
+            return perf_details["requests"]["id"]
 
         self.stage_section[0] = perf_details["requests"]["start_time"][id_lists[0]] # total start time
         self.stage_section[1] = min([perf_details["requests"]["start_time"][id] for id in list(last_stable_reqs.keys())]) # total end time
-
-        if len(id_lists) == 0:
-            return perf_details["requests"]["id"]
         return id_lists
 
     def _get_legal_stats_list(self, stats_list):

@@ -58,7 +58,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
                 last_stable_reqs = copy.deepcopy(working_reqs)
 
         self.stage_section[0] = perf_details["requests"]["start_time"][id_lists[0]] # total start time
-        self.stage_section[1] = min([perf_details["requests"]["start_time"][id_lists[id]] for id in last_stable_reqs]) # total end time
+        self.stage_section[1] = min([perf_details["requests"]["start_time"][id] for id in list(last_stable_reqs.key())]) # total end time
 
         if len(id_lists) == 0:
             return perf_details["requests"]["id"]

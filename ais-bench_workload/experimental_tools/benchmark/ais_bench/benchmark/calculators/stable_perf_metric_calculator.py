@@ -44,6 +44,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         sorted_time_sections = sorted(request_time_sections, key=lambda x: x["start_time"])
         id_lists = []
         working_reqs = {}
+        last_stable_reqs = {}
         for i, section in enumerate(sorted_time_sections):
             for k in list(working_reqs.keys()):
                 if working_reqs[k][1] < section["start_time"]:
@@ -51,11 +52,13 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
             working_reqs[section["id"]] = [section["start_time"], section["end_time"]]
             if len(working_reqs) == self.max_concurrency:
                 id_lists.append(section["id"])
+                last_stable_reqs = copy.deepcopy(working_reqs)
             elif len(working_reqs) >= int(self.max_concurrency * (1 - WAVE_OFFSET)) and len(id_lists) > 0:
                 id_lists.append(section["id"])
+                last_stable_reqs = copy.deepcopy(working_reqs)
 
         self.stage_section[0] = perf_details["requests"]["start_time"][id_lists[0]] # total start time
-        self.stage_section[1] = min([perf_details["requests"]["start_time"][id_lists[id]] for id in working_reqs]) # total end time
+        self.stage_section[1] = min([perf_details["requests"]["start_time"][id_lists[id]] for id in last_stable_reqs]) # total end time
 
         if len(id_lists) == 0:
             return perf_details["requests"]["id"]

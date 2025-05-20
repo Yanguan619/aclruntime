@@ -64,7 +64,6 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
             self.stage_section[1] = max(perf_details["requests"]["end_time"]) # total end time
             return perf_details["requests"]["id"]
 
-        self.stage_section[0] = perf_details["requests"]["start_time"][id_lists[0]] # total start time
         self.stage_section[1] = min([perf_details["requests"]["end_time"][id] for id in list(last_stable_reqs.keys())]) # total end time
         return id_lists
 

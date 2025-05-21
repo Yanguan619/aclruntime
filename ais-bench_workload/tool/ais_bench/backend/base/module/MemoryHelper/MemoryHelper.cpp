@@ -54,21 +54,21 @@ APP_ERROR MemoryHelper::specificMalloc(MemoryData& data)
     switch (data.type) {
         case MemoryData::MEMORY_HOST:
             ret = aclrtMallocHost(&(data.ptrData), data.size);
-            data.free = aclrtFreeHost;
+            data.memory_free = aclrtFreeHost;
             if (ret != APP_ERR_OK) {
                 ACLERR_LOG(aclGetRecentErrMsg());
             }
             break;
         case MemoryData::MEMORY_DEVICE:
             ret = aclrtMalloc(&(data.ptrData), data.size, ACL_MEM_MALLOC_HUGE_FIRST);
-            data.free = aclrtFree;
+            data.memory_free = aclrtFree;
             if (ret != APP_ERR_OK) {
                 ACLERR_LOG(aclGetRecentErrMsg());
             }
             break;
         case MemoryData::MEMORY_DVPP:
             ret = acldvppMalloc(&(data.ptrData), data.size);
-            data.free = acldvppFree;
+            data.memory_free = acldvppFree;
             if (ret != APP_ERR_OK) {
                 ACLERR_LOG(aclGetRecentErrMsg());
             }
@@ -80,7 +80,7 @@ APP_ERROR MemoryHelper::specificMalloc(MemoryData& data)
             } else {
                 ret = APP_ERR_OK;
             }
-            data.free = (MemeoryDataFreeFuncPointer)FreeFuncCFree;
+            data.memory_free = (MemeoryDataFreeFuncPointer)FreeFuncCFree;
             break;
         case MemoryData::MEMORY_HOST_NEW:
             try {
@@ -96,7 +96,7 @@ APP_ERROR MemoryHelper::specificMalloc(MemoryData& data)
             } else {
                 ret = APP_ERR_OK;
             }
-            data.free = (MemeoryDataFreeFuncPointer)FreeFuncDelete;
+            data.memory_free = (MemeoryDataFreeFuncPointer)FreeFuncDelete;
             break;
         default:
             LogErrorInfo();
@@ -252,7 +252,7 @@ APP_ERROR MemoryHelper::MxbsMallocAndCopy(MemoryData& dest, const MemoryData& sr
     ret = MemoryHelper::Memcpy(dest, src, src.size);
     if (ret != APP_ERR_OK) {
         ERROR_LOG("%smemory data malloc and copy error: memcpy failed.", GetError(ret).c_str());
-        ret = dest.free(dest.ptrData);
+        ret = dest.memory_free(dest.ptrData);
         if (ret != APP_ERR_OK) {
             ERROR_LOG("%smemory data malloc and copy error: free failed.", GetError(ret).c_str());
         }

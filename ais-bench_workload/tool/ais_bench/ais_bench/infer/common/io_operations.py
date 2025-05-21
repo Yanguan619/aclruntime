@@ -301,7 +301,7 @@ def create_pipeline_fileslist_from_inputs_list(inputs_list, intensors_desc):
     return infileslist
 
 
-def save_tensors_to_file(infiles_paths, outfmt, index, output_batchsize_axis, out_file_info:OutFileInfo):
+def save_tensors_to_file(infiles_paths, outfmt, index, output_batchsize_axis, out_file_info: OutFileInfo):
     files_count_perbatch = len(infiles_paths[0])
     if files_count_perbatch == 0:
         raise ValueError("files count per batch is zero")

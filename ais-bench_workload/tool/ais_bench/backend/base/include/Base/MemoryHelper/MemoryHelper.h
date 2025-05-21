@@ -42,7 +42,7 @@ struct MemoryData {
     size_t size;
     int32_t deviceId;
     MemoryType type;
-    APP_ERROR (*free)(void*) = nullptr; // 此处是使用void*作为函数传参，使用该函数的场所已保证传入参数是void*
+    APP_ERROR (*memory_free)(void*) = nullptr; // 此处是使用void*作为函数传参，使用该函数的场所已保证传入参数是void*
 };
 
 class MemoryHelper {

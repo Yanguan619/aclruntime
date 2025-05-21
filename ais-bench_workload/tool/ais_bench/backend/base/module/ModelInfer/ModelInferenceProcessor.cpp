@@ -138,7 +138,7 @@ APP_ERROR ModelInferenceProcessor::DestroyOutMemoryData(std::vector<MemoryData>&
 {
     for (size_t i = 0; i < outputs.size(); ++i) {
         if (outputs[i].ptrData != nullptr) {
-            outputs[i].free(outputs[i].ptrData);
+            outputs[i].memory_free(outputs[i].ptrData);
         }
     }
     outputs.clear();
@@ -745,7 +745,7 @@ APP_ERROR ModelInferenceProcessor::AllocDyIndexMem()
 APP_ERROR ModelInferenceProcessor::FreeDyIndexMem()
 {
     if (dynamicIndexMemory_.ptrData != nullptr) {
-        dynamicIndexMemory_.free(dynamicIndexMemory_.ptrData);
+        dynamicIndexMemory_.memory_free(dynamicIndexMemory_.ptrData);
         dynamicIndexMemory_.ptrData = nullptr;
     }
     return APP_ERR_OK;

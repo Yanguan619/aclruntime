@@ -330,6 +330,8 @@ class BaseAPIModel(BaseModel):
                 with lock:
                     if total_thread_count.value >= total_concurrency or local_thread_count >= concurrency:
                         break
+                    if time.perf_counter() - self.start_time > PRESSURE_TIME:
+                        break
                     total_thread_count.value += 1
                     local_thread_count += 1
                     print(f"{local_thread_count=}")

@@ -167,26 +167,8 @@ class GenPressureInferencer(GenPerfInferencer):
                 self.model, self.model_cfg, parsed_entries, golds, **extra_gen_kwargs)
             results.sort(key=lambda x: x['id'])
         preds = self.extract_preds(results)
+        preds['id'] = [i for i in range(len(preds['request_id']))]
         task_params = {"max_concurrency": self.batch_size}
-
-        num_return_sequences = getattr(self.model, "generation_kwargs", {}).get(
-            "num_return_sequences", 1
-        )
-
-        for prediction in batched(results, num_return_sequences):
-            if num_return_sequences == 1:
-                prediction = prediction[0]
-            if not prediction.get('is_success'):
-                pred = ""
-            else:
-                pred = prediction.get('output')
-            data_id = prediction.get('id')
-            if data_id >= len(golds) or data_id < 0:
-                raise IndexError(f"No gold of output id {data_id}")
-            output_handler.save_results(parsed_entries[data_id],
-                                        pred,
-                                        data_id,
-                                        gold=golds[data_id])
 
         end_time_stamp = time.perf_counter()
 

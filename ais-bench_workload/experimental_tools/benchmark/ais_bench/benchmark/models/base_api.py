@@ -315,7 +315,6 @@ class BaseAPIModel(BaseModel):
             while(time.perf_counter() - self.start_time <= PRESSURE_TIME):
                 input_data = shared_inputs[0] # don't care how to get data
                 _ = self._generate(input_data, max_out_len)
-            print("end of generate_before_timeout")
 
         self.token_bucket = None
         local_thread_count = 0

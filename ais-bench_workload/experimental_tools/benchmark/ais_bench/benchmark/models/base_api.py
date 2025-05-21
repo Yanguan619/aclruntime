@@ -344,6 +344,7 @@ class BaseAPIModel(BaseModel):
         except Exception as e:
             self.logger.error(f"Infer task end because erro: {e}")
         finally:
+            print(f"len of threads = {len(generate_threads)}")
             for thread in generate_threads:
                 thread.join()
             self.task_finish = True

@@ -30,6 +30,70 @@ Arguments:\n
 EOF
 )
 
+cann_base_path=""
+get_cann_path() {
+    local set_env_path="${CANN_PATH:-}"
+
+    if [ -z "$set_env_path" ]; then
+        set_env_path="${ASCEND_TOOLKIT_HOME:-}"
+        if [ -z "$set_env_path" ]; then
+            set_env_path="/usr/local/Ascend/ascend-toolkit/latest/"
+        else
+            set_env_path=$(echo "$set_env_path" | cut -d':' -f1)
+        fi
+    else
+        set_env_path=$(echo "$set_env_path" | cut -d':' -f1)
+    fi
+
+    atlas_nnae_path="/usr/local/Ascend/nnae/latest/"
+    atlas_toolkit_path="/usr/local/Ascend/ascend-toolkit/latest/"
+    hisi_fwk_path="/usr/local/Ascend/"
+    check_file_path="runtime/lib64/stub/libascendcl.so"
+
+    if [ -f "$set_env_path/$check_file_path" ]; then
+        cann_base_path="$set_env_path"
+    elif [ -f "$atlas_nnae_path$check_file_path" ]; then
+        cann_base_path="$atlas_nnae_path"
+    elif [ -f "$atlas_toolkit_path$check_file_path" ]; then
+        cann_base_path="$atlas_toolkit_path"
+    elif [ -f "$hisi_fwk_path$check_file_path" ]; then
+        cann_base_path="$hisi_fwk_path"
+    fi
+
+    if [ -z "$cann_base_path" ]; then
+        if [ "$(uname -m)" == "x86_64" ]; then
+            check_file_path="runtime/lib64/stub/x86_64/libascendcl.so"
+        elif [ "$(uname -m)" == "aarch64" ]; then
+            check_file_path="runtime/lib64/stub/aarch64/libascendcl.so"
+        fi
+
+        if [ -f "$set_env_path/$check_file_path" ]; then
+            cann_base_path="$set_env_path"
+        elif [ -f "$atlas_nnae_path$check_file_path" ]; then
+            cann_base_path="$atlas_nnae_path"
+        elif [ -f "$atlas_toolkit_path$check_file_path" ]; then
+            cann_base_path="$atlas_toolkit_path"
+        elif [ -f "$hisi_fwk_path$check_file_path" ]; then
+            cann_base_path="$hisi_fwk_path"
+        fi
+
+        if [ -z "$cann_base_path" ]; then
+            echo "error: find no cann path" >&2
+            exit 1
+        fi
+    fi
+
+    echo "find cann path: $cann_bash_path"
+}
+
+url="https://github.com/pybind/pybind11.git"
+fullname="${BUILD_PATH}/third_party/$(basename "${url}" .git)"
+if [[ -e ${fullname} ]]; then
+    echo "Source ${fullname} is exists, will not download again."
+else
+    git clone ${url}
+fi
+
 while true; do
     case "$1" in
         -h | --help)
@@ -62,9 +126,11 @@ done
 
 BUILD_OUTPUT_PATH=${BUILD_PATH}/output/${BUILD_TYPE}
 
+get_cann_path
+
 cmake -B ${BUILD_OUTPUT_PATH} -S . -DARCH_TYPE=${ARCH_TYPE} -DBUILD_TYPE=${BUILD_TYPE} \
                                    -DUSE_LOCAL_FIRST=${USE_LOCAL_FIRST} -DBUILD_TEST_CASE=${BUILD_TEST_CASE} \
-                                   -DPYTHON_VERSION=${PYTHON_VERSION}
+                                   -DPYTHON_VERSION=${PYTHON_VERSION} -DCANN_BASE_PATH="$cann_base_path"
 cd ${BUILD_OUTPUT_PATH}
 make -j${CONCURRENT_JOBS}
 

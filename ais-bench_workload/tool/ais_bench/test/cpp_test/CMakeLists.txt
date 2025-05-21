@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(cpython MODULE REQUIRED)
 find_package(gtest MODULE REQUIRED)
 find_package(mockcpp MODULE REQUIRED)
-find_package(nlohmannjson MODULE REQUIRED)
 
 add_executable(backend_test)
 target_link_libraries(backend_test PRIVATE ${gtest_LIBRARIES})
@@ -15,8 +14,6 @@ target_link_libraries(backend_test PRIVATE ${mockcpp_LIBRARIES})
 target_link_libraries(backend_test PRIVATE _backend_c)
 
 target_include_directories(backend_test PRIVATE $ENV{PROJECT_ROOT_PATH}/backend)
-# target_include_directories(backend_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/base/include)
-# target_include_directories(backend_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/python/include)
 target_include_directories(backend_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(backend_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/mock)
 

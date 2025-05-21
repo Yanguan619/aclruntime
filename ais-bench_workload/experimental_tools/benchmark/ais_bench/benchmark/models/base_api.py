@@ -333,7 +333,6 @@ class BaseAPIModel(BaseModel):
                         break
                     total_thread_count.value += 1
                     local_thread_count += 1
-                    print(f"{local_thread_count=}")
                     generate_thread = threading.Thread(target=generate_before_timeout, args=(shared_inputs, max_out_len,))
                     generate_thread.daemon = True
                     generate_threads.append(generate_thread)
@@ -345,7 +344,6 @@ class BaseAPIModel(BaseModel):
         except Exception as e:
             self.logger.error(f"Infer task end because erro: {e}")
         finally:
-            print(f"len of threads = {len(generate_threads)}")
             for thread in generate_threads:
                 if thread.is_alive():
                     thread.join()

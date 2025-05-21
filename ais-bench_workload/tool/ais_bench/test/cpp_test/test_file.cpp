@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 
 #include "test_utils.hpp"
-#include "Base/ModelInfer/File.h"
+#include "base/include/Base/ModelInfer/File.h"
 
 namespace AISBench_test {
 
@@ -22,7 +22,7 @@ protected:
         std::ofstream file(testRegularFile);
         file.close();
         // 创建符号链接
-        ASSERT_EQ(symlink(GetAbsPath(testRegularFile).c_str(), testLink.c_str()), 0);
+        ASSERT_EQ(symlink(File::GetAbsPath(testRegularFile).c_str(), testLink.c_str()), 0);
         ASSERT_EQ(mkfifo(testFifo.c_str(), 0640), 0);
     }
 
@@ -41,48 +41,48 @@ protected:
 
 TEST_F(FileTest, TestIsPathExist)
 {
-    EXPECT_TRUE(IsPathExist("/"));
-    EXPECT_TRUE(IsPathExist("."));
-    EXPECT_TRUE(IsPathExist(testRegularFile));
-    EXPECT_FALSE(IsPathExist(testNotExistsFile));
+    EXPECT_TRUE(File::IsPathExist("/"));
+    EXPECT_TRUE(File::IsPathExist("."));
+    EXPECT_TRUE(File::IsPathExist(testRegularFile));
+    EXPECT_FALSE(File::IsPathExist(testNotExistsFile));
 }
 
 TEST_F(FileTest, TestGetAbsPath)
 {
     std::string pwd = Trim(TEST_ExecShellCommand("pwd"));
-    EXPECT_EQ(pwd, GetAbsPath("."));
-    EXPECT_EQ(pwd + "/testpath", GetAbsPath("./testpath"));
-    EXPECT_EQ(pwd + "/testpath", GetAbsPath("./testpath/"));
-    EXPECT_EQ(pwd + "/testpath", GetAbsPath("./subdir/../testpath"));
-    EXPECT_EQ(pwd + "/testpath", GetAbsPath("subdir/subdir/.././../testpath"));
-    EXPECT_EQ(pwd + "/subdir/testpath", GetAbsPath("./subdir/.././/subdir/testpath"));
+    EXPECT_EQ(pwd, File::GetAbsPath("."));
+    EXPECT_EQ(pwd + "/testpath", File::GetAbsPath("./testpath"));
+    EXPECT_EQ(pwd + "/testpath", File::GetAbsPath("./testpath/"));
+    EXPECT_EQ(pwd + "/testpath", File::GetAbsPath("./subdir/../testpath"));
+    EXPECT_EQ(pwd + "/testpath", File::GetAbsPath("subdir/subdir/.././../testpath"));
+    EXPECT_EQ(pwd + "/subdir/testpath", File::GetAbsPath("./subdir/.././/subdir/testpath"));
 }
 
 TEST_F(FileTest, TestIsDir)
 {
-    EXPECT_TRUE(IsDir("/"));
-    EXPECT_TRUE(IsDir("./"));
-    EXPECT_TRUE(IsDir(testDirSub));
-    EXPECT_FALSE(IsDir(testRegularFile));
-    EXPECT_FALSE(IsDir(testFifo));
+    EXPECT_TRUE(File::IsDir("/"));
+    EXPECT_TRUE(File::IsDir("./"));
+    EXPECT_TRUE(File::IsDir(testDirSub));
+    EXPECT_FALSE(File::IsDir(testRegularFile));
+    EXPECT_FALSE(File::IsDir(testFifo));
 }
 
 TEST_F(FileTest, TestIsRegularFile)
 {
-    EXPECT_TRUE(IsRegularFile(testRegularFile));
-    EXPECT_FALSE(IsRegularFile(testDirSub));
-    EXPECT_TRUE(IsRegularFile(testLink));
-    EXPECT_FALSE(IsRegularFile(testFifo));
-    EXPECT_FALSE(IsRegularFile(testNotExistsFile));
+    EXPECT_TRUE(File::IsRegularFile(testRegularFile));
+    EXPECT_FALSE(File::IsRegularFile(testDirSub));
+    EXPECT_TRUE(File::IsRegularFile(testLink));
+    EXPECT_FALSE(File::IsRegularFile(testFifo));
+    EXPECT_FALSE(File::IsRegularFile(testNotExistsFile));
 }
 
 TEST_F(FileTest, TestIsSoftLink)
 {
-    EXPECT_TRUE(IsSoftLink(testLink));
-    EXPECT_FALSE(IsSoftLink(testDirSub));
-    EXPECT_FALSE(IsSoftLink(testNotExistsFile));
-    EXPECT_FALSE(IsSoftLink(testRegularFile));
-    EXPECT_FALSE(IsSoftLink(testFifo));
+    EXPECT_TRUE(File::IsSoftLink(testLink));
+    EXPECT_FALSE(File::IsSoftLink(testDirSub));
+    EXPECT_FALSE(File::IsSoftLink(testNotExistsFile));
+    EXPECT_FALSE(File::IsSoftLink(testRegularFile));
+    EXPECT_FALSE(File::IsSoftLink(testFifo));
 }
 
 TEST_F(FileTest, TestIsPathCharactersValid)
@@ -90,96 +90,96 @@ TEST_F(FileTest, TestIsPathCharactersValid)
     std::string validPath = "/tmp/FileTest/testfile.txt";
     std::string invalidPath1 = "/tmp/FileTest/<>:|?*\"";
     std::string invalidPath2 = " /tmp/FileTest/testfile.txt";
-    EXPECT_TRUE(IsPathCharactersValid("123456789"));
-    EXPECT_TRUE(IsPathCharactersValid(validPath));
-    EXPECT_FALSE(IsPathCharactersValid(""));
-    EXPECT_FALSE(IsPathCharactersValid(invalidPath1));
-    EXPECT_FALSE(IsPathCharactersValid(invalidPath2));
+    EXPECT_TRUE(File::IsPathCharactersValid("123456789"));
+    EXPECT_TRUE(File::IsPathCharactersValid(validPath));
+    EXPECT_FALSE(File::IsPathCharactersValid(""));
+    EXPECT_FALSE(File::IsPathCharactersValid(invalidPath1));
+    EXPECT_FALSE(File::IsPathCharactersValid(invalidPath2));
 }
 
 TEST_F(FileTest, TestIsFileReadable)
 {
     TEST_ExecShellCommand("chmod -r " + testRegularFile);
-    EXPECT_FALSE(IsFileReadable(testRegularFile));
+    EXPECT_FALSE(File::IsFileReadable(testRegularFile));
     TEST_ExecShellCommand("chmod +r " + testRegularFile);
-    EXPECT_TRUE(IsFileReadable(testRegularFile));
+    EXPECT_TRUE(File::IsFileReadable(testRegularFile));
     TEST_ExecShellCommand("chmod -r " + testDirSub);
-    EXPECT_FALSE(IsFileReadable(testDirSub));
+    EXPECT_FALSE(File::IsFileReadable(testDirSub));
     TEST_ExecShellCommand("chmod +r " + testDirSub);
-    EXPECT_TRUE(IsFileReadable(testDirSub));
+    EXPECT_TRUE(File::IsFileReadable(testDirSub));
 }
 
 TEST_F(FileTest, TestIsFileWritable)
 {
     TEST_ExecShellCommand("chmod -w " + testRegularFile);
-    EXPECT_FALSE(IsFileWritable(testRegularFile));
+    EXPECT_FALSE(File::IsFileWritable(testRegularFile));
     TEST_ExecShellCommand("chmod +w " + testRegularFile);
-    EXPECT_TRUE(IsFileWritable(testRegularFile));
+    EXPECT_TRUE(File::IsFileWritable(testRegularFile));
     TEST_ExecShellCommand("chmod -w " + testDirSub);
-    EXPECT_FALSE(IsFileWritable(testDirSub));
+    EXPECT_FALSE(File::IsFileWritable(testDirSub));
     TEST_ExecShellCommand("chmod +w " + testDirSub);
-    EXPECT_TRUE(IsFileWritable(testDirSub));
+    EXPECT_TRUE(File::IsFileWritable(testDirSub));
 }
 
 TEST_F(FileTest, TestIsFileExecutable)
 {
     TEST_ExecShellCommand("chmod -x " + testRegularFile);
-    EXPECT_FALSE(IsFileExecutable(testRegularFile));
+    EXPECT_FALSE(File::IsFileExecutable(testRegularFile));
     TEST_ExecShellCommand("chmod +x " + testRegularFile);
-    EXPECT_TRUE(IsFileExecutable(testRegularFile));
+    EXPECT_TRUE(File::IsFileExecutable(testRegularFile));
     TEST_ExecShellCommand("chmod -x " + testDirSub);
-    EXPECT_FALSE(IsFileExecutable(testDirSub));
+    EXPECT_FALSE(File::IsFileExecutable(testDirSub));
     TEST_ExecShellCommand("chmod +x " + testDirSub);
-    EXPECT_TRUE(IsFileExecutable(testDirSub));
+    EXPECT_TRUE(File::IsFileExecutable(testDirSub));
 }
 
 TEST_F(FileTest, TestIsDirReadable)
 {
     EXPECT_TRUE(".");
-    EXPECT_TRUE(IsDirReadable(testDirSub));
+    EXPECT_TRUE(File::IsDirReadable(testDirSub));
     TEST_ExecShellCommand("chmod 100 " + testDirSub);
-    EXPECT_FALSE(IsDirReadable(testDirSub));
+    EXPECT_FALSE(File::IsDirReadable(testDirSub));
     TEST_ExecShellCommand("chmod 400 " + testDirSub);
-    EXPECT_FALSE(IsDirReadable(testDirSub));
+    EXPECT_FALSE(File::IsDirReadable(testDirSub));
     TEST_ExecShellCommand("chmod 500 " + testDirSub);
-    EXPECT_TRUE(IsDirReadable(testDirSub));
+    EXPECT_TRUE(File::IsDirReadable(testDirSub));
 }
 
 TEST_F(FileTest, TestGetParentDir)
 {
-    EXPECT_EQ("/tmp/FileTest", GetParentDir("/tmp/FileTest/dir"));
-    EXPECT_EQ("/tmp/FileTest", GetParentDir("/tmp/FileTest/"));
-    EXPECT_EQ("./FileTest", GetParentDir("./FileTest/testfile.txt"));
-    EXPECT_EQ(".", GetParentDir("testfile.txt"));
-    EXPECT_EQ(".", GetParentDir(""));
+    EXPECT_EQ("/tmp/FileTest", File::GetParentDir("/tmp/FileTest/dir"));
+    EXPECT_EQ("/tmp/FileTest", File::GetParentDir("/tmp/FileTest/"));
+    EXPECT_EQ("./FileTest", File::GetParentDir("./FileTest/testfile.txt"));
+    EXPECT_EQ(".", File::GetParentDir("testfile.txt"));
+    EXPECT_EQ(".", File::GetParentDir(""));
 }
 
 TEST_F(FileTest, TestGetFileName)
 {
-    EXPECT_EQ("dir", GetFileName("/tmp/FileTest/dir"));
-    EXPECT_EQ("", GetFileName("/tmp/FileTest/"));
-    EXPECT_EQ("testfile.txt", GetFileName("./FileTest/testfile.txt"));
-    EXPECT_EQ("testfile.txt", GetFileName("testfile.txt"));
-    EXPECT_EQ("", GetFileName(""));
+    EXPECT_EQ("dir", File::GetFileName("/tmp/FileTest/dir"));
+    EXPECT_EQ("", File::GetFileName("/tmp/FileTest/"));
+    EXPECT_EQ("testfile.txt", File::GetFileName("./FileTest/testfile.txt"));
+    EXPECT_EQ("testfile.txt", File::GetFileName("testfile.txt"));
+    EXPECT_EQ("", File::GetFileName(""));
 }
 
 TEST_F(FileTest, TestGetFileSuffix)
 {
-    EXPECT_EQ("", GetFileSuffix("/tmp/FileTest/dir"));
-    EXPECT_EQ("", GetFileSuffix("/tmp/FileTest/"));
-    EXPECT_EQ("txt", GetFileSuffix("./FileTest/testfile.txt"));
-    EXPECT_EQ("txt", GetFileSuffix("testfile.txt"));
-    EXPECT_EQ("", GetFileSuffix("testfile"));
-    EXPECT_EQ("", GetFileSuffix("testfile."));
+    EXPECT_EQ("", File::GetFileSuffix("/tmp/FileTest/dir"));
+    EXPECT_EQ("", File::GetFileSuffix("/tmp/FileTest/"));
+    EXPECT_EQ("txt", File::GetFileSuffix("./FileTest/testfile.txt"));
+    EXPECT_EQ("txt", File::GetFileSuffix("testfile.txt"));
+    EXPECT_EQ("", File::GetFileSuffix("testfile"));
+    EXPECT_EQ("", File::GetFileSuffix("testfile."));
 }
 
 TEST_F(FileTest, TestCheckFileRWX)
 {
     TEST_ExecShellCommand("chmod 640 " + testRegularFile);
-    EXPECT_TRUE(CheckFileRWX(testRegularFile, "rw"));
-    EXPECT_FALSE(CheckFileRWX(testRegularFile, "rx"));
+    EXPECT_TRUE(File::CheckFileRWX(testRegularFile, "rw"));
+    EXPECT_FALSE(File::CheckFileRWX(testRegularFile, "rx"));
     TEST_ExecShellCommand("chmod 750 " + testDirSub);
-    EXPECT_TRUE(CheckFileRWX(testDirSub, "rwx"));
+    EXPECT_TRUE(File::CheckFileRWX(testDirSub, "rwx"));
 }
 
 TEST_F(FileTest, TestIsPathLengthLegal)
@@ -188,18 +188,18 @@ TEST_F(FileTest, TestIsPathLengthLegal)
     std::string longFile = std::string(FILE_NAME_LENGTH_MAX + 1, 'a');
     std::string maxPath(FULL_PATH_LENGTH_MAX, '/');
     std::string longPath = maxPath + "/";
-    EXPECT_TRUE(IsPathLengthLegal(maxFile));
-    EXPECT_TRUE(IsPathLengthLegal(maxPath));
-    EXPECT_FALSE(IsPathLengthLegal(longFile));
-    EXPECT_FALSE(IsPathLengthLegal(longPath));
-    EXPECT_FALSE(IsPathLengthLegal(""));
+    EXPECT_TRUE(File::IsPathLengthLegal(maxFile));
+    EXPECT_TRUE(File::IsPathLengthLegal(maxPath));
+    EXPECT_FALSE(File::IsPathLengthLegal(longFile));
+    EXPECT_FALSE(File::IsPathLengthLegal(longPath));
+    EXPECT_FALSE(File::IsPathLengthLegal(""));
 }
 
 TEST_F(FileTest, TestIsPathDepthValid)
 {
-    EXPECT_TRUE(IsPathDepthValid(""));
-    EXPECT_TRUE(IsPathDepthValid(std::string(PATH_DEPTH_MAX, PATH_SEPARATOR)));
-    EXPECT_FALSE(IsPathDepthValid(std::string(PATH_DEPTH_MAX + 1, PATH_SEPARATOR)));
+    EXPECT_TRUE(File::IsPathDepthValid(""));
+    EXPECT_TRUE(File::IsPathDepthValid(std::string(PATH_DEPTH_MAX, PATH_SEPARATOR)));
+    EXPECT_FALSE(File::IsPathDepthValid(std::string(PATH_DEPTH_MAX + 1, PATH_SEPARATOR)));
 }
 
 }

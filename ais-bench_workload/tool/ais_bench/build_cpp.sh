@@ -92,7 +92,7 @@ if [[ -e ${fullname} ]]; then
     echo "Source ${fullname} is exists, will not download again."
 else
     mkdir -p ${BUILD_PATH}/third_party
-    git clone ${url} ${BUILD_PATH}/third_party
+    git clone ${url} ${BUILD_PATH}/third_party/pybind11
 fi
 
 while true; do

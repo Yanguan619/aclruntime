@@ -315,6 +315,7 @@ class BaseAPIModel(BaseModel):
             while(time.perf_counter() - self.start_time <= PRESSURE_TIME):
                 input_data = shared_inputs[0] # don't care how to get data
                 _ = self._generate(input_data, max_out_len)
+            print("end of generate_before_timeout")
 
         self.token_bucket = None
         local_thread_count = 0
@@ -331,7 +332,7 @@ class BaseAPIModel(BaseModel):
                         break
                     total_thread_count.value += 1
                     local_thread_count += 1
-
+                    print(f"{local_thread_count=}")
                     generate_thread = threading.Thread(target=generate_before_timeout, args=(shared_inputs, max_out_len,))
                     generate_thread.daemon = False
                     generate_threads.append(generate_thread)

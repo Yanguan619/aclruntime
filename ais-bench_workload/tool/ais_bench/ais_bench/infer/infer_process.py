@@ -89,7 +89,7 @@ def set_session_options(session, args):
         logger.info(f"try get model batchsize:{args.batchsize}")
 
     if not args.auto_set_dymshape_mode and not args.auto_set_dymdims_mode:
-        if args.batchsize < 0 :
+        if args.batchsize < 0:
             if not args.dym_batch and not args.dym_dims and not args.dym_shape:
                 raise RuntimeError('dynamic batch om model detected, but dymbatch, dymdims or dymshape not set!')
 
@@ -304,7 +304,7 @@ def get_file_name(file_path: str, suffix: str, res_file_path: list) -> list:
         res_file_path: 保存返回结果的列表
     Returns: 文件路径
     """
-    if suffix == '' or suffix is None :
+    if suffix == '' or suffix is None:
         return res_file_path
     # 遍历目录及子目录
     for root, _, files in os.walk(file_path):
@@ -344,7 +344,7 @@ def json_to_msprof_cmd(acl_json_path):
     return msprof_option_cmd
 
 
-def regenerate_cmd(args:AISBenchInferArgsAdapter):
+def regenerate_cmd(args: AISBenchInferArgsAdapter):
     args_dict = args.get_all_args_dict()
     cmd = sys.executable + " -m ais_bench"
     for key, value in args_dict.items():
@@ -775,7 +775,7 @@ def backend_run(args):
     logger.info(f"perf info:{perf}")
 
 
-def infer_process(args:AISBenchInferArgsAdapter):
+def infer_process(args: AISBenchInferArgsAdapter):
     args = args_rules(args)
     version_check(args)
     args = acl_json_base_check(args)

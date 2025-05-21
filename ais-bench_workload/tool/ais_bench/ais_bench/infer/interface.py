@@ -616,7 +616,7 @@ class MultiDeviceSession():
         return
 
     def subprocess_infer_iteration(self, outputs_queue, device_id, feeds,
-                                   infer_iteration_content:InferIterationContent):
+                                   infer_iteration_content: InferIterationContent):
         sub_session = InferSession(
             device_id=device_id,
             model_path=self.model_path,

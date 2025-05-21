@@ -313,8 +313,7 @@ class BaseAPIModel(BaseModel):
         thread_lock = threading.Lock()
         def generate_before_timeout(shared_inputs, max_out_len):
             while(time.perf_counter() - self.start_time <= PRESSURE_TIME):
-                with thread_lock:
-                    input_data = shared_inputs[0] # don't care how to get data
+                input_data = shared_inputs[0] # don't care how to get data
                 _ = self._generate(input_data, max_out_len)
 
         self.token_bucket = None

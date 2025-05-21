@@ -91,6 +91,7 @@ fullname="${BUILD_PATH}/third_party/$(basename "${url}" .git)"
 if [[ -e ${fullname} ]]; then
     echo "Source ${fullname} is exists, will not download again."
 else
+    cd ${BUILD_PATH}/third_party
     git clone ${url}
 fi
 

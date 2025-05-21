@@ -17,7 +17,7 @@ endif()
 find_package(cpython MODULE REQUIRED)
 
 target_include_directories(_backend_c PRIVATE ${CANN_BASE_PATH}/runtime/include)
-target_include_directories(_backend_c PRIVATE ${CANN_BASE_PATH}/../third_party/pybind11/include)
+target_include_directories(_backend_c PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/pybind11/include)
 target_include_directories(_backend_c PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/python/include)
 target_include_directories(_backend_c PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/base/include)
 target_include_directories(_backend_c PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/base/include/Base/ModelInfer)

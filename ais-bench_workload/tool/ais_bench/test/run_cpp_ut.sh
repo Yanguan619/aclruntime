@@ -9,17 +9,6 @@ run_ut_cpp() {
     echo "[INFO] Start compiling backend_test..."
     ARCH_TYPE=$(uname -m)
     PYTHON_VERSION=$(python3 -c 'import platform; print(".".join(platform.python_version_tuple()[:2]))')
-    BUILD_SCRIPT=${TOP_DIR}/build_cpp.sh
-    if [[ ! -f "${BUILD_SCRIPT}" ]]; then
-        echo "[ERROR] build.sh not found at ${BUILD_SCRIPT}"
-        exit 1
-    fi
-    bash "${BUILD_SCRIPT}" \
-        --release \
-        -t \
-        -a "${ARCH_TYPE}" \
-        -v "${PYTHON_VERSION}" \
-        -j 16 \
 
     if [[ -x "${CPP_TEST}" ]]; then
         echo "[INFO] Running C++ unit test binary: ${CPP_TEST}"

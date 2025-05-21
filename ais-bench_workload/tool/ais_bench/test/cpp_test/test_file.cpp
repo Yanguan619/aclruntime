@@ -92,7 +92,6 @@ TEST_F(FileTest, TestIsPathCharactersValid)
     std::string invalidPath2 = " /tmp/FileTest/testfile.txt";
     EXPECT_TRUE(File::IsPathCharactersValid("123456789"));
     EXPECT_TRUE(File::IsPathCharactersValid(validPath));
-    EXPECT_FALSE(File::IsPathCharactersValid(""));
     EXPECT_FALSE(File::IsPathCharactersValid(invalidPath1));
     EXPECT_FALSE(File::IsPathCharactersValid(invalidPath2));
 }

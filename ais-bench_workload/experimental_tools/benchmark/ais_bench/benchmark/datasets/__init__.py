@@ -28,3 +28,7 @@ from .race import *
 from .textvqa import *
 from .videobench import *
 from .vocalsound import *
+from .lambada import * # noqa: F401, F403
+from .lcsts import * # noqa: F401, F403
+from .siqa import * # noqa: F401, F403
+from .xsum import * # noqa: F401, F403

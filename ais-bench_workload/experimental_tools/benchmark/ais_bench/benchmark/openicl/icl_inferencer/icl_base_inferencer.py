@@ -14,6 +14,7 @@ from torch.utils.data import DataLoader
 from ..icl_prompt_template import PromptTemplate
 from ..icl_retriever import BaseRetriever
 from ais_bench.benchmark.utils import get_logger
+from ais_bench.benchmark.utils.results import dump_results_dict
 
 MAX_BATCH_SIZE = 100000
 logger = get_logger(__name__)
@@ -66,7 +67,7 @@ class BaseInferencer:
 
     def update_model_cfg(self, model_cfg):
         self.model_cfg = model_cfg
-        
+
     def is_main_process(self):
         if "ASCEND_RT_VISIBLE_DEVICES" in os.environ:
             return int(os.getenv("RANK", "0")) == 0
@@ -112,11 +113,6 @@ class BaseInferencer:
         return dataloader
 
 
-def dump_results_dict(results_dict, filename):
-    with open(filename, 'w', encoding='utf-8') as json_file:
-        json.dump(results_dict, json_file, indent=4, ensure_ascii=False)
-
-
 class GenInferencerOutputHandler:
     origin_prompt_dict = {}
     output_dict = {}
@@ -125,7 +121,7 @@ class GenInferencerOutputHandler:
 
     def __init__(self) -> None:
         self.results_dict = {}
-    
+
     def load_tmp_result(self, tmp_path: str, file_format: str = "json"):
         if not osp.exists(tmp_path):
             logger.info(f"No tmp data found, reuse infer not enabled")

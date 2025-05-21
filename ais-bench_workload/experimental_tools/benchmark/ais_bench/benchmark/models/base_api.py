@@ -333,7 +333,7 @@ class BaseAPIModel(BaseModel):
                     local_thread_count += 1
 
                     generate_thread = threading.Thread(target=generate_before_timeout, args=(shared_inputs, max_out_len,))
-                    generate_thread.daemon = True
+                    generate_thread.daemon = False
                     generate_threads.append(generate_thread)
                     generate_thread.start()
                     time.sleep(1 / CONNECTION_ADD_RATE)
@@ -345,7 +345,10 @@ class BaseAPIModel(BaseModel):
         finally:
             print(f"len of threads = {len(generate_threads)}")
             for thread in generate_threads:
-                thread.join()
+                if thread.is_alive():
+                    thread.join()
+                    if thread.is_alive():
+                        self.logger.warning(f"Thread {thread.ident} did not exit cleanly")
             self.task_finish = True
             self.tmp_result_queue.put(None)
             draw_thread.join()

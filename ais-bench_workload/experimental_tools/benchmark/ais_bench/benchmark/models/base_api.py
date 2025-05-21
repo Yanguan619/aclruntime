@@ -336,7 +336,7 @@ class BaseAPIModel(BaseModel):
                     local_thread_count += 1
                     print(f"{local_thread_count=}")
                     generate_thread = threading.Thread(target=generate_before_timeout, args=(shared_inputs, max_out_len,))
-                    generate_thread.daemon = False
+                    generate_thread.daemon = True
                     generate_threads.append(generate_thread)
                     generate_thread.start()
                     time.sleep(1 / CONNECTION_ADD_RATE)

@@ -23,7 +23,7 @@ from .base import BaseModel
 PromptType = Union[PromptList, str, dict]
 
 LOG_PER_REQUEST = 10
-PRESSURE_TIME = 1 * 60 # 20min
+PRESSURE_TIME = 0.2 * 60 # 20min
 CONNECTION_ADD_RATE = 1
 
 

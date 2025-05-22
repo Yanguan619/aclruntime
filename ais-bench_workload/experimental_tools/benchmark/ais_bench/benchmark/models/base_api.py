@@ -15,8 +15,9 @@ from time import sleep
 from typing import Dict, List, Optional, Tuple, Union, Any
 
 from ais_bench.benchmark.utils import get_logger
-from ais_bench.benchmark.utils.prompt import PromptList
 from ais_bench.benchmark.global_consts import PRESSURE_TIME, CONNECTION_ADD_RATE
+from ais_bench.benchmark.utils.prompt import PromptList, is_mm_prompt
+
 from .base import BaseModel
 
 
@@ -274,7 +275,7 @@ class BaseAPIModel(BaseModel):
         except KeyboardInterrupt:
             self.logger.warning("Interrupted by user (Ctrl+C).")
         except Exception as e:
-            self.logger.error(f"Infer task end because erro: {e}")
+            self.logger.error(f"Infer task end because error: {e}")
         finally:
             self.task_finish = True
             self.tmp_result_queue.put(None)
@@ -493,6 +494,10 @@ class APITemplateParser:
             List[PromptType]: The finalized prompt or a conversation.
         """
         assert isinstance(prompt_template, (str, list, PromptList, tuple))
+
+        #mm data
+        if is_mm_prompt(prompt_template):
+            return prompt_template
 
         if not isinstance(prompt_template, (str, PromptList)):
             return [self.parse_template(p, mode=mode) for p in prompt_template]

@@ -335,12 +335,12 @@ class BaseAPIModel(BaseModel):
                     if time.perf_counter() - self.start_time > PRESSURE_TIME:
                         break
                     total_thread_count.value += 1
-                    local_thread_count += 1
-                    generate_thread = threading.Thread(target=generate_before_timeout, args=(shared_inputs, total_input_idx, max_out_len,))
-                    generate_thread.daemon = True
-                    generate_threads.append(generate_thread)
-                    generate_thread.start()
-                    time.sleep(1 / CONNECTION_ADD_RATE)
+                local_thread_count += 1
+                generate_thread = threading.Thread(target=generate_before_timeout, args=(shared_inputs, total_input_idx, max_out_len,))
+                generate_thread.daemon = True
+                generate_threads.append(generate_thread)
+                generate_thread.start()
+                time.sleep(1 / CONNECTION_ADD_RATE)
 
         except KeyboardInterrupt:
             self.logger.warning("Interrupted by user (Ctrl+C).")

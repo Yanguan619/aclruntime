@@ -315,8 +315,8 @@ class BaseAPIModel(BaseModel):
             while(time.perf_counter() - self.start_time <= PRESSURE_TIME):
                 with thread_lock:
                     cur_idx = total_input_idx.value % len(shared_inputs) #
-                    input_data = shared_inputs[cur_idx]
-                    total_input_idx.value += 1
+                input_data = shared_inputs[cur_idx]
+                total_input_idx.value += 1
                 _ = self._generate(input_data, max_out_len)
 
         self.token_bucket = None

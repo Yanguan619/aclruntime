@@ -80,7 +80,7 @@ class NaivePartitioner(BasePartitioner):
                             continue
                         if osp.exists(tmp_data):
                             self.logger.warning(
-                                f"Partial results found of {task_name}, {filename} will be overwrite."
+                                f"Partial results found of {task_name}, {filename} will be overwritten."
                             )
                         else:
                             self.logger.info(f"{task_name} has been finished, skip.")

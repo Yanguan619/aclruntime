@@ -16,15 +16,13 @@ from typing import Dict, List, Optional, Tuple, Union, Any
 
 from ais_bench.benchmark.utils import get_logger
 from ais_bench.benchmark.utils.prompt import PromptList
-
+from ais_bench.benchmark.global_consts import PRESSURE_TIME, CONNECTION_ADD_RATE
 from .base import BaseModel
 
 
 PromptType = Union[PromptList, str, dict]
 
 LOG_PER_REQUEST = 10
-PRESSURE_TIME = 0.2 * 60 # 20min
-CONNECTION_ADD_RATE = 1
 
 
 class BaseAPIModel(BaseModel):

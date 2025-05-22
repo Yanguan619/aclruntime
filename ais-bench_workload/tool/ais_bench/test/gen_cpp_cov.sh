@@ -4,6 +4,7 @@ echo "************************Generate Coverage************************"
 CUR_DIR=$(dirname $(readlink -f $0))
 REL_DIR=$CUR_DIR/../output/release
 
+cd $CUR_DIR
 if [ -d "./coverage" ]; then
     rm -rf ./coverage
 fi

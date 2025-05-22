@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image
 
 
-def video_to_ndarrays(path: str, num_frames: int = -1) -> np.typing.NDArray:
+def video_to_ndarrays(path: str, num_frames: int = -1):
     cap = cv2.VideoCapture(path)
     if not cap.isOpened():
         raise ValueError(f"Could not open video file {path}")
@@ -36,7 +36,7 @@ def video_to_ndarrays(path: str, num_frames: int = -1) -> np.typing.NDArray:
 
 
 def video_to_pil_images_list(path: str,
-                             num_frames: int = -1) -> list[Image.Image]:
+                             num_frames: int = -1):
     frames = video_to_ndarrays(path, num_frames)
     return [
         Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
@@ -44,7 +44,7 @@ def video_to_pil_images_list(path: str,
     ]
 
 
-def image_to_base64(image: Image.Image, fmt='png') -> str:
+def image_to_base64(image: Image.Image, fmt='png'):
     output_buffer = BytesIO()
     image.save(output_buffer, format=fmt)
     byte_data = output_buffer.getvalue()
@@ -58,12 +58,12 @@ class VideoAsset:
     num_frames: int = -1
 
     @property
-    def pil_images(self) -> list[Image.Image]:
+    def pil_images(self):
         ret = video_to_pil_images_list(self.video_path, self.num_frames)
         return ret
 
     @property
-    def np_ndarrays(self) -> np.typing.NDArray:
+    def np_ndarrays(self):
         ret = video_to_ndarrays(self.video_path, self.num_frames)
         return ret
 

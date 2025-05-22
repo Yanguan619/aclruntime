@@ -15,7 +15,7 @@ from time import sleep
 from typing import Dict, List, Optional, Tuple, Union, Any
 
 from ais_bench.benchmark.utils import get_logger
-from ais_bench.benchmark.utils.prompt import PromptList
+from ais_bench.benchmark.utils.prompt import PromptList, is_mm_prompt
 
 from .base import BaseModel
 
@@ -392,10 +392,10 @@ class APITemplateParser:
         """
         assert isinstance(prompt_template, (str, list, PromptList, tuple))
 
-        #textvqa data
-        if isinstance(prompt_template, list) and len(prompt_template) > 0 \
-                    and isinstance(prompt_template[0], dict):
+        #mm data
+        if is_mm_prompt(prompt_template):
             return prompt_template
+        
         if not isinstance(prompt_template, (str, PromptList)):
             return [self.parse_template(p, mode=mode) for p in prompt_template]
 

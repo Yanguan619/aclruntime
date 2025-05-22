@@ -77,7 +77,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
                 self.logger.warning(f"Unknown stat: {stat}, won't take effect!")
                 continue
             self.stats_list.append(stat)
-        if len(stats_list) == 0:
+        if len(self.stats_list) == 0:
             self.logger.warning("Can't find valid stat set, use \"Avarage\" stat.")
             self.stats_list.append("Average")
 

@@ -27,7 +27,7 @@ from .icl_gen_inferencer import DEFAULT_MAX_CONCURRENCY_PER_PROCESS
 logger = get_logger(__name__)
 
 def pressure_single_model(
-    model_cfg, shared_inputs, lock, total_thread_count, **extra_gen_kwargs
+    model_cfg, shared_inputs, lock, total_thread_count, total_input_idx, **extra_gen_kwargs
 ):
     model = build_model_from_cfg(model_cfg)
     if extra_gen_kwargs.get("is_synthetic"):
@@ -38,6 +38,7 @@ def pressure_single_model(
         shared_inputs,
         lock,
         total_thread_count,
+        total_input_idx,
         **extra_gen_kwargs,
     )
     if not hasattr(model, "set_performance"):
@@ -104,6 +105,7 @@ class GenPressureInferencer(GenPerfInferencer):
         concurrencys = [q + 1] * r + [q] * (workers_num - r)
         with multiprocessing.Manager() as manager:
             total_thread_count = manager.Value('t', 0)
+            total_input_idx = manager.Value('i', 0)
             shared_inputs = manager.list(inputs)
             lock = manager.Lock()
 
@@ -124,7 +126,7 @@ class GenPressureInferencer(GenPerfInferencer):
                     "process_id":  i,
                 })
                 res = pool.apply_async(func=pressure_single_model,
-                                        args=(model_cfg, shared_inputs, lock, total_thread_count,),
+                                        args=(model_cfg, shared_inputs, lock, total_thread_count, total_input_idx),
                                         kwds=new_gen_kwargs,
                                         error_callback=lambda x:logger.error(x)
                                         )

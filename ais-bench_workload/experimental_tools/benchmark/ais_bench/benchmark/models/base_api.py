@@ -289,6 +289,7 @@ class BaseAPIModel(BaseModel):
         shared_inputs: Any,
         lock,
         total_thread_count,
+        total_input_idx,
         **extra_gen_kwargs: Any
     ) -> None:
         """Consume items from a shared inputs list and generate outputs concurrently, with optional rate limiting and progress logging.
@@ -313,7 +314,10 @@ class BaseAPIModel(BaseModel):
         thread_lock = threading.Lock()
         def generate_before_timeout(shared_inputs, max_out_len):
             while(time.perf_counter() - self.start_time <= PRESSURE_TIME):
-                input_data = shared_inputs[0] # don't care how to get data
+                with thread_lock:
+                    cur_idx = total_input_idx % len(shared_inputs) #
+                    input_data = shared_inputs[cur_idx]
+                    total_input_idx += 1
                 _ = self._generate(input_data, max_out_len)
 
         self.token_bucket = None

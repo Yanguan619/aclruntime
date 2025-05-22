@@ -75,7 +75,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         for stat in stats_list:
             if stat not in ["Average", "Min", "Max", "Median"] and not is_legal_percentage_str(stat):
                 self.logger.warning(f"Unknown stat: {stat}, won't take effect!")
-                self.stats_list.pop(stat, None)
+                self.stats_list.pop(stat)
         if len(stats_list) == 0:
             self.logger.warning("Can't find valid stat set, use \"Avarage\" stat.")
             self.stats_list.append("Average")

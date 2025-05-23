@@ -325,11 +325,11 @@ class BaseAPIModel(BaseModel):
         self.start_time = time.perf_counter()
         try:
             while True:
-                if total_thread_count.value >= total_concurrency or local_thread_count >= concurrency:
-                    break
-                if time.perf_counter() - self.start_time > PRESSURE_TIME:
-                    break
                 with lock:
+                    if total_thread_count.value >= total_concurrency or local_thread_count >= concurrency:
+                        break
+                    if time.perf_counter() - self.start_time > PRESSURE_TIME:
+                        break
                     total_thread_count.value += 1
                 local_thread_count += 1
                 generate_thread = threading.Thread(target=generate_before_timeout, args=(shared_inputs, total_input_idx, max_out_len,))

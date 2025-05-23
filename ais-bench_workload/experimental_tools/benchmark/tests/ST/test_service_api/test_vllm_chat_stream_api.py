@@ -106,13 +106,15 @@ class TestClass:
 
         # check perf json
         infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/vllm-api-stream-chat/{datasets_abbr_name}.json")
+        perf_details_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/vllm-api-stream-chat/{datasets_abbr_name}_details.json")
+        assert os.path.exists(perf_details_json_path)
         assert os.path.exists(infer_outputs_json_path)
         with open(infer_outputs_json_path, 'r') as file:
             data = json.load(file)
         assert isinstance(data, dict)
         for key in self.perf_json_keys:
             assert key in data
-        assert data['Total Requests'] == len(fake_perf_data)
+        assert data['Total Requests']['total'] == len(fake_perf_data)
 
         #check perf csv
         infer_outputs_csv_path = os.path.join(self.test_data_path, f"{fake_time_str}/performances/vllm-api-stream-chat/{datasets_abbr_name}.csv")

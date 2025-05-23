@@ -2,7 +2,7 @@ import copy
 
 from mmengine.config import ConfigDict
 
-from ais_bench.benchmark.registry import LOAD_DATASET, MODELS, CLIENTS
+from ais_bench.benchmark.registry import LOAD_DATASET, MODELS, CLIENTS, PERF_METRIC_CALCULATORS
 
 
 def build_dataset_from_cfg(dataset_cfg: ConfigDict):
@@ -27,3 +27,8 @@ def build_model_from_cfg(model_cfg: ConfigDict):
 
 def build_client_from_cfg(client_cfg: ConfigDict):
     return CLIENTS.build(client_cfg)
+
+def build_perf_metric_calculator_from_cfg(metric_cfg: ConfigDict, perf_details: dict):
+    metric_cfg = copy.deepcopy(metric_cfg)
+    metric_cfg['perf_details'] = perf_details
+    return PERF_METRIC_CALCULATORS.build(metric_cfg)

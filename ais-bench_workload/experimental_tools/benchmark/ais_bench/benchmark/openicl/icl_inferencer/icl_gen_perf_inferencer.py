@@ -10,16 +10,18 @@ import mmengine
 import torch
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
+from mmengine.config import ConfigDict
 
 from ais_bench.benchmark.models.base import BaseModel
 from ais_bench.benchmark.registry import ICL_INFERENCERS
 from ais_bench.benchmark.utils import batched
-from ais_bench.benchmark.utils.results import MetricsCalculator
+from ais_bench.benchmark.utils.build import build_perf_metric_calculator_from_cfg
 
 from ..icl_prompt_template import PromptTemplate
 from ..icl_retriever import BaseRetriever
 from ..utils.logging import get_logger
-from .icl_base_inferencer import dump_results_dict, GenInferencerOutputHandler
+from .icl_base_inferencer import GenInferencerOutputHandler
+from ais_bench.benchmark.utils.results import dump_results_dict
 from .icl_gen_inferencer import GenInferencer
 
 logger = get_logger(__name__)
@@ -40,7 +42,6 @@ class GenPerfInferencer(GenInferencer):
         output_json_filename: Optional[str] = "performances",
         is_synthetic: Optional[bool] = False,
         num_prompts: int = None,
-        custom_calculator = MetricsCalculator,
         **kwargs,
     ):
         super().__init__(
@@ -59,7 +60,6 @@ class GenPerfInferencer(GenInferencer):
         )
         self.metrics_calculator = None
         self.num_prompts = num_prompts
-        self.custom_calculator = custom_calculator
 
     def get_data_list(
         self,
@@ -123,8 +123,7 @@ class GenPerfInferencer(GenInferencer):
                 self.model, self.model_cfg, parsed_entries, golds, **extra_gen_kwargs)
             results.sort(key=lambda x: x['id'])
         preds = self.extract_preds(results)
-        self.metrics_calculator = self.custom_calculator(preds)
-        self.metrics_calculator.calculate()
+        task_params = {"max_concurrency": self.batch_size}
 
         num_return_sequences = getattr(self.model, "generation_kwargs", {}).get(
             "num_return_sequences", 1
@@ -149,12 +148,14 @@ class GenPerfInferencer(GenInferencer):
 
         if self.is_main_process:
             os.makedirs(output_filepath, exist_ok=True)
+            perf_details = {
+                "task": task_params,
+                "requests": preds,
+            }
             dump_results_dict(
-                self.metrics_calculator.get_common_res(self.batch_size),
-                osp.join(output_filepath, output_filename + ".json"),
-            )
-            self.metrics_calculator.save_performance(
-                osp.join(output_filepath, output_filename + ".csv")
+                perf_details,
+                osp.join(output_filepath, output_filename + "_details.json"),
+                False
             )
 
         if self.dump_timer and self.is_main_process:
@@ -187,3 +188,5 @@ class GenPerfInferencer(GenInferencer):
         preds["is_success"] = [pred.get("is_success", False) for pred in results]
         preds["is_empty"] = [pred.get("is_empty", False) for pred in results]
         return preds
+
+

@@ -10,7 +10,8 @@ from ais_bench.benchmark.datasets.custom import make_custom_dataset_config
 from ais_bench.benchmark.partitioners import NaivePartitioner, NumWorkerPartitioner, PerformancePartitioner
 from ais_bench.benchmark.runners import LocalAPIRunner, LocalRunner
 from ais_bench.benchmark.tasks import OpenICLEvalTask, OpenICLInferTask, OpenICLPerfTask, OpenICLInferMergedTask, OpenICLEvalMergedTask
-from ais_bench.benchmark.openicl.icl_inferencer import GenPerfInferencer, GenInferencer, GenMergedInferencer, GenModelPerfInferencer
+from ais_bench.benchmark.openicl.icl_inferencer import (GenPerfInferencer, GenInferencer, GenMergedInferencer,
+        GenPressureInferencer, GenModelPerfInferencer)
 from ais_bench.benchmark.utils import get_logger, match_files
 
 logger = get_logger()
@@ -206,18 +207,23 @@ def get_models_attr(cfg):
 def fill_perf_cfg(cfg, args):
     models_attr = get_models_attr(cfg)
     if models_attr == "service":
+        if args.disable_cb:
+            logger.warning("disable_cb is not supported in perf mode, it will be ignored.")
         new_cfg = dict(infer=dict(
             partitioner=dict(type=get_config_type(PerformancePartitioner)),
             runner=dict(
                 max_num_workers=args.max_num_workers,
                 num_prompts=args.num_prompts,
                 debug=args.debug,
-                disable_cb=args.disable_cb,
+                disable_cb=False,
                 task=dict(type=get_config_type(OpenICLPerfTask)),
                 type=get_config_type(LocalAPIRunner)
             )), )
         for data_config in cfg['datasets']:
-            data_config['infer_cfg']['inferencer']['type'] = get_config_type(GenPerfInferencer)
+            if args.pressure:
+                data_config['infer_cfg']['inferencer']['type'] = get_config_type(GenPressureInferencer)
+            else:
+                data_config['infer_cfg']['inferencer']['type'] = get_config_type(GenPerfInferencer)
     else:
         new_cfg = dict(infer=dict(
             partitioner=dict(type=get_config_type(PerformancePartitioner)),

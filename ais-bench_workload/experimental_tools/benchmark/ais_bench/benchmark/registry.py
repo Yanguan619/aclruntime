@@ -76,6 +76,8 @@ TOT_WRAPPER = Registry('tot_wrapper', locations=get_locations('datasets'))
 
 CLIENTS = Registry('client', locations=get_locations('clients'))
 
+PERF_METRIC_CALCULATORS = Registry('perf_metric_calculator', locations=get_locations('calculators'))
+
 
 def build_from_cfg(cfg):
     """A helper function that builds object with MMEngine's new config."""

@@ -52,7 +52,7 @@ else()
     target_compile_options(_backend_c PRIVATE "-O2")
 endif()
 
-file(GLOB_RECURSE SOURCES "*.cpp" "!cpp_interface/*")
+file(GLOB_RECURSE SOURCES "*.cpp")
 file(GLOB_RECURSE REMOVE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/cpp_interface/*.cpp")
 list(REMOVE_ITEM SOURCES ${REMOVE_SOURCES})
 

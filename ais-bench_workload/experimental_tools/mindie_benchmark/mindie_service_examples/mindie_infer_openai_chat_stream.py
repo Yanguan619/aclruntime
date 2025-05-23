@@ -1,5 +1,7 @@
 from mmengine.config import read_base
 from ais_bench.benchmark.models import VLLMCustomAPIChatStream
+from ais_bench.benchmark.summarizers import DefaultPerfSummarizer
+from ais_bench.benchmark.calculators import DefaultPerfMetricCalculator
 from mindie_ais_bench_backend.clients.openai_chat_stream_client import MindIEOpenAIChatStreamClient
 
 with read_base():
@@ -20,8 +22,8 @@ models = [
         request_rate = 0,
         rpm_verbose = False,
         retry = 2,
-        host_ip = "51.62.5.35", # 推理服务的IP
-        host_port = 8081, # 推理服务的端口
+        host_ip = "xx.xx.xx.xx", # 推理服务的IP
+        host_port = 8080, # 推理服务的端口
         enable_ssl = False,
         max_out_len = 1, # 最大输出tokens长度
         batch_size=10, # 推理的最大并发数
@@ -32,5 +34,14 @@ models = [
         )
     )
 ]
+
+summarizer = dict(
+    type=DefaultPerfSummarizer,
+    calculator=dict(
+        type=DefaultPerfMetricCalculator,
+        stats_list=["Average", "Min", "Max", "Median", "P75", "P90", "P99"],
+    )
+)
+
 
 work_dir = 'outputs/api-vllm-stream-chat/'

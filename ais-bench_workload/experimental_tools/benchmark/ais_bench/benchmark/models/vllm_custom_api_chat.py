@@ -227,7 +227,7 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
                  host_ip: str = "localhost",
                  host_port: int = 8080,
                  enable_ssl: bool = False,
-                 custom_client = OpenAIChatStreamClient,
+                 custom_client = dict(type=OpenAIChatStreamClient),
                  generation_kwargs: Optional[Dict] = None):
         super().__init__(path=path,
                          max_seq_len=max_seq_len,
@@ -258,7 +258,7 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
         if not self.tokenizer:
             self.logger.error("Tokenizer is not initialized.")
             return 0.0, []
-        
+
         assert len(prompt)>0 and isinstance(prompt[0], dict)
         if "content" in prompt[0] and isinstance(prompt[0]['content'], list):
             self.logger.warning(f"Input type: expected a string, got list, InputTokens will be 0.")

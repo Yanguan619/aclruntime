@@ -15,6 +15,7 @@ else()
 endif()
 
 find_package(cpython MODULE REQUIRED)
+find_package(pybind11 MODULE REQUIRED)
 
 target_include_directories(_backend_c PRIVATE ${CANN_BASE_PATH}/runtime/include)
 target_include_directories(_backend_c PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/pybind11/include)

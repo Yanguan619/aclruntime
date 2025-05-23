@@ -86,15 +86,6 @@ get_cann_path() {
     echo "find cann path: $cann_bash_path"
 }
 
-url="https://github.com/pybind/pybind11.git"
-fullname="${BUILD_PATH}/third_party/$(basename "${url}" .git)"
-if [[ -e ${fullname} ]]; then
-    echo "Source ${fullname} is exists, will not download again."
-else
-    mkdir -p ${BUILD_PATH}/third_party
-    git clone ${url} ${BUILD_PATH}/third_party/pybind11
-fi
-
 while true; do
     case "$1" in
         -h | --help)

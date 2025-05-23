@@ -58,7 +58,7 @@ if [[ "${extension}" == "gz" || "${extension}" == "zip" ]]; then
         unzip -n ${fullname} -d ./ > /dev/null
     fi
 elif [[ "${extension}" == "git" ]]; then
-    fullname="${path}/third_party/$(basename "${url}" .git)"
+    fullname="${path}/$(basename "${url}" .git)"
     if [[ -e ${fullname} ]]; then
         echo "Source ${fullname} is exists, will remove this file and download the latest file."
         rm -rf ${fullname}

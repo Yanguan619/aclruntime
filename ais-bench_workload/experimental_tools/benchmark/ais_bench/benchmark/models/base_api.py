@@ -295,13 +295,9 @@ class BaseAPIModel(BaseModel):
 
         Args:
             shared_inputs (list): A process and thread-safe list supplying input data items.
-            pos (int, optional): Position index for the progress bar display.
-            max_out_len (int, optional): Maximum length of each generated output (default: 1).
-            concurrency (int): Number of worker threads in the pool.
-            data_nums (int): Total expected number of items to process (for logging).
-            qps (float): Rate limit in queries per second; if <= 0, no rate limiting is applied.
-            rpm_verbose (bool, optional): Verbosity flag for rate limiter logging (in TokenBucket).
-
+            lock: process lock.
+            total_thread_count (int): total thread count.
+            total_input_idx (int): idx of inputs.
         Returns:
             None: This method runs until the queue is exhausted and then exits.
         """
@@ -313,8 +309,9 @@ class BaseAPIModel(BaseModel):
         thread_lock = threading.Lock()
         def generate_before_timeout(shared_inputs, total_input_idx, max_out_len):
             while(time.perf_counter() - self.start_time <= PRESSURE_TIME):
-                with thread_lock:
-                    cur_idx = total_input_idx.value % len(shared_inputs) #
+                with lock:
+                    with thread_lock:
+                        cur_idx = total_input_idx.value % len(shared_inputs) #
                 input_data = shared_inputs[cur_idx]
                 total_input_idx.value += 1
                 _ = self._generate(input_data, max_out_len)
@@ -329,11 +326,11 @@ class BaseAPIModel(BaseModel):
         self.start_time = time.perf_counter()
         try:
             while True:
+                if total_thread_count.value >= total_concurrency or local_thread_count >= concurrency:
+                    break
+                if time.perf_counter() - self.start_time > PRESSURE_TIME:
+                    break
                 with lock:
-                    if total_thread_count.value >= total_concurrency or local_thread_count >= concurrency:
-                        break
-                    if time.perf_counter() - self.start_time > PRESSURE_TIME:
-                        break
                     total_thread_count.value += 1
                 local_thread_count += 1
                 generate_thread = threading.Thread(target=generate_before_timeout, args=(shared_inputs, total_input_idx, max_out_len,))

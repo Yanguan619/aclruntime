@@ -309,9 +309,8 @@ class BaseAPIModel(BaseModel):
         thread_lock = threading.Lock()
         def generate_before_timeout(shared_inputs, total_input_idx, max_out_len):
             while(time.perf_counter() - self.start_time <= PRESSURE_TIME):
-                with lock:
-                    with thread_lock:
-                        cur_idx = total_input_idx.value % len(shared_inputs) #
+                with thread_lock:
+                    cur_idx = total_input_idx.value % len(shared_inputs) #
                 input_data = shared_inputs[cur_idx]
                 total_input_idx.value += 1
                 _ = self._generate(input_data, max_out_len)
@@ -326,11 +325,11 @@ class BaseAPIModel(BaseModel):
         self.start_time = time.perf_counter()
         try:
             while True:
+                if total_thread_count.value >= total_concurrency or local_thread_count >= concurrency:
+                    break
+                if time.perf_counter() - self.start_time > PRESSURE_TIME:
+                    break
                 with lock:
-                    if total_thread_count.value >= total_concurrency or local_thread_count >= concurrency:
-                        break
-                    if time.perf_counter() - self.start_time > PRESSURE_TIME:
-                        break
                     total_thread_count.value += 1
                 local_thread_count += 1
                 generate_thread = threading.Thread(target=generate_before_timeout, args=(shared_inputs, total_input_idx, max_out_len,))

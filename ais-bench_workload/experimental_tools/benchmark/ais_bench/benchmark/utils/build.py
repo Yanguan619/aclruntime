@@ -31,13 +31,9 @@ def validate_model_cfg(model_cfg: dict) -> dict:
             check(isinstance(value, str) and value.strip() != "", key,
                   "model must be a non-empty string")
 
-        elif key == "max_seq_len":
-            check(isinstance(value, int) and 0 < value <= 131072, key,
-                  "max_seq_len must be an integer in the range (0, 131072]")
-
         elif key == "request_rate":
-            check(isinstance(value, (int, float)) and 0 <= value <= 100000, key,
-                  "request_rate must be a number in the range [0, 100000]")
+            check(isinstance(value, (int, float)) and 0 <= value <= 64000, key,
+                  "request_rate must be a number in the range [0, 64000]")
 
         elif key == "retry":
             check(isinstance(value, int) and 0 <= value <= 1000, key,
@@ -84,9 +80,10 @@ def build_dataset_from_cfg(dataset_cfg: ConfigDict):
 
 def build_model_from_cfg(model_cfg: ConfigDict):
     model_cfg = copy.deepcopy(model_cfg)
+    model_name = model_cfg.get("type","").split(".")[-1]
     errors = validate_model_cfg(model_cfg)
     if errors:
-        raise ValueError(f"Model build failed with the following errors: {errors}")
+        raise ValueError(f"{model_name} build failed with the following errors: {errors}")
     model_cfg.pop('run_cfg', None)
     model_cfg.pop('max_out_len', None)
     model_cfg.pop('batch_size', None)

@@ -64,7 +64,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
             self.logger.warning("Can not find a stable stage, all request will be calculated!")
             self.stage_section[0] = min(perf_details["requests"]["start_time"]) # total start time
             self.stage_section[1] = max(perf_details["requests"]["end_time"]) # total end time
-            return [i for i in range(len(perf_details["requests"]["id"]))]
+            return list(range(len(perf_details["requests"]["id"])))
 
         self.stage_section[1] = min([perf_details["requests"]["end_time"][id] for id in list(last_stable_reqs.keys())]) # total end time
         return id_lists

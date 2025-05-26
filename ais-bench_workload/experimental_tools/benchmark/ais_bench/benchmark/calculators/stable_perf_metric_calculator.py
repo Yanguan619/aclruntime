@@ -58,6 +58,8 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
             elif len(working_reqs) >= int(self.max_concurrency * (1 - WAVE_OFFSET)) and len(id_lists) > 0:
                 id_lists.append(section["id"])
                 last_stable_reqs = copy.deepcopy(working_reqs)
+        if len(id_lists) > 0:
+            id_lists.pop(0) # ignore first request that reached max concurrency
         if len(id_lists) == 0:
             self.logger.warning("Can not find a stable stage, all request will be calculated!")
             self.stage_section[0] = min(perf_details["requests"]["start_time"]) # total start time

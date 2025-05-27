@@ -60,7 +60,7 @@ class VLLMCustomAPIChat(PerformanceAPIModel):
                  host_ip: str = "localhost",
                  host_port: int = 8080,
                  enable_ssl: bool = False,
-                 custom_client = OpenAIChatTextClient,
+                 custom_client = dict(type=OpenAIChatTextClient),
                  generation_kwargs: Optional[Dict] = None):
         super().__init__(path=path,
                          max_seq_len=max_seq_len,
@@ -76,7 +76,15 @@ class VLLMCustomAPIChat(PerformanceAPIModel):
         self.base_url = self._get_base_url()
         self.endpoint_url = os.path.join(self.base_url, "chat/completions")
         self.model= model if model else self._get_service_model_path()
-        self.client = custom_client(self.endpoint_url, retry)
+        self.init_client(custom_client)
+
+    def init_client(self, custom_client):
+        if not isinstance(custom_client, dict):
+            self.logger.warning(f"Value of custom_client: {custom_client} is not a dict! Use Default")
+            custom_client = dict(type=OpenAIChatTextClient)
+        custom_client['url'] = self.endpoint_url
+        custom_client['retry'] = self.retry
+        self.client = build_client_from_cfg(custom_client)
 
     def encode_input(self, prompt: list) -> Tuple[float, List[int]]:
         """Encode a string into tokens, measuring processing time."""
@@ -247,12 +255,12 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
         self.is_multi_modal = False
 
     def init_client(self, custom_client):
-        if isinstance(custom_client, dict):
-            custom_client['url'] = self.endpoint_url
-            custom_client['retry'] = self.retry
-            self.client = build_client_from_cfg(custom_client)
-        else:
-            self.client = custom_client(self.endpoint_url, self.retry)
+        if not isinstance(custom_client, dict):
+            self.logger.warning(f"Value of custom_client: {custom_client} is not a dict! Use Default")
+            custom_client = dict(type=OpenAIChatStreamClient)
+        custom_client['url'] = self.endpoint_url
+        custom_client['retry'] = self.retry
+        self.client = build_client_from_cfg(custom_client)
 
     def encode_input(self, prompt: list) -> Tuple[float, List[int]]:
         """Encode a string into tokens, measuring processing time."""

@@ -50,10 +50,10 @@ class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
     def _process_result(self, full_result, stage_name):
         id_list = self.stage_dict.get(stage_name)
         result = {k: [v[i] for i in id_list] for k, v in full_result.items() if v is not None}
-        self.data_count[stage_name] = len(result["is_success"])
+        self.data_count[stage_name] = len(full_result["is_success"])
         self.decode_latencies[stage_name] = result["decode_token_latencies"]
-        self.success_count[stage_name] = sum(result["is_success"])
-        self.empty_count[stage_name] = sum(result["is_empty"])
+        self.success_count[stage_name] = sum(full_result["is_success"])
+        self.empty_count[stage_name] = sum(full_result["is_empty"])
         self.infer_time[stage_name] = max(result["end_time"]) - min(result["start_time"])
         per_request_avg_decode_time = []
         # Compute the average decode latency per request

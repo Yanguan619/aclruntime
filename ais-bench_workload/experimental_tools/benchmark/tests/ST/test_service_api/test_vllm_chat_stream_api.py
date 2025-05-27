@@ -56,6 +56,28 @@ class TestClass:
                                  'OutputTokenThroughput']
 
     # mode infer
+    def test_vllm_chat_stream_api_infer_chat_ds(self, monkeypatch):
+        fake_prediction = "Aisbench20"
+        fake_time_str = "vllm_chat_stream_aime2024_gen_0_shot_chat_prompt"
+        datasets_abbr_name = "aime2024"
+        datasets_script_name = "aime2024_gen_0_shot_chat_prompt"
+        monkeypatch.setattr('sys.argv',
+            ["ais_bench", "--models", "vllm_api_stream_chat", "--datasets", datasets_script_name,
+            "--mode", "infer", "-w", self.test_data_path])
+        monkeypatch.setattr("urllib3.PoolManager.request", lambda *args, **kwargs: Response())
+        monkeypatch.setattr("ais_bench.benchmark.models.vllm_custom_api_chat.VLLMCustomAPIChatStream._get_service_model_path", lambda *arg: "qwen2")
+        monkeypatch.setattr("ais_bench.benchmark.cli.main.get_current_time_str", lambda *arg, **kwargs: fake_time_str)
+        main()
+
+        # check infer out
+        infer_outputs_json_path = os.path.join(self.test_data_path, f"{fake_time_str}/predictions/vllm-api-stream-chat/{datasets_abbr_name}.json")
+        assert os.path.exists(infer_outputs_json_path)
+        with open(infer_outputs_json_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+
+        assert len(data) == AIME_DATA_COUNT
+        assert data.get(f"{AIME_DATA_COUNT - 1}").get("prediction") == fake_prediction
+
     def test_vllm_chat_stream_api_infer(self, monkeypatch):
         fake_prediction = "Aisbench20"
         fake_time_str = "vllm_chat_stream_aime2024_gen_0_shot_str"

@@ -26,7 +26,7 @@ def get_locations(module_dir):
         for pkg_dir in CUSTOM_PACKAGE_DIR:
             custom_loc = f'{pkg_dir}.{module_dir}'
             try:
-                _ = __import__(custom_loc, fromlist=[True])
+                _ = __import__(custom_loc, fromlist=["*"])
                 locations.append(custom_loc)
             except ImportError:
                 continue

@@ -1,0 +1,29 @@
+[
+    {
+      "op": "Add",
+      "name": "add",
+      "input_desc": [
+        {
+          "format": "ND",
+          "shape": [-1,16],
+          "shape_range": [[0, 32]],
+          "type": "int64"
+        },
+        {
+          "format": "ND",
+          "shape": [-1,16],
+          "shape_range": [[0, 32]],
+          "type": "int64"
+        }
+      ],
+      "output_desc": [
+        {
+          "format": "ND",
+          "shape": [-1,16],
+          "shape_range": [[0,32]],
+          "type": "int64"
+        }
+      ]
+    }
+  ]
+  

@@ -57,7 +57,7 @@ class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
         self.infer_time[stage_name] = max(result["end_time"]) - min(result["start_time"])
         per_request_avg_decode_time = []
         # Compute the average decode latency per request
-        if len(result["seq_latency"]) == len(result["prefill_latency"]):
+        if math.isclose(sum(result["prefill_latency"]), 0):
             for i, value in enumerate(result["seq_latency"]):
                 if value:  # Skip empty lists
                     tpot = (value - result["prefill_latency"][i]) / result["generate_tokens_len"][i]

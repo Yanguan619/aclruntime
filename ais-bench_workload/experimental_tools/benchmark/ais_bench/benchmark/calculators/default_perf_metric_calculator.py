@@ -11,12 +11,14 @@ from ais_bench.benchmark.calculators.base_perf_metric_calculator import is_legal
 
 @PERF_METRIC_CALCULATORS.register_module()
 class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
-    def __init__(self, perf_details: dict, stats_list: list = DEFAULT_STATS):
+    def __init__(self, stats_list: list = DEFAULT_STATS):
         self.logger = get_logger()
+        self._get_legal_stats_list(stats_list)
+
+    def _init_datas(self, perf_details: dict):
         self.stage_dict = {
             "total": self._get_requests_id(perf_details)
         }
-        self._get_legal_stats_list(stats_list)
         self.result = {}
         self.max_concurrency = perf_details["task"]["max_concurrency"]
         self.data_count = {}

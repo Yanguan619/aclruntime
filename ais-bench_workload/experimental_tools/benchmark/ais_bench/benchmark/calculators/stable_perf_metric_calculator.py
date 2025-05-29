@@ -1,4 +1,5 @@
 import csv
+from tqdm import tqdm
 import collections
 import math
 import numpy as np
@@ -12,14 +13,18 @@ WAVE_OFFSET = 0.02
 
 @PERF_METRIC_CALCULATORS.register_module()
 class StablePerfMetricCalculator(BasePerfMetricCalculator):
-    def __init__(self, perf_details: dict, stage_info: dict = {}, stats_list: list = DEFAULT_STATS):
+    def __init__(self, stats_list: list = DEFAULT_STATS):
         self.logger = get_logger()
+        self._get_legal_stats_list(stats_list)
+
+
+    def _init_datas(self, perf_details: dict):
         self.max_concurrency = perf_details["task"]["max_concurrency"]
         self.stage_section = [0, 0]
         self.stage_dict = {
-            "stable": self._get_requests_id(perf_details, stage_info)
+            "stable": self._get_requests_id(perf_details)
         }
-        self._get_legal_stats_list(stats_list)
+
         self.result = {}
         self.data_count = {}
         self.decode_latencies = {}
@@ -45,7 +50,8 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         id_lists = []
         working_reqs = {}
         last_stable_reqs = {}
-        for i, section in enumerate(sorted_time_sections):
+        self.logger.info("Calculating stable stage ...")
+        for i, section in enumerate(tqdm(sorted_time_sections)):
             for k in list(working_reqs.keys()):
                 if working_reqs[k][1] < section["start_time"]:
                     working_reqs.pop(k, None)

@@ -180,7 +180,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         ans = {mapping_value: [] for mapping_value in mapping.values()}
 
         # Use a dictionary comprehension to populate the values
-        for mapping_key, mapping_value in mapping.items():
+        for mapping_key, mapping_value in tqdm(mapping.items(), desc="Mapping perf results of stage"):
             for value in result[mapping_key]:
                 if isinstance(value, list):
                     ans[mapping_value].extend(value)

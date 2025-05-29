@@ -25,4 +25,6 @@ class OpenAIChatTextClient(BaseClient, ABC):
         if generated_text:
             inputs.output = generated_text
             inputs.num_generated_chars = len(generated_text)
+            inputs.prefill_latency = res.get("prefill_time", 0)
+            inputs.decode_cost = res.get("decode_time_arr", [])
         return generated_text

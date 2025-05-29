@@ -57,11 +57,12 @@ class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
         self.infer_time[stage_name] = max(result["end_time"]) - min(result["start_time"])
         per_request_avg_decode_time = []
         # Compute the average decode latency per request
-        for i, value in enumerate(result["seq_latency"]):
-            if value:  # Skip empty lists
-                tpot = (value - result["prefill_latency"][i]) / result["generate_tokens_len"][i]
-                per_request_avg_decode_time.append(tpot)
-        result["average_decode_latencies"] = per_request_avg_decode_time[:]
+        if len(result["seq_latency"]) == len(result["prefill_latency"]):
+            for i, value in enumerate(result["seq_latency"]):
+                if value:  # Skip empty lists
+                    tpot = (value - result["prefill_latency"][i]) / result["generate_tokens_len"][i]
+                    per_request_avg_decode_time.append(tpot)
+            result["average_decode_latencies"] = per_request_avg_decode_time[:]
         self.result[stage_name] = self.convert_result(copy.deepcopy(result))
 
     def get_common_res(self):

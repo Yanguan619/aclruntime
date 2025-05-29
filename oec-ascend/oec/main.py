@@ -124,7 +124,12 @@ def print_state(context: TestContext):
         time.sleep(0.2)
     logger.info(f"\033[2A\033[K{context.get_state_distribution_str()}\033[K")
 
-
+def enable_ansi_windows():
+    """在 Windows 上启用 ANSI 转义序列支持"""
+    if sys.platform == "win32":
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)  # 启用 VT100 模式
 def main():
     cmd_args = argparse_handler()
     init_logger(logging.DEBUG if cmd_args.verbose else logging.INFO)
@@ -146,6 +151,7 @@ def main():
     )
     if not cmd_args.verbose:
         context.finished = False
+        enable_ansi_windows()
         state_monitor.start()
     result = context.run_tests()
     if not cmd_args.verbose:

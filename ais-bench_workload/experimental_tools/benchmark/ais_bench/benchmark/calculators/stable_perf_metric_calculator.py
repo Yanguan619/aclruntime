@@ -96,7 +96,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
     def _process_result(self, full_result, stage_name):
         id_list = self.stage_dict.get(stage_name)
         result = {}
-        for k, v in tqdm(full_result.items(), desc="Getting perf results of stage"):
+        for k, v in full_result.items():
             if v is not None:
                 result[k] = [v[i] for i in id_list]
         self.data_count[stage_name] = len(result["is_success"])
@@ -106,11 +106,12 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         self.infer_time[stage_name] = self.stage_section[1] - self.stage_section[0]
         per_request_avg_decode_time = []
         # Compute the average decode latency per request
-        for i, value in enumerate(result["seq_latency"]):
+        for i, value in enumerate(tqdm(result["seq_latency"], desc="Calculating TPOT")):
             if value:  # Skip empty lists
                 tpot = (value - result["prefill_latency"][i]) / result["generate_tokens_len"][i]
                 per_request_avg_decode_time.append(tpot)
         result["average_decode_latencies"] = per_request_avg_decode_time[:]
+        self.logger.info("Converting perf results of stage ...")
         self.result[stage_name] = self.convert_result(copy.deepcopy(result))
 
     def get_common_res(self):
@@ -180,7 +181,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         ans = {mapping_value: [] for mapping_value in mapping.values()}
 
         # Use a dictionary comprehension to populate the values
-        for mapping_key, mapping_value in tqdm(mapping.items(), desc="Mapping perf results of stage"):
+        for mapping_key, mapping_value in mapping.items():
             for value in result[mapping_key]:
                 if isinstance(value, list):
                     ans[mapping_value].extend(value)

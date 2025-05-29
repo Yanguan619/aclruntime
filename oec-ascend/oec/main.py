@@ -43,7 +43,14 @@ def argparse_handler():
         prog="oec-ascend",
         description="Ascend Operating System Compatibility Verification Tool",
     )
-
+    
+    parser.add_argument(
+        "-c",
+        "--cann",
+        default="./",
+        help="The path for storing the three packages: ToolKit, kernels, and NNAL.",
+    )
+    
     parser.add_argument(
         "-d",
         "--data",
@@ -127,10 +134,15 @@ def main():
     logger.info(cmd_args)
     output = os.path.abspath(cmd_args.output)
     data_path = os.path.realpath(cmd_args.data)
-    if not os.path.exists(cmd_args.data):
+    if not os.path.exists(data_path):
         logger.fatal(f"{data_path} is not existing, please download it first!")
         exit(1000)
+    cann_path = os.path.realpath(cmd_args.cann)
+    if not os.path.exists(cann_path):
+        logger.fatal(f"{cann_path} is not existing, please download it first!")
+        exit(2000)
     Context.set_data_path(data_path)
+    Context.set_cann_path(cann_path)
     Context.set_output(output)
     resource =f"{os.path.dirname(__file__)}/resource"
     resource = os.path.realpath(resource)

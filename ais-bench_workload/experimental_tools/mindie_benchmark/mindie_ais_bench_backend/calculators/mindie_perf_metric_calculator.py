@@ -246,7 +246,8 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         common_metric_names = ["Benchmark Duration", "Total Requests", "Failed Requests", "Success Requests",
             "Concurrency", "Max Concurrency", "Request Throughput", "Total Input Tokens",
             "Prefill Token Throughput", "Total generated tokens", "Input Token Throughput",
-            "Output Token Throughput", "Total Token Throughput", "ipct", "GenerateSpeedPerClient"]
+            "Output Token Throughput", "Total Token Throughput", "ipct", "GenerateSpeedPerClient",
+            "CharacterPerToken"]
         for name in common_metric_names:
             if self.common_metrics.get(name) is None:
                 self.common_metrics[name] = {}

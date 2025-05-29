@@ -88,7 +88,10 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
 
     def _process_result(self, full_result, stage_name):
         id_list = self.stage_dict.get(stage_name)
-        result = {k: [v[i] for i in id_list] for k, v in full_result.items() if v is not None}
+        result = {}
+        for k, v in tqdm(full_result.items(), decs="Getting perf results of stage"):
+            if v is not None:
+                result[k] = [v[i] for i in id_list]
         self.data_count[stage_name] = len(result["is_success"])
         self.decode_latencies[stage_name] = result["decode_token_latencies"]
         self.success_count[stage_name] = sum(result["is_success"])

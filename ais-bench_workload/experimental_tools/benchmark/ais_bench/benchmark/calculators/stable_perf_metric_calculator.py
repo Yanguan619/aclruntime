@@ -171,13 +171,6 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
                     ans[mapping_value].extend(value)
                 else:
                     ans[mapping_value].append(value)
-        if sum(ans["PrefillBatchsize"]) == 0:
-            ans.pop("PrefillBatchsize")
-
-        for key in ["DecoderBatchsize", "QueueWaitTime"]:
-            res = ans.get(key)
-            if not res or not res[-1]:
-                ans.pop(key)
 
         for key in ["TTFT", "TPOT", "ITL"]:
             if math.isclose(sum(ans[key]), 0):

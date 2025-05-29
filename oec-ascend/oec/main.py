@@ -45,10 +45,10 @@ def argparse_handler():
     )
 
     parser.add_argument(
-        "-r",
-        "--resource",
-        default=f"{os.path.dirname(__file__)}/resource",
-        help="resource path",
+        "-d",
+        "--data",
+        default=f"./data",
+        help="The path to the data file that is necessary during the run",
     )
     
     parser.add_argument(
@@ -63,7 +63,6 @@ def argparse_handler():
         help="Director to save results and log output",
     )
     args = parser.parse_args()
-    args.resource = os.path.realpath(args.resource)
     return args
 
 
@@ -127,13 +126,18 @@ def main():
     init_logger(logging.DEBUG if cmd_args.verbose else logging.INFO)
     logger.info(cmd_args)
     output = os.path.abspath(cmd_args.output)
-
-    context = TestContext(output)
+    data_path = os.path.realpath(cmd_args.data)
+    if not os.path.exists(cmd_args.data):
+        logger.fatal(f"{data_path} is not existing, please download it first!")
+        exit(1000)
+    context = TestContext(output,data_path)
     set_default_context(context)
+    resource =f"{os.path.dirname(__file__)}/resource"
+    resource = os.path.realpath(resource)
 
-    find_ascend_test_in_dir(cmd_args.resource)
+    find_ascend_test_in_dir(resource)
 
-    context.set_test_order(cmd_args.resource)
+    context.set_test_order(resource)
     logger.info(
         f"Find {len(context.get_tests())} test cases, using {len(context.get_used_tests())} test cases."
     )
@@ -151,7 +155,7 @@ def main():
 
     logger.info(f"Complete!")
 
-    gen_report(cmd_args.resource, context)
+    gen_report(resource, context)
     logger.info(f"Generate an execution report with the path {output}")
 
 

@@ -22,9 +22,6 @@ class TestCase(BaseTest):
         **kwargs,
     ):
         super(TestCase, self).__init__(*args, **kwargs)
-        # if not cmd:
-        #     logger.fatal(self.message_with_path("cmd can not be empty."))
-        #     exit(60000)
         self._count = count
         self._cmd = cmd
 

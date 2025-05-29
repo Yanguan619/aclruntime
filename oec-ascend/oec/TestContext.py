@@ -22,7 +22,7 @@ def make_log_dir(log_dir):
 
 class TestContext(object):
 
-    def __init__(self, output: str):
+    def __init__(self, output: str, data_path: str):
         self._all_tests: dict[str, TestInterface] = {}
 
         relative_output = (
@@ -31,6 +31,7 @@ class TestContext(object):
         output_path = os.path.join(output, relative_output)
         log_dir = os.path.join(output_path, "logs")
         make_log_dir(log_dir)
+        self._data_path = data_path
         self._output_dir = output_path
         self._relative_output = relative_output
         self._defaut_log_dir = log_dir
@@ -41,7 +42,11 @@ class TestContext(object):
         self.finished = False
         for state in State:
             self._states_distribution.setdefault(state, 0)
-
+    
+    @property
+    def data_path(self):
+        return self.data_path
+    
     def get_state_distribution_str(self):
         success = self.distribution[State.PASS] + self.distribution[State.NOTHING_TO_DO]
         failed = (

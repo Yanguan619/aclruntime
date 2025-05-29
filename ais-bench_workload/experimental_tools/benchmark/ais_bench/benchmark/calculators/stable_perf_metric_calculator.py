@@ -49,7 +49,6 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         sorted_time_sections = sorted(request_time_sections, key=lambda x: x["start_time"])
         id_lists = []
         working_reqs = {}
-        last_stable_reqs = {}
         self.logger.info("Calculating stable stage ...")
         for i, section in enumerate(tqdm(sorted_time_sections)):
             for k in list(working_reqs.keys()):
@@ -60,10 +59,8 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
                 id_lists.append(section["id"])
                 if len(id_lists) == 1:
                    self.stage_section[0] = min([perf_details["requests"]["end_time"][id] for id in list(working_reqs.keys())])  # total start time
-                last_stable_reqs = copy.deepcopy(working_reqs)
             elif len(working_reqs) >= int(self.max_concurrency * (1 - WAVE_OFFSET)) and len(id_lists) > 0:
                 id_lists.append(section["id"])
-                last_stable_reqs = copy.deepcopy(working_reqs)
         if len(id_lists) > 0:
             id_lists.pop(0) # ignore first request that reached max concurrency
         if len(id_lists) == 0:
@@ -72,7 +69,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
             self.stage_section[1] = max(perf_details["requests"]["end_time"]) # total end time
             return list(range(len(perf_details["requests"]["id"])))
 
-        self.stage_section[1] = min([perf_details["requests"]["end_time"][id] for id in list(last_stable_reqs.keys())]) # total end time
+        self.stage_section[1] = min([perf_details["requests"]["end_time"][id] for id in list(working_reqs.keys())]) # total end time
         return id_lists
 
     def _get_legal_stats_list(self, stats_list):

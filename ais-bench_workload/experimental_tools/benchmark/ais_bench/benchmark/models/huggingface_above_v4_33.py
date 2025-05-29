@@ -169,7 +169,14 @@ class HuggingFacewithChatTemplate(PerformanceModel):
                  stop_words: Optional[str] = [],
                  mode: str = 'none',
                  **other_kwargs):
-
+        super().__init__(
+            path,
+            max_seq_len,
+            tokenizer_only,
+            meta_template,
+            generation_kwargs,
+            False,
+        )
         self.logger = get_logger()
         self.path = path
         self.tokenizer_only = tokenizer_only
@@ -495,7 +502,7 @@ class HuggingFacewithChatTemplate(PerformanceModel):
         for stop in stopping_criteria:
             decodeds = [t.split(stop)[0] for t in decodeds]
 
-        if hasattr(self, "is_performance") and self.is_performance:
+        if hasattr(self, "do_performance") and self.do_performance:
             self.latencies.append(end_time - start_time)
             self.counts.append(batch_size)
             self.timestamps.extend([end_time, start_time])
@@ -610,7 +617,7 @@ class HuggingFaceBaseModel(HuggingFacewithChatTemplate):
         for stop in stopping_criteria:
             decodeds = [token.split(stop)[0] for token in decodeds]
 
-        if hasattr(self, "is_performance") and self.is_performance:
+        if hasattr(self, "do_performance") and self.do_performance:
             self.latencies.append(end_time - start_time)
             self.counts.append(batch_size)
             self.timestamps.extend([end_time, start_time])

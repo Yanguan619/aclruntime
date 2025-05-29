@@ -51,8 +51,10 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         working_reqs = {}
         self.logger.info("Calculating stable stage ...")
         for i, section in enumerate(tqdm(sorted_time_sections)):
+            poped_ids = []
             for k in list(working_reqs.keys()):
                 if working_reqs[k][1] < section["start_time"]:
+                    poped_ids.append(k)
                     working_reqs.pop(k, None)
             working_reqs[section["id"]] = [section["start_time"], section["end_time"]]
             if len(working_reqs) == self.max_concurrency:
@@ -61,6 +63,10 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
                    self.stage_section[0] = min([perf_details["requests"]["end_time"][id] for id in list(working_reqs.keys())])  # total start time
             elif len(working_reqs) >= int(self.max_concurrency * (1 - WAVE_OFFSET)) and len(id_lists) > 0:
                 id_lists.append(section["id"])
+            else:
+                if len(id_lists) > 0:
+                    self.stage_section[1] = min([perf_details["requests"]["end_time"][id] for id in poped_ids])
+
         if len(id_lists) > 0:
             id_lists.pop(0) # ignore first request that reached max concurrency
         if len(id_lists) == 0:
@@ -69,7 +75,8 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
             self.stage_section[1] = max(perf_details["requests"]["end_time"]) # total end time
             return list(range(len(perf_details["requests"]["id"])))
 
-        self.stage_section[1] = min([perf_details["requests"]["end_time"][id] for id in list(working_reqs.keys())]) # total end time
+        if self.stage_section[1] == 0:
+            self.stage_section[1] = min([perf_details["requests"]["end_time"][id] for id in list(working_reqs.keys())]) # total end time
         return id_lists
 
     def _get_legal_stats_list(self, stats_list):
@@ -89,7 +96,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
     def _process_result(self, full_result, stage_name):
         id_list = self.stage_dict.get(stage_name)
         result = {}
-        for k, v in tqdm(full_result.items(), decs="Getting perf results of stage"):
+        for k, v in tqdm(full_result.items(), desc="Getting perf results of stage"):
             if v is not None:
                 result[k] = [v[i] for i in id_list]
         self.data_count[stage_name] = len(result["is_success"])

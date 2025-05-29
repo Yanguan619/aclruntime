@@ -53,7 +53,7 @@ class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
     def _process_result(self, full_result, stage_name):
         id_list = self.stage_dict.get(stage_name)
         result = {}
-        for k, v in tqdm(full_result.items(), decs="Getting perf results of stage"):
+        for k, v in tqdm(full_result.items(), desc="Getting perf results of stage"):
             if v is not None:
                 result[k] = [v[i] for i in id_list]
         self.data_count[stage_name] = len(full_result["is_success"])

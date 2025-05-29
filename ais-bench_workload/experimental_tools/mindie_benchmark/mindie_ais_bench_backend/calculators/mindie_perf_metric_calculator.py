@@ -25,6 +25,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         self.empty_count = {}
         self.infer_time = {}
         self.ttft_sum = {}
+        self.chars_sum = {}
         self.metrics = {}
         self.common_metrics = {}
 
@@ -57,6 +58,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         self.empty_count[stage_name] = sum(full_result["is_empty"])
         self.infer_time[stage_name] = max(result["end_time"]) - min(result["start_time"])
         self.ttft_sum[stage_name] = sum(result["prefill_latency"])
+        self.chars_sum[stage_name] = sum(result["generate_characters_len"])
         per_request_avg_decode_time = []
         # Compute the average decode latency per request
         if not math.isclose(sum(result["prefill_latency"]), 0):
@@ -125,6 +127,8 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             "prefill_latency": "TTFT",
             "average_decode_latencies": "TPOT",
             "decode_token_latencies": "ITL",
+            "last_decode_latency": "LastITL",
+            "decode_max_token_latency": "MaxITL",
             "input_tokens_len": "InputTokens",
             "generate_tokens_len": "OutputTokens",
             "generate_tokens_speed": "OutputTokenThroughput",
@@ -150,7 +154,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             if not res or not res[-1]:
                 ans.pop(key)
 
-        for key in ["TTFT", "TPOT", "ITL"]:
+        for key in ["TTFT", "TPOT", "ITL", "LastITL", "MaxITL"]:
             if math.isclose(sum(ans[key]), 0):
                 ans.pop(key)
 
@@ -278,6 +282,8 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             self.common_metrics["Total generated tokens"][stage_name] = sum(self.result[stage_name]["OutputTokens"])
             self.common_metrics["ipct"][stage_name] = self.ttft_sum[stage_name] / \
                 (self.common_metrics["Total generated tokens"][stage_name] + self.common_metrics["Total Input Tokens"][stage_name])
+            self.common_metrics["CharacterPerToken"][stage_name] = self.chars_sum[stage_name] / \
+                self.common_metrics["Total generated tokens"][stage_name]
             if self.infer_time[stage_name] > 0:
                 self.common_metrics["Input Token Throughput"][stage_name] = round(
                     self.common_metrics["Total Input Tokens"][stage_name] / self.infer_time[stage_name], 4
@@ -302,6 +308,8 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             "TTFT": ms,
             "TPOT": ms,
             "ITL": ms,
+            "LastITL": ms,
+            "MaxITL": ms,
             "InputTokens": None,
             "OutputTokens": None,
             "PrefillTokenThroughput": unit_token,
@@ -335,6 +343,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             "Output Token Throughput": unit_token,
             "Total Token Throughput": unit_token,
             "ipct": unit_token,
+            "CharacterPerToken": None,
         }
 
         for metric, value in self.common_metrics.items():

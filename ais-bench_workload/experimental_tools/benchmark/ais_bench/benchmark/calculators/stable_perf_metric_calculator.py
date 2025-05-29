@@ -37,7 +37,7 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
         for stage_name, _ in self.stage_dict.items():
             self._process_result(perf_details.get("requests"), stage_name)
 
-    def _get_requests_id(self, perf_details, stage_info):
+    def _get_requests_id(self, perf_details):
         request_time_sections = []
         for id in range(len(perf_details["requests"]["id"])):
             request_time_sections.append({

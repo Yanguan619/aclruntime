@@ -63,6 +63,8 @@ class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
                     tpot = (value - result["prefill_latency"][i]) / result["generate_tokens_len"][i]
                     per_request_avg_decode_time.append(tpot)
             result["average_decode_latencies"] = per_request_avg_decode_time[:]
+        else:
+            result["average_decode_latencies"] = result["prefill_latency"]
         self.result[stage_name] = self.convert_result(copy.deepcopy(result))
 
     def get_common_res(self):

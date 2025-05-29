@@ -159,9 +159,6 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
             "input_tokens_len": "InputTokens",
             "generate_tokens_len": "OutputTokens",
             "generate_tokens_speed": "OutputTokenThroughput",
-            "prefill_batch_size": "PrefillBatchsize",
-            "decode_batch_size": "DecoderBatchsize",
-            "queue_wait_time": "QueueWaitTime",
         }
 
         ans = {mapping_value: [] for mapping_value in mapping.values()}
@@ -335,11 +332,6 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
             "OutputTokens": None,
             "PrefillTokenThroughput": unit_token,
             "OutputTokenThroughput": unit_token,
-            "Tokenizer": ms,
-            "Detokenizer": ms,
-            "PrefillBatchsize": None,
-            "DecoderBatchsize": None,
-            "QueueWaitTime": " μs",
         }
 
 

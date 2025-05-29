@@ -24,6 +24,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         self.success_count = {}
         self.empty_count = {}
         self.infer_time = {}
+        self.ttft_sum = {}
         self.metrics = {}
         self.common_metrics = {}
 
@@ -55,6 +56,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         self.success_count[stage_name] = sum(full_result["is_success"])
         self.empty_count[stage_name] = sum(full_result["is_empty"])
         self.infer_time[stage_name] = max(result["end_time"]) - min(result["start_time"])
+        self.ttft_sum[stage_name] = sum(result["prefill_latency"])
         per_request_avg_decode_time = []
         # Compute the average decode latency per request
         for i, value in enumerate(result["seq_latency"]):
@@ -237,7 +239,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         common_metric_names = ["Benchmark Duration", "Total Requests", "Failed Requests", "Success Requests",
             "Concurrency", "Max Concurrency", "Request Throughput", "Total Input Tokens",
             "Prefill Token Throughput", "Total generated tokens", "Input Token Throughput",
-            "Output Token Throughput", "Total Token Throughput"]
+            "Output Token Throughput", "Total Token Throughput", "ipct", "GenerateSpeedPerClient"]
         for name in common_metric_names:
             if self.common_metrics.get(name) is None:
                 self.common_metrics[name] = {}
@@ -271,6 +273,8 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
                 self.common_metrics.pop("Prefill Token Throughput", None)
 
             self.common_metrics["Total generated tokens"][stage_name] = sum(self.result[stage_name]["OutputTokens"])
+            self.common_metrics["ipct"][stage_name] = self.ttft_sum[stage_name] / \
+                (self.common_metrics["Total generated tokens"][stage_name] + self.common_metrics["Total Input Tokens"][stage_name])
             if self.infer_time[stage_name] > 0:
                 self.common_metrics["Input Token Throughput"][stage_name] = round(
                     self.common_metrics["Total Input Tokens"][stage_name] / self.infer_time[stage_name], 4
@@ -299,8 +303,6 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             "OutputTokens": None,
             "PrefillTokenThroughput": unit_token,
             "OutputTokenThroughput": unit_token,
-            "Tokenizer": ms,
-            "Detokenizer": ms,
             "PrefillBatchsize": None,
             "DecoderBatchsize": None,
             "QueueWaitTime": " μs",
@@ -329,6 +331,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             "Total Output Tokens": None,
             "Output Token Throughput": unit_token,
             "Total Token Throughput": unit_token,
+            "ipct": unit_token,
         }
 
         for metric, value in self.common_metrics.items():

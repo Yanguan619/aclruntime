@@ -2,7 +2,7 @@ from mmengine.config import read_base
 from ais_bench.benchmark.models import VLLMCustomAPIChatStream
 from ais_bench.benchmark.summarizers import DefaultPerfSummarizer
 from ais_bench.benchmark.calculators import DefaultPerfMetricCalculator
-from mindie_ais_bench_backend.clients.openai_chat_stream_client import MindIEOpenAIChatStreamClient
+from ais_bench.benchmark.clients.openai_chat_stream_client import OpenAIChatStreamClient
 
 with read_base():
     from ais_bench.benchmark.configs.datasets.synthetic.synthetic_gen import synthetic_datasets
@@ -25,7 +25,7 @@ models = [
         enable_ssl = False,
         max_out_len = 1, # 最大输出tokens长度
         batch_size=10, # 推理的最大并发数
-        custom_client=dict(type=MindIEOpenAIChatStreamClient),
+        custom_client=dict(type=OpenAIChatStreamClient),
         generation_kwargs = dict( # 后处理参数参考https://docs.vllm.ai/en/latest/api/inference_params.html#sampling-params 中的Parameters
             temperature = 0,
             ignore_eos = True,

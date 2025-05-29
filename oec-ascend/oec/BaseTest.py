@@ -2,6 +2,7 @@
 import os
 import threading
 import inspect
+from typing import Tuple # 兼容python3.7
 from logging import getLogger
 from oec.TestInterface import TestInterface
 from oec.TestContext import TestContext
@@ -16,7 +17,7 @@ Context:TestContext = TestContext()
 class BaseTest(TestInterface):
     def __init__(
         self,
-        group: tuple[str, str],
+        group: Tuple[str, str],
         name: str,
         optional: bool = False,
         auxiliary: bool = False,

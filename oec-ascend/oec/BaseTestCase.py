@@ -3,6 +3,7 @@ import os
 import subprocess
 from logging import getLogger
 import re
+from typing import List # 兼容python3.7
 from oec.BaseTest import BaseTest
 from oec.BaseTypes import State
 
@@ -13,10 +14,10 @@ class TestCase(BaseTest):
     def __init__(
         self,
         cmd: str = None,
-        include: list[str] = None,
-        exclude: list[str] = ["failed", "Failed", "FAILED", "error", "ERROR", "Error"],
-        expect: list[int] = [0],
-        unexpect: list[int] = None,
+        include: List[str] = None,
+        exclude: List[str] = ["failed", "Failed", "FAILED", "error", "ERROR", "Error"],
+        expect: List[int] = [0],
+        unexpect: List[int] = None,
         count=1,
         *args,
         **kwargs,

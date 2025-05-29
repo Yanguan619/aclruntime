@@ -12,7 +12,7 @@ from importlib import import_module
 from logging import getLogger
 
 from oec.TestContext import TestContext
-from oec.BaseTest import set_default_context
+from oec.BaseTest import Context
 
 from oec.TestReport import gen_report
 
@@ -130,32 +130,32 @@ def main():
     if not os.path.exists(cmd_args.data):
         logger.fatal(f"{data_path} is not existing, please download it first!")
         exit(1000)
-    context = TestContext(output,data_path)
-    set_default_context(context)
+    Context.set_data_path(data_path)
+    Context.set_output(output)
     resource =f"{os.path.dirname(__file__)}/resource"
     resource = os.path.realpath(resource)
 
     find_ascend_test_in_dir(resource)
 
-    context.set_test_order(resource)
+    Context.set_test_order(resource)
     logger.info(
-        f"Find {len(context.get_tests())} test cases, using {len(context.get_used_tests())} test cases."
+        f"Find {len(Context.get_tests())} test cases, using {len(Context.get_used_tests())} test cases."
     )
     state_monitor = threading.Thread(
-        name="state_monitor", target=print_state, args=[context]
+        name="state_monitor", target=print_state, args=[Context]
     )
     if not cmd_args.verbose:
-        context.finished = False
+        Context.finished = False
         enable_ansi_windows()
         state_monitor.start()
-    result = context.run_tests()
+    result = Context.run_tests()
     if not cmd_args.verbose:
-        context.finished = True
+        Context.finished = True
         state_monitor.join()
 
     logger.info(f"Complete!")
 
-    gen_report(resource, context)
+    gen_report(resource, Context)
     logger.info(f"Generate an execution report with the path {output}")
 
 

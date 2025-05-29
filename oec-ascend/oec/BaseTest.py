@@ -10,14 +10,7 @@ from oec.BaseTypes import State
 logger = getLogger("oec-ascend")
 
 
-Context:TestContext = None
-
-
-def set_default_context(context: TestContext):
-    global Context
-    if not isinstance(context, TestContext):
-        raise TypeError("context is not TestContext")
-    Context = context
+Context:TestContext = TestContext()
 
 
 class BaseTest(TestInterface):

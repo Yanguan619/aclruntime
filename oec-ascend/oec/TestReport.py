@@ -47,15 +47,15 @@ def gen_report(path: str, context: TestContext):
     class info:
         def __init__(self):
             self.passed = 0
-            self.tests: dict[str, TestCase] = {}
+            self.tests:list[TestCase] = []
 
         def add(self, test: TestCase):
-            self.tests[test.name] = test
+            self.tests.append(test)
             self.passed += test.count() if test.is_passed() else 0
 
         @property
         def total(self):
-            return len(self.tests)
+            return sum([test.count() for test in self.tests])
 
     dic: dict[tuple, info] = {}
     for i in range(len(dft)):
@@ -79,12 +79,12 @@ def gen_report(path: str, context: TestContext):
         if inf.total != 0:
             dft.loc[k, "测试结果"] = f"{round(inf.passed/inf.total*100,2)}%"
             dft.loc[k, "结论"] = "PASS" if inf.passed == inf.total else "FAILED"
-        for name, test in inf.tests.items():
+        for test in inf.tests:
             g1, g2 = k
             details.loc[len(details)] = [
                 g1,
                 g2,
-                name,
+                test.name,
                 test.get_test_content(),
                 test.state.value,
             ]

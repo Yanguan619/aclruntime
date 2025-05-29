@@ -43,7 +43,7 @@ class TestCase(BaseTest):
         if isinstance(self._unexpected_code, int):
             self._unexpected_code = [self._unexpected_code]
 
-        logger.debug(f"test case{self.group[0]}.{self.group[1]}.{self.name()} ")
+        logger.debug(f"test case{self.group[0]}.{self.group[1]}.{self.name} ")
 
     def set_reason(self, reason: str):
         if not isinstance(reason, str):
@@ -64,19 +64,22 @@ class TestCase(BaseTest):
 
     def get_unexpected_code(self):
         return self._unexpected_code
-
+    
+    def get_relative_log_file_path(self):
+        return f"{self._context.relative_output}{os.sep}{self.name}.log"
+    
     def get_log_file_path(self):
-        return os.path.join(self.get_log_dir_path(), f"{self.name()}.log")
+        return os.path.join(self.get_log_dir_path(), f"{self.name}.log")
 
     def get_test_content(self):
         return (
-            self.get_log_file_path()
+            self.get_relative_log_file_path()
             if self.is_finished()
             else "No information due to the previous error."
         )
 
     def execute_command_with_cmd(self, cmd):
-        if self.state() != State.NOT_RUNNING:
+        if self.state != State.NOT_RUNNING:
             return
         if cmd is None:
             self.set_state(State.NOTHING_TO_DO)
@@ -115,7 +118,7 @@ class TestCase(BaseTest):
 
     def check_result(self, log: str, return_code):
         logger.debug(
-            f'\n>> {self.name()}{"(optional)" if self.is_optional() else ""} -> return {return_code} :\n File "{self.get_origin_path()}" :\n{log}'
+            f'\n>> {self.name}{"(optional)" if self.is_optional() else ""} -> return {return_code} :\n File "{self.get_origin_path()}" :\n{log}'
         )
         if self.get_include() is not None:
             for pattern in self.get_include():
@@ -123,7 +126,7 @@ class TestCase(BaseTest):
                 if result is None:
                     self.set_state(State.FAIL)
                     self.set_reason(
-                        f"'{pattern}' was not found in the output of {self.name()}, {self.get_log_file_path()}"
+                        f"'{pattern}' was not found in the output of {self.name}, {self.get_log_file_path()}"
                     )
                     return
 
@@ -138,7 +141,7 @@ class TestCase(BaseTest):
                     position = log.rfind("\n", 0, span[0])
                     position = span[0] - position
                     self.set_reason(
-                        f"Find '{pattern}' in the output of {self.name()}, {self.get_log_file_path()}:{lineno}:{position}"
+                        f"Find '{pattern}' in the output of {self.name}, {self.get_log_file_path()}:{lineno}:{position}"
                     )
                     return
 
@@ -146,7 +149,7 @@ class TestCase(BaseTest):
             if return_code not in self.get_expected_code():
                 self.set_state(State.FAIL)
                 self.set_reason(
-                    f"Then return code {return_code} of {self.name()} does not match any of {self.get_expected_code()}, {self.get_log_file_path()}"
+                    f"Then return code {return_code} of {self.name} does not match any of {self.get_expected_code()}, {self.get_log_file_path()}"
                 )
                 return
 
@@ -154,7 +157,7 @@ class TestCase(BaseTest):
             if return_code in self.get_unexpected_code():
                 self.set_state(State.FAIL)
                 self.set_reason(
-                    f"Then return code {return_code} of {self.name()} matches {self.get_expected_code()}, {self.get_log_file_path()}"
+                    f"Then return code {return_code} of {self.name} matches {self.get_expected_code()}, {self.get_log_file_path()}"
                 )
                 return
 

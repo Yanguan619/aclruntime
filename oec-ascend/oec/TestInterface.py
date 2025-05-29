@@ -3,6 +3,7 @@ from oec.BaseTypes import State
 
 
 class TestInterface:
+    @property
     def name(self) -> str:
         raise NotImplementedError()
 
@@ -21,7 +22,8 @@ class TestInterface:
 
     def get_log_dir_path(self) -> str:
         raise NotImplementedError()
-
+    
+    @property
     def state(self) -> State:
         raise NotImplementedError()
 

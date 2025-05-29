@@ -61,7 +61,8 @@ class BaseTest(TestInterface):
 
     def message_with_path(self, message):
         return f"{message} File {self.get_origin_path()}:{self.get_origin_lineno()}"
-
+    
+    @property
     def state(self):
         return self._state
 
@@ -69,7 +70,7 @@ class BaseTest(TestInterface):
         return self._cached
 
     def is_finished(self):
-        return self.state() not in [State.NOT_RUNNING, State.RUNNING]
+        return self.state not in [State.NOT_RUNNING, State.RUNNING]
 
     def can_continue(self):
         if self.is_passed():
@@ -81,12 +82,12 @@ class BaseTest(TestInterface):
         return False
 
     def is_failed(self):
-        if self.state() in [State.FAIL, State.TIMEOUT, State.UNSUPPORTED]:
+        if self.state in [State.FAIL, State.TIMEOUT, State.UNSUPPORTED]:
             return True
         return False
 
     def is_passed(self):
-        if self.state() in [State.PASS, State.NOTHING_TO_DO]:
+        if self.state in [State.PASS, State.NOTHING_TO_DO]:
             return True
         return False
 
@@ -116,7 +117,7 @@ class BaseTest(TestInterface):
         self._lock.acquire()
         if self.is_finished() and self.can_cached():
             logger.debug(
-                f"The test {self.name()} has been completed, using cached results"
+                f"The test {self.name} has been completed, using cached results"
             )
             return
         self.set_state(State.NOT_RUNNING)
@@ -127,7 +128,7 @@ class BaseTest(TestInterface):
             self.set_reason(f"{e}")
         if self.is_failed():
             logger.debug(
-                f"{self.name()} is {self.state().value}, reason: {self.get_reason()}"
+                f"{self.name} is {self.state.value}, reason: {self.get_reason()}"
             )
         self._lock.release()
 
@@ -141,7 +142,8 @@ class BaseTest(TestInterface):
         if not isinstance(name, str):
             raise TypeError("name must be a string")
         self._name = name
-
+    
+    @property
     def name(self):
         return self._name
 
@@ -163,7 +165,7 @@ class BaseTest(TestInterface):
     def set_state(self, state: State):
         if not isinstance(state, State):
             raise TypeError("state must be of type State")
-        self.context.distribution[self.state()] -= 1
+        self.context.distribution[self.state] -= 1
         self._state = state
         self.context.distribution[state] += 1
 
@@ -171,7 +173,7 @@ class BaseTest(TestInterface):
         raise NotImplementedError()
 
     def __str__(self):
-        return self.name()
+        return self.name
 
     def __repr__(self):
         return str(self)

@@ -1,5 +1,7 @@
 # encoding: utf-8
 import os
+import random
+from datetime import datetime
 import threading
 from importlib import import_module
 from oec.BaseTypes import State
@@ -11,12 +13,26 @@ from oec.TestInterface import TestInterface
 logger = getLogger("oec-ascend")
 
 
+def make_log_dir(log_dir):
+    logger.info(f"log dir is {log_dir}")
+    logger.info(f"create log path {log_dir}")
+    os.makedirs(log_dir)
+    return log_dir
+
+
 class TestContext(object):
 
     def __init__(self, output: str):
         self._all_tests: dict[str, TestInterface] = {}
-        log_dir = os.path.join(output, "logs")
-        self._output_dir = output
+
+        relative_output = (
+            f'{datetime.now().strftime("%Y%m%d-%H-%M-%S")}-{random.randint(100,999)}'
+        )
+        output_path = os.path.join(output, relative_output)
+        log_dir = os.path.join(output_path, "logs")
+        make_log_dir(log_dir)
+        self._output_dir = output_path
+        self._relative_output = relative_output
         self._defaut_log_dir = log_dir
         self._used_tests: dict[str, TestInterface] = {}
         self._test_order: list[list[TestInterface]] = []
@@ -46,6 +62,10 @@ class TestContext(object):
         )
 
     @property
+    def relative_output(self):
+        return self._relative_output
+
+    @property
     def distribution(self):
         return self._states_distribution
 
@@ -63,13 +83,13 @@ class TestContext(object):
         self._defaut_log_dir = path
 
     def add_test(self, test: TestInterface):
-        if test.name() in self._all_tests:
-            t2 = self._all_tests[test.name()]
+        if test.name in self._all_tests:
+            t2 = self._all_tests[test.name]
             raise RuntimeError(
-                f'"{test.name()}" in {test.get_origin_path()}:{test.get_origin_lineno()}'
+                f'"{test.name}" in {test.get_origin_path()}:{test.get_origin_lineno()}'
                 f" has been used in {t2.get_origin_path()}:{t2.get_origin_lineno()}"
             )
-        self._all_tests[test.name()] = test
+        self._all_tests[test.name] = test
 
     @property
     def test_order(self):
@@ -100,7 +120,7 @@ class TestContext(object):
         for name, test in tests.items():
             if test.group in tmp_dict:
                 tmp_dict[test.group].append(test)
-                used_test[test.name()] = test
+                used_test[test.name] = test
 
         for group, t in tmp_dict.items():
             if not t:
@@ -121,7 +141,7 @@ class TestContext(object):
         for item in order_list:
             threads: list[threading.Thread] = []
             for test in item:
-                t = threading.Thread(target=test.run, name=test.name())
+                t = threading.Thread(target=test.run, name=test.name)
                 t.start()
                 threads.append(t)
             for t in threads:

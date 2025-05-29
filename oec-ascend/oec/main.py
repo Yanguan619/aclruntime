@@ -97,19 +97,11 @@ def find_ascend_test_in_dir(path: str):
 
 def get_absolute_out_path(output):
     output_path = os.path.abspath(output)
-    output_path = os.path.join(
-        output_path,
-        f'{datetime.now().strftime("%Y%m%d-%H-%M-%S")}-{random.randint(100,999)}',
-    )
+
     return output_path
 
 
-def make_log_dir(output):
-    log_dir = os.path.join(output, "logs")
-    logger.info(f"log dir is {log_dir}")
-    logger.info(f"create log path {log_dir}")
-    os.makedirs(log_dir)
-    return log_dir
+
 
 
 def print_state(context: TestContext):
@@ -134,9 +126,8 @@ def main():
     cmd_args = argparse_handler()
     init_logger(logging.DEBUG if cmd_args.verbose else logging.INFO)
     logger.info(cmd_args)
+    output = os.path.abspath(cmd_args.output)
 
-    output = get_absolute_out_path(cmd_args.output)
-    make_log_dir(output)
     context = TestContext(output)
     set_default_context(context)
 

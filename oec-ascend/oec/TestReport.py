@@ -50,7 +50,7 @@ def gen_report(path: str, context: TestContext):
             self.tests: dict[str, TestCase] = {}
 
         def add(self, test: TestCase):
-            self.tests[test.name()] = test
+            self.tests[test.name] = test
             self.passed += test.count() if test.is_passed() else 0
 
         @property
@@ -86,7 +86,7 @@ def gen_report(path: str, context: TestContext):
                 g2,
                 name,
                 test.get_test_content(),
-                test.state().value,
+                test.state.value,
             ]
 
     # 保存excel

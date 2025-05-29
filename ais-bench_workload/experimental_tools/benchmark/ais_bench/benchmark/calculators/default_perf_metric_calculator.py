@@ -63,7 +63,7 @@ class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
         self.infer_time[stage_name] = max(result["end_time"]) - min(result["start_time"])
         per_request_avg_decode_time = []
         # Compute the average decode latency per request
-        for i, value in enumerate(result["seq_latency"]):
+        for i, value in enumerate(tqdm(result["seq_latency"], desc="Calculating TPOT")):
             if value:  # Skip empty lists
                 tpot = (value - result["prefill_latency"][i]) / result["generate_tokens_len"][i]
                 per_request_avg_decode_time.append(tpot)
@@ -137,7 +137,7 @@ class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
         ans = {mapping_value: [] for mapping_value in mapping.values()}
 
         # Use a dictionary comprehension to populate the values
-        for mapping_key, mapping_value in mapping.items():
+        for mapping_key, mapping_value in tqdm(mapping.items(), desc="Mapping perf results of stage"):
             for value in result[mapping_key]:
                 if isinstance(value, list):
                     ans[mapping_value].extend(value)

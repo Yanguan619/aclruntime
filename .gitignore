@@ -1,2 +1,4 @@
 __pycache__
 .vscode
+oec-ascend/output
+oec-ascend/oec_ascend.egg-info

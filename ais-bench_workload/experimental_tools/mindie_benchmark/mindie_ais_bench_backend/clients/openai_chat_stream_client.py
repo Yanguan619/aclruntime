@@ -2,12 +2,12 @@ from abc import ABC
 import json
 
 from ais_bench.benchmark.clients.base_client import BaseStreamClient
-from ais_bench.benchmark.utils import MiddleData
+from ais_bench.benchmark.utils.results import MiddleData
 from ais_bench.benchmark.registry import CLIENTS
 
 
 @CLIENTS.register_module()
-class OpenAIChatStreamClient(BaseStreamClient, ABC):
+class MindIEOpenAIChatStreamClient(BaseStreamClient, ABC):
     def preprocess_cur_line(self, cur_line: str) -> str:
         if "\ndata" in cur_line:
             end_ix = cur_line.find("data: [DONE]")
@@ -44,9 +44,7 @@ class OpenAIChatStreamClient(BaseStreamClient, ABC):
 
     def process_stream_line(self, json_content: dict) -> dict:
         response = {}
-        generated_text = ""
-        for item in json_content["choices"]:
-            generated_text += item["delta"]["content"]
+        generated_text = json_content["choices"][0]["delta"]["content"]
         if generated_text:
             response.update({"generated_text": generated_text})
         if self.do_performance:
@@ -64,8 +62,5 @@ class OpenAIChatStreamClient(BaseStreamClient, ABC):
         decode_time = res.get("decode_time")
         if decode_time:
             inputs.decode_cost.append(decode_time)
-        chunk_time_point = res.get("chunk_time_point")
-        if chunk_time_point:
-            inputs.chunk_time_point_list.append(chunk_time_point)
         inputs.num_generated_tokens += 1
         return generated_text

@@ -10,7 +10,7 @@ from ais_bench.benchmark.calculators.base_perf_metric_calculator import is_legal
 
 
 @PERF_METRIC_CALCULATORS.register_module()
-class DefaultPerfMetricCalculator(BasePerfMetricCalculator):
+class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
     def __init__(self, perf_details: dict, stats_list: list = DEFAULT_STATS):
         self.logger = get_logger()
         self.stage_dict = {

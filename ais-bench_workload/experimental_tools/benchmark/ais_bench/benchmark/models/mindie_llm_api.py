@@ -64,7 +64,6 @@ class MindieLLMModel(PerformanceModel):
         self.logger = get_logger()
         self.pa_runner = None
         self.rank_table_file = kwargs.get('rank_table_file')
-        # self.enable_detail_perf = kwargs.get('enable_detail_perf')
         if self.rank_table_file:
             os.environ['RANKTABLEFILE'] = self.rank_table_file
             try:
@@ -94,6 +93,62 @@ class MindieLLMModel(PerformanceModel):
 
     def warm_up(self):
         self.pa_runner.warm_up()
+ 
+    def merge_perf_datas(self):
+        ms = " ms"
+        unit_token = " token/s"
+        total_req = len(self.detail_perf_datas)
+        e2el = sum(self.batch_latencies)
+        if total_req <= 0 or e2el <= 0:
+            self.logger.warning("No performance data to merge, please check")
+            return {}
+        common_metric_units_map = {
+            "Benchmark Duration": ms,
+            "Total Requests": None,
+            "Request Throughput": " req/s",
+            "Total Input Tokens": None,
+            "Prefill Token Throughput": "",
+            "Input Token Throughput": unit_token,
+            "Total Output Tokens": None,
+            "Output Token Throughput": unit_token,
+            "Total Token Throughput": unit_token,
+        }
+        perf_key = "total"
+        merge_res = {
+            "Benchmark Duration": {perf_key: e2el * 1000},
+            "Total Requests": {perf_key: total_req},
+            "Request Throughput": {perf_key: total_req / e2el},
+            "Total Input Tokens": {
+                perf_key: sum(data["seq_len_in"] for data in self.detail_perf_datas)
+            },
+            "Prefill Token Throughput": {
+                perf_key: sum(data["seq_len_in"] for data in self.detail_perf_datas)
+                / sum(data["first_token_time"] for data in self.detail_perf_datas)
+            },
+            "Input Token Throughput": {
+                perf_key: sum(data["seq_len_in"] for data in self.detail_perf_datas) / e2el
+            },
+            "Total Output Tokens": {
+                perf_key: sum(data["seq_len_out"] for data in self.detail_perf_datas)
+            },
+            "Output Token Throughput": {
+                perf_key: sum(data["seq_len_out"] for data in self.detail_perf_datas) / e2el
+            },
+            "Total Token Throughput": {
+                perf_key: (
+                    sum(
+                        data["seq_len_in"] + data["seq_len_out"]
+                        for data in self.detail_perf_datas
+                    )
+                    / e2el
+                )
+            },
+        }
+        for key,value in merge_res.items():
+            value[perf_key] = str(round(value[perf_key], 4))
+            if common_metric_units_map[key]:
+                value[perf_key] += common_metric_units_map[key]
+        return merge_res
 
     def handle_perf_result(self, output_filepath, output_filename):
         e2e_latency = sum(self.batch_latencies)
@@ -103,9 +158,10 @@ class MindieLLMModel(PerformanceModel):
             json_path = os.path.join(output_filepath, f"pa_runner_special_perf_data_{output_filename}.json")
             with open(json_path, "w") as file:
                 json.dump(self.detail_perf_datas, file, ensure_ascii=False, indent=4)
+                
             self.logger.info(f"PARUNNER special performance datas saved in {json_path}")
-
-        return {"e2e_latency":str(round(e2e_latency * 1000, 4)) + ' ms'}
+            return self.merge_perf_datas()
+        return {"Benchmark Duration":{"total":str(round(e2e_latency, 4)) + ' ms'}}
 
     def get_model_or_runner(self, input_length, output_length, warmup_bs=0):
 

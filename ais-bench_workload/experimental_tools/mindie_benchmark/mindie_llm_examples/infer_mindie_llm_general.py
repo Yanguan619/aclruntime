@@ -24,9 +24,7 @@ models = [
             node_rank=0,    # 当前机器的id
             master_addr="localhost",   # 主机器的IP地址
             ),
-        enable_detail_perf = False,  # 是否dump详细的pa runner每个batch的性能数据， --perf模式下才有意义
         input_token_len = 16,        # 性能测评模式下期望用于模型推理的长度，建议不超过MindIE-LLM推理后端参数input_length
-
 
         ## 下列参数是用于拉起MindIE-LLM推理后端的参数，用于透传给MindIE-LLM后端，具体功能和含义由用户保证
         world_size = 2,  # 本次推理使用的卡总数

@@ -224,6 +224,9 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         if not batch_sizes:
             return []
 
+        if isinstance(batch_sizes[0], list): # 2 dims list to 1 dim list
+            batch_sizes = [item for sublist in copy.deepcopy(batch_sizes) for item in sublist]
+
         statistics = []
         count_dict = {}
 

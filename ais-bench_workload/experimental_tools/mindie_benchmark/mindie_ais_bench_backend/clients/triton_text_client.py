@@ -21,4 +21,6 @@ class TritonTextClient(BaseClient, ABC):
         if generated_text:
             inputs.output = generated_text
             inputs.num_generated_chars = len(generated_text)
+            inputs.prefill_latency = res["details"]["perf_stat"][0][1]
+            inputs.decode_cost = [res["details"]["perf_stat"][i + 1][1] for i in range(len(res["details"]["perf_stat"]) - 1)]
         return generated_text

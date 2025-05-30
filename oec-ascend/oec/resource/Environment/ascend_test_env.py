@@ -68,10 +68,10 @@ class HDKInfomationCase(TestCase):
             info['昇腾硬件'] = matches[0]
 
 OSInfomationCase(
-    group=("运行环境","操作系统"),
+    group=("运行环境","环境信息"),
     name='READ_OS_INFOMATION')
 
 HDKInfomationCase(
-    group=("运行环境","驱动"),
+    group=("运行环境","环境信息"),
     name='READ_DRIVER_INFOMATION',
     cmd = 'npu-smi info')

@@ -64,8 +64,9 @@ class StablePerfMetricCalculator(BasePerfMetricCalculator):
             elif len(working_reqs) >= int(self.max_concurrency * (1 - WAVE_OFFSET)) and len(id_lists) > 0:
                 id_lists.append(section["id"])
             else:
-                if len(id_lists) > 0:
+                if len(id_lists) > 0: # start to leave stable
                     self.stage_section[1] = min([perf_details["requests"]["end_time"][id] for id in poped_ids])
+                    break
 
         if len(id_lists) > 0:
             id_lists.pop(0) # ignore first request that reached max concurrency

@@ -27,7 +27,6 @@ class TritonStreamClient(BaseStreamClient, ABC):
         return response
 
     def update_middle_data(self, res: dict, inputs: MiddleData):
-        print(f"{res=}")
         generated_text = res.get("generated_text", "")
         if generated_text:
             inputs.output += generated_text

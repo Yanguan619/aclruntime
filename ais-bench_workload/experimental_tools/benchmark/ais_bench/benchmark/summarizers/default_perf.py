@@ -78,7 +78,7 @@ class DefaultPerfSummarizer:
                 with open(perf_details_file, 'r', encoding='utf-8') as file:
                     details_data = json.load(file)
                     plot_file_path = osp.join(self.work_dir, "performances", model, f"{dataset}_plot.html")
-                    plot_sorted_request_timelines(details_data["requests"]["chunk_time_point_list"], output_file=plot_file_path, unit="s")
+                    plot_sorted_request_timelines(details_data["requests"]["chunk_time_point_list"], output_file=plot_file_path, unit="s", logger=self.logger)
                     self.logger.info(f"Succeed! The {dataset}_plot has been saved in {plot_file_path}")
                 calculators_per_model[dataset] = build_perf_metric_calculator_from_cfg(calculator_conf, details_data)
             self.calculators[model] = calculators_per_model

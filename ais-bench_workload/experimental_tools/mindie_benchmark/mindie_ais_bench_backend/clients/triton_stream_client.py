@@ -34,11 +34,11 @@ class TritonStreamClient(BaseStreamClient, ABC):
         decode_time = res.get("decode_time")
         if decode_time:
             inputs.decode_cost.append(decode_time)
+            inputs.decode_batch_size.extend([res.get("batch_size", 0)] * (res.get("generated_tokens", 1) - self.last_generated_tokens))
         chunk_time_point = res.get("chunk_time_point")
         if chunk_time_point:
             inputs.chunk_time_point_list.append(chunk_time_point)
         inputs.num_generated_tokens += 1
-        inputs.decode_batch_size.extend([res.get("batch_size", 0)] * (res.get("generated_tokens", 1) - self.last_generated_tokens))
         inputs.queue_wait_time.append(res["queue_wait_time"])
         self.last_generated_tokens = res.get("generated_tokens", 1)
         return generated_text

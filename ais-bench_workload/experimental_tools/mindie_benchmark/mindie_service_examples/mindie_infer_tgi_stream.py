@@ -16,7 +16,6 @@ models = [
         attr="service", # model or service
         type=TGICustomAPIStream,
         abbr='tgi-stream-api-general',
-        model="",
         path="",
         request_rate = 0,
         retry = 2,

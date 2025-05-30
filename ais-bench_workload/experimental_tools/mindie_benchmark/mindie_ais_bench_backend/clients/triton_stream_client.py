@@ -11,6 +11,7 @@ class TritonStreamClient(BaseStreamClient, ABC):
         inputs: str,
         parameters: dict = None,
     ) -> dict:
+        parameters.update({"details": True})
         return dict(id=str(uuid.uuid4()), text_input=inputs, parameters=parameters)
 
     def process_stream_line(self, json_content: dict) -> dict:

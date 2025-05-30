@@ -11,6 +11,7 @@ class TritonTextClient(BaseClient, ABC):
         inputs: str,
         parameters: dict = None,
     ) -> dict:
+        parameters.update({"details": True})
         return dict(id=str(uuid.uuid4()), text_input=inputs, parameters=parameters)
 
     def update_middle_data(self, res: dict, inputs: MiddleData):

@@ -59,16 +59,17 @@ def argparse_handler():
     )
     
     parser.add_argument(
-        "--verbose", action="store_true", default=False, help="print verbose output"
-    )
-    
-    parser.add_argument(
         "-o",
         "--output",
         type=str,
         default="./output",
         help="Director to save results and log output",
     )
+
+    parser.add_argument(
+        "--verbose", action="store_true", default=False, help="print verbose output"
+    )
+    
     args = parser.parse_args()
     return args
 
@@ -168,7 +169,7 @@ def main():
     logger.info(f"Complete!")
 
     gen_report(resource, Context)
-    logger.info(f"Generate an execution report with the path {output}")
+    logger.info(f"Generate an execution report with the path {Context.get_output_dir()}")
 
 
 if __name__ == "__main__":

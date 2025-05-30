@@ -11,12 +11,14 @@ from ais_bench.benchmark.calculators.base_perf_metric_calculator import is_legal
 
 @PERF_METRIC_CALCULATORS.register_module()
 class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
-    def __init__(self, perf_details: dict, stats_list: list = DEFAULT_STATS):
+    def __init__(self, stats_list: list = DEFAULT_STATS):
         self.logger = get_logger()
+        self._get_legal_stats_list(stats_list)
+
+    def _init_datas(self, perf_details: dict):
         self.stage_dict = {
             "total": self._get_requests_id(perf_details)
         }
-        self._get_legal_stats_list(stats_list)
         self.result = {}
         self.max_concurrency = perf_details["task"]["max_concurrency"]
         self.data_count = {}
@@ -24,8 +26,6 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         self.success_count = {}
         self.empty_count = {}
         self.infer_time = {}
-        self.ttft_sum = {}
-        self.chars_sum = {}
         self.metrics = {}
         self.common_metrics = {}
 
@@ -69,6 +69,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             result["average_decode_latencies"] = per_request_avg_decode_time[:]
         else:
             result["average_decode_latencies"] = result["prefill_latency"]
+        self.logger.info("Converting perf results of stage ...")
         self.result[stage_name] = self.convert_result(copy.deepcopy(result))
 
     def get_common_res(self):

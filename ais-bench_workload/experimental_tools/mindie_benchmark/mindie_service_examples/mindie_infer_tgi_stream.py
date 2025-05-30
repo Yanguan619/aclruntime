@@ -6,8 +6,9 @@ from ais_bench.benchmark.clients import TGIStreamClient
 
 with read_base():
     from ais_bench.benchmark.configs.datasets.synthetic.synthetic_gen import synthetic_datasets
+    from ais_bench.benchmark.configs.datasets.gsm8k.gsm8k_gen_0_shot_cot_str_perf import gsm8k_datasets
 
-datasets = [ # all_dataset_configs.py中导入了其他数据集配置，可以将gsm8k_0_shot_cot_chat替换为其他一个或多个数据集
+datasets = [ # all_dataset_configs.py中导入了其他数据集配置，可以将synthetic_datasets替换为其他一个或多个数据集
     *synthetic_datasets,
 ]
 

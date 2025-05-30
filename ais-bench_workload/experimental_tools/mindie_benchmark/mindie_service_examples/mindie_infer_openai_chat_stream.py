@@ -2,7 +2,7 @@ from mmengine.config import read_base
 from ais_bench.benchmark.models import VLLMCustomAPIChatStream
 from ais_bench.benchmark.summarizers import DefaultPerfSummarizer
 from ais_bench.benchmark.calculators import DefaultPerfMetricCalculator
-from ais_bench.benchmark.clients.openai_chat_stream_client import OpenAIChatStreamClient
+from ais_bench.benchmark.clients import OpenAIChatStreamClient
 
 with read_base():
     from ais_bench.benchmark.configs.datasets.synthetic.synthetic_gen import synthetic_datasets
@@ -23,7 +23,7 @@ models = [
         host_ip = "xx.xx.xx.xx", # 推理服务的IP
         host_port = 8080, # 推理服务的端口
         enable_ssl = False,
-        max_out_len = 1, # 最大输出tokens长度
+        max_out_len = 10, # 最大输出tokens长度
         batch_size=10, # 推理的最大并发数
         custom_client=dict(type=OpenAIChatStreamClient),
         generation_kwargs = dict( # 后处理参数参考https://docs.vllm.ai/en/latest/api/inference_params.html#sampling-params 中的Parameters

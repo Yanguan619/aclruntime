@@ -1,5 +1,3 @@
 from mindie_ais_bench_backend.clients.triton_stream_client import TritonStreamClient
-from mindie_ais_bench_backend.clients.tgi_text_client import TGITextClient
 from mindie_ais_bench_backend.clients.triton_text_client import TritonTextClient
-from mindie_ais_bench_backend.clients.openai_text_client import OpenAITextClient
 from mindie_ais_bench_backend.clients.openai_chat_text_client import OpenAIChatTextClient

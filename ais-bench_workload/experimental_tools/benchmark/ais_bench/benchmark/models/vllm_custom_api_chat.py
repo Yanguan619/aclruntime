@@ -1,16 +1,9 @@
-import json
 import os
-import random
-import re
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-from threading import Lock
 from typing import Any, Dict, List, Optional, Union, Tuple
 
-import httpx
-import jieba
-import requests
 from tqdm import tqdm
 
 from openai import OpenAI
@@ -47,6 +40,7 @@ class VLLMCustomAPIChat(PerformanceAPIModel):
     """
 
     is_api: bool = True
+    is_chat_api: bool = True
 
     def __init__(self,
                  path: str = "",
@@ -76,6 +70,7 @@ class VLLMCustomAPIChat(PerformanceAPIModel):
         self.base_url = self._get_base_url()
         self.endpoint_url = os.path.join(self.base_url, "chat/completions")
         self.model= model if model else self._get_service_model_path()
+        self.is_multi_modal = False
         self.init_client(custom_client)
 
     def init_client(self, custom_client):
@@ -169,7 +164,10 @@ class VLLMCustomAPIChat(PerformanceAPIModel):
         if max_out_len <= 0:
             return ''
 
-        if isinstance(input, (str, list)):
+        if isinstance(input, str) or self.is_multi_modal:
+            messages = [{'role': 'user', 'content': input}]
+        elif is_mm_prompt(input):
+            self.is_multi_modal = True
             messages = [{'role': 'user', 'content': input}]
         else:
             messages = []
@@ -222,6 +220,7 @@ class VLLMCustomAPIChatStream(PerformanceAPIModel):
     """
 
     is_api: bool = True
+    is_chat_api: bool = True
 
     def __init__(self,
                  path,

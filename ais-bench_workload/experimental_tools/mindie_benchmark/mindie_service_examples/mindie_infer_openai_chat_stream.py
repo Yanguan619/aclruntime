@@ -1,7 +1,7 @@
 from mmengine.config import read_base
 from ais_bench.benchmark.models import VLLMCustomAPIChatStream
 from ais_bench.benchmark.summarizers import DefaultPerfSummarizer
-from ais_bench.benchmark.calculators import DefaultPerfMetricCalculator
+from mindie_ais_bench_backend.calculators import MindIEPerfMetricCalculator
 from ais_bench.benchmark.clients import OpenAIChatStreamClient
 
 with read_base():
@@ -36,7 +36,7 @@ models = [
 summarizer = dict(
     type=DefaultPerfSummarizer,
     calculator=dict(
-        type=DefaultPerfMetricCalculator,
+        type=MindIEPerfMetricCalculator,
         stats_list=["Average", "Min", "Max", "Median", "P75", "P90", "P99"],
     )
 )

@@ -1,0 +1,4 @@
+# MANIFEST.in
+recursive-include oec/resource *
+global-exclude __pycache__
+global-exclude *.pyc

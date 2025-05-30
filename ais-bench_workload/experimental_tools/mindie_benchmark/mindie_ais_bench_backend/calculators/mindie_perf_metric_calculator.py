@@ -28,6 +28,8 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         self.infer_time = {}
         self.metrics = {}
         self.common_metrics = {}
+        self.ttft_sum = {}
+        self.chars_sum = {}
 
         for stage_name, _ in self.stage_dict.items():
             self._process_result(perf_details.get("requests"), stage_name)

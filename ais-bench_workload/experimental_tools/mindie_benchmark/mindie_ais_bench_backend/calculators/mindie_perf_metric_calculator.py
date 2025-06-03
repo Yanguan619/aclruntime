@@ -253,7 +253,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         common_metric_names = ["Benchmark Duration", "Total Requests", "Failed Requests", "Success Requests",
             "Concurrency", "Max Concurrency", "Request Throughput", "Total Input Tokens",
             "Prefill Token Throughput", "Total generated tokens", "Input Token Throughput",
-            "Output Token Throughput", "Total Token Throughput", "ipct", "GenerateSpeedPerClient",
+            "Output Token Throughput", "Total Token Throughput", "Ipct", "GenerateSpeedPerClient",
             "CharacterPerToken"]
         for name in common_metric_names:
             if self.common_metrics.get(name) is None:
@@ -288,7 +288,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
                 self.common_metrics.pop("Prefill Token Throughput", None)
 
             self.common_metrics["Total generated tokens"][stage_name] = sum(self.result[stage_name]["OutputTokens"])
-            self.common_metrics["ipct"][stage_name] = self.ttft_sum[stage_name] / \
+            self.common_metrics["Ipct"][stage_name] = self.ttft_sum[stage_name] / \
                 (self.common_metrics["Total generated tokens"][stage_name] + self.common_metrics["Total Input Tokens"][stage_name])
             self.common_metrics["CharacterPerToken"][stage_name] = self.chars_sum[stage_name] / \
                 self.common_metrics["Total generated tokens"][stage_name]
@@ -351,7 +351,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             "Total Output Tokens": None,
             "Output Token Throughput": unit_token,
             "Total Token Throughput": unit_token,
-            "ipct": unit_token,
+            "Ipct": unit_token,
             "CharacterPerToken": None,
         }
 

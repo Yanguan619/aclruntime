@@ -24,6 +24,12 @@ ATCTest(
 
 oec.TestCase(
     group= ("模型开发","模型编译"),
+    name="MODEL_ATC_PB_TO_JSON_DESC",
+    cmd=f"atc --mode=1 --om={oec.Context.data_path}/model/model_tf.pb  --json=out/model.json  --framework=3"
+)
+
+oec.TestCase(
+    group= ("模型开发","模型编译"),
     name = "MODEL_ATC_CLEAN_OUTPUT",
     cmd="rm -rf out && rm -rf fusion_result.json",
     auxiliary=True,

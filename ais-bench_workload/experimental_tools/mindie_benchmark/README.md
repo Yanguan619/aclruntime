@@ -53,7 +53,7 @@ ASCEND_RT_VISIBLE_DEVICES=<device_id> ais_bench <config_file_path>
 
 ## 使用场景说明
 
-MIndIE benchmark支持单机和多机的精度和性能测评，改动配置文件内的参数就可切换对应的模式。配置文件中的参数主要分成两部分：[AISBench模式控制](#模式控制参数说明)和MIndIE-LLM模型推理配置参数。MIndIE配置参数用于透传给MIndIE推理后端，当前提供单机和多机拉起模型测评的参数配置样例和说明。下面会对各种场景下需要修改的常见参数进行举例说明。
+MindIE benchmark支持单机和多机的精度和性能测评，改动配置文件内的参数就可切换对应的模式。配置文件中的参数主要分成两部分：[AISBench模式控制](#模式控制参数说明)和MIndIE-LLM模型推理配置参数。MIndIE配置参数用于透传给MIndIE推理后端，当前提供单机和多机拉起模型测评的参数配置样例和说明。下面会对各种场景下需要修改的常见参数进行举例说明。
 
 ### 纯模型单机数据集精度测评
 
@@ -275,7 +275,7 @@ work_dir = 'outputs/mindie-llm-model/' # 工作路径
 
 ### 纯模型性能测评
 
-MIndIE benchmark工具提供了纯模型单机数据集性能测评功能，用户只需配置好数据集、模型、推理参数等信息，即可快速进行数据集性能测评。
+MindIE benchmark工具提供了纯模型单机数据集性能测评功能，用户只需配置好数据集、模型、推理参数等信息，即可快速进行数据集性能测评。
 
 单机场景下拉起任务的指令示例：
 ```shell
@@ -392,7 +392,7 @@ work_dir = 'outputs/mindie-llm-model/' # 工作路径
 
 ### 服务化性能测评
 
-MIndIE benchmark工具提供了服务化api性能测评功能，用户只需配置好数据集、模型、推理参数等信息，即可快速进行数据集性能测评。
+MindIE benchmark工具提供了服务化api性能测评功能，用户只需配置好数据集、模型、推理参数等信息，即可快速进行数据集性能测评。
 #### 前置准备
 进入AISBench benchmark的工作路径，编辑`ais_bench/benchmark/global_consts.py`文件，加入MindIE benchmark的包：
 ```python

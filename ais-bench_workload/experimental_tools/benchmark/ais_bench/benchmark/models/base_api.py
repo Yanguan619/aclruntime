@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from time import sleep
 from typing import Dict, List, Optional, Tuple, Union, Any
 
-from ais_bench.benchmark.utils import get_logger
+from ais_bench.benchmark.utils import get_logger, PRESSURE_TIME_MAX, PRESSURE_TIME_MIN, CONNECTION_ADD_RATE_MIN
 from ais_bench.benchmark.global_consts import PRESSURE_TIME, CONNECTION_ADD_RATE
 from ais_bench.benchmark.utils.prompt import PromptList, is_mm_prompt
 
@@ -314,6 +314,15 @@ class BaseAPIModel(BaseModel):
         max_out_len = extra_gen_kwargs.get("max_out_len", 1)
         concurrency = extra_gen_kwargs.get("concurrency")
         total_concurrency = extra_gen_kwargs.get("total_concurrency")
+        if PRESSURE_TIME > PRESSURE_TIME_MAX:
+            self.logger.warning(f"PRESSURE_TIME is larger than {PRESSURE_TIME_MAX}, will be set to {PRESSURE_TIME_MAX}")
+            PRESSURE_TIME = PRESSURE_TIME_MAX
+        elif PRESSURE_TIME < PRESSURE_TIME_MIN:
+            self.logger.warning(f"PRESSURE_TIME is smaller than {PRESSURE_TIME_MIN}, will be set to {PRESSURE_TIME_MIN}")
+            PRESSURE_TIME = PRESSURE_TIME_MAX
+        if CONNECTION_ADD_RATE < CONNECTION_ADD_RATE_MIN:
+            self.logger.warning(f"CONNECTION_ADD_RATE is smaller than {CONNECTION_ADD_RATE_MIN}, will be set to {CONNECTION_ADD_RATE_MIN}")
+            CONNECTION_ADD_RATE = CONNECTION_ADD_RATE_MIN
 
         thread_lock = threading.Lock()
         def generate_before_timeout(shared_inputs, total_input_idx, max_out_len):

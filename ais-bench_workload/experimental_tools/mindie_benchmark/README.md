@@ -6,12 +6,13 @@
 
 MindIE benchmark工具依赖MindIE提供推理能力，以及AISBench benchmark提供拉起测评的能力，需要提前准备好上述两个环境。
 
-工具的使用需要拉取源码：
+工具的使用需要拉取源码并安装：
 ```shell
 git clone https://gitee.com/ascend/tools.git
 cd tools/
 git checkout develop
 cd ais-bench_workload/experimental_tools/mindie_benchmark # mindie_llm_examples文件夹内存储着拉起MindIE-LLM纯模型后端测评的参数配置文件
+pip3 install -e ./ # 安装mindie_ais_bench_backend
 ```
 
 参考下列指导进行依赖环境的安装：
@@ -52,9 +53,9 @@ ASCEND_RT_VISIBLE_DEVICES=<device_id> ais_bench <config_file_path>
 
 ## 使用场景说明
 
-MIndIE benchmark支持单机和多机的精度和性能测评，改动配置文件内的参数就可切换对应的模式。配置文件中的参数主要分成两部分：[AISBench模式控制](#模式控制参数说明)和MIndIE-LLM模型推理配置参数。MIndIE配置参数用于透传给MIndIE推理后端，当前提供单机和多机拉起模型测评的参数配置样例和说明。下面会对各种场景下需要修改的常见参数进行举例说明。
+MindIE benchmark支持单机和多机的精度和性能测评，改动配置文件内的参数就可切换对应的模式。配置文件中的参数主要分成两部分：[AISBench模式控制](#模式控制参数说明)和MIndIE-LLM模型推理配置参数。MIndIE配置参数用于透传给MIndIE推理后端，当前提供单机和多机拉起模型测评的参数配置样例和说明。下面会对各种场景下需要修改的常见参数进行举例说明。
 
-### 单机数据集精度测评
+### 纯模型单机数据集精度测评
 
 单机场景下拉起任务的指令示例：
 ```shell
@@ -92,18 +93,18 @@ models = [
     dict(
         ## 下列参数用于控制AISBench benchmark工具实现功能
         type=MindieLLMModel,
-        attr="local", 
+        attr="local",
         abbr='mindie-llm-api',
-        max_out_len = 1024, 
-        run_cfg = dict( 
-            num_gpus=2, 
+        max_out_len = 1024,
+        run_cfg = dict(
+            num_gpus=2,
             num_procs=2,
-            nnodes=1, 
-            node_rank=0, 
+            nnodes=1,
+            node_rank=0,
             master_addr="localhost",
             ),
         enable_detail_perf = False,
-        input_token_len = 16, 
+        input_token_len = 16,
 
 
         ## 下列参数是用于拉起MindIE-LLM推理后端的参数，用于透传给MindIE-LLM后端，具体功能和含义由用户保证
@@ -131,7 +132,7 @@ models = [
         microbatch_size = -1,
 
         rank_table_file = "",  # 多机模式下，rank_table路径
-        
+
         environ_kwargs = dict(  # mindie-llm推理后端所需的环境变量配置, 具体模型有对应所需的环境变量
             ATB_LAYER_INTERNAL_TENSOR_REUSE = "1",
             ATB_OPERATION_EXECUTE_ASYNC = "1",
@@ -153,7 +154,7 @@ models = [
 work_dir = 'outputs/mindie-llm-model/' # 工作路径
 ```
 
-### 多机数据集精度测评
+### 纯模型多机数据集精度测评
 
 多机场景下拉起任务时，需要在每个机器上都配置好AISBench运行环境以及运行对应指令示例：
 ```shell
@@ -211,18 +212,18 @@ models = [
     dict(
         ## 下列参数用于控制AISBench benchmark工具实现功能
         type=MindieLLMModel,
-        attr="local", 
+        attr="local",
         abbr='mindie-llm-api',
-        max_out_len = 15360,  
-        run_cfg = dict( 
-            num_gpus=8,  
-            num_procs=8, 
-            nnodes=2,      
-            node_rank=0,   
-            master_addr="localhost",   
+        max_out_len = 15360,
+        run_cfg = dict(
+            num_gpus=8,
+            num_procs=8,
+            nnodes=2,
+            node_rank=0,
+            master_addr="localhost",
             ),
-        enable_detail_perf = False, 
-        input_token_len = 16, 
+        enable_detail_perf = False,
+        input_token_len = 16,
 
 
         ## 下列参数是用于拉起MindIE-LLM推理后端的参数，用于透传给MindIE-LLM后端，具体功能和含义由用户保证
@@ -250,7 +251,7 @@ models = [
         microbatch_size = -1,
 
         rank_table_file = "",  # 多机模式下，rank_table路径
-        
+
         environ_kwargs = dict(  # mindie-llm推理后端所需的环境变量配置, 具体模型有对应所需的环境变量
             ATB_LAYER_INTERNAL_TENSOR_REUSE = "1",
             ATB_OPERATION_EXECUTE_ASYNC = "1",
@@ -272,9 +273,9 @@ models = [
 work_dir = 'outputs/mindie-llm-model/' # 工作路径
 ```
 
-### 性能测评
+### 纯模型性能测评
 
-MIndIE benchmark工具提供了单机数据集性能测评功能，用户只需配置好数据集、模型、推理参数等信息，即可快速进行数据集性能测评。
+MindIE benchmark工具提供了纯模型单机数据集性能测评功能，用户只需配置好数据集、模型、推理参数等信息，即可快速进行数据集性能测评。
 
 单机场景下拉起任务的指令示例：
 ```shell
@@ -309,18 +310,18 @@ models = [
     dict(
         ## 下列参数用于控制AISBench benchmark工具实现功能
         type=MindieLLMModel,
-        attr="local", 
+        attr="local",
         abbr='mindie-llm-api',
-        max_out_len = 1024, 
-        run_cfg = dict( 
-            num_gpus=2, 
+        max_out_len = 1024,
+        run_cfg = dict(
+            num_gpus=2,
             num_procs=2,
-            nnodes=1, 
-            node_rank=0, 
+            nnodes=1,
+            node_rank=0,
             master_addr="localhost",
             ),
         enable_detail_perf = True,
-        input_token_len = 16, 
+        input_token_len = 16,
 
 
         ## 下列参数是用于拉起MindIE-LLM推理后端的参数，用于透传给MindIE-LLM后端，具体功能和含义由用户保证
@@ -348,7 +349,7 @@ models = [
         microbatch_size = -1,
 
         rank_table_file = "",  # 多机模式下，rank_table路径
-        
+
         environ_kwargs = dict(  # mindie-llm推理后端所需的环境变量配置, 具体模型有对应所需的环境变量
             ATB_LAYER_INTERNAL_TENSOR_REUSE = "1",
             ATB_OPERATION_EXECUTE_ASYNC = "1",
@@ -387,3 +388,148 @@ work_dir = 'outputs/mindie-llm-model/' # 工作路径
 | Throughput(Token/s)       | 吞吐量 |
 | Non-first token Throughput Average(Token/s)   | 非首token平均吞吐量 |
 | E2E Throughput Average(Token/s)           | 平均吞吐量  |
+
+
+### 服务化性能测评
+
+MindIE benchmark工具提供了服务化api性能测评功能，用户只需配置好数据集、模型、推理参数等信息，即可快速进行数据集性能测评。
+#### 前置准备
+进入AISBench benchmark的工作路径，编辑`ais_bench/benchmark/global_consts.py`文件，加入MindIE benchmark的包：
+```python
+CUSTOM_PACKAGE_DIR=[
+    "mindie_ais_bench_backend",
+]
+
+# ...
+
+```
+
+#### 命令示例
+以openai文本对话接口为例，执行如下命令打开配置文件：
+```bash
+cd ais-bench_workload/experimental_tools/mindie_benchmark
+vi mindie_service_examples/mindie_infer_openai_chat_text.py
+```
+配置文件内容如下，按照服务的时间情况配置相关参数：
+
+```python
+from mmengine.config import read_base
+from ais_bench.benchmark.models import VLLMCustomAPIChat
+from ais_bench.benchmark.summarizers import DefaultPerfSummarizer
+from mindie_ais_bench_backend.calculators import MindIEPerfMetricCalculator
+from mindie_ais_bench_backend.clients import OpenAIChatTextClient
+
+with read_base():
+    from ais_bench.benchmark.configs.datasets.synthetic.synthetic_gen import synthetic_datasets
+    from ais_bench.benchmark.configs.datasets.gsm8k.gsm8k_gen_0_shot_cot_str_perf import gsm8k_datasets
+
+datasets = [ # all_dataset_configs.py中导入了其他数据集配置，可以将synthetic_datasets替换为其他一个或多个数据集
+    *synthetic_datasets,
+]
+
+models = [
+    dict(
+        attr="service", # model or service
+        type=VLLMCustomAPIChat,
+        abbr='vllm-api-general-chat',
+        model="",
+        path="",
+        request_rate = 0,
+        retry = 2,
+        host_ip = "xx.xx.xx.xx", # 推理服务的IP
+        host_port = 8080, # 推理服务的端口
+        enable_ssl = False,
+        max_out_len = 10, # 最大输出tokens长度
+        batch_size=10, # 推理的最大并发数
+        custom_client=dict(type=OpenAIChatTextClient),
+        generation_kwargs = dict( # 后处理参数参考vllm的官方文档
+            temperature = 0,
+            ignore_eos = True,
+        )
+    )
+]
+
+summarizer = dict(
+    type=DefaultPerfSummarizer,
+    calculator=dict(
+        type=MindIEPerfMetricCalculator,
+        stats_list=["Average", "Min", "Max", "Median", "P75", "P90", "P99"],
+    )
+)
+
+
+work_dir = 'outputs/api-vllm-general-chat/'
+
+
+```
+执行如下命令启动性能评测
+```bash
+# python <任务配置文件> --mode perf --debug
+python mindie_service_examples/mindie_infer_openai_chat_text.py --mode perf --debug
+```
+**注:** 任务配置文件参考[支持的性能评测任务类型](#支持的性能评测任务类型)获取所有支持的评测任务
+
+#### 支持的性能评测任务类型
+|任务配置文件|输入格式|流式/文本|
+| ---- | ---- | ---- |
+|[mindie_infer_openai_chat_text.py](mindie_service_examples/mindie_infer_openai_chat_text.py)|对话|文本|
+|[mindie_infer_openai_chat_stream.py](mindie_service_examples/mindie_infer_openai_chat_stream.py)|对话|流式|
+|[mindie_infer_openai_stream.py](mindie_service_examples/mindie_infer_openai_stream.py)|字符串|流式|
+|[mindie_infer_tgi_stream.py](mindie_service_examples/mindie_infer_tgi_stream)|字符串|流式|
+|[mindie_infer_triton_stream.py](mindie_service_examples/mindie_infer_triton_stream)|字符串|流式|
+|[mindie_infer_triton_text.py](mindie_service_examples/mindie_infer_openai_chat_text.py)|字符串|文本|
+
+
+#### 性能结果说明
+##### 单个推理请求性能输出结果
+部分统计指标解释如下所示：
++ P75：以DecodeTime为例，所有请求的DecodeTime的75分位。
++ P90：以DecodeTime为例，所有请求的DecodeTime的90分位。
++ P99：以DecodeTime为例，所有请求的DecodeTime的99分位。
++ Latency：单个请求的时延
++ TTFT（Time To First Token）:首token时延
++ TPOT（Time Per Output Token）：每个输出token的平均时延，请求粒度，不含首token
++ ITL（Inter-token Latency）：token间时延，不含首token
++ InputTokens：输入token长度
++ OutputTokens：输出token长度
++ PrefillTokenThroughput：prefill吞吐率
++ OutputTokenThroughput：output吞吐率
++ GeneratedCharacters：生成的字符串长度
++ PrefillBatchsize: 服务端prefill阶段的batch size
++ DecoderBatchsize: 服务端decode阶段的batch size
++ QueueWaitTime: 服务端每个请求的队列等待时间
+
+
+|Performance Parameters|Average|Max|Min|Median|P75|P90|P99|N|
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+|Latency|平均请求时延|最大请求时延|最小请求时延|请求时延中位数|请求时延75分位值|请求时延90分位值|请求时延99分位值|测试数据量，来源于输入参数|
+|TTFT|首个token平均时延|首个token最大时延|首个token最小时延|首个token中位数时延|首个token75分位时延|首个token90分位时延|首个token99分位时延|测试数据量，来源于输入参数|
+|TPOT|Decode阶段平均时延|最大Decode阶段时延|最小Decode阶段时延|Decode阶段中位数时延|75分位Decode阶段时延|90分位每条请求Decode阶段平均时延|99分位Decode阶段时延|测试数据量，来源于输入参数|
+|ITL|token间平均时延|token间最大时延|token间最小时延|token间中位数时延|token间75分位时延|token间90分位时延|token间99分位时延|测试数据量，来源于输入参数|
+|InputTokens|输入token平均长度|最大输入token长度|最小输入token长度|输入token中位数长度|75分位输入token长度|90分位输入token长度|99分位输入token长度|测试数据量，来源于输入参数|
+|OutputTokens|输出token平均长度|最大输出token长度|最小输出token长度|输出token中位数长度|75分位输出token长度|90分位输出token长度|99分位输出token长度|测试数据量，来源于输入参数|
+|PrefillTokenThroughput|平均prefill吞吐|最大prefill吞吐|最小prefill吞吐|中位数prefill吞吐|prefill吞吐75分位|prefill吞吐90分位|prefill吞吐99分位|测试数据量，来源于输入参数|
+|OutputTokenThroughput|平均输出吞吐|最大输出吞吐|最小输出吞吐|中位数输出吞吐|输出吞吐75分位|输出吞吐90分位|输出吞吐99分位|测试数据量，来源于输入参数|
+|GeneratedCharacters|平均生成的字符串长度|最大生成的字符串长度|最小生成的字符串长度|中位数生成的字符串长度|生成的字符串长度75分位|生成的字符串长度90分位|生成的字符串长度99分位|测试数据量，来源于输入参数|
+|PrefillBatchsize|平均prefill阶段的batch size|最大prefill阶段的batch size|最小prefill阶段的batch size|中位数prefill阶段的batch size|prefill阶段的batch size75分位|prefill阶段的batch size90分位|prefill阶段的batch size99分位|测试数据量，来源于输入参数|
+|DecoderBatchsize|平均decode阶段的batch size|最大decode阶段的batch size|最小decode阶段的batch size|中位数decode阶段的batch size|decode阶段的batch size75分位|decode阶段的batch size90分位|decode阶段的batch size99分位|测试数据量，来源于输入参数|
+|QueueWaitTime|平均队列等待时间|最大队列等待时间|最小队列等待时间|中位数队列等待时间|队列等待时间75分位|队列等待时间90分位|队列等待时间99分位|测试数据量，来源于输入参数|
+
+##### 端到端性能输出结果
+|参数|说明|
+| ---- | ---- |
+|Benchmark Duration|测试总耗时|
+|Total Requests|测试数据量|
+|Failed Requests|失败请求数据量（包含空和未返回数据的响应）|
+|Success Requests|返回请求总数据量（包含非空和空）|
+|Concurrency|实际测试并发数|
+|Max Concurrency|最大测试并发数|
+|Request Throughput|请求吞吐率|
+|Total Input Tokens|输入总token数|
+|Prefill Token Throughput|prefill吞吐率|
+|Total generated tokens|输出总token数|
+|Input Token Throughput|输入吞吐率|
+|Output Token Throughput|输出吞吐率|
+|Total Token Throughput|总吞吐率|
+|Ipct|首token总时延/输入总token数|
+|CharacterPerToken|每个token平均生成的字符数|

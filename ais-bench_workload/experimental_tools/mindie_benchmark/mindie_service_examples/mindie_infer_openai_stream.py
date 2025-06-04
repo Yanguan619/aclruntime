@@ -1,8 +1,8 @@
 from mmengine.config import read_base
-from ais_bench.benchmark.models import TGICustomAPIStream
+from ais_bench.benchmark.models import VLLMCustomAPIStream
 from ais_bench.benchmark.summarizers import DefaultPerfSummarizer
 from mindie_ais_bench_backend.calculators import MindIEPerfMetricCalculator
-from ais_bench.benchmark.clients import TGIStreamClient
+from ais_bench.benchmark.clients import OpenAIStreamClient
 
 with read_base():
     from ais_bench.benchmark.configs.datasets.synthetic.synthetic_gen import synthetic_datasets
@@ -15,8 +15,9 @@ datasets = [ # all_dataset_configs.py中导入了其他数据集配置，可以�
 models = [
     dict(
         attr="service", # model or service
-        type=TGICustomAPIStream,
-        abbr='tgi-stream-api-general',
+        type=VLLMCustomAPIStream,
+        abbr='vllm-api-general-stream',
+        model="",
         path="",
         request_rate = 0,
         retry = 2,
@@ -25,9 +26,10 @@ models = [
         enable_ssl = False,
         max_out_len = 10, # 最大输出tokens长度
         batch_size=10, # 推理的最大并发数
-        custom_client=dict(type=TGIStreamClient),
-        generation_kwargs = dict( # 后处理参数参考TGI接口的官方文档
-            min_new_tokens = 10,
+        custom_client=dict(type=OpenAIStreamClient),
+        generation_kwargs = dict(  # 后处理参数参考vllm的官方文档
+            temperature = 0,
+            ignore_eos = True,
         )
     )
 ]
@@ -41,4 +43,4 @@ summarizer = dict(
 )
 
 
-work_dir = 'outputs/tgi-stream-api-general/'
+work_dir = 'outputs/vllm-api-general-stream/'

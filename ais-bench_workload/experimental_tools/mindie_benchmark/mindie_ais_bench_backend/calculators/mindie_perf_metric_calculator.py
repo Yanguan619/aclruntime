@@ -11,12 +11,14 @@ from ais_bench.benchmark.calculators.base_perf_metric_calculator import is_legal
 
 @PERF_METRIC_CALCULATORS.register_module()
 class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
-    def __init__(self, perf_details: dict, stats_list: list = DEFAULT_STATS):
+    def __init__(self, stats_list: list = DEFAULT_STATS):
         self.logger = get_logger()
+        self._get_legal_stats_list(stats_list)
+
+    def _init_datas(self, perf_details: dict):
         self.stage_dict = {
             "total": self._get_requests_id(perf_details)
         }
-        self._get_legal_stats_list(stats_list)
         self.result = {}
         self.max_concurrency = perf_details["task"]["max_concurrency"]
         self.data_count = {}
@@ -26,6 +28,8 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         self.infer_time = {}
         self.metrics = {}
         self.common_metrics = {}
+        self.ttft_sum = {}
+        self.chars_sum = {}
 
         for stage_name, _ in self.stage_dict.items():
             self._process_result(perf_details.get("requests"), stage_name)
@@ -55,13 +59,19 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         self.success_count[stage_name] = sum(full_result["is_success"])
         self.empty_count[stage_name] = sum(full_result["is_empty"])
         self.infer_time[stage_name] = max(result["end_time"]) - min(result["start_time"])
+        self.ttft_sum[stage_name] = sum(result["prefill_latency"])
+        self.chars_sum[stage_name] = sum(result["generate_characters_len"])
         per_request_avg_decode_time = []
         # Compute the average decode latency per request
-        for i, value in enumerate(result["seq_latency"]):
-            if value:  # Skip empty lists
-                tpot = (value - result["prefill_latency"][i]) / result["generate_tokens_len"][i]
-                per_request_avg_decode_time.append(tpot)
-        result["average_decode_latencies"] = per_request_avg_decode_time[:]
+        if not math.isclose(sum(result["prefill_latency"]), 0):
+            for i, value in enumerate(result["seq_latency"]):
+                if value:  # Skip empty lists
+                    tpot = (value - result["prefill_latency"][i]) / result["generate_tokens_len"][i]
+                    per_request_avg_decode_time.append(tpot)
+            result["average_decode_latencies"] = per_request_avg_decode_time[:]
+        else:
+            result["average_decode_latencies"] = result["prefill_latency"]
+        self.logger.info("Converting perf results of stage ...")
         self.result[stage_name] = self.convert_result(copy.deepcopy(result))
 
     def get_common_res(self):
@@ -120,9 +130,12 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             "prefill_latency": "TTFT",
             "average_decode_latencies": "TPOT",
             "decode_token_latencies": "ITL",
+            "last_decode_latency": "LastITL",
+            "decode_max_token_latency": "MaxITL",
             "input_tokens_len": "InputTokens",
             "generate_tokens_len": "OutputTokens",
             "generate_tokens_speed": "OutputTokenThroughput",
+            "generate_characters_len": "GeneratedCharacters",
             "prefill_batch_size": "PrefillBatchsize",
             "decode_batch_size": "DecoderBatchsize",
             "queue_wait_time": "QueueWaitTime",
@@ -145,7 +158,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             if not res or not res[-1]:
                 ans.pop(key)
 
-        for key in ["TTFT", "TPOT", "ITL"]:
+        for key in ["TTFT", "TPOT", "ITL", "LastITL", "MaxITL"]:
             if math.isclose(sum(ans[key]), 0):
                 ans.pop(key)
 
@@ -214,6 +227,9 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         if not batch_sizes:
             return []
 
+        if isinstance(batch_sizes[0], list): # 2 dims list to 1 dim list
+            batch_sizes = [item for sublist in copy.deepcopy(batch_sizes) for item in sublist]
+
         statistics = []
         count_dict = {}
 
@@ -237,7 +253,8 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
         common_metric_names = ["Benchmark Duration", "Total Requests", "Failed Requests", "Success Requests",
             "Concurrency", "Max Concurrency", "Request Throughput", "Total Input Tokens",
             "Prefill Token Throughput", "Total generated tokens", "Input Token Throughput",
-            "Output Token Throughput", "Total Token Throughput"]
+            "Output Token Throughput", "Total Token Throughput", "Ipct", "GenerateSpeedPerClient",
+            "CharacterPerToken"]
         for name in common_metric_names:
             if self.common_metrics.get(name) is None:
                 self.common_metrics[name] = {}
@@ -271,6 +288,9 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
                 self.common_metrics.pop("Prefill Token Throughput", None)
 
             self.common_metrics["Total generated tokens"][stage_name] = sum(self.result[stage_name]["OutputTokens"])
+            self.common_metrics["Ipct"][stage_name] = self.ttft_sum[stage_name] / self.common_metrics["Total Input Tokens"][stage_name]
+            self.common_metrics["CharacterPerToken"][stage_name] = self.chars_sum[stage_name] / \
+                self.common_metrics["Total generated tokens"][stage_name]
             if self.infer_time[stage_name] > 0:
                 self.common_metrics["Input Token Throughput"][stage_name] = round(
                     self.common_metrics["Total Input Tokens"][stage_name] / self.infer_time[stage_name], 4
@@ -295,12 +315,13 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             "TTFT": ms,
             "TPOT": ms,
             "ITL": ms,
+            "LastITL": ms,
+            "MaxITL": ms,
             "InputTokens": None,
             "OutputTokens": None,
             "PrefillTokenThroughput": unit_token,
             "OutputTokenThroughput": unit_token,
-            "Tokenizer": ms,
-            "Detokenizer": ms,
+            "GeneratedCharacters": None,
             "PrefillBatchsize": None,
             "DecoderBatchsize": None,
             "QueueWaitTime": " μs",
@@ -329,6 +350,8 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             "Total Output Tokens": None,
             "Output Token Throughput": unit_token,
             "Total Token Throughput": unit_token,
+            "Ipct": unit_token,
+            "CharacterPerToken": None,
         }
 
         for metric, value in self.common_metrics.items():

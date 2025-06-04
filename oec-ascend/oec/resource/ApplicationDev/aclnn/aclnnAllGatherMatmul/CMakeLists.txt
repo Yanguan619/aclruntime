@@ -19,8 +19,8 @@ add_executable(testcase
                testcase.cpp) 
 
 # 设置ASCEND_PATH（CANN软件包目录，请根据实际路径修改）和INCLUDE_BASE_DIR（头文件目录）
-if(NOT "$ENV{ASCEND_CUSTOM_PATH}" STREQUAL "")      
-    set(ASCEND_PATH $ENV{ASCEND_CUSTOM_PATH})
+if(NOT "$ENV{ASCEND_HOME_PATH}" STREQUAL "")      
+    set(ASCEND_PATH $ENV{ASCEND_HOME_PATH})
 else()
     set(ASCEND_PATH "/usr/local/Ascend/ascend-toolkit/latest")
 endif()

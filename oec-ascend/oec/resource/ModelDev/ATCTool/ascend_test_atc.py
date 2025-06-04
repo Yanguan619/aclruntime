@@ -1,9 +1,7 @@
 import oec
 class ATCTest(oec.TestCase):
     def execute_command(self):
-        import acl
-        soc = acl.get_soc_name()
-        self.execute_command_with_cmd(f'{self.get_cmd()} --soc_version="{soc}"')
+        self.execute_command_with_cmd(f'{self.get_cmd()} --soc_version={self.context.infomation.get("NPU")}')
 ATCTest(
     group= ("模型开发","模型编译"),
     name = "MODEL_ATC_SINGLE_ADD",

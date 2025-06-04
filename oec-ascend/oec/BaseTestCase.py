@@ -89,6 +89,7 @@ class TestCase(BaseTest):
 
             process = subprocess.Popen(
                 cmd,
+                env=self.context.env,
                 cwd=os.path.dirname(self.get_origin_path()),
                 shell=True,
                 stdout=f,
@@ -101,6 +102,7 @@ class TestCase(BaseTest):
             return_code = process.returncode
 
         self.check_result(log, return_code)
+        return log, return_code
 
     def execute_command(self):
         self.execute_command_with_cmd(self.get_cmd())

@@ -288,8 +288,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
                 self.common_metrics.pop("Prefill Token Throughput", None)
 
             self.common_metrics["Total generated tokens"][stage_name] = sum(self.result[stage_name]["OutputTokens"])
-            self.common_metrics["Ipct"][stage_name] = self.ttft_sum[stage_name] / \
-                (self.common_metrics["Total generated tokens"][stage_name] + self.common_metrics["Total Input Tokens"][stage_name])
+            self.common_metrics["Ipct"][stage_name] = self.ttft_sum[stage_name] / self.common_metrics["Total Input Tokens"][stage_name]
             self.common_metrics["CharacterPerToken"][stage_name] = self.chars_sum[stage_name] / \
                 self.common_metrics["Total generated tokens"][stage_name]
             if self.infer_time[stage_name] > 0:

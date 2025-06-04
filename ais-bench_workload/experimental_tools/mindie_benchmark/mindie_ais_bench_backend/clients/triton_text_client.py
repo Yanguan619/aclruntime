@@ -3,6 +3,8 @@ from abc import ABC
 import uuid
 from ais_bench.benchmark.clients.base_client import BaseClient
 from ais_bench.benchmark.utils import MiddleData
+from ais_bench.benchmark.utils import get_logger
+logger = get_logger()
 
 
 class TritonTextClient(BaseClient, ABC):
@@ -11,7 +13,11 @@ class TritonTextClient(BaseClient, ABC):
         inputs: str,
         parameters: dict = None,
     ) -> dict:
+        if parameters.get("details") != True:
+            logger.warning("Value of request parameter \"details\" will be changed to True")
         parameters.update({"details": True})
+        if parameters.get("perf_stat") != True:
+            logger.warning("Value of request parameter \"perf_stat\" will be changed to True")
         parameters.update({"perf_stat": True})
         return dict(id=str(uuid.uuid4()), text_input=inputs, parameters=parameters)
 

@@ -3,6 +3,8 @@ from abc import ABC
 import uuid
 from ais_bench.benchmark.clients.base_client import BaseStreamClient
 from ais_bench.benchmark.utils import MiddleData
+from ais_bench.benchmark.utils import get_logger
+logger = get_logger()
 
 
 class TritonStreamClient(BaseStreamClient, ABC):
@@ -11,6 +13,8 @@ class TritonStreamClient(BaseStreamClient, ABC):
         inputs: str,
         parameters: dict = None,
     ) -> dict:
+        if parameters.get("details") != True:
+            logger.warning("Value of request parameter \"details\" will be changed to True")
         parameters.update({"details": True})
         return dict(id=str(uuid.uuid4()), text_input=inputs, parameters=parameters)
 

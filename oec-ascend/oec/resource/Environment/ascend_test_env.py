@@ -43,9 +43,6 @@ class OSInfomationCase(BaseTest):
         info['架构'] = platform.machine()
         self.set_state(State.PASS)
     
-    def count(self):
-        return 0 if self.is_auxiliary() else 1
-    
     def get_test_content(self):
         return 'Get OS infomation from platform and distro pacakge'
 
@@ -65,7 +62,35 @@ class HDKInfomationCase(TestCase):
         matches = re.findall(r'\|\s+\d+\s+(\S+)\s+\|', log)
 
         if matches:
-            info['昇腾硬件'] = matches[0]
+            info['昇腾硬件'] = f"{len(matches)}×{matches[0]}"
+
+class CANNNPUInfomationCase(TestCase):
+    
+    def check_result(self, log, return_code):
+        super(CANNNPUInfomationCase,self).check_result(log, return_code)
+        if self.is_failed():
+            return
+        if log == "":
+            self.set_state(State.FAIL)
+            return
+
+        self.logger.debug(f"NPU = {log}")
+        self.context.infomation['NPU'] = log
+        self.set_state(State.PASS)
+
+class CANNVersionInfomationCase(TestCase):
+    
+    def check_result(self, log, return_code):
+        super(CANNVersionInfomationCase,self).check_result(log, return_code)
+        if self.is_failed():
+            return
+        if log == "":
+            self.set_state(State.FAIL)
+            return
+        
+        self.logger.debug(f"CANN Version = {log}")
+        self.context.infomation['CANN Version'] = log
+        self.set_state(State.PASS)
 
 OSInfomationCase(
     group=("运行环境","环境信息"),
@@ -75,3 +100,15 @@ HDKInfomationCase(
     group=("运行环境","环境信息"),
     name='READ_DRIVER_INFOMATION',
     cmd = 'npu-smi info')
+
+CANNVersionInfomationCase(
+    group=("运行环境","CANN信息"),
+    name='READ_CANN_VERSION_INFOMATION',
+    cmd = 'python3 get_cann_version.py'
+)
+
+CANNNPUInfomationCase(
+    group=("运行环境","CANN信息"),
+    name='READ_CANN_NPU_INFOMATION',
+    cmd = 'python3 get_soc_name.py'
+)

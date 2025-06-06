@@ -1,7 +1,10 @@
 import re
-from oec import TestCase,BaseTest,State
 import platform
 import distro
+import oec
+from oec import TestCase,BaseTest,State,SetEnvTestCase
+
+
 
 class OSInfomationCase(BaseTest):
     def get_os_version(self):
@@ -62,7 +65,7 @@ class HDKInfomationCase(TestCase):
         matches = re.findall(r'\|\s+\d+\s+(\S+)\s+\|', log)
 
         if matches:
-            info['昇腾硬件'] = f"{len(matches)}×{matches[0]}"
+            info['昇腾硬件'] = f"{matches[0]} × {len(matches)}"
 
 class CANNNPUInfomationCase(TestCase):
     
@@ -73,9 +76,14 @@ class CANNNPUInfomationCase(TestCase):
         if log == "":
             self.set_state(State.FAIL)
             return
-
-        self.logger.debug(f"NPU = {log}")
-        self.context.infomation['NPU'] = log
+        info = log.split('\n')
+        if info is None or len(info) != 2:
+            self.set_state(State.FAIL)
+            return
+        npu,count = tuple(info)
+        self.logger.debug(f"NPU:{npu}, Count:{count}")
+        self.context.infomation['NPU'] = npu
+        self.context.infomation['Count'] = count
         self.set_state(State.PASS)
 
 class CANNVersionInfomationCase(TestCase):
@@ -101,6 +109,12 @@ HDKInfomationCase(
     name='READ_DRIVER_INFOMATION',
     cmd = 'npu-smi info')
 
+SetEnvTestCase(
+    group=("运行环境","环境信息"),
+    name="READ_CANN_SET_ENV",
+    cmd=f"bash -c 'source {oec.Context.cann_path}/Ascend/ascend-toolkit/set_env.sh && env'"
+)
+
 CANNVersionInfomationCase(
     group=("运行环境","CANN信息"),
     name='READ_CANN_VERSION_INFOMATION',
@@ -110,5 +124,5 @@ CANNVersionInfomationCase(
 CANNNPUInfomationCase(
     group=("运行环境","CANN信息"),
     name='READ_CANN_NPU_INFOMATION',
-    cmd = 'python3 get_soc_name.py'
+    cmd = 'python3 get_npu_info.py'
 )

@@ -19,6 +19,7 @@ class TestCase(BaseTest):
         expect: List[int] = [0],
         unexpect: List[int] = None,
         count=1,
+        cwd=None,
         *args,
         **kwargs,
     ):
@@ -31,7 +32,9 @@ class TestCase(BaseTest):
         self._expected_code = expect
         self._unexpected_code = unexpect
         self.__reason = None
-
+        self._log = ""
+        self._retrun_code = 0
+        self._cwd = cwd
         if isinstance(self._include, str):
             self._include = [self._include]
         if isinstance(self._exclude, str):
@@ -43,6 +46,10 @@ class TestCase(BaseTest):
 
         logger.debug(f"test case{self.group[0]}.{self.group[1]}.{self.name} ")
 
+    @property
+    def cwd(self):
+        return self._cwd
+    
     def set_reason(self, reason: str):
         if not isinstance(reason, str):
             raise TypeError(f"reason must be a string")
@@ -90,7 +97,7 @@ class TestCase(BaseTest):
             process = subprocess.Popen(
                 cmd,
                 env=self.context.env,
-                cwd=os.path.dirname(self.get_origin_path()),
+                cwd=os.path.dirname(self.get_origin_path()) if self.cwd is None else self.cwd,
                 shell=True,
                 stdout=f,
                 stderr=subprocess.STDOUT,
@@ -100,6 +107,8 @@ class TestCase(BaseTest):
             f.seek(0)
             log = f.read(-1)
             return_code = process.returncode
+            self._retrun_code = return_code
+            self._log = log
 
         self.check_result(log, return_code)
         return log, return_code
@@ -115,7 +124,15 @@ class TestCase(BaseTest):
 
     def get_doc(self):
         pass
-
+    
+    @property
+    def log(self):
+        return self._log
+    
+    @property
+    def return_code(self):
+        return self._return_code
+    
     def check_result(self, log: str, return_code):
         logger.debug(
             f'\n>> {self.name}{"(optional)" if self.is_optional() else ""} -> return {return_code} :\n File "{self.get_origin_path()}" :\n{log}'

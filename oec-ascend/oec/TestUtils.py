@@ -1,5 +1,6 @@
 # encoding: utf-8
 import os
+from oec import TestCase,State
 
 def merge_env_variables(env_output, var_list):
     """
@@ -34,3 +35,23 @@ def merge_env_variables(env_output, var_list):
     # 合并到环境变量副本中
     merged_env.update(extracted_env)
     return merged_env
+
+class SetEnvTestCase(TestCase):
+    def execute_command(self):
+        super().execute_command()
+        if not self.is_passed():
+            return
+        cann_envname = [
+            'ASCEND_TOOLKIT_HOME',
+            'ASCEND_HOME_PATH',
+            'ASCEND_AICPU_PATH',
+            'ASCEND_OPP_PATH',
+            'TOOLCHAIN_HOME',
+            'LD_LIBRARY_PATH',
+            'PYTHONPATH',
+            'PATH',
+            ]
+        env = merge_env_variables(self.log,cann_envname)
+        self.context.set_env(env)
+        self.logger.debug(self.context.env)
+        self.set_state(State.PASS)

@@ -5,33 +5,23 @@ class ATCTest(oec.TestCase):
 ATCTest(
     group= ("模型开发","模型编译"),
     name = "MODEL_ATC_SINGLE_ADD",
-    cmd="atc --singleop=add.json --output=out/op_model1"
+    cmd=f"bash runatc.sh {oec.Context.output_dir} --singleop='$path/add.json' --output=out/op_model1"
     )
 
 ATCTest(
     group= ("模型开发","模型编译"),
     name = "MODEL_ATC_SINGLE_CONV2D",
-    cmd="atc --singleop=conv2d.json --output=out/op_model2",
-    optional=True
+    cmd=f"bash runatc.sh {oec.Context.output_dir} --singleop='$path/conv2d.json' --output=out/op_model2"
     )
 
 ATCTest(
     group= ("模型开发","模型编译"),
     name = "MODEL_ATC_SINGLE_DYNAMIC_SHAPE",
-    cmd="atc --singleop=dynamic_shape.json --output=out/op_model3",
-    optional=True
+    cmd=f"bash runatc.sh {oec.Context.output_dir} --singleop='$path/dynamic_shape.json' --output=out/op_model3"
     )
 
 oec.TestCase(
     group= ("模型开发","模型编译"),
     name="MODEL_ATC_PB_TO_JSON_DESC",
-    cmd=f"atc --mode=1 --om={oec.Context.data_path}/model/model_tf.pb  --json=out/model.json  --framework=3"
+   cmd=f"bash runatc.sh {oec.Context.output_dir} --mode=1 --om={oec.Context.data_path}/model/model_tf.pb  --json=out/model.json  --framework=3"
 )
-
-oec.TestCase(
-    group= ("模型开发","模型编译"),
-    name = "MODEL_ATC_CLEAN_OUTPUT",
-    cmd="rm -rf out && rm -rf fusion_result.json",
-    auxiliary=True,
-    optional=True
-    )

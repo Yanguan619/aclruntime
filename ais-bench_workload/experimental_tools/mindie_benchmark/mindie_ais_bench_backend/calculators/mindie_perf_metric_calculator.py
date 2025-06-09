@@ -350,7 +350,7 @@ class MindIEPerfMetricCalculator(BasePerfMetricCalculator):
             "Total Output Tokens": None,
             "Output Token Throughput": unit_token,
             "Total Token Throughput": unit_token,
-            "Ipct": unit_token,
+            "Ipct": ms,
             "CharacterPerToken": None,
         }
 

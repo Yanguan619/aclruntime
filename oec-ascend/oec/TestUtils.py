@@ -1,6 +1,6 @@
 # encoding: utf-8
 import os
-from oec import TestCase,State
+from oec import BaseTest,TestCase,State
 
 def merge_env_variables(env_output, var_list):
     """
@@ -54,4 +54,10 @@ class SetEnvTestCase(TestCase):
         env = merge_env_variables(self.log,cann_envname)
         self.context.set_env(env)
         self.logger.debug(self.context.env)
+        self.set_state(State.PASS)
+        
+
+class ResetEnvTestCase(BaseTest):
+    def execute_command(self):
+        self.context.env = os.environ.copy()
         self.set_state(State.PASS)

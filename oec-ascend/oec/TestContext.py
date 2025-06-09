@@ -101,8 +101,12 @@ class TestContext(object):
     def infomation(self):
         return self._infomation
 
-    def get_output_dir(self):
+    @property
+    def output_dir(self):
         return self._output_dir
+    
+    def get_output_dir(self):
+        return self.output_dir
 
     def get_log_dir(self):
         return self._defaut_log_dir

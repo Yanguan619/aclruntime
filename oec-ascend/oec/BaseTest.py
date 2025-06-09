@@ -19,7 +19,7 @@ class BaseTest(TestInterface):
         self,
         group: Tuple[str, str],
         name: str,
-        optional: bool = False,
+        optional: bool = True,
         auxiliary: bool = False,
         cached: bool = True,
         log_dir: str = "",

@@ -1,9 +1,7 @@
 import oec
 class ATCTest(oec.TestCase):
     def execute_command(self):
-        import acl
-        soc = acl.get_soc_name()
-        self.execute_command_with_cmd(f'{self.get_cmd()} --soc_version="{soc}"')
+        self.execute_command_with_cmd(f'{self.get_cmd()} --soc_version={self.context.infomation.get("NPU")}')
 ATCTest(
     group= ("模型开发","模型编译"),
     name = "MODEL_ATC_SINGLE_ADD",
@@ -23,6 +21,12 @@ ATCTest(
     cmd="atc --singleop=dynamic_shape.json --output=out/op_model3",
     optional=True
     )
+
+oec.TestCase(
+    group= ("模型开发","模型编译"),
+    name="MODEL_ATC_PB_TO_JSON_DESC",
+    cmd=f"atc --mode=1 --om={oec.Context.data_path}/model/model_tf.pb  --json=out/model.json  --framework=3"
+)
 
 oec.TestCase(
     group= ("模型开发","模型编译"),

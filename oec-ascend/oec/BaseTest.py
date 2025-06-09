@@ -130,7 +130,7 @@ class BaseTest(TestInterface):
         raise NotImplementedError()
 
     def count(self):
-        raise NotImplementedError()
+        return 0 if self.is_auxiliary() else 1
 
     def set_name(self, name):
         if not isinstance(name, str):
@@ -164,7 +164,15 @@ class BaseTest(TestInterface):
         self.context.distribution[state] += 1
 
     def get_test_content(self):
-        raise NotImplementedError()
+        return (
+            self.get_relative_log_file_path()
+            if self.is_finished()
+            else "No information due to the previous error."
+        )
+    
+    @property
+    def logger(self):
+        return logger
 
     def __str__(self):
         return self.name

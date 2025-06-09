@@ -33,9 +33,18 @@ class TestContext(object):
         self._test_order: list[list[TestInterface]] = []
         self._infomation: dict[str, str] = {}
         self._states_distribution: dict[State, int] = {}
+        self._env:dict[str,str] = os.environ.copy()
         self.finished = False
         for state in State:
             self._states_distribution.setdefault(state, 0)
+    
+    def set_env(self,env:dict[str,str]):
+        self._env = env
+    
+    @property
+    def env(self):
+        return self._env
+    
     def set_output(self,output:str):
         relative_output = (
             f'{datetime.now().strftime("%Y%m%d-%H-%M-%S")}-{random.randint(100,999)}'

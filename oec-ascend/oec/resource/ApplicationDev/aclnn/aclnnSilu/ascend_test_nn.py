@@ -2,7 +2,7 @@
 import oec
 
 oec.TestCase(
-    group= ("应用开发","基础功能"),
+    group= ("应用开发","算子加速库"),
     
     name = "ACLNN_SILU",
     cmd = "./run.sh",

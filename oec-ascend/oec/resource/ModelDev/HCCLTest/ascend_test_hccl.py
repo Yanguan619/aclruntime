@@ -10,7 +10,8 @@ class OpenMPICheckCase(oec.TestCase):
 OpenMPICheckCase(
     group= ("模型开发","集合通信"),
     name = "MODEL_HCCL_OPENMPI_CHECK",
-    cmd=f"python3 check_mpi.py {oec.Context.data_path} {oec.Context.infomation.get('Count',1)}"
+    cmd=f"python3 check_mpi.py {oec.Context.data_path} {oec.Context.infomation.get('Count',1)}",
+    exclude=None,  # 编译过程会有大量打印,不检查error字符串
     )
 
 oec.TestCase(

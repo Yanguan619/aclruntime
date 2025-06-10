@@ -4,7 +4,8 @@ oec.TestCase(
     group= ("模型开发","集合通信"),
     name = "MODEL_HCCL_AIS_BENCH_CHECK",
     cmd=f"python3 check_package_version.py",
-    exclude=None
+    exclude=None,
+    auxiliary=True
     )
 
 oec.TestCase(

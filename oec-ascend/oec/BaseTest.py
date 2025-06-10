@@ -81,7 +81,7 @@ class BaseTest(TestInterface):
         return False
 
     def is_passed(self):
-        if self.state in [State.PASS, State.NOTHING_TO_DO]:
+        if self.state in [State.PASS, State.NOTHING_TO_DO, State.WARNING]:
             return True
         return False
 
@@ -130,7 +130,7 @@ class BaseTest(TestInterface):
         raise NotImplementedError()
 
     def count(self):
-        return 0 if self.is_auxiliary() else 1
+        return 1
 
     def set_name(self, name):
         if not isinstance(name, str):
@@ -149,9 +149,10 @@ class BaseTest(TestInterface):
             raise TypeError("optional must be bool type")
         self._optional = True
 
-    def is_auxiliary(self):
+    @property
+    def auxiliary(self):
         return self._auxiliary
-
+    
     def set_state_if_not_finished(self, state: State):
         if not self.is_finished():
             self.set_state(state)
@@ -159,6 +160,9 @@ class BaseTest(TestInterface):
     def set_state(self, state: State):
         if not isinstance(state, State):
             raise TypeError("state must be of type State")
+        if self.auxiliary and state == State.FAIL:
+            state=State.WARNING
+            
         self.context.distribution[self.state] -= 1
         self._state = state
         self.context.distribution[state] += 1

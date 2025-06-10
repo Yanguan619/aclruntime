@@ -84,7 +84,7 @@ class TestContext(object):
 
         return (
             f"total {total}, running {self.distribution[State.RUNNING]}, not running {self.distribution[State.NOT_RUNNING]}, "
-            f"passed {success} , failed {self.distribution[State.FAIL]}, unsupported {self.distribution[State.UNSUPPORTED]}, "
+            f"passed {success}, warning {self.distribution[State.WARNING]}, failed {self.distribution[State.FAIL]}, "
             f"timeout {self.distribution[State.TIMEOUT]}.\n"
             f"Completion rate {round(ran/total*100,2)}%, pass rate { 0 if ran==0 else round(success/ran*100,2)}%"
         )

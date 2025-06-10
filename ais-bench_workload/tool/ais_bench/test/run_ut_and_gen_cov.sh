@@ -50,6 +50,14 @@ function clean() {
 ut_script_list=( \
     "utils_file/test_abnormal_cmd_args_check.py" \
     "utils_file/test_interface_check.py" \
+    "utils_file/test_backend_trtexxec.py" \
+    "utils_file/test_io_operations.py" \
+    "utils_file/test_miscellaneous.py" \
+    "utils_file/test_path_security_check.py" \
+    "utils_file/test_utils.py" \
+    "utils_file/test_dym_aipp_manager.py" \
+    "utils_file/test_summary.py" \
+    "utils_file/test_infer_process.py" \
     "test_argparser.py" \
     "test_json_convert.py" \
     "test_aclruntimeAPI/test_session_options.py"\

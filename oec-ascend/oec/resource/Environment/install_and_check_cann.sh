@@ -1,4 +1,3 @@
-exit 0
 if [[ -f /etc/Ascend/ascend_cann_install.info ]]; then
     mv /etc/Ascend/ascend_cann_install.info /etc/Ascend/ascend_cann_install.info.bac
 fi

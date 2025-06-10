@@ -9,6 +9,7 @@ class State(Enum):
 
     NOTHING_TO_DO = "nothing to do"
     PASS = "passed"
+    WARNING = "warning"
 
     UNSUPPORTED = "unsupported"
     TIMEOUT = "timeout"

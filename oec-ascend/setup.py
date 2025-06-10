@@ -2,10 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name="oec-ascend",
-    version="0.3",
+    version="0.4",
     packages=find_packages(),
     include_package_data=True,
-    python_requires=">=3.7",
     install_requires=["openpyxl", "pandas", "distro", "packaging"],
     author="spicy-bittern",
     author_email=" ",

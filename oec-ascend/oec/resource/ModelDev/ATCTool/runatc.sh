@@ -1,7 +1,6 @@
-path=$(pwd)
-cd $1
+jsonfile=$(realpath $2)
+mkdir -p "$1/tmp" && cd "$1/tmp"
 shift
-mkdir -p tmp/atcout
-cd tmp/atcout
-atc $@
+shift
+atc --singleop="$jsonfile" $@
 

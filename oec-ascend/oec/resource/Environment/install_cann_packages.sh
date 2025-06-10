@@ -1,4 +1,11 @@
+echo  ===============================================
+echo  ==    CANN PACKAGES INSTALL UNINSTALL TEST   ==
+echo  ===============================================
+
 cd $1
+install_path=$(realpath $2)
+mkdir -p "$install_path"
+
 function install(){
     package=$1
     count=$(find . -type f -name "$package*" | wc -l)
@@ -6,12 +13,14 @@ function install(){
         echo numer of $package is not equal to 1
         exit 1
     fi
+    echo  ===============================================
+    echo INSTALL ./$package*
     echo ">>>>>>>>>>>> ASCEND_HOME_PATH <<<<<<<<<<<<<<<<<"
     env |grep ASCEND_HOME_PATH
-    echo ">>>>>>>>>>>> INSTALL " ./$package* " <<<<<<<<<<<<<<<<<"
-    echo ./$package* --install --quiet --install-path=$(realpath $1)/Ascend
+    echo  ===============================================
+    echo ./$package* --install --install-path="$install_path" --quiet
     chmod +x $package*
-    ./$2* --install --quiet --install-path=$(realpath $1)/Ascend
+    ./$package* --install --quiet --install-path="$install_path"
     if [[ $? != 0 ]]; then
         exit $?
     fi
@@ -23,9 +32,9 @@ function uninstall(){
         echo numer of $package is not equal to 1
         exit 1
     fi
-    echo ./$package* --uninstall --install-path=$(realpath $1)/Ascend
+    echo ./$package* --uninstall --install-path="$install_path"
     chmod +x $package*
-    ./$2* --uninstall --install-path=$(realpath $1)/Ascend
+    ./$package* --uninstall --install-path="$install_path"
     if [[ $? != 0 ]]; then
         exit $?
     fi

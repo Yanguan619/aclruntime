@@ -41,24 +41,23 @@ APP_ERROR aclrtCreateContext(void**, int) {
 APP_ERROR aclrtGetDeviceCount(uint32_t* count)
 {
     if (g_deviceCount == 1) {
+        *count = 1;
         return APP_ERR_OK;
     } else {
         return APP_ERR_ACL_FAILURE;
     }
 }
-
-extern "C" {
-    APP_ERROR aclFinalize() { return APP_ERR_OK; }
-    APP_ERROR aclrtSetCurrentContext(void*) { return APP_ERR_OK; }
-    APP_ERROR aclrtDestroyContext(void*) { return APP_ERR_OK; }
-    APP_ERROR aclrtResetDevice(int) { return APP_ERR_OK; }
-    APP_ERROR aclrtGetCurrentContext(void** ctx)
-    {
-        if (ctx) *ctx = nullptr;
-        return APP_ERR_OK;
-    }
-    const char* aclGetRecentErrMsg() { return "mock error"; }
+APP_ERROR aclFinalize() { return APP_ERR_OK; }
+APP_ERROR aclrtSetCurrentContext(void*) { return APP_ERR_OK; }
+APP_ERROR aclrtDestroyContext(void*) { return APP_ERR_OK; }
+APP_ERROR aclrtResetDevice(int) { return APP_ERR_OK; }
+APP_ERROR aclrtGetCurrentContext(void** ctx)
+{
+    if (ctx) *ctx = nullptr;
+    return APP_ERR_OK;
 }
+const char* aclGetRecentErrMsg() { return "mock error"; }
+
 
 namespace {
 

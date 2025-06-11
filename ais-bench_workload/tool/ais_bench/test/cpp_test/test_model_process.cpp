@@ -66,6 +66,17 @@ public:
     virtual aclError aclmdlSetDatasetTensorDesc(aclmdlDataset* dataset, aclTensorDesc* tensorDesc, size_t index) = 0;
     virtual aclError aclmdlDestroyDataset(const aclmdlDataset *dataset) = 0;
 
+    virtual aclError aclmdlGetDynamicHW(const aclmdlDesc* modelDesc, size_t profileIndex, aclmdlHW* dynamicHW) = 0;
+    virtual aclError aclmdlSetDynamicHWSize(uint32_t modelId, aclmdlDataset* dataset, size_t index, 
+                                          uint64_t dynamicHeight, uint64_t dynamicWidth) = 0;
+    virtual aclError aclmdlSetDynamicBatchSize(uint32_t modelId, aclmdlDataset* dataset, size_t index, 
+                                             uint64_t dynamicBatchSize) = 0;
+    virtual aclError aclmdlGetDynamicBatch(const aclmdlDesc* modelDesc, aclmdlBatch* batchInfo) = 0;
+
+    virtual aclError aclmdlGetCurOutputDims(const aclmdlDesc* modelDesc, size_t index, aclmdlIODims* ioDims) = 0;
+    virtual aclError aclmdlGetInputDynamicDims(const aclmdlDesc* modelDesc, size_t profileIndex, aclmdlIODims* dims, size_t gearCount) = 0;
+    virtual aclError aclmdlSetInputDynamicDims(uint32_t modelId, aclmdlDataset* dataset, size_t index, const aclmdlIODims* dims) = 0;
+
     virtual const char* aclGetRecentErrMsg() = 0;
 
 };
@@ -90,6 +101,15 @@ public:
     MOCK_METHOD(aclError, aclmdlSetDatasetTensorDesc, 
                 (aclmdlDataset* dataset, aclTensorDesc* tensorDesc, size_t index), (override));
     MOCK_METHOD(aclError, aclmdlDestroyDataset, (const aclmdlDataset *dataset), (override));
+
+    MOCK_METHOD(aclError, aclmdlGetDynamicHW, (const aclmdlDesc*, size_t, aclmdlHW*), (override));
+    MOCK_METHOD(aclError, aclmdlSetDynamicHWSize, (uint32_t, aclmdlDataset*, size_t, uint64_t, uint64_t), (override));
+    MOCK_METHOD(aclError, aclmdlSetDynamicBatchSize, (uint32_t, aclmdlDataset*, size_t, uint64_t), (override));
+    MOCK_METHOD(aclError, aclmdlGetDynamicBatch, (const aclmdlDesc*, aclmdlBatch*), (override));
+
+    MOCK_METHOD(aclError, aclmdlGetCurOutputDims, (const aclmdlDesc*, size_t, aclmdlIODims*), (override));
+    MOCK_METHOD(aclError, aclmdlGetInputDynamicDims, (const aclmdlDesc*, size_t, aclmdlIODims*, size_t), (override));
+    MOCK_METHOD(aclError, aclmdlSetInputDynamicDims, (uint32_t, aclmdlDataset*, size_t, const aclmdlIODims*), (override));
 
     MOCK_METHOD(const char*, aclGetRecentErrMsg, (), (override));
 };
@@ -163,12 +183,64 @@ const char* aclGetRecentErrMsg()
 {
     return g_mockAcl->aclGetRecentErrMsg();
 }
+
+aclError aclmdlGetDynamicHW(const aclmdlDesc* modelDesc, size_t profileIndex, aclmdlHW* dynamicHW)
+{
+    return g_mockAcl->aclmdlGetDynamicHW(modelDesc, profileIndex, dynamicHW);
+}
+
+aclError aclmdlSetDynamicHWSize(uint32_t modelId, aclmdlDataset* dataset, size_t index,
+                                uint64_t dynamicHeight, uint64_t dynamicWidth)
+{
+    return g_mockAcl->aclmdlSetDynamicHWSize(modelId, dataset, index, dynamicHeight, dynamicWidth);
+}
+
+aclError aclmdlSetDynamicBatchSize(uint32_t modelId, aclmdlDataset* dataset, size_t index, 
+                                   uint64_t dynamicBatchSize)
+{
+    return g_mockAcl->aclmdlSetDynamicBatchSize(modelId, dataset, index, dynamicBatchSize);
+}
+
+aclError aclmdlGetDynamicBatch(const aclmdlDesc* modelDesc, aclmdlBatch* batchInfo)
+{
+    return g_mockAcl->aclmdlGetDynamicBatch(modelDesc, batchInfo);
+}
+
+aclError aclmdlGetCurOutputDims(const aclmdlDesc* modelDesc, size_t index, aclmdlIODims* ioDims)
+{
+    return g_mockAcl->aclmdlGetCurOutputDims(modelDesc, index, ioDims);
+}
+
+aclError aclmdlGetInputDynamicDims(const aclmdlDesc* modelDesc, size_t profileIndex, aclmdlIODims* dims, size_t gearCount)
+{
+    return g_mockAcl->aclmdlGetInputDynamicDims(modelDesc, profileIndex, dims, gearCount);
+}
+
+aclError aclmdlSetInputDynamicDims(uint32_t modelId, aclmdlDataset* dataset, size_t index, const aclmdlIODims* dims)
+{
+    return g_mockAcl->aclmdlSetInputDynamicDims(modelId, dataset, index, dims);
+}
+
 }
 
 
 namespace AISBench_test {
 
 const uint32_t expectedModelId = 12345; // 预期模型ID
+
+// 设置日志Level为Debug级别，用于检查Debug时的输出内容
+class SetDebugLogGuard {
+public:
+    explicit SetDebugLogGuard()
+    {
+        Base::LogCtrl::SetLogLevel(LOG_DEBUG_LEVEL);
+    }
+
+    ~SetDebugLogGuard()
+    {
+        Base::LogCtrl::SetLogLevel(LOG_INFO_LEVEL);
+    }
+};
 
 class ModelProcessTest : public ::testing::Test {
     protected:
@@ -780,13 +852,10 @@ TEST_F(ModelProcessTest, TestCheckDynamicShape_Success)
     map<string, vector<int64_t>> shapeMap;
     vector<int64_t> dimsNum;
 
-    Base::LogCtrl::SetLogLevel(LOG_DEBUG_LEVEL);
-    
+    SetDebugLogGuard guard;
     testing::internal::CaptureStdout();
     Result result = modelProcess->CheckDynamicShape(dymShape, shapeMap, dimsNum);
     string logOutput = testing::internal::GetCapturedStdout();
-    
-    Base::LogCtrl::SetLogLevel(LOG_INFO_LEVEL);
 
     EXPECT_EQ(result, SUCCESS);
     EXPECT_TRUE(logOutput.find("DEBUG") != string::npos);
@@ -807,13 +876,10 @@ TEST_F(ModelProcessTest, TestCheckDynamicShape_EmptyShape)
     map<string, vector<int64_t>> shapeMap;
     vector<int64_t> dimsNum;
     
-    Base::LogCtrl::SetLogLevel(LOG_DEBUG_LEVEL);
-
+    SetDebugLogGuard guard;
     testing::internal::CaptureStdout();
     Result result = modelProcess->CheckDynamicShape(dymShape, shapeMap, dimsNum);
     string logOutput = testing::internal::GetCapturedStdout();
-
-    Base::LogCtrl::SetLogLevel(LOG_INFO_LEVEL);
     
     EXPECT_EQ(result, SUCCESS);
     EXPECT_TRUE(shapeMap["input1"].empty());
@@ -847,7 +913,8 @@ TEST_F(ModelProcessTest, TestCheckDynamicShape_MissingColon)
 
 // ===================== SetDynamicShape 测试用例 =====================
 
-TEST_F(ModelProcessTest, TestSetDynamicShape_DimNumMismatch) {
+TEST_F(ModelProcessTest, TestSetDynamicShape_DimNumMismatch)
+{
     SetupCompleteModel(2, {"input1", "input2"});
     SetupModelProcessInput();
     
@@ -869,7 +936,8 @@ TEST_F(ModelProcessTest, TestSetDynamicShape_DimNumMismatch) {
     EXPECT_TRUE(logOutput.find("dims num size: 3 not equal to input num 2") != string::npos);
 }
 
-TEST_F(ModelProcessTest, TestSetDynamicShape_GetInputNameFailed) {
+TEST_F(ModelProcessTest, TestSetDynamicShape_GetInputNameFailed)
+{
     SetupCompleteModel(2, {"input1", "input2"});
     SetupModelProcessInput();
     
@@ -898,7 +966,8 @@ TEST_F(ModelProcessTest, TestSetDynamicShape_GetInputNameFailed) {
     EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
 }
 
-TEST_F(ModelProcessTest, TestSetDynamicShape_CreateTensorDescOrSetDatasetTensorFailed) {
+TEST_F(ModelProcessTest, TestSetDynamicShape_CreateTensorDescOrSetDatasetTensorFailed)
+{
     SetupCompleteModel(1, {"input1"});
     SetupModelProcessInput();
     
@@ -933,7 +1002,8 @@ TEST_F(ModelProcessTest, TestSetDynamicShape_CreateTensorDescOrSetDatasetTensorF
     EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
 }
 
-TEST_F(ModelProcessTest, TestSetDynamicShape_SingleInputSuccess) {
+TEST_F(ModelProcessTest, TestSetDynamicShape_SingleInputSuccess)
+{
     SetupCompleteModel(1, {"input1"});
     SetupModelProcessInput();
     
@@ -956,16 +1026,697 @@ TEST_F(ModelProcessTest, TestSetDynamicShape_SingleInputSuccess) {
     EXPECT_CALL(*mockAcl, aclmdlSetDatasetTensorDesc(modelProcess->input_, fakeDesc, 0))
         .WillOnce(Return(ACL_SUCCESS));
     
-    Base::LogCtrl::SetLogLevel(LOG_DEBUG_LEVEL);
-
+    SetDebugLogGuard guard;
     testing::internal::CaptureStdout();
     Result ret = modelProcess->SetDynamicShape(shape_map, dims_num);
     string logOutput = testing::internal::GetCapturedStdout();
-    
-    Base::LogCtrl::SetLogLevel(LOG_INFO_LEVEL);
 
     EXPECT_EQ(ret, SUCCESS);
     EXPECT_TRUE(logOutput.find("set Dynamic shape success") != string::npos);
 }
 
+// ===================== GetMaxDynamicHWSize 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestGetMaxDynamicHWSize_Success)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    aclmdlHW dynamicHW = {3, {{128, 128}, {256, 256}, {512, 512}}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
+        .WillOnce(DoAll(SetArgPointee<2>(dynamicHW), Return(ACL_SUCCESS)));
+    
+    uint64_t maxSize = 0;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->GetMaxDynamicHWSize(maxSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(maxSize, 512 * 512); // 512x512 是最大尺寸
+}
+
+TEST_F(ModelProcessTest, TestGetMaxDynamicHWSize_GetDynamicHWFailed)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
+        .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
+    const char* errorMsg = "Get dynamic HW failed";
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return(errorMsg));
+    
+    uint64_t maxSize = 0;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->GetMaxDynamicHWSize(maxSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("get DynamicHW failed") != string::npos);
+    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestGetMaxDynamicHWSize_NoDynamicHW)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    aclmdlHW dynamicHW = {0, {}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
+        .WillOnce(DoAll(SetArgPointee<2>(dynamicHW), Return(ACL_SUCCESS)));
+    
+    uint64_t maxSize = 0;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->GetMaxDynamicHWSize(maxSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("the dynamic_image_size parameter is not specified") != string::npos);
+}
+
+// ===================== CheckDynamicHWSize 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestCheckDynamicHWSize_Success)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    aclmdlHW dynamicHW = {2, {{128, 128}, {256, 256}}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
+        .WillOnce(DoAll(SetArgPointee<2>(dynamicHW), Return(ACL_SUCCESS)));
+    
+    bool isDynamic = false;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CheckDynamicHWSize({256, 256}, isDynamic);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(isDynamic);
+    EXPECT_TRUE(logOutput.find("check dynamic image size success") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCheckDynamicHWSize_GetDynamicHWFailed)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    aclmdlHW dynamicHW = {2, {{128, 128}, {256, 256}}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
+        .WillOnce(DoAll(SetArgPointee<2>(dynamicHW), Return(ACL_ERROR_FAILURE)));
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return("aclmdlGetDynamicHW Failed"));
+    
+    bool isDynamic = false;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CheckDynamicHWSize({512, 512}, isDynamic);
+    string logOutput = testing::internal::GetCapturedStdout();
+    cout << logOutput << endl;
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("get DynamicHW failed") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCheckDynamicHWSize_DynamicHWNotFound)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    aclmdlHW dynamicHW = {2, {{128, 128}, {256, 256}}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
+        .WillOnce(DoAll(SetArgPointee<2>(dynamicHW), Return(ACL_SUCCESS)));
+    
+    bool isDynamic = false;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CheckDynamicHWSize({512, 512}, isDynamic);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("the dymHW parameter is not correct") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCheckDynamicHWSize_NoDynamicHWSpecified)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    aclmdlHW dynamicHW = {0, {}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
+        .WillOnce(DoAll(SetArgPointee<2>(dynamicHW), Return(ACL_SUCCESS)));
+    
+    bool isDynamic = false;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CheckDynamicHWSize({256, 256}, isDynamic);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("the dynamic_image_size parameter is not specified") != string::npos);
+}
+
+// ===================== SetDynamicHW 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestSetDynamicHW_Success)
+{
+    SetupCompleteModel();
+    modelProcess->g_dymindex = 0;
+    modelProcess->input_ = reinterpret_cast<aclmdlDataset*>(0x1234);
+    
+    EXPECT_CALL(*mockAcl, aclmdlSetDynamicHWSize(expectedModelId, 
+                                                reinterpret_cast<aclmdlDataset*>(0x1234), 
+                                                0, 256, 256))
+        .WillOnce(Return(ACL_SUCCESS));
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(0x1234)))
+        .WillOnce(Return(ACL_SUCCESS));
+
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetDynamicHW({256, 256});
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("set Dynamic HW success") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetDynamicHW_Failed)
+{
+    SetupCompleteModel();
+    modelProcess->g_dymindex = 0;
+    modelProcess->input_ = reinterpret_cast<aclmdlDataset*>(0x1234);
+    
+    EXPECT_CALL(*mockAcl, aclmdlSetDynamicHWSize(expectedModelId, 
+                                                reinterpret_cast<aclmdlDataset*>(0x1234), 
+                                                0, 512, 512))
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
+    
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(0x1234)))
+        .WillOnce(Return(ACL_SUCCESS));
+
+    const char* errorMsg = "Set dynamic HW failed";
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return(errorMsg));
+    
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetDynamicHW({512, 512});
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("acl set dynamicHW size failed") != string::npos);
+    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
+}
+
+// ===================== CheckDynamicBatchSize 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestCheckDynamicBatchSize_Success)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    aclmdlBatch batchInfo = {3, {1, 4, 8}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
+        .WillOnce(DoAll(SetArgPointee<1>(batchInfo), Return(ACL_SUCCESS)));
+    
+    bool isDynamic = false;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CheckDynamicBatchSize(4, isDynamic);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(isDynamic);
+    EXPECT_TRUE(logOutput.find("check dynamic batch success") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCheckDynamicBatchSize_InvalidBatch)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    aclmdlBatch batchInfo = {3, {1, 4, 8}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _)).Times(2)
+        .WillRepeatedly(DoAll(SetArgPointee<1>(batchInfo), Return(ACL_SUCCESS)));
+    
+    bool isDynamic = false;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CheckDynamicBatchSize(16, isDynamic);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("the dymBatch parameter is not correct") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCheckDynamicBatchSize_GetDynamicBatchFailed)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
+        .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
+    const char* errorMsg = "Get dynamic batch failed";
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return(errorMsg));
+    
+    bool isDynamic = false;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CheckDynamicBatchSize(4, isDynamic);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("get DynamicBatch failed") != string::npos);
+    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCheckDynamicBatchSize_NoDynamicBatch)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    aclmdlBatch batchInfo = {0, {}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
+        .WillOnce(DoAll(SetArgPointee<1>(batchInfo), Return(ACL_SUCCESS)));
+    
+    bool isDynamic = false;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CheckDynamicBatchSize(4, isDynamic);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("the dynamic_batch_size parameter is not specified") != string::npos);
+}
+
+// ===================== GetMaxBatchSize 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestGetMaxBatchSize_Success)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    aclmdlBatch batchInfo = {3, {1, 4, 8}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
+        .WillOnce(DoAll(SetArgPointee<1>(batchInfo), Return(ACL_SUCCESS)));
+    
+    uint64_t maxBatchSize = 0;
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->GetMaxBatchSize(maxBatchSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(maxBatchSize, 8);
+    EXPECT_TRUE(logOutput.find("get max dynamic batch size success") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestGetMaxBatchSize_NoBatchInfo)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    aclmdlBatch batchInfo = {0, {}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
+        .WillOnce(DoAll(SetArgPointee<1>(batchInfo), Return(ACL_SUCCESS)));
+    
+    uint64_t maxBatchSize = 0;
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->GetMaxBatchSize(maxBatchSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(maxBatchSize, 0);
+    EXPECT_TRUE(logOutput.find("get max dynamic batch size success") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestGetMaxBatchSize_GetDynamicBatchFailed)
+{
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
+    const char* errorMsg = "Get dynamic batch failed";
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return(errorMsg));
+    
+    uint64_t maxBatchSize = 0;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->GetMaxBatchSize(maxBatchSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("get DynamicBatch failed") != string::npos);
+    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
+}
+
+// ===================== SetDynamicBatchSize 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestSetDynamicBatchSize_Success)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    // 配置输入 dataset
+    aclmdlDataset* inputDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
+    modelProcess->input_ = inputDataset;
+    modelProcess->g_dymindex = 0;
+    
+    // 设置销毁期望
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(inputDataset)))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 设置期望
+    EXPECT_CALL(*mockAcl, aclmdlSetDynamicBatchSize(expectedModelId, inputDataset, 0, 8))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 执行测试
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetDynamicBatchSize(8);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("set dynamic batch size success") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetDynamicBatchSize_Failed)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    // 配置输入 dataset
+    aclmdlDataset* inputDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
+    modelProcess->input_ = inputDataset;
+    modelProcess->g_dymindex = 0;
+    
+    // 设置销毁期望
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(inputDataset)))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 设置期望
+    EXPECT_CALL(*mockAcl, aclmdlSetDynamicBatchSize(expectedModelId, inputDataset, 0, 16))
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
+    const char* errorMsg = "Set dynamic batch failed";
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return(errorMsg));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetDynamicBatchSize(16);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("acl set dynamic batch size failed") != string::npos);
+    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
+}
+
+// ===================== GetCurOutputDimsMul 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestGetCurOutputDimsMul_Success)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    // 安全初始化 ioDims
+    aclmdlIODims ioDims;
+    ioDims.dimCount = 3;
+    int64_t dimsArray[ACL_MAX_DIM_CNT] = {1, 2, 3}; // 假设 ACL_MAX_DIM_CNT 足够大
+    memcpy(ioDims.dims, dimsArray, sizeof(int64_t) * 3);
+    
+    EXPECT_CALL(*mockAcl, aclmdlGetCurOutputDims(fakeDesc, 0, _))
+        .WillOnce(DoAll(SetArgPointee<2>(ioDims), Return(ACL_SUCCESS)));
+    
+    // 执行测试
+    vector<int64_t> dimsMul;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->GetCurOutputDimsMul(0, dimsMul);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(dimsMul.size(), 2);
+    EXPECT_EQ(dimsMul[0], 3); // 3 = 3
+    EXPECT_EQ(dimsMul[1], 6); // 6 = 3 * 2
+    EXPECT_TRUE(logOutput.empty());
+}
+
+TEST_F(ModelProcessTest, TestGetCurOutputDimsMul_Failed)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    // 安全初始化 ioDims
+    aclmdlIODims ioDims;
+    ioDims.dimCount = 3;
+    int64_t dimsArray[ACL_MAX_DIM_CNT] = {1, 2, 3}; // 假设 ACL_MAX_DIM_CNT 足够大
+    memcpy(ioDims.dims, dimsArray, sizeof(int64_t) * 3);
+
+    EXPECT_CALL(*mockAcl, aclmdlGetCurOutputDims(fakeDesc, 0, _))
+        .WillOnce(DoAll(SetArgPointee<2>(ioDims), Return(ACL_ERROR_FAILURE)));
+
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return("aclmdlGetCurOutputDims Failed"));
+    
+    // 执行测试
+    vector<int64_t> dimsMul;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->GetCurOutputDimsMul(0, dimsMul);
+    string logOutput = testing::internal::GetCapturedStdout();
+    cout << logOutput << endl;
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("acl get current output dims failed ret") != string::npos);
+    EXPECT_TRUE(logOutput.find("maybe the modle has dynamic shape") != string::npos);
+}
+
+// ===================== CheckDynamicDims 测试用例  =====================
+
+TEST_F(ModelProcessTest, TestCheckDynamicDims_Success)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    // 准备测试数据
+    vector<string> dymDims = {"1", "2", "3"};
+    size_t gearCount = 1;
+    
+    // 安全初始化 dims
+    aclmdlIODims dims;
+    dims.dimCount = 3;
+    int64_t dimsArray[3] = {1, 2, 3};
+    memcpy(dims.dims, dimsArray, sizeof(int64_t) * 3);
+    
+    // 设置模拟期望
+    EXPECT_CALL(*mockAcl, aclmdlGetInputDynamicDims(fakeDesc, -1, _, gearCount))
+        .WillOnce(DoAll(SetArgPointee<2>(dims), Return(ACL_SUCCESS)));
+    
+    // 执行测试
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CheckDynamicDims(dymDims, gearCount, &dims);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("check dynamic dims success") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCheckDynamicDims_DimCountMismatch)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    // 准备测试数据
+    vector<string> dymDims = {"1", "2", "3"};
+    size_t gearCount = 1;
+    
+    // 安全初始化 dims - 维度数量不匹配
+    aclmdlIODims dims;
+    dims.dimCount = 2; // 只有 2 个维度
+    int64_t dimsArray[2] = {1, 2};
+    memcpy(dims.dims, dimsArray, sizeof(int64_t) * 2);
+    
+    // 设置模拟期望
+    EXPECT_CALL(*mockAcl, aclmdlGetInputDynamicDims(fakeDesc, -1, _, gearCount)).Times(2)
+        .WillRepeatedly(DoAll(SetArgPointee<2>(dims), Return(ACL_SUCCESS)));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CheckDynamicDims(dymDims, gearCount, &dims);
+    string logOutput = testing::internal::GetCapturedStdout();
+
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("the dymDims parameter is not correct") != string::npos);
+    EXPECT_TRUE(logOutput.find("dysize:3 dimcount:2") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCheckDynamicDims_InvalidInteger)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    // 准备测试数据
+    vector<string> dymDims = {"1", "2", "abc"}; // "abc" 不是有效整数
+    size_t gearCount = 1;
+    
+    // 安全初始化 dims
+    aclmdlIODims dims;
+    dims.dimCount = 3;
+    int64_t dimsArray[3] = {1, 2, 3};
+    memcpy(dims.dims, dimsArray, sizeof(int64_t) * 3);
+    
+    // 设置模拟期望
+    EXPECT_CALL(*mockAcl, aclmdlGetInputDynamicDims(fakeDesc, -1, _, gearCount))
+        .WillOnce(DoAll(SetArgPointee<2>(dims), Return(ACL_SUCCESS)));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CheckDynamicDims(dymDims, gearCount, &dims);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("dim of dymdims string is illegal") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCheckDynamicDims_DimsNotMatching)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    // 准备测试数据
+    vector<string> dymDims = {"1", "2", "4"}; // 与动态维度不匹配
+    size_t gearCount = 1;
+    
+    // 安全初始化 dims
+    aclmdlIODims dims;
+    dims.dimCount = 3;
+    int64_t dimsArray[3] = {1, 2, 3};
+    memcpy(dims.dims, dimsArray, sizeof(int64_t) * 3);
+    
+    // 设置模拟期望
+    EXPECT_CALL(*mockAcl, aclmdlGetInputDynamicDims(fakeDesc, -1, _, gearCount)).Times(2)
+        .WillRepeatedly(DoAll(SetArgPointee<2>(dims), Return(ACL_SUCCESS)));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CheckDynamicDims(dymDims, gearCount, &dims);
+    string logOutput = testing::internal::GetCapturedStdout();
+
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("the dynamic_dims parameter is not correct") != string::npos);
+}
+
+// ===================== SetDynamicDims 测试用例  =====================
+
+TEST_F(ModelProcessTest, TestSetDynamicDims_Success)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    // 配置输入 dataset
+    aclmdlDataset* inputDataset = reinterpret_cast<aclmdlDataset*>(0x1234);
+    modelProcess->input_ = inputDataset;
+    modelProcess->g_dymindex = 0;
+    
+    // 设置销毁期望
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(inputDataset)))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 准备测试数据
+    vector<string> dymDims = {"1", "2", "3"};
+    
+    // 设置模拟期望 - 验证传入的 dims
+    EXPECT_CALL(*mockAcl, aclmdlSetInputDynamicDims(expectedModelId, inputDataset, 0, _))
+        .WillOnce([](uint32_t, aclmdlDataset*, size_t, const aclmdlIODims* dims) {
+            EXPECT_EQ(dims->dimCount, 3);
+            EXPECT_EQ(dims->dims[0], 1);
+            EXPECT_EQ(dims->dims[1], 2);
+            EXPECT_EQ(dims->dims[2], 3);
+            return ACL_SUCCESS;
+        });
+    
+    // 执行测试
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetDynamicDims(dymDims);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("set dynamic dims success") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetDynamicDims_InvalidInteger)
+{
+    // 准备测试数据
+    vector<string> dymDims = {"1", "2", "abc"}; // "abc" 不是有效整数
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetDynamicDims(dymDims);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("Invalid input for conversion: abc") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetDynamicDims_OutOfRange)
+{
+    // 准备测试数据
+    vector<string> dymDims = {"1", "2", "99999999999999999999"}; // 超出 long 范围
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetDynamicDims(dymDims);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("Out of range input for conversion: 99999999999999999999") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetDynamicDims_SetDimsFailed)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    // 配置输入 dataset
+    aclmdlDataset* inputDataset = reinterpret_cast<aclmdlDataset*>(0x1234);
+    modelProcess->input_ = inputDataset;
+    modelProcess->g_dymindex = 0;
+    
+    // 设置销毁期望
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(inputDataset)))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 准备测试数据 - 不再初始化 aclmdlIODims
+    vector<string> dymDims = {"1", "2", "3"};
+    
+    // 设置模拟期望 - 使用通配符匹配任何传入的 dims 参数
+    EXPECT_CALL(*mockAcl, aclmdlSetInputDynamicDims(expectedModelId, inputDataset, 0, _))
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
+    const char* errorMsg = "Set dynamic dims failed";
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return(errorMsg));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetDynamicDims(dymDims);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("acl set input dynamic dims failed") != string::npos);
+    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
+}
 }

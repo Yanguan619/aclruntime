@@ -120,7 +120,7 @@ class TestCase(BaseTest):
         return self._cmd
 
     def count(self):
-        return 0 if self.is_auxiliary() else self._count
+        return self._count
 
     def get_doc(self):
         pass

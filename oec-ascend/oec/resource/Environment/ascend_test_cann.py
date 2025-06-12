@@ -1,60 +1,7 @@
 import oec
-import os
-oec.TestCase(
-    group=("运行环境","CANN安装"),
-    name="INSTALL_BACKUP_CANN_INSTALL_INFO",
-    cmd=f"[ -f /etc/Ascend/ascend_cann_install.info ] && mv -v /etc/Ascend/ascend_cann_install.info /etc/Ascend/ascend_cann_install.info.backup",
-    optional=True,
-    expect=[0,1]
-)
-
 
 oec.TestCase(
-    group=("运行环境","CANN安装"),
-    name="INSTALL_CANN_TOOLKIT",
-    cmd=f"bash ./install_cann.sh {oec.Context.cann_path} Ascend-cann-toolkit"
+    group=("运行环境","CANN安装卸载"),
+    name="INSTALL_CANN",
+    cmd=f"bash ./install_and_check_cann.sh '{oec.Context.data_path}' '{oec.Context.output_dir}/Ascend'"
 )    
-
-oec.SetEnvTestCase(
-    group=("运行环境","CANN安装"),
-    name="INSTALL_CANN_SET_ENV",
-    cmd=f"bash -c 'source {oec.Context.cann_path}/Ascend/ascend-toolkit/set_env.sh && env'"
-)
-
-oec.TestCase(
-    group=("运行环境","CANN安装"),
-    name="INSTALL_CANN_KERNELS",
-    cmd=f"bash ./install_cann.sh {oec.Context.cann_path} Ascend-cann-kernels"
-)
-
-oec.TestCase(
-    group=("运行环境","CANN安装"),
-    name="INSTALL_CANN_NNAL",
-    cmd=f"bash ./install_cann.sh {oec.Context.cann_path} Ascend-cann-nnal"
-)
-
-oec.TestCase(
-    group=("运行环境","CANN卸载"),
-    name="UNINSTALL_CANN_NNAL",
-    cmd=f"bash ./uninstall_cann.sh {oec.Context.cann_path} Ascend-cann-nnal"
-)
-
-oec.TestCase(
-    group=("运行环境","CANN卸载"),
-    name="UNINSTALL_CANN_KERNELS",
-    cmd=f"bash ./uninstall_cann.sh {oec.Context.cann_path} Ascend-cann-kernels"
-)
-
-oec.TestCase(
-    group=("运行环境","CANN卸载"),
-    name="UNINSTALL_CANN_TOOLKIT",
-    cmd=f"bash ./uninstall_cann.sh {oec.Context.cann_path} Ascend-cann-toolkit"
-)
-
-oec.TestCase(
-    group=("运行环境","CANN卸载"),
-    name="UNINSTALL_RESTORE_CANN_INSTALL_INFO",
-    cmd=f"[ -f /etc/Ascend/ascend_cann_install.info.backup ] && mv -v /etc/Ascend/ascend_cann_install.info.backup /etc/Ascend/ascend_cann_install.info",
-    optional=True,
-    expect=[0,1]
-)

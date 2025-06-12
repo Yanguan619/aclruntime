@@ -3,7 +3,6 @@
 test_sequence = {
     ("运行环境", "环境信息"): False,
     ("运行环境", "运行依赖"): False,
-    ("运行环境", "CANN安装"): False,
     ("运行环境", "CANN信息"): False,
     ("应用开发", "基础功能"): False,
     ("应用开发", "算子加速库"): True,
@@ -15,5 +14,5 @@ test_sequence = {
     ("模型开发", "集合通信"): False,
     ("集成测试", "离线推理"): False,
     ("集成测试", "在线训练"): False,
-    ("运行环境", "CANN卸载"): False,
+    ("运行环境", "CANN安装卸载"): False,
 }

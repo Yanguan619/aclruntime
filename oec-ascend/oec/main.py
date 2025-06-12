@@ -47,8 +47,8 @@ def argparse_handler():
     parser.add_argument(
         "-c",
         "--cann",
-        default="./",
-        help="The path for storing the three packages: ToolKit, kernels, and NNAL.",
+        default="/usr/local/Ascend",
+        help="The root path for installing CANN is by default `/usr/local/Ascend`.",
     )
     
     parser.add_argument(

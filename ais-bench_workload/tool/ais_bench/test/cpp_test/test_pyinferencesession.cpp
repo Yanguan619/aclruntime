@@ -96,3 +96,6 @@ TEST_F(PyInferenceSessionTest, InvalidDeviceId) {
     EXPECT_THROW(PyInferenceSession("valid_model.om", 256, options), std::runtime_error);
 }
 } // namespace AISBench_test
+
+// 测试完成后恢复原始File类
+#pragma pop_macro("File")

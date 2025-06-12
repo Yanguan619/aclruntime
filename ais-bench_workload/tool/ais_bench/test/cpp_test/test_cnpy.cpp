@@ -140,13 +140,13 @@ TEST(CnpyTest, ParseNpyHeader_Success)
 
 TEST(CnpyTest, NpyLoad_FileNotExist)
 {
-    EXPECT_THROW(cnpy::NpyLoad("/not_exist_file.npy"), std::runtime_error);
+    EXPECT_THROW(cnpy::NpyLoad("./not_exist_file.npy"), std::runtime_error);
 }
 
 TEST(CnpyTest, NpyLoad_Success)
 {
     // 构造一个合法的npy文件
-    std::string fname = "/tmp/test_npyl_load.npy";
+    std::string fname = "./test_npyl_load.npy";
     FILE* fp = fopen(fname.c_str(), "wb");
     ASSERT_NE(fp, nullptr);
     chmod(fname.c_str(), 0644);
@@ -189,7 +189,7 @@ TEST(CnpyTest, NpyLoad_Success)
 TEST(CnpyTest, NpyLoad_FileCheckFail)
 {
     // 构造非法文件名，CheckFileBeforeRead会失败
-    std::string fname = "/tmp/test_npyl_load.txt";
+    std::string fname = "./test_npyl_load.txt";
     std::ofstream ofs(fname);
     ofs << "not a npy file";
     ofs.close();
@@ -201,7 +201,7 @@ TEST(CnpyTest, NpyLoad_FileCheckFail)
 TEST(CnpyTest, NpyLoad_OpenFileFail)
 {
     // 文件不存在，fopen失败
-    std::string fname = "/tmp/not_exist_npyl_file.npy";
+    std::string fname = "./not_exist_npyl_file.npy";
     EXPECT_THROW(cnpy::NpyLoad(fname), std::runtime_error);
 }
 
@@ -216,12 +216,12 @@ TEST(CnpyTest, NpyLoad_CloseFileFail)
 
 TEST(CnpyTest, BinLoad_FileNotExist)
 {
-    EXPECT_THROW(cnpy::BinLoad("/not_exist_file.bin"), std::runtime_error);
+    EXPECT_THROW(cnpy::BinLoad("./not_exist_file.bin"), std::runtime_error);
 }
 
 TEST(CnpyTest, BinLoad_Success)
 {
-    std::string fname = "/tmp/test_binload.bin";
+    std::string fname = "./test_binload.bin";
     std::ofstream ofs(fname, std::ios::binary);
     chmod(fname.c_str(), 0644);
     ofs << "abc";
@@ -386,7 +386,7 @@ TEST(CnpyTest, BinLoad_OpenFileFail)
 TEST(CnpyTest, BinLoad_ZeroSize)
 {
     // 创建一个空文件
-    std::string fname = "/tmp/test_binload_empty.bin";
+    std::string fname = "./test_binload_empty.bin";
     std::ofstream ofs(fname, std::ios::binary);
     chmod(fname.c_str(), 0644);
     ofs.close();
@@ -398,7 +398,7 @@ TEST(CnpyTest, BinLoad_ZeroSize)
 
 TEST(CnpyTest, BinLoad_ReadContentCorrect)
 {
-    std::string fname = "/tmp/test_binload_content.bin";
+    std::string fname = "./test_binload_content.bin";
     std::ofstream ofs(fname, std::ios::binary);
     chmod(fname.c_str(), 0644);
     std::string content = "hello,world";

@@ -44,10 +44,12 @@ constexpr int EXPECTED_INPUT_INFO_SIZE = 2;
 constexpr int MAX_SHAPE_VALUES = 6;
 constexpr size_t MAX_SHAPE_VALUE_LENGTH = 9;
 
-typedef enum Result {
-    SUCCESS = 0,
-    FAILED = 1
-} Result;
+namespace UtilsResult {
+    typedef enum Result {
+        SUCCESS = 0,
+        FAILED = 1
+    } Result;
+}
 
 /**
 * Utils
@@ -65,7 +67,7 @@ public:
 
     static  void SplitStringWithPunctuation(std::string str, std::vector<std::string> &out, char split);
 
-    static Result SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_str,
+    static UtilsResult::Result SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_str,
         std::map<string, int64_t> &out_namedimsmul_map);
 
     static std::string modelName(std::string& s);
@@ -76,16 +78,16 @@ public:
 
     static double printDiffTime(time_t begin, time_t end);
 
-    static Result ReadBinFileToMemory(const std::string fileName,  char *ptr, const size_t size, size_t &offset);
-    static Result FillFileContentToMemory(const std::string file, char* ptr, const size_t size, size_t &offset);
+    static UtilsResult::Result ReadBinFileToMemory(const std::string fileName,  char *ptr, const size_t size, size_t &offset);
+    static UtilsResult::Result FillFileContentToMemory(const std::string file, char* ptr, const size_t size, size_t &offset);
 
     static std::string MergeStr(std::vector<std::string>& list, const std::string& delimiter);
     static std::string GetPrefix(const std::string& outputDir, std::string filePath, const std::string& removeTail);
     static std::string RemoveSlash(const std::string& name);
     static std::string CreateDynamicShapeDims(const std::string& name, std::vector<size_t>& shapes);
-    static Result TensorToNumpy(const std::string& outputFileName, Base::TensorBase& output);
-    static Result TensorToBin(const std::string& outputFileName, Base::TensorBase& output);
-    static Result TensorToTxt(const std::string& outputFileName, Base::TensorBase& output);
+    static UtilsResult::Result TensorToNumpy(const std::string& outputFileName, Base::TensorBase& output);
+    static UtilsResult::Result TensorToBin(const std::string& outputFileName, Base::TensorBase& output);
+    static UtilsResult::Result TensorToTxt(const std::string& outputFileName, Base::TensorBase& output);
     static bool TailContain(const std::string& str, const std::string& tail);
     static bool IsValidInteger(const std::string& str);
     static bool IsLegalDymString(const std::string& str);

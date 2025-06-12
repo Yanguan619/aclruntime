@@ -23,6 +23,8 @@
 #include "Base/Tensor/TensorBase/TensorBase.h"
 #include "Base/ModelInfer/DynamicAippConfig.h"
 
+using namespace UtilsResult;
+
 enum NORMAL_DATA_TYPE {
     TYPE_FLOAT,
     TYPE_ACLFLOAT16,
@@ -59,7 +61,7 @@ public:
     * @param [in] modelPath: model path
     * @return result
     */
-    Result LoadModelFromFile(const std::string& modelPath);
+    UtilsResult::Result LoadModelFromFile(const std::string& modelPath);
 
     /**
     * @brief unload model
@@ -70,68 +72,68 @@ public:
     * @brief create model desc
     * @return result
     */
-    Result CreateDesc();
+    UtilsResult::Result CreateDesc();
 
     /**
     * @brief PrintDesc
     */
-    Result PrintDesc();
+    UtilsResult::Result PrintDesc();
 
     /**
     * @brief get dynamic gear conut
     */
-    Result GetDynamicGearCount(size_t &dymGearCount);
+    UtilsResult::Result GetDynamicGearCount(size_t &dymGearCount);
 
     /**
     * @brief get dynamic index
     */
-    Result GetDynamicIndex(size_t &dymindex);
+    UtilsResult::Result GetDynamicIndex(size_t &dymindex);
 
     /**
     * @brief check dynamic input dims valid
     */
-    Result CheckDynamicDims(std::vector<std::string> dym_dims, size_t gearCount, aclmdlIODims* dims);
+    UtilsResult::Result CheckDynamicDims(std::vector<std::string> dym_dims, size_t gearCount, aclmdlIODims* dims);
 
     /**
     * @brief check dynamic input batch valid
     */
-    Result CheckDynamicBatchSize(uint64_t dymbatch, bool& is_dymbatch);
+    UtilsResult::Result CheckDynamicBatchSize(uint64_t dymbatch, bool& is_dymbatch);
 
     /**
     * @brief check dynamic input image size valid
     */
-    Result CheckDynamicHWSize(std::pair<int, int> dynamicPair, bool& is_dymHW);
+    UtilsResult::Result CheckDynamicHWSize(std::pair<int, int> dynamicPair, bool& is_dymHW);
 
     /**
     * @brief set dynamic input dims
     */
-    Result SetDynamicDims(std::vector<std::string> dym_dims);
+    UtilsResult::Result SetDynamicDims(std::vector<std::string> dym_dims);
 
     /**
     * @brief check dynamic input image size valid
     */
-    Result CheckDynamicShape(std::vector<std::string> dym_shape_tmp, std::map<std::string,
+    UtilsResult::Result CheckDynamicShape(std::vector<std::string> dym_shape_tmp, std::map<std::string,
         std::vector<int64_t>> &dym_shape_map, std::vector<int64_t> &dims_num);
 
     /**
     * @brief set dynamic input dims
     */
-    Result SetDynamicShape(std::map<std::string, std::vector<int64_t>> dym_shape_map, std::vector<int64_t> &dims_num);
+    UtilsResult::Result SetDynamicShape(std::map<std::string, std::vector<int64_t>> dym_shape_map, std::vector<int64_t> &dims_num);
 
     /**
     * @brief set dynamic batch size
     */
-    Result SetDynamicBatchSize(uint64_t batchSize);
+    UtilsResult::Result SetDynamicBatchSize(uint64_t batchSize);
 
     /**
     * @brief get max dynamic batch size
     */
-    Result GetMaxBatchSize(uint64_t& maxBatchSize);
+    UtilsResult::Result GetMaxBatchSize(uint64_t& maxBatchSize);
 
     /**
     * @brief set dynamic image size
     */
-    Result SetDynamicHW(std::pair<uint64_t, uint64_t > dynamicPair);
+    UtilsResult::Result SetDynamicHW(std::pair<uint64_t, uint64_t > dynamicPair);
 
     /**
     * @brief check model the amount of dynamic aipp input
@@ -141,50 +143,50 @@ public:
     /**
     * @brief free aclmdlAIPP
     */
-    Result FreeAIPP(aclmdlAIPP* aippParmsSet);
+    UtilsResult::Result FreeAIPP(aclmdlAIPP* aippParmsSet);
 
     // ------------------分别配置具体AIPP参数-----------------
-    Result SetAIPPSrcImageSize(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg, aclmdlAIPP* aippDynamicSet);
+    UtilsResult::Result SetAIPPSrcImageSize(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg, aclmdlAIPP* aippDynamicSet);
 
-    Result SetAIPPInputFormat(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg, aclmdlAIPP* aippDynamicSet);
+    UtilsResult::Result SetAIPPInputFormat(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg, aclmdlAIPP* aippDynamicSet);
 
-    Result SetAIPPCscParams(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg, aclmdlAIPP* aippDynamicSet);
+    UtilsResult::Result SetAIPPCscParams(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg, aclmdlAIPP* aippDynamicSet);
 
-    Result SetAIPPRbuvSwapSwitch(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg, aclmdlAIPP* aippDynamicSet);
+    UtilsResult::Result SetAIPPRbuvSwapSwitch(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg, aclmdlAIPP* aippDynamicSet);
 
-    Result SetAIPPAxSwapSwitch(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg, aclmdlAIPP* aippDynamicSet);
+    UtilsResult::Result SetAIPPAxSwapSwitch(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg, aclmdlAIPP* aippDynamicSet);
 
-    Result SetAIPPDtcPixelMean(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    UtilsResult::Result SetAIPPDtcPixelMean(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
         aclmdlAIPP* aippDynamicSet, size_t batchIndex);
 
-    Result SetAIPPDtcPixelMin(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    UtilsResult::Result SetAIPPDtcPixelMin(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
         aclmdlAIPP* aippDynamicSet, size_t batchIndex);
 
-    Result SetAIPPPixelVarReci(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    UtilsResult::Result SetAIPPPixelVarReci(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
         aclmdlAIPP* aippDynamicSet, size_t batchIndex);
 
-    Result SetAIPPCropParams(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    UtilsResult::Result SetAIPPCropParams(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
         aclmdlAIPP* aippDynamicSet, size_t batchIndex);
 
-    Result SetAIPPPaddingParams(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    UtilsResult::Result SetAIPPPaddingParams(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
         aclmdlAIPP* aippDynamicSet, size_t batchIndex);
     // ------------------分别配置具体AIPP参数-----------------
 
     /**
     * @brief set single dynamic aipp config
     */
-    Result GetDymAIPPConfigSet(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
+    UtilsResult::Result GetDymAIPPConfigSet(std::shared_ptr<Base::DynamicAippConfig> dyAippCfg,
         aclmdlAIPP* &pAIPPSet, uint64_t maxBatchSize);
 
     /**
     * @brief set single or multiple dynamic aipp config
     */
-    Result SetDynamicAipp();
+    UtilsResult::Result SetDynamicAipp();
 
     /**
     * @brief set gived single  dynamic aipp config
     */
-    Result SetInputAIPP(size_t index, void* pAippDynamicSet);
+    UtilsResult::Result SetInputAIPP(size_t index, void* pAippDynamicSet);
     /**
     * @brief get dynamic input dims info
     */
@@ -203,7 +205,7 @@ public:
     /**
     * @brief get dynamic aipp list, just support single index
     */
-    Result GetAIPPIndexList(std::vector<size_t> &dataNeedDynamicAipp);
+    UtilsResult::Result GetAIPPIndexList(std::vector<size_t> &dataNeedDynamicAipp);
     /**
     * @brief destroy desc
     */
@@ -213,7 +215,7 @@ public:
     * @brief create model input
     * @return result
     */
-    Result CreateDymInput(size_t index);
+    UtilsResult::Result CreateDymInput(size_t index);
 
     /**
     * @brief create model input
@@ -221,27 +223,27 @@ public:
     * @param [in] bufferSize: input buffer size
     * @return result
     */
-    Result CreateInput(void* inputDataBuffer, size_t bufferSize);
+    UtilsResult::Result CreateInput(void* inputDataBuffer, size_t bufferSize);
 
     /**
     * @brief update model inputs(without memory copy)
     * @param [in] inOutRelation: inputs update method
     * @return result
     */
-    Result UpdateInputsReuse(const std::vector<int> &inOutRelation);
+    UtilsResult::Result UpdateInputsReuse(const std::vector<int> &inOutRelation);
 
     /**
     * @brief update model inputs(need one memory copy per iteration)
     * @param [in] inOutRelation: inputs update method
     * @return result
     */
-    Result UpdateInputsMemcpy(const std::vector<int> &inOutRelation);
+    UtilsResult::Result UpdateInputsMemcpy(const std::vector<int> &inOutRelation);
 
     /**
     * @brief create model input
     * @return result
     */
-    Result CreateZeroInput();
+    UtilsResult::Result CreateZeroInput();
 
     /**
     * @brief destroy input resource
@@ -252,7 +254,7 @@ public:
     * @brief create output buffer
     * @return result
     */
-    Result CreateOutput();
+    UtilsResult::Result CreateOutput();
 
     /**
     * @brief destroy output resource
@@ -263,7 +265,7 @@ public:
     * @brief model execute
     * @return result
     */
-    Result Execute();
+    UtilsResult::Result Execute();
 
     /**
     * @brief dump model output result to file
@@ -273,23 +275,23 @@ public:
     /**
     * @brief get current output dims mul
     */
-    Result GetCurOutputDimsMul(size_t index,  std::vector<int64_t>& curOutputDimsMul);
+    UtilsResult::Result GetCurOutputDimsMul(size_t index,  std::vector<int64_t>& curOutputDimsMul);
 
-    Result CreateOutput(void* outputBuffer, size_t bufferSize);
+    UtilsResult::Result CreateOutput(void* outputBuffer, size_t bufferSize);
 
     size_t GetNumInputs();
     size_t GetNumOutputs();
 
-    Result GetInTensorDesc(size_t i, std::string& name, int& datatype,
+    UtilsResult::Result GetInTensorDesc(size_t i, std::string& name, int& datatype,
         size_t& format, std::vector<int64_t>& shape, size_t& size);
-    Result GetOutTensorDesc(size_t i, std::string& name, int& datatype,
+    UtilsResult::Result GetOutTensorDesc(size_t i, std::string& name, int& datatype,
         size_t& format, std::vector<int64_t>& shape, size_t& size);
 
     size_t GetOutTensorLen(size_t i, bool is_dymshape);
 
-    Result GetCurOutputShape(size_t index, bool is_dymshape, std::vector<int64_t>& shape);
+    UtilsResult::Result GetCurOutputShape(size_t index, bool is_dymshape, std::vector<int64_t>& shape);
 
-    Result GetMaxDynamicHWSize(size_t &outsize);
+    UtilsResult::Result GetMaxDynamicHWSize(size_t &outsize);
 
     void SetExceptionCallBack();
     void InitReuseOutput();
@@ -306,10 +308,10 @@ private:
     std::map<std::string, aclAippInputFormat> str2aclAippInputFormat;
     void model_description(aclError ret, size_t& numInputs, size_t& numOutputs,
         aclmdlIODims& dimsInput, aclmdlIODims& dimsOutput);
-    Result check_ret(aclError ret, size_t buffer_size_zero);
-    Result check_create_buffer(aclDataBuffer* inputData, void* inBufferDev);
-    Result check_add_buffer(aclError ret, void* inBufferDev, aclDataBuffer* inputData);
-    Result Free_Host_Try(aclError ret, void*& outHostData);
+    UtilsResult::Result check_ret(aclError ret, size_t buffer_size_zero);
+    UtilsResult::Result check_create_buffer(aclDataBuffer* inputData, void* inBufferDev);
+    UtilsResult::Result check_add_buffer(aclError ret, void* inBufferDev, aclDataBuffer* inputData);
+    UtilsResult::Result Free_Host_Try(aclError ret, void*& outHostData);
     void print_error_log(aclError ret);
 };
 #endif

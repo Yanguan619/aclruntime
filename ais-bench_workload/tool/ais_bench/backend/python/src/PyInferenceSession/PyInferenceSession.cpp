@@ -29,6 +29,7 @@
 #include "Base/ModelInfer/pipeline.h"
 #include "Base/ModelInfer/File.h"
 
+using namespace UtilsResult;
 const int LOOP_MAX_SIZE = 100000;
 const size_t CUSTOME_SIZE_MAX_SIZE = 17179869184; // 16GB
 const size_t DEVICE_ID_MAX = 255;

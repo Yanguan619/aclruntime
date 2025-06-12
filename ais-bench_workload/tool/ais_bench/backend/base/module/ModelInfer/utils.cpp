@@ -19,6 +19,7 @@
 #include "acl/acl.h"
 
 using namespace std;
+using namespace UtilsResult;
 namespace {
 bool g_isDevice = true;
 const uint16_t OPEN_FILE_MODE = 640;

@@ -18,6 +18,7 @@
 #include "acl/acl.h"
 #include "Base/Log/Log.h"
 
+using namespace UtilsResult;
 namespace Base {
 APP_ERROR ModelInferenceProcessor::GetModelDescInfo()
 {

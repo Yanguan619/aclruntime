@@ -23,6 +23,7 @@
 
 
 using namespace std;
+using namespace UtilsResult;
 namespace {
 bool g_isDevice = true;
 bool g_isTxt = false;

@@ -2,7 +2,7 @@
  * @Author: yanhe13 yanhe13@huawei.com
  * @Date: 2025-06-12 14:56:37
  * @LastEditors: yanhe13 yanhe13@huawei.com
- * @LastEditTime: 2025-06-12 15:07:37
+ * @LastEditTime: 2025-06-12 15:31:16
  * @FilePath: \ais_bench\test\cpp_test\test_pyinferencesession.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -16,25 +16,28 @@ using namespace Base;
 using ::testing::_;
 using ::testing::Return;
 
-// 保存原始File宏定义
-#pragma push_macro("File")
+namespace AISBench_test {
+// 添加文件检查接口
+class IFileChecker {
+public:
+    virtual ~IFileChecker() = default;
+    virtual bool CheckFileBeforeRead(const std::string& path, FileType type) = 0;
+};
 
-// 由于File类使用静态方法，这里通过宏替换实现Mock
-#undef File
-class MockFile {
+// 真实实现（调用原始File类）
+class RealFileChecker : public IFileChecker {
+public:
+    bool CheckFileBeforeRead(const std::string& path, FileType type) override {
+        return File::CheckFileBeforeRead(path, type);
+    }
+};
+
+// Mock实现
+class MockFileChecker : public IFileChecker {
 public:
     MOCK_METHOD2(CheckFileBeforeRead, bool(const std::string&, FileType));
 };
 
-// 全局变量用于存储Mock实例
-static MockFile mockFile;
-
-// 替换原File类的静态方法为Mock方法
-bool File::CheckFileBeforeRead(const std::string& path, FileType type) {
-    return mockFile.CheckFileBeforeRead(path, type);
-}
-
-namespace AISBench_test {
 class PyInferenceSessionTest : public ::testing::Test {
 protected:
     void SetUp() override {
@@ -44,16 +47,19 @@ protected:
         options->log_level = LOG_INFO_LEVEL; // 2
         options->aclJsonPath = "";
 
+        // 创建MockFileChecker实例
+        mockFileChecker = std::make_shared<MockFileChecker>();
+
         // 默认Mock行为：有效模型和配置返回true
-        testing::Mock::VerifyAndClearExpectations(&mockFile);
-        ON_CALL(mockFile, CheckFileBeforeRead("valid_model.om", FileType::OM))
+        testing::Mock::VerifyAndClearExpectations(mockFileChecker.get());
+        ON_CALL(*mockFileChecker, CheckFileBeforeRead("valid_model.om", FileType::OM))
             .WillByDefault(Return(true));
-        ON_CALL(mockFile, CheckFileBeforeRead("valid_config.json", FileType::JSON))
+        ON_CALL(*mockFileChecker, CheckFileBeforeRead("valid_config.json", FileType::JSON))
             .WillByDefault(Return(true));
     }
 
-
     std::shared_ptr<SessionOptions> options;
+    std::shared_ptr<MockFileChecker> mockFileChecker; // Mock实例作为成员变量
 };
 
 // loop参数越界测试
@@ -80,7 +86,7 @@ TEST_F(PyInferenceSessionTest, InvalidLogLevel) {
 
 // 无效模型路径测试
 TEST_F(PyInferenceSessionTest, InvalidModelPath) {
-    EXPECT_CALL(mockFile, CheckFileBeforeRead("invalid_model.om", FileType::OM))
+    EXPECT_CALL(*mockFileChecker, CheckFileBeforeRead("invalid_model.om", FileType::OM))
         .Times(1)
         .WillOnce(Return(false));
     EXPECT_THROW(PyInferenceSession("invalid_model.om", 0, options), std::runtime_error);
@@ -89,10 +95,10 @@ TEST_F(PyInferenceSessionTest, InvalidModelPath) {
 // 无效ACL配置路径测试（非空时）
 TEST_F(PyInferenceSessionTest, InvalidAclJsonPath) {
     options->aclJsonPath = "invalid_config.json";
-    EXPECT_CALL(mockFile, CheckFileBeforeRead("valid_model.om", FileType::OM))
+    EXPECT_CALL(*mockFileChecker, CheckFileBeforeRead("valid_model.om", FileType::OM))
         .Times(1)
         .WillOnce(Return(true));
-    EXPECT_CALL(mockFile, CheckFileBeforeRead("invalid_config.json", FileType::JSON))
+    EXPECT_CALL(*mockFileChecker, CheckFileBeforeRead("invalid_config.json", FileType::JSON))
         .Times(1)
         .WillOnce(Return(false));
     EXPECT_THROW(PyInferenceSession("valid_model.om", 0, options), std::runtime_error);

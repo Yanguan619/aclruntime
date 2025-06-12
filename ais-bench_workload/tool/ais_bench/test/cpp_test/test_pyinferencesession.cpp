@@ -87,7 +87,6 @@ TEST_F(PyInferenceSessionTest, InvalidLogLevel) {
 // 无效模型路径测试
 TEST_F(PyInferenceSessionTest, InvalidModelPath) {
     EXPECT_CALL(*mockFileChecker, CheckFileBeforeRead("invalid_model.om", FileType::OM))
-        .Times(1)
         .WillOnce(Return(false));
     EXPECT_THROW(PyInferenceSession("invalid_model.om", 0, options), std::runtime_error);
 }
@@ -96,10 +95,8 @@ TEST_F(PyInferenceSessionTest, InvalidModelPath) {
 TEST_F(PyInferenceSessionTest, InvalidAclJsonPath) {
     options->aclJsonPath = "invalid_config.json";
     EXPECT_CALL(*mockFileChecker, CheckFileBeforeRead("valid_model.om", FileType::OM))
-        .Times(1)
         .WillOnce(Return(true));
     EXPECT_CALL(*mockFileChecker, CheckFileBeforeRead("invalid_config.json", FileType::JSON))
-        .Times(1)
         .WillOnce(Return(false));
     EXPECT_THROW(PyInferenceSession("valid_model.om", 0, options), std::runtime_error);
 }
@@ -113,6 +110,3 @@ TEST_F(PyInferenceSessionTest, InvalidDeviceId) {
     EXPECT_THROW(PyInferenceSession("valid_model.om", 256, options), std::runtime_error);
 }
 } // namespace AISBench_test
-
-// 恢复原始File宏定义
-#pragma pop_macro("File")

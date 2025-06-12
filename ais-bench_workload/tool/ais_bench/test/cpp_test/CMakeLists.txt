@@ -20,6 +20,7 @@ target_include_directories(backend_test PRIVATE ${CANN_BASE_PATH}/runtime/includ
 target_link_libraries(backend_test PRIVATE ${CANN_BASE_PATH}/acllib/lib64/stub/libascendcl.so)
 target_link_libraries(backend_test PRIVATE ${CANN_BASE_PATH}/acllib/lib64/stub/libacl_dvpp.so)
 
+target_include_directories(backend_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/pyblind11)
 target_include_directories(backend_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/pybind11/include)
 target_include_directories(backend_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../backend/python/include)
 target_include_directories(backend_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../backend/base/include)

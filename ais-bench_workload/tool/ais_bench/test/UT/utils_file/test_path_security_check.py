@@ -43,9 +43,10 @@ class TestClass:
         logger.info('\n ---class level teardown_class')
 
     def init(self):
-        self.standard_file_path = os.path.join(TestCommonClass.base_path, "resnet50/fake_model.json")
+        self.standard_file_path = os.path.join(TestCommonClass.base_path, "fake_model.json")
         if os.path.exists(self.standard_file_path):
             os.remove(self.standard_file_path)
+        # breakpoint()
         with open(self.standard_file_path, "w") as file:
             json.dump({"key": "value"}, file)
         os.chmod(self.standard_file_path, 0o600)
@@ -267,8 +268,3 @@ class TestClass:
         assert ms_open(self.standard_file_path, mode="+") == self.end_label
         assert ms_open(self.standard_file_path, mode="w") == self.end_label
         assert ms_open(self.standard_file_path, mode="a") == self.end_label
-
-
-
-
-

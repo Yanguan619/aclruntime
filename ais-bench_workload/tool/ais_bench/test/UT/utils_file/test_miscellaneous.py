@@ -1,30 +1,11 @@
-# Copyright (c) 2024-2024 Huawei Technologies Co., Ltd.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-#lzy
-import os
+import unittest
 import sys
-import logging
-import json
-import shutil
-
-import pytest
-from ais_bench.infer.interface import InferSession
+from unittest.mock import MagicMock, patch, mock_open
 from ais_bench.infer.common.miscellaneous import (
     get_modules_version,
     version_check,
     get_model_name,
+    check_dump_path,
     check_valid_acl_json_for_dump,
     get_acl_json_path,
     get_batchsize,
@@ -32,235 +13,268 @@ from ais_bench.infer.common.miscellaneous import (
     get_dymshape_list,
     get_throughtput_from_log,
     regenerate_dymshape_cmd,
+    dymshape_range_run,
+    ms_open,
+    FileStat,
+    FilePermChoice,
+    MAX_SIZE_LIMITED_CONFIG_FILE,
+    MAX_SIZE_LIMITED_NORMAL_FILE,
+    makedirs_safe,
+    logger,
+    logger_print,
+    str_to_uint,
+    check_dym_str_format,
+    DYM_RANGE_PATTERN,
+    AISBenchInferArgsAdapter,
 )
-from test_common import TestCommonClass
 
-logging.basicConfig(
-    stream=sys.stdout, level=logging.INFO, format="[%(levelname)s] %(message)s"
-)
-logger = logging.getLogger(__name__)
+class TestYourModule(unittest.TestCase):
+    @patch('pkg_resources.get_distribution')
+    def test_get_modules_version(self, mock_get_distribution):
+        mock_get_distribution.return_value.version = "1.0.0"
+        version = get_modules_version("aclruntime")
+        self.assertEqual(version, "1.0.0")
 
-DUMP_STR = "dump"
+    @patch('pkg_resources.get_distribution')
+    def test_version_check(self, mock_get_distribution):
+        mock_get_distribution.return_value.version = "0.0.3"
+        args = MagicMock()
+        args.run_mode = None
+        version_check(args)
+        self.assertEqual(args.run_mode, "tensor")
 
+    def test_get_model_name(self):
+        model_name = get_model_name("/path/to/model.om")
+        self.assertEqual(model_name, "model")
 
-class FakeInputDesc:
-    def __init__(self, shape, name="df"):
-        self.shape = shape
-        self.name = name
+    @patch('ais_bench.infer.common.miscellaneous.FileStat')
+    def test_check_dump_path(self, mock_file_stat):
+        mock_file_stat.return_value.is_dir = False
+        mock_file_stat.return_value.is_exists = True
+        mock_file_stat.return_value.is_basically_legal.return_value = True
+        with self.assertRaises(TypeError):
+            check_dump_path("/path/to/dump")
+    
+    @patch('ais_bench.infer.common.miscellaneous.FileStat')
+    def test_check_dump_path1(self, mock_file_stat):
+        mock_file_stat.return_value.is_dir = True
+        mock_file_stat.return_value.is_exists = True
+        mock_file_stat.return_value.is_basically_legal.return_value = False
+        with self.assertRaises(ValueError):
+            check_dump_path("/path/to/dump")
+    
+    def test_check_dump_path2(self):
+        with self.assertRaises(ValueError):
+            check_dump_path(33)
 
+    @patch('ais_bench.infer.common.miscellaneous.check_dump_path')
+    @patch('ais_bench.infer.common.miscellaneous.ms_open')
+    def test_check_valid_acl_json_for_dump(self, mock_ms_open, mock_check_dump_path):
+        mock_ms_open.return_value.__enter__.return_value.read.return_value = '{"dump": {"dump_list": [{"model_name": "model"}], "dump_path": "/path/to/dump"}}'
+        mock_check_dump_path.return_value = None
+        check_valid_acl_json_for_dump("/path/to/acl.json", "/path/to/model.om")
+    
+    @patch('ais_bench.infer.common.miscellaneous.ms_open')
+    def test_check_valid_acl_json_for_dump_fail1(self, mock_ms_open):
+        mock_ms_open.return_value.__enter__.return_value.read.return_value = '{"dump": {"dump_lists": [{"model_name": "model"}], "dump_path": "/path/to/dump"}}'
+        with self.assertRaises(KeyError):
+            check_valid_acl_json_for_dump("/path/to/acl.json", "/path/to/model.om")
+    
+    @patch('ais_bench.infer.common.miscellaneous.ms_open')
+    def test_check_valid_acl_json_for_dump_fail2(self, mock_ms_open):
+        mock_ms_open.return_value.__enter__.return_value.read.return_value = '{"dump": {"dump_list": [], "dump_path": "/path/to/dump"}}'
+        with self.assertRaises(ValueError):
+            check_valid_acl_json_for_dump("/path/to/acl.json", "/path/to/model.om")
+    
+    @patch('ais_bench.infer.common.miscellaneous.ms_open')
+    def test_check_valid_acl_json_for_dump_fail3(self, mock_ms_open):
+        mock_ms_open.return_value.__enter__.return_value.read.return_value = '{"dump": {"dump_list": [{"model_name": "model"}], "dump_paths": "/path/to/dump"}}'
+        with self.assertRaises(KeyError):
+            check_valid_acl_json_for_dump("/path/to/acl.json", "/path/to/model.om")
+    
+    @patch('ais_bench.infer.common.miscellaneous.check_dump_path')
+    @patch('ais_bench.infer.common.miscellaneous.ms_open')
+    def test_check_valid_acl_json_for_dump_fail4(self, mock_ms_open, mock_check_dump_path):
+        mock_ms_open.return_value.__enter__.return_value.read.return_value = '{"dump": {"dump_list": [{"model_name": "model"}], "dump_path": "/path/to/dump", "dump_op_switch": "ccc}}'
+        mock_check_dump_path.return_value = None
+        with self.assertRaises(ValueError):
+            check_valid_acl_json_for_dump("/path/to/acl.json", "/path/to/model.om")
+    
+    @patch('ais_bench.infer.common.miscellaneous.check_dump_path')
+    @patch('ais_bench.infer.common.miscellaneous.ms_open')
+    def test_check_valid_acl_json_for_dump_fail5(self, mock_ms_open, mock_check_dump_path):
+        mock_ms_open.return_value.__enter__.return_value.read.return_value = '{"dump": {"dump_list": [{"model_name": "model"}], "dump_path": "/path/to/dump", "dump_mode": "ccc}}'
+        mock_check_dump_path.return_value = None
+        with self.assertRaises(ValueError):
+            check_valid_acl_json_for_dump("/path/to/acl.json", "/path/to/model.om")
 
-class TestClass:
-    @classmethod
-    def setup_class(cls):
-        """
-        class level setup_class
-        """
-        cls.init(TestClass)
+    @patch('ais_bench.infer.common.miscellaneous.ms_open')
+    @patch('ais_bench.infer.common.miscellaneous.makedirs_safe')
+    def test_get_acl_json_path(self, mock_makedirs_safe, mock_ms_open):
+        mock_ms_open.return_value.__enter__.return_value.read.return_value = '{"profiler": {"switch": "on", "aicpu": "on", "output": "/path/to/profiler"}}'
+        args = MagicMock()
+        args.acl_json_path = None
+        args.profiler = True
+        args.output = "/path/to/output"
+        args.model = "/path/to/model.om"
+        acl_json_path = get_acl_json_path(args)
+        self.assertEqual(acl_json_path, "/path/to/output/acl.json")
+    
+    @patch('ais_bench.infer.common.miscellaneous.check_valid_acl_json_for_dump')
+    def test_get_acl_json_path1(self, mock_check_valid_acl_json_for_dump):
+        mock_check_valid_acl_json_for_dump.return_value = None
+        args = MagicMock()
+        args.acl_json_path = "xxx"
+        args.profiler = True
+        args.output = "/path/to/output"
+        args.model = "/path/to/model.om"
+        acl_json_path = get_acl_json_path(args)
+        self.assertEqual(acl_json_path, "xxx")
 
-    @classmethod
-    def teardown_class(cls):
-        logger.info('\n ---class level teardown_class')
+    @patch('ais_bench.infer.common.miscellaneous.ms_open')
+    @patch('ais_bench.infer.common.miscellaneous.makedirs_safe')
+    @patch('ais_bench.infer.common.miscellaneous.check_valid_acl_json_for_dump')
+    def test_get_acl_json_path2(self, mock_check_valid_acl_json_for_dump, mock_makedirs_safe, mock_ms_open):
+        mock_ms_open.return_value.__enter__.return_value.read.return_value = '{"profiler": {"switch": "on", "aicpu": "on", "output": "/path/to/profiler"}}'
+        mock_check_valid_acl_json_for_dump.return_value = None
+        args = MagicMock()
+        args.profiler = False
+        args.dump = True
+        args.output = "/path/to/output"
+        args.model = "/path/to/model.om"
+        args.acl_json_path = None
+        acl_json_path = get_acl_json_path(args)
+        self.assertEqual(acl_json_path, "/path/to/output/acl.json")
 
-    def init(self):
-        self.args = TestCommonClass.get_legal_args()
-
-    def test_version_check_with_cur_version(self):
-        version_check(self.args)
-        assert self.args.run_mode != "tensor"
-
-    def test_version_check_with_old_version(self, monkeypatch):
-        def mock_get_version(prompt):
-            return "0.0.1"
-        monkeypatch.setattr(
-            "ais_bench.infer.common.miscellaneous.get_modules_version",
-            mock_get_version
-        )
-        version_check(self.args)
-        assert self.args.run_mode == "tensor"
-
-    def test_get_version_not_found(self, monkeypatch):
-        def mock_get_version(prompt):
-            raise Exception
-        monkeypatch.setattr(
-            "ais_bench.infer.common.miscellaneous.get_modules_version",
-            mock_get_version
-        )
-        version_check(self.args)
-        assert self.args.run_mode == "tensor"
-
-    def test_check_valid_acl_json_for_dump(self):
-        with open(self.args.acl_json_path, "r") as file:
-            data = json.load(file)
-        data[DUMP_STR] = {}
-        data[DUMP_STR]["dump_list"] = [{"model_name": get_model_name(self.args.model)}]
-        data[DUMP_STR]["dump_path"] = self.args.output
-        with open(self.args.acl_json_path, "w+") as file:
-            json.dump(data, file, indent=4)
-        os.chmod(self.args.acl_json_path, 0o750)
-        check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
-
-    def test_acl_json_content_wrong_model_name(self):
-        with open(self.args.acl_json_path, "r") as file:
-            data = json.load(file)
-        data[DUMP_STR] = {}
-        data[DUMP_STR]["dump_list"] = [{"model_name": "invalid_model_name"}]
-        data[DUMP_STR]["dump_path"] = self.args.output
-        with open(self.args.acl_json_path, "w+") as file:
-            json.dump(data, file, indent=4)
-        os.chmod(self.args.acl_json_path, 0o750)
-        with pytest.raises(ValueError) as e:
-            check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
-            if not "'model_name' is not set or set" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
-
-    def test_acl_json_content_missing_dump_list(self):
-        with open(self.args.acl_json_path, "r") as file:
-            data = json.load(file)
-        data[DUMP_STR] = {}
-        data[DUMP_STR]["dump_path"] = self.args.output
-        with open(self.args.acl_json_path, "w+") as file:
-            json.dump(data, file, indent=4)
-        os.chmod(self.args.acl_json_path, 0o750)
-        with pytest.raises(KeyError) as e:
-            check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
-            if not "need to set 'dump_list' attribute" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
-
-    def test_acl_json_content_dump_path_illegal(self, monkeypatch):
-        with open(self.args.acl_json_path, "r") as file:
-            data = json.load(file)
-        data[DUMP_STR] = {}
-        data[DUMP_STR]["dump_list"] = [{"model_name": get_model_name(self.args.model)}]
-        data[DUMP_STR]["dump_path"] = self.args.output
-        with open(self.args.acl_json_path, "w+") as file:
-            json.dump(data, file, indent=4)
-        os.chmod(self.args.acl_json_path, 0o750)
-        monkeypatch.setattr("os.access", lambda path, perm: False)
-        with pytest.raises(ValueError) as e:
-            check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
-            if not "has no read/write permission" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
-
-    def test_acl_json_content_dump_op_switch_illegal(self):
-        with open(self.args.acl_json_path, "r") as file:
-            data = json.load(file)
-        data[DUMP_STR] = {}
-        data[DUMP_STR]["dump_list"] = [{"model_name": "invalid_model_name"}]
-        data[DUMP_STR]["dump_path"] = self.args.output
-        data[DUMP_STR]["dump_op_switch"] = "none"
-        with open(self.args.acl_json_path, "w+") as file:
-            json.dump(data, file, indent=4)
-        os.chmod(self.args.acl_json_path, 0o750)
-        with pytest.raises(ValueError) as e:
-            check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
-            if not "'dump_op_switch' need to be" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
-
-    def test_acl_json_content_dump_mode_illegal(self):
-        with open(self.args.acl_json_path, "r") as file:
-            data = json.load(file)
-        data[DUMP_STR] = {}
-        data[DUMP_STR]["dump_list"] = [{"model_name": "invalid_model_name"}]
-        data[DUMP_STR]["dump_path"] = self.args.output
-        data[DUMP_STR]["dump_mode"] = "none"
-        with open(self.args.acl_json_path, "w+") as file:
-            json.dump(data, file, indent=4)
-        os.chmod(self.args.acl_json_path, 0o750)
-        with pytest.raises(ValueError) as e:
-            check_valid_acl_json_for_dump(self.args.acl_json_path, self.args.model)
-            if not "'dump_mode' need to be set" in str(e):
-                pytest.fail(f"Do not catch expected err! Actual error is {str(e)}")
-
-    def test_get_acl_json_path_normal(self, monkeypatch):
-        monkeypatch.setattr(
-            "ais_bench.infer.common.miscellaneous.check_valid_acl_json_for_dump",
-            lambda x, y: None
-        )
-        assert get_acl_json_path(self.args) == self.args.acl_json_path
-
-    def test_get_acl_json_path_with_profiler(self):
-        self.args.acl_json_path = None
-        self.args.profiler = True
-        self.args.dump = False
-        profiler_dir = os.path.join(self.args.output, "profiler")
-        if os.path.exists(profiler_dir):
-            shutil.rmtree(profiler_dir)
-        get_acl_json_path(self.args)
-        assert os.path.exists(profiler_dir)
-
-    def test_get_acl_json_path_with_dump(self):
-        self.args.acl_json_path = None
-        self.args.profiler = False
-        self.args.dump = True
-        dump_dir = os.path.join(self.args.output, "dump")
-        if os.path.exists(dump_dir):
-            shutil.rmtree(dump_dir)
-        get_acl_json_path(self.args)
-        assert os.path.exists(dump_dir)
-
-    def test_get_batchsize_auto(self, monkeypatch):
-        fake_shape = [1, 3, 4]
-        fake_in_desc = FakeInputDesc(fake_shape)
-        monkeypatch.setattr("ais_bench.infer.interface.InferSession.__init__", lambda *args: None)
-        monkeypatch.setattr("ais_bench.infer.interface.InferSession.get_inputs", lambda *args: [fake_in_desc])
-        session = InferSession(self.args.model)
-        self.args.dym_batch = 0
-        self.args.dym_dims = None
-        self.args.dym_shape = None
-        assert get_batchsize(session, self.args) == fake_shape[0]
-
-    def test_get_batchsize_dym_batch(self, monkeypatch):
-        fake_shape = [1, 3, 4]
-        fake_in_desc = FakeInputDesc(fake_shape)
-        monkeypatch.setattr("ais_bench.infer.interface.InferSession.__init__", lambda *args: None)
-        monkeypatch.setattr("ais_bench.infer.interface.InferSession.get_inputs", lambda *args: [fake_in_desc])
-        session = InferSession(self.args.model)
-        self.args.dym_batch = 2
-        self.args.dym_dims = None
-        self.args.dym_shape = None
-        assert get_batchsize(session, self.args) == self.args.dym_batch
-
-    def test_get_batchsize_dym_dims(self, monkeypatch):
-        fake_shape = [1, 3, 4]
-        fake_name = "data"
-        fake_in_desc = FakeInputDesc(fake_shape, fake_name)
-        monkeypatch.setattr("ais_bench.infer.interface.InferSession.__init__", lambda *args: None)
-        monkeypatch.setattr("ais_bench.infer.interface.InferSession.get_inputs", lambda *args: [fake_in_desc])
-        session = InferSession(self.args.model)
-        bs = 3
-        self.args.dym_batch = 0
-        self.args.dym_dims = f"{fake_name}:{bs},600"
-        self.args.dym_shape = None
-        assert get_batchsize(session, self.args) == bs
-
-    def test_get_batchsize_dym_shapes(self, monkeypatch):
-        fake_shape = [1, 3, 4]
-        fake_name = "data"
-        fake_in_desc = FakeInputDesc(fake_shape, fake_name)
-        monkeypatch.setattr("ais_bench.infer.interface.InferSession.__init__", lambda *args: None)
-        monkeypatch.setattr("ais_bench.infer.interface.InferSession.get_inputs", lambda *args: [fake_in_desc])
-        session = InferSession(self.args.model)
-        bs = 3
-        self.args.dym_batch = 0
-        self.args.dym_dims = None
-        self.args.dym_shape = f"{fake_name}:{bs},600"
-        assert get_batchsize(session, self.args) == bs
+    def test_get_batchsize(self):
+        session = MagicMock()
+        session.get_inputs.return_value = [MagicMock(shape=[1, 2, 3])]
+        args = MagicMock()
+        args.dym_batch = 0
+        args.dym_dims = None
+        args.dym_shape = None
+        batchsize = get_batchsize(session, args)
+        self.assertEqual(batchsize, 1)
+    
+    def test_get_batchsize1(self):
+        session = MagicMock()
+        session.get_inputs.return_value = [MagicMock(shape=[1, 2, 3])]
+        args = MagicMock()
+        args.dym_batch = 2
+        args.dym_dims = None
+        args.dym_shape = None
+        batchsize = get_batchsize(session, args)
+        self.assertEqual(batchsize, 2)
+    
+    def test_get_batchsize2(self):
+        session = MagicMock()
+        session.get_inputs.return_value = [MagicMock(shape=[1, 2, 3])]
+        args = MagicMock()
+        args.dym_batch = 0
+        args.dym_dims = "2;2:3"
+        args.dym_shape = 3
+        batchsize = get_batchsize(session, args)
+        self.assertEqual(batchsize, 1)
 
     def test_get_range_list(self):
-        ranges = "a:1-3,5;b:2,4~6"
-        range_list = get_range_list(ranges)
-        assert len(range_list) == 6
+        ranges = "name1:1~10;name2:1,2,3"
+        result = get_range_list(ranges)
+        self.assertEqual(len(result), 10)
+
+        ranges = "name1:1-10;name2:1,2,3"
+        result = get_range_list(ranges)
+        self.assertEqual(len(result), 2)
+
+        ranges = "name1:1;name2:1,2,3"
+        result = get_range_list(ranges)
+        self.assertEqual(len(result), 1)
+
+    @patch('os.path.isfile')
+    @patch('ais_bench.infer.common.miscellaneous.ms_open')
+    def test_get_dymshape_list(self, mock_ms_open, mock_isfile):
+        mock_isfile.return_value = False
+        mock_ms_open.return_value.__enter__.return_value.read.return_value = "name1:1,2,3;name2:1~3"
+        dymshape_list = get_dymshape_list("input_ranges")
+        self.assertEqual(len(dymshape_list), 1)
+    
+    @patch('os.path.isfile')
+    @patch('ais_bench.infer.common.miscellaneous.ms_open')
+    def test_get_dymshape_list1(self, mock_ms_open, mock_isfile):
+        mock_isfile.return_value = True
+        mock_ms_open.return_value.__enter__.return_value.read.return_value = "name1:1,2,3;name2:1~3"
+        dymshape_list = get_dymshape_list("input_ranges")
+        self.assertEqual(len(dymshape_list), 256)
 
     def test_get_throughtput_from_log(self):
-        out_log = "throughput 1.01\n"
-        ret, throughput = get_throughtput_from_log(out_log)
-        assert ret == "OK"
-        assert abs(throughput - 1.01) < 1e-5
+        out_log = "throughput 100.0"
+        result, throughput = get_throughtput_from_log(out_log)
+        self.assertEqual(result, "OK")
+        self.assertEqual(throughput, 100.0)
 
+    # @patch('sys.executable')
+    # @patch('ais_bench.infer.common.miscellaneous.AISBenchInferArgsAdapter.get_all_args_dict')
     def test_regenerate_dymshape_cmd(self):
-        cmd_list = regenerate_dymshape_cmd(self.args, self.args.dym_shape)
-        assert "--dymShape_range" not in cmd_list
+        adapter = AISBenchInferArgsAdapter(
+            model="model.onnx",
+            input_path="input.bin",
+            output="output.bin",
+            output_dirname=None,
+            outfmt="bin",
+            loop="100",
+            debug=True,
+            device="npu",
+            dym_batch="1",
+            dym_hw="224,224",
+            dym_dims="input:0",
+            dym_shape="input:1,224,224,3",
+            output_size="1000",
+            auto_set_dymshape_mode="True",
+            auto_set_dymdims_mode="False",
+            batchsize="1",
+            pure_data_type="fp32",
+            profiler="",
+            dump="True",
+            acl_json_path="/path/to/acl.json",
+            output_batchsize_axis="0",
+            run_mode="infer",
+            display_all_summary="True",
+            warmup_count="5",
+            dym_shape_range="input:1~8,224,224,3",
+            aipp_config="config.cfg",
+            energy_consumption="True",
+            npu_id="0",
+            backend="onnxruntime",
+            perf="summary",
+            pipeline="default",
+            profiler_rename="rename",
+            dump_npy="True",
+            divide_input="False",
+            threads="4"
+        )
+        new_dym_shape = "input:2,224,224,3"
 
+        expected_cmd = [
+            "-m",
+            "ais_bench",
+            "--model=model_path.onnx",
+            "--dymShape=input:2,224,224,3",
+            "--device=npu",
+            "--loop=100"
+        ]
+
+        result = regenerate_dymshape_cmd(adapter, new_dym_shape)
+        self.assertEqual(result[1:], ['-m', 'ais_bench', '--model=model.onnx', '--input=input.bin', '--output=output.bin', '--outfmt=bin', '--loop=100', '--debug=True', '--device=npu', '--dymBatch=1', '--dymHW=224,224', '--dymDims=input:0', '--dymShape=input:2,224,224,3', '--outputSize=1000', '--auto_set_dymshape_mode=True', '--auto_set_dymdims_mode=False', '--batchsize=1', '--pure_data_type=fp32', '--dump=True', '--acl_json_path=/path/to/acl.json', '--output_batchsize_axis=0', '--run_mode=infer', '--display_all_summary=True', '--warmup_count=5', '--aipp_config=config.cfg', '--energy_consumption=True', '--npu_id=0', '--backend=onnxruntime', '--perf=summary', '--pipeline=default', '--profiler_rename=rename', '--dump_npy=True', '--divide_input=False', '--threads=4'])
+
+    @patch('ais_bench.infer.common.miscellaneous.get_dymshape_list')
+    @patch('ais_bench.infer.common.miscellaneous.regenerate_dymshape_cmd')
+    @patch('ais_bench.infer.common.miscellaneous.subprocess.Popen')
+    def test_dymshape_range_run(self, mock_popen, mock_regenerate_dymshape_cmd, mock_get_dymshape_list):
+        mock_get_dymshape_list.return_value = ["1,2,3"]
+        mock_regenerate_dymshape_cmd.return_value = ["python", "-m", "ais_bench", "--dymShape=1,2,3"]
+        mock_popen.return_value.communicate.return_value = (b"throughput 100.0", b"")
+        args = MagicMock()
+        args.dym_shape_range = "1,2,3"
+        dymshape_range_run(args)
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-vs"])
+    unittest.main()

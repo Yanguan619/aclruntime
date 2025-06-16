@@ -1,5 +1,6 @@
 # encoding: utf-8
 import os
+import re
 from oec import BaseTest,TestCase,State
 
 def merge_env_variables(env_output, var_list):
@@ -61,3 +62,24 @@ class ResetEnvTestCase(BaseTest):
     def execute_command(self):
         self.context.env = os.environ.copy()
         self.set_state(State.PASS)
+        
+class NPUTestCase(TestCase):
+    """
+        从Context.infomation中获取和替换cmd中 <key> 包围的信息,其中key为需要获取和替换的键,注意左尖括号前需要有白字符
+    """
+    def replace_cmd_with_info(self, cmd):
+        # 正则表达式匹配：空白字符 + <xxx>
+        # \s 匹配任何空白字符，[\w]+ 匹配单词字符（字母、数字、下划线）
+        pattern = re.compile(r'(\s+)<([^\n\r<>]+)>')
+        
+        def replacer(match):
+            whitespace = match.group(1)  # 前面的空白字符
+            key = match.group(2)        # xxx 部分
+            return f'{whitespace}{self.context.infomation.get(key, f"<{key}>")}'  # 如果 key 不存在，保留原样
+        
+        new_cmd = pattern.sub(pattern, replacer)
+        return new_cmd
+    
+    def execute_command(self):
+        cmd:str =  self.replace_cmd_with_info(self.get_cmd())
+        self.execute_command_with_cmd(cmd)

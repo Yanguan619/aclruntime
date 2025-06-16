@@ -1,4 +1,5 @@
 __pycache__
 .vscode
 oec-ascend/output
-oec-ascend/oec_ascend.egg-info
+oec-ascend/dist
+oec-ascend/oec_ascend_compatibility.egg-info

@@ -464,8 +464,8 @@ work_dir = 'outputs/api-vllm-general-chat/'
 ```
 执行如下命令启动性能评测
 ```bash
-# python <任务配置文件> --mode perf --debug
-python mindie_service_examples/mindie_infer_openai_chat_text.py --mode perf --debug
+# ais_bench <任务配置文件> --mode perf --debug
+ais_bench mindie_service_examples/mindie_infer_openai_chat_text.py --mode perf --debug
 ```
 **注:** 任务配置文件参考[支持的性能评测任务类型](#支持的性能评测任务类型)获取所有支持的评测任务
 
@@ -531,5 +531,5 @@ python mindie_service_examples/mindie_infer_openai_chat_text.py --mode perf --de
 |Input Token Throughput|输入吞吐率|
 |Output Token Throughput|输出吞吐率|
 |Total Token Throughput|总吞吐率|
-|Ipct|首token总时延/输入总token数|
+|lpct|首token总时延/输入总token数|
 |CharacterPerToken|每个token平均生成的字符数|

@@ -21,10 +21,8 @@ function make_run(){
     fi
     check_msg="Hello World"
     file_path=output_msg.txt
-    rm -rf $file_path
-    ./build/main | tee $file_path
+    ./build/main
     count=$(grep -c "$check_msg" $file_path)
-    rm -rf $file_path
     if [ $count -ne 8 ]; then
         echo "Error, Expected 8 occurrences of $check_msg, but found $count occurrences."
         retrun 3

@@ -50,7 +50,7 @@ function clean() {
 ut_script_list=( \
     "utils_file/test_abnormal_cmd_args_check.py" \
     "utils_file/test_interface_check.py" \
-    "utils_file/test_backend_trtexxec.py" \
+    "utils_file/test_backend_trtexec.py" \
     "utils_file/test_io_operations.py" \
     "utils_file/test_miscellaneous.py" \
     "utils_file/test_path_security_check.py" \

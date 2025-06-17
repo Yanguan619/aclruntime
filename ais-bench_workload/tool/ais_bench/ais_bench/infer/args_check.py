@@ -102,7 +102,7 @@ def check_positive_integer(value):
     try:
         ivalue = int(value)
     except ValueError as e:
-        raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value)) from e
+        raise argparse.ArgumentTypeError("Argument: {} is not a legal integer.".format(value)) from e
     if ivalue <= 0:
         raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
     if ivalue > CPP_INT_MAX_SIZE:
@@ -116,7 +116,7 @@ def check_loop_size(value):
     try:
         ivalue = int(value)
     except ValueError as e:
-        raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value)) from e
+        raise argparse.ArgumentTypeError("Argument: {} is not a legal integer.".format(value)) from e
     if ivalue <= 0 or ivalue > LOOP_MAX_SIZE:
         raise argparse.ArgumentTypeError("%s is an invalid loop size value" % value)
     return ivalue
@@ -137,7 +137,7 @@ def check_nonnegative_integer(value):
     try:
         ivalue = int(value)
     except ValueError as e:
-        raise argparse.ArgumentTypeError("Argument: {} is not a legal integers.".format(value)) from e
+        raise argparse.ArgumentTypeError("Argument: {} is not a legal integer.".format(value)) from e
     if ivalue < 0:
         raise argparse.ArgumentTypeError("%s is an invalid nonnegative int value" % value)
     if ivalue > CPP_INT_MAX_SIZE:
@@ -150,7 +150,10 @@ def check_npu_id_range_vaild(value):
     min_value = 0
     max_value = 2048
     if ',' in value:
-        ilist = [int(v) for v in value.split(',')]
+        try:
+            ilist = [int(v) for v in value.split(',')]
+        except ValueError as e:
+            raise argparse.ArgumentTypeError("Argument: npu_id is not a legal integer") from e
         for ivalue in ilist:
             if ivalue < min_value or ivalue > max_value:
                 raise argparse.ArgumentTypeError("{} of npu_id:{} is invalid. valid value range is [{}, {}]".format(
@@ -158,7 +161,10 @@ def check_npu_id_range_vaild(value):
         return ilist
     else:
         # default as single int value
-        ivalue = int(value)
+        try:
+            ivalue = int(value)
+        except ValueError as e:
+            raise argparse.ArgumentTypeError("Argument: npu_id is not a legal integer") from e
         if ivalue < min_value or ivalue > max_value:
             raise argparse.ArgumentTypeError("npu_id:{} is invalid. valid value range is [{}, {}]".format(
                 ivalue, min_value, max_value))

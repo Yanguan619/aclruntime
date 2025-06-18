@@ -1,38 +1,44 @@
 SOC_VERSION=$1
-
+output=$2
+type=$3
 function make_run(){
-    mkdir -p build
-    cmake -B build \
+    mkdir -p "$output/HelloWorld/build"
+    
+    cmake -B "$output/HelloWorld/build" \
         -DSOC_VERSION=${SOC_VERSION} \
-        -DASCEND_CANN_PACKAGE_PATH=${ASCEND_HOME_PATH}
+        -DASCEND_CANN_PACKAGE_PATH=${ASCEND_HOME_PATH} \
+        -DCMAKE_INSTALL_PREFIX="$output/HelloWorld/out"
     if [ $? -ne 0 ]; then
         echo "cmake hello world failed"
-        retrun 1
+        return 1
     fi
+    cd "$output/HelloWorld"
     cmake --build build -j
-    if [ $? -e 0 ]; then
+    if [ $? -ne 0 ]; then
         echo "buid hello world failed"
-        retrun 2
+        return 2
     fi
     cmake --install build
     if [ $? -ne 0 ]; then
         echo "install hello world failed"
-        retrun 3
+        return 3
+    fi
+    if [[ $type == "build" ]];then
+        return 0 # 算子编译场景下无需执行用例，算子开发需要执行用例
     fi
     check_msg="Hello World"
     file_path=output_msg.txt
-    ./build/main
+
+    ./build/main | tee $file_path
     count=$(grep -c "$check_msg" $file_path)
+
     if [ $count -ne 8 ]; then
         echo "Error, Expected 8 occurrences of $check_msg, but found $count occurrences."
-        retrun 3
+        return 3
     fi
 
 }
 
 
-rm -rf build
-rm -rf out
 make_run
-rm -rf build
-rm -rf out
+exit $?

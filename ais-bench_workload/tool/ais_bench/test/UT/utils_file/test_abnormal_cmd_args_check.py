@@ -196,7 +196,7 @@ class TestClass:
         value = "1,-1"
         with pytest.raises(Exception):
             check_npu_id_range_vaild(value)
-        value = "2049"
+        value = "65536"
         with pytest.raises(Exception):
             check_npu_id_range_vaild(value)
 

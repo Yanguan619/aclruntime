@@ -77,7 +77,7 @@ class NPUTestCase(TestCase):
             key = match.group(2)        # xxx 部分
             return f'{whitespace}{self.context.infomation.get(key, f"<{key}>")}'  # 如果 key 不存在，保留原样
         
-        new_cmd = pattern.sub(pattern, replacer)
+        new_cmd = pattern.sub(replacer, cmd)
         return new_cmd
     
     def execute_command(self):

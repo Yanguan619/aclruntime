@@ -148,7 +148,7 @@ def check_nonnegative_integer(value):
 def check_npu_id_range_vaild(value):
     # if contain , split to int list
     min_value = 0
-    max_value = 2048
+    max_value = 65535 # For individual users, the NPU ID has been converted to [0, 65535]
     if ',' in value:
         try:
             ilist = [int(v) for v in value.split(',')]

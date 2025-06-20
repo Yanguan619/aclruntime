@@ -3,7 +3,16 @@
 ### 功能
 目前日志是第一部分的，server端和client端建链超时，即预期server端与2168个client建链，实际只建链2162，在server端会打出来所有已建链的id（0~n之间依次递增，但可能有空缺数字），需要找出缺失的数字。
 
-### 使用环境
+业务主要分为三步：
+1、通信域初始化：即host建链，收集全卡npu IP并分发
+     rank0 起server，所有卡起client
+2、npu间建链，npu ip  在第一阶段已知，做npu间链路建立，并交换关键数据（dma、notify相关数据）
+3、task(包括dma、notify)下发调度执行
+
+extract_rank_info_and_num函数功能：从指定日志文件中提取所有实际参与的节点编号和预期总节点数量
+find_missing_ranks函数功能：通过对比实际存在的阶段编号与预期总节点数，计算出缺失的节点编号
+
+### 使用环境 
 已安装python的设备。  
 
 ### 获取
@@ -23,11 +32,12 @@
 
 
 ### 使用方法
-业务主要分为三步：
-1、通信域初始化：即host建链，收集全卡npu IP并分发
-     rank0 起server，所有卡起client
-2、npu间建链，npu ip  在第一阶段已知，做npu间链路建立，并交换关键数据（dma、notify相关数据）
-3、task(包括dma、notify)下发调度执行
+步骤1
+下载工具脚本rank_number.py到本地
+步骤2
+将日志文件命名为rank_number.log，与工具脚本rank_number.py存放到同一个目录
+步骤3
+在存放目录中打开本地命令行，执行python rank_number.py
 
 ### 参数说明
 

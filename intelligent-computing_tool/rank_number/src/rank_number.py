@@ -36,7 +36,7 @@ def find_missing_ranks(rank_infos, rank_num):
        return sorted(missing_ranks)
 
 #日志路径
-log_file_path='xxx.log'
+log_file_path='rankNumber.log'
 rank_infos,rank_num= extract_rank_info_and_num(log_file_path)
 
 missing_ranks = find_missing_ranks(rank_infos, rank_num)

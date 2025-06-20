@@ -5,7 +5,6 @@
 #include <fstream>
 #include <unistd.h>
 #include <sys/types.h>
-#include <acl/acl.h>
 
 #include "test_utils.hpp"
 #include "base/include/Base/ModelInfer/model_process.h"
@@ -43,6 +42,9 @@ namespace std {
 }
 #endif
 
+namespace {
+using ACL_EXCEPTION_CALLBACK = void (*)(aclrtExceptionInfo*);
+}
 
 // 创建 ACL 函数的模拟接口
 class ACLInterface {
@@ -56,14 +58,31 @@ public:
     virtual aclError aclmdlDestroyDesc(aclmdlDesc* modelDesc) = 0;
     virtual aclError aclmdlGetDesc(aclmdlDesc* modelDesc, uint32_t modelId) = 0;
 
-    virtual aclError aclmdlGetInputDynamicGearCount(const aclmdlDesc* modelDesc, size_t index, size_t* dymGearCount) = 0;
     virtual size_t aclmdlGetNumInputs(aclmdlDesc* modelDesc) = 0;
     virtual const char* aclmdlGetInputNameByIndex(const aclmdlDesc* modelDesc, size_t index) = 0;
+    virtual size_t aclmdlGetInputSizeByIndex(aclmdlDesc* modelDesc, size_t index) = 0;
     virtual aclError aclmdlGetInputIndexByName(const aclmdlDesc* modelDesc, const char* name, size_t* index) = 0;
+    virtual aclError aclmdlGetInputDims(const aclmdlDesc* modelDesc, size_t index, aclmdlIODims* dims) = 0;
+    virtual aclFormat aclmdlGetInputFormat(const aclmdlDesc* modelDesc, size_t index) = 0;
+    virtual aclDataType aclmdlGetInputDataType(const aclmdlDesc* modelDesc, size_t index) = 0;
+
+    virtual size_t aclmdlGetNumOutputs(aclmdlDesc* modelDesc) = 0;
+    virtual const char* aclmdlGetOutputNameByIndex(const aclmdlDesc* modelDesc, size_t index) = 0;
+    virtual size_t aclmdlGetOutputSizeByIndex(aclmdlDesc* modelDesc, size_t index) = 0;
+    virtual aclError aclmdlGetOutputIndexByName(const aclmdlDesc* modelDesc, const char* name, size_t* index) = 0;
+    virtual aclError aclmdlGetOutputDims(const aclmdlDesc* modelDesc, size_t index, aclmdlIODims* dims) = 0;
+    virtual aclFormat aclmdlGetOutputFormat(const aclmdlDesc* modelDesc, size_t index) = 0;
+    virtual aclDataType aclmdlGetOutputDataType(const aclmdlDesc* modelDesc, size_t index) = 0;
+
+    virtual aclError aclmdlGetInputDynamicDims(const aclmdlDesc* modelDesc, size_t profileIndex, aclmdlIODims* dims, size_t gearCount) = 0;
+    virtual aclError aclmdlSetInputDynamicDims(uint32_t modelId, aclmdlDataset* dataset, size_t index, const aclmdlIODims* dims) = 0;
+    virtual aclError aclmdlGetInputDynamicGearCount(const aclmdlDesc* modelDesc, size_t index, size_t* dymGearCount) = 0;
+    virtual aclError aclmdlGetCurOutputDims(const aclmdlDesc* modelDesc, size_t index, aclmdlIODims* ioDims) = 0;
 
     virtual aclTensorDesc* aclCreateTensorDesc(aclDataType dataType, int numDims,
         const int64_t* dims, aclFormat format) = 0;
     virtual aclError aclmdlSetDatasetTensorDesc(aclmdlDataset* dataset, aclTensorDesc* tensorDesc, size_t index) = 0;
+    virtual aclmdlDataset* aclmdlCreateDataset() = 0;
     virtual aclError aclmdlDestroyDataset(const aclmdlDataset *dataset) = 0;
 
     virtual aclError aclmdlGetDynamicHW(const aclmdlDesc* modelDesc, size_t profileIndex, aclmdlHW* dynamicHW) = 0;
@@ -73,9 +92,43 @@ public:
                                              uint64_t dynamicBatchSize) = 0;
     virtual aclError aclmdlGetDynamicBatch(const aclmdlDesc* modelDesc, aclmdlBatch* batchInfo) = 0;
 
-    virtual aclError aclmdlGetCurOutputDims(const aclmdlDesc* modelDesc, size_t index, aclmdlIODims* ioDims) = 0;
-    virtual aclError aclmdlGetInputDynamicDims(const aclmdlDesc* modelDesc, size_t profileIndex, aclmdlIODims* dims, size_t gearCount) = 0;
-    virtual aclError aclmdlSetInputDynamicDims(uint32_t modelId, aclmdlDataset* dataset, size_t index, const aclmdlIODims* dims) = 0;
+    virtual aclDataBuffer* aclCreateDataBuffer(void* data, size_t size) = 0;
+    virtual aclError aclDestroyDataBuffer(const aclDataBuffer* dataBuffer) = 0;
+    virtual aclError aclmdlAddDatasetBuffer(aclmdlDataset* dataset, aclDataBuffer* dataBuffer) = 0;
+
+    virtual size_t aclmdlGetDatasetNumBuffers(const aclmdlDataset* dataset) = 0;
+    virtual aclDataBuffer* aclmdlGetDatasetBuffer(const aclmdlDataset* dataset, size_t index) = 0;
+    virtual size_t aclGetDataBufferSizeV2(const aclDataBuffer* dataBuffer) = 0;
+    virtual void* aclGetDataBufferAddr(const aclDataBuffer* dataBuffer) = 0;
+    virtual aclError aclUpdateDataBuffer(aclDataBuffer* dataBuffer, void* addr, size_t size) = 0;
+    
+    virtual aclError aclrtMalloc(void** devPtr, size_t size, aclrtMemMallocPolicy policy) = 0;
+    virtual aclError aclrtFree(void* devPtr) = 0;
+    virtual aclError aclrtMemcpy(void* dst, size_t destMax, const void* src, size_t count, aclrtMemcpyKind kind) = 0;
+    virtual aclError aclrtMemset(void* devPtr, size_t maxCount, int32_t value, size_t count) = 0;
+    
+    virtual size_t aclGetTensorDescNumDims(const aclTensorDesc*) = 0;
+    virtual aclError aclGetTensorDescDimV2(const aclTensorDesc*, size_t, int64_t*) = 0;
+    virtual size_t aclGetTensorDescSize(const aclTensorDesc*) = 0;
+    virtual aclTensorDesc* aclmdlGetDatasetTensorDesc(const aclmdlDataset*, size_t) = 0;
+
+    virtual aclmdlAIPP* aclmdlCreateAIPP(uint64_t) = 0;
+    virtual aclError aclmdlGetAippType(uint32_t, size_t, aclmdlInputAippType*, size_t*) = 0;
+    virtual aclError aclmdlSetInputAIPP(uint32_t, aclmdlDataset*, size_t, const aclmdlAIPP*) = 0;
+    virtual aclError aclmdlSetAIPPSrcImageSize(aclmdlAIPP*, int32_t, int32_t) = 0;
+    virtual aclError aclmdlSetAIPPInputFormat(aclmdlAIPP*, aclAippInputFormat) = 0;
+    virtual aclError aclmdlSetAIPPRbuvSwapSwitch(aclmdlAIPP*, int8_t) = 0;
+    virtual aclError aclmdlSetAIPPAxSwapSwitch(aclmdlAIPP*, int8_t) = 0;
+    virtual aclError aclmdlSetAIPPDtcPixelMean(aclmdlAIPP*, int16_t, int16_t, int16_t, int16_t, size_t) = 0;
+    virtual aclError aclmdlSetAIPPDtcPixelMin(aclmdlAIPP*, float, float, float, float, uint64_t) = 0;
+    virtual aclError aclmdlSetAIPPPixelVarReci(aclmdlAIPP*, float, float, float, float, uint64_t) = 0;
+    virtual aclError aclmdlSetAIPPCropParams(aclmdlAIPP*, int8_t, int32_t, int32_t, int32_t, int32_t, uint64_t) = 0;
+    virtual aclError aclmdlSetAIPPPaddingParams(aclmdlAIPP*, int8_t, int32_t, int32_t, int32_t, int32_t, uint64_t) = 0;
+    virtual aclError aclmdlDestroyAIPP(const aclmdlAIPP*) = 0;
+
+    virtual aclError aclrtSetExceptionInfoCallback(ACL_EXCEPTION_CALLBACK callback) = 0;
+    virtual aclError aclrtFreeHost(void* hostData) = 0;
+    virtual aclError aclmdlExecute(uint32_t modelId, const aclmdlDataset* input, aclmdlDataset* output) = 0;
 
     virtual const char* aclGetRecentErrMsg() = 0;
 
@@ -91,15 +144,32 @@ public:
     MOCK_METHOD(aclError, aclmdlDestroyDesc, (aclmdlDesc*), (override));
     MOCK_METHOD(aclError, aclmdlGetDesc, (aclmdlDesc*, uint32_t), (override));
 
-    MOCK_METHOD(aclError, aclmdlGetInputDynamicGearCount, (const aclmdlDesc*, size_t, size_t*), (override));
     MOCK_METHOD(size_t, aclmdlGetNumInputs, (aclmdlDesc*), (override));
     MOCK_METHOD(const char*, aclmdlGetInputNameByIndex, (const aclmdlDesc*, size_t), (override));
     MOCK_METHOD(aclError, aclmdlGetInputIndexByName, (const aclmdlDesc*, const char*, size_t*), (override));
+    MOCK_METHOD(size_t, aclmdlGetInputSizeByIndex, (aclmdlDesc*, size_t), (override));
+    MOCK_METHOD(aclError, aclmdlGetInputDims, (const aclmdlDesc*, size_t, aclmdlIODims*), (override));
+    MOCK_METHOD(aclFormat, aclmdlGetInputFormat, (const aclmdlDesc*, size_t), (override));
+    MOCK_METHOD(aclDataType, aclmdlGetInputDataType, (const aclmdlDesc*, size_t), (override));
+
+    MOCK_METHOD(size_t, aclmdlGetNumOutputs, (aclmdlDesc*), (override));
+    MOCK_METHOD(const char*, aclmdlGetOutputNameByIndex, (const aclmdlDesc*, size_t), (override));
+    MOCK_METHOD(aclError, aclmdlGetOutputIndexByName, (const aclmdlDesc*, const char*, size_t*), (override));
+    MOCK_METHOD(size_t, aclmdlGetOutputSizeByIndex, (aclmdlDesc*, size_t), (override));
+    MOCK_METHOD(aclError, aclmdlGetOutputDims, (const aclmdlDesc*, size_t, aclmdlIODims*), (override));
+    MOCK_METHOD(aclFormat, aclmdlGetOutputFormat, (const aclmdlDesc*, size_t), (override));
+    MOCK_METHOD(aclDataType, aclmdlGetOutputDataType, (const aclmdlDesc*, size_t), (override));
+
+    MOCK_METHOD(aclError, aclmdlGetInputDynamicDims, (const aclmdlDesc*, size_t, aclmdlIODims*, size_t), (override));
+    MOCK_METHOD(aclError, aclmdlSetInputDynamicDims, (uint32_t, aclmdlDataset*, size_t, const aclmdlIODims*), (override));
+    MOCK_METHOD(aclError, aclmdlGetInputDynamicGearCount, (const aclmdlDesc*, size_t, size_t*), (override));
+    MOCK_METHOD(aclError, aclmdlGetCurOutputDims, (const aclmdlDesc*, size_t, aclmdlIODims*), (override));
 
     MOCK_METHOD(aclTensorDesc*, aclCreateTensorDesc, 
                 (aclDataType dataType, int numDims, const int64_t* dims, aclFormat format), (override));
     MOCK_METHOD(aclError, aclmdlSetDatasetTensorDesc, 
                 (aclmdlDataset* dataset, aclTensorDesc* tensorDesc, size_t index), (override));
+    MOCK_METHOD(aclmdlDataset*, aclmdlCreateDataset, (), (override));
     MOCK_METHOD(aclError, aclmdlDestroyDataset, (const aclmdlDataset *dataset), (override));
 
     MOCK_METHOD(aclError, aclmdlGetDynamicHW, (const aclmdlDesc*, size_t, aclmdlHW*), (override));
@@ -107,9 +177,43 @@ public:
     MOCK_METHOD(aclError, aclmdlSetDynamicBatchSize, (uint32_t, aclmdlDataset*, size_t, uint64_t), (override));
     MOCK_METHOD(aclError, aclmdlGetDynamicBatch, (const aclmdlDesc*, aclmdlBatch*), (override));
 
-    MOCK_METHOD(aclError, aclmdlGetCurOutputDims, (const aclmdlDesc*, size_t, aclmdlIODims*), (override));
-    MOCK_METHOD(aclError, aclmdlGetInputDynamicDims, (const aclmdlDesc*, size_t, aclmdlIODims*, size_t), (override));
-    MOCK_METHOD(aclError, aclmdlSetInputDynamicDims, (uint32_t, aclmdlDataset*, size_t, const aclmdlIODims*), (override));
+    MOCK_METHOD(aclDataBuffer*, aclCreateDataBuffer, (void*, size_t), (override));
+    MOCK_METHOD(aclError, aclDestroyDataBuffer, (const aclDataBuffer*), (override));
+    MOCK_METHOD(aclError, aclmdlAddDatasetBuffer, (aclmdlDataset*, aclDataBuffer*), (override));
+
+    MOCK_METHOD(size_t, aclmdlGetDatasetNumBuffers, (const aclmdlDataset*), (override));
+    MOCK_METHOD(aclDataBuffer*, aclmdlGetDatasetBuffer, (const aclmdlDataset*, size_t), (override));
+    MOCK_METHOD(size_t, aclGetDataBufferSizeV2, (const aclDataBuffer*), (override));
+    MOCK_METHOD(void*, aclGetDataBufferAddr, (const aclDataBuffer*), (override));
+    MOCK_METHOD(aclError, aclUpdateDataBuffer, (aclDataBuffer*, void*, size_t), (override));
+    
+    MOCK_METHOD(aclError, aclrtMalloc, (void**, size_t, aclrtMemMallocPolicy), (override));
+    MOCK_METHOD(aclError, aclrtFree, (void*), (override));
+    MOCK_METHOD(aclError, aclrtMemcpy, (void*, size_t, const void*, size_t, aclrtMemcpyKind), (override));
+    MOCK_METHOD(aclError, aclrtMemset, (void *, size_t, int32_t, size_t), (override));
+
+    MOCK_METHOD(size_t, aclGetTensorDescNumDims, (const aclTensorDesc*), (override));
+    MOCK_METHOD(aclError, aclGetTensorDescDimV2, (const aclTensorDesc*, size_t, int64_t*), (override));
+    MOCK_METHOD(size_t, aclGetTensorDescSize, (const aclTensorDesc*), (override));
+    MOCK_METHOD(aclTensorDesc*, aclmdlGetDatasetTensorDesc, (const aclmdlDataset*, size_t), (override));
+
+    MOCK_METHOD(aclmdlAIPP*, aclmdlCreateAIPP, (uint64_t), (override));
+    MOCK_METHOD(aclError, aclmdlGetAippType, (uint32_t, size_t, aclmdlInputAippType*, size_t*), (override));
+    MOCK_METHOD(aclError, aclmdlSetInputAIPP, (uint32_t, aclmdlDataset*, size_t, const aclmdlAIPP*), (override));
+    MOCK_METHOD(aclError, aclmdlSetAIPPSrcImageSize, (aclmdlAIPP*, int32_t, int32_t), (override));
+    MOCK_METHOD(aclError, aclmdlSetAIPPInputFormat, (aclmdlAIPP*, aclAippInputFormat), (override));
+    MOCK_METHOD(aclError, aclmdlSetAIPPRbuvSwapSwitch, (aclmdlAIPP*, int8_t), (override));
+    MOCK_METHOD(aclError, aclmdlSetAIPPAxSwapSwitch, (aclmdlAIPP*, int8_t), (override));
+    MOCK_METHOD(aclError, aclmdlSetAIPPDtcPixelMean, (aclmdlAIPP*, int16_t, int16_t, int16_t, int16_t, size_t), (override));
+    MOCK_METHOD(aclError, aclmdlSetAIPPDtcPixelMin, (aclmdlAIPP*, float, float, float, float, uint64_t), (override));
+    MOCK_METHOD(aclError, aclmdlSetAIPPPixelVarReci, (aclmdlAIPP*, float, float, float, float, uint64_t), (override));
+    MOCK_METHOD(aclError, aclmdlSetAIPPCropParams, (aclmdlAIPP*, int8_t, int32_t, int32_t, int32_t, int32_t, uint64_t), (override));
+    MOCK_METHOD(aclError, aclmdlSetAIPPPaddingParams, (aclmdlAIPP*, int8_t, int32_t, int32_t, int32_t, int32_t, uint64_t), (override));
+    MOCK_METHOD(aclError, aclmdlDestroyAIPP, (const aclmdlAIPP*), (override));
+
+    MOCK_METHOD(aclError, aclrtFreeHost, (void*), (override));
+    MOCK_METHOD(aclError, aclrtSetExceptionInfoCallback, (ACL_EXCEPTION_CALLBACK), (override));
+    MOCK_METHOD(aclError, aclmdlExecute, (uint32_t, const aclmdlDataset*, aclmdlDataset*), (override));
 
     MOCK_METHOD(const char*, aclGetRecentErrMsg, (), (override));
 };
@@ -117,110 +221,185 @@ public:
 // 全局模拟对象
 static MockACL* g_mockAcl = nullptr;
 
-// C 接口包装器
+// "C" 接口包装器
 extern "C" {
-aclError aclmdlLoadFromFile(const char* modelPath, uint32_t* modelId)
-{
-    return g_mockAcl->aclmdlLoadFromFile(modelPath, modelId);
-}
 
-aclError aclmdlUnload(uint32_t modelId)
-{
-    return g_mockAcl->aclmdlUnload(modelId);
-}
+// 修复宏定义：使用参数声明列表和参数名称列表分离
+#define DEFINE_MOCK_C_API(ReturnType, FuncName, ParamDecl, ParamNames) \
+    ReturnType FuncName ParamDecl \
+    { \
+        return g_mockAcl->FuncName ParamNames; \
+    }
 
-aclmdlDesc* aclmdlCreateDesc()
-{
-    return g_mockAcl->aclmdlCreateDesc();
-}
+DEFINE_MOCK_C_API(aclError, aclmdlLoadFromFile, (const char* modelPath, uint32_t* modelId), (modelPath, modelId))
+DEFINE_MOCK_C_API(aclError, aclmdlUnload, (uint32_t modelId), (modelId))
+DEFINE_MOCK_C_API(aclmdlDesc*, aclmdlCreateDesc, (), ())
+DEFINE_MOCK_C_API(aclError, aclmdlDestroyDesc, (aclmdlDesc* modelDesc), (modelDesc))
+DEFINE_MOCK_C_API(aclError, aclmdlGetDesc, (aclmdlDesc* modelDesc, uint32_t modelId), (modelDesc, modelId))
+DEFINE_MOCK_C_API(aclError, aclmdlGetInputDynamicGearCount, 
+             (const aclmdlDesc* modelDesc, size_t index, size_t* dymGearCount), 
+             (modelDesc, index, dymGearCount))
 
-aclError aclmdlDestroyDesc(aclmdlDesc* modelDesc)
-{
-    return g_mockAcl->aclmdlDestroyDesc(modelDesc);
-}
+// Input Related
+DEFINE_MOCK_C_API(size_t, aclmdlGetNumInputs, (aclmdlDesc* modelDesc), (modelDesc))
+DEFINE_MOCK_C_API(const char*, aclmdlGetInputNameByIndex, 
+             (const aclmdlDesc* modelDesc, size_t index), 
+             (modelDesc, index))
+DEFINE_MOCK_C_API(aclError, aclmdlGetInputIndexByName, 
+             (const aclmdlDesc* modelDesc, const char* name, size_t* index), 
+             (modelDesc, name, index))
+DEFINE_MOCK_C_API(size_t, aclmdlGetInputSizeByIndex, 
+             (aclmdlDesc* modelDesc, size_t index), 
+             (modelDesc, index))
+DEFINE_MOCK_C_API(aclError, aclmdlGetInputDims, 
+             (const aclmdlDesc* modelDesc, size_t index, aclmdlIODims* dims), 
+             (modelDesc, index, dims))
+DEFINE_MOCK_C_API(aclFormat, aclmdlGetInputFormat, 
+             (const aclmdlDesc* modelDesc, size_t index), 
+             (modelDesc, index))
+DEFINE_MOCK_C_API(aclDataType, aclmdlGetInputDataType, 
+             (const aclmdlDesc* modelDesc, size_t index), 
+             (modelDesc, index))
 
-aclError aclmdlGetDesc(aclmdlDesc* modelDesc, uint32_t modelId)
-{
-    return g_mockAcl->aclmdlGetDesc(modelDesc, modelId);
-}
+// Output Related
+DEFINE_MOCK_C_API(size_t, aclmdlGetNumOutputs, (aclmdlDesc* modelDesc), (modelDesc))
+DEFINE_MOCK_C_API(const char*, aclmdlGetOutputNameByIndex, 
+             (const aclmdlDesc* modelDesc, size_t index), 
+             (modelDesc, index))
+DEFINE_MOCK_C_API(aclError, aclmdlGetOutputIndexByName, 
+             (const aclmdlDesc* modelDesc, const char* name, size_t* index), 
+             (modelDesc, name, index))
+DEFINE_MOCK_C_API(size_t, aclmdlGetOutputSizeByIndex, 
+             (aclmdlDesc* modelDesc, size_t index), 
+             (modelDesc, index))
+DEFINE_MOCK_C_API(aclError, aclmdlGetOutputDims, 
+             (const aclmdlDesc* modelDesc, size_t index, aclmdlIODims* dims), 
+             (modelDesc, index, dims))
+DEFINE_MOCK_C_API(aclFormat, aclmdlGetOutputFormat, 
+             (const aclmdlDesc* modelDesc, size_t index), 
+             (modelDesc, index))
+DEFINE_MOCK_C_API(aclDataType, aclmdlGetOutputDataType, 
+             (const aclmdlDesc* modelDesc, size_t index), 
+             (modelDesc, index))
 
-aclError aclmdlGetInputDynamicGearCount(const aclmdlDesc* modelDesc, size_t index, size_t* dymGearCount)
-{
-    return g_mockAcl->aclmdlGetInputDynamicGearCount(modelDesc, index, dymGearCount);
-}
+// Dataset Related
+DEFINE_MOCK_C_API(aclTensorDesc*, aclCreateTensorDesc, 
+             (aclDataType dataType, int numDims, const int64_t* dims, aclFormat format), 
+             (dataType, numDims, dims, format))
+DEFINE_MOCK_C_API(aclError, aclmdlSetDatasetTensorDesc, 
+             (aclmdlDataset* dataset, aclTensorDesc* tensorDesc, size_t index), 
+             (dataset, tensorDesc, index))
+DEFINE_MOCK_C_API(aclmdlDataset*, aclmdlCreateDataset, (), ())
+DEFINE_MOCK_C_API(aclError, aclmdlDestroyDataset, (const aclmdlDataset* dataset), (dataset))
+DEFINE_MOCK_C_API(const char*, aclGetRecentErrMsg, (), ())
+DEFINE_MOCK_C_API(aclError, aclmdlGetDynamicHW, 
+             (const aclmdlDesc* modelDesc, size_t profileIndex, aclmdlHW* dynamicHW), 
+             (modelDesc, profileIndex, dynamicHW))
+DEFINE_MOCK_C_API(aclError, aclmdlSetDynamicHWSize, 
+             (uint32_t modelId, aclmdlDataset* dataset, size_t index,
+              uint64_t dynamicHeight, uint64_t dynamicWidth), 
+             (modelId, dataset, index, dynamicHeight, dynamicWidth))
+DEFINE_MOCK_C_API(aclError, aclmdlSetDynamicBatchSize, 
+             (uint32_t modelId, aclmdlDataset* dataset, size_t index, uint64_t dynamicBatchSize), 
+             (modelId, dataset, index, dynamicBatchSize))
+DEFINE_MOCK_C_API(aclError, aclmdlGetDynamicBatch, 
+             (const aclmdlDesc* modelDesc, aclmdlBatch* batchInfo), 
+             (modelDesc, batchInfo))
+DEFINE_MOCK_C_API(aclError, aclmdlGetCurOutputDims, 
+             (const aclmdlDesc* modelDesc, size_t index, aclmdlIODims* ioDims), 
+             (modelDesc, index, ioDims))
+DEFINE_MOCK_C_API(aclError, aclmdlGetInputDynamicDims, 
+             (const aclmdlDesc* modelDesc, size_t profileIndex, aclmdlIODims* dims, size_t gearCount), 
+             (modelDesc, profileIndex, dims, gearCount))
+DEFINE_MOCK_C_API(aclError, aclmdlSetInputDynamicDims, 
+             (uint32_t modelId, aclmdlDataset* dataset, size_t index, const aclmdlIODims* dims), 
+             (modelId, dataset, index, dims))
 
-size_t aclmdlGetNumInputs(aclmdlDesc* modelDesc)
-{
-    return g_mockAcl->aclmdlGetNumInputs(modelDesc);
-}
+DEFINE_MOCK_C_API(aclDataBuffer*, aclCreateDataBuffer, (void* data, size_t size), (data, size))
+DEFINE_MOCK_C_API(aclError, aclDestroyDataBuffer, (const aclDataBuffer* dataBuffer), (dataBuffer))
+DEFINE_MOCK_C_API(aclError, aclmdlAddDatasetBuffer, 
+             (aclmdlDataset* dataset, aclDataBuffer* dataBuffer), 
+             (dataset, dataBuffer))
+DEFINE_MOCK_C_API(size_t, aclmdlGetDatasetNumBuffers, (const aclmdlDataset* dataset), (dataset))
+DEFINE_MOCK_C_API(aclDataBuffer*, aclmdlGetDatasetBuffer, 
+             (const aclmdlDataset* dataset, size_t index), 
+             (dataset, index))
+DEFINE_MOCK_C_API(size_t, aclGetDataBufferSizeV2, (const aclDataBuffer* dataBuffer), (dataBuffer))
+DEFINE_MOCK_C_API(void*, aclGetDataBufferAddr, (const aclDataBuffer* dataBuffer), (dataBuffer))
+DEFINE_MOCK_C_API(aclError, aclUpdateDataBuffer, 
+             (aclDataBuffer* dataBuffer, void* addr, size_t size), 
+             (dataBuffer, addr, size))
 
-const char* aclmdlGetInputNameByIndex(const aclmdlDesc* modelDesc, size_t index)
-{
-    return g_mockAcl->aclmdlGetInputNameByIndex(modelDesc, index);
-}
+// Memory Operations
+DEFINE_MOCK_C_API(aclError, aclrtMalloc, 
+             (void** devPtr, size_t size, aclrtMemMallocPolicy policy), 
+             (devPtr, size, policy))
+DEFINE_MOCK_C_API(aclError, aclrtFree, (void* devPtr), (devPtr))
+DEFINE_MOCK_C_API(aclError, aclrtMemcpy, 
+             (void* dst, size_t destMax, const void* src, size_t count, aclrtMemcpyKind kind), 
+             (dst, destMax, src, count, kind))
+DEFINE_MOCK_C_API(aclError, aclrtMemset,
+             (void * devPtr, size_t maxCount, int32_t value, size_t count),
+             (devPtr, maxCount, value, count))
 
-aclError aclmdlGetInputIndexByName(const aclmdlDesc* modelDesc, const char* name, size_t* index)
-{
-    return g_mockAcl->aclmdlGetInputIndexByName(modelDesc, name, index);
-}
+DEFINE_MOCK_C_API(aclError, aclrtFreeHost, (void* hostData), (hostData))
+DEFINE_MOCK_C_API(aclError, aclrtSetExceptionInfoCallback, (ACL_EXCEPTION_CALLBACK callback), (callback))
+DEFINE_MOCK_C_API(aclError, aclmdlExecute, 
+                 (uint32_t modelId, const aclmdlDataset* input, aclmdlDataset* output), 
+                 (modelId, input, output))
 
-aclTensorDesc* aclCreateTensorDesc(aclDataType dataType, int numDims, const int64_t* dims, aclFormat format)
-{
-    return g_mockAcl->aclCreateTensorDesc(dataType, numDims, dims, format);
-}
+// 张量描述函数
+DEFINE_MOCK_C_API(size_t, aclGetTensorDescNumDims, (const aclTensorDesc* desc), (desc))
+DEFINE_MOCK_C_API(aclError, aclGetTensorDescDimV2, (const aclTensorDesc* desc, size_t idx, int64_t* dim), (desc, idx, dim))
+DEFINE_MOCK_C_API(size_t, aclGetTensorDescSize, (const aclTensorDesc* desc), (desc))
 
-aclError aclmdlSetDatasetTensorDesc(aclmdlDataset* dataset, aclTensorDesc* tensorDesc, size_t index)
-{
-    return g_mockAcl->aclmdlSetDatasetTensorDesc(dataset, tensorDesc, index);
-}
+// 数据集函数
+DEFINE_MOCK_C_API(aclTensorDesc*, aclmdlGetDatasetTensorDesc, (const aclmdlDataset* dataset, size_t index), (dataset, index))
 
-aclError aclmdlDestroyDataset(const aclmdlDataset *dataset)
-{
-    return g_mockAcl->aclmdlDestroyDataset(dataset);
-}
+// AIPP 函数
+DEFINE_MOCK_C_API(aclmdlAIPP*, aclmdlCreateAIPP, (uint64_t maxBatchSize), (maxBatchSize));
+DEFINE_MOCK_C_API(aclError, aclmdlGetAippType, 
+    (uint32_t modelId, size_t index, aclmdlInputAippType* aippType, size_t* dynamicAttachedDataIndex), 
+    (modelId, index, aippType, dynamicAttachedDataIndex))
+DEFINE_MOCK_C_API(aclError, aclmdlSetInputAIPP, 
+    (uint32_t modelId, aclmdlDataset* input, size_t index, const aclmdlAIPP* pAippDynamicSet), 
+    (modelId, input, index, pAippDynamicSet))
+DEFINE_MOCK_C_API(aclError, aclmdlSetAIPPSrcImageSize, 
+    (aclmdlAIPP* aippDynamicSet, int32_t srcImageSizeW, int32_t srcImageSizeH), 
+    (aippDynamicSet, srcImageSizeW, srcImageSizeH))
+DEFINE_MOCK_C_API(aclError, aclmdlSetAIPPInputFormat, 
+    (aclmdlAIPP* aippDynamicSet, aclAippInputFormat inputFormat), 
+    (aippDynamicSet, inputFormat))
+DEFINE_MOCK_C_API(aclError, aclmdlSetAIPPRbuvSwapSwitch,
+    (aclmdlAIPP* aippDynamicSet, int8_t rbuvSwapSwitch),
+    (aippDynamicSet, rbuvSwapSwitch))
+DEFINE_MOCK_C_API(aclError, aclmdlSetAIPPAxSwapSwitch,
+    (aclmdlAIPP* aippDynamicSet, int8_t axSwapSwitch),
+    (aippDynamicSet, axSwapSwitch))
+DEFINE_MOCK_C_API(aclError, aclmdlSetAIPPDtcPixelMean,
+    (aclmdlAIPP* aippDynamicSet, int16_t dtcPixelMeanChn0, int16_t dtcPixelMeanChn1, 
+     int16_t dtcPixelMeanChn2, int16_t dtcPixelMeanChn3, size_t batchIndex), 
+    (aippDynamicSet, dtcPixelMeanChn0, dtcPixelMeanChn1, dtcPixelMeanChn2, dtcPixelMeanChn3, batchIndex));
+DEFINE_MOCK_C_API(aclError, aclmdlSetAIPPDtcPixelMin,
+    (aclmdlAIPP* aippDynamicSet, float dtcPixelMinChn0, float dtcPixelMinChn1, 
+     float dtcPixelMinChn2, float dtcPixelMinChn3, uint64_t batchIndex), 
+    (aippDynamicSet, dtcPixelMinChn0, dtcPixelMinChn1, dtcPixelMinChn2, dtcPixelMinChn3, batchIndex));
+DEFINE_MOCK_C_API(aclError, aclmdlSetAIPPPixelVarReci, 
+    (aclmdlAIPP* aippDynamicSet, float dtcPixelVarReciChn0, float dtcPixelVarReciChn1, 
+     float dtcPixelVarReciChn2, float dtcPixelVarReciChn3, uint64_t batchIndex), 
+    (aippDynamicSet, dtcPixelVarReciChn0, dtcPixelVarReciChn1, dtcPixelVarReciChn2, dtcPixelVarReciChn3, batchIndex));
+DEFINE_MOCK_C_API(aclError, aclmdlSetAIPPCropParams, 
+    (aclmdlAIPP* aippDynamicSet, int8_t cropSwitch, int32_t loadStartPosW, 
+     int32_t loadStartPosH, int32_t cropSizeW, int32_t cropSizeH, uint64_t batchIndex), 
+    (aippDynamicSet, cropSwitch, loadStartPosW, loadStartPosH, cropSizeW, cropSizeH, batchIndex));
+DEFINE_MOCK_C_API(aclError, aclmdlSetAIPPPaddingParams, 
+    (aclmdlAIPP* aippDynamicSet, int8_t paddingSwitch, int32_t paddingSizeTop, 
+     int32_t paddingSizeBottom, int32_t paddingSizeLeft, int32_t paddingSizeRight, uint64_t batchIndex), 
+    (aippDynamicSet, paddingSwitch, paddingSizeTop, paddingSizeBottom, paddingSizeLeft, paddingSizeRight, batchIndex));
+DEFINE_MOCK_C_API(aclError, aclmdlDestroyAIPP, (const aclmdlAIPP* aippParmsSet), (aippParmsSet))
 
-const char* aclGetRecentErrMsg()
-{
-    return g_mockAcl->aclGetRecentErrMsg();
-}
-
-aclError aclmdlGetDynamicHW(const aclmdlDesc* modelDesc, size_t profileIndex, aclmdlHW* dynamicHW)
-{
-    return g_mockAcl->aclmdlGetDynamicHW(modelDesc, profileIndex, dynamicHW);
-}
-
-aclError aclmdlSetDynamicHWSize(uint32_t modelId, aclmdlDataset* dataset, size_t index,
-                                uint64_t dynamicHeight, uint64_t dynamicWidth)
-{
-    return g_mockAcl->aclmdlSetDynamicHWSize(modelId, dataset, index, dynamicHeight, dynamicWidth);
-}
-
-aclError aclmdlSetDynamicBatchSize(uint32_t modelId, aclmdlDataset* dataset, size_t index, 
-                                   uint64_t dynamicBatchSize)
-{
-    return g_mockAcl->aclmdlSetDynamicBatchSize(modelId, dataset, index, dynamicBatchSize);
-}
-
-aclError aclmdlGetDynamicBatch(const aclmdlDesc* modelDesc, aclmdlBatch* batchInfo)
-{
-    return g_mockAcl->aclmdlGetDynamicBatch(modelDesc, batchInfo);
-}
-
-aclError aclmdlGetCurOutputDims(const aclmdlDesc* modelDesc, size_t index, aclmdlIODims* ioDims)
-{
-    return g_mockAcl->aclmdlGetCurOutputDims(modelDesc, index, ioDims);
-}
-
-aclError aclmdlGetInputDynamicDims(const aclmdlDesc* modelDesc, size_t profileIndex, aclmdlIODims* dims, size_t gearCount)
-{
-    return g_mockAcl->aclmdlGetInputDynamicDims(modelDesc, profileIndex, dims, gearCount);
-}
-
-aclError aclmdlSetInputDynamicDims(uint32_t modelId, aclmdlDataset* dataset, size_t index, const aclmdlIODims* dims)
-{
-    return g_mockAcl->aclmdlSetInputDynamicDims(modelId, dataset, index, dims);
-}
-
+// 清理宏定义
+#undef DEFINE_MOCK_C_API
 }
 
 
@@ -235,7 +414,6 @@ public:
     {
         Base::LogCtrl::SetLogLevel(LOG_DEBUG_LEVEL);
     }
-
     ~SetDebugLogGuard()
     {
         Base::LogCtrl::SetLogLevel(LOG_INFO_LEVEL);
@@ -272,9 +450,9 @@ class ModelProcessTest : public ::testing::Test {
         validModelPath = "valid_model.om";
         invalidModelPath = "invalid_model.om";
 
-        // 设置默认的卸载函数模拟
-        EXPECT_CALL(*mockAcl, aclmdlUnload(_)).WillRepeatedly(Return(ACL_SUCCESS));
-        EXPECT_CALL(*mockAcl, aclmdlDestroyDesc(_)).WillRepeatedly(Return(ACL_SUCCESS));
+        // 配置模拟函数的默认值
+        SetGlobalDefaultExpectations();
+        
     }
 
     void TearDown() override
@@ -286,6 +464,82 @@ class ModelProcessTest : public ::testing::Test {
         g_mockAcl = nullptr;
         mockAcl.reset();
     }
+    
+    // 辅助函数：为所有新增的 ACL 接口设置默认返回值
+    void SetGlobalDefaultExpectations()
+    {   
+
+// 定义宏简化代码
+#define SET_DEFAULT_EXPECT(func_name, return_val) \
+    EXPECT_CALL(*mockAcl, func_name).WillRepeatedly(Return(return_val));
+
+        // 使用双括号处理带逗号的复杂返回值
+        SET_DEFAULT_EXPECT(aclmdlLoadFromFile, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlUnload, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlCreateDesc, (nullptr))
+        SET_DEFAULT_EXPECT(aclmdlDestroyDesc, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetDesc, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetInputDynamicGearCount, (ACL_SUCCESS))
+        
+        // 其他默认设置保持不变...
+        SET_DEFAULT_EXPECT(aclmdlGetDatasetNumBuffers, (0))
+        SET_DEFAULT_EXPECT(aclmdlGetDatasetBuffer, (nullptr))
+        
+        // 输入
+        SET_DEFAULT_EXPECT(aclmdlGetNumInputs, (0))
+        SET_DEFAULT_EXPECT(aclmdlGetInputNameByIndex, (nullptr))
+        SET_DEFAULT_EXPECT(aclmdlGetInputIndexByName, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetInputSizeByIndex, (0))
+        SET_DEFAULT_EXPECT(aclmdlGetInputDims, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetInputFormat, (ACL_FORMAT_UNDEFINED))
+        SET_DEFAULT_EXPECT(aclmdlGetInputDataType, (ACL_DT_UNDEFINED))
+        
+        // 输出
+        SET_DEFAULT_EXPECT(aclmdlGetNumOutputs, (0))
+        SET_DEFAULT_EXPECT(aclmdlGetOutputNameByIndex, (nullptr))
+        SET_DEFAULT_EXPECT(aclmdlGetOutputIndexByName, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetOutputSizeByIndex, (0))
+        SET_DEFAULT_EXPECT(aclmdlGetOutputDims, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetOutputFormat, (ACL_FORMAT_UNDEFINED))
+        SET_DEFAULT_EXPECT(aclmdlGetOutputDataType, (ACL_DT_UNDEFINED))
+        
+        // 动态形状
+        SET_DEFAULT_EXPECT(aclmdlGetDynamicHW, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlSetDynamicHWSize, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlSetDynamicBatchSize, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetDynamicBatch, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetCurOutputDims, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetInputDynamicDims, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlSetInputDynamicDims, (ACL_SUCCESS))
+        
+        // 张量和数据集
+        SET_DEFAULT_EXPECT(aclCreateTensorDesc, (nullptr))
+        SET_DEFAULT_EXPECT(aclmdlSetDatasetTensorDesc, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlCreateDataset, (nullptr))
+        SET_DEFAULT_EXPECT(aclmdlDestroyDataset, (ACL_SUCCESS))
+        
+        // 内存管理
+        SET_DEFAULT_EXPECT(aclrtMalloc, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclrtFree, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclrtMemcpy, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclrtMemset, (ACL_SUCCESS))
+
+        SET_DEFAULT_EXPECT(aclrtFreeHost, (ACL_SUCCESS))
+        
+        // 数据缓冲区
+        SET_DEFAULT_EXPECT(aclCreateDataBuffer, (nullptr))
+        SET_DEFAULT_EXPECT(aclDestroyDataBuffer, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlAddDatasetBuffer, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclGetDataBufferSizeV2, (0))
+        SET_DEFAULT_EXPECT(aclGetDataBufferAddr, (nullptr))
+        SET_DEFAULT_EXPECT(aclUpdateDataBuffer, (ACL_SUCCESS))
+        
+        SET_DEFAULT_EXPECT(aclrtSetExceptionInfoCallback, (ACL_SUCCESS))
+        // 错误处理
+        SET_DEFAULT_EXPECT(aclGetRecentErrMsg, ("No error"))
+
+#undef SET_DEFAULT_EXPECT
+    }
 
     // 辅助函数：加载模型成功
     void LoadModelSuccess(uint32_t modelId = expectedModelId)
@@ -293,6 +547,8 @@ class ModelProcessTest : public ::testing::Test {
         EXPECT_CALL(*mockAcl, aclmdlLoadFromFile(validModelPath.c_str(), _))
             .WillOnce(DoAll(SetArgPointee<1>(modelId), Return(ACL_SUCCESS)));
         ASSERT_EQ(modelProcess->LoadModelFromFile(validModelPath), SUCCESS);
+        modelProcess->modelId_ = modelId;
+        modelProcess->loadFlag_ = true;
     }
 
     // 辅助函数：创建模型描述
@@ -303,6 +559,7 @@ class ModelProcessTest : public ::testing::Test {
         
         // 创建模型描述
         aclmdlDesc* fakeDesc = reinterpret_cast<aclmdlDesc*>(0x1234);
+        modelProcess->modelDesc_ = fakeDesc;
         EXPECT_CALL(*mockAcl, aclmdlCreateDesc())
             .WillOnce(Return(fakeDesc));
         EXPECT_CALL(*mockAcl, aclmdlGetDesc(fakeDesc, modelId))
@@ -340,9 +597,82 @@ class ModelProcessTest : public ::testing::Test {
         ASSERT_EQ(modelProcess->CreateDesc(), SUCCESS);
     }
 
-    void SetupModelProcessInput()
+    void SetupModelProcessInput(uintptr_t address = 0x1111) 
     {
-        modelProcess->input_ = reinterpret_cast<aclmdlDataset*>(0x1111);
+        modelProcess->input_ = reinterpret_cast<aclmdlDataset*>(address);
+    }
+
+    void SetupModelProcessOutput(uintptr_t address = 0x2222)
+    {
+        modelProcess->output_ = reinterpret_cast<aclmdlDataset*>(address);
+    }
+
+    void SetupModelDesc(uintptr_t address = 0x1234)
+    {
+        modelProcess->modelDesc_ = reinterpret_cast<aclmdlDesc*>(address);
+    }
+
+
+    void SetupMockModelDescription(aclmdlDesc* fakeDesc, size_t numInputs, size_t numOutputs)
+    {
+        EXPECT_CALL(*mockAcl, aclmdlGetInputDims(fakeDesc, _, _))
+            .Times(numInputs)
+            .WillRepeatedly(Invoke([numInputs](const aclmdlDesc*, size_t index, aclmdlIODims* dimsInput) {
+                index = numInputs - 1;
+                dimsInput->dimCount = 1;
+                dimsInput->dims[0] = 3;
+                return ACL_SUCCESS;
+            }));
+        
+        EXPECT_CALL(*mockAcl, aclmdlGetOutputDims(fakeDesc, _, _))
+            .Times(numOutputs)
+            .WillRepeatedly(Invoke([numOutputs](const aclmdlDesc*, size_t index, aclmdlIODims* dimsOutput) {
+                index = numOutputs - 1;
+                dimsOutput->dimCount = 1;
+                dimsOutput->dims[0] = 3;
+                return ACL_SUCCESS;
+            }));
+        
+        if (Base::LogCtrl::CheckLogLevel(LOG_DEBUG_LEVEL)) {
+            EXPECT_CALL(*mockAcl, aclmdlGetInputSizeByIndex(fakeDesc, _))
+                .Times(numInputs)
+                .WillRepeatedly(Return(numInputs));
+            EXPECT_CALL(*mockAcl, aclmdlGetInputNameByIndex(fakeDesc, _))
+                .Times(numInputs)
+                .WillRepeatedly(Return("InputName"));
+            EXPECT_CALL(*mockAcl, aclmdlGetInputFormat(fakeDesc, _))
+                .Times(numInputs)
+                .WillRepeatedly(Return(ACL_FORMAT_UNDEFINED));
+            EXPECT_CALL(*mockAcl, aclmdlGetInputDataType(fakeDesc, _))
+                .Times(numInputs)
+                .WillRepeatedly(Return(ACL_DT_UNDEFINED));
+            
+            EXPECT_CALL(*mockAcl, aclmdlGetOutputSizeByIndex(fakeDesc, _))
+                .Times(numOutputs)
+                .WillRepeatedly(Return(numOutputs));
+            EXPECT_CALL(*mockAcl, aclmdlGetOutputNameByIndex(fakeDesc, _))
+                .Times(numOutputs)
+                .WillRepeatedly(Return("OutputName"));
+            EXPECT_CALL(*mockAcl, aclmdlGetOutputFormat(fakeDesc, _))
+                .Times(numOutputs)
+                .WillRepeatedly(Return(ACL_FORMAT_UNDEFINED));
+            EXPECT_CALL(*mockAcl, aclmdlGetOutputDataType(fakeDesc, _))
+                .Times(numOutputs)
+                .WillRepeatedly(Return(ACL_DT_UNDEFINED));
+        }
+    }
+
+    void SetupDataset(size_t inputCount, size_t outputCount)
+    {
+        // 创建输入数据集
+        SetupModelProcessInput();
+        SetupModelProcessOutput();
+        
+        // 设置模拟期望
+        EXPECT_CALL(*mockAcl, aclmdlGetDatasetNumBuffers(reinterpret_cast<aclmdlDataset*>(0x1111)))
+            .WillRepeatedly(Return(inputCount));
+        EXPECT_CALL(*mockAcl, aclmdlGetDatasetNumBuffers(reinterpret_cast<aclmdlDataset*>(0x2222)))
+            .WillRepeatedly(Return(outputCount));
     }
 
     unique_ptr<StrictMock<MockACL>> mockAcl; // 模拟ACL接口
@@ -665,1058 +995,5 @@ TEST_F(ModelProcessTest, TestGetDynamicIndex_GetNameFailed)
     
     // 验证错误日志
     EXPECT_TRUE(logOutput.find("get input name by index failed") != string::npos);
-}
-
-// 测试获取动态索引失败
-TEST_F(ModelProcessTest, TestGetDynamicIndex_GetIndexFailed)
-{
-    // 创建模型描述
-    aclmdlDesc* fakeDesc = CreateModelDescSuccess();
-    
-    // 设置输入数量
-    const size_t numInputs = 3;
-    EXPECT_CALL(*mockAcl, aclmdlGetNumInputs(fakeDesc))
-        .WillOnce(Return(numInputs));
-    
-    // 设置输入名称查询（有动态张量）
-    EXPECT_CALL(*mockAcl, aclmdlGetInputNameByIndex(fakeDesc, _))
-        .Times(numInputs)
-        .WillOnce(Return("input_tensor"))
-        .WillOnce(Return(ACL_DYNAMIC_TENSOR_NAME))
-        .WillOnce(Return("input_tensor"));
-    
-    // 设置获取索引失败
-    EXPECT_CALL(*mockAcl, aclmdlGetInputIndexByName(
-        fakeDesc, 
-        StrEq(ACL_DYNAMIC_TENSOR_NAME), // 使用StrEq匹配内容
-        NotNull())) // 确保传入的指针非空
-        .WillOnce(Return(ACL_ERROR_FAILURE));
-    
-    // 设置错误消息
-    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
-        .WillOnce(Return("Failed to get dynamic tensor index"));
-    
-    // 执行测试
-    testing::internal::CaptureStdout();
-    size_t actualIndex = 0;
-    Result ret = modelProcess->GetDynamicIndex(actualIndex);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    // 验证结果
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_EQ(modelProcess->g_dymindex, static_cast<size_t>(-1));
-    
-    // 验证错误日志
-    EXPECT_TRUE(logOutput.find("get input index by name failed") != string::npos);
-    EXPECT_TRUE(logOutput.find("Failed to get dynamic tensor index") != string::npos);
-}
-
-// 测试没有模型描述时动态索引为-1且返回成功
-TEST_F(ModelProcessTest, TestGetDynamicIndex_NoModelDesc)
-{
-    // 创建模型但不创建描述
-    LoadModelSuccess();
-    
-    // 确保模型描述为空
-    ASSERT_EQ(modelProcess->modelDesc_, nullptr);
-    
-    // 设置：当modelDesc_为null时，aclmdlGetNumInputs返回0，而其它函数不被调用
-    EXPECT_CALL(*mockAcl, aclmdlGetNumInputs(nullptr))
-        .WillOnce(Return(0));
-    EXPECT_CALL(*mockAcl, aclmdlGetInputNameByIndex(_, _)).Times(0);
-    EXPECT_CALL(*mockAcl, aclmdlGetInputIndexByName(_, _, _)).Times(0);
-    
-    // 执行测试
-    size_t actualIndex = 0;
-    Result ret = modelProcess->GetDynamicIndex(actualIndex);
-    
-    // 验证结果
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_EQ(modelProcess->g_dymindex, static_cast<size_t>(-1)); // 应保持原值
-}
-
-// 测试输入数量为0的情况
-TEST_F(ModelProcessTest, TestGetDynamicIndex_NoInputs)
-{
-    // 创建模型描述
-    aclmdlDesc* fakeDesc = CreateModelDescSuccess();
-    
-    // 设置输入数量为0
-    EXPECT_CALL(*mockAcl, aclmdlGetNumInputs(fakeDesc))
-        .WillOnce(Return(0));
-    
-    // 执行测试
-    size_t actualIndex = 0;
-    Result ret = modelProcess->GetDynamicIndex(actualIndex);
-    
-    // 验证结果
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_EQ(modelProcess->g_dymindex, static_cast<size_t>(-1));
-}
-
-// ===================== CheckDynamicShape 测试用例 =====================
-
-TEST_F(ModelProcessTest, TestCheckDynamicShape_InputCountMismatch)
-{
-    SetupCompleteModel(3, {"input1", "input2", "input3"});
-    
-    vector<string> dymShape = {"input1:1,2", "input2:3,4"};
-    map<string, vector<int64_t>> shapeMap;
-    vector<int64_t> dimsNum;
-    
-    testing::internal::CaptureStdout();
-    Result result = modelProcess->CheckDynamicShape(dymShape, shapeMap, dimsNum);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(result, FAILED);
-    EXPECT_TRUE(logOutput.find("ERROR") != string::npos);
-    EXPECT_TRUE(logOutput.find("om model has 3 input") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicShape_GetInputNameFailed)
-{
-    SetupCompleteModel(1);
-    
-    EXPECT_CALL(*mockAcl, aclmdlGetInputNameByIndex(_, 0))
-        .WillOnce(Return(nullptr));
-    
-    vector<string> dymShape = {"input1:1"};
-    map<string, vector<int64_t>> shapeMap;
-    vector<int64_t> dimsNum;
-    
-    testing::internal::CaptureStdout();
-    Result result = modelProcess->CheckDynamicShape(dymShape, shapeMap, dimsNum);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(result, FAILED);
-    EXPECT_TRUE(logOutput.find("ERROR") != string::npos);
-    EXPECT_TRUE(logOutput.find("get input name failed") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicShape_InvalidDimensionFormat)
-{
-    SetupCompleteModel(1, {"input1"});
-    
-    vector<string> dymShape = {"input1:1,abc,3"};
-    map<string, vector<int64_t>> shapeMap;
-    vector<int64_t> dimsNum;
-    
-    testing::internal::CaptureStdout();
-    Result result = modelProcess->CheckDynamicShape(dymShape, shapeMap, dimsNum);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(result, FAILED);
-    EXPECT_TRUE(logOutput.find("ERROR") != string::npos);
-    EXPECT_TRUE(logOutput.find("dim of dymshape string is illegal") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicShape_OutOfRangeDimension)
-{
-    SetupCompleteModel(1, {"input1"});
-    
-    vector<string> dymShape = {"input1:99999999999999999999"};
-    map<string, vector<int64_t>> shapeMap;
-    vector<int64_t> dimsNum;
-    
-    testing::internal::CaptureStdout();
-    Result result = modelProcess->CheckDynamicShape(dymShape, shapeMap, dimsNum);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(result, FAILED);
-    EXPECT_TRUE(logOutput.find("ERROR") != string::npos);
-    EXPECT_TRUE(logOutput.find("dim of dymshape string is illegal") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicShape_MissingInputName)
-{
-    SetupCompleteModel(2, {"input1", "input2"});
-    
-    vector<string> dymShape = {"input1:1,2", "input3:3,4"};
-    map<string, vector<int64_t>> shapeMap;
-    vector<int64_t> dimsNum;
-    
-    testing::internal::CaptureStdout();
-    Result result = modelProcess->CheckDynamicShape(dymShape, shapeMap, dimsNum);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(result, FAILED);
-    EXPECT_TRUE(logOutput.find("ERROR") != string::npos);
-    EXPECT_TRUE(logOutput.find("dymShape parameter set error") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicShape_Success)
-{
-    SetupCompleteModel(2, {"input1", "input2"});
-    
-    vector<string> dymShape = {"input1:1,2,3", "input2:4,5"};
-    map<string, vector<int64_t>> shapeMap;
-    vector<int64_t> dimsNum;
-
-    SetDebugLogGuard guard;
-    testing::internal::CaptureStdout();
-    Result result = modelProcess->CheckDynamicShape(dymShape, shapeMap, dimsNum);
-    string logOutput = testing::internal::GetCapturedStdout();
-
-    EXPECT_EQ(result, SUCCESS);
-    EXPECT_TRUE(logOutput.find("DEBUG") != string::npos);
-    EXPECT_TRUE(logOutput.find("check Dynamic Shape success") != string::npos);
-    
-    EXPECT_EQ(dimsNum.size(), 2);
-    EXPECT_EQ(dimsNum[0], 3);
-    EXPECT_EQ(dimsNum[1], 2);
-    EXPECT_EQ(shapeMap["input1"], vector<int64_t>({1, 2, 3}));
-    EXPECT_EQ(shapeMap["input2"], vector<int64_t>({4, 5}));
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicShape_EmptyShape)
-{
-    SetupCompleteModel(1, {"input1"});
-    
-    vector<string> dymShape = {"input1:"};
-    map<string, vector<int64_t>> shapeMap;
-    vector<int64_t> dimsNum;
-    
-    SetDebugLogGuard guard;
-    testing::internal::CaptureStdout();
-    Result result = modelProcess->CheckDynamicShape(dymShape, shapeMap, dimsNum);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(result, SUCCESS);
-    EXPECT_TRUE(shapeMap["input1"].empty());
-    EXPECT_EQ(dimsNum.size(), 1);
-    EXPECT_EQ(dimsNum[0], 0);
-
-    EXPECT_TRUE(logOutput.find("DEBUG") != string::npos);
-    EXPECT_TRUE(logOutput.find("check Dynamic Shape success") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicShape_MissingColon)
-{
-    SetupCompleteModel(1, {"input1"});
-    
-    vector<string> dymShape = {"input1"};
-    map<string, vector<int64_t>> shapeMap;
-    vector<int64_t> dimsNum;
-    
-    testing::internal::CaptureStdout();
-    Result result = modelProcess->CheckDynamicShape(dymShape, shapeMap, dimsNum);
-    string logOutput = testing::internal::GetCapturedStdout();
-
-    EXPECT_EQ(result, FAILED);
-    EXPECT_TRUE(shapeMap["input1"].empty());
-    EXPECT_EQ(dimsNum.size(), 1);
-    EXPECT_EQ(dimsNum[0], 0);
-
-    EXPECT_TRUE(logOutput.find("ERROR") != string::npos);
-    EXPECT_TRUE(logOutput.find("the dymShape parameter set error, please check input name") != string::npos);
-}
-
-// ===================== SetDynamicShape 测试用例 =====================
-
-TEST_F(ModelProcessTest, TestSetDynamicShape_DimNumMismatch)
-{
-    SetupCompleteModel(2, {"input1", "input2"});
-    SetupModelProcessInput();
-    
-    // 添加销毁期望
-    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(0x1111)))
-        .WillOnce(Return(ACL_SUCCESS));
-    
-    std::map<std::string, std::vector<int64_t>> shape_map = {
-        {"input1", {1, 2, 3}},
-        {"input2", {4, 5, 6}}
-    };
-    std::vector<int64_t> dims_num = {3, 3, 2};
-    
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->SetDynamicShape(shape_map, dims_num);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("dims num size: 3 not equal to input num 2") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestSetDynamicShape_GetInputNameFailed)
-{
-    SetupCompleteModel(2, {"input1", "input2"});
-    SetupModelProcessInput();
-    
-    // 添加销毁期望
-    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(0x1111)))
-        .WillOnce(Return(ACL_SUCCESS));
-    
-    std::map<std::string, std::vector<int64_t>> shape_map = {
-        {"input1", {1, 2, 3}},
-        {"input2", {4, 5, 6}}
-    };
-    std::vector<int64_t> dims_num = {3, 3};
-    
-    EXPECT_CALL(*mockAcl, aclmdlGetInputNameByIndex(modelProcess->modelDesc_, 0))
-        .WillOnce(Return(nullptr));
-    const char* errorMsg = "Failed to get input name";
-    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
-        .WillOnce(Return(errorMsg));
-    
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->SetDynamicShape(shape_map, dims_num);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("get input name by index failed") != string::npos);
-    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestSetDynamicShape_CreateTensorDescOrSetDatasetTensorFailed)
-{
-    SetupCompleteModel(1, {"input1"});
-    SetupModelProcessInput();
-    
-    // 添加销毁期望
-    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(0x1111)))
-        .WillOnce(Return(ACL_SUCCESS));
-    
-    std::map<std::string, std::vector<int64_t>> shape_map = {
-        {"input1", {1, 2, 3}}
-    };
-    std::vector<int64_t> dims_num = {3};
-    
-    EXPECT_CALL(*mockAcl, aclmdlGetInputNameByIndex(modelProcess->modelDesc_, 0))
-        .WillOnce(Return("input1"));
-    
-    EXPECT_CALL(*mockAcl, aclCreateTensorDesc(ACL_FLOAT, _, _, ACL_FORMAT_NCHW))
-        .WillOnce(Return(nullptr));
-    
-    EXPECT_CALL(*mockAcl, aclmdlSetDatasetTensorDesc(_, _, _))
-        .WillOnce(Return(ACL_ERROR_FAILURE));
-    
-    const char* errorMsg = "acl failed";
-    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
-        .WillOnce(Return(errorMsg));
-    
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->SetDynamicShape(shape_map, dims_num);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("acl set dataset TensorDesc failed") != string::npos);
-    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestSetDynamicShape_SingleInputSuccess)
-{
-    SetupCompleteModel(1, {"input1"});
-    SetupModelProcessInput();
-    
-    // 添加销毁期望
-    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(0x1111)))
-        .WillOnce(Return(ACL_SUCCESS));
-    
-    std::map<std::string, std::vector<int64_t>> shape_map = {
-        {"input1", {1, 2, 3}}
-    };
-    std::vector<int64_t> dims_num = {3};
-    
-    EXPECT_CALL(*mockAcl, aclmdlGetInputNameByIndex(modelProcess->modelDesc_, 0))
-        .WillOnce(Return("input1"));
-    
-    aclTensorDesc* fakeDesc = reinterpret_cast<aclTensorDesc*>(0x1234);
-    EXPECT_CALL(*mockAcl, aclCreateTensorDesc(ACL_FLOAT, 3, _, ACL_FORMAT_NCHW))
-        .WillOnce(Return(fakeDesc));
-    
-    EXPECT_CALL(*mockAcl, aclmdlSetDatasetTensorDesc(modelProcess->input_, fakeDesc, 0))
-        .WillOnce(Return(ACL_SUCCESS));
-    
-    SetDebugLogGuard guard;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->SetDynamicShape(shape_map, dims_num);
-    string logOutput = testing::internal::GetCapturedStdout();
-
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_TRUE(logOutput.find("set Dynamic shape success") != string::npos);
-}
-
-// ===================== GetMaxDynamicHWSize 测试用例 =====================
-
-TEST_F(ModelProcessTest, TestGetMaxDynamicHWSize_Success)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    aclmdlHW dynamicHW = {3, {{128, 128}, {256, 256}, {512, 512}}};
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
-        .WillOnce(DoAll(SetArgPointee<2>(dynamicHW), Return(ACL_SUCCESS)));
-    
-    uint64_t maxSize = 0;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->GetMaxDynamicHWSize(maxSize);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_EQ(maxSize, 512 * 512); // 512x512 是最大尺寸
-}
-
-TEST_F(ModelProcessTest, TestGetMaxDynamicHWSize_GetDynamicHWFailed)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
-        .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
-    const char* errorMsg = "Get dynamic HW failed";
-    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
-        .WillOnce(Return(errorMsg));
-    
-    uint64_t maxSize = 0;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->GetMaxDynamicHWSize(maxSize);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("get DynamicHW failed") != string::npos);
-    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestGetMaxDynamicHWSize_NoDynamicHW)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    aclmdlHW dynamicHW = {0, {}};
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
-        .WillOnce(DoAll(SetArgPointee<2>(dynamicHW), Return(ACL_SUCCESS)));
-    
-    uint64_t maxSize = 0;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->GetMaxDynamicHWSize(maxSize);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("the dynamic_image_size parameter is not specified") != string::npos);
-}
-
-// ===================== CheckDynamicHWSize 测试用例 =====================
-
-TEST_F(ModelProcessTest, TestCheckDynamicHWSize_Success)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    aclmdlHW dynamicHW = {2, {{128, 128}, {256, 256}}};
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
-        .WillOnce(DoAll(SetArgPointee<2>(dynamicHW), Return(ACL_SUCCESS)));
-    
-    bool isDynamic = false;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->CheckDynamicHWSize({256, 256}, isDynamic);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_TRUE(isDynamic);
-    EXPECT_TRUE(logOutput.find("check dynamic image size success") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicHWSize_GetDynamicHWFailed)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    aclmdlHW dynamicHW = {2, {{128, 128}, {256, 256}}};
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
-        .WillOnce(DoAll(SetArgPointee<2>(dynamicHW), Return(ACL_ERROR_FAILURE)));
-    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
-        .WillOnce(Return("aclmdlGetDynamicHW Failed"));
-    
-    bool isDynamic = false;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->CheckDynamicHWSize({512, 512}, isDynamic);
-    string logOutput = testing::internal::GetCapturedStdout();
-    cout << logOutput << endl;
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("get DynamicHW failed") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicHWSize_DynamicHWNotFound)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    aclmdlHW dynamicHW = {2, {{128, 128}, {256, 256}}};
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
-        .WillOnce(DoAll(SetArgPointee<2>(dynamicHW), Return(ACL_SUCCESS)));
-    
-    bool isDynamic = false;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->CheckDynamicHWSize({512, 512}, isDynamic);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("the dymHW parameter is not correct") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicHWSize_NoDynamicHWSpecified)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    aclmdlHW dynamicHW = {0, {}};
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
-        .WillOnce(DoAll(SetArgPointee<2>(dynamicHW), Return(ACL_SUCCESS)));
-    
-    bool isDynamic = false;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->CheckDynamicHWSize({256, 256}, isDynamic);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("the dynamic_image_size parameter is not specified") != string::npos);
-}
-
-// ===================== SetDynamicHW 测试用例 =====================
-
-TEST_F(ModelProcessTest, TestSetDynamicHW_Success)
-{
-    SetupCompleteModel();
-    modelProcess->g_dymindex = 0;
-    modelProcess->input_ = reinterpret_cast<aclmdlDataset*>(0x1234);
-    
-    EXPECT_CALL(*mockAcl, aclmdlSetDynamicHWSize(expectedModelId, 
-                                                reinterpret_cast<aclmdlDataset*>(0x1234), 
-                                                0, 256, 256))
-        .WillOnce(Return(ACL_SUCCESS));
-    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(0x1234)))
-        .WillOnce(Return(ACL_SUCCESS));
-
-    SetDebugLogGuard guard;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->SetDynamicHW({256, 256});
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_TRUE(logOutput.find("set Dynamic HW success") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestSetDynamicHW_Failed)
-{
-    SetupCompleteModel();
-    modelProcess->g_dymindex = 0;
-    modelProcess->input_ = reinterpret_cast<aclmdlDataset*>(0x1234);
-    
-    EXPECT_CALL(*mockAcl, aclmdlSetDynamicHWSize(expectedModelId, 
-                                                reinterpret_cast<aclmdlDataset*>(0x1234), 
-                                                0, 512, 512))
-        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
-    
-    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(0x1234)))
-        .WillOnce(Return(ACL_SUCCESS));
-
-    const char* errorMsg = "Set dynamic HW failed";
-    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
-        .WillOnce(Return(errorMsg));
-    
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->SetDynamicHW({512, 512});
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("acl set dynamicHW size failed") != string::npos);
-    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
-}
-
-// ===================== CheckDynamicBatchSize 测试用例 =====================
-
-TEST_F(ModelProcessTest, TestCheckDynamicBatchSize_Success)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    aclmdlBatch batchInfo = {3, {1, 4, 8}};
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
-        .WillOnce(DoAll(SetArgPointee<1>(batchInfo), Return(ACL_SUCCESS)));
-    
-    bool isDynamic = false;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->CheckDynamicBatchSize(4, isDynamic);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_TRUE(isDynamic);
-    EXPECT_TRUE(logOutput.find("check dynamic batch success") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicBatchSize_InvalidBatch)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    aclmdlBatch batchInfo = {3, {1, 4, 8}};
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _)).Times(2)
-        .WillRepeatedly(DoAll(SetArgPointee<1>(batchInfo), Return(ACL_SUCCESS)));
-    
-    bool isDynamic = false;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->CheckDynamicBatchSize(16, isDynamic);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("the dymBatch parameter is not correct") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicBatchSize_GetDynamicBatchFailed)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
-        .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
-    const char* errorMsg = "Get dynamic batch failed";
-    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
-        .WillOnce(Return(errorMsg));
-    
-    bool isDynamic = false;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->CheckDynamicBatchSize(4, isDynamic);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("get DynamicBatch failed") != string::npos);
-    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicBatchSize_NoDynamicBatch)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    aclmdlBatch batchInfo = {0, {}};
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
-        .WillOnce(DoAll(SetArgPointee<1>(batchInfo), Return(ACL_SUCCESS)));
-    
-    bool isDynamic = false;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->CheckDynamicBatchSize(4, isDynamic);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("the dynamic_batch_size parameter is not specified") != string::npos);
-}
-
-// ===================== GetMaxBatchSize 测试用例 =====================
-
-TEST_F(ModelProcessTest, TestGetMaxBatchSize_Success)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    aclmdlBatch batchInfo = {3, {1, 4, 8}};
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
-        .WillOnce(DoAll(SetArgPointee<1>(batchInfo), Return(ACL_SUCCESS)));
-    
-    uint64_t maxBatchSize = 0;
-    SetDebugLogGuard guard;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->GetMaxBatchSize(maxBatchSize);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_EQ(maxBatchSize, 8);
-    EXPECT_TRUE(logOutput.find("get max dynamic batch size success") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestGetMaxBatchSize_NoBatchInfo)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    aclmdlBatch batchInfo = {0, {}};
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
-        .WillOnce(DoAll(SetArgPointee<1>(batchInfo), Return(ACL_SUCCESS)));
-    
-    uint64_t maxBatchSize = 0;
-    SetDebugLogGuard guard;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->GetMaxBatchSize(maxBatchSize);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_EQ(maxBatchSize, 0);
-    EXPECT_TRUE(logOutput.find("get max dynamic batch size success") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestGetMaxBatchSize_GetDynamicBatchFailed)
-{
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
-        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
-    const char* errorMsg = "Get dynamic batch failed";
-    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
-        .WillOnce(Return(errorMsg));
-    
-    uint64_t maxBatchSize = 0;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->GetMaxBatchSize(maxBatchSize);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("get DynamicBatch failed") != string::npos);
-    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
-}
-
-// ===================== SetDynamicBatchSize 测试用例 =====================
-
-TEST_F(ModelProcessTest, TestSetDynamicBatchSize_Success)
-{
-    // 创建模型描述
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    // 配置输入 dataset
-    aclmdlDataset* inputDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
-    modelProcess->input_ = inputDataset;
-    modelProcess->g_dymindex = 0;
-    
-    // 设置销毁期望
-    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(inputDataset)))
-        .WillOnce(Return(ACL_SUCCESS));
-    
-    // 设置期望
-    EXPECT_CALL(*mockAcl, aclmdlSetDynamicBatchSize(expectedModelId, inputDataset, 0, 8))
-        .WillOnce(Return(ACL_SUCCESS));
-    
-    // 执行测试
-    SetDebugLogGuard guard;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->SetDynamicBatchSize(8);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    // 验证结果
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_TRUE(logOutput.find("set dynamic batch size success") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestSetDynamicBatchSize_Failed)
-{
-    // 创建模型描述
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    // 配置输入 dataset
-    aclmdlDataset* inputDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
-    modelProcess->input_ = inputDataset;
-    modelProcess->g_dymindex = 0;
-    
-    // 设置销毁期望
-    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(inputDataset)))
-        .WillOnce(Return(ACL_SUCCESS));
-    
-    // 设置期望
-    EXPECT_CALL(*mockAcl, aclmdlSetDynamicBatchSize(expectedModelId, inputDataset, 0, 16))
-        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
-    const char* errorMsg = "Set dynamic batch failed";
-    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
-        .WillOnce(Return(errorMsg));
-    
-    // 执行测试
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->SetDynamicBatchSize(16);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    // 验证结果
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("acl set dynamic batch size failed") != string::npos);
-    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
-}
-
-// ===================== GetCurOutputDimsMul 测试用例 =====================
-
-TEST_F(ModelProcessTest, TestGetCurOutputDimsMul_Success)
-{
-    // 创建模型描述
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    // 安全初始化 ioDims
-    aclmdlIODims ioDims;
-    ioDims.dimCount = 3;
-    int64_t dimsArray[ACL_MAX_DIM_CNT] = {1, 2, 3}; // 假设 ACL_MAX_DIM_CNT 足够大
-    memcpy(ioDims.dims, dimsArray, sizeof(int64_t) * 3);
-    
-    EXPECT_CALL(*mockAcl, aclmdlGetCurOutputDims(fakeDesc, 0, _))
-        .WillOnce(DoAll(SetArgPointee<2>(ioDims), Return(ACL_SUCCESS)));
-    
-    // 执行测试
-    vector<int64_t> dimsMul;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->GetCurOutputDimsMul(0, dimsMul);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    // 验证结果
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_EQ(dimsMul.size(), 2);
-    EXPECT_EQ(dimsMul[0], 3); // 3 = 3
-    EXPECT_EQ(dimsMul[1], 6); // 6 = 3 * 2
-    EXPECT_TRUE(logOutput.empty());
-}
-
-TEST_F(ModelProcessTest, TestGetCurOutputDimsMul_Failed)
-{
-    // 创建模型描述
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    // 安全初始化 ioDims
-    aclmdlIODims ioDims;
-    ioDims.dimCount = 3;
-    int64_t dimsArray[ACL_MAX_DIM_CNT] = {1, 2, 3}; // 假设 ACL_MAX_DIM_CNT 足够大
-    memcpy(ioDims.dims, dimsArray, sizeof(int64_t) * 3);
-
-    EXPECT_CALL(*mockAcl, aclmdlGetCurOutputDims(fakeDesc, 0, _))
-        .WillOnce(DoAll(SetArgPointee<2>(ioDims), Return(ACL_ERROR_FAILURE)));
-
-    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
-        .WillOnce(Return("aclmdlGetCurOutputDims Failed"));
-    
-    // 执行测试
-    vector<int64_t> dimsMul;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->GetCurOutputDimsMul(0, dimsMul);
-    string logOutput = testing::internal::GetCapturedStdout();
-    cout << logOutput << endl;
-    // 验证结果
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("acl get current output dims failed ret") != string::npos);
-    EXPECT_TRUE(logOutput.find("maybe the modle has dynamic shape") != string::npos);
-}
-
-// ===================== CheckDynamicDims 测试用例  =====================
-
-TEST_F(ModelProcessTest, TestCheckDynamicDims_Success)
-{
-    // 创建模型描述
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    // 准备测试数据
-    vector<string> dymDims = {"1", "2", "3"};
-    size_t gearCount = 1;
-    
-    // 安全初始化 dims
-    aclmdlIODims dims;
-    dims.dimCount = 3;
-    int64_t dimsArray[3] = {1, 2, 3};
-    memcpy(dims.dims, dimsArray, sizeof(int64_t) * 3);
-    
-    // 设置模拟期望
-    EXPECT_CALL(*mockAcl, aclmdlGetInputDynamicDims(fakeDesc, -1, _, gearCount))
-        .WillOnce(DoAll(SetArgPointee<2>(dims), Return(ACL_SUCCESS)));
-    
-    // 执行测试
-    SetDebugLogGuard guard;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->CheckDynamicDims(dymDims, gearCount, &dims);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    // 验证结果
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_TRUE(logOutput.find("check dynamic dims success") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicDims_DimCountMismatch)
-{
-    // 创建模型描述
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    // 准备测试数据
-    vector<string> dymDims = {"1", "2", "3"};
-    size_t gearCount = 1;
-    
-    // 安全初始化 dims - 维度数量不匹配
-    aclmdlIODims dims;
-    dims.dimCount = 2; // 只有 2 个维度
-    int64_t dimsArray[2] = {1, 2};
-    memcpy(dims.dims, dimsArray, sizeof(int64_t) * 2);
-    
-    // 设置模拟期望
-    EXPECT_CALL(*mockAcl, aclmdlGetInputDynamicDims(fakeDesc, -1, _, gearCount)).Times(2)
-        .WillRepeatedly(DoAll(SetArgPointee<2>(dims), Return(ACL_SUCCESS)));
-    
-    // 执行测试
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->CheckDynamicDims(dymDims, gearCount, &dims);
-    string logOutput = testing::internal::GetCapturedStdout();
-
-    // 验证结果
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("the dymDims parameter is not correct") != string::npos);
-    EXPECT_TRUE(logOutput.find("dysize:3 dimcount:2") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicDims_InvalidInteger)
-{
-    // 创建模型描述
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    // 准备测试数据
-    vector<string> dymDims = {"1", "2", "abc"}; // "abc" 不是有效整数
-    size_t gearCount = 1;
-    
-    // 安全初始化 dims
-    aclmdlIODims dims;
-    dims.dimCount = 3;
-    int64_t dimsArray[3] = {1, 2, 3};
-    memcpy(dims.dims, dimsArray, sizeof(int64_t) * 3);
-    
-    // 设置模拟期望
-    EXPECT_CALL(*mockAcl, aclmdlGetInputDynamicDims(fakeDesc, -1, _, gearCount))
-        .WillOnce(DoAll(SetArgPointee<2>(dims), Return(ACL_SUCCESS)));
-    
-    // 执行测试
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->CheckDynamicDims(dymDims, gearCount, &dims);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    // 验证结果
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("dim of dymdims string is illegal") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestCheckDynamicDims_DimsNotMatching)
-{
-    // 创建模型描述
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    // 准备测试数据
-    vector<string> dymDims = {"1", "2", "4"}; // 与动态维度不匹配
-    size_t gearCount = 1;
-    
-    // 安全初始化 dims
-    aclmdlIODims dims;
-    dims.dimCount = 3;
-    int64_t dimsArray[3] = {1, 2, 3};
-    memcpy(dims.dims, dimsArray, sizeof(int64_t) * 3);
-    
-    // 设置模拟期望
-    EXPECT_CALL(*mockAcl, aclmdlGetInputDynamicDims(fakeDesc, -1, _, gearCount)).Times(2)
-        .WillRepeatedly(DoAll(SetArgPointee<2>(dims), Return(ACL_SUCCESS)));
-    
-    // 执行测试
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->CheckDynamicDims(dymDims, gearCount, &dims);
-    string logOutput = testing::internal::GetCapturedStdout();
-
-    // 验证结果
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("the dynamic_dims parameter is not correct") != string::npos);
-}
-
-// ===================== SetDynamicDims 测试用例  =====================
-
-TEST_F(ModelProcessTest, TestSetDynamicDims_Success)
-{
-    // 创建模型描述
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    // 配置输入 dataset
-    aclmdlDataset* inputDataset = reinterpret_cast<aclmdlDataset*>(0x1234);
-    modelProcess->input_ = inputDataset;
-    modelProcess->g_dymindex = 0;
-    
-    // 设置销毁期望
-    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(inputDataset)))
-        .WillOnce(Return(ACL_SUCCESS));
-    
-    // 准备测试数据
-    vector<string> dymDims = {"1", "2", "3"};
-    
-    // 设置模拟期望 - 验证传入的 dims
-    EXPECT_CALL(*mockAcl, aclmdlSetInputDynamicDims(expectedModelId, inputDataset, 0, _))
-        .WillOnce([](uint32_t, aclmdlDataset*, size_t, const aclmdlIODims* dims) {
-            EXPECT_EQ(dims->dimCount, 3);
-            EXPECT_EQ(dims->dims[0], 1);
-            EXPECT_EQ(dims->dims[1], 2);
-            EXPECT_EQ(dims->dims[2], 3);
-            return ACL_SUCCESS;
-        });
-    
-    // 执行测试
-    SetDebugLogGuard guard;
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->SetDynamicDims(dymDims);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    // 验证结果
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_TRUE(logOutput.find("set dynamic dims success") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestSetDynamicDims_InvalidInteger)
-{
-    // 准备测试数据
-    vector<string> dymDims = {"1", "2", "abc"}; // "abc" 不是有效整数
-    
-    // 执行测试
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->SetDynamicDims(dymDims);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    // 验证结果
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("Invalid input for conversion: abc") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestSetDynamicDims_OutOfRange)
-{
-    // 准备测试数据
-    vector<string> dymDims = {"1", "2", "99999999999999999999"}; // 超出 long 范围
-    
-    // 执行测试
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->SetDynamicDims(dymDims);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    // 验证结果
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("Out of range input for conversion: 99999999999999999999") != string::npos);
-}
-
-TEST_F(ModelProcessTest, TestSetDynamicDims_SetDimsFailed)
-{
-    // 创建模型描述
-    auto fakeDesc = CreateModelDescSuccess();
-    modelProcess->modelDesc_ = fakeDesc;
-    
-    // 配置输入 dataset
-    aclmdlDataset* inputDataset = reinterpret_cast<aclmdlDataset*>(0x1234);
-    modelProcess->input_ = inputDataset;
-    modelProcess->g_dymindex = 0;
-    
-    // 设置销毁期望
-    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(inputDataset)))
-        .WillOnce(Return(ACL_SUCCESS));
-    
-    // 准备测试数据 - 不再初始化 aclmdlIODims
-    vector<string> dymDims = {"1", "2", "3"};
-    
-    // 设置模拟期望 - 使用通配符匹配任何传入的 dims 参数
-    EXPECT_CALL(*mockAcl, aclmdlSetInputDynamicDims(expectedModelId, inputDataset, 0, _))
-        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
-    const char* errorMsg = "Set dynamic dims failed";
-    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
-        .WillOnce(Return(errorMsg));
-    
-    // 执行测试
-    testing::internal::CaptureStdout();
-    Result ret = modelProcess->SetDynamicDims(dymDims);
-    string logOutput = testing::internal::GetCapturedStdout();
-    
-    // 验证结果
-    EXPECT_EQ(ret, FAILED);
-    EXPECT_TRUE(logOutput.find("acl set input dynamic dims failed") != string::npos);
-    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
 }
 }

@@ -4869,4 +4869,488 @@ TEST_F(ModelProcessTest, TestSetAIPPInputFormat_FailedWithException)
 
     EXPECT_TRUE(logOutput.find("acl set AIPP input format failed") != string::npos);
 }
+
+// ===================== SetAIPPCscParams测试 =====================
+// GMock 的 MOCK_METHOD 宏支持的参数数量是有限制的。MOCK_METHOD 宏最多支持10个参数的函数模拟。
+// 而需要mock的 aclmdlSetAIPPCscParams 有17个参数，故略过
+
+// ===================== SetAIPPRbuvSwapSwitch测试 =====================
+TEST_F(ModelProcessTest, TestSetAIPPRbuvSwapSwitch_Success)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    dyAippCfg->SetRbuvSwapSwitch(1);
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x3333);
+    
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPRbuvSwapSwitch(fakeAipp, 1))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetAIPPRbuvSwapSwitch(dyAippCfg, fakeAipp);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("aclmdlSetAIPPRbuvSwapSwitch") != std::string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPRbuvSwitch_Failure)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x4444);
+    
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPRbuvSwapSwitch(_, 0))
+        .WillOnce(Return(ACL_ERROR_INTERNAL_ERROR));
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return("Mock error message"));
+    
+    testing::internal::CaptureStdout();
+    EXPECT_THROW({
+        try {
+            modelProcess->SetAIPPRbuvSwapSwitch(dyAippCfg, fakeAipp);
+        } catch (const char* e) {
+            EXPECT_STREQ(e, "AippData set failed!");
+            throw;
+        }
+    }, const char*);
+    string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(logOutput.find("acl set AIPP swap switch params failed") != std::string::npos);
+}
+
+// ===================== SetAIPPAxSwapSwitch测试 =====================
+TEST_F(ModelProcessTest, TestSetAIPPAxSwapSwitch_Success)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    dyAippCfg->SetAxSwapSwitch(1);
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x5555);
+    
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPAxSwapSwitch(fakeAipp, 1))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetAIPPAxSwapSwitch(dyAippCfg, fakeAipp);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("aclmdlSetAIPPAxSwapSwitch") != std::string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPAxSwapSwitch_Failure)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x6666);
+    
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPAxSwapSwitch(_, 0))
+        .WillOnce(Return(ACL_ERROR_INTERNAL_ERROR));
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return("Mock error message"));
+    
+    testing::internal::CaptureStdout();
+    EXPECT_THROW({
+        try {
+            modelProcess->SetAIPPAxSwapSwitch(dyAippCfg, fakeAipp);
+        } catch (const char* e) {
+            EXPECT_STREQ(e, "AippData set failed!");
+            throw;
+        }
+    }, const char*);
+    string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(logOutput.find("acl set AIPP Ax swap switch params failed") != std::string::npos);
+}
+
+// ===================== SetAIPPDtcPixelMean测试 =====================
+TEST_F(ModelProcessTest, TestSetAIPPDtcPixelMean_CustomValue_Success)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x7777);
+    
+    // 设置dtcPixelMean数据
+    std::vector<int> pixelMean = {10, 20, 30, 40};
+    dyAippCfg->SetMaxBatchSize(pixelMean.size());
+    dyAippCfg->SetDtcPixelMean(pixelMean);
+    
+    // 设置期望行为（batchIndex=1 应使用第二个值）
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPDtcPixelMean(fakeAipp, 10, 20, 30, 40, 1))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetAIPPDtcPixelMean(dyAippCfg, fakeAipp, 1);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("dtcPixelMeanChn0: 10 dtcPixelMeanChn1: 20") != std::string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPDtcPixelMean_DefaultValue_Success)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x8888);
+    
+    // SetMaxBatchSize 为 0 将导致使用默认值
+    std::vector<int> pixelMean = {10, 20, 30, 40};
+    dyAippCfg->SetMaxBatchSize(0);
+    dyAippCfg->SetDtcPixelMean(pixelMean);
+    
+    // 设置期望行为（使用默认值0,0,0,0）
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPDtcPixelMean(fakeAipp, 0, 0, 0, 0, 0))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetAIPPDtcPixelMean(dyAippCfg, fakeAipp, 0);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("dtcPixelMeanChn0: 0 dtcPixelMeanChn1: 0") != std::string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPDtcPixelMean_Failure)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x9999);
+    
+    // SetMaxBatchSize 为 0 将导致使用默认值
+    std::vector<int> pixelMean = {10, 20, 30, 40};
+    dyAippCfg->SetMaxBatchSize(0);
+    dyAippCfg->SetDtcPixelMean(pixelMean);
+    
+    // 设置模拟ACL失败
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPDtcPixelMean(_, _, _, _, _, _))
+        .WillOnce(Return(ACL_ERROR_INTERNAL_ERROR));
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return("Mock error message"));
+    
+    testing::internal::CaptureStdout();
+    EXPECT_THROW({
+        try {
+            modelProcess->SetAIPPDtcPixelMean(dyAippCfg, fakeAipp, 0);
+        } catch (const char* e) {
+            EXPECT_STREQ(e, "AippData set failed!");
+            throw;
+        }
+    }, const char*);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(logOutput.find("acl set AIPP Dtc pixel mean params failed") != std::string::npos);
+}
+
+// ===================== SetAIPPDtcPixelMin测试 =====================
+TEST_F(ModelProcessTest, TestSetAIPPDtcPixelMin_CustomValue_Success)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x7777);
+    
+    // 设置dtcPixelMin数据
+    std::vector<float> pixelMin = {10.0, 20.0, 30.0, 40.0};
+    dyAippCfg->SetMaxBatchSize(pixelMin.size());
+    dyAippCfg->SetDtcPixelMin(pixelMin);
+    
+    // 设置期望行为（batchIndex=1 应使用第二个值）
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPDtcPixelMin(fakeAipp, 10.0, 20.0, 30.0, 40.0, 1))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetAIPPDtcPixelMin(dyAippCfg, fakeAipp, 1);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("dtcPixelMinChn0: 10.0") != std::string::npos);
+    EXPECT_TRUE(logOutput.find("dtcPixelMinChn1: 20.0") != std::string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPDtcPixelMin_DefaultValue_Success)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x8888);
+    
+    // SetMaxBatchSize 为 0 将导致使用默认值
+    std::vector<float> pixelMin = {10.0, 20.0, 30.0, 40.0};
+    dyAippCfg->SetMaxBatchSize(0);
+    dyAippCfg->SetDtcPixelMin(pixelMin);
+    
+    // 设置期望行为（使用默认值0,0,0,0）
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPDtcPixelMin(fakeAipp, 0, 0, 0, 0, 0))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetAIPPDtcPixelMin(dyAippCfg, fakeAipp, 0);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("dtcPixelMinChn0: 0.0") != std::string::npos);
+    EXPECT_TRUE(logOutput.find("dtcPixelMinChn1: 0.0") != std::string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPDtcPixelMin_Failure)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x9999);
+    
+    // SetMaxBatchSize 为 0 将导致使用默认值
+    std::vector<float> pixelMin = {10.0, 20.0, 30.0, 40.0};
+    dyAippCfg->SetMaxBatchSize(0);
+    dyAippCfg->SetDtcPixelMin(pixelMin);
+    
+    // 设置模拟ACL失败
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPDtcPixelMin(_, _, _, _, _, _))
+        .WillOnce(Return(ACL_ERROR_INTERNAL_ERROR));
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return("Mock error message"));
+    
+    testing::internal::CaptureStdout();
+    EXPECT_THROW({
+        try {
+            modelProcess->SetAIPPDtcPixelMin(dyAippCfg, fakeAipp, 0);
+        } catch (const char* e) {
+            EXPECT_STREQ(e, "AippData set failed!");
+            throw;
+        }
+    }, const char*);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(logOutput.find("acl set AIPP dtc pixel min params failed") != std::string::npos);
+}
+
+// ===================== SetAIPPPixelVarReci测试 =====================
+
+TEST_F(ModelProcessTest, TestSetAIPPPixelVarReci_CustomValue_Success)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x7777);
+    
+    // 设置dtcPixelVarReci数据
+    std::vector<float> varReci = {10.0, 20.0, 30.0, 40.0};
+    dyAippCfg->SetMaxBatchSize(varReci.size());
+    dyAippCfg->SetPixelVarReci(varReci);
+    
+    // 设置期望行为（batchIndex=1 应使用第二个值）
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPPixelVarReci(fakeAipp, 10.0, 20.0, 30.0, 40.0, 1))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetAIPPPixelVarReci(dyAippCfg, fakeAipp, 1);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("dtcPixelVarReciChn0: 10.0") != std::string::npos);
+    EXPECT_TRUE(logOutput.find("dtcPixelVarReciChn1") != std::string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPPixelVarReci_DefaultValue_Success)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x7777);
+    
+    // SetMaxBatchSize 为 0 将导致使用默认值
+    std::vector<float> varReci = {10.0, 20.0, 30.0, 40.0};
+    dyAippCfg->SetMaxBatchSize(0);
+    dyAippCfg->SetPixelVarReci(varReci);
+    
+    // 设置期望行为（使用默认值0,0,0,0）
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPPixelVarReci(fakeAipp, 0, 0, 0, 0, 0))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetAIPPPixelVarReci(dyAippCfg, fakeAipp, 0);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("dtcPixelVarReciChn0: 0.0") != std::string::npos);
+    EXPECT_TRUE(logOutput.find("dtcPixelVarReciChn1") != std::string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPPixelVarReci_Failure)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x7777);
+    
+    // SetMaxBatchSize 为 0 将导致使用默认值
+    std::vector<float> varReci = {10.0, 20.0, 30.0, 40.0};
+    dyAippCfg->SetMaxBatchSize(0);
+    dyAippCfg->SetPixelVarReci(varReci);
+    
+    // 设置模拟ACL失败
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPPixelVarReci(_, _, _, _, _, _))
+        .WillOnce(Return(ACL_ERROR_INTERNAL_ERROR));
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return("Mock error message"));
+    
+    testing::internal::CaptureStdout();
+    EXPECT_THROW({
+        try {
+            modelProcess->SetAIPPPixelVarReci(dyAippCfg, fakeAipp, 0);
+        } catch (const char* e) {
+            EXPECT_STREQ(e, "AippData set failed!");
+            throw;
+        }
+    }, const char*);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(logOutput.find("acl set AIPP pixel variance params failed") != std::string::npos);
+}
+
+// ===================== SetAIPPCropParams 测试 =====================
+
+TEST_F(ModelProcessTest, TestSetAIPPCropParams_CustomValue_Success)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x7777);
+    
+    // 设置 cropInputParams 数据
+    std::vector<int> cropInputParams = {10, 20, 30, 40, 50};
+    dyAippCfg->SetMaxBatchSize(cropInputParams.size());
+    dyAippCfg->SetCropParams(cropInputParams);
+    
+    // 设置期望行为（batchIndex=1 应使用第二个值）
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPCropParams(fakeAipp, 10, 20, 30, 40, 50, 1))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetAIPPCropParams(dyAippCfg, fakeAipp, 1);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("cropSwitch: 10") != std::string::npos);
+    EXPECT_TRUE(logOutput.find("loadStartPosW: 20") != std::string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPCropParams_DefaultValue_Success)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x7777);
+    
+    // SetMaxBatchSize 为 0 将导致使用默认值
+    std::vector<int> cropInputParams = {10, 20, 30, 40, 50};
+    dyAippCfg->SetMaxBatchSize(0);
+    dyAippCfg->SetCropParams(cropInputParams);
+    
+    // 设置期望行为（使用默认值0,0,0,0,0）
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPCropParams(fakeAipp, _, 0, 0, 
+                                                  Base::CROP_SIZE_W_DEFAULT, Base::CROP_SIZE_H_DEFAULT, 0))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetAIPPCropParams(dyAippCfg, fakeAipp, 0);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPCropParams_Failure)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x7777);
+    
+    // SetMaxBatchSize 为 0 将导致使用默认值
+    std::vector<int> cropInputParams = {10, 20, 30, 40, 50};
+    dyAippCfg->SetMaxBatchSize(0);
+    dyAippCfg->SetCropParams(cropInputParams);
+    
+    // 设置模拟ACL失败
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPCropParams(_, _, _, _, _, _, _))
+        .WillOnce(Return(ACL_ERROR_INTERNAL_ERROR));
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return("Mock error message"));
+    
+    testing::internal::CaptureStdout();
+    EXPECT_THROW({
+        try {
+            modelProcess->SetAIPPCropParams(dyAippCfg, fakeAipp, 0);
+        } catch (const char* e) {
+            EXPECT_STREQ(e, "AippData set failed!");
+            throw;
+        }
+    }, const char*);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(logOutput.find("acl set AIPP crop params failed") != std::string::npos);
+}
+
+// ===================== SetAIPPPaddingParams 测试 =====================
+
+TEST_F(ModelProcessTest, TestSetAIPPPaddingParams_CustomValue_Success)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x7777);
+    
+    // 设置 padInputParams 数据
+    std::vector<int> padInputParams = {10, 20, 30, 40, 50};
+    dyAippCfg->SetMaxBatchSize(padInputParams.size());
+    dyAippCfg->SetPaddingParams(padInputParams);
+    
+    // 设置期望行为（batchIndex=1 应使用第二个值）
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPPaddingParams(fakeAipp, 10, 20, 30, 40, 50, 1))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetAIPPPaddingParams(dyAippCfg, fakeAipp, 1);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("paddingSwitch: 10") != std::string::npos);
+    EXPECT_TRUE(logOutput.find("paddingSizeTop: 20") != std::string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPPaddingParams_DefaultValue_Success)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x7777);
+    
+    // SetMaxBatchSize 为 0 将导致使用默认值
+    std::vector<int> padInputParams = {10, 20, 30, 40, 50};
+    dyAippCfg->SetMaxBatchSize(0);
+    dyAippCfg->SetPaddingParams(padInputParams);
+    
+    // 设置期望行为（使用默认值0,0,0,0,0）
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPPaddingParams(fakeAipp, 0, 0, 0, 0, 0, 0))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetAIPPPaddingParams(dyAippCfg, fakeAipp, 0);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPPaddingParams_Failure)
+{
+    auto dyAippCfg = std::make_shared<Base::DynamicAippConfig>();
+    aclmdlAIPP* fakeAipp = reinterpret_cast<aclmdlAIPP*>(0x7777);
+    
+    // SetMaxBatchSize 为 0 将导致使用默认值
+    std::vector<int> padInputParams = {10, 20, 30, 40, 50};
+    dyAippCfg->SetMaxBatchSize(0);
+    dyAippCfg->SetPaddingParams(padInputParams);
+    
+    // 设置模拟ACL失败
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPPaddingParams(_, _, _, _, _, _, _))
+        .WillOnce(Return(ACL_ERROR_INTERNAL_ERROR));
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return("Mock error message"));
+    
+    testing::internal::CaptureStdout();
+    EXPECT_THROW({
+        try {
+            modelProcess->SetAIPPPaddingParams(dyAippCfg, fakeAipp, 0);
+        } catch (const char* e) {
+            EXPECT_STREQ(e, "AippData set failed!");
+            throw;
+        }
+    }, const char*);
+    std::string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(logOutput.find("acl set AIPP padding params failed") != std::string::npos);
+}
 }

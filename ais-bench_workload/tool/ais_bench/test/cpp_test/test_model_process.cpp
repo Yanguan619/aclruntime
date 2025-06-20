@@ -3941,4 +3941,932 @@ TEST_F(ModelProcessTest, TestInitReuseOutput_SetsToFalse)
     // 验证结果
     EXPECT_FALSE(modelProcess->reuseOutput_);
 }
+
+// ===================== Execute 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestExecute_Success)
+{
+    // 加载模型
+    LoadModelSuccess();
+    modelProcess->modelId_ = expectedModelId;
+    
+    // 设置输入输出数据集
+    SetupModelProcessInput(0x1111);
+    SetupModelProcessOutput(0x2222);
+    
+    // 模拟执行成功
+    EXPECT_CALL(*mockAcl, aclmdlExecute(expectedModelId, 
+                reinterpret_cast<aclmdlDataset*>(0x1111), 
+                reinterpret_cast<aclmdlDataset*>(0x2222)))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 执行测试
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->Execute();
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("model execute success") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestExecute_Failed)
+{
+    // 加载模型
+    LoadModelSuccess();
+    modelProcess->modelId_ = expectedModelId;
+    
+    // 设置输入输出数据集
+    SetupModelProcessInput(0x1111);
+    SetupModelProcessOutput(0x2222);
+    
+    // 模拟执行失败
+    aclError executeError = ACL_ERROR_BAD_ALLOC;
+    const char* errorMsg = "Execution failed";
+    EXPECT_CALL(*mockAcl, aclmdlExecute(expectedModelId, 
+                reinterpret_cast<aclmdlDataset*>(0x1111), 
+                reinterpret_cast<aclmdlDataset*>(0x2222)))
+        .WillOnce(Return(executeError));
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return(errorMsg));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->Execute();
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("execute model failed") != string::npos);
+    EXPECT_TRUE(logOutput.find("modelId is " + std::to_string(expectedModelId)) != string::npos);
+    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
+}
+
+// ===================== Unload 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestUnload_NotLoaded)
+{
+    // 设置模型未加载
+    modelProcess->loadFlag_ = false;
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    modelProcess->Unload();
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_TRUE(logOutput.find("no model had been loaded") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestUnload_SuccessWithModelDesc)
+{
+    // 加载模型
+    LoadModelSuccess();
+    modelProcess->modelId_ = expectedModelId;
+    modelProcess->loadFlag_ = true;
+    
+    // 设置模型描述
+    modelProcess->modelDesc_ = reinterpret_cast<aclmdlDesc*>(0x1234);
+    
+    // 设置模拟期望
+    EXPECT_CALL(*mockAcl, aclmdlUnload(expectedModelId))
+        .WillOnce(Return(ACL_SUCCESS));
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDesc(reinterpret_cast<aclmdlDesc*>(0x1234)))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    modelProcess->Unload();
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_FALSE(modelProcess->loadFlag_);
+    EXPECT_EQ(modelProcess->modelDesc_, nullptr);
+    EXPECT_TRUE(logOutput.find("unload model success") != string::npos);
+    EXPECT_TRUE(logOutput.find("model Id is " + std::to_string(expectedModelId)) != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestUnload_SuccessWithoutModelDesc)
+{
+    // 加载模型
+    LoadModelSuccess();
+    modelProcess->modelId_ = expectedModelId;
+    modelProcess->loadFlag_ = true;
+    
+    // 设置模型描述为空
+    modelProcess->modelDesc_ = nullptr;
+    
+    // 设置模拟期望
+    EXPECT_CALL(*mockAcl, aclmdlUnload(expectedModelId))
+        .WillOnce(Return(ACL_SUCCESS));
+    // 不应调用销毁描述
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDesc(_)).Times(0);
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    modelProcess->Unload();
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_FALSE(modelProcess->loadFlag_);
+    EXPECT_EQ(modelProcess->modelDesc_, nullptr);
+    EXPECT_TRUE(logOutput.find("unload model success") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestUnload_UnloadFailedButModelDescDestroyed)
+{
+    // 加载模型
+    LoadModelSuccess();
+    modelProcess->modelId_ = expectedModelId;
+    modelProcess->loadFlag_ = true;
+    modelProcess->modelDesc_ = reinterpret_cast<aclmdlDesc*>(0x1234);
+    
+    // 设置模拟期望
+    aclError unloadError = ACL_ERROR_BAD_ALLOC;
+    const char* errorMsg = "Unload failed";
+    EXPECT_CALL(*mockAcl, aclmdlUnload(expectedModelId))
+        .WillOnce(Return(unloadError));
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return(errorMsg));
+    // 即使卸载失败，仍然销毁模型描述
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDesc(reinterpret_cast<aclmdlDesc*>(0x1234)))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    modelProcess->Unload();
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_FALSE(modelProcess->loadFlag_);
+    EXPECT_EQ(modelProcess->modelDesc_, nullptr);
+    EXPECT_TRUE(logOutput.find("unload model failed") != string::npos);
+    EXPECT_TRUE(logOutput.find("modelId is " + std::to_string(expectedModelId)) != string::npos);
+    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
+    EXPECT_TRUE(logOutput.find("unload model success") != string::npos); // 代码中会打印成功
+}
+
+TEST_F(ModelProcessTest, TestUnload_DescDestroyFailed)
+{
+    // 加载模型
+    LoadModelSuccess();
+    modelProcess->modelId_ = expectedModelId;
+    modelProcess->loadFlag_ = true;
+    modelProcess->modelDesc_ = reinterpret_cast<aclmdlDesc*>(0x1234);
+    
+    // 设置模拟期望
+    EXPECT_CALL(*mockAcl, aclmdlUnload(expectedModelId))
+        .WillOnce(Return(ACL_SUCCESS));
+    // 模型描述销毁失败
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDesc(modelProcess->modelDesc_))
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    modelProcess->Unload();
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_FALSE(modelProcess->loadFlag_);
+    EXPECT_EQ(modelProcess->modelDesc_, nullptr);
+    EXPECT_TRUE(logOutput.find("unload model success") != string::npos);
+    // 尽管有错误，但代码中没有处理销毁失败的错误日志
+}
+
+// ===================== GetCurOutputShape 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestGetCurOutputShape_DynamicShapeSuccess)
+{
+    // 准备输出数据集
+    SetupModelProcessOutput(0x2222);
+    modelProcess->output_ = reinterpret_cast<aclmdlDataset*>(0x2222);
+    
+    size_t index = 0;
+    bool is_dymshape = true;
+    std::vector<int64_t> shape;
+    
+    // 设置模拟行为
+    aclTensorDesc* fakeTensorDesc = reinterpret_cast<aclTensorDesc*>(0x3000);
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetTensorDesc(reinterpret_cast<aclmdlDataset*>(0x2222), index))
+        .WillOnce(Return(fakeTensorDesc));
+    
+    size_t dimNums = 3;
+    EXPECT_CALL(*mockAcl, aclGetTensorDescNumDims(fakeTensorDesc))
+        .WillOnce(Return(dimNums));
+    
+    // 设置维度值
+    std::vector<int64_t> dimValues = {16, 32, 64};
+    for (size_t i = 0; i < dimNums; ++i) {
+        EXPECT_CALL(*mockAcl, aclGetTensorDescDimV2(fakeTensorDesc, i, _))
+            .WillOnce(DoAll(SetArgPointee<2>(dimValues[i]), Return(ACL_SUCCESS)));
+    }
+    
+    // 执行测试
+    Result ret = modelProcess->GetCurOutputShape(index, is_dymshape, shape);
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(shape.size(), dimNums);
+    for (size_t i = 0; i < dimNums; ++i) {
+        EXPECT_EQ(shape[i], dimValues[i]);
+    }
+}
+
+TEST_F(ModelProcessTest, TestGetCurOutputShape_DynamicShapeUnknownRank)
+{
+    // 准备输出数据集
+    SetupModelProcessOutput(0x2222);
+    size_t index = 0;
+    bool is_dymshape = true;
+    std::vector<int64_t> shape;
+    
+    // 设置模拟行为
+    aclTensorDesc* fakeTensorDesc = reinterpret_cast<aclTensorDesc*>(0x3000);
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetTensorDesc(reinterpret_cast<aclmdlDataset*>(0x2222), index))
+        .WillOnce(Return(fakeTensorDesc));
+    
+    EXPECT_CALL(*mockAcl, aclGetTensorDescNumDims(fakeTensorDesc))
+        .WillOnce(Return(ACL_UNKNOWN_RANK));
+    
+    // 执行测试
+    Result ret = modelProcess->GetCurOutputShape(index, is_dymshape, shape);
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+}
+
+TEST_F(ModelProcessTest, TestGetCurOutputShape_StaticShapeSuccess)
+{
+    // 准备模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    
+    size_t index = 0;
+    bool is_dymshape = false;
+    std::vector<int64_t> shape;
+    
+    // 设置模拟行为
+    aclmdlIODims ioDims;
+    ioDims.dimCount = 3;
+    ioDims.dims[0] = 16;
+    ioDims.dims[1] = 32;
+    ioDims.dims[2] = 64;
+    
+    EXPECT_CALL(*mockAcl, aclmdlGetCurOutputDims(fakeDesc, index, _))
+        .WillOnce(DoAll(SetArgPointee<2>(ioDims), Return(ACL_SUCCESS)));
+    
+    // 执行测试
+    Result ret = modelProcess->GetCurOutputShape(index, is_dymshape, shape);
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(shape.size(), ioDims.dimCount);
+    for (size_t i = 0; i < ioDims.dimCount; ++i) {
+        EXPECT_EQ(shape[i], ioDims.dims[i]);
+    }
+}
+
+TEST_F(ModelProcessTest, TestGetCurOutputShape_StaticShapeFailed)
+{
+    // 准备模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    
+    size_t index = 0;
+    bool is_dymshape = false;
+    std::vector<int64_t> shape;
+    
+    // 设置模拟行为 - 获取维度失败
+    EXPECT_CALL(*mockAcl, aclmdlGetCurOutputDims(fakeDesc, index, _))
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
+    
+    // 执行测试
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->GetCurOutputShape(index, is_dymshape, shape);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("aclmdlGetCurOutputDims failed") != string::npos);
+}
+
+// ===================== GetNumInputs/GetNumOutputs 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestGetNumInputs_Success)
+{
+    // 准备模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    
+    size_t expectedNum = 3;
+    EXPECT_CALL(*mockAcl, aclmdlGetNumInputs(fakeDesc))
+        .WillOnce(Return(expectedNum));
+    
+    // 执行测试
+    size_t num = modelProcess->GetNumInputs();
+    
+    // 验证结果
+    EXPECT_EQ(num, expectedNum);
+}
+
+TEST_F(ModelProcessTest, TestGetNumOutputs_Success)
+{
+    // 准备模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    
+    size_t expectedNum = 2;
+    EXPECT_CALL(*mockAcl, aclmdlGetNumOutputs(fakeDesc))
+        .WillOnce(Return(expectedNum));
+    
+    // 执行测试
+    size_t num = modelProcess->GetNumOutputs();
+    
+    // 验证结果
+    EXPECT_EQ(num, expectedNum);
+}
+
+// ===================== GetInTensorDesc 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestGetInTensorDesc_Success)
+{
+    // 准备模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    size_t index = 0;
+    
+    // 设置模拟行为
+    const char* inputName = "input0";
+    aclDataType dataType = ACL_DT_UNDEFINED;
+    aclFormat format = ACL_FORMAT_UNDEFINED;
+    size_t size = 1024;
+    
+    aclmdlIODims dims;
+    dims.dimCount = 3;
+    dims.dims[0] = 1;
+    dims.dims[1] = 3;
+    dims.dims[2] = 224;
+    
+    EXPECT_CALL(*mockAcl, aclmdlGetInputNameByIndex(fakeDesc, index))
+        .WillOnce(Return(inputName));
+    EXPECT_CALL(*mockAcl, aclmdlGetInputDataType(fakeDesc, index))
+        .WillOnce(Return(dataType));
+    EXPECT_CALL(*mockAcl, aclmdlGetInputFormat(fakeDesc, index))
+        .WillOnce(Return(format));
+    EXPECT_CALL(*mockAcl, aclmdlGetInputSizeByIndex(fakeDesc, index))
+        .WillOnce(Return(size));
+    EXPECT_CALL(*mockAcl, aclmdlGetInputDims(fakeDesc, index, _))
+        .WillOnce(DoAll(SetArgPointee<2>(dims), Return(ACL_SUCCESS)));
+    
+    // 准备输出变量
+    std::string name;
+    int outDataType;
+    size_t outFormat;
+    std::vector<int64_t> shape;
+    size_t outSize;
+    
+    // 执行测试
+    Result ret = modelProcess->GetInTensorDesc(index, name, outDataType, outFormat, shape, outSize);
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(name, inputName);
+    EXPECT_EQ(outDataType, dataType);
+    EXPECT_EQ(outFormat, format);
+    EXPECT_EQ(outSize, size);
+    ASSERT_EQ(shape.size(), dims.dimCount);
+    for (size_t i = 0; i < dims.dimCount; ++i) {
+        EXPECT_EQ(shape[i], dims.dims[i]);
+    }
+}
+
+// ===================== GetOutTensorDesc 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestGetOutTensorDesc_Success)
+{
+    // 准备模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    size_t index = 0;
+    
+    // 设置模拟行为
+    const char* outputName = "output7";
+    aclDataType dataType = ACL_DT_UNDEFINED;
+    aclFormat format = ACL_FORMAT_UNDEFINED;
+    size_t size = 2048;
+    
+    aclmdlIODims dims;
+    dims.dimCount = 2;
+    dims.dims[0] = 1;
+    dims.dims[1] = 1000;
+    
+    EXPECT_CALL(*mockAcl, aclmdlGetOutputNameByIndex(fakeDesc, index))
+        .WillOnce(Return(outputName));
+    EXPECT_CALL(*mockAcl, aclmdlGetOutputDataType(fakeDesc, index))
+        .WillOnce(Return(dataType));
+    EXPECT_CALL(*mockAcl, aclmdlGetOutputFormat(fakeDesc, index))
+        .WillOnce(Return(format));
+    EXPECT_CALL(*mockAcl, aclmdlGetOutputSizeByIndex(fakeDesc, index))
+        .WillOnce(Return(size));
+    EXPECT_CALL(*mockAcl, aclmdlGetOutputDims(fakeDesc, index, _))
+        .WillOnce(DoAll(SetArgPointee<2>(dims), Return(ACL_SUCCESS)));
+    
+    // 准备输出变量
+    std::string name;
+    int outDataType;
+    size_t outFormat;
+    std::vector<int64_t> shape;
+    size_t outSize;
+    
+    // 执行测试
+    Result ret = modelProcess->GetOutTensorDesc(index, name, outDataType, outFormat, shape, outSize);
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(name, outputName);
+    EXPECT_EQ(outDataType, dataType);
+    EXPECT_EQ(outFormat, format);
+    EXPECT_EQ(outSize, size);
+    ASSERT_EQ(shape.size(), dims.dimCount);
+    for (size_t i = 0; i < dims.dimCount; ++i) {
+        EXPECT_EQ(shape[i], dims.dims[i]);
+    }
+}
+
+// ===================== GetOutTensorLen 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestGetOutTensorLen_DynamicShapeSuccess)
+{
+    // 准备输出数据集
+    SetupModelProcessOutput(0x2222);
+    auto fakeDesc = CreateModelDescSuccess();
+
+    size_t index = 0;
+    bool is_dymshape = true;
+    
+    // 设置模拟行为
+    aclDataBuffer* fakeDataBuffer = reinterpret_cast<aclDataBuffer*>(0x1000);
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(modelProcess->output_, index))
+        .WillOnce(Return(fakeDataBuffer));
+    
+    aclTensorDesc* fakeTensorDesc = reinterpret_cast<aclTensorDesc*>(0x3000);
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetTensorDesc(modelProcess->output_, index))
+        .WillOnce(Return(fakeTensorDesc));
+    
+    aclmdlBatch batchInfo = {3, {1, 4, 8}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
+        .WillOnce(DoAll(SetArgPointee<1>(batchInfo), Return(ACL_SUCCESS)));
+
+    size_t expectedSize = 99;
+    EXPECT_CALL(*mockAcl, aclGetTensorDescSize(fakeTensorDesc))
+        .WillOnce(Return(expectedSize));
+    
+    // 执行测试
+    size_t size = modelProcess->GetOutTensorLen(index, is_dymshape);
+    
+    // 验证结果
+    EXPECT_EQ(size, expectedSize);
+}
+
+TEST_F(ModelProcessTest, TestGetOutTensorLen_StaticShapeSuccess)
+{
+    // 准备输出数据集
+    SetupModelProcessOutput(0x2222);
+    auto fakeDesc = CreateModelDescSuccess();
+    
+    size_t index = 0;
+    bool is_dymshape = false;
+    
+    // 设置模拟行为
+    aclmdlBatch batchInfo = {3, {1, 4, 8}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
+        .WillOnce(DoAll(SetArgPointee<1>(batchInfo), Return(ACL_SUCCESS)));
+    
+    aclDataBuffer* fakeDataBuffer = reinterpret_cast<aclDataBuffer*>(0x1000);
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(modelProcess->output_, index))
+        .WillOnce(Return(fakeDataBuffer));
+    
+    size_t expectedSize = 2048;
+    EXPECT_CALL(*mockAcl, aclGetDataBufferSizeV2(fakeDataBuffer))
+        .WillOnce(Return(expectedSize));
+    
+    // 执行测试
+    size_t size = modelProcess->GetOutTensorLen(index, is_dymshape);
+    
+    // 验证结果
+    EXPECT_EQ(size, expectedSize);
+}
+
+// ===================== CreateOutput 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestCreateOutput_WithParams_Success)
+{
+    // 准备测试数据
+    void* outputBuffer = reinterpret_cast<void*>(0x1234);
+    size_t bufferSize = 1024;
+    
+    // 设置初始状态 - 输出数据集为空
+    SetupModelProcessOutput(0);
+    
+    // 设置模拟期望
+    aclmdlDataset* fakeDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
+    EXPECT_CALL(*mockAcl, aclmdlCreateDataset())
+        .WillOnce(Return(fakeDataset));
+    
+    aclDataBuffer* fakeDataBuffer = reinterpret_cast<aclDataBuffer*>(0x1000);
+    EXPECT_CALL(*mockAcl, aclCreateDataBuffer(outputBuffer, bufferSize))
+        .WillOnce(Return(fakeDataBuffer));
+    
+    EXPECT_CALL(*mockAcl, aclmdlAddDatasetBuffer(fakeDataset, fakeDataBuffer))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 执行测试
+    Result ret = modelProcess->CreateOutput(outputBuffer, bufferSize);
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(modelProcess->output_, fakeDataset);
+}
+
+TEST_F(ModelProcessTest, TestCreateOutput_WithParams_CreateDatasetFailed)
+{
+    // 准备测试数据
+    void* outputBuffer = reinterpret_cast<void*>(0x1234);
+    size_t bufferSize = 1024;
+    
+    // 设置初始状态 - 输出数据集为空
+    SetupModelProcessOutput(0);
+    
+    // 设置模拟期望
+    modelProcess->output_ = nullptr;
+    EXPECT_CALL(*mockAcl, aclmdlCreateDataset())
+        .WillOnce(Return(nullptr));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CreateOutput(outputBuffer, bufferSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("can't create dataset, create output failed") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCreateOutput_WithParams_CreateBufferFailed)
+{
+    // 准备测试数据
+    void* outputBuffer = reinterpret_cast<void*>(0x1234);
+    size_t bufferSize = 1024;
+    
+    // 设置初始状态 - 输出数据集为空
+    SetupModelProcessOutput(0);
+    
+    // 设置模拟期望
+    aclmdlDataset* fakeDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
+    EXPECT_CALL(*mockAcl, aclmdlCreateDataset())
+        .WillOnce(Return(fakeDataset));
+    
+    // 创建数据缓冲区失败
+    EXPECT_CALL(*mockAcl, aclCreateDataBuffer(outputBuffer, bufferSize))
+        .WillOnce(Return(nullptr));
+    
+    // 预期释放内存
+    EXPECT_CALL(*mockAcl, aclrtFree(outputBuffer))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    const char* errorMsg = "Data buffer creation failed";
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return(errorMsg));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CreateOutput(outputBuffer, bufferSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("can't create data buffer, create output failed") != string::npos);
+    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCreateOutput_WithParams_AddBufferFailed)
+{
+    // 准备测试数据
+    void* outputBuffer = reinterpret_cast<void*>(0x1234);
+    size_t bufferSize = 1024;
+    
+    // 设置初始状态 - 输出数据集为空
+    SetupModelProcessOutput(0);
+    
+    aclmdlDataset* fakeDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
+    EXPECT_CALL(*mockAcl, aclmdlCreateDataset())
+        .WillOnce(Return(fakeDataset));
+    
+    aclDataBuffer* fakeDataBuffer = reinterpret_cast<aclDataBuffer*>(0x1000);
+    EXPECT_CALL(*mockAcl, aclCreateDataBuffer(outputBuffer, bufferSize))
+        .WillOnce(Return(fakeDataBuffer));
+    
+    EXPECT_CALL(*mockAcl, aclmdlAddDatasetBuffer(fakeDataset, fakeDataBuffer))
+        .WillOnce(Return(ACL_ERROR_FAILURE));
+    
+    const char* errorMsg = "Add data buffer failed";
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return(errorMsg));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CreateOutput(outputBuffer, bufferSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("add input dataset buffer failed") != string::npos);
+    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
+}
+
+// ===================== FreeAIPP 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestFreeAIPP_Success)
+{
+    aclmdlAIPP* aippParmsSet = reinterpret_cast<aclmdlAIPP*>(0x5000);
+    
+    // 设置模拟期望
+    EXPECT_CALL(*mockAcl, aclmdlDestroyAIPP(aippParmsSet))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 执行测试
+    Result ret = modelProcess->FreeAIPP(aippParmsSet);
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(ModelProcessTest, TestFreeAIPP_Failed)
+{
+    aclmdlAIPP* aippParmsSet = reinterpret_cast<aclmdlAIPP*>(0x5000);
+    
+    // 设置模拟期望
+    aclError freeError = ACL_ERROR_BAD_ALLOC;
+    const char* errorMsg = "Destroy AIPP failed";
+    EXPECT_CALL(*mockAcl, aclmdlDestroyAIPP(aippParmsSet))
+        .WillOnce(Return(freeError));
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return(errorMsg));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->FreeAIPP(aippParmsSet);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("free acl AIPP failed") != string::npos);
+    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
+}
+
+// ===================== CheckDymAIPPInputExist 测试用例 ===================== 617
+
+TEST_F(ModelProcessTest, TestCheckDymAIPPInputExist_Success)
+{
+    // 准备模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    // 设置模拟行为
+    size_t numInputs = 2;
+    EXPECT_CALL(*mockAcl, aclmdlGetNumInputs(fakeDesc))
+        .WillOnce(Return(numInputs));
+    
+    // 第一个输入有动态AIPP
+    EXPECT_CALL(*mockAcl, aclmdlGetAippType(expectedModelId, 0, _, _))
+        .WillOnce(DoAll(SetArgPointee<2>(ACL_DATA_WITH_DYNAMIC_AIPP), 
+                        SetArgPointee<3>(0), 
+                        Return(ACL_SUCCESS)));
+    
+    // 第二个输入无动态AIPP
+    EXPECT_CALL(*mockAcl, aclmdlGetAippType(expectedModelId, 1, _, _))
+        .WillOnce(DoAll(SetArgPointee<2>(ACL_DATA_WITH_STATIC_AIPP), 
+                        SetArgPointee<3>(0), 
+                        Return(ACL_SUCCESS)));
+    
+    // 执行测试
+    int ret = modelProcess->CheckDymAIPPInputExist();
+    
+    // 验证结果
+    EXPECT_EQ(ret, 1);
+}
+
+TEST_F(ModelProcessTest, TestCheckDymAIPPInputExist_GetAippTypeFailed)
+{
+    // 准备模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    // 设置模拟行为
+    size_t numInputs = 1;
+    EXPECT_CALL(*mockAcl, aclmdlGetNumInputs(fakeDesc))
+        .WillOnce(Return(numInputs));
+    
+    // 模拟ACL函数失败
+    EXPECT_CALL(*mockAcl, aclmdlGetAippType(expectedModelId, 0, _, _))
+        .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    int ret = modelProcess->CheckDymAIPPInputExist();
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, -1);
+    EXPECT_TRUE(logOutput.find("acl get AIPP type failed") != string::npos);
+}
+
+// ===================== GetAIPPIndexList 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestGetAIPPIndexList_Success)
+{
+    // 准备模型描述
+    SetupCompleteModel(2, {"input1", ACL_DYNAMIC_AIPP_NAME});
+    
+    // 执行测试
+    std::vector<size_t> indices;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->GetAIPPIndexList(indices);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    ASSERT_EQ(indices.size(), 1);
+    EXPECT_EQ(indices[0], 1);
+    EXPECT_TRUE(logOutput.find("get AIPP index success") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestGetAIPPIndexList_GetNameFailed)
+{
+    // 准备模型描述
+    SetupCompleteModel(1, {"input1"});
+    
+    // 设置模拟行为
+    EXPECT_CALL(*mockAcl, aclmdlGetInputNameByIndex(modelProcess->modelDesc_, 0))
+        .WillOnce(Return(nullptr));
+    
+    // 执行测试
+    std::vector<size_t> indices;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->GetAIPPIndexList(indices);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("get input name by index failed") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestGetAIPPIndexList_NotFound)
+{
+    // 准备模型描述
+    SetupCompleteModel(1, {"input1"});
+    
+    // 执行测试
+    std::vector<size_t> indices;
+    Result ret = modelProcess->GetAIPPIndexList(indices);
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(indices.empty());
+}
+
+// ===================== SetInputAIPP 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestSetInputAIPP_Success)
+{
+    // 准备模型
+    SetupCompleteModel();
+    
+    // 创建模拟AIPP结构
+    aclmdlAIPP* dummyAipp = reinterpret_cast<aclmdlAIPP*>(0x1234);
+    
+    // 设置模拟行为
+    EXPECT_CALL(*mockAcl, aclmdlSetInputAIPP(expectedModelId, modelProcess->input_, 0, dummyAipp))
+        .WillOnce(Return(ACL_ERROR_NONE));
+    
+    // 执行测试
+    SetDebugLogGuard guard;
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetInputAIPP(0, dummyAipp);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("PREPARE aclmdlSetInputAIPP") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestSetInputAIPP_Failed)
+{
+    // 准备模型
+    SetupCompleteModel();
+    
+    // 创建模拟AIPP结构
+    aclmdlAIPP* dummyAipp = reinterpret_cast<aclmdlAIPP*>(0x1234);
+    
+    // 设置模拟行为
+    EXPECT_CALL(*mockAcl, aclmdlSetInputAIPP(expectedModelId, modelProcess->input_, 0, dummyAipp))
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetInputAIPP(0, dummyAipp);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("acl set input AIPP failed") != string::npos);
+}
+
+// ===================== SetAIPPSrcImageSize 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestSetAIPPSrcImageSize_Success)
+{
+    // 创建模拟AIPP结构
+    aclmdlAIPP* dummyAipp = reinterpret_cast<aclmdlAIPP*>(0x1234);
+    
+    // 创建配置对象
+    auto config = std::make_shared<Base::DynamicAippConfig>();
+    config->SetSrcImageSize({800, 600});
+    
+    // 设置模拟行为
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPSrcImageSize(dummyAipp, 800, 600))
+        .WillOnce(Return(ACL_ERROR_NONE));
+    
+    // 执行测试
+    Result ret = modelProcess->SetAIPPSrcImageSize(config, dummyAipp);
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPSrcImageSize_FailedWithException)
+{
+    // 创建模拟AIPP结构
+    aclmdlAIPP* dummyAipp = reinterpret_cast<aclmdlAIPP*>(0x1234);
+    
+    // 创建配置对象
+    auto config = std::make_shared<Base::DynamicAippConfig>();
+    config->SetSrcImageSize({800, 600});
+    
+    // 设置模拟行为
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPSrcImageSize(dummyAipp, 800, 600))
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
+    
+    // 执行测试并验证异常
+    testing::internal::CaptureStdout();
+    EXPECT_THROW({
+        modelProcess->SetAIPPSrcImageSize(config, dummyAipp);
+    }, const char*);
+    string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(logOutput.find("acl set AIPP SrcImage size failed") != string::npos);
+}
+
+// ===================== SetAIPPInputFormat 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestSetAIPPInputFormat_Success)
+{
+    // 创建模拟AIPP结构
+    aclmdlAIPP* dummyAipp = reinterpret_cast<aclmdlAIPP*>(0x1234);
+    
+    // 创建配置对象和映射
+    auto config = std::make_shared<Base::DynamicAippConfig>();
+    config->SetInputFormat("YUV420SP_U8");
+    modelProcess->str2aclAippInputFormat["YUV420SP_U8"] = ACL_YUV420SP_U8;
+    
+    // 设置模拟行为
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPInputFormat(dummyAipp, ACL_YUV420SP_U8))
+        .WillOnce(Return(ACL_ERROR_NONE));
+    
+    // 执行测试
+    Result ret = modelProcess->SetAIPPInputFormat(config, dummyAipp);
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(ModelProcessTest, TestSetAIPPInputFormat_FailedWithException)
+{
+    // 创建模拟AIPP结构
+    aclmdlAIPP* dummyAipp = reinterpret_cast<aclmdlAIPP*>(0x1234);
+    
+    // 创建配置对象和映射
+    auto config = std::make_shared<Base::DynamicAippConfig>();
+    config->SetInputFormat("YUV420SP_U8");
+    modelProcess->str2aclAippInputFormat["YUV420SP_U8"] = ACL_YUV420SP_U8;
+    
+    // 设置模拟行为
+    EXPECT_CALL(*mockAcl, aclmdlSetAIPPInputFormat(dummyAipp, ACL_YUV420SP_U8))
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
+    
+    // 执行测试并验证异常
+    testing::internal::CaptureStdout();
+    EXPECT_THROW({
+        modelProcess->SetAIPPInputFormat(config, dummyAipp);
+    }, const char*);
+    string logOutput = testing::internal::GetCapturedStdout();
+
+    EXPECT_TRUE(logOutput.find("acl set AIPP input format failed") != string::npos);
+}
 }

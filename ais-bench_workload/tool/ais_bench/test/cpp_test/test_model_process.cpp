@@ -1990,4 +1990,967 @@ TEST_F(ModelProcessTest, TestSetDynamicDims_OutOfRange)
     EXPECT_EQ(ret, FAILED);
     EXPECT_TRUE(logOutput.find("Out of range input for conversion: 99999999999999999999") != string::npos);
 }
+
+TEST_F(ModelProcessTest, TestSetDynamicDims_SetDimsFailed)
+{
+    // 创建模型描述
+    CreateModelDescSuccess();
+    
+    // 配置输入 dataset
+    aclmdlDataset* inputDataset = reinterpret_cast<aclmdlDataset*>(0x1234);
+    modelProcess->input_ = inputDataset;
+    modelProcess->g_dymindex = 0;
+    
+    // 设置销毁期望
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(inputDataset)))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 准备测试数据 - 不再初始化 aclmdlIODims
+    vector<string> dymDims = {"1", "2", "3"};
+    
+    // 设置模拟期望 - 使用通配符匹配任何传入的 dims 参数
+    EXPECT_CALL(*mockAcl, aclmdlSetInputDynamicDims(expectedModelId, inputDataset, 0, _))
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
+    const char* errorMsg = "Set dynamic dims failed";
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return(errorMsg));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->SetDynamicDims(dymDims);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("acl set input dynamic dims failed") != string::npos);
+    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
+}
+
+// ===================== GetDymHWInfo 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestGetDymHWInfo)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    
+    // 设置模拟期望 - 返回动态HW信息
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, _, _))
+        .WillOnce(Invoke([](const aclmdlDesc*, int profileIndex, aclmdlHW* hwInfo) {
+            hwInfo->hwCount = 1;
+            hwInfo->hw[0][0] = 128;
+            hwInfo->hw[0][1] = 128;
+            return ACL_SUCCESS;
+        }));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    modelProcess->GetDymHWInfo();
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_TRUE(logOutput.find("model has 1 gear of HW") != string::npos);
+    EXPECT_TRUE(logOutput.find("please set correct dynamic batch size") != string::npos);
+}
+
+// ===================== PrintDesc 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestPrintDesc_Success)
+{
+    // 创建模型描述
+    SetDebugLogGuard guard;
+    auto fakeDesc = CreateModelDescSuccess();
+    
+    // 设置输入输出数量
+    size_t numInputs = 2;
+    size_t numOutputs = 1;
+    EXPECT_CALL(*mockAcl, aclmdlGetNumInputs(fakeDesc)).WillOnce(Return(numInputs));
+    EXPECT_CALL(*mockAcl, aclmdlGetNumOutputs(fakeDesc)).WillOnce(Return(numOutputs));
+    
+    // 设置动态batch信息
+    aclmdlBatch batch_info = {2, {1, 2}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
+        .WillOnce(DoAll(SetArgPointee<1>(batch_info), Return(ACL_SUCCESS)));
+
+    SetupMockModelDescription(fakeDesc, numInputs, numOutputs);
+    
+    // 设置动态HW信息
+    aclmdlHW dynamicHW = {2, {{224,224}, {448,448}}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
+        .WillOnce(DoAll(SetArgPointee<2>(dynamicHW), Return(ACL_SUCCESS)));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->PrintDesc();
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("NumInputs: 2") != string::npos);
+    EXPECT_TRUE(logOutput.find("NumOutputs: 1") != string::npos);
+    EXPECT_TRUE(logOutput.find("DynamicBatch:") != string::npos);
+    EXPECT_TRUE(logOutput.find("1 2") != string::npos);
+    EXPECT_TRUE(logOutput.find("DynamicHW:") != string::npos);
+    EXPECT_TRUE(logOutput.find("224,224") != string::npos);
+    EXPECT_TRUE(logOutput.find("448,448") != string::npos);
+    EXPECT_TRUE(logOutput.find("end print model description") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestPrintDesc_GetDynamicBatchFailed)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    
+    // 设置输入输出数量
+    size_t numInputs = 2;
+    size_t numOutputs = 1;
+    EXPECT_CALL(*mockAcl, aclmdlGetNumInputs(fakeDesc)).WillOnce(Return(numInputs));
+    EXPECT_CALL(*mockAcl, aclmdlGetNumOutputs(fakeDesc)).WillOnce(Return(numOutputs));
+    
+    // 模拟获取动态batch失败
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
+        .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
+    const char* errorMsg = "Get dynamic batch failed";
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg()).WillOnce(Return(errorMsg));
+    
+    SetupMockModelDescription(fakeDesc, numInputs, numOutputs);
+
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->PrintDesc();
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("get DynamicBatch failed") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestPrintDesc_GetDynamicHWFailed)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    
+    // 设置输入输出数量
+    size_t numInputs = 2;
+    size_t numOutputs = 1;
+    EXPECT_CALL(*mockAcl, aclmdlGetNumInputs(fakeDesc)).WillOnce(Return(numInputs));
+    EXPECT_CALL(*mockAcl, aclmdlGetNumOutputs(fakeDesc)).WillOnce(Return(numOutputs));
+    
+    // 设置动态batch信息
+    aclmdlBatch batch_info = {0, {}};
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicBatch(fakeDesc, _))
+        .WillOnce(DoAll(SetArgPointee<1>(batch_info), Return(ACL_SUCCESS)));
+    
+    // 模拟获取动态HW失败
+    EXPECT_CALL(*mockAcl, aclmdlGetDynamicHW(fakeDesc, -1, _))
+        .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
+    const char* errorMsg = "Get dynamic HW failed";
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg()).WillOnce(Return(errorMsg));
+    
+    SetupMockModelDescription(fakeDesc, numInputs, numOutputs);
+
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->PrintDesc();
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("Get dynamic HW failed") != string::npos);
+    EXPECT_EQ(modelProcess->modelDesc_, nullptr);
+}
+
+// // ===================== DestroyDesc 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestDestroyDesc_Success)
+{
+    auto fakeDesc = reinterpret_cast<aclmdlDesc*>(0x1234);
+    modelProcess->modelDesc_ = fakeDesc;
+    
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDesc(fakeDesc))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    modelProcess->DestroyDesc();
+    
+    EXPECT_EQ(modelProcess->modelDesc_, nullptr);
+}
+
+TEST_F(ModelProcessTest, TestDestroyDesc_WhenModelDescIsNull)
+{
+    modelProcess->modelDesc_ = nullptr;
+
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDesc(nullptr))
+        .Times(0);
+    
+    // 不会有调用
+    modelProcess->DestroyDesc();
+}
+
+// ===================== CreateDymInput 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestCreateDymInput_Success)
+{
+    SetDebugLogGuard guard;
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    
+    // 创建空数据集
+    modelProcess->input_ = nullptr;
+    
+    // 设置模拟期望
+    size_t index = 0;
+    size_t buffer_size = 1024;
+    
+    // 1. 获取输入大小
+    EXPECT_CALL(*mockAcl, aclmdlGetInputSizeByIndex(fakeDesc, index))
+        .WillOnce(Return(buffer_size));
+    
+    // 2. 创建、销毁数据集
+    aclmdlDataset* fakeDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
+    EXPECT_CALL(*mockAcl, aclmdlCreateDataset())
+        .WillOnce(Return(fakeDataset));
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(fakeDataset)))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 3. 分配设备内存
+    void* fakeBuffer = reinterpret_cast<void*>(0x1000);
+    EXPECT_CALL(*mockAcl, aclrtMalloc(_, buffer_size, ACL_MEM_MALLOC_HUGE_FIRST))
+        .WillOnce(DoAll(SetArgPointee<0>(fakeBuffer), Return(ACL_SUCCESS)));
+    
+    // 4. 创建数据缓冲区
+    aclDataBuffer* fakeDataBuffer = reinterpret_cast<aclDataBuffer*>(0x2000);
+    EXPECT_CALL(*mockAcl, aclCreateDataBuffer(fakeBuffer, buffer_size))
+        .WillOnce(Return(fakeDataBuffer));
+    
+    // 5. 添加数据集缓冲区
+    EXPECT_CALL(*mockAcl, aclmdlAddDatasetBuffer(fakeDataset, fakeDataBuffer))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CreateDymInput(index);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(modelProcess->input_, fakeDataset);
+    EXPECT_TRUE(logOutput.find("add input_ at CreateDymInput +1") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCreateDymInput_AclrtMallocFailed)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    
+    // 创建空数据集
+    modelProcess->input_ = nullptr;
+    
+    // 设置模拟期望
+    size_t index = 0;
+    size_t buffer_size = 1024;
+    
+    // 1. 获取输入大小
+    EXPECT_CALL(*mockAcl, aclmdlGetInputSizeByIndex(fakeDesc, index))
+        .WillOnce(Return(buffer_size));
+    
+    // 2. 创建、销毁数据集
+    aclmdlDataset* fakeDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
+    EXPECT_CALL(*mockAcl, aclmdlCreateDataset())
+        .WillOnce(Return(fakeDataset));
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(fakeDataset)))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 3. 分配设备内存失败
+    EXPECT_CALL(*mockAcl, aclrtMalloc(_, buffer_size, ACL_MEM_MALLOC_HUGE_FIRST))
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
+    const char* errorMsg = "aclrtMalloc failed";
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillOnce(Return(errorMsg));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CreateDymInput(index);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("malloc device buffer failed") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCreateDymInput_CreateDatasetFailed)
+{
+    // 创建模型描述
+    CreateModelDescSuccess();
+    
+    // 创建空数据集
+    modelProcess->input_ = nullptr;
+    
+    // 创建数据集返回空指针
+    EXPECT_CALL(*mockAcl, aclmdlCreateDataset)
+        .WillOnce(Return(nullptr));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CreateDymInput(0);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("can't create dataset") != string::npos);
+    EXPECT_TRUE(logOutput.find("create input failed") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCreateDymInput_CreateDataBufferFailed)
+{
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    
+    // 创建空数据集
+    modelProcess->input_ = nullptr;
+    
+    // 设置模拟期望
+    size_t index = 0;
+    size_t buffer_size = 1024;
+    
+    // 1. 获取输入大小
+    EXPECT_CALL(*mockAcl, aclmdlGetInputSizeByIndex(fakeDesc, index))
+        .WillOnce(Return(buffer_size));
+    
+    // 2. 创建、销毁数据集
+    aclmdlDataset* fakeDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
+    EXPECT_CALL(*mockAcl, aclmdlCreateDataset())
+        .WillOnce(Return(fakeDataset));
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(fakeDataset)))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 3. 分配设备内存
+    void* fakeBuffer = reinterpret_cast<void*>(0x1000);
+    EXPECT_CALL(*mockAcl, aclrtMalloc(_, buffer_size, ACL_MEM_MALLOC_HUGE_FIRST))
+        .WillOnce(DoAll(SetArgPointee<0>(fakeBuffer), Return(ACL_SUCCESS)));
+    
+    // 4. 创建数据缓冲区失败
+    EXPECT_CALL(*mockAcl, aclCreateDataBuffer(fakeBuffer, buffer_size))
+        .WillOnce(Return(nullptr));
+    
+    // 5. 预期释放资源
+    EXPECT_CALL(*mockAcl, aclrtFree(fakeBuffer))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CreateDymInput(index);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("can't create data buffer") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCreateDymInput_AddDatasetBufferFailed)
+{
+    SetDebugLogGuard guard;
+    // 创建模型描述
+    auto fakeDesc = CreateModelDescSuccess();
+    
+    // 创建空数据集
+    modelProcess->input_ = nullptr;
+    
+    // 设置模拟期望
+    size_t index = 0;
+    size_t buffer_size = 1024;
+    
+    // 1. 获取输入大小
+    EXPECT_CALL(*mockAcl, aclmdlGetInputSizeByIndex(fakeDesc, index))
+        .WillOnce(Return(buffer_size));
+    
+    // 2. 创建、销毁数据集
+    aclmdlDataset* fakeDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
+    EXPECT_CALL(*mockAcl, aclmdlCreateDataset())
+        .WillOnce(Return(fakeDataset));
+    EXPECT_CALL(*mockAcl, aclmdlDestroyDataset(reinterpret_cast<const aclmdlDataset*>(fakeDataset)))
+        .WillOnce(Return(ACL_SUCCESS));
+    
+    // 3. 分配设备内存
+    void* fakeBuffer = reinterpret_cast<void*>(0x1000);
+    EXPECT_CALL(*mockAcl, aclrtMalloc(_, buffer_size, ACL_MEM_MALLOC_HUGE_FIRST))
+        .WillOnce(DoAll(SetArgPointee<0>(fakeBuffer), Return(ACL_SUCCESS)));
+    
+    // 4. 创建数据缓冲区
+    aclDataBuffer* fakeDataBuffer = reinterpret_cast<aclDataBuffer*>(0x2000);
+    EXPECT_CALL(*mockAcl, aclCreateDataBuffer(fakeBuffer, buffer_size))
+        .WillOnce(Return(fakeDataBuffer));
+    
+    // 5. 添加数据集缓冲区
+    EXPECT_CALL(*mockAcl, aclmdlAddDatasetBuffer(fakeDataset, fakeDataBuffer))
+        .WillOnce(Return(ACL_ERROR_FAILURE));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CreateDymInput(index);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_EQ(modelProcess->input_, fakeDataset);
+    EXPECT_TRUE(logOutput.find("add input dataset buffer failed") != string::npos);
+}
+
+// ===================== UpdateInputsReuse 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestUpdateInputsReuse_InputDatasetNull)
+{
+    // 输出数据集存在，输入数据集为空
+    modelProcess->output_ = reinterpret_cast<aclmdlDataset*>(0x2222);
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->UpdateInputsReuse({0});
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("can't find inputdatas") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestUpdateInputsReuse_OutputDatasetNull)
+{
+    // 输入数据集存在，输出数据集为空
+    modelProcess->input_ = reinterpret_cast<aclmdlDataset*>(0x1111);
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->UpdateInputsReuse({0});
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("can't find outputdatas") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestUpdateInputsReuse_RelationSizeMismatch)
+{
+    // 设置数据集
+    SetupDataset(2, 2);
+    
+    // 设置动态索引
+    modelProcess->g_dymindex = 1;
+
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetNumBuffers)
+        .WillRepeatedly(Return(0));
+    // 执行测试 - 关系向量大小小于输入数量（插入后）
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->UpdateInputsReuse({0});
+    string logOutput = testing::internal::GetCapturedStdout();
+
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("wrong in out relation size") != string::npos);
+    EXPECT_TRUE(logOutput.find("inputsNum: 0") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestUpdateInputsReuse_OutputIndexOutOfRange)
+{
+    // 设置数据集
+    SetupDataset(2, 1);
+    
+    // 设置动态索引
+    modelProcess->g_dymindex = SIZE_MAX; // 无动态输入
+    
+    // 执行测试 - 输出索引超出范围
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->UpdateInputsReuse({0, 2}); // 索引2大于输出数量1
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("outputdata index out of range") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestUpdateInputsReuse_SizeMismatch)
+{
+    // 设置数据集
+    SetupDataset(2, 1);
+    modelProcess->g_dymindex = SIZE_MAX; // 无动态输入
+    
+    // 设置模拟缓冲区
+    aclDataBuffer* fakeInputBuffer = reinterpret_cast<aclDataBuffer*>(0x3333);
+    aclDataBuffer* fakeOutputBuffer = reinterpret_cast<aclDataBuffer*>(0x4444);
+    
+    // 模拟缓冲区获取
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(reinterpret_cast<aclmdlDataset*>(0x1111), 0))
+        .WillRepeatedly(Return(fakeInputBuffer));
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(reinterpret_cast<aclmdlDataset*>(0x2222), 0))
+        .WillRepeatedly(Return(fakeOutputBuffer));
+    
+    // 设置缓冲区大小不匹配
+    EXPECT_CALL(*mockAcl, aclGetDataBufferSizeV2(fakeInputBuffer))
+        .WillRepeatedly(Return(1024));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferSizeV2(fakeOutputBuffer))
+        .WillRepeatedly(Return(512)); // 输出缓冲区更小
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->UpdateInputsReuse({0, -1}); // 跳过第二个输入
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("current inputSize and last outputSize not matched") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestUpdateInputsReuse_UpdateDataBufferFailed)
+{
+    SetDebugLogGuard guard;
+    // 设置数据集
+    SetupDataset(3, 2);
+    modelProcess->g_dymindex = 1; // 动态输入在索引1位置
+    
+    // 设置模拟缓冲区
+    aclDataBuffer* fakeInputBuffer0 = reinterpret_cast<aclDataBuffer*>(0x3333);
+    aclDataBuffer* fakeOutputBuffer0 = reinterpret_cast<aclDataBuffer*>(0x4444);
+    
+    // 模拟索引0的缓冲区
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(reinterpret_cast<aclmdlDataset*>(0x1111), 0))
+        .WillRepeatedly(Return(fakeInputBuffer0));
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(reinterpret_cast<aclmdlDataset*>(0x2222), 0))
+        .WillRepeatedly(Return(fakeOutputBuffer0));
+    
+    // 设置索引2的缓冲区 - 移除重复声明
+    aclDataBuffer* fakeInputBuffer2 = reinterpret_cast<aclDataBuffer*>(0x6666);
+    aclDataBuffer* fakeOutputBuffer1 = reinterpret_cast<aclDataBuffer*>(0x7777);
+    
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(reinterpret_cast<aclmdlDataset*>(0x1111), 2))
+        .WillRepeatedly(Return(fakeInputBuffer2));
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(reinterpret_cast<aclmdlDataset*>(0x2222), 1))
+        .WillRepeatedly(Return(fakeOutputBuffer1));
+    
+    // 设置缓冲区大小匹配
+    size_t bufferSize = 1024;
+    EXPECT_CALL(*mockAcl, aclGetDataBufferSizeV2(_))
+        .WillRepeatedly(Return(bufferSize));
+    
+    // 设置缓冲区地址
+    void* fakeAddrIn0 = reinterpret_cast<void*>(0x1000);
+    void* fakeAddrOut0 = reinterpret_cast<void*>(0x2000);
+    void* fakeAddrIn2 = reinterpret_cast<void*>(0x3000);
+    void* fakeAddrOut1 = reinterpret_cast<void*>(0x4000);
+    
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeInputBuffer0))
+        .WillRepeatedly(Return(fakeAddrIn0));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeOutputBuffer0))
+        .WillRepeatedly(Return(fakeAddrOut0));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeInputBuffer2))
+        .WillRepeatedly(Return(fakeAddrIn2));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeOutputBuffer1))
+        .WillRepeatedly(Return(fakeAddrOut1));
+    
+    // 设置更新操作失败
+    EXPECT_CALL(*mockAcl, aclUpdateDataBuffer)
+        .WillRepeatedly(Return(ACL_ERROR_FAILURE));
+    
+    // 执行测试 - 动态索引在1，所以关系向量索引0对应输入0，索引1跳过，索引2对应输入2
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->UpdateInputsReuse({0, 1});
+    string logOutput = testing::internal::GetCapturedStdout();
+
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    // 错误日志
+    EXPECT_TRUE(logOutput.find("new input buffer update from last output failed") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestUpdateInputsReuse_SuccessWithDynamicIndex)
+{
+    SetDebugLogGuard guard;
+    // 设置数据集
+    SetupDataset(3, 2);
+    modelProcess->g_dymindex = 1; // 动态输入在索引1位置
+    
+    // 设置模拟缓冲区
+    aclDataBuffer* fakeInputBuffer0 = reinterpret_cast<aclDataBuffer*>(0x3333);
+    aclDataBuffer* fakeOutputBuffer0 = reinterpret_cast<aclDataBuffer*>(0x4444);
+    
+    // 模拟索引0的缓冲区
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(reinterpret_cast<aclmdlDataset*>(0x1111), 0))
+        .WillRepeatedly(Return(fakeInputBuffer0));
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(reinterpret_cast<aclmdlDataset*>(0x2222), 0))
+        .WillRepeatedly(Return(fakeOutputBuffer0));
+    
+    // 设置索引2的缓冲区 - 移除重复声明
+    aclDataBuffer* fakeInputBuffer2 = reinterpret_cast<aclDataBuffer*>(0x6666);
+    aclDataBuffer* fakeOutputBuffer1 = reinterpret_cast<aclDataBuffer*>(0x7777);
+    
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(reinterpret_cast<aclmdlDataset*>(0x1111), 2))
+        .WillRepeatedly(Return(fakeInputBuffer2));
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(reinterpret_cast<aclmdlDataset*>(0x2222), 1))
+        .WillRepeatedly(Return(fakeOutputBuffer1));
+    
+    // 设置缓冲区大小匹配
+    size_t bufferSize = 1024;
+    EXPECT_CALL(*mockAcl, aclGetDataBufferSizeV2(_))
+        .WillRepeatedly(Return(bufferSize));
+    
+    // 设置缓冲区地址
+    void* fakeAddrIn0 = reinterpret_cast<void*>(0x1000);
+    void* fakeAddrOut0 = reinterpret_cast<void*>(0x2000);
+    void* fakeAddrIn2 = reinterpret_cast<void*>(0x3000);
+    void* fakeAddrOut1 = reinterpret_cast<void*>(0x4000);
+    
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeInputBuffer0))
+        .WillRepeatedly(Return(fakeAddrIn0));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeOutputBuffer0))
+        .WillRepeatedly(Return(fakeAddrOut0));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeInputBuffer2))
+        .WillRepeatedly(Return(fakeAddrIn2));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeOutputBuffer1))
+        .WillRepeatedly(Return(fakeAddrOut1));
+    
+    // 设置更新操作成功
+    EXPECT_CALL(*mockAcl, aclUpdateDataBuffer(fakeInputBuffer0, fakeAddrOut0, bufferSize))
+        .WillRepeatedly(Return(ACL_SUCCESS));
+    EXPECT_CALL(*mockAcl, aclUpdateDataBuffer(fakeInputBuffer2, fakeAddrOut1, bufferSize))
+        .WillRepeatedly(Return(ACL_SUCCESS));
+    
+    // 资源释放 - reuseOutput_ = false 时释放旧缓冲区
+    modelProcess->reuseOutput_ = false;
+    EXPECT_CALL(*mockAcl, aclrtFree(fakeAddrIn0))
+        .WillRepeatedly(Return(ACL_SUCCESS));
+    EXPECT_CALL(*mockAcl, aclrtFree(fakeAddrIn2))
+        .WillRepeatedly(Return(ACL_SUCCESS));
+    
+    // 执行测试 - 动态索引在1，所以关系向量索引0对应输入0，索引1跳过，索引2对应输入2
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->UpdateInputsReuse({0, 1});
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(modelProcess->reuseOutput_);
+    // 确保没有错误日志
+    EXPECT_TRUE(logOutput.find("failed") == string::npos);
+}
+
+// ===================== CreateInput 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestCreateInput_SuccessWithNewDataset)
+{
+    SetDebugLogGuard guard;
+    // 设置初始状态
+    modelProcess->input_ = nullptr;
+    
+    // 准备测试数据
+    void* inputDataBuffer = reinterpret_cast<void*>(0x1234);
+    size_t bufferSize = 1024;
+    
+    // 设置模拟期望
+    aclmdlDataset* fakeDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
+    EXPECT_CALL(*mockAcl, aclmdlCreateDataset())
+        .WillRepeatedly(Return(fakeDataset));
+    
+    aclDataBuffer* fakeDataBuffer = reinterpret_cast<aclDataBuffer*>(0x1000);
+    EXPECT_CALL(*mockAcl, aclCreateDataBuffer(inputDataBuffer, bufferSize))
+        .WillRepeatedly(Return(fakeDataBuffer));
+    
+    EXPECT_CALL(*mockAcl, aclmdlAddDatasetBuffer(fakeDataset, fakeDataBuffer))
+        .WillRepeatedly(Return(ACL_SUCCESS));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CreateInput(inputDataBuffer, bufferSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(modelProcess->input_, fakeDataset);
+    EXPECT_TRUE(logOutput.find("add input_ at CreateInput +1") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCreateInput_SuccessWithExistingDataset)
+{
+    SetDebugLogGuard guard;
+    // 设置初始状态
+    modelProcess->input_ = reinterpret_cast<aclmdlDataset*>(0x1111);
+    
+    // 准备测试数据
+    void* inputDataBuffer = reinterpret_cast<void*>(0x1234);
+    size_t bufferSize = 1024;
+    
+    // 设置模拟期望
+    aclDataBuffer* fakeDataBuffer = reinterpret_cast<aclDataBuffer*>(0x1000);
+    EXPECT_CALL(*mockAcl, aclCreateDataBuffer(inputDataBuffer, bufferSize))
+        .WillRepeatedly(Return(fakeDataBuffer));
+    
+    EXPECT_CALL(*mockAcl, aclmdlAddDatasetBuffer(modelProcess->input_, fakeDataBuffer))
+        .WillRepeatedly(Return(ACL_SUCCESS));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CreateInput(inputDataBuffer, bufferSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_TRUE(logOutput.find("add input_ at CreateInput +1") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCreateInput_CreateDatasetFailed)
+{
+    // 设置初始状态
+    modelProcess->input_ = nullptr;
+    
+    // 准备测试数据
+    void* inputDataBuffer = reinterpret_cast<void*>(0x1234);
+    size_t bufferSize = 1024;
+    
+    // 设置模拟期望
+    EXPECT_CALL(*mockAcl, aclmdlCreateDataset())
+        .WillRepeatedly(Return(nullptr));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CreateInput(inputDataBuffer, bufferSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("can't create dataset") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCreateInput_CreateDataBufferFailed)
+{
+    // 设置初始状态
+    modelProcess->input_ = nullptr;
+    
+    // 准备测试数据
+    void* inputDataBuffer = reinterpret_cast<void*>(0x1234);
+    size_t bufferSize = 1024;
+    
+    // 设置模拟期望
+    aclmdlDataset* fakeDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
+    EXPECT_CALL(*mockAcl, aclmdlCreateDataset())
+        .WillRepeatedly(Return(fakeDataset));
+    
+    EXPECT_CALL(*mockAcl, aclCreateDataBuffer(inputDataBuffer, bufferSize))
+        .WillRepeatedly(Return(nullptr));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CreateInput(inputDataBuffer, bufferSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("can't create data buffer") != string::npos);
+}
+
+TEST_F(ModelProcessTest, TestCreateInput_AddDatasetBufferFailed)
+{
+    // 设置初始状态
+    modelProcess->input_ = nullptr;
+    
+    // 准备测试数据
+    void* inputDataBuffer = reinterpret_cast<void*>(0x1234);
+    size_t bufferSize = 1024;
+    
+    // 设置模拟期望
+    aclmdlDataset* fakeDataset = reinterpret_cast<aclmdlDataset*>(0xABCD);
+    EXPECT_CALL(*mockAcl, aclmdlCreateDataset())
+        .WillRepeatedly(Return(fakeDataset));
+    
+    aclDataBuffer* fakeDataBuffer = reinterpret_cast<aclDataBuffer*>(0x1000);
+    EXPECT_CALL(*mockAcl, aclCreateDataBuffer(inputDataBuffer, bufferSize))
+        .WillRepeatedly(Return(fakeDataBuffer));
+    
+    EXPECT_CALL(*mockAcl, aclmdlAddDatasetBuffer(fakeDataset, fakeDataBuffer))
+        .WillRepeatedly(Return(ACL_ERROR_BAD_ALLOC));
+    
+    // 预期销毁数据缓冲区
+    EXPECT_CALL(*mockAcl, aclDestroyDataBuffer(fakeDataBuffer))
+        .WillRepeatedly(Return(ACL_SUCCESS));
+    
+    const char* errorMsg = "Add dataset buffer failed";
+    EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+        .WillRepeatedly(Return(errorMsg));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->CreateInput(inputDataBuffer, bufferSize);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("add input dataset buffer failed") != string::npos);
+    EXPECT_TRUE(logOutput.find(errorMsg) != string::npos);
+}
+
+// ===================== UpdateInputsMemcpy 测试用例 =====================
+
+TEST_F(ModelProcessTest, TestUpdateInputsMemcpy_SuccessWithDynamicIndex)
+{
+    SetDebugLogGuard guard;
+    // 设置数据集
+    SetupDataset(3, 2);
+    modelProcess->g_dymindex = 1; // 动态输入在索引1位置
+    
+    // 准备测试数据
+    vector<int> inOutRelation = {0, 1}; // 输入0->输出0, 输入2->输出1
+    
+    // 设置模拟缓冲区
+    aclDataBuffer* fakeInputBuffer0 = reinterpret_cast<aclDataBuffer*>(0x3333);
+    aclDataBuffer* fakeOutputBuffer0 = reinterpret_cast<aclDataBuffer*>(0x4444);
+    aclDataBuffer* fakeInputBuffer2 = reinterpret_cast<aclDataBuffer*>(0x5555);
+    aclDataBuffer* fakeOutputBuffer1 = reinterpret_cast<aclDataBuffer*>(0x6666);
+    
+    // 模拟缓冲区获取
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(modelProcess->input_, 0))
+        .WillRepeatedly(Return(fakeInputBuffer0));
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(modelProcess->output_, 0))
+        .WillRepeatedly(Return(fakeOutputBuffer0));
+    
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(modelProcess->input_, 2))
+        .WillRepeatedly(Return(fakeInputBuffer2));
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(modelProcess->output_, 1))
+        .WillRepeatedly(Return(fakeOutputBuffer1));
+    
+    // 设置缓冲区大小匹配
+    size_t bufferSize = 1024;
+    EXPECT_CALL(*mockAcl, aclGetDataBufferSizeV2(fakeInputBuffer0))
+        .WillRepeatedly(Return(bufferSize));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferSizeV2(fakeOutputBuffer0))
+        .WillRepeatedly(Return(bufferSize));
+    
+    EXPECT_CALL(*mockAcl, aclGetDataBufferSizeV2(fakeInputBuffer2))
+        .WillRepeatedly(Return(bufferSize));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferSizeV2(fakeOutputBuffer1))
+        .WillRepeatedly(Return(bufferSize));
+    
+    // 设置缓冲区地址
+    void* fakeAddrIn0 = reinterpret_cast<void*>(0x1000);
+    void* fakeAddrOut0 = reinterpret_cast<void*>(0x2000);
+    void* fakeAddrIn2 = reinterpret_cast<void*>(0x3000);
+    void* fakeAddrOut1 = reinterpret_cast<void*>(0x4000);
+    
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeInputBuffer0))
+        .WillRepeatedly(Return(fakeAddrIn0));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeOutputBuffer0))
+        .WillRepeatedly(Return(fakeAddrOut0));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeInputBuffer2))
+        .WillRepeatedly(Return(fakeAddrIn2));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeOutputBuffer1))
+        .WillRepeatedly(Return(fakeAddrOut1));
+    
+    // 设置内存复制成功
+    EXPECT_CALL(*mockAcl, aclrtMemcpy(fakeAddrIn0, bufferSize, fakeAddrOut0, bufferSize, ACL_MEMCPY_DEVICE_TO_DEVICE))
+        .WillRepeatedly(Return(ACL_SUCCESS));
+    EXPECT_CALL(*mockAcl, aclrtMemcpy(fakeAddrIn2, bufferSize, fakeAddrOut1, bufferSize, ACL_MEMCPY_DEVICE_TO_DEVICE))
+        .WillRepeatedly(Return(ACL_SUCCESS));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->UpdateInputsMemcpy(inOutRelation);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(ModelProcessTest, TestUpdateInputsMemcpy_SuccessWithoutDynamicIndex)
+{
+    SetDebugLogGuard guard;
+    // 设置数据集
+    SetupDataset(2, 2);
+    modelProcess->g_dymindex = SIZE_MAX; // 无动态索引
+    
+    // 准备测试数据
+    vector<int> inOutRelation = {0, 1}; // 输入0->输出0, 输入1->输出1
+    
+    // 设置模拟缓冲区
+    aclDataBuffer* fakeInputBuffer0 = reinterpret_cast<aclDataBuffer*>(0x3333);
+    aclDataBuffer* fakeOutputBuffer0 = reinterpret_cast<aclDataBuffer*>(0x4444);
+    aclDataBuffer* fakeInputBuffer1 = reinterpret_cast<aclDataBuffer*>(0x5555);
+    aclDataBuffer* fakeOutputBuffer1 = reinterpret_cast<aclDataBuffer*>(0x6666);
+
+    // 模拟缓冲区获取
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(modelProcess->input_, 0))
+        .WillRepeatedly(Return(fakeInputBuffer0));
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(modelProcess->output_, 0))
+        .WillRepeatedly(Return(fakeOutputBuffer0));
+    
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(modelProcess->input_, 1))
+        .WillRepeatedly(Return(fakeInputBuffer1));
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(modelProcess->output_, 1))
+        .WillRepeatedly(Return(fakeOutputBuffer1));
+    
+    // 设置缓冲区大小匹配
+    size_t bufferSize = 1024;
+    EXPECT_CALL(*mockAcl, aclGetDataBufferSizeV2(_))
+        .Times(6) // 每个缓冲区调用一次
+        .WillRepeatedly(Return(bufferSize));
+    
+    // 设置缓冲区地址
+    void* fakeAddrIn0 = reinterpret_cast<void*>(0x1000);
+    void* fakeAddrOut0 = reinterpret_cast<void*>(0x2000);
+    void* fakeAddrIn1 = reinterpret_cast<void*>(0x3000);
+    void* fakeAddrOut1 = reinterpret_cast<void*>(0x4000);
+    
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeInputBuffer0))
+        .WillRepeatedly(Return(fakeAddrIn0));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeOutputBuffer0))
+        .WillRepeatedly(Return(fakeAddrOut0));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeInputBuffer1))
+        .WillRepeatedly(Return(fakeAddrIn1));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferAddr(fakeOutputBuffer1))
+        .WillRepeatedly(Return(fakeAddrOut1));
+    
+    // 设置内存复制成功
+    EXPECT_CALL(*mockAcl, aclrtMemcpy(fakeAddrIn0, bufferSize, fakeAddrOut0, bufferSize, ACL_MEMCPY_DEVICE_TO_DEVICE))
+        .WillRepeatedly(Return(ACL_SUCCESS));
+    EXPECT_CALL(*mockAcl, aclrtMemcpy(fakeAddrIn1, bufferSize, fakeAddrOut1, bufferSize, ACL_MEMCPY_DEVICE_TO_DEVICE))
+        .WillRepeatedly(Return(ACL_SUCCESS));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->UpdateInputsMemcpy(inOutRelation);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, SUCCESS);
+}
+
+TEST_F(ModelProcessTest, TestUpdateInputsMemcpy_InputSizeExceedsOutputSize)
+{
+    // 设置数据集
+    SetupDataset(1, 1);
+    
+    // 准备测试数据
+    vector<int> inOutRelation = {0}; 
+    
+    // 设置模拟缓冲区
+    aclDataBuffer* fakeInputBuffer  = reinterpret_cast<aclDataBuffer*>(0x3333);
+    aclDataBuffer* fakeOutputBuffer = reinterpret_cast<aclDataBuffer*>(0x4444);
+    
+    
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetNumBuffers(modelProcess->input_))
+        .WillRepeatedly(Return(2));
+
+    // 模拟缓冲区获取
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(modelProcess->input_, _))
+        .WillRepeatedly(Return(fakeInputBuffer));
+    EXPECT_CALL(*mockAcl, aclmdlGetDatasetBuffer(modelProcess->output_, 0))
+        .WillRepeatedly(Return(fakeOutputBuffer));
+    
+    // 设置缓冲区大小不匹配（输入 > 输出）
+    EXPECT_CALL(*mockAcl, aclGetDataBufferSizeV2(fakeInputBuffer))
+        .WillRepeatedly(Return(2048));
+    EXPECT_CALL(*mockAcl, aclGetDataBufferSizeV2(fakeOutputBuffer))
+        .WillRepeatedly(Return(1024));
+    
+    // 执行测试
+    testing::internal::CaptureStdout();
+    Result ret = modelProcess->UpdateInputsMemcpy(inOutRelation);
+    string logOutput = testing::internal::GetCapturedStdout();
+    
+    // 验证结果
+    EXPECT_EQ(ret, FAILED);
+    EXPECT_TRUE(logOutput.find("current inputSize and last outputSize not matched") != string::npos);
+}
 }

@@ -1,72 +1,75 @@
 #include <gtest/gtest.h>
+#include <memory>
+#include "acl_mock_functions.h"  // 引入mock头文件
 #include "Base/DeviceManager/DeviceManager.h"
 
+using namespace std;
 using namespace Base;
-
-static int g_deviceCount = 1;
-static int g_aclInitCount = 0;
-static int g_aclrtSetDeviceFail = 0;
-static int g_aclrtCreateContextFail = 0;
-
-APP_ERROR aclInit(const char* configPath) {
-    if (configPath && std::string(configPath) == "APP_ERR_ACL_FAILURE") {
-        return APP_ERR_ACL_FAILURE;
-    }
-    ++g_aclInitCount;
-    if (g_aclInitCount == 1) {
-        // 第一次调用时正常返回
-        return APP_ERR_OK;
-    }
-    // 第二次及之后都返回“重复初始化”
-    return ACL_ERROR_REPEAT_INITIALIZE;
-}
-
-
-APP_ERROR aclrtSetDevice(int) {
-    if (g_aclrtSetDeviceFail) {
-        return APP_ERR_ACL_FAILURE;
-    }
-    return APP_ERR_OK;
-}
-
-
-APP_ERROR aclrtCreateContext(void**, int) {
-    if (g_aclrtCreateContextFail) {
-        return APP_ERR_ACL_FAILURE;
-    }
-    return APP_ERR_OK;
-}
-
-
-APP_ERROR aclrtGetDeviceCount(uint32_t* count)
-{
-    if (g_deviceCount == 1) {
-        *count = 1;
-        return APP_ERR_OK;
-    } else {
-        return APP_ERR_ACL_FAILURE;
-    }
-}
-APP_ERROR aclFinalize() { return APP_ERR_OK; }
-APP_ERROR aclrtSetCurrentContext(void*) { return APP_ERR_OK; }
-APP_ERROR aclrtDestroyContext(void*) { return APP_ERR_OK; }
-APP_ERROR aclrtResetDevice(int) { return APP_ERR_OK; }
-APP_ERROR aclrtGetCurrentContext(void** ctx)
-{
-    if (ctx) *ctx = nullptr;
-    return APP_ERR_OK;
-}
-const char* aclGetRecentErrMsg() { return "mock error"; }
-
+using namespace testing;
 
 namespace {
 
 class DeviceManagerTest : public ::testing::Test {
 protected:
-    DeviceManager* mgr = nullptr;
     void SetUp() override {
+        mockAcl = make_unique<StrictMock<MockACL>>();
+        g_mockAcl = mockAcl.get();
+        SetGlobalDefaultExpectations();
+        
         mgr = DeviceManager::GetInstance();
     }
+    
+    void TearDown() override {
+        mgr->DestroyDevices();
+
+        g_mockAcl = nullptr;
+        mockAcl.reset();
+    }
+    
+    void SetGlobalDefaultExpectations() {
+        // 设置aclInit的默认行为
+        EXPECT_CALL(*mockAcl, aclInit(_))
+            .WillRepeatedly(Return(APP_ERR_OK));
+        
+        // 设置aclrtGetDeviceCount的默认行为
+        EXPECT_CALL(*mockAcl, aclrtGetDeviceCount(_))
+            .WillRepeatedly(DoAll(SetArgPointee<0>(1), Return(APP_ERR_OK)));
+        
+        // 设置aclrtSetDevice的默认行为
+        EXPECT_CALL(*mockAcl, aclrtSetDevice(_))
+            .WillRepeatedly(Return(APP_ERR_OK));
+        
+        // 设置aclrtCreateContext的默认行为
+        EXPECT_CALL(*mockAcl, aclrtCreateContext(_, _))
+            .WillRepeatedly(Return(APP_ERR_OK));
+        
+        // 设置aclFinalize的默认行为
+        EXPECT_CALL(*mockAcl, aclFinalize())
+            .WillRepeatedly(Return(APP_ERR_OK));
+        
+        // 设置aclrtSetCurrentContext的默认行为
+        EXPECT_CALL(*mockAcl, aclrtSetCurrentContext(_))
+            .WillRepeatedly(Return(APP_ERR_OK));
+        
+        // 设置aclrtDestroyContext的默认行为
+        EXPECT_CALL(*mockAcl, aclrtDestroyContext(_))
+            .WillRepeatedly(Return(APP_ERR_OK));
+        
+        // 设置aclrtResetDevice的默认行为
+        EXPECT_CALL(*mockAcl, aclrtResetDevice(_))
+            .WillRepeatedly(Return(APP_ERR_OK));
+        
+        // 设置aclrtGetCurrentContext的默认行为
+        EXPECT_CALL(*mockAcl, aclrtGetCurrentContext(_))
+            .WillRepeatedly(DoAll(SetArgPointee<0>(nullptr), Return(APP_ERR_OK)));
+        
+        // 设置aclGetRecentErrMsg的默认行为
+        EXPECT_CALL(*mockAcl, aclGetRecentErrMsg())
+            .WillRepeatedly(Return("mock error"));
+    }
+
+    unique_ptr<StrictMock<MockACL>> mockAcl;  // 模拟ACL接口
+    DeviceManager* mgr = nullptr;  // 设备管理器实例
 };
 
 TEST_F(DeviceManagerTest, GetInstanceAndIsInitDevices)
@@ -130,16 +133,20 @@ TEST_F(DeviceManagerTest, DestroyContext_NotInit)
 
 TEST_F(DeviceManagerTest, InitDevices_Fail)
 {
-    mgr->SetAclJsonPath("APP_ERR_ACL_FAILURE");
-    EXPECT_EQ(mgr->InitDevices(""), APP_ERR_ACL_FAILURE);
-    mgr->SetAclJsonPath("");
+    // 设置aclInit失败
+    EXPECT_CALL(*mockAcl, aclInit(_))
+        .WillOnce(Return(APP_ERR_ACL_FAILURE));
+    
+    EXPECT_EQ(mgr->InitDevices("APP_ERR_ACL_FAILURE"), APP_ERR_ACL_FAILURE);
 }
 
 TEST_F(DeviceManagerTest, InitDevices_GetDeviceCount_Fail)
 {
-    g_deviceCount = 0;
+    // 设置aclrtGetDeviceCount失败
+    EXPECT_CALL(*mockAcl, aclrtGetDeviceCount(_))
+        .WillOnce(Return(APP_ERR_ACL_FAILURE));
+    
     EXPECT_EQ(mgr->InitDevices(""), APP_ERR_ACL_FAILURE);
-    g_deviceCount = 1;
 }
 
 TEST_F(DeviceManagerTest, InitDevices_Normal)
@@ -152,14 +159,12 @@ TEST_F(DeviceManagerTest, InitDevices_Normal)
 
 TEST_F(DeviceManagerTest, InitDevices_RepeatInit)
 {
-    DeviceManager* mgr = DeviceManager::GetInstance();
     EXPECT_EQ(mgr->InitDevices(""), APP_ERR_OK);
     EXPECT_EQ(mgr->DestroyDevices(), APP_ERR_OK);
 
     EXPECT_EQ(mgr->InitDevices(""), APP_ERR_OK);
     EXPECT_EQ(mgr->DestroyDevices(), APP_ERR_OK);
 }
-
 
 TEST_F(DeviceManagerTest, CreateContext_DeviceNotExist)
 {
@@ -196,8 +201,8 @@ TEST_F(DeviceManagerTest, CreateContext_MissingDefaultContext)
     EXPECT_EQ(mgr->CreateContext(ctx, contextIndex), APP_ERR_OK);
     // Erase nextContextIndex_ entry to simulate error
     {
-        std::lock_guard<std::mutex> lock(reinterpret_cast<DeviceManager*>(mgr)->mtx_);
-        reinterpret_cast<DeviceManager*>(mgr)->nextContextIndex_.erase(ctx.devId);
+        std::lock_guard<std::mutex> lock(mgr->mtx_);
+        mgr->nextContextIndex_.erase(ctx.devId);
     }
     // Now CreateContext should fail with APP_ERR_COMM_READ_FAIL
     size_t dummyIndex = 0;
@@ -210,12 +215,12 @@ TEST_F(DeviceManagerTest, CreateContext_GetCurrentContextWhenRepeatInitAclFlagFa
     ctx.devId = 2;
     size_t contextIndex = 0;
     // Set repeatInitAclFlag to false to trigger aclrtGetCurrentContext branch
-    reinterpret_cast<DeviceManager*>(mgr)->repeatInitAclFlag = false;
+    mgr->repeatInitAclFlag = false;
     // Should succeed and contextIndex should be 0
     EXPECT_EQ(mgr->CreateContext(ctx, contextIndex), APP_ERR_OK);
     EXPECT_EQ(contextIndex, 0u);
     // Restore flag for other tests
-    reinterpret_cast<DeviceManager*>(mgr)->repeatInitAclFlag = true;
+    mgr->repeatInitAclFlag = true;
 }
 
 TEST_F(DeviceManagerTest, CreateContext_aclrtSetDeviceFail)
@@ -223,9 +228,11 @@ TEST_F(DeviceManagerTest, CreateContext_aclrtSetDeviceFail)
     DeviceContext ctx;
     ctx.devId = 1234;
     size_t contextIndex = 0;
-    g_aclrtSetDeviceFail = 1;
+    // 设置aclrtSetDevice失败
+    EXPECT_CALL(*mockAcl, aclrtSetDevice(_))
+        .WillOnce(Return(APP_ERR_ACL_FAILURE));
+    
     EXPECT_EQ(mgr->CreateContext(ctx, contextIndex), APP_ERR_ACL_FAILURE);
-    g_aclrtSetDeviceFail = 0;
 }
 
 TEST_F(DeviceManagerTest, CreateContext_aclrtCreateContextFail)
@@ -233,14 +240,15 @@ TEST_F(DeviceManagerTest, CreateContext_aclrtCreateContextFail)
     DeviceContext ctx;
     ctx.devId = 3;
     size_t contextIndex = 0;
-    g_aclrtCreateContextFail = 1;
+    // 设置aclrtCreateContext失败
+    EXPECT_CALL(*mockAcl, aclrtCreateContext(_, _))
+        .WillOnce(Return(APP_ERR_ACL_FAILURE));
+    
     EXPECT_EQ(mgr->CreateContext(ctx, contextIndex), APP_ERR_ACL_FAILURE);
-    g_aclrtCreateContextFail = 0;
 }
 
 TEST_F(DeviceManagerTest, DestroyContext_WhenNotInitialized_ReturnsOutOfRange)
 {
-    DeviceManager* mgr = DeviceManager::GetInstance();
     // Ensure not initialized
     while (mgr->IsInitDevices()) {
         mgr->DestroyDevices();
@@ -250,7 +258,6 @@ TEST_F(DeviceManagerTest, DestroyContext_WhenNotInitialized_ReturnsOutOfRange)
 
 TEST_F(DeviceManagerTest, DestroyContext_DeviceIdNotExist_ReturnsOk)
 {
-    DeviceManager* mgr = DeviceManager::GetInstance();
     mgr->InitDevices("");
     // No context created for device 99
     EXPECT_EQ(mgr->DestroyContext(99, 0), APP_ERR_OK);
@@ -259,7 +266,6 @@ TEST_F(DeviceManagerTest, DestroyContext_DeviceIdNotExist_ReturnsOk)
 
 TEST_F(DeviceManagerTest, DestroyContext_ContextIndexNotExist_ReturnsOk)
 {
-    DeviceManager* mgr = DeviceManager::GetInstance();
     mgr->InitDevices("");
     DeviceContext ctx;
     ctx.devId = 0;
@@ -272,7 +278,6 @@ TEST_F(DeviceManagerTest, DestroyContext_ContextIndexNotExist_ReturnsOk)
 
 TEST_F(DeviceManagerTest, DestroyContext_RepeatDestroy_ReturnsOk)
 {
-    DeviceManager* mgr = DeviceManager::GetInstance();
     mgr->InitDevices("");
     DeviceContext ctx;
     ctx.devId = 0;
@@ -287,7 +292,6 @@ TEST_F(DeviceManagerTest, DestroyContext_RepeatDestroy_ReturnsOk)
 
 TEST_F(DeviceManagerTest, DestroyContext_DestroyRealContext_ReturnsOk)
 {
-    DeviceManager* mgr = DeviceManager::GetInstance();
     mgr->InitDevices("");
     DeviceContext ctx;
     ctx.devId = 0;
@@ -298,39 +302,20 @@ TEST_F(DeviceManagerTest, DestroyContext_DestroyRealContext_ReturnsOk)
     mgr->DestroyDevices();
 }
 
-
-class DestroyDevicesTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        // Reset DeviceManager state before each test
-        DeviceManager* mgr = DeviceManager::GetInstance();
-        // Try to destroy devices until initCounter_ is 0
-
-    }
-    void TearDown() override {
-        // Clean up after test
-        DeviceManager* mgr = DeviceManager::GetInstance();
-        mgr->DestroyDevices();
-    }
-};
-
-TEST_F(DestroyDevicesTest, DestroyDevices_WhenNotInitialized_ReturnsOutOfRange) {
-    DeviceManager* mgr = DeviceManager::GetInstance();
+TEST_F(DeviceManagerTest, DestroyDevices_WhenNotInitialized_ReturnsOutOfRange) {
     // initCounter_ == 0
     APP_ERROR ret = mgr->DestroyDevices();
-    EXPECT_EQ(ret, APP_ERR_OK);
+    EXPECT_EQ(ret, APP_ERR_COMM_OUT_OF_RANGE);
 }
 
-TEST_F(DestroyDevicesTest, DestroyDevices_WhenInitializedOnce_ReturnsOk) {
-    DeviceManager* mgr = DeviceManager::GetInstance();
+TEST_F(DeviceManagerTest, DestroyDevices_WhenInitializedOnce_ReturnsOk) {
     mgr->SetAclJsonPath(""); // avoid nullptr
     mgr->InitDevices("");
     APP_ERROR ret = mgr->DestroyDevices();
     EXPECT_EQ(ret, APP_ERR_OK);
 }
 
-TEST_F(DestroyDevicesTest, DestroyDevices_WhenInitializedTwice_DecrementsCounter) {
-    DeviceManager* mgr = DeviceManager::GetInstance();
+TEST_F(DeviceManagerTest, DestroyDevices_WhenInitializedTwice_DecrementsCounter) {
     mgr->SetAclJsonPath("");
     mgr->InitDevices("");
     mgr->InitDevices("");
@@ -344,8 +329,7 @@ TEST_F(DestroyDevicesTest, DestroyDevices_WhenInitializedTwice_DecrementsCounter
     EXPECT_EQ(ret, APP_ERR_OK);
 }
 
-TEST_F(DestroyDevicesTest, DestroyDevices_RepeatInitAclFlagFalse_ReturnsOk) {
-    DeviceManager* mgr = DeviceManager::GetInstance();
+TEST_F(DeviceManagerTest, DestroyDevices_RepeatInitAclFlagFalse_ReturnsOk) {
     mgr->SetAclJsonPath("");
     mgr->InitDevices("");
     // Simulate acl repeat initialize

@@ -1,12 +1,16 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <stdexcept>
+#include "acl_mock_functions.h"
 #include "Base/Tensor/TensorBase/TensorBase.h"
 #include "PyTensor/PyTensor.h"
 #include "Base/DeviceManager/DeviceManager.h"
 #include "Base/Tensor/TensorBuffer/TensorBuffer.h"
 
+using namespace std;
 using namespace Base;
+using namespace testing;
+
 // Mock TensorBase methods for ToHost/ToDevice/ToDvpp
 namespace Base {
 class MockTensorBase : public TensorBase {
@@ -67,8 +71,16 @@ TEST(PyTensorTest, TensorToDevice_Ok) {
     // mock生效：链接时优先使用本地定义的MockTensorBufferMalloc
     Base::MockTensorBase tensor;
     Base::MockTensorBase::toDeviceRet = APP_ERR_OK;
+    unique_ptr<StrictMock<MockACL>> mockAcl = make_unique<StrictMock<MockACL>>();
+    g_mockAcl = mockAcl.get();
+    EXPECT_CALL(*mockAcl, aclInit(_))
+        .WillRepeatedly(Return(APP_ERR_OK));
+    EXPECT_CALL(*mockAcl, aclrtGetDeviceCount(_))
+        .WillRepeatedly(DoAll(SetArgPointee<0>(1), Return(APP_ERR_OK)));
     DeviceManager::GetInstance()->InitDevices();
     EXPECT_NO_THROW(Base::TensorToDevice(tensor, 0));
+    g_mockAcl = nullptr;
+    mockAcl.reset();
 }
 
 TEST(PyTensorTest, TensorToDevice_DeviceIdOutOfRange) {

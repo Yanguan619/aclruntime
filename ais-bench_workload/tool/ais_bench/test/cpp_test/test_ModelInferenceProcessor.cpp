@@ -1,14 +1,19 @@
-
-#include <gtest/gtest.h>
-#include <mockcpp/mockcpp.hpp>
-#include "Base/ModelInfer/ModelInferenceProcessor.h"
-#include "Base/ModelInfer/model_process.h"
-#include "Base/ModelInfer/DynamicAippConfig.h"
 #include <memory>
 #include <map>
 #include <vector>
 #include <string>
 
+#include <gtest/gtest.h>
+#include <mockcpp/mockcpp.hpp>
+
+#include "acl_mock_functions.h"
+#include "Base/ModelInfer/ModelInferenceProcessor.h"
+#include "Base/ModelInfer/model_process.h"
+#include "Base/ModelInfer/DynamicAippConfig.h"
+
+
+using namespace std;
+using namespace testing;
 using namespace Base;
 using namespace UtilsResult;
 
@@ -96,15 +101,100 @@ std::shared_ptr<DynamicAippConfig> MakeDummyDynamicAippConfig() {
 class ModelInferenceProcessorMockcppTest : public ::testing::Test {
 protected:
     void SetUp() override {
+        mockAcl = make_unique<StrictMock<MockACL>>();
+        g_mockAcl = mockAcl.get();
+
         // mockcpp 2.7的MOCKER().stubs().will()不支持lambda/throwException/call，只能用returnValue、returnObject、returnNull等
         static auto dummyModelProcess = Base::MakeDummyModelProcess();
         static auto dummyDynamicAippConfig = Base::MakeDummyDynamicAippConfig();
+        SetGlobalDefaultExpectations();
         MOCKER(std::make_shared<ModelProcess>).stubs().will(returnValue(dummyModelProcess));
         MOCKER(std::make_shared<DynamicAippConfig>).stubs().will(returnValue(dummyDynamicAippConfig));
     }
+    
     void TearDown() override {
         GlobalMockObject::reset();
+
+        g_mockAcl = nullptr;
+        mockAcl.reset();
     }
+
+    void SetGlobalDefaultExpectations()
+    {   
+
+// 定义宏简化代码
+#define SET_DEFAULT_EXPECT(func_name, return_val) \
+    EXPECT_CALL(*mockAcl, func_name).WillRepeatedly(Return(return_val));
+
+        // 使用双括号处理带逗号的复杂返回值
+        SET_DEFAULT_EXPECT(aclmdlLoadFromFile, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlUnload, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlCreateDesc, (nullptr))
+        SET_DEFAULT_EXPECT(aclmdlDestroyDesc, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetDesc, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetInputDynamicGearCount, (ACL_SUCCESS))
+        
+        // 其他默认设置保持不变...
+        SET_DEFAULT_EXPECT(aclmdlGetDatasetNumBuffers, (0))
+        SET_DEFAULT_EXPECT(aclmdlGetDatasetBuffer, (nullptr))
+        
+        // 输入
+        SET_DEFAULT_EXPECT(aclmdlGetNumInputs, (0))
+        SET_DEFAULT_EXPECT(aclmdlGetInputNameByIndex, (nullptr))
+        SET_DEFAULT_EXPECT(aclmdlGetInputIndexByName, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetInputSizeByIndex, (0))
+        SET_DEFAULT_EXPECT(aclmdlGetInputDims, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetInputFormat, (ACL_FORMAT_UNDEFINED))
+        SET_DEFAULT_EXPECT(aclmdlGetInputDataType, (ACL_DT_UNDEFINED))
+        
+        // 输出
+        SET_DEFAULT_EXPECT(aclmdlGetNumOutputs, (0))
+        SET_DEFAULT_EXPECT(aclmdlGetOutputNameByIndex, (nullptr))
+        SET_DEFAULT_EXPECT(aclmdlGetOutputIndexByName, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetOutputSizeByIndex, (0))
+        SET_DEFAULT_EXPECT(aclmdlGetOutputDims, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetOutputFormat, (ACL_FORMAT_UNDEFINED))
+        SET_DEFAULT_EXPECT(aclmdlGetOutputDataType, (ACL_DT_UNDEFINED))
+        
+        // 动态形状
+        SET_DEFAULT_EXPECT(aclmdlGetDynamicHW, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlSetDynamicHWSize, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlSetDynamicBatchSize, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetDynamicBatch, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetCurOutputDims, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlGetInputDynamicDims, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlSetInputDynamicDims, (ACL_SUCCESS))
+        
+        // 张量和数据集
+        SET_DEFAULT_EXPECT(aclCreateTensorDesc, (nullptr))
+        SET_DEFAULT_EXPECT(aclmdlSetDatasetTensorDesc, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlCreateDataset, (nullptr))
+        SET_DEFAULT_EXPECT(aclmdlDestroyDataset, (ACL_SUCCESS))
+        
+        // 内存管理
+        SET_DEFAULT_EXPECT(aclrtMalloc, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclrtFree, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclrtMemcpy, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclrtMemset, (ACL_SUCCESS))
+
+        SET_DEFAULT_EXPECT(aclrtFreeHost, (ACL_SUCCESS))
+        
+        // 数据缓冲区
+        SET_DEFAULT_EXPECT(aclCreateDataBuffer, (nullptr))
+        SET_DEFAULT_EXPECT(aclDestroyDataBuffer, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclmdlAddDatasetBuffer, (ACL_SUCCESS))
+        SET_DEFAULT_EXPECT(aclGetDataBufferSizeV2, (0))
+        SET_DEFAULT_EXPECT(aclGetDataBufferAddr, (nullptr))
+        SET_DEFAULT_EXPECT(aclUpdateDataBuffer, (ACL_SUCCESS))
+        
+        SET_DEFAULT_EXPECT(aclrtSetExceptionInfoCallback, (ACL_SUCCESS))
+        // 错误处理
+        SET_DEFAULT_EXPECT(aclGetRecentErrMsg, ("No error"))
+
+#undef SET_DEFAULT_EXPECT
+    }
+
+    unique_ptr<StrictMock<MockACL>> mockAcl; // 模拟ACL接口
 };
 
 TEST_F(ModelInferenceProcessorMockcppTest, Init_Fail) {
@@ -223,12 +313,14 @@ TEST_F(ModelInferenceProcessorMockcppTest, ModelInference_Inner_SuccessAndFail) 
 TEST_F(ModelInferenceProcessorMockcppTest, Execute_SuccessAndFail) {
     ModelInferenceProcessor proc;
     auto options = std::make_shared<SessionOptions>();
+    EXPECT_CALL(*mockAcl, aclmdlExecute(_, _, _))
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC))
+        .WillOnce(Return(ACL_SUCCESS));
     proc.Init("model.om", options, 0, 0);
-    ASSERT_EQ(proc.Execute(), APP_ERR_ACL_FAILURE);
-
     proc.processModel = std::make_shared<DummyModelProcessFail>();
-    ASSERT_NE(proc.Execute(), APP_ERR_OK);
+    ASSERT_EQ(proc.Execute(), APP_ERR_ACL_FAILURE);
     proc.processModel = std::make_shared<DummyModelProcess>();
+    ASSERT_EQ(proc.Execute(), APP_ERR_OK);
 }
 
 TEST_F(ModelInferenceProcessorMockcppTest, ResetSumaryInfo) {
@@ -333,9 +425,13 @@ TEST_F(ModelInferenceProcessorMockcppTest, SetDynamicInfo) {
     // 默认STATIC_BATCH
     ASSERT_EQ(proc.SetDynamicInfo(), APP_ERR_OK);
     // DYNAMIC_BATCH
+    EXPECT_CALL(*mockAcl, aclmdlSetDynamicBatchSize)
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
     proc.dynamicInfo_.dynamicType = DYNAMIC_BATCH;
     ASSERT_EQ(proc.SetDynamicInfo(), APP_ERR_ACL_INVALID_PARAM);
     // DYNAMIC_HW
+    EXPECT_CALL(*mockAcl, aclmdlSetDynamicHWSize)
+        .WillOnce(Return(ACL_ERROR_BAD_ALLOC));
     proc.dynamicInfo_.dynamicType = DYNAMIC_HW;
     proc.dynamicInfo_.dyHW.imageSize.width = 1;
     proc.dynamicInfo_.dyHW.imageSize.height = 1;

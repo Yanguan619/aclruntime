@@ -533,7 +533,7 @@ bool Utils::IsLegalDymString(const std::string& str)
         }
         std::string inputName = inputInfo[0];
         std::string inputValue = inputInfo[1];
-        if (inputName.length() < 0 || inputName.length() > INPUT_NAME_LENGTH_MAX) {
+        if (inputName.length() == 0 || inputName.length() > INPUT_NAME_LENGTH_MAX) {
             ERROR_LOG("the length of input name parsed from dymshape string is output of [1, %zu]",
                       INPUT_LIST_MAX_SIZE);
             return false;

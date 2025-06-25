@@ -319,7 +319,7 @@ Result ModelProcess::GetMaxDynamicHWSize(uint64_t &outsize)
         return FAILED;
     }
 
-    if (dynamicHW.hwCount <= 0) {
+    if (dynamicHW.hwCount == 0) {
         ERROR_LOG("the dynamic_image_size parameter is not specified for model conversion");
         return FAILED;
     }

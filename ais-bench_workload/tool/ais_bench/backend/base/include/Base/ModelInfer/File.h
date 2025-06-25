@@ -29,7 +29,7 @@ constexpr const char PATH_SEPARATOR = '/';
 
 constexpr const uint32_t FULL_PATH_LENGTH_MAX = 4096;
 constexpr const uint32_t FILE_NAME_LENGTH_MAX = 255;
-constexpr const uint32_t PATH_DEPTH_MAX = 32;
+constexpr const size_t PATH_DEPTH_MAX = 32;
 
 constexpr size_t MAX_NUMPY_SIZE = 10ULL * 1024 * 1024 * 1024;
 constexpr size_t MAX_JSON_SIZE = 1024ULL * 1024 * 1024;

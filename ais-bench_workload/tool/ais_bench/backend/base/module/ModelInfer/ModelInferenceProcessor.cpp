@@ -951,7 +951,7 @@ APP_ERROR ModelInferenceProcessor::SetDynamicDims(std::string dymdimsStr)
 
     Utils::SplitStringSimple(dymdimsStr, dynamicInfo_.dyDims.pDims->dym_dims, ';', ':', ',');
 
-    if (dym_gear_count_ <= 0) {
+    if (dym_gear_count_ == 0) {
         PROMPT_MSG("the dynamic_dims parameter is not specified for model conversion");
         delete [] dims;
         free(dynamicInfo_.dyDims.pDims);

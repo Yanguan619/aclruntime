@@ -231,7 +231,7 @@ Result DvppProcess::InitResizeOutputDesc()
     (void)acldvppSetPicDescSize(vpcOutputDesc_, vpcOutBufferSize_);
     return SUCCESS;
 }
-
+extern string data_path ,output_path;
 Result DvppProcess::Init8kResizeInputDesc()
 {
     uint32_t inWidthStride = 8192; // 8k picture width
@@ -245,8 +245,9 @@ Result DvppProcess::Init8kResizeInputDesc()
         ERROR_LOG("acldvppCreatePicDesc vpcInputDesc_ failed");
         return FAILED;
     }
+    std::string dvppImagePath = data_path + "/data/dvpp_vpc_8192x8192_nv12.yuv";
     PicDesc testPic[] = {
-        { "../data/dvpp_vpc_8192x8192_nv12.yuv", 8192, 8192}
+        { dvppImagePath.c_str(), 8192, 8192}
         // other yuv file
     };
     vpcInBufferDev_ = Utils::GetPicDevBuffer(testPic[0], inBufferSize);
@@ -724,9 +725,10 @@ Result DvppProcess::InitEncodeResource()
 
 Result DvppProcess::ProcessJpegE()
 {
-    std::string encodeOutFileName = "./result/jpege_output_";
+    std::string encodeOutFileName = output_path + "/result/jpege_output_";
+    std::string dvppImagePath = data_path + "/data/wood_rabbit_1024_1068_nv12.yuv";
     PicDesc testPic[] = {
-        { "../data/wood_rabbit_1024_1068_nv12.yuv", 1024, 1068}
+        { dvppImagePath.c_str(), 1024, 1068}
         // other yuv file
     };
 
@@ -808,7 +810,7 @@ void DvppProcess::DestroyEncodeResource()
 
 Result DvppProcess::Process8kResize()
 {
-    std::string vpcOutFileName = "./result/dvpp_vpc_4000x4000_nv12.yuv";
+    std::string vpcOutFileName = output_path + "/result/dvpp_vpc_4000x4000_nv12.yuv";
     Result ret = ProcessResize();
     if (ret != SUCCESS) {
         ERROR_LOG("ProcessResize failed");

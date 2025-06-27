@@ -114,13 +114,11 @@ Result SampleProcess::Resize8kProcess(DvppType dvpptype)
 
     return SUCCESS;
 }
-
+extern string data_path ,output_path;
 // jpegd -> vpc -> model execute
 Result SampleProcess::JpegdProcess(DvppType dvpptype)
 {
-    const char* omModelPath = "../model/resnet50_aipp.om";
-    std::string modelOutputBinfileName = "./result/model_output_";
-    std::string dvppOutputfileName = "./result/dvpp_output_";
+    std::string dvppOutputfileName = output_path + "/result/dvpp_output_";
 
     // dvpp init
     DvppProcess dvppProcess(stream_);
@@ -133,11 +131,12 @@ Result SampleProcess::JpegdProcess(DvppType dvpptype)
 
     int modelInputWidth = 224;
     int modelInputHeight = 224;
-
+    std::string dvppImagePath1 = data_path + "/data/persian_cat_1024_1536_283.jpg";
+    std::string dvppImagePath2 = data_path + "/data/wood_rabbit_1024_1061_330.jpg";
     // input image
     PicDesc testPic[] = {
-        {"../data/persian_cat_1024_1536_283.jpg", 0, 0},
-        {"../data/wood_rabbit_1024_1061_330.jpg", 0, 0},
+        {dvppImagePath1.c_str(), 0, 0},
+        {dvppImagePath2.c_str(), 0, 0},
     };
     INFO_LOG( "-------------------------------------------");
     for (size_t index = 0; index < sizeof(testPic) / sizeof(testPic[0]); ++index) {

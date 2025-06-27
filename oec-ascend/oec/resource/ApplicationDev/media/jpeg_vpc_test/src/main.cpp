@@ -14,7 +14,7 @@
 #include "utils.h"
 
 using namespace std;
-
+string data_path ,output_path;
 int main(int argc,const char *argv[])
 {
     INFO_LOG("./main param, param represents a vpc feature and must be set");
@@ -22,8 +22,8 @@ int main(int argc,const char *argv[])
         ERROR_LOG("input param not be set");
         return FAILED;
     }
-    string data_path = string(argv[2]);
-    string output_path = string(argv[3]);
+    data_path = string(argv[2]);
+    output_path = string(argv[3]);
     string result_path_str = output_path + "/result";
     Result ret = Utils::CheckAndCreateFolder(result_path_str.c_str());
     if (ret != SUCCESS) {

@@ -20,7 +20,7 @@ print(f"soc version is {soc_version}")
 
 #transfer op model
 subprocess.run(f"atc --singleop={data_path}/data/add.json --output={data_path}/model --soc_version={soc_version}", shell=True)
-print(f"ATC successed!")
+
 
 acl_dtype = {
     "float32": 0,

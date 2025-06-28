@@ -50,7 +50,7 @@ add_json="""
 """
 add_json = json.loads(add_json)
 
-with open(f"{oec.Context.output_dir}/tmp/pyacl_testcase/add.json", 'w', encoding='utf-8') as json_file:
+with open(f"{output_dir}/tmp/pyacl_testcase/add.json", 'w', encoding='utf-8') as json_file:
     json.dump(add_json, json_file, ensure_ascii=False, indent=4)
 
 #transfer op model

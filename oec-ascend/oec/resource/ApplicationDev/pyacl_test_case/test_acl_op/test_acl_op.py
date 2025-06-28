@@ -50,11 +50,11 @@ add_json="""
 """
 add_json = json.loads(add_json)
 
-with open(f"{output_dir}/add.json", 'w', encoding='utf-8') as json_file:
+with open(f"{oec.Context.output_dir}/tmp/pyacl_testcase/add.json", 'w', encoding='utf-8') as json_file:
     json.dump(add_json, json_file, ensure_ascii=False, indent=4)
 
 #transfer op model
-subprocess.run(f"atc --singleop={output_dir}/add.json --output={output_dir} --soc_version={soc_version}", shell=True)
+subprocess.run(f"atc --singleop={output_dir}/tmp/pyacl_testcase/add.json --output={output_dir}/tmp/pyacl_testcase --soc_version={soc_version}", shell=True)
 
 
 acl_dtype = {
@@ -346,7 +346,7 @@ class TestOp(unittest.TestCase):
         if ret:
             print("acl.init failed! ret:", ret)
             raise AssertionError
-        ret = acl.op.set_model_dir(f"{output_dir}")
+        ret = acl.op.set_model_dir(f"{output_dir}/tmp/pyacl_testcase")
         if ret:
             print("acl.op.set_model_dir failed! ret:", ret)
             raise AssertionError
@@ -359,7 +359,7 @@ class TestOp(unittest.TestCase):
         """
         test case for loading operator
         """
-        np_data = np.fromfile(f"{output_dir}/0_Add_3_2_8_16_3_2_8_16_3_2_8_16.om", dtype="int8")
+        np_data = np.fromfile(f"{output_dir}/tmp/pyacl_testcase/0_Add_3_2_8_16_3_2_8_16_3_2_8_16.om", dtype="int8")
         bytes_data = np_data.tobytes()
         buffer = acl.util.bytes_to_ptr(bytes_data)
         np_size = np_data.size 

@@ -1,23 +1,21 @@
 import oec
-class ATCTest(oec.TestCase):
-    def execute_command(self):
-        self.execute_command_with_cmd(f'{self.get_cmd()} --soc_version={self.context.infomation.get("NPU")}')
-ATCTest(
+
+oec.TestCase(
     group= ("模型开发","模型编译"),
     name = "MODEL_ATC_SINGLE_ADD",
-    cmd=f"bash runatc.sh '{oec.Context.output_dir}' add.json --output=out"
+    cmd=f"bash runatc.sh '{oec.Context.output_dir}' add.json --output=out --soc_version=Ascend910B3"
     )
 
-ATCTest(
+oec.TestCase(
     group= ("模型开发","模型编译"),
     name = "MODEL_ATC_SINGLE_CONV2D",
-    cmd=f"bash runatc.sh '{oec.Context.output_dir}' conv2d.json --output=out"
+    cmd=f"bash runatc.sh '{oec.Context.output_dir}' conv2d.json --output=out --soc_version=Ascend910B3"
     )
 
-ATCTest(
+oec.TestCase(
     group= ("模型开发","模型编译"),
     name = "MODEL_ATC_SINGLE_DYNAMIC_SHAPE",
-    cmd=f"bash runatc.sh '{oec.Context.output_dir}' dynamic_shape.json --output=out"
+    cmd=f"bash runatc.sh '{oec.Context.output_dir}' dynamic_shape.json --output=out --soc_version=Ascend910B3"
     )
 
 oec.TestCase(

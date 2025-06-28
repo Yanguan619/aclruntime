@@ -41,7 +41,7 @@ function uninstall(){
 }
 
 install Ascend-cann-toolkit
-source Ascend/ascend-toolkit/set_env.sh
+source ${install_path}/ascend-toolkit/set_env.sh
 install Ascend-cann-kernels
 install Ascend-cann-nnal
 uninstall Ascend-cann-nnal

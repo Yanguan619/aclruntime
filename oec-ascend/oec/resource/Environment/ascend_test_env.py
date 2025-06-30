@@ -47,7 +47,7 @@ class OSInfomationCase(BaseTest):
         self.set_state(State.PASS)
     
     def get_test_content(self):
-        return 'Get OS infomation from platform and distro pacakge'
+        return 'Get OS infomation from platform and distro package'
 
 
 

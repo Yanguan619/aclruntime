@@ -8,10 +8,54 @@ import numpy as np
 import acl
 import utils as util
 import sys
+import subprocess
+import json
 #from constant import Const
 
 data_path = sys.argv[1]
 print(f"data path is {data_path}")
+
+output_dir = sys.argv[2]
+print(f"output dir is {output_dir}")
+
+#get soc version
+soc_version = acl.get_soc_name()
+print(f"soc version is {soc_version}")
+
+add_json="""
+[
+  {
+    "op": "Add",
+    "input_desc": [
+      {
+        "format": "ND",
+        "shape": [8, 16],
+        "type": "int32"
+      },
+      {
+        "format": "ND",
+        "shape": [8, 16],
+        "type": "int32"
+      }
+    ],
+    "output_desc": [
+      {
+        "format": "ND",
+        "shape": [8, 16],
+        "type": "int32"
+      }
+    ]
+  }
+]
+"""
+add_json = json.loads(add_json)
+
+with open(f"{output_dir}/tmp/pyacl_testcase/add.json", 'w', encoding='utf-8') as json_file:
+    json.dump(add_json, json_file, ensure_ascii=False, indent=4)
+
+#transfer op model
+subprocess.run(f"atc --singleop={output_dir}/tmp/pyacl_testcase/add.json --output={output_dir}/tmp/pyacl_testcase --soc_version={soc_version}", shell=True)
+
 
 acl_dtype = {
     "float32": 0,
@@ -302,7 +346,7 @@ class TestOp(unittest.TestCase):
         if ret:
             print("acl.init failed! ret:", ret)
             raise AssertionError
-        ret = acl.op.set_model_dir(f"{data_path}/model")
+        ret = acl.op.set_model_dir(f"{output_dir}/tmp/pyacl_testcase")
         if ret:
             print("acl.op.set_model_dir failed! ret:", ret)
             raise AssertionError
@@ -315,7 +359,7 @@ class TestOp(unittest.TestCase):
         """
         test case for loading operator
         """
-        np_data = np.fromfile(f"{data_path}/model/0_Add_3_2_8_16_3_2_8_16_3_2_8_16.om", dtype="int8")
+        np_data = np.fromfile(f"{output_dir}/tmp/pyacl_testcase/0_Add_3_2_8_16_3_2_8_16_3_2_8_16.om", dtype="int8")
         bytes_data = np_data.tobytes()
         buffer = acl.util.bytes_to_ptr(bytes_data)
         np_size = np_data.size 

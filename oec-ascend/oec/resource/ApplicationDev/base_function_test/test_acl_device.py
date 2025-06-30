@@ -41,6 +41,14 @@ class TestDevice(unittest.TestCase):
         2. get and check device id
         3. reset device 0
         """
+        ret = acl.rt.set_device(0)
+        self.assertEqual(ret, 0)
+        d, ret = acl.rt.get_device()
+        self.assertEqual(d, 0)
+        self.assertEqual(ret, 0)
+        ret = acl.rt.reset_device(0)
+        self.assertEqual(ret, 0)
+        
     
     def test_device_007_get_device_utilization_rate(self):
         """

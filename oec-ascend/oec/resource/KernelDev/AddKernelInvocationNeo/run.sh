@@ -37,6 +37,7 @@ while :; do
         ;;
     -o | --output)
         export OUTPUT_DIR="$2"
+        export CAMODEL_LOG_PATH="${OUTPUT_DIR}/sim_log"
         INSTALL_PREFIX="${OUTPUT_DIR}/out"
         shift 2
         ;;

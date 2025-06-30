@@ -5,7 +5,7 @@ oec.TestCase(
     group= ("应用开发","算子加速库"),
     
     name = "ACLNN_FLASHATTENTIONSCORE",
-    cmd=f"./run.sh {oec.Context.output_dir}/tmp",
+    cmd=f"./run.sh {oec.Context.output_dir}/tmp/aclnn",
     )
 
 

@@ -12,7 +12,7 @@ LONG=run-mode:,soc-version:,install-path:,build-type:,install-prefix:,
 OPTS=$(getopt -a --options $SHORT --longoptions $LONG -- "$@")
 eval set -- "$OPTS"
 SOC_VERSION="Ascend310P3"
-
+export OUTPUT_DIR=$CURRENT_DIR
 while :; do
     case "$1" in
     -r | --run-mode)
@@ -35,6 +35,10 @@ while :; do
         INSTALL_PREFIX="$2"
         shift 2
         ;;
+    -o | --output)
+        export OUTPUT_DIR="$2"
+        shift 2
+        ;;
     --)
         shift
         break
@@ -52,11 +56,11 @@ if [[ " $RUN_MODE_LIST " != *" $RUN_MODE "* ]]; then
     exit -1
 fi
 
-VERSION_LIST="Ascend910A Ascend910B Ascend310B1 Ascend310B2 Ascend310B3 Ascend310B4 Ascend310P1 Ascend310P3 Ascend910B1 Ascend910B2 Ascend910B3 Ascend910B4"
-if [[ " $VERSION_LIST " != *" $SOC_VERSION "* ]]; then
-    echo "ERROR: SOC_VERSION should be in [$VERSION_LIST]"
-    exit -1
-fi
+# VERSION_LIST="Ascend910A Ascend910B Ascend310B1 Ascend310B2 Ascend310B3 Ascend310B4 Ascend310P1 Ascend310P3 Ascend910B1 Ascend910B2 Ascend910B3 Ascend910B4"
+# if [[ " $VERSION_LIST " != *" $SOC_VERSION "* ]]; then
+#     echo "ERROR: SOC_VERSION should be in [$VERSION_LIST]"
+#     exit -1
+# fi
 
 if [ -n "$ASCEND_INSTALL_PATH" ]; then
     _ASCEND_INSTALL_PATH=$ASCEND_INSTALL_PATH
@@ -87,11 +91,12 @@ if [ "${RUN_MODE}" = "sim" ]; then
 elif [ "${RUN_MODE}" = "cpu" ]; then
     export LD_LIBRARY_PATH=${_ASCEND_INSTALL_PATH}/tools/tikicpulib/lib:${_ASCEND_INSTALL_PATH}/tools/tikicpulib/lib/${SOC_VERSION}:${_ASCEND_INSTALL_PATH}/tools/simulator/${SOC_VERSION}/lib:$LD_LIBRARY_PATH
 fi
-
+mkdir -p "$OUTPUT_DIR"
+cd "$OUTPUT_DIR"
 set -e
 rm -rf build out
 mkdir -p build
-cmake -B build \
+cmake $"CURRENT_DIR" -B build \
     -DRUN_MODE=${RUN_MODE} \
     -DSOC_VERSION=${SOC_VERSION} \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
@@ -104,7 +109,7 @@ rm -f ascendc_kernels_bbit
 cp ./out/bin/ascendc_kernels_bbit ./
 rm -rf input output
 mkdir -p input output
-python3 scripts/gen_data.py
+python3 "${CURRENT_DIR}/scripts/gen_data.py"
 (
     export LD_LIBRARY_PATH=$(pwd)/out/lib:$(pwd)/out/lib64:${_ASCEND_INSTALL_PATH}/lib64:$LD_LIBRARY_PATH
     if [[ "$RUN_WITH_TOOLCHAIN" -eq 1 ]]; then
@@ -120,4 +125,4 @@ python3 scripts/gen_data.py
     fi
 )
 md5sum output/*.bin
-python3 scripts/verify_result.py output/output_z.bin output/golden.bin
+python3 "${CURRENT_DIR}/scripts/verify_result.py output/output_z.bin output/golden.bin"

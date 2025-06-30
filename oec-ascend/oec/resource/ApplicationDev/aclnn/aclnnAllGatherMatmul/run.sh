@@ -1,4 +1,4 @@
-output_path="$1/acnnAllGatherMatmul"
+output_path="$1/aclnnAllGatherMatmul"
 src_path=$(pwd)
 mkdir -p "$output_path" 
 cd "${output_path}"

@@ -54,7 +54,7 @@ with open(f"{output_dir}/tmp/pyacl_testcase/add.json", 'w', encoding='utf-8') as
     json.dump(add_json, json_file, ensure_ascii=False, indent=4)
 
 #transfer op model
-subprocess.run(f"atc --singleop={output_dir}/tmp/pyacl_testcase/add.json --output={output_dir}/tmp/pyacl_testcase --soc_version={soc_version}", shell=True, cwd={output_dir}/tmp/pyacl_testcase)
+subprocess.run(f"atc --singleop={output_dir}/tmp/pyacl_testcase/add.json --output={output_dir}/tmp/pyacl_testcase --soc_version={soc_version}", shell=True, cwd=f"{output_dir}/tmp/pyacl_testcase")
 
 
 acl_dtype = {

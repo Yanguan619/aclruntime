@@ -5,10 +5,10 @@ CURRENT_DIR=$(
 )
 
 BUILD_TYPE="Debug"
-INSTALL_PREFIX="${CURRENT_DIR}/out"
 
-SHORT=r:,v:,i:,b:,p:,
-LONG=run-mode:,soc-version:,install-path:,build-type:,install-prefix:,
+
+SHORT=r:,v:,i:,b:,p:,o:,
+LONG=run-mode:,soc-version:,install-path:,build-type:,install-prefix:,output:,
 OPTS=$(getopt -a --options $SHORT --longoptions $LONG -- "$@")
 eval set -- "$OPTS"
 SOC_VERSION="Ascend310P3"
@@ -37,6 +37,7 @@ while :; do
         ;;
     -o | --output)
         export OUTPUT_DIR="$2"
+        INSTALL_PREFIX="${OUTPUT_DIR}/out"
         shift 2
         ;;
     --)
@@ -61,7 +62,8 @@ fi
 #     echo "ERROR: SOC_VERSION should be in [$VERSION_LIST]"
 #     exit -1
 # fi
-
+echo $ASCEND_INSTALL_PATH
+echo $ASCEND_HOME_PATH
 if [ -n "$ASCEND_INSTALL_PATH" ]; then
     _ASCEND_INSTALL_PATH=$ASCEND_INSTALL_PATH
 elif [ -n "$ASCEND_HOME_PATH" ]; then
@@ -96,7 +98,8 @@ cd "$OUTPUT_DIR"
 set -e
 rm -rf build out
 mkdir -p build
-cmake $"CURRENT_DIR" -B build \
+echo ${_ASCEND_INSTALL_PATH}
+cmake "$CURRENT_DIR" -B build \
     -DRUN_MODE=${RUN_MODE} \
     -DSOC_VERSION=${SOC_VERSION} \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
@@ -125,4 +128,4 @@ python3 "${CURRENT_DIR}/scripts/gen_data.py"
     fi
 )
 md5sum output/*.bin
-python3 "${CURRENT_DIR}/scripts/verify_result.py output/output_z.bin output/golden.bin"
+python3 "${CURRENT_DIR}/scripts/verify_result.py" "output/output_z.bin" "output/golden.bin"

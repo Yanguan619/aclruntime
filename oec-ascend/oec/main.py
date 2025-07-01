@@ -130,15 +130,20 @@ def enable_ansi_windows():
         kernel32 = ctypes.windll.kernel32
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)  # 启用 VT100 模式
 def main():
-    cmd_args = argparse_handler()
-    init_logger(logging.DEBUG if cmd_args.verbose else logging.INFO)
-    logger.info(cmd_args)
-    output = os.path.abspath(cmd_args.output)
-    data_path = os.path.realpath(cmd_args.data)
+    # cmd_args = argparse_handler()
+    verbose = False
+    output_dir = "./output"
+    data_dir = "./data"
+    cann_dir = "/usr/local/Ascend"
+    
+    init_logger(logging.DEBUG if verbose else logging.INFO)
+
+    output = os.path.abspath(output_dir)
+    data_path = os.path.realpath(data_dir)
     if not os.path.exists(data_path):
         logger.fatal(f"{data_path} is not existing, please download it first!")
         exit(1000)
-    cann_path = os.path.realpath(cmd_args.cann)
+    cann_path = os.path.realpath(cann_dir)
     if not os.path.exists(cann_path):
         logger.fatal(f"{cann_path} is not existing, please download it first!")
         exit(2000)
@@ -157,12 +162,12 @@ def main():
     state_monitor = threading.Thread(
         name="state_monitor", target=print_state, args=[Context]
     )
-    if not cmd_args.verbose:
+    if not verbose:
         Context.finished = False
         enable_ansi_windows()
         state_monitor.start()
     result = Context.run_tests()
-    if not cmd_args.verbose:
+    if not verbose:
         Context.finished = True
         state_monitor.join()
 

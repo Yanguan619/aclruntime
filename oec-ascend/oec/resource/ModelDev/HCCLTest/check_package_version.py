@@ -240,37 +240,15 @@ def generate_install_commands(results, py_req=None):
         
         if "min_version" in rule and "max_version" in rule:
             if rule['min_version']==rule['max_version']:
-                commands.append(f"pip install '{pkg_name}=={rule['min_version']}'")
+                commands.append(f"请先安装 '{pkg_name}=={rule['min_version']}'")
             else:
-                commands.append(f"pip install '{pkg_name}>={rule['min_version']},<={rule['max_version']}'")
+                commands.append(f"请先安装 '{pkg_name}>={rule['min_version']},<={rule['max_version']}'")
         elif "min_version" in rule:
-            commands.append(f"pip install '{pkg_name}>={rule['min_version']}'")
+            commands.append(f"请先安装 '{pkg_name}>={rule['min_version']}'")
         elif "max_version" in rule:
-            commands.append(f"pip install '{pkg_name}<={rule['max_version']}'")
+            commands.append(f"请先安装 '{pkg_name}<={rule['max_version']}'")
         else:
-            commands.append(f"pip install {pkg_name}")
-    
-    # 创建 requirements.txt 的建议
-    commands.append("\n# 或者创建 requirements.txt 文件:")
-    commands.append("# 将以下内容保存到 requirements.txt 文件中:")
-    for res in results:
-        pkg_name = res["pypi_name"]
-        rule = res["rule"]
-        
-        if "min_version" in rule and "max_version" in rule:
-            if rule['min_version'] == rule['max_version']:
-                commands.append(f"{pkg_name}=={rule['min_version']}")
-            else:
-                commands.append(f"{pkg_name}>={rule['min_version']},<={rule['max_version']}")
-        elif "min_version" in rule:
-            commands.append(f"{pkg_name}>={rule['min_version']}")
-        elif "max_version" in rule:
-            commands.append(f"{pkg_name}<={rule['max_version']}")
-        else:
-            commands.append(pkg_name)
-    
-    commands.append("\n# 然后运行:")
-    commands.append("pip install -r requirements.txt")
+            commands.append(f"请先安装 {pkg_name}")
     
     return "\n".join(commands)
 

@@ -14,8 +14,9 @@ oec-ascend （昇腾软件操作系统兼容性验证工具）包含一套基础
 
 ## 快速开始
 ### 安装
-#### 方式一：通过离线安装包安装
+#### 方式一：通过预构建离线安装包安装
 ```
+wget https://ascend-cann-open.obs.cn-north-4.myhuaweicloud.com/cann-os/oec_ascend_compatibility-1.0-py3-none-any.whl
 pip install oec_ascend_compatibility-1.0-py3-none-any.whl
 ```
 #### 方式二：通过源码安装（需要开发或增加测试用例）

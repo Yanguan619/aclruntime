@@ -23,22 +23,22 @@ def make_log_dir(log_dir):
 class TestContext(object):
 
     def __init__(self):
-        self._all_tests: dict[str, TestInterface] = {}
+        self._all_tests = {}
         self._data_path = ""
         self._cann_path = ""
         self._output_dir:str = ""
         self._relative_output:str = ""
         self._defaut_log_dir:str = ""
-        self._used_tests: dict[str, TestInterface] = {}
-        self._test_order: list[list[TestInterface]] = []
-        self._infomation: dict[str, str] = {}
-        self._states_distribution: dict[State, int] = {}
-        self._env:dict[str,str] = os.environ.copy()
+        self._used_tests = {}
+        self._test_order = []
+        self._infomation = {}
+        self._states_distribution = {}
+        self._env = os.environ.copy()
         self.finished = False
         for state in State:
             self._states_distribution.setdefault(state, 0)
     
-    def set_env(self,env:dict[str,str]):
+    def set_env(self,env):
         self._env = env
     
     @property
@@ -145,11 +145,11 @@ class TestContext(object):
 
         logger.debug("test_sequence is:")
         logger.debug(test_sequence)
-        tmp_dict: dict[tuple, list[TestInterface]] = {}
+        tmp_dict = {}
         for group in test_sequence:
             tmp_dict.setdefault(group, [])
         used_test = {}
-        order_list: list[list[TestInterface]] = []
+        order_list = []
         for name, test in tests.items():
             if test.group in tmp_dict:
                 tmp_dict[test.group].append(test)
@@ -172,7 +172,7 @@ class TestContext(object):
         self.distribution[State.NOT_RUNNING] = len(self.get_used_tests())
         order_list = self.test_order
         for item in order_list:
-            threads: list[threading.Thread] = []
+            threads = []
             for test in item:
                 t = threading.Thread(target=test.run, name=test.name)
                 t.start()

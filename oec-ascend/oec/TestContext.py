@@ -77,8 +77,9 @@ class TestContext(object):
             + self.distribution[State.TIMEOUT]
             + self.distribution[State.UNSUPPORTED]
         )
-        ran = success + failed
+        
         total = len(self.get_used_tests())
+        ran = total - self.distribution[State.NOT_RUNNING] - self.distribution[State.RUNNING]
         if total == 0:
             return "wait for start"
 

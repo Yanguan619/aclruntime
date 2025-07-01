@@ -3,3 +3,4 @@ __pycache__
 oec-ascend/output
 oec-ascend/dist
 oec-ascend/oec_ascend_compatibility.egg-info
+oec-ascend/build

@@ -26,6 +26,7 @@ class TestContext(object):
         self._all_tests = {}
         self._data_path = ""
         self._cann_path = ""
+        self._work_path = ""
         self._output_dir:str = ""
         self._relative_output:str = ""
         self._defaut_log_dir:str = ""
@@ -55,6 +56,13 @@ class TestContext(object):
         self._output_dir = output_path
         self._relative_output = relative_output
         self._defaut_log_dir = log_dir
+    
+    def set_work_path(self,work_path:str):
+        self._work_path = work_path   
+    
+    @property
+    def work_path(self):
+        return self._work_path
     
     def set_cann_path(self,cann_path:str):
         self._cann_path = cann_path   

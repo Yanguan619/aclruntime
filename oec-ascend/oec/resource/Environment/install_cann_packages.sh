@@ -3,6 +3,7 @@ echo  ==    CANN PACKAGES INSTALL UNINSTALL TEST   ==
 echo  ===============================================
 
 cd $1
+echo try to find Ascend-cann packages in $1
 install_path=$(realpath $2)
 mkdir -p "$install_path"
 

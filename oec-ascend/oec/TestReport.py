@@ -57,7 +57,7 @@ def gen_report(path: str, context: TestContext):
         def total(self):
             return sum([test.count() for test in self.tests])
 
-    dic: dict[tuple, info] = {}
+    dic = {}
     for i in range(len(dft)):
         dic.setdefault((dft.iat[i, 0], dft.iat[i, 1]), info())
 

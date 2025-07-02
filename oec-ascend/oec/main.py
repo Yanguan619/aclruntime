@@ -133,23 +133,31 @@ def main():
     # cmd_args = argparse_handler()
     verbose = False
     output_dir = "./output"
-    data_dir = "./data"
+    data_dir = os.path.dirname(__file__) + "/data"
     cann_dir = "/usr/local/Ascend"
+    work_dir = os.path.realpath("./")
     
     init_logger(logging.DEBUG if verbose else logging.INFO)
-
+    
+    # 如果source了环境变量则提取组合包安装路径
+    ascend_home_path = os.environ.get('ASCEND_HOME_PATH')
+    if ascend_home_path is not None:
+        cann_dir = os.path.realpath(f"{ascend_home_path}/../..")
+        logger.info(f"Ascend install path is {cann_dir}")
+    
     output = os.path.abspath(output_dir)
     data_path = os.path.realpath(data_dir)
     if not os.path.exists(data_path):
-        logger.fatal(f"{data_path} is not existing, please download it first!")
+        logger.fatal(f"{data_path} is not existing, please create it first!")
         exit(1000)
     cann_path = os.path.realpath(cann_dir)
     if not os.path.exists(cann_path):
-        logger.fatal(f"{cann_path} is not existing, please download it first!")
+        logger.fatal(f"{cann_path} is not existing, please install CANN first!")
         exit(2000)
     Context.set_data_path(data_path)
     Context.set_cann_path(cann_path)
     Context.set_output(output)
+    Context.set_work_path(work_dir)
     resource =f"{os.path.dirname(__file__)}/resource"
     resource = os.path.realpath(resource)
 

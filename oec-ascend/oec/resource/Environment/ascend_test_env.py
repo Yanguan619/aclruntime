@@ -63,9 +63,9 @@ class HDKInfomationCase(TestCase):
             
             info['Ascend HDK Version'] = rst.group(1)
         matches = re.findall(r'\|\s+\d+\s+(\S+)\s+\|', log)
-
+        matches2 = re.findall(r'\|\s+\w{4}:\w{2}:\w{2}.\w\s+\|', log)
         if matches:
-            info['昇腾硬件'] = f"{matches[0]} × {len(matches)}"
+            info['昇腾硬件'] = f"{matches[0]} × {len(matches2)}"
 
 class CANNNPUInfomationCase(TestCase):
     

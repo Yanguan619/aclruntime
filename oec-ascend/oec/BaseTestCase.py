@@ -20,6 +20,7 @@ class TestCase(BaseTest):
         unexpect: List[int] = None,
         count=1,
         cwd=None,
+        timeout=None,
         *args,
         **kwargs,
     ):
@@ -35,6 +36,7 @@ class TestCase(BaseTest):
         self._log = ""
         self._retrun_code = 0
         self._cwd = cwd
+        self._timeout = timeout
         if isinstance(self._include, str):
             self._include = [self._include]
         if isinstance(self._exclude, str):
@@ -103,7 +105,10 @@ class TestCase(BaseTest):
                 stderr=subprocess.STDOUT,
                 text=True,
             )
-            process.wait()
+            try:
+                process.wait(self._timeout)
+            except subprocess.TimeoutExpired:
+                self.set_state(State.TIMEOUT)
             f.seek(0)
             log = f.read(-1)
             return_code = process.returncode
@@ -137,6 +142,8 @@ class TestCase(BaseTest):
         logger.debug(
             f'\n>> {self.name}{"(optional)" if self.is_optional() else ""} -> return {return_code} :\n File "{self.get_origin_path()}" :\n{log}'
         )
+        if self.is_finished():
+            return
         if self.get_include() is not None:
             for pattern in self.get_include():
                 result = re.search(pattern, log)

@@ -21,9 +21,10 @@ function install(){
     echo  ===============================================
     echo ./*$package* --install --install-path="$install_path" --quiet
     chmod +x *$package*
-    ./$package* --install --quiet --install-path="$install_path"
-    if [[ $? != 0 ]]; then
-        exit $?
+    ./*$package* --install --quiet --install-path="$install_path"
+    rst=$?
+    if [[ $rst != 0 ]]; then
+        exit $rst
     fi
 }
 function uninstall(){
@@ -35,36 +36,43 @@ function uninstall(){
     fi
     echo ./*$package* --uninstall --install-path="$install_path"
     chmod +x *$package*
-    ./$package* --uninstall --install-path="$install_path"
-    if [[ $? != 0 ]]; then
-        exit $?
+    ./*$package* --uninstall --install-path="$install_path"
+    rst=$?
+    if [[ $rst != 0 ]]; then
+        exit $rst
     fi
 }
 
 install cann-toolkit
-if [[ $? != 0 ]]; then
-    exit $?
+rst=$?
+if [[ $rst != 0 ]]; then
+    exit $rst
 fi
 source ${install_path}/ascend-toolkit/set_env.sh
 install cann-kernels
-if [[ $? != 0 ]]; then
-    exit $?
+rst=$?
+if [[ $rst != 0 ]]; then
+    exit $rst
 fi
 install cann-nnal
-if [[ $? != 0 ]]; then
-    exit $?
+rst=$?
+if [[ $rst != 0 ]]; then
+    exit $rst
 fi
 uninstall cann-nnal
-if [[ $? != 0 ]]; then
-    exit $?
+rst=$?
+if [[ $rst != 0 ]]; then
+    exit $rst
 fi
 uninstall cann-kernels
-if [[ $? != 0 ]]; then
-    exit $?
+rst=$?
+if [[ $rst != 0 ]]; then
+    exit $rst
 fi
 uninstall cann-toolkit
-if [[ $? != 0 ]]; then
-    exit $?
+rst=$?
+if [[ $rst != 0 ]]; then
+    exit $rst
 fi
 
 code=0

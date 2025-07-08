@@ -31,7 +31,12 @@ Ascend tools，昇腾工具仓库。
     **TensorFlow1.15 saved_model模型转om工具**: 支持将TensorFlow1.15存储的saved_model生成基于NPU版本TensorFlow的HW saved_model用于加载om。
 
 6. [tfdbg_ascend](https://gitee.com/ascend/tools/tree/master/tfdbg_ascend)
+
     **Tensorflow2.x dump工具**：该工具提供CPU/GPU平台上Tensorflow2.x运行时数据Dump能力。
+
+7. [mark_symbol_infer](https://gitee.com/ascend/tools/tree/master/mark_symbol_infer)
+
+    **符号化推导结果标记工具**：该工具提供标记符号化推导结果的能力，配合修改后的netron打开处理后的dump图，可以通过颜色区分算子的符号化推导是否成功。
 
 
 #### 贡献

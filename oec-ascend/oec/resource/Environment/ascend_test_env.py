@@ -129,7 +129,8 @@ HDKInfomationCase(
 SetEnvTestCase(
     group=("运行环境","CANN信息"),
     name="READ_CANN_SET_ENV",
-    cmd=f"bash -c 'source {oec.Context.cann_path}/ascend-toolkit/set_env.sh && env'"
+    cmd=f"bash -c 'source {oec.Context.cann_path}/ascend-toolkit/set_env.sh && env'",
+    exclude=None,
 )
 
 CANNVersionInfomationCase(

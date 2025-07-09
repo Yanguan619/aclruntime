@@ -25,7 +25,7 @@ pip install oec_ascend_compatibility-1.0-py3-none-any.whl
 
 #### 网络问题
 
-如果wget遇到证书相关的错误，可以手动下载安装包上传安装，或者增加`--no-check-certifiate`参数规避（**不建议绕过SSL**，请确认网络环境安全）
+如果wget遇到证书相关的错误，可以手动下载安装包上传安装，或者增加`--no-check-certificate`参数规避（**不建议绕过SSL**，请确认网络环境安全）
 
 下载链接：[oec_ascend_compatibility-1.0-py3-none-any.whl](https://ascend-cann-open.obs.cn-north-4.myhuaweicloud.com/cann-os/oec_ascend_compatibility-1.0-py3-none-any.whl)
 

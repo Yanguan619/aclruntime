@@ -6,6 +6,7 @@
 #include <map>
 #include <algorithm>
 #include <cmath>
+#include <chrono>
 using namespace std;
 
 // ---------------------- 全局变量定义 ----------------------
@@ -150,7 +151,6 @@ void Inference() {
         cerr << "[ERROR] Inference failed, error code: " << ret << endl;
         exit(1);
     }
-    cout << "[INFO] Inference executed successfully" << endl;
 }
 
 // 9. 打印结果并验证
@@ -273,9 +273,9 @@ void DestroyResource() {
 // ---------------------- 主函数 ----------------------
 int main(int argc, char* argv[]) {
     // 检查命令行参数
-    if (argc != 2) {
-        cerr << "[ERROR] Usage: " << argv[0] << " <base_path>" << endl;
-        cerr << "  Example: " << argv[0] << " /path/to/resources" << endl;
+    if (argc != 3) {
+        cerr << "[ERROR] Usage: " << argv[0] << " <base_path>"<<" <test_times>" << endl;
+        cerr << "  Example: " << argv[0] << " /path/to/resources" <<" 1000" << endl;
         cerr << "  Model will be loaded from: <base_path>/model/resnet50.om" << endl;
         cerr << "  Picture will be loaded from: <base_path>/data/dog1_1024_683.bin" << endl;
         return 1;
@@ -283,6 +283,7 @@ int main(int argc, char* argv[]) {
     
     // 构建模型和图片路径
     string basePath = argv[1];
+    int test_times = atoi(argv[2]);
     string modelPath = basePath + "/model/resnet50.om";
     string picturePath = basePath + "/data/dog1_1024_683.bin";
     
@@ -299,12 +300,20 @@ int main(int argc, char* argv[]) {
     // 3. 加载测试图片
     LoadPicture(picturePath.c_str());
     
-    // 4. 执行推理
-    Inference();
+    auto start = std::chrono::high_resolution_clock::now();
+    for(int i =0; i < test_times; ++i){
+        // 4. 执行推理
+        Inference();
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    double fps = static_cast<double>(test_times) / duration.count() * 1000000;
     
     // 5. 打印结果并验证
     int status = PrintResultAndValidate();
     
+    std::cout <<"\n" << "FPS: " << fps << "\n" <<std::endl;
+
     // 6. 卸载模型
     UnloadModel();
     

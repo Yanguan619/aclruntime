@@ -11,10 +11,13 @@ if [[ $? != 0 ]]; then
 fi
 
 cd "$output/tmp/resnet50"
-atc --model="$data/model/resnet50.onnx" --framework=5 --output="model/resnet50" --input_shape="actual_input_1:1,3,224,224" --soc_version=$npu
+if [[ ! -f "model/resnet50.om" ]]; then
+    atc --model="$data/model/resnet50.onnx" --framework=5 --output="model/resnet50" --input_shape="actual_input_1:1,3,224,224" --soc_version=$npu
+fi
+
 cp -r "$data/data" "$output/tmp/resnet50"
 
-./resnet50 "$output/tmp/resnet50"
+./resnet50 "$output/tmp/resnet50" 5000
 rst=$?
 echo rst=$rst
 

@@ -64,8 +64,20 @@ class HDKInfomationCase(TestCase):
             info['Ascend HDK Version'] = rst.group(1)
         matches = re.findall(r'\|\s+\d+\s+(\S+)\s+\|', log)
         matches2 = re.findall(r'\|\s+\w{4}:\w{2}:\w{2}.\w\s+\|', log)
+        info.setdefault('NPU', "unknow")
+        info.setdefault('Count', 0)
         if matches:
-            info['昇腾硬件'] = f"{matches[0]} × {len(matches2)}"
+            info['NPU'] = matches[0]
+        if matches2:
+            info['Count'] = len(matches2)  
+        
+        if info['Count'] > 1:
+            info["昇腾硬件"] = f"{info['NPU']} × {info['Count'] }"
+        else:
+            info["昇腾硬件"] = f"{info['NPU']}"
+        
+        self.logger.debug(
+            f"HDK NPU:{info['NPU']}, Count:{info['Count']}")
 
 class CANNNPUInfomationCase(TestCase):
     
@@ -76,14 +88,19 @@ class CANNNPUInfomationCase(TestCase):
         if log == "":
             self.set_state(State.FAIL)
             return
-        info = log.split('\n')
-        if info is None or len(info) != 2:
+        npu_count = log.split('\n')
+        if npu_count is None or len(npu_count) != 2:
             self.set_state(State.FAIL)
             return
-        npu,count = tuple(info)
+        npu,count = tuple(npu_count)
         self.logger.debug(f"NPU:{npu}, Count:{count}")
-        self.context.infomation['NPU'] = npu
-        self.context.infomation['Count'] = count
+        info = self.context.infomation
+        info['NPU'] = npu
+        info['Count'] = int(count)
+        if info['Count'] > 1:
+            info["昇腾硬件"] = f'{npu} × {count}'
+        else:
+            info["昇腾硬件"] = f'{npu}'
         self.set_state(State.PASS)
 
 class CANNVersionInfomationCase(TestCase):
@@ -112,7 +129,8 @@ HDKInfomationCase(
 SetEnvTestCase(
     group=("运行环境","CANN信息"),
     name="READ_CANN_SET_ENV",
-    cmd=f"bash -c 'source {oec.Context.cann_path}/ascend-toolkit/set_env.sh && env'"
+    cmd=f"bash -c 'source {oec.Context.cann_path}/ascend-toolkit/set_env.sh && env'",
+    exclude=None,
 )
 
 CANNVersionInfomationCase(

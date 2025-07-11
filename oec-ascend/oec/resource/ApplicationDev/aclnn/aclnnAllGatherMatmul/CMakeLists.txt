@@ -17,7 +17,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-fPIC -O2 -Wall")
 # 设置可执行文件名（如opapi_test），并指定待运行算子文件*.cpp所在目录
 add_executable(testcase
                testcase.cpp) 
-
+if(DEFINED DEV_NUM)
+    target_compile_definitions(testcase PRIVATE DEV_NUM=${DEV_NUM})
+endif()
 # 设置ASCEND_PATH（CANN软件包目录，请根据实际路径修改）和INCLUDE_BASE_DIR（头文件目录）
 if(NOT "$ENV{ASCEND_HOME_PATH}" STREQUAL "")      
     set(ASCEND_PATH $ENV{ASCEND_HOME_PATH})

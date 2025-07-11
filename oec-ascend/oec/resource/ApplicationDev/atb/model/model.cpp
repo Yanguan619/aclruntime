@@ -225,9 +225,6 @@ void Model::FreeResource()
     auto status = aclrtDestroyStream(modelStream_);  // 销毁stream
     CHECK_RET(status, "aclrtDestroyStream failed");
 
-    status = atb::DestroyContext(modeContext_);  // 销毁context
-    CHECK_RET(status, "aclrtDestroyStream failed");
-
     // 释放operation
     for (auto &node : nodes_) {
         atb::DestroyOperation(node.operation_);
@@ -235,7 +232,9 @@ void Model::FreeResource()
         GetMemoryManager().FreeBlock(node.workspaceBlockId_);
 #endif
     }
-
+    // 销毁context
+    status = atb::DestroyContext(modeContext_);  
+    CHECK_RET(status, "aclrtDestroyStream failed");
     // 销毁输入tensor
     for (size_t i = 0; i < modelInTensors_.size(); i++) {
         aclrtFree(modelInTensors_.at(i).deviceData);

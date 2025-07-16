@@ -83,7 +83,7 @@ echo "Current compile soc version is ${SOC_VERSION}"
 source ${_ASCEND_INSTALL_PATH}/bin/setenv.bash
 if [ "${RUN_MODE}" = "sim" ]; then
     # in case of running op in simulator, use stub .so instead
-    export LD_LIBRARY_PATH=${_ASCEND_INSTALL_PATH}/tools/simulator/${SOC_VERSION}/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=${_ASCEND_INSTALL_PATH}/tools/simulator/${SOC_VERSION}/lib:${_ASCEND_INSTALL_PATH}/lib64:$LD_LIBRARY_PATH
     if [ ! $CAMODEL_LOG_PATH ]; then
         export CAMODEL_LOG_PATH=$(pwd)/sim_log
     fi
@@ -92,7 +92,7 @@ if [ "${RUN_MODE}" = "sim" ]; then
     fi
     mkdir -p $CAMODEL_LOG_PATH
 elif [ "${RUN_MODE}" = "cpu" ]; then
-    export LD_LIBRARY_PATH=${_ASCEND_INSTALL_PATH}/tools/tikicpulib/lib:${_ASCEND_INSTALL_PATH}/tools/tikicpulib/lib/${SOC_VERSION}:${_ASCEND_INSTALL_PATH}/tools/simulator/${SOC_VERSION}/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=${_ASCEND_INSTALL_PATH}/tools/tikicpulib/lib:${_ASCEND_INSTALL_PATH}/tools/tikicpulib/lib/${SOC_VERSION}:${_ASCEND_INSTALL_PATH}/tools/simulator/${SOC_VERSION}/lib:${_ASCEND_INSTALL_PATH}/lib64:$LD_LIBRARY_PATH
 fi
 mkdir -p "$OUTPUT_DIR"
 cd "$OUTPUT_DIR"
@@ -115,7 +115,7 @@ rm -rf input output
 mkdir -p input output
 python3 "${CURRENT_DIR}/scripts/gen_data.py"
 (
-    export LD_LIBRARY_PATH=$(pwd)/out/lib:$(pwd)/out/lib64:${_ASCEND_INSTALL_PATH}/lib64:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=$(pwd)/out/lib:$(pwd)/out/lib64:$LD_LIBRARY_PATH
     if [[ "$RUN_WITH_TOOLCHAIN" -eq 1 ]]; then
         if [ "${RUN_MODE}" = "npu" ]; then
             msprof op --application=./ascendc_kernels_bbit

@@ -65,8 +65,23 @@ class ResetEnvTestCase(BaseTest):
         
 class NPUTestCase(TestCase):
     """
-        从Context.infomation中获取和替换cmd中 <key> 包围的信息,其中key为需要获取和替换的键,注意左尖括号前需要有白字符
+        1.从Context.infomation中获取和替换cmd中 <key> 包围的信息,其中key为需要获取和替换的键,注意左尖括号前需要有白字符
+        2.支持根据NPU型号设置黑名单 NPUTestCase(...,black_list=[r"Ascend310P.*", r"Ascend310B.*"]), 禁用所有310P 310B系列
     """
+    def __init__(self, black_list=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if black_list is None:
+            black_list = []
+        if isinstance(black_list,str):
+            black_list = [black_list]
+        if not isinstance(black_list, list):
+            raise TypeError("black_list type is not correct!")
+        self._black_list = black_list
+    
+    @property
+    def black_list(self):
+        return self._black_list
+    
     def replace_cmd_with_info(self, cmd):
         # 正则表达式匹配：空白字符 + <xxx>
         # \s 匹配任何空白字符，[\w]+ 匹配单词字符（字母、数字、下划线）
@@ -79,7 +94,19 @@ class NPUTestCase(TestCase):
         
         new_cmd = pattern.sub(replacer, cmd)
         return new_cmd
-    
+    def check_npu_in_black_list(self):
+        if not self.black_list:
+            return False
+        npu = self.context.infomation.get("NPU", "unknow")
+        for name in self.black_list:
+            if re.fullmatch(name, npu):
+                return True
+        return False
+        
     def execute_command(self):
+        if self.check_npu_in_black_list():
+            self.set_state(State.UNSUPPORTED)
+            self.set_reason(f"the npu {self.context.infomation.get('NPU', 'unkonw')} is unsupported in this case.")
+            return
         cmd:str =  self.replace_cmd_with_info(self.get_cmd())
         self.execute_command_with_cmd(cmd)

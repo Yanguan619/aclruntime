@@ -38,6 +38,8 @@ class TestContext(object):
         self.finished = False
         for state in State:
             self._states_distribution.setdefault(state, 0)
+        
+        self.infomation.setdefault("NPU", "unknow")
     
     def set_env(self,env):
         self._env = env
@@ -83,18 +85,18 @@ class TestContext(object):
         failed = (
             self.distribution[State.FAIL]
             + self.distribution[State.TIMEOUT]
-            + self.distribution[State.UNSUPPORTED]
         )
         
         total = len(self.get_used_tests())
-        ran = total - self.distribution[State.NOT_RUNNING] - self.distribution[State.RUNNING]
+        ran = total - self.distribution[State.NOT_RUNNING] - self.distribution[State.RUNNING] \
+            - self.distribution[State.WARNING] - self.distribution[State.UNSUPPORTED]
         if total == 0:
             return "wait for start"
 
         return (
             f"total {total}, running {self.distribution[State.RUNNING]}, not running {self.distribution[State.NOT_RUNNING]}, "
             f"passed {success}, warning {self.distribution[State.WARNING]}, failed {self.distribution[State.FAIL]}, "
-            f"timeout {self.distribution[State.TIMEOUT]}.\n"
+            f"timeout {self.distribution[State.TIMEOUT]}, unsupported {self.distribution[State.UNSUPPORTED]}.\n"
             f"Completion rate {round(ran/total*100,2)}%, pass rate { 0 if ran==0 else round(success/ran*100,2)}%"
         )
 

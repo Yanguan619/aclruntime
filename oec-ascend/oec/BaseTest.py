@@ -67,7 +67,7 @@ class BaseTest(TestInterface):
         return self.state not in [State.NOT_RUNNING, State.RUNNING]
 
     def can_continue(self):
-        if self.is_passed():
+        if self.is_passed() or self.state == State.UNSUPPORTED:
             return True
 
         if self.is_failed() and self.is_optional():
@@ -76,7 +76,7 @@ class BaseTest(TestInterface):
         return False
 
     def is_failed(self):
-        if self.state in [State.FAIL, State.TIMEOUT, State.UNSUPPORTED]:
+        if self.state in [State.FAIL, State.TIMEOUT]:
             return True
         return False
 
@@ -163,9 +163,9 @@ class BaseTest(TestInterface):
         if self.auxiliary and state == State.FAIL:
             state=State.WARNING
             
-        self.context.distribution[self.state] -= 1
+        self.context.distribution[self.state] -= self.count()
         self._state = state
-        self.context.distribution[state] += 1
+        self.context.distribution[state] += self.count()
 
     def get_test_content(self):
         return (

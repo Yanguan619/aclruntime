@@ -108,21 +108,41 @@ def get_absolute_out_path(output):
     return output_path
 
 
+class HideCursor:
+    def __init__(self):
+        self.state = False
+
+    def hide(self):
+        self.state = True
+        print("\033[?25l",end="",flush=True)
+
+    def __del__(self):
+        if not self.state:
+            return
+        print("\033[?25h",end="",flush=True)
+
+hider = HideCursor()
 def print_state(context: TestContext):
-    last_lines = []
+    hider.hide() #隐藏光标显示
+    last_lines_len = 0
     def update_state():
-        nonlocal last_lines
+        nonlocal last_lines_len
         state = context.get_state_distribution_str()
         lines = state.split('\n')
-        logger.info(f"\033[{len(last_lines) + 1}A")
+        lines_len = 0
+        logger.info(f"\033[{last_lines_len + 1}A")
         for v in lines:
-            logger.info(f"{v}\033[K")
-        for _ in range(len(lines),len(last_lines)):
+            terminal_colums, terminal_lines= os.get_terminal_size()
+            for l in range(0, len(v), terminal_colums):
+                logger.info(f"{v[l:l + terminal_colums]}\033[K")
+                lines_len += 1
+                
+        for _ in range(lines_len, last_lines_len):
             logger.info(f"\033[K")
-        delta_lines = len(last_lines) -len(lines)
+        delta_lines = last_lines_len -lines_len
         if delta_lines > 0:
             logger.info(f"\033[{delta_lines + 1}A")
-        last_lines = lines
+        last_lines_len = lines_len
 
     while not context.finished:
         update_state()
@@ -192,4 +212,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    finally:
+        del hider #恢复光标显示

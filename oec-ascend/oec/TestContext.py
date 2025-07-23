@@ -206,8 +206,9 @@ class TestContext(object):
     def clear_unimportented_messages(self, items):
         time.sleep(5)
         for test in items:
-            if not test.is_failed() and not test.state == State.WARNING:
-                test.del_console_message()
+            if test.is_failed() or test.state == State.WARNING:
+                continue
+            test.del_console_message()
     
     def run_tests(self):
         self.distribution[State.NOT_RUNNING] = len(self.get_used_tests())

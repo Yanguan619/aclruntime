@@ -133,10 +133,10 @@ class BaseTest(TestInterface):
         anime = "⠋⠙⠸⠴⠦⠇"
         if self.is_failed():
             message = f"\033[31m✕  {message} - {self.get_reason()}\033[0m"
-        elif self.is_passed():
-            message = f"\033[32m✓  {message}\033[0m"
         elif self.state == State.WARNING:
             message = f"\033[33m!  {message} - {self.get_reason()}\033[0m"
+        elif self.is_passed():
+            message = f"\033[32m✓  {message}\033[0m"
         elif self.state == State.UNSUPPORTED:
             message = f"\033[0m✓  {message} - {self.get_reason()}\033[0m"
         else:

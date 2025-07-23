@@ -108,21 +108,27 @@ def get_absolute_out_path(output):
     return output_path
 
 
-
-
-
 def print_state(context: TestContext):
-    logger.info(context.get_state_distribution_str())
-    dynamic = ["|", "/", "-", "\\"]
-    count = 0
-    while not context.finished:
-        logger.info(
-            f"\033[2A\033[K{context.get_state_distribution_str()}  {dynamic[count % len(dynamic)]}\033[K"
-        )
-        count += 1
-        time.sleep(0.2)
-    logger.info(f"\033[2A\033[K{context.get_state_distribution_str()}\033[K")
+    last_lines = []
+    def update_state():
+        nonlocal last_lines
+        state = context.get_state_distribution_str()
+        lines = state.split('\n')
+        logger.info(f"\033[{len(last_lines) + 1}A")
+        for v in lines:
+            logger.info(f"{v}\033[K")
+        for _ in range(len(lines),len(last_lines)):
+            logger.info(f"\033[K")
+        delta_lines = len(last_lines) -len(lines)
+        if delta_lines > 0:
+            logger.info(f"\033[{delta_lines + 1}A")
+        last_lines = lines
 
+    while not context.finished:
+        update_state()
+        time.sleep(0.125)
+    update_state()
+    
 def enable_ansi_windows():
     """在 Windows 上启用 ANSI 转义序列支持"""
     if sys.platform == "win32":

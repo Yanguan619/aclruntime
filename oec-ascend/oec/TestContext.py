@@ -1,12 +1,13 @@
 # encoding: utf-8
 import os
 import random
+import time
 from datetime import datetime
 import threading
 from importlib import import_module
 from oec.BaseTypes import State
 from logging import getLogger
-import pandas as pd
+from oec.Utils import elapsed_time_str
 
 from oec.TestInterface import TestInterface
 
@@ -35,14 +36,33 @@ class TestContext(object):
         self._infomation = {}
         self._states_distribution = {}
         self._env = os.environ.copy()
+        self._console_output = {}
+        self._console_position = []
         self.finished = False
+        self._running_tests = []
+        self._start_time = datetime.now()
         for state in State:
             self._states_distribution.setdefault(state, 0)
         
         self.infomation.setdefault("NPU", "unknow")
+        self.set_message("distribution", "")
+        self.set_message("rate", "")
+        
     
     def set_env(self,env):
         self._env = env
+    
+    def set_message(self, key, message:str):
+        if key not in self._console_output:
+            self._console_position.append(key)
+        self._console_output[key] = message
+    
+    def del_message(self, key):
+        if key not in self._console_output:
+            return
+        del self._console_output[key]
+        self._console_position.remove(key)
+                
     
     @property
     def env(self):
@@ -80,12 +100,8 @@ class TestContext(object):
     def data_path(self):
         return self._data_path
     
-    def get_state_distribution_str(self):
+    def update_state(self):
         success = self.distribution[State.PASS] + self.distribution[State.NOTHING_TO_DO]
-        failed = (
-            self.distribution[State.FAIL]
-            + self.distribution[State.TIMEOUT]
-        )
         
         total = len(self.get_used_tests())
         ran = total - self.distribution[State.NOT_RUNNING] - self.distribution[State.RUNNING] \
@@ -93,12 +109,21 @@ class TestContext(object):
         if total == 0:
             return "wait for start"
 
-        return (
+        self.set_message("distribution",
             f"total {total}, running {self.distribution[State.RUNNING]}, not running {self.distribution[State.NOT_RUNNING]}, "
             f"passed {success}, warning {self.distribution[State.WARNING]}, failed {self.distribution[State.FAIL]}, "
-            f"timeout {self.distribution[State.TIMEOUT]}, unsupported {self.distribution[State.UNSUPPORTED]}.\n"
-            f"Completion rate {round(ran/total*100,2)}%, pass rate { 0 if ran==0 else round(success/ran*100,2)}%"
-        )
+            f"timeout {self.distribution[State.TIMEOUT]}, unsupported {self.distribution[State.UNSUPPORTED]}.")
+        self.set_message("rate",
+            f"Completion rate {round(ran/total*100,2)}%, pass rate { 0 if ran==0 else round(success/ran*100,2)}% - {elapsed_time_str(datetime.now() - self._start_time)}")
+        
+        for test in self._running_tests:
+            test.update_console_message()
+    
+    
+    def get_state_distribution_str(self):
+        self.update_state()
+        all = [self._console_output[k] for k in self._console_position]
+        return '\n'.join(all)
 
     @property
     def relative_output(self):
@@ -177,21 +202,38 @@ class TestContext(object):
         logger.debug(order_list)
         self._test_order = order_list
         self._used_tests = used_test
-
+    
+    def clear_unimportented_messages(self, items):
+        time.sleep(5)
+        for test in items:
+            if not test.is_failed() and not test.state == State.WARNING:
+                test.del_console_message()
+    
     def run_tests(self):
         self.distribution[State.NOT_RUNNING] = len(self.get_used_tests())
         order_list = self.test_order
-        for item in order_list:
+        self._start_time = datetime.now()
+        final_thread = None
+        for items in order_list:
             threads = []
-            for test in item:
+            self._running_tests = items
+            for test in items:
                 t = threading.Thread(target=test.run, name=test.name)
                 t.start()
                 threads.append(t)
             for t in threads:
                 t.join()
-            for test in item:
+            self.update_state()
+            final_thread = threading.Thread(target=self.clear_unimportented_messages, args=(items,))
+            final_thread.start()
+            self._running_tests = []
+            
+            for test in items:
                 if not test.can_continue():
+                    final_thread.join()
                     return State.FAIL
+        if final_thread:
+            final_thread.join()
         return State.PASS
 
     def get_used_tests(self):

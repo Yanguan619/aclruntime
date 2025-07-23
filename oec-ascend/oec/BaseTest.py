@@ -2,6 +2,9 @@
 import os
 import threading
 import inspect
+import time
+from datetime import datetime
+from oec.Utils import elapsed_time_str
 from typing import Tuple # 兼容python3.7
 from logging import getLogger
 from oec.TestInterface import TestInterface
@@ -35,6 +38,9 @@ class BaseTest(TestInterface):
         self._lock = threading.Lock()
         self._filename = None
         self._lineno = None
+        self._start_time = datetime.now()
+        self._end_time =  self._start_time
+        self._update_count = 0
         for stack in inspect.stack()[1:]:
             if stack.function != "__init__":
                 self._filename = stack.filename
@@ -107,6 +113,42 @@ class BaseTest(TestInterface):
     def get_origin_path(self):
         return self._filename
 
+    
+    def update_elapsed_time(self):
+        if self.state in [State.RUNNING, State.NOT_RUNNING]:
+            self._end_time = datetime.now()
+
+    @property
+    def elapsed_time(self):
+        delta = self._end_time - self._start_time 
+        return delta
+
+    @property
+    def elapsed_time_str(self):
+        return elapsed_time_str(self.elapsed_time)
+    
+    def update_console_message(self):
+        self.update_elapsed_time()
+        message = f"{self.name} {self.elapsed_time_str}"
+        anime = "⠋⠙⠸⠴⠦⠇"
+        if self.is_failed():
+            message = f"\033[31m✕  {message} - {self.get_reason()}\033[0m"
+        elif self.is_passed():
+            message = f"\033[32m✓  {message}\033[0m"
+        elif self.state == State.WARNING:
+            message = f"\033[33m!  {message} - {self.get_reason()}\033[0m"
+        elif self.state == State.UNSUPPORTED:
+            message = f"\033[0m✓  {message} - {self.get_reason()}\033[0m"
+        else:
+            charactor = anime[self._update_count % len(anime)]
+            message = f"{charactor}  {message}\033[0m"
+            
+        self.context.set_message(self.name, message)
+        self._update_count += 1
+    
+    def del_console_message(self):
+        self.context.del_message(self.name)
+    
     def run(self):
         self._lock.acquire()
         if self.is_finished() and self.can_cached():
@@ -115,6 +157,8 @@ class BaseTest(TestInterface):
             )
             return
         self.set_state(State.NOT_RUNNING)
+        self._start_time = datetime.now()
+        self.update_elapsed_time()
         try:
             self.execute_command()
         except Exception as e:
@@ -124,6 +168,7 @@ class BaseTest(TestInterface):
             logger.debug(
                 f"{self.name} is {self.state.value}, reason: {self.get_reason()}"
             )
+        self.update_elapsed_time()
         self._lock.release()
 
     def execute_command(self):

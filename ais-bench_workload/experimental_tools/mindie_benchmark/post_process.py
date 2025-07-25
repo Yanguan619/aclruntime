@@ -16,8 +16,9 @@ def process_data(cfg):
         model_name = cfg[Const.MODELS][0].get(Const.MODEL_NAME, Const.UNKNOWN)
 
     grouped_data = get_grouped_data(performance_path, model_name)
-    save_data(grouped_data, output_path, cfg)
-        
+    if len(grouped_data) > 0:
+        save_data(grouped_data, output_path, cfg)
+
 
 def get_grouped_data(performance_path, model_name):
     grouped_data = defaultdict(list)
@@ -33,7 +34,7 @@ def get_grouped_data(performance_path, model_name):
 
         json_path = find_performance_json(task_input_dir)
 
-        if not os.path.exists(json_path):
+        if not json_path or not os.path.exists(json_path):
             print(f"Warning: {json_path} not found, skip")
             continue
         try:
@@ -55,10 +56,10 @@ def process_task_json(json_path, batch_size, model_name):
 
     with open(json_path, "r") as f:
         data = json.load(f)
-    
+
     if not data:
         raise ValueError(f"Empty data in {json_path}")
-    
+
     sums = {
         Const.TOTAL_TIME: 0.0,
         Const.FIRST_TOKEN_TIME: 0.0,
@@ -78,7 +79,7 @@ def process_task_json(json_path, batch_size, model_name):
                     sums[key] += cur_bs / (non_first_token_time / 1000) if non_first_token_time > 0 else 0
                 else:
                     sums[key] += item.get(key, 0.0)
-    
+
     for key in sums:
         sums[key] = sums[key] / count if count > 0 else 0
 
@@ -105,7 +106,7 @@ def save_data(grouped_data, output_path, cfg):
 
 def save_group_to_csv(batch_size, group_data, output_dir, cfg):
     tp = cfg[Const.MODELS][0].get(Const.WORLD_SIZE, 1)
-    
+
     output_path = os.path.join(output_dir, f"performance_pa_batch{batch_size}_tp{tp}_result.csv")
 
     with open(output_path, "w", newline="") as csvfile:
@@ -136,7 +137,7 @@ def compute_e2e_throughput_average(group_data):
     e2e_throughput = [data.get(Const.HEADER_THROUGHPUT, 0) for data in group_data]
     if len(e2e_throughput) > 0:
         e2e_throughput_average = sum(e2e_throughput) / len(e2e_throughput)
-    else:   
+    else:
         e2e_throughput_average = 0
     group_data[-1][Const.HEADER_E2E_THROUGHPUT_AVG] = e2e_throughput_average
     return group_data

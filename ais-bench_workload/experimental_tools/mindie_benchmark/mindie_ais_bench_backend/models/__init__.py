@@ -1,0 +1,1 @@
+from mindie_ais_bench_backend.models.mindie_llm_api import MindieLLMModel

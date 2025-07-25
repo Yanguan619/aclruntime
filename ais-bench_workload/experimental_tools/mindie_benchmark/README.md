@@ -6,36 +6,54 @@
 
 MindIE benchmark工具依赖MindIE提供推理能力，以及AISBench benchmark提供拉起测评的能力，需要提前准备好上述两个环境。
 
+### step 1: 测试服务器上拉取MindIE benchmark工具源码
 工具的使用需要拉取源码并安装：
 ```shell
 git clone https://gitee.com/ascend/tools.git
 cd tools/
 git checkout develop
-cd ais-bench_workload/experimental_tools/mindie_benchmark # mindie_llm_examples文件夹内存储着拉起MindIE-LLM纯模型后端测评的参数配置文件
-pip3 install -e ./ # 安装mindie_ais_bench_backend
+cd ais-bench_workload/experimental_tools/mindie_benchmark
 ```
+
+### step 2：拉起MindIE容器
 
 参考下列指导进行依赖环境的安装：
 
 MindIE容器安装昇腾社区文档：[拉取镜像方式安装MIndIE](https://www.hiascend.com/document/detail/zh/mindie/100/envdeployment/instg/mindie_instg_0021.html)。
 
-注：在容器内进行AISBench benchmark工具的安装即可，无需构造conda环境。
+> ⚠️ 注：docker run启动容器时挂载的物理机路径中需要包含`ais-bench_workload/experimental_tools/mindie_benchmark`所在路径
+
 
 AISBench benchmark安装参考：[AISBench benchmark安装方法](https://gitee.com/aisbench/benchmark/blob/master/README.md#%E5%B7%A5%E5%85%B7%E5%AE%89%E8%A3%85)
+> ⚠️ 注：在容器内进行AISBench benchmark工具的安装即可，无需构造conda环境。版本较高的MindIE容器中已安装AISBench benchmark，可以忽略此步骤。
 
-
-## 完整命令说明
-
-### 命令格式说明
+### step 3：MindIE容器中安装MindIE benchmark的后端
+在启动的MindIE容器中执行如下命令：
 ```shell
-ASCEND_RT_VISIBLE_DEVICES=<device_id> ais_bench <config_file_path>
+# 在 /xxx/xx/ais-bench_workload/experimental_tools/mindie_benchmark路径下
+pip3 install -e ./ --pep517
 ```
-参数说明：
-- `ASCEND_RT_VISIBLE_DEVICES=<device_id>`用于配置使用昇腾设备具体卡号
-- <config_file_path>为ais_bench工具启动用的配置文件，例如：ais_bench mindie_llm_examples/infer_mindie_llm_general.py，需指定该文件相对于当前文件夹的相对路径或者该文件的绝对路径
-- ais_bench命令行参数可参考[AISBench benchmark参数说明](https://gitee.com/aisbench/benchmark/blob/master/README.md#%E5%8F%82%E6%95%B0%E8%AF%B4%E6%98%8E)
+搜索AISBench benchmark包路径：
+```shell
+pip3 show ais_bench_benchmark | grep Location
+```
+得到类似如下路径：
+```bash
+Location: /{your_site_packages_dir}/site-packages
+```
+修改`/{your_site_packages_dir}/site-packages/ais_bench/benchmark/global_consts.py`，将MindIE benchmark的后端设置好:
+```py
+CUSTOM_PACKAGE_DIR = [
+    "mindie_ais_bench_backend",
+]
+```
 
-### 模式控制参数说明
+## MindIE纯模型评测场景说明
+
+MindIE benchmark支持MindIE纯模型单机和多机的精度和性能测评，改动配置文件内的参数就可切换对应的模式。配置文件中的参数主要分成两部分：[AISBench模式控制](#模式控制参数说明)和MIndIE-LLM模型推理配置参数。MIndIE配置参数用于透传给MIndIE推理后端，当前提供单机和多机拉起模型测评的参数配置样例和说明。下面会对各种场景下需要修改的常见参数进行举例说明。
+
+### 关键配置文件说明
+[mindie_llm_examples/infer_mindie_llm_general.py](mindie_llm_examples/infer_mindie_llm_general.py)是纯模型评测时的配置文件，遵循[AISBench的自定义数据集启动评测的方式](https://gitee.com/aisbench/benchmark/blob/master/doc/users_guide/run_custom_config.md)
 
 以下参数在配置文件中用于设定控制AISBench benchmark测评模式。
 
@@ -47,25 +65,27 @@ ASCEND_RT_VISIBLE_DEVICES=<device_id> ais_bench <config_file_path>
 |nnodes|选择使用的机器个数，配置大于1的参数用于多机测评场景|1，表示使用单机拉起测评任务|正整数|
 |node_rank|多机测评时，当前机器的id，主节点id为0，其他节点id的顺序需要与[`rank_table_file`文件](#多机数据集精度测评)中顺序对应|0，表示是主节点（单机场景下不生效）|[0, 总机器个数)|
 |master_addr|多机测评时，主节点的ip地址|localhost，当前机器（单机场景下不生效）|具体ip地址|
-|enable_detail_perf|是否开启性能测评模式，dump详细的pa runner每个batch的性能数据，--perf模式下才有意义 参考[模式说明](https://gitee.com/aisbench/benchmark/blob/master/README.md#%E8%BF%90%E8%A1%8C%E6%A8%A1%E5%BC%8F%E8%AF%B4%E6%98%8E)|False，表示不开启性能测评模式，不dump详细性能数据|True或Flase|
 |input_token_len|性能测评模式下期望用于模型推理的长度，建议不超过MindIE-LLM推理后端参数input_length|16，表示在性能场景下最长构造16个token的输入数据|正整数|
 
 
-## 使用场景说明
-
-MindIE benchmark支持单机和多机的精度和性能测评，改动配置文件内的参数就可切换对应的模式。配置文件中的参数主要分成两部分：[AISBench模式控制](#模式控制参数说明)和MIndIE-LLM模型推理配置参数。MIndIE配置参数用于透传给MIndIE推理后端，当前提供单机和多机拉起模型测评的参数配置样例和说明。下面会对各种场景下需要修改的常见参数进行举例说明。
-
 ### 纯模型单机数据集精度测评
+
+#### 命令格式说明
+```shell
+ASCEND_RT_VISIBLE_DEVICES=<device_id> ais_bench mindie_llm_examples/infer_mindie_llm_general.py
+```
+参数说明：
+- `ASCEND_RT_VISIBLE_DEVICES=<device_id>`用于配置使用昇腾设备具体卡号
+- ais_bench其他命令行参数可参考[AISBench benchmark参数说明](https://gitee.com/aisbench/benchmark/blob/master/doc/users_guide/cli_args.md)
 
 单机场景下拉起任务的指令示例：
 ```shell
 ASCEND_RT_VISIBLE_DEVICES=0,1 ais_bench mindie_llm_examples/infer_mindie_llm_general.py
 ```
+配置文件中，有几点需要注意：
 
-以下配置文件中，有几点需要注意：
-
-- 测评的数据集需要在`datasets`中配置对应的数据集。all_dataset_configs.py可查看可配置的[数据集配置文件](https://gitee.com/aisbench/benchmark/blob/master/ais_bench/configs/api_examples/all_dataset_configs.py)
-- `world_size`需要与单机场景下使用的总卡数相同
+- 导入的测评数据集`from ais_bench.benchmark.configs.datasets.gsm8k.gsm8k_gen_0_shot_cot_str import gsm8k_datasets as gsm8k_0_shot_cot_str`对应[gsm8k_gen_0_shot_cot_str.py](https://gitee.com/aisbench/benchmark/blob/master/ais_bench/benchmark/configs/datasets/gsm8k/gsm8k_gen_0_shot_cot_str.py)，导入其他数据集同理，可供导入的数据集请参考🔗[AISBench支持的开源数据集](https://gitee.com/aisbench/benchmark/blob/master/doc/users_guide/datasets.md#%E5%BC%80%E6%BA%90%E6%95%B0%E6%8D%AE%E9%9B%86)
+- `world_size`需要与单机场景下使用的总卡数相同，与`num_gpus`和`num_procs`相同
 - `model_name`配置对应权重的模型名称
 - `data_type`表示模型推理过程的数据精度，需要与模型权重的精度相同
 - `weight_dir`需要设定具体的权重路径
@@ -78,13 +98,14 @@ ASCEND_RT_VISIBLE_DEVICES=0,1 ais_bench mindie_llm_examples/infer_mindie_llm_gen
 **配置文件参数设定样例：**
 ```python
 from mmengine.config import read_base
-from ais_bench.benchmark.models import MindieLLMModel
+from mindie_ais_bench_backend.models import MindieLLMModel
 
 with read_base():
     from ais_bench.benchmark.configs.summarizers.example import summarizer
     from ais_bench.benchmark.configs.datasets.gsm8k.gsm8k_gen_0_shot_cot_str import gsm8k_datasets as gsm8k_0_shot_cot_str
+    from ais_bench.benchmark.configs.datasets.synthetic.synthetic_gen import synthetic_datasets
 
-datasets = [ # all_dataset_configs.py中导入了其他数据集配置，可以将gsm8k_0_shot_cot_str替换为其他数据集
+datasets = [ # all_dataset_configs.py中导入了其他数据集配置，可以将gsm8k_0_shot_cot_str替换为其他一个或多个数据集
     *gsm8k_0_shot_cot_str,
 ]
 
@@ -93,19 +114,17 @@ models = [
     dict(
         ## 下列参数用于控制AISBench benchmark工具实现功能
         type=MindieLLMModel,
-        attr="local",
+        attr="local", # local or service
         abbr='mindie-llm-api',
-        max_out_len = 1024,
-        run_cfg = dict(
-            num_gpus=2,
-            num_procs=2,
-            nnodes=1,
-            node_rank=0,
-            master_addr="localhost",
+        max_out_len = 1024,  # 推理接口调用时设定的最大输出长度，建议不超过MindIE-LLM推理后端参数output_length
+        run_cfg = dict(     # 多卡/多机多卡 参数，使用torchrun拉起任务
+            num_gpus=2,     # 当前机器下使用的卡数
+            num_procs=2,    # 当前机器下使用的进程数，与卡数应该相同
+            nnodes=1,       # 使用的机器个数
+            node_rank=0,    # 当前机器的id
+            master_addr="localhost",   # 主机器的IP地址
             ),
-        enable_detail_perf = False,
-        input_token_len = 16,
-
+        input_token_len = 16,        # 性能测评模式下期望用于模型推理的长度，建议不超过MindIE-LLM推理后端参数input_length
 
         ## 下列参数是用于拉起MindIE-LLM推理后端的参数，用于透传给MindIE-LLM后端，具体功能和含义由用户保证
         world_size = 2,  # 本次推理使用的卡总数
@@ -120,7 +139,7 @@ models = [
         kw_args = "",
         trust_remote_code = False,  # 是否信任远端代码
         ignore_eos = False,  # 是否忽略推理终止符；设置了enable_detail_perf情况下,ignore_eos强制开启
-        input_length = 2048,  # 初始化推理对象参数，input长度
+        input_length = 4096,  # 初始化推理对象参数，input长度
         output_length = 1024,  # 初始化推理对象参数，output长度
 
         dp = -1,  # dp tp sp moe_tp pp microbatch_size moe_ep 模型并行策略参数
@@ -150,6 +169,7 @@ models = [
         ),
     )
 ]
+
 
 work_dir = 'outputs/mindie-llm-model/' # 工作路径
 ```
@@ -190,7 +210,7 @@ for i in {0..7};do hccn_tool -i $i -ip -g; done
 ```shell
 for i in {0..7}; do hccn_tool -i ${i} -ip -s address 10.20.3.13${i} netmask 255.255.255.0; done
 ```
-（3）将上述ip地址配置到具体ranktable文件中，文件格式和内容可查看[ranktable文件配置资源信息](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/81RC1alpha001/devguide/hccl/hcclug/hcclug_000014.html)
+（3）将上述ip地址配置到具体ranktable文件中，文件格式和内容可查看🔗 [ranktable文件配置资源信息](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/81RC1alpha001/devguide/hccl/hcclug/hcclug_000014.html)
 
 
 **配置文件参数设定样例：**
@@ -202,6 +222,7 @@ from ais_bench.benchmark.models import MindieLLMModel
 with read_base():
     from ais_bench.benchmark.configs.summarizers.example import summarizer
     from ais_bench.benchmark.configs.datasets.gsm8k.gsm8k_gen_0_shot_cot_str import gsm8k_datasets as gsm8k_0_shot_cot_str
+    from ais_bench.benchmark.configs.datasets.synthetic.synthetic_gen import synthetic_datasets
 
 datasets = [ # all_dataset_configs.py中导入了其他数据集配置，可以将gsm8k_0_shot_cot_str替换为其他一个或多个数据集
     *gsm8k_0_shot_cot_str,
@@ -222,7 +243,6 @@ models = [
             node_rank=0,
             master_addr="localhost",
             ),
-        enable_detail_perf = False,
         input_token_len = 16,
 
 
@@ -277,11 +297,23 @@ work_dir = 'outputs/mindie-llm-model/' # 工作路径
 
 MindIE benchmark工具提供了纯模型单机数据集性能测评功能，用户只需配置好数据集、模型、推理参数等信息，即可快速进行数据集性能测评。
 
+⚠️性能评测与精度评测对于`mindie_llm_examples/infer_mindie_llm_general.py`的修改是一致的，区别在于拉起方式，因为性能评测场景涉及多个case的性能评测，所以需要拉起多个任务，需要通过封装的脚本mindie_llm.py 基于`mindie_llm_examples/infer_mindie_llm_general.py `构造多任务的配置文件启动。
+
 单机场景下拉起任务的指令示例：
 ```shell
 cd ais-bench_workload/experimental_tools/mindie_benchmark
-python mindie_llm.py --config mindie_llm_examples/infer_mindie_llm_general.py --batch_size 1 --case_pair [[256,256]] --dataset_path /data/gsm8k --output_path /home/output
+ASCEND_RT_VISIBLE_DEVICES=1,2 python mindie_llm.py --config mindie_llm_examples/infer_mindie_llm_general.py --batch_size 1 --case_pair [[256,256]] --dataset_path /data/gsm8k --output_path ./output
 ```
+
+多机场景下拉起任务时，需要在每个机器上都配置好AISBench运行环境以及运行对应指令示例：
+```shell
+# 主节点
+ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python mindie_llm.py --config mindie_llm_examples/infer_mindie_llm_general.py --batch_size 1 --case_pair [[256,256]] --dataset_path /data/gsm8k --output_path ./output
+# 副节点，仅执行infer任务，不计算性能结果
+ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python mindie_llm.py --config mindie_llm_examples/infer_mindie_llm_general.py --batch_size 1 --case_pair [[256,256]] --dataset_path /data/gsm8k --output_path ./output
+```
+
+
 命令行参数说明：
 |参数|说明|默认值|
 | ----- | ----- | ----- |
@@ -292,84 +324,6 @@ python mindie_llm.py --config mindie_llm_examples/infer_mindie_llm_general.py --
 |--output_path|性能评测结果输出路径|当前目录|
 
 
-**配置文件参数设定样例：**
-```python
-from mmengine.config import read_base
-from ais_bench.benchmark.models import MindieLLMModel
-
-with read_base():
-    from ais_bench.benchmark.configs.summarizers.example import summarizer
-    from ais_bench.benchmark.configs.datasets.gsm8k.gsm8k_gen_0_shot_cot_str_perf import gsm8k_datasets as gsm8k_0_shot_cot_str
-
-datasets = [ # 在ais_bench/configs/api_sample/all_dataset_configs.py中导入了其他数据集配置，可以将gsm8k_0_shot_cot_str替换为其他数据集
-    *gsm8k_0_shot_cot_str,
-]
-
-
-models = [
-    dict(
-        ## 下列参数用于控制AISBench benchmark工具实现功能
-        type=MindieLLMModel,
-        attr="local",
-        abbr='mindie-llm-api',
-        max_out_len = 1024,
-        run_cfg = dict(
-            num_gpus=2,
-            num_procs=2,
-            nnodes=1,
-            node_rank=0,
-            master_addr="localhost",
-            ),
-        enable_detail_perf = True,
-        input_token_len = 16,
-
-
-        ## 下列参数是用于拉起MindIE-LLM推理后端的参数，用于透传给MindIE-LLM后端，具体功能和含义由用户保证
-        world_size = 2,  # 本次推理使用的卡总数
-        block_size = 128,  # 初始化推理对象所需参数，预先计算内存所需的参数
-        model_name = "qwen",  # 模型名称
-        data_type = "bf16",  # 模型配置数据类型
-        weight_dir = "/data/Qwen2.5-7B-Instruct",  # 模型权重路径
-        max_position_embedding = -1,  # 初始化推理对象所需参数，-1表示使用input_length + output_length
-        is_chat_model = False,  # 是否使用chat模板
-        decode_batch_size = 32,  # decode阶段的batchsize，需要与数据集测评任务中设定的batch_size相同
-        prefill_batch_size = 0,  # prefill阶段的batchsize
-        kw_args = "",
-        trust_remote_code = False,  # 是否信任远端代码
-        ignore_eos = False,  # 是否忽略推理终止符；设置了enable_detail_perf情况下,ignore_eos强制开启
-        input_length = 2048,  # 初始化推理对象参数，input长度
-        output_length = 1024,  # 初始化推理对象参数，output长度
-
-        dp = -1,  # dp tp sp moe_tp pp microbatch_size moe_ep 模型并行策略参数
-        tp = -1,
-        sp = -1,
-        moe_tp = -1,
-        moe_ep = -1,
-        pp = -1,
-        microbatch_size = -1,
-
-        rank_table_file = "",  # 多机模式下，rank_table路径
-
-        environ_kwargs = dict(  # mindie-llm推理后端所需的环境变量配置, 具体模型有对应所需的环境变量
-            ATB_LAYER_INTERNAL_TENSOR_REUSE = "1",
-            ATB_OPERATION_EXECUTE_ASYNC = "1",
-            ATB_CONVERT_NCHW_TO_ND = "1",
-            TASK_QUEUE_ENABLE = "1",
-            ATB_WORKSPACE_MEM_ALLOC_GLOBAL = "1",
-            ATB_CONTEXT_WORKSPACE_SIZE = "0",
-            ATB_LAUNCH_KERNEL_WITH_TILING = "1",
-            ATB_LLM_ENABLE_AUTO_TRANSPOSE = "0",
-            PYTORCH_NPU_ALLOC_CONF = "expandable_segments:True",
-            LCCL_DETERMINISTIC = "1",
-            HCCL_DETERMINISTIC = "true",
-            ATB_MATMUL_SHUFFLE_K_ENABLE = "0",
-            # ENABLE_GREEDY_SEARCH_OPT = "0",   # BoolQ数据数据集精度测评环境变量
-        ),
-    )
-]
-
-work_dir = 'outputs/mindie-llm-model/' # 工作路径
-```
 
 **性能测评结果**
 
@@ -390,19 +344,13 @@ work_dir = 'outputs/mindie-llm-model/' # 工作路径
 | E2E Throughput Average(Token/s)           | 平均吞吐量  |
 
 
+## MindIE服务化评测场景说明
+### 服务化精度测评
+MindIE服务化精度测评并没有特殊点，直接使用[AISBench benchmark](https://gitee.com/aisbench/benchmark)即可
+
 ### 服务化性能测评
 
 MindIE benchmark工具提供了服务化api性能测评功能，用户只需配置好数据集、模型、推理参数等信息，即可快速进行数据集性能测评。
-#### 前置准备
-进入AISBench benchmark的工作路径，编辑`ais_bench/benchmark/global_consts.py`文件，加入MindIE benchmark的包：
-```python
-CUSTOM_PACKAGE_DIR=[
-    "mindie_ais_bench_backend",
-]
-
-# ...
-
-```
 
 #### 命令示例
 以openai文本对话接口为例，执行如下命令打开配置文件：

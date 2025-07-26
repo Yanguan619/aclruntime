@@ -17,3 +17,10 @@ test_sequence = {
     ("集成测试", "在线训练"): False,
     ("运行环境", "CANN安装卸载"): False,
 }
+
+
+offering = {
+    "default":["all"],
+    "cann-package":["env", "drv", "cann", "combo_pacakge"],
+    "cann-media":["env", "drv", "cann", "media"],
+}

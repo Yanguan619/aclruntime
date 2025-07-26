@@ -41,6 +41,10 @@ class TestContext(object):
         self.finished = False
         self._running_tests = []
         self._start_time = datetime.now()
+        self._tags = {}
+        self._target=""
+        self._product=""
+        
         for state in State:
             self._states_distribution.setdefault(state, 0)
         
@@ -63,6 +67,19 @@ class TestContext(object):
         del self._console_output[key]
         self._console_position.remove(key)
                 
+    @property
+    def procut(self):
+        return self._product
+    
+    def set_product(self, product):
+        self._product = product
+    
+    @property
+    def target(self):
+        return self._target
+    
+    def set_target(self, target):
+        self._target = target
     
     @property
     def env(self):
@@ -157,6 +174,10 @@ class TestContext(object):
                 f'"{test.name}" in {test.get_origin_path()}:{test.get_origin_lineno()}'
                 f" has been used in {t2.get_origin_path()}:{t2.get_origin_lineno()}"
             )
+        for tag in test.tags:
+            self._tags.setdefault(tag,[])
+            self._tags[tag].append(test)
+        
         self._all_tests[test.name] = test
 
     @property
@@ -171,13 +192,15 @@ class TestContext(object):
         path = os.path.join(path, "test_sequence.py")
 
         test_sequence = None
+        offering = None
         try:
             test_sequence_module = import_module("test_sequence")
             test_sequence = test_sequence_module.test_sequence
+            offering = test_sequence_module.offering
         except Exception as e:
             logger.fatal(f"Errors were found in test_sequence.py, error: {e}")
             exit(7000)
-
+        offering_tags = offering.get(self.target,[])
         logger.debug("test_sequence is:")
         logger.debug(test_sequence)
         tmp_dict = {}
@@ -186,7 +209,13 @@ class TestContext(object):
         used_test = {}
         order_list = []
         for name, test in tests.items():
-            if test.group in tmp_dict:
+            tags_hit = False
+            for tag in offering_tags:
+                if tag in test.tags:
+                    tags_hit = True
+                    break
+            
+            if tags_hit and test.group in tmp_dict:
                 tmp_dict[test.group].append(test)
                 used_test[test.name] = test
 

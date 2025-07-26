@@ -14,3 +14,13 @@ class State(Enum):
     
     TIMEOUT = "timeout"
     FAIL = "failed"
+
+@unique
+class Products(Enum):
+    A2 = "A2"
+    A3 = "A3"
+    A5 = "A5"
+    A200 = "A200"
+    A300 = "A300"
+    A500 = "A500"
+    ALL = ["A2", "A3", "A5", "A200", "A300", "A500"]

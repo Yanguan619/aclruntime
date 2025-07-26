@@ -43,32 +43,42 @@ def argparse_handler():
         prog="oec-ascend",
         description="Ascend Operating System Compatibility Verification Tool",
     )
-    
     parser.add_argument(
-        "-c",
-        "--cann",
-        default="/usr/local/Ascend",
-        help="The root path for installing CANN is by default `/usr/local/Ascend`.",
+        "-p",
+        "--product",
+        help="name of product",
     )
-    
     parser.add_argument(
-        "-d",
-        "--data",
-        default=f"./data",
-        help="The path to the data file that is necessary during the run",
+        "-t",
+        "--target",
+        default="default",
+        help="offering of testcase",
     )
+    # parser.add_argument(
+    #     "-c",
+    #     "--cann",
+    #     default="/usr/local/Ascend",
+    #     help="The root path for installing CANN is by default `/usr/local/Ascend`.",
+    # )
     
-    parser.add_argument(
-        "-o",
-        "--output",
-        type=str,
-        default="./output",
-        help="Director to save results and log output",
-    )
+    # parser.add_argument(
+    #     "-d",
+    #     "--data",
+    #     default=f"./data",
+    #     help="The path to the data file that is necessary during the run",
+    # )
+    
+    # parser.add_argument(
+    #     "-o",
+    #     "--output",
+    #     type=str,
+    #     default="./output",
+    #     help="Director to save results and log output",
+    # )
 
-    parser.add_argument(
-        "--verbose", action="store_true", default=False, help="print verbose output"
-    )
+    # parser.add_argument(
+    #     "--verbose", action="store_true", default=False, help="print verbose output"
+    # )
     
     args = parser.parse_args()
     return args
@@ -156,7 +166,9 @@ def enable_ansi_windows():
         kernel32 = ctypes.windll.kernel32
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)  # 启用 VT100 模式
 def main():
-    # cmd_args = argparse_handler()
+    cmd_args = argparse_handler()
+    target = cmd_args.target
+    product = cmd_args.product
     verbose = False
     output_dir = "./output"
     data_dir = os.path.dirname(__file__) + "/data"
@@ -180,6 +192,8 @@ def main():
     if not os.path.exists(cann_path):
         logger.fatal(f"{cann_path} is not existing, please install CANN first!")
         exit(2000)
+    Context.set_product(product)
+    Context.set_target(target)
     Context.set_data_path(data_path)
     Context.set_cann_path(cann_path)
     Context.set_output(output)

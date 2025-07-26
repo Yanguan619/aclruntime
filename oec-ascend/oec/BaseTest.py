@@ -26,10 +26,13 @@ class BaseTest(TestInterface):
         auxiliary: bool = False,
         cached: bool = True,
         log_dir: str = "",
+        tags=[],
+        products=[],
     ):
         self._context: TestContext = Context
         self._name: str = name
         self._group = group
+        self._tags = set(['all'])
         self._optional: bool = optional
         self._state: State = State.NOT_RUNNING
         self._auxiliary: bool = auxiliary
@@ -41,15 +44,27 @@ class BaseTest(TestInterface):
         self._start_time = datetime.now()
         self._end_time =  self._start_time
         self._update_count = 0
+        self._products = products
         for stack in inspect.stack()[1:]:
             if stack.function != "__init__":
                 self._filename = stack.filename
                 self._lineno = stack.lineno
                 break
 
+        for tag in tags:
+            self.tags.add(tag)
+        
         if not name:
             raise ValueError(self.message_with_path("name can not be empty."))
         self.context.add_test(self)
+
+    @property
+    def products(self):
+        return self._products
+
+    @property
+    def tags(self):
+        return self._tags
 
     @property
     def group(self):
@@ -159,11 +174,15 @@ class BaseTest(TestInterface):
         self.set_state(State.NOT_RUNNING)
         self._start_time = datetime.now()
         self.update_elapsed_time()
-        try:
-            self.execute_command()
-        except Exception as e:
-            self.set_state(State.FAIL)
-            self.set_reason(f"{e}")
+        if self.products and self.context.procut not in self.products:
+            self.set_state(State.UNSUPPORTED)
+            self.set_reason(f"The product {self.context.procut} is not in {self.products}")
+        else:
+            try:
+                self.execute_command()
+            except Exception as e:
+                self.set_state(State.FAIL)
+                self.set_reason(f"{e}")
         if self.is_failed():
             logger.debug(
                 f"{self.name} is {self.state.value}, reason: {self.get_reason()}"

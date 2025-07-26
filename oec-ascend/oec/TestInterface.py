@@ -8,6 +8,10 @@ class TestInterface:
         raise NotImplementedError()
 
     @property
+    def tags(self) -> set:
+        raise NotImplementedError()
+    
+    @property
     def group(self):
         raise NotImplementedError()
 

@@ -121,8 +121,8 @@ class TestContext(object):
         success = self.distribution[State.PASS] + self.distribution[State.NOTHING_TO_DO]
         
         total = len(self.get_used_tests())
-        ran = total - self.distribution[State.NOT_RUNNING] - self.distribution[State.RUNNING] \
-            - self.distribution[State.WARNING] - self.distribution[State.UNSUPPORTED]
+        finished = total - self.distribution[State.NOT_RUNNING] - self.distribution[State.RUNNING]
+        ran = finished - self.distribution[State.WARNING]
         if total == 0:
             return "wait for start"
 
@@ -131,7 +131,7 @@ class TestContext(object):
             f"passed {success}, warning {self.distribution[State.WARNING]}, failed {self.distribution[State.FAIL]}, "
             f"timeout {self.distribution[State.TIMEOUT]}, unsupported {self.distribution[State.UNSUPPORTED]}.")
         self.set_message("rate",
-            f"Completion rate {round(ran/total*100,2)}%, pass rate { 0 if ran==0 else round(success/ran*100,2)}% - {elapsed_time_str(datetime.now() - self._start_time)}")
+            f"Completion rate {round(finished/total*100,2)}%, pass rate { 0 if ran==0 else round(success/ran*100,2)}% - {elapsed_time_str(datetime.now() - self._start_time)}")
         
         for test in self._running_tests:
             test.update_console_message()

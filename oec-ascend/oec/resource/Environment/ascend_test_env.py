@@ -120,20 +120,20 @@ class CANNVersionInfomationCase(TestCase):
 OSInfomationCase(
     group=("运行环境","环境信息"),
     name='READ_OS_INFOMATION',
-    tags = ["env"]
+    tags = [oec.env, oec.env_os]
     )
     
 
 HDKInfomationCase(
     group=("运行环境","环境信息"),
     name='READ_DRIVER_INFOMATION',
-    tags = ["drv"],
+    tags = [oec.env, oec.env_drv],
     cmd = 'npu-smi info')
 
 SetEnvTestCase(
     group=("运行环境","CANN信息"),
     name="READ_CANN_SET_ENV",
-    tags = ["cann"],
+    tags = [oec.env, oec.env_cann],
     cmd=f"bash -c 'source {oec.Context.cann_path}/ascend-toolkit/set_env.sh && env'",
     exclude=None,
 )
@@ -141,13 +141,13 @@ SetEnvTestCase(
 CANNVersionInfomationCase(
     group=("运行环境","CANN信息"),
     name='READ_CANN_VERSION_INFOMATION',
-    tags = ["cann"],
+    tags = [oec.env, oec.env_cann],
     cmd = 'python3 get_cann_version.py'
 )
 
 CANNNPUInfomationCase(
     group=("运行环境","CANN信息"),
     name='READ_CANN_NPU_INFOMATION',
-    tags = ["cann"],
+    tags = [oec.env, oec.env_cann],
     cmd = 'python3 get_npu_info.py'
 )

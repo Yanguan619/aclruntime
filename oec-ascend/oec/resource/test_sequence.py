@@ -1,5 +1,6 @@
 # encoding: utf-8
 # 安装order中分组配置的顺序执行测试用例,True并发执行测试,False串行执行测试,分组内的测试用例不分先后顺序
+import oec
 test_sequence = {
     ("运行环境", "环境信息"): False,
     ("运行环境", "运行依赖"): False,
@@ -21,6 +22,10 @@ test_sequence = {
 
 offering = {
     "default":["all"],
-    "cann-package":["env", "drv", "cann", "combo_pacakge"],
-    "cann-media":["env", "drv", "cann", "media"],
+    "cann-env":[oec.env],
+    "cann-package":[oec.env_os, oec.env_drv, oec.combo_package],
+    "cann-media":[oec.env, oec.media],
+    "cann-model-dev":[oec.env, oec.model_dev],
+    "cann-hccl":[oec.env, oec.hccl],
+    "cann-atb":[oec.env, oec.atb],
 }

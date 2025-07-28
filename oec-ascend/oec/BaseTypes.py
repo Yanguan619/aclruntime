@@ -15,12 +15,43 @@ class State(Enum):
     TIMEOUT = "timeout"
     FAIL = "failed"
 
-@unique
-class Products(Enum):
-    A2 = "A2"
-    A3 = "A3"
-    A5 = "A5"
-    A200 = "A200"
-    A300 = "A300"
-    A500 = "A500"
-    ALL = ["A2", "A3", "A5", "A200", "A300", "A500"]
+# prodcuts
+
+A2 = "A2"
+A3 = "A3"
+A5 = "A5"
+A200 = "A200"
+A300 = "A300"
+A500 = "A500"
+EXCLUDE_A200_A300_A500 = ["A2", "A3", "A5"]
+EXCLUDE_A200_A500 = ["A2", "A3", "A5", "A300"]
+ALL = ["A2", "A3", "A5", "A200", "A300", "A500"]
+
+
+# tags
+
+acl = "acl"
+pyacl = "pyacl"
+cann = "cann"
+combo_package = "combo_package"
+
+env = "env"
+env_os = "env_os"
+env_drv = "env_drv"
+env_pypi = "env_pypi"
+env_cann = "env_cann"
+
+
+app_dev = "app_dev"
+media = "media"
+aclnn = "aclnn"
+atb = "atb"
+
+kernel_dev = "kernel_dev"
+bisheng = "bisheng"
+
+model_dev = "model_dev"
+hccl = "hccl"
+atc = "atc"
+aoe = "aoe"
+

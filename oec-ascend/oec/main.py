@@ -11,6 +11,7 @@ from datetime import datetime
 from importlib import import_module
 from logging import getLogger
 
+import oec.BaseTypes
 from oec.TestContext import TestContext
 from oec.BaseTest import Context
 
@@ -47,6 +48,7 @@ def argparse_handler():
         "-p",
         "--product",
         required=True,
+        choices=oec.BaseTypes.ALL_PRODUCTS,
         help="name of product. A2 A3 A5 A200 A300 A500 is supported.",
     )
     parser.add_argument(

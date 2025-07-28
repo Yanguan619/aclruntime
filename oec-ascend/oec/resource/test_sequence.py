@@ -22,7 +22,7 @@ test_sequence = {
 
 offering = {
     "default":["all"],
-    "cann":[oec.env, oec.app_dev, oec.kernel_dev, oec.model_dev],
+    "cann":[oec.env, oec.app_dev, oec.kernel_dev, oec.model_dev, oec.combo_package],
     "cann-env":[oec.env],
     "cann-package":[oec.env_os, oec.env_drv, oec.combo_package],
     "cann-acl":[oec.acl],

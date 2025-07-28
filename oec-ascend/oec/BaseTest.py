@@ -153,7 +153,7 @@ class BaseTest(TestInterface):
         elif self.is_passed():
             message = f"\033[32m✓  {message}\033[0m"
         elif self.state == State.UNSUPPORTED:
-            message = f"\033[0m✓  {message} - {self.get_reason()}\033[0m"
+            message = f"\033[33m↷  {message} - {self.get_reason()}\033[0m"
         else:
             charactor = anime[self._update_count % len(anime)]
             message = f"{charactor}  {message}\033[0m"

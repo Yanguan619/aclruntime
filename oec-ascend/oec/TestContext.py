@@ -232,8 +232,8 @@ class TestContext(object):
         self._test_order = order_list
         self._used_tests = used_test
     
-    def clear_unimportented_messages(self, items):
-        time.sleep(5)
+    def clear_unimportented_messages(self, items, seconds):
+        time.sleep(seconds)
         for test in items:
             if test.is_failed() or test.state == State.WARNING:
                 continue
@@ -254,7 +254,8 @@ class TestContext(object):
             for t in threads:
                 t.join()
             self.update_state()
-            final_thread = threading.Thread(target=self.clear_unimportented_messages, args=(items,))
+            sleep_seconds = 5 if items is not order_list[-1] else 1.5
+            final_thread = threading.Thread(target=self.clear_unimportented_messages, args=(items, sleep_seconds))
             final_thread.start()
             self._running_tests = []
             

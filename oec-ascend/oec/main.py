@@ -46,13 +46,14 @@ def argparse_handler():
     parser.add_argument(
         "-p",
         "--product",
-        help="name of product",
+        required=True,
+        help="name of product. A2 A3 A5 A200 A300 A500 is supported.",
     )
     parser.add_argument(
         "-t",
         "--target",
-        default="default",
-        help="offering of testcase",
+        default="",
+        help="offering of testcase. cann hdk pta mindie mindsope is supported.",
     )
     # parser.add_argument(
     #     "-c",

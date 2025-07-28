@@ -6,7 +6,8 @@ cd $1
 echo try to find Ascend-cann packages in $1
 install_path=$(realpath $2)
 mkdir -p "$install_path"
-
+mkdir -p "$install_tmpdir"
+export TMP_DIR="$install_tmpdir"
 function install(){
     package=$1
     count=$(find . -type f -name "*$package*" | wc -l)

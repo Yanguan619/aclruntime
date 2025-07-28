@@ -192,15 +192,20 @@ class TestContext(object):
         path = os.path.join(path, "test_sequence.py")
 
         test_sequence = None
-        offering = None
+        targets = None
         try:
             test_sequence_module = import_module("test_sequence")
             test_sequence = test_sequence_module.test_sequence
-            offering = test_sequence_module.offering
+            targets = test_sequence_module.targets
+            if self.target not in targets:
+                supported_targets = '\n  '.join([name for name in targets])
+                logger.error(f"The target '{self.target}' is unsupported.")
+                logger.error(f"These targets are supported:\n  {supported_targets}.")
+                exit(6600)
         except Exception as e:
             logger.fatal(f"Errors were found in test_sequence.py, error: {e}")
             exit(7000)
-        offering_tags = offering.get(self.target,[])
+        offering_tags = targets.get(self.target,[])
         logger.debug("test_sequence is:")
         logger.debug(test_sequence)
         tmp_dict = {}

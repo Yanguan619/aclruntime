@@ -20,7 +20,7 @@ test_sequence = {
 }
 
 
-offering = {
+targets = {
     "default":["all"],
     "cann":[oec.env, oec.app_dev, oec.kernel_dev, oec.model_dev, oec.combo_package],
     "cann-env":[oec.env],

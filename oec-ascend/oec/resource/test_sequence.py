@@ -25,7 +25,7 @@ targets = {
     "cann":[oec.env, oec.app_dev, oec.kernel_dev, oec.model_dev, oec.combo_package],
     "cann-env":[oec.env],
     "cann-package":[oec.env_os, oec.env_drv, oec.combo_package],
-    "cann-acl":[oec.acl],
+    "cann-acl":[oec.env, oec.acl],
     "cann-pyacl":[oec.env, oec.pyacl],
     "cann-aclnn":[oec.env, oec.aclnn],
     "cann-media":[oec.env, oec.media],

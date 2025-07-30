@@ -3,7 +3,7 @@ import oec
 oec.TestCase(
     group= ("模型开发","模型编译"),
     name = "MODEL_ATC_SINGLE_ADD",
-    products = oec.EXCLUDE_A200_A500,
+    products = ["A2", "A3", "A5", "A300"],
     tags = [oec.model_dev, oec.atc],
     cmd=f"bash runatc.sh '{oec.Context.output_dir}' add.json --output=out --soc_version=Ascend910B3",
     timeout=300

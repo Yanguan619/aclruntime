@@ -1,9 +1,10 @@
 from mmengine.config import read_base
-from ais_bench.benchmark.models import MindieLLMModel
+from mindie_ais_bench_backend.models import MindieLLMModel
 
 with read_base():
     from ais_bench.benchmark.configs.summarizers.example import summarizer
     from ais_bench.benchmark.configs.datasets.gsm8k.gsm8k_gen_0_shot_cot_str import gsm8k_datasets as gsm8k_0_shot_cot_str
+    from ais_bench.benchmark.configs.datasets.synthetic.synthetic_gen import synthetic_datasets
 
 datasets = [ # all_dataset_configs.py中导入了其他数据集配置，可以将gsm8k_0_shot_cot_str替换为其他一个或多个数据集
     *gsm8k_0_shot_cot_str,
@@ -51,7 +52,7 @@ models = [
         microbatch_size = -1,
 
         rank_table_file = "",  # 多机模式下，rank_table路径
-        
+
         environ_kwargs = dict(  # mindie-llm推理后端所需的环境变量配置, 具体模型有对应所需的环境变量
             ATB_LAYER_INTERNAL_TENSOR_REUSE = "1",
             ATB_OPERATION_EXECUTE_ASYNC = "1",

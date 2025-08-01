@@ -13,10 +13,9 @@ logger = getLogger("oec-ascend")
 class TestCase(BaseTest):
     def __init__(
         self,
-        cmd: str = None,
+        cmd: List[str] = [],
         include: List[str] = None,
-        exclude: List[str] =[r"\bfailed\b", r"\bFailed\b", r"\bFAILED\b",
-                             r"\berror\b", r"\bERROR\b", r"\bError\b"],
+        exclude: List[str] =[],
         expect: List[int] = [0],
         unexpect: List[int] = None,
         count=1,
@@ -96,12 +95,16 @@ class TestCase(BaseTest):
         log = None
         return_code = None
         with open(self.get_log_file_path(), "w+") as f:
-
+            env = self.context.env.copy()
+            env["OEC_OUTPUT_PATH"] = f"{self.context.output_dir}/tmp/{self.offering}/{self.name}"
+            env["OEC_DATA_PATH"] = self.context.data_path
+            env["OEC_WORKDIR"] = self.context.work_path
+            env["OEC_PRODUCT"] = self.context.procut
             process = subprocess.Popen(
-                cmd,
-                env=self.context.env,
+                self.get_cmd(),
+                env=env,
                 cwd=os.path.dirname(self.get_origin_path()) if self.cwd is None else self.cwd,
-                shell=True,
+                # shell=True,
                 stdout=f,
                 stderr=subprocess.STDOUT,
                 text=True,

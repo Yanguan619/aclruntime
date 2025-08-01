@@ -20,6 +20,7 @@ Context:TestContext = TestContext()
 class BaseTest(TestInterface):
     def __init__(
         self,
+        offering:str,
         group: Tuple[str, str],
         name: str,
         optional: bool = True,
@@ -45,6 +46,8 @@ class BaseTest(TestInterface):
         self._end_time =  self._start_time
         self._update_count = 0
         self._products = products
+        self._offering = offering
+        self.context.group_dict.setdefault(group, False)
         for stack in inspect.stack()[1:]:
             if stack.function != "__init__":
                 self._filename = stack.filename
@@ -57,7 +60,10 @@ class BaseTest(TestInterface):
         if not name:
             raise ValueError(self.message_with_path("name can not be empty."))
         self.context.add_test(self)
-
+    @property
+    def offering(self):
+        return self._offering
+    
     @property
     def products(self):
         return self._products

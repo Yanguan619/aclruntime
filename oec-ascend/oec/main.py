@@ -12,11 +12,12 @@ from importlib import import_module
 from logging import getLogger
 
 import oec.BaseTypes
+from oec.BaseTestCase import TestCase
 from oec.TestContext import TestContext
 from oec.BaseTest import Context
 
 from oec.TestReport import gen_report
-
+import oec.common.ascend_test_env as env
 logger = getLogger("oec-ascend")
 
 
@@ -90,29 +91,28 @@ def argparse_handler():
 def find_ascend_test_in_dir(path: str):
     logger.info(f"test case director is '{path}' loading...")
     sys.path.append(path)
-    for (
-        prefix,
-        dirs,
-        files,
-    ) in os.walk(path):
-        for file in files:
-            if file[:11] != "ascend_test" or file[-3:] != ".py":
-                continue
-            root = os.path.relpath(prefix, path)
-
-            module_name = file[:-3]
-            module_path = (
-                module_name
-                if root == "."
-                else ".".join(root.split(os.sep) + [module_name])
+    level = len(path.split(os.path.sep))
+    # group_dict = Context.group_dict
+    offering = os.path.basename(path)
+    for prefix,dirs,files in os.walk(path,topdown=True):
+        parents = prefix.split(os.path.sep)
+        if len(parents) - level == 2:
+            level1_group,level2_group =  parents[-2],parents[-1]
+            # group_dict[(level1_group,level2_group)] = False
+        if len(parents) - level != 3:
+            continue
+        dirs.clear()
+        level1_group,level2_group,testcase_name = parents[-3],parents[-2],parents[-1]
+        if "run.sh" not in files:
+            logger.error(f"run.sh was not found in the director {prefix}")
+        
+        TestCase(
+            offering=offering,
+            group=(level1_group,level2_group),
+            name = testcase_name,
+            cmd=["bash","run.sh"],
+            cwd=prefix
             )
-            file_path = os.path.join(prefix, file)
-            logger.debug(f"import {module_path} path:{file_path}")
-            try:
-                module = import_module(module_path)
-            except Exception as e:
-                logger.error(f"import {module_path} error: {e}")
-                continue
 
 
 def get_absolute_out_path(output):
@@ -168,6 +168,52 @@ def enable_ansi_windows():
         import ctypes
         kernel32 = ctypes.windll.kernel32
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)  # 启用 VT100 模式
+        
+def init_env_test_case(offering):
+    env.OSInfomationCase(
+        offering=offering,
+        group=("运行环境","环境信息"),
+        name='READ_OS_INFOMATION',
+        )
+    
+
+    env.HDKInfomationCase(
+        offering=offering,
+        group=("运行环境","环境信息"),
+        name='READ_DRIVER_INFOMATION',
+        cmd = ['npu-smi', 'info'],
+        cwd = f"{os.path.dirname(__file__)}/common"
+        )
+
+    env.SetEnvTestCase(
+        offering=offering,
+        group=("运行环境","CANN信息"),
+        name="READ_CANN_SET_ENV",
+        tags = [oec.env, oec.env_cann],
+        cmd=['bash', '-c',f"source {oec.Context.cann_path}/ascend-toolkit/set_env.sh && env"],
+        exclude=None,
+        cwd = f"{os.path.dirname(__file__)}/common"
+    )
+
+    env.CANNVersionInfomationCase(
+        offering=offering,
+        group=("运行环境","CANN信息"),
+        name='READ_CANN_VERSION_INFOMATION',
+        tags = [oec.env, oec.env_cann],
+        cmd = ['python3', 'get_cann_version.py'],
+        cwd=f"{os.path.dirname(__file__)}/common"
+    )
+
+    env.CANNNPUInfomationCase(
+        offering=offering,
+        group=("运行环境","CANN信息"),
+        name='READ_CANN_NPU_INFOMATION',
+        tags = [oec.env, oec.env_cann],
+        cmd = ['python3', 'get_npu_info.py'],
+        cwd = f"{os.path.dirname(__file__)}/common"
+    )
+    print(f"{os.path.dirname(__file__)}/common")
+
 def main():
     cmd_args = argparse_handler()
     target = cmd_args.target
@@ -201,11 +247,12 @@ def main():
     Context.set_cann_path(cann_path)
     Context.set_output(output)
     Context.set_work_path(work_dir)
-    resource =f"{os.path.dirname(__file__)}/resource"
+    resource =f"{os.path.dirname(__file__)}/test_cases/{target}"
     resource = os.path.realpath(resource)
-
+    
+    init_env_test_case(target)
     find_ascend_test_in_dir(resource)
-
+    
     Context.set_test_order(resource)
     logger.info(
         f"Find {len(Context.get_tests())} test cases, using {len(Context.get_used_tests())} test cases."

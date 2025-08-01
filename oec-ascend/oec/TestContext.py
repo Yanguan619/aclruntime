@@ -44,7 +44,7 @@ class TestContext(object):
         self._tags = {}
         self._target=""
         self._product=""
-        
+        self.group_dict = {}
         for state in State:
             self._states_distribution.setdefault(state, 0)
         
@@ -191,21 +191,8 @@ class TestContext(object):
         tests = self.get_tests()
         path = os.path.join(path, "test_sequence.py")
 
-        test_sequence = None
+        test_sequence = self.group_dict
         targets = None
-        try:
-            test_sequence_module = import_module("test_sequence")
-            test_sequence = test_sequence_module.test_sequence
-            targets = test_sequence_module.targets
-            if self.target not in targets:
-                supported_targets = '\n  '.join([name for name in targets])
-                logger.error(f"The target '{self.target}' is unsupported.")
-                logger.error(f"These targets are supported:\n  {supported_targets}.")
-                exit(6600)
-        except Exception as e:
-            logger.fatal(f"Errors were found in test_sequence.py, error: {e}")
-            exit(7000)
-        offering_tags = targets.get(self.target,[])
         logger.debug("test_sequence is:")
         logger.debug(test_sequence)
         tmp_dict = {}
@@ -214,13 +201,8 @@ class TestContext(object):
         used_test = {}
         order_list = []
         for name, test in tests.items():
-            tags_hit = False
-            for tag in offering_tags:
-                if tag in test.tags:
-                    tags_hit = True
-                    break
             
-            if tags_hit and test.group in tmp_dict:
+            if  test.group in tmp_dict:
                 tmp_dict[test.group].append(test)
                 used_test[test.name] = test
 

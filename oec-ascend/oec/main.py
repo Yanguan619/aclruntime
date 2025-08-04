@@ -17,7 +17,7 @@ from oec.TestContext import TestContext
 from oec.BaseTest import Context
 
 from oec.TestReport import gen_report
-import oec.common.ascend_test_env as env
+import oec.common.env_test as env
 logger = getLogger("oec-ascend")
 
 
@@ -212,7 +212,7 @@ def init_env_test_case(offering):
         cmd = ['python3', 'get_npu_info.py'],
         cwd = f"{os.path.dirname(__file__)}/common"
     )
-    print(f"{os.path.dirname(__file__)}/common")
+
 
 def main():
     cmd_args = argparse_handler()

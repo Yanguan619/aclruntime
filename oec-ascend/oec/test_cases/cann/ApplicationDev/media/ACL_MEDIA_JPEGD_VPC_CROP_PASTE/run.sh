@@ -1,8 +1,8 @@
 #! /bin/bash
 src_path=$(pwd)
-argv=$1
-data_path=$2
-output_path="$3/dvpp_vdec"
+argv=2
+data_path="$OEC_DATA_PATH"
+output_path="$OEC_OUT_PUT_PATH"
 
 mkdir -p "${output_path}"
 cd "${output_path}"

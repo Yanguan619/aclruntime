@@ -95,8 +95,12 @@ def find_ascend_test_in_dir(path: str):
         level1_group,level2_group,testcase_name = parents[-3],parents[-2],parents[-1]
         if "run.sh" not in files:
             logger.error(f"run.sh was not found in the director {prefix}")
+            continue
         group1_name = dirname_map.get(level1_group)
         group2_name = dirname_map.get(f"{level1_group}/{level2_group}")
+        if group1_name is None or group2_name is None:
+            logger.error(f"{level1_group} -> {group1_name}, {level1_group}/{level2_group} -> {group2_name}")
+            continue
         TestCase(
             offering=offering,
             group=(group1_name,group2_name),

@@ -1,7 +1,13 @@
 RT_INC=${ASCEND_HOME_PATH}/runtime/include
 RT_LIB=${ASCEND_HOME_PATH}/runtime/lib64
-NPU=$1
-ouput=$2
+NPU=$(python3 -c "
+try:
+    import acl
+    print(acl.get_soc_name())
+except:
+    print('unknow')
+")
+ouput="$OEC_OUTPUT_PATH"
 mkdir -p "$ouput"
 inputpath=$(pwd)
 cd "$ouput"

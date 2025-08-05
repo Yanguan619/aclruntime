@@ -1,6 +1,12 @@
-SOC_VERSION=$1
-output=$2
-type=$3
+SOC_VERSION=$(python3 -c "
+try:
+    import acl
+    print(acl.get_soc_name())
+except:
+    print('unknow')
+")
+output="$OEC_OUTPUT_PATH"
+type=dev
 function make_run(){
     mkdir -p "$output/HelloWorld/build"
     

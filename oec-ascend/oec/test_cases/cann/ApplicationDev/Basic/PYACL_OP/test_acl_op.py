@@ -50,11 +50,11 @@ add_json="""
 """
 add_json = json.loads(add_json)
 
-with open(f"{output_dir}/tmp/pyacl_testcase/add.json", 'w', encoding='utf-8') as json_file:
+with open(f"{output_dir}/add.json", 'w', encoding='utf-8') as json_file:
     json.dump(add_json, json_file, ensure_ascii=False, indent=4)
 
 #transfer op model
-subprocess.run(f"atc --singleop={output_dir}/tmp/pyacl_testcase/add.json --output={output_dir}/tmp/pyacl_testcase --soc_version={soc_version}", shell=True, cwd=f"{output_dir}/tmp/pyacl_testcase")
+subprocess.run(f"atc --singleop={output_dir}/add.json --output={output_dir} --soc_version={soc_version}", shell=True, cwd=f"{output_dir}")
 
 
 acl_dtype = {

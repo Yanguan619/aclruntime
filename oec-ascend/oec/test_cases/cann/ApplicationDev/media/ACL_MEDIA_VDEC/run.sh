@@ -1,6 +1,6 @@
 #! /bin/bash
 src_path=$(pwd)
-data_path"$OEC_DATA_PATH/data"
+data_path="$OEC_DATA_PATH/data"
 output_path="$OEC_OUTPUT_PATH"
 
 mkdir -p "${output_path}"

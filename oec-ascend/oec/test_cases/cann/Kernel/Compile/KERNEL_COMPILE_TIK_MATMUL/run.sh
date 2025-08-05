@@ -1,0 +1,1 @@
+python3 tik_matmul.py "$OEC_OUTPUT_PATH"

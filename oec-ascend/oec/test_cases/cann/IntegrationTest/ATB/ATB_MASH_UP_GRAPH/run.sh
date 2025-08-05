@@ -1,5 +1,5 @@
-cann_install_path=$1
-output_path=$2
+cann_install_path=$(realpath "$ASCEND_HOME_PATH/../..")
+output_path="$OEC_OUTPUT_PATH"
 src_path=$(pwd)
 source "${cann_install_path}/ascend-toolkit/set_env.sh"
 source "${cann_install_path}/nnal/atb/set_env.sh"

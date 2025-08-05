@@ -13,44 +13,19 @@ OPTS=$(getopt -a --options $SHORT --longoptions $LONG -- "$@")
 eval set -- "$OPTS"
 SOC_VERSION="Ascend310P3"
 export OUTPUT_DIR=$CURRENT_DIR
-while :; do
-    case "$1" in
-    -r | --run-mode)
-        RUN_MODE="$2"
-        shift 2
-        ;;
-    -v | --soc-version)
-        SOC_VERSION="$2"
-        shift 2
-        ;;
-    -i | --install-path)
-        ASCEND_INSTALL_PATH="$2"
-        shift 2
-        ;;
-    -b | --build-type)
-        BUILD_TYPE="$2"
-        shift 2
-        ;;
-    -p | --install-prefix)
-        INSTALL_PREFIX="$2"
-        shift 2
-        ;;
-    -o | --output)
-        export OUTPUT_DIR="$2"
-        export CAMODEL_LOG_PATH="${OUTPUT_DIR}/sim_log"
-        INSTALL_PREFIX="${OUTPUT_DIR}/out"
-        shift 2
-        ;;
-    --)
-        shift
-        break
-        ;;
-    *)
-        echo "[ERROR] Unexpected option: $1"
-        break
-        ;;
-    esac
-done
+
+RUN_MODE=npu
+SOC_VERSION=$(python3 -c "
+try:
+    import acl
+    print(acl.get_soc_name())
+except:
+    print('unknow')
+")
+export OUTPUT_DIR="$OEC_OUTPUT_PATH"
+export CAMODEL_LOG_PATH="${OUTPUT_DIR}/sim_log"
+INSTALL_PREFIX="${OUTPUT_DIR}/out"
+
 
 RUN_MODE_LIST="cpu sim npu"
 if [[ " $RUN_MODE_LIST " != *" $RUN_MODE "* ]]; then

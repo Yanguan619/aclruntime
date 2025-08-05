@@ -27,7 +27,7 @@ EXCLUDE_A200_A300_A500 = ["A2", "A3", "A5"]
 EXCLUDE_A200_A500 = ["A2", "A3", "A5", "A300"]
 ALL_PRODUCTS = ["A2", "A3", "A5", "A200", "A300", "A500"]
 
-
+ALL_TARGETS = "cann hdk midie pta all".split()
 # tags
 
 acl = "acl"

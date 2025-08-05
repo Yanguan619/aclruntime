@@ -50,50 +50,40 @@ def argparse_handler():
         "--product",
         required=True,
         choices=oec.BaseTypes.ALL_PRODUCTS,
-        help="name of product. A2 A3 A5 A200 A300 A500 is supported.",
     )
     parser.add_argument(
         "-t",
         "--target",
-        default="",
-        help="offering of testcase. cann hdk pta mindie mindsope is supported.",
+        required=True,
+        choices=oec.BaseTypes.ALL_TARGETS,
+        help="offering of testcase.",
     )
-    # parser.add_argument(
-    #     "-c",
-    #     "--cann",
-    #     default="/usr/local/Ascend",
-    #     help="The root path for installing CANN is by default `/usr/local/Ascend`.",
-    # )
-    
-    # parser.add_argument(
-    #     "-d",
-    #     "--data",
-    #     default=f"./data",
-    #     help="The path to the data file that is necessary during the run",
-    # )
-    
-    # parser.add_argument(
-    #     "-o",
-    #     "--output",
-    #     type=str,
-    #     default="./output",
-    #     help="Director to save results and log output",
-    # )
-
-    # parser.add_argument(
-    #     "--verbose", action="store_true", default=False, help="print verbose output"
-    # )
     
     args = parser.parse_args()
     return args
 
-
+def read_dirname_map(path:str):
+    if not os.path.exists(path):
+        logger.fatal(f"{path} was not found")
+        exit(500)
+    dirname_map = {}
+    with open(path) as f:
+        lines = f.readlines()
+        for idx, line in enumerate(lines):
+            strs = line.split()
+            if len(strs) != 2:
+                logger.fatal(f"sSyntax error in file {path}, line {idx}")
+                exit(510)
+            dirname_map[strs[0]] = strs[1]
+    return dirname_map
+        
 def find_ascend_test_in_dir(path: str):
     logger.info(f"test case director is '{path}' loading...")
     sys.path.append(path)
     level = len(path.split(os.path.sep))
     # group_dict = Context.group_dict
     offering = os.path.basename(path)
+    dirname_map = read_dirname_map(f"{path}/map.config")
     for prefix,dirs,files in os.walk(path,topdown=True):
         parents = prefix.split(os.path.sep)
         if len(parents) - level == 2:
@@ -105,10 +95,11 @@ def find_ascend_test_in_dir(path: str):
         level1_group,level2_group,testcase_name = parents[-3],parents[-2],parents[-1]
         if "run.sh" not in files:
             logger.error(f"run.sh was not found in the director {prefix}")
-        
+        group1_name = dirname_map.get(level1_group)
+        group2_name = dirname_map.get(f"{level1_group}/{level2_group}")
         TestCase(
             offering=offering,
-            group=(level1_group,level2_group),
+            group=(group1_name,group2_name),
             name = testcase_name,
             cmd=["bash","run.sh"],
             cwd=prefix

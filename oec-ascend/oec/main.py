@@ -85,6 +85,8 @@ def find_ascend_test_in_dir(path: str):
     offering = os.path.basename(path)
     dirname_map = read_dirname_map(f"{path}/map.config")
     for prefix,dirs,files in os.walk(path,topdown=True):
+        dirs.sort()
+        logger.debug(prefix)
         parents = prefix.split(os.path.sep)
         if len(parents) - level == 2:
             level1_group,level2_group =  parents[-2],parents[-1]
@@ -93,21 +95,31 @@ def find_ascend_test_in_dir(path: str):
             continue
         dirs.clear()
         level1_group,level2_group,testcase_name = parents[-3],parents[-2],parents[-1]
-        if "run.sh" not in files:
-            logger.error(f"run.sh was not found in the director {prefix}")
-            continue
         group1_name = dirname_map.get(level1_group)
         group2_name = dirname_map.get(f"{level1_group}/{level2_group}")
         if group1_name is None or group2_name is None:
             logger.error(f"{level1_group} -> {group1_name}, {level1_group}/{level2_group} -> {group2_name}")
             continue
-        TestCase(
-            offering=offering,
-            group=(group1_name,group2_name),
-            name = testcase_name,
-            cmd=["bash","run.sh"],
-            cwd=prefix
-            )
+        test_files = []
+        for name in files:
+            if name[-3:] != ".sh":
+                continue
+            if name == "TEST" or name =="run.sh":
+                test_files.append(name)
+            if name[:len("TEST_")] == "TEST_":
+                test_files.append(name)
+        if len(test_files) == 0:
+            logger.error(f"Test Cases was not found in the director {prefix}")
+            continue
+        for name in test_files:
+            postfix = name[len("TEST_"):len(name)-len(".sh")] if name[:len("TEST_")] == "TEST_" else ""
+            TestCase(
+                offering=offering,
+                group=(group1_name,group2_name),
+                name = f"{testcase_name}{'_' if postfix else ''}{postfix}",
+                cmd=["bash", name],
+                cwd=prefix
+                )
 
 
 def get_absolute_out_path(output):

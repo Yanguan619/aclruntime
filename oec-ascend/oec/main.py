@@ -104,7 +104,7 @@ def find_ascend_test_in_dir(path: str):
         for name in files:
             if name[-3:] != ".sh":
                 continue
-            if name == "TEST" or name =="run.sh":
+            if name == "TEST.sh":
                 test_files.append(name)
             if name[:len("TEST_")] == "TEST_":
                 test_files.append(name)

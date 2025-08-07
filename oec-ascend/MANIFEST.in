@@ -1,5 +1,5 @@
 # MANIFEST.in
-recursive-include oec/resource *
+recursive-include oec/test_cases *
 recursive-include oec/data *
 global-exclude __pycache__
 global-exclude *.pyc

@@ -15,7 +15,7 @@ import oec.BaseTypes
 from oec.BaseTestCase import TestCase
 from oec.TestContext import TestContext
 from oec.BaseTest import Context
-
+from oec.common.EnvTestCase import SetEnvTestCase
 from oec.TestReport import gen_report
 import oec.common.env_test as env
 logger = getLogger("oec-ascend")
@@ -192,11 +192,10 @@ def init_env_test_case(offering):
         cwd = f"{os.path.dirname(__file__)}/common"
         )
 
-    env.SetEnvTestCase(
+    SetEnvTestCase(
         offering=offering,
         group=("运行环境","CANN信息"),
         name="READ_CANN_SET_ENV",
-        tags = [oec.env, oec.env_cann],
         cmd=['bash', '-c',f"source {oec.Context.cann_path}/ascend-toolkit/set_env.sh && env"],
         exclude=None,
         cwd = f"{os.path.dirname(__file__)}/common"
@@ -206,7 +205,6 @@ def init_env_test_case(offering):
         offering=offering,
         group=("运行环境","CANN信息"),
         name='READ_CANN_VERSION_INFOMATION',
-        tags = [oec.env, oec.env_cann],
         cmd = ['python3', 'get_cann_version.py'],
         cwd=f"{os.path.dirname(__file__)}/common"
     )
@@ -215,7 +213,6 @@ def init_env_test_case(offering):
         offering=offering,
         group=("运行环境","CANN信息"),
         name='READ_CANN_NPU_INFOMATION',
-        tags = [oec.env, oec.env_cann],
         cmd = ['python3', 'get_npu_info.py'],
         cwd = f"{os.path.dirname(__file__)}/common"
     )

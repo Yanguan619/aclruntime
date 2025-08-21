@@ -4,9 +4,9 @@
 paths=(
     "/usr/lib/gcc/x86_64-linux-gnu/"
     "/usr/lib/gcc/aarch64-linux-gnu"
-    
-    "/usr/lib/gcc/x86_64-openEuler-gnu"
-    "/usr/lib/gcc/aarch64-openEuler-gnu"
+
+    "/usr/lib/gcc/x86_64-openEuler-linux"
+    "/usr/lib/gcc/aarch64-openEuler-linux"
 )
 
 for path in "${paths[@]}"; do

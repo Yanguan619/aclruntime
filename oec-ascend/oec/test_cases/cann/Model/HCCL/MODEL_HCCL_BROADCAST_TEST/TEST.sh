@@ -7,4 +7,4 @@ try:
 except:
     print(0)
 ")
-python3 -m ais_bench -n $device_count broadcast_test -p $device_count -b 8K -e 64M -f 2 -d fp32
+timeout -k 1s 60s python3 -m ais_bench -n $device_count broadcast_test -p $device_count -b 8K -e 64M -f 2 -d fp32

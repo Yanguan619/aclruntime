@@ -57,7 +57,7 @@ main() {
     # 所有需要检查的命令列表
     local commands=(
         "gcc" "g++" "cmake" "make" "ifconfig"
-        "tar" "realpath" "arch" "grep" "sed"
+        "tar" "realpath" "arch" "grep" "sed" "timeout"
     )
     
     echo "开始依赖检查..."

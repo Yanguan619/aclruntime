@@ -35,10 +35,11 @@ void exeop(atb::Operation *operation, atb::VariantPack &pack, uint64_t &workspac
     sleep(1);
     std::cout<<"sleep(1)" <<std::endl;
 }
-
+#define CHECK_STATUS(err_code) if(status){return err_code;}
 int main() {
-    int deviceId = 1;
+    int deviceId = 0;
     aclError status = aclrtSetDevice(deviceId);
+    CHECK_STATUS(1);
     atb::infer::ElewiseParam param;
     param.elewiseType = atb::infer::ElewiseParam::ELEWISE_ADD;
     atb::Operation *op =nullptr;
@@ -73,27 +74,34 @@ int main() {
     st = atb::CreateContext(&context);
     aclrtStream stream = nullptr;
     status = aclrtCreateStream(&stream);
+    CHECK_STATUS(2);
     context->SetExecuteStream(stream);
     uint64_t workspaceSize = 0;
     warmup(op, variantPack, workspaceSize, context);
     exeop(op, variantPack, workspaceSize, context);
     exeop(op, variantPack, workspaceSize, context);
-    st = op->Setup(variantPack, workspaceSize, context);
     void *workspace =nullptr;
     status = aclrtMalloc(&workspace, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
+    CHECK_STATUS(3);
     st = op->Execute(variantPack, (uint8_t *)workspace, workspaceSize, context);
-    status = aclrtDestroyStream(stream);
+     status = aclrtDestroyStream(stream);
+    CHECK_STATUS(4);
     status = aclrtFree(workspace);
+    CHECK_STATUS(5);
     st =atb::DestroyOperation(op);
     st = atb::DestroyContext(context);
     status = aclrtFree(a.deviceData);
+    CHECK_STATUS(6);
     a.deviceData = nullptr;
     a.dataSize = 0;
     status = aclrtFree(b.deviceData);
+    CHECK_STATUS(7);
     b.deviceData = nullptr;
     b.dataSize = 0;
     status = aclrtFree(output.deviceData);
+    CHECK_STATUS(7);
     output.deviceData = nullptr;
     output.dataSize = 0;
+    std::cout<<"SUCCESS"<<std::endl;
     return 0;
 }

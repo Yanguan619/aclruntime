@@ -18,6 +18,7 @@ then
             echo "Success!"
             exit 0
         fi
+        exit $?
     fi
 fi
 exit 1

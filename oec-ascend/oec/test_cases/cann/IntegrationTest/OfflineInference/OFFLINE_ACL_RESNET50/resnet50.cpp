@@ -3,10 +3,12 @@
 #include <numeric>  // 添加此行以引入accumulate函数
 #include <fstream>
 #include <cstring>
+#include <vector>
 #include <map>
 #include <algorithm>
 #include <cmath>
 #include <chrono>
+#include <thread>
 using namespace std;
 
 // ---------------------- 全局变量定义 ----------------------
@@ -299,21 +301,44 @@ int main(int argc, char* argv[]) {
     
     // 3. 加载测试图片
     LoadPicture(picturePath.c_str());
-    
-    auto start = std::chrono::high_resolution_clock::now();
-    for(int i =0; i < test_times; ++i){
-        // 4. 执行推理
-        Inference();
+    double maxFps = 0;
+    for(int j=0;j<3;++j){
+        auto start = std::chrono::high_resolution_clock::now();
+        for(int i =0; i < test_times; ++i){
+            // 4. 执行推理
+            Inference();
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        double fps = static_cast<double>(test_times) / duration.count() * 1000000;
+        maxFps = fps > maxFps? fps : maxFps;
+        std::cout <<j<<". " << "FPS: " << fps << "\n" <<std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    double fps = static_cast<double>(test_times) / duration.count() * 1000000;
-    
     // 5. 打印结果并验证
     int status = PrintResultAndValidate();
     
-    std::cout <<"\n" << "FPS: " << fps << "\n" <<std::endl;
+    
+    std::string socName = aclrtGetSocName();
 
+    std::map<std::string,double> baseLine;
+    baseLine["Ascend310P3"] = 1632.7;
+    baseLine["Ascend910B2"] = 1950.33;
+    baseLine["Ascend910B3"] = 1941.3;
+    baseLine["Ascend910B4"] = 1407.368;
+    baseLine["Ascend910_9392"] = 1902.866;
+    
+    if (baseLine.find(socName) != baseLine.end()){
+        double base = baseLine[socName];
+        double delta = abs(maxFps - base) / base * 100;
+        std::cout <<"soc: "<<socName<<" delta: " << delta << "%" <<std::endl;
+        if(delta > 5){
+            std::cout <<"ERROR: delta > 5%" <<std::endl;
+            exit(1);
+        }
+    }else{
+        std::cout <<"soc: "<<socName<<std::endl;
+    }
     // 6. 卸载模型
     UnloadModel();
     

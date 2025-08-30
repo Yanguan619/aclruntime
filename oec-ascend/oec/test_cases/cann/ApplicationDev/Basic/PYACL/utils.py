@@ -38,3 +38,10 @@ def get_device_type():
     if device_type not in ["310", "310P", "910"]:
         raise Exception(f"device_type = {device_type} not in 310/310P/910, npu-smi not found!")
     return device_type
+
+def params_check(test_case, param_dic, test_fun):
+    parmas = param_dic['params']
+    for _, param in enumerate(parmas):
+        with test_case.assertRaises(TypeError):
+            test_fun(*param)
+    return 0

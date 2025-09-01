@@ -53,3 +53,8 @@ def elapsed_time_str(delta:timedelta):
     for i in range(len(x)):
         result += f"{x[i]}{y[i]}"
     return result
+
+def get_file_path(path: str):
+    cwd = os.getcwd()
+    relpath = os.path.relpath(path, cwd)
+    return path if len(path) < len(relpath) else relpath

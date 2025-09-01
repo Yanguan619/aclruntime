@@ -6,6 +6,7 @@ import re
 from typing import List # 兼容python3.7
 from oec.BaseTest import BaseTest
 from oec.BaseTypes import State
+import oec.Utils as Utils
 
 logger = getLogger("oec-ascend")
 
@@ -16,9 +17,9 @@ class TestCase(BaseTest):
         cmd: List[str] = [],
         include: List[str] = None,
         exclude: List[str] =[],
-        expect: List[int] = [0],
-        unexpect: List[int] = None,
         count=1,
+        origin_file: str = "",
+        with_case_info: bool = True,
         cwd=None,
         timeout=None,
         *args,
@@ -27,11 +28,10 @@ class TestCase(BaseTest):
         super(TestCase, self).__init__(*args, **kwargs)
         self._count = count
         self._cmd = cmd
-
+        self.origin_file = origin_file
+        self.with_case_info = with_case_info
         self._include = include
         self._exclude = exclude
-        self._expected_code = expect
-        self._unexpected_code = unexpect
         self.__reason = None
         self._log = ""
         self._retrun_code = 0
@@ -41,10 +41,6 @@ class TestCase(BaseTest):
             self._include = [self._include]
         if isinstance(self._exclude, str):
             self._exclude = [self._exclude]
-        if isinstance(self._expected_code, int):
-            self._expected_code = [self._expected_code]
-        if isinstance(self._unexpected_code, int):
-            self._unexpected_code = [self._unexpected_code]
 
         logger.debug(f"test case{self.group[0]}.{self.group[1]}.{self.name} ")
 
@@ -65,12 +61,6 @@ class TestCase(BaseTest):
 
     def get_exclude(self):
         return self._exclude
-
-    def get_expected_code(self):
-        return self._expected_code
-
-    def get_unexpected_code(self):
-        return self._unexpected_code
     
     def get_relative_log_file_path(self):
         return f"{self._context.relative_output}{os.sep}logs{os.sep}{self.name}.log"
@@ -100,6 +90,21 @@ class TestCase(BaseTest):
             env["OEC_DATA_PATH"] = self.context.data_path
             env["OEC_WORKDIR"] = self.context.work_path
             env["OEC_PRODUCT"] = self.context.procut
+            if self.with_case_info:
+                f.writelines([
+                    "**********************************************\n",
+                    self.name + "\n",
+                    self.origin_file + "\n",
+                    f"cmd = {self.get_cmd()}\n\n",
+                    f"export OEC_OUTPUT_PATH={env['OEC_OUTPUT_PATH']}\n",
+                    f"export OEC_DATA_PATH={env['OEC_DATA_PATH']}\n",
+                    f"export OEC_WORKDIR={env['OEC_WORKDIR']}\n",
+                    f"export OEC_PRODUCT={env['OEC_PRODUCT']}\n",
+                    f"cd {self.cwd}\n",
+                    " ".join(self.get_cmd()) + "\n",
+                    "**********************************************\n",
+                ])
+                f.flush()
             process = subprocess.Popen(
                 self.get_cmd(),
                 env=env,
@@ -173,20 +178,17 @@ class TestCase(BaseTest):
                     )
                     return
 
-        if self.get_expected_code() is not None:
-            if return_code not in self.get_expected_code():
-                self.set_state(State.FAIL)
-                self.set_reason(
-                    f"Then return code {return_code} of {self.name} does not match any of {self.get_expected_code()}, {self.get_log_file_path()}"
-                )
-                return
 
-        if self.get_unexpected_code() is not None:
-            if return_code in self.get_unexpected_code():
-                self.set_state(State.FAIL)
-                self.set_reason(
-                    f"Then return code {return_code} of {self.name} matches {self.get_expected_code()}, {self.get_log_file_path()}"
-                )
-                return
+        if return_code != 0:
+            code_map = {
+                255: (State.UNSUPPORTED, f"code: {return_code}, unsupported."),
+                254: (State.TIMEOUT, f"code: {return_code}, timeout. Log : {Utils.get_file_path(self.get_log_file_path())}"),
+                253: (State.WARNING, f"code: {return_code}, warning. Log : {Utils.get_file_path(self.get_log_file_path())}"),
+            }
+            failed = (State.FAIL, f"code: {return_code}, failed. Log : {Utils.get_file_path(self.get_log_file_path())}")
+            state = code_map.get(return_code, failed)
+            self.set_state(state[0])
+            self.set_reason(state[1])
+            return
 
         self.set_state(State.PASS)

@@ -294,7 +294,7 @@ if __name__ == "__main__":
         # Python版本要求
         "python": {
             "min_version": "3.7.5",  # 最低支持Python 3.8
-            "max_version": "3.11.4"  # 最高支持Python 3.10
+           "max_version": "3.11.4"  # 最高支持Python 3.10
         },
         
         "packages": [
@@ -390,4 +390,4 @@ if __name__ == "__main__":
         commands = generate_install_commands(results, py_req)
         print("\n" + commands)
         
-        sys.exit(1)  # 非零退出码表示错误
+        sys.exit(253)  # 非零退出码表示错误

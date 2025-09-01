@@ -118,6 +118,7 @@ def find_ascend_test_in_dir(path: str):
                 group=(group1_name,group2_name),
                 name = f"{testcase_name}{'_' if postfix else ''}{postfix}",
                 cmd=["bash", name],
+                origin_file=f"{prefix}/{name}",
                 cwd=prefix
                 )
 
@@ -189,7 +190,8 @@ def init_env_test_case(offering):
         group=("运行环境","环境信息"),
         name='READ_DRIVER_INFOMATION',
         cmd = ['npu-smi', 'info'],
-        cwd = f"{os.path.dirname(__file__)}/common"
+        cwd = f"{os.path.dirname(__file__)}/common",
+        with_case_info=False
         )
 
     SetEnvTestCase(
@@ -198,7 +200,8 @@ def init_env_test_case(offering):
         name="READ_CANN_SET_ENV",
         cmd=['bash', '-c',f"source {oec.Context.cann_path}/ascend-toolkit/set_env.sh && env"],
         exclude=None,
-        cwd = f"{os.path.dirname(__file__)}/common"
+        cwd = f"{os.path.dirname(__file__)}/common",
+        with_case_info=False
     )
 
     env.CANNVersionInfomationCase(
@@ -206,7 +209,8 @@ def init_env_test_case(offering):
         group=("运行环境","CANN信息"),
         name='READ_CANN_VERSION_INFOMATION',
         cmd = ['python3', 'get_cann_version.py'],
-        cwd=f"{os.path.dirname(__file__)}/common"
+        cwd=f"{os.path.dirname(__file__)}/common",
+        with_case_info=False
     )
 
     env.CANNNPUInfomationCase(
@@ -214,7 +218,8 @@ def init_env_test_case(offering):
         group=("运行环境","CANN信息"),
         name='READ_CANN_NPU_INFOMATION',
         cmd = ['python3', 'get_npu_info.py'],
-        cwd = f"{os.path.dirname(__file__)}/common"
+        cwd = f"{os.path.dirname(__file__)}/common",
+        with_case_info=False
     )
 
 

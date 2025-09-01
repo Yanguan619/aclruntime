@@ -186,7 +186,7 @@ class TestCase(BaseTest):
                 253: (State.WARNING, f"code: {return_code}, warning. Log: {Utils.get_file_path(self.get_log_file_path())}"),
                 255: (State.UNSUPPORTED, f"code: {return_code}, unsupported."),
             }
-            failed = (State.FAIL, f"code: {return_code}, failed. Log : {Utils.get_file_path(self.get_log_file_path())}")
+            failed = (State.FAIL, f"code: {return_code}, failed. Log: {Utils.get_file_path(self.get_log_file_path())}")
             state = code_map.get(return_code, failed)
             self.set_state(state[0])
             self.set_reason(state[1])

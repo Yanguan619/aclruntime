@@ -51,4 +51,8 @@ class TestLog(unittest.TestCase):
 if __name__ == "__main__":
 
     suite = util.switch_cases(TestLog, "all")
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    if result.wasSuccessful():
+        exit(0)
+exit(1)
+    

@@ -324,5 +324,9 @@ class TestEvent(unittest.TestCase):
         
 if __name__ == "__main__":
     suite = util.switch_cases(TestEvent, "all")
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    if result.wasSuccessful():
+        exit(0)
+exit(1)
+    
     

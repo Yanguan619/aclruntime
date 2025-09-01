@@ -384,6 +384,9 @@ class TestOp(unittest.TestCase):
 if __name__ == "__main__":
     #util.show_growth()
     suite = util.switch_cases(TestOp, "all")
-    unittest.TextTestRunner(verbosity=2).run(suite)
-    #util.show_growth()
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    if result.wasSuccessful():
+        exit(0)
+exit(1)
+
 

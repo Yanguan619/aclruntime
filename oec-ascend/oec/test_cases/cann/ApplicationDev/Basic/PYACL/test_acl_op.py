@@ -346,7 +346,7 @@ class TestOp(unittest.TestCase):
         if ret:
             print("acl.init failed! ret:", ret)
             raise AssertionError
-        ret = acl.op.set_model_dir(f"{output_dir}/tmp/pyacl_testcase")
+        ret = acl.op.set_model_dir(f"{output_dir}")
         if ret:
             print("acl.op.set_model_dir failed! ret:", ret)
             raise AssertionError
@@ -359,7 +359,7 @@ class TestOp(unittest.TestCase):
         """
         test case for loading operator
         """
-        np_data = np.fromfile(f"{output_dir}/tmp/pyacl_testcase/0_Add_3_2_8_16_3_2_8_16_3_2_8_16.om", dtype="int8")
+        np_data = np.fromfile(f"{output_dir}/0_Add_3_2_8_16_3_2_8_16_3_2_8_16.om", dtype="int8")
         bytes_data = np_data.tobytes()
         buffer = acl.util.bytes_to_ptr(bytes_data)
         np_size = np_data.size 

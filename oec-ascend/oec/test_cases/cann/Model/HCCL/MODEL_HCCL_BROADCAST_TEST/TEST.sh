@@ -1,7 +1,9 @@
 unsupported=(A300)
-if [[ ${unsupported[@]}~=${OEC_PRODUCT} ]]; then
-    exit 192
-fi
+for product in "${unsupported[@]}"; do
+    if [[ "$product" == "$OEC_PRODUCT" ]]; then
+        exit 192
+    fi
+done
 device_count=$(python3 -c "
 try:
     import acl

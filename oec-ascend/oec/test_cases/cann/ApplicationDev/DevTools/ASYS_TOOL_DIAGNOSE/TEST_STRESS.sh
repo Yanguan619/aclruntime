@@ -1,7 +1,9 @@
 unsupported=(A300)
-if [[ ${unsupported[@]}~=${OEC_PRODUCT} ]]; then
-    exit 192
-fi
+for product in "${unsupported[@]}"; do
+    if [[ "$product" == "$OEC_PRODUCT" ]]; then
+        exit 192
+    fi
+done
 source $ASCEND_HOME_PATH/bin/setenv.bash
 
 

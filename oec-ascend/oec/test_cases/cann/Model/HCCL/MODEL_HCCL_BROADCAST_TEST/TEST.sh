@@ -1,3 +1,7 @@
+unsupported=(A300)
+if [[ ${unsupported[@]}~=${OEC_PRODUCT} ]]; then
+    exit 192
+fi
 device_count=$(python3 -c "
 try:
     import acl

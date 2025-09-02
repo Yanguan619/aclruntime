@@ -1,3 +1,9 @@
+unsupported=(A3)
+for product in "${unsupported[@]}"; do
+    if [[ "$product" == "$OEC_PRODUCT" ]]; then
+        exit 192
+    fi
+done
 RT_INC=${ASCEND_HOME_PATH}/runtime/include
 RT_LIB=${ASCEND_HOME_PATH}/runtime/lib64
 NPU=$(python3 -c "

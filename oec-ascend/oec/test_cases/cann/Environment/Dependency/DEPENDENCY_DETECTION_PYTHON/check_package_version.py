@@ -110,7 +110,7 @@ def check_dependencies(requirements):
     print("Python环境与包依赖检查")
     print("=" * 70)
     
-    all_ok = True
+    all_ok = "ok"
     results = []
     
     # 1. 检查Python版本
@@ -135,7 +135,7 @@ def check_dependencies(requirements):
         print("-" * 70)
         
         if not py_ok:
-            all_ok = False
+            all_ok = 'warning'
     
     # 2. 检查包依赖
     packages = requirements.get("packages", [])
@@ -176,7 +176,7 @@ def check_dependencies(requirements):
             # 确定状态
             if not satisfied:
                 status = "✗"
-                all_ok = False
+                all_ok = "warning" if version else "no"
             else:
                 status = "✓"
             
@@ -376,7 +376,7 @@ if __name__ == "__main__":
     # 检查依赖
     all_ok, results = check_dependencies(DEPENDENCY_CONFIG)
     
-    if all_ok:
+    if all_ok == 'ok':
         print("\n所有依赖满足! 可以运行主程序。")
         # 这里可以继续执行你的主程序
         # from main import main
@@ -390,4 +390,4 @@ if __name__ == "__main__":
         commands = generate_install_commands(results, py_req)
         print("\n" + commands)
         
-        sys.exit(253)  # 非零退出码表示错误
+        sys.exit(253 if all_ok == "warning" else 1)  # 非零退出码表示错误

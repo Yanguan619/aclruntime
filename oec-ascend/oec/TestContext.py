@@ -85,15 +85,12 @@ class TestContext(object):
     def env(self):
         return self._env
     
-    def set_output(self,output:str):
-        relative_output = (
-            f'{datetime.now().strftime("%Y%m%d-%H-%M-%S")}-{random.randint(100,999)}'
-        )
-        output_path = os.path.join(output, relative_output)
+    def set_output(self,output:str, timestamp):
+        output_path = os.path.join(output, timestamp, self.target)
         log_dir = os.path.join(output_path, "logs")
         make_log_dir(log_dir)
         self._output_dir = output_path
-        self._relative_output = relative_output
+        self._relative_output = timestamp
         self._defaut_log_dir = log_dir
     
     def set_work_path(self,work_path:str):

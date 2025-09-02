@@ -11,10 +11,10 @@ from datetime import datetime
 from importlib import import_module
 from logging import getLogger
 
-import oec.BaseTypes
 from oec.BaseTestCase import TestCase
 from oec.TestContext import TestContext
-from oec.BaseTest import Context
+import oec.BaseTest as BaseTestModule
+
 from oec.common.EnvTestCase import SetEnvTestCase
 from oec.TestReport import gen_report
 import oec.common.env_test as env
@@ -39,8 +39,11 @@ def init_logger(level=logging.INFO):
     stderr.setLevel(logging.ERROR)
     logger.addHandler(stderr)
 
+def get_targets(resource_root):  
+    for _, dirs,_ in os.walk(resource_root,topdown=True):
+        return dirs
 
-def argparse_handler(resource_root):
+def argparse_handler(targets):
     parser = argparse.ArgumentParser(
         prog="oec-ascend",
         description="Ascend Operating System Compatibility Verification Tool",
@@ -51,10 +54,7 @@ def argparse_handler(resource_root):
         required=True,
         choices=['A2', 'A3', 'A5', 'A300'],
     )
-    targets = []
-    for _, dirs,_ in os.walk(resource_root,topdown=True):
-        targets = dirs
-        break
+
     parser.add_argument(
         "-t",
         "--target",
@@ -203,7 +203,7 @@ def init_env_test_case(offering):
         offering=offering,
         group=("运行环境","CANN信息"),
         name="READ_CANN_SET_ENV",
-        cmd=['bash', '-c',f"source {oec.Context.cann_path}/ascend-toolkit/set_env.sh && env"],
+        cmd=['bash', '-c',f"source {BaseTestModule.Context.cann_path}/ascend-toolkit/set_env.sh && env"],
         exclude=None,
         cwd = f"{os.path.dirname(__file__)}/common",
         with_case_info=False
@@ -227,19 +227,15 @@ def init_env_test_case(offering):
         with_case_info=False
     )
 
-
-def main():
-    resource_root = os.path.realpath(os.path.dirname(__file__) + "/test_cases")
-    cmd_args = argparse_handler(resource_root)
-    target = cmd_args.target
+def run_target_test(resource_root, cmd_args, target, verbose, timestamp):
+    # 重置上下文
+    Context = BaseTestModule.reset_context()
+    
     product = cmd_args.product
-    verbose = False
     output_dir = "./output"
     data_dir = os.path.dirname(__file__) + "/data"
     cann_dir = "/usr/local/Ascend"
     work_dir = os.path.realpath("./")
-    
-    init_logger(logging.DEBUG if verbose else logging.INFO)
     
     # 如果source了环境变量则提取组合包安装路径
     ascend_home_path = os.environ.get('ASCEND_HOME_PATH')
@@ -260,7 +256,7 @@ def main():
     Context.set_target(target)
     Context.set_data_path(data_path)
     Context.set_cann_path(cann_path)
-    Context.set_output(output)
+    Context.set_output(output, timestamp)
     Context.set_work_path(work_dir)
     resource = f"{resource_root}/{target}"
     resource = os.path.realpath(resource)
@@ -288,6 +284,26 @@ def main():
 
     gen_report(resource, Context)
     logger.info(f"Generate an execution report with the path {Context.get_output_dir()}")
+
+def main():
+    # 日志模块
+    verbose = False
+    init_logger(logging.DEBUG if verbose else logging.INFO)
+    
+    # 获取支持的targtes
+    resource_root = os.path.realpath(os.path.dirname(__file__) + "/test_cases")
+    targets = get_targets(resource_root)
+    # 解析参数
+    cmd_args = argparse_handler(['all'] + targets)
+    
+    if cmd_args.target != "all":
+        targets = [cmd_args.target]
+    timestamp = f'{datetime.now().strftime("%Y%m%d-%H-%M-%S")}-{random.randint(100,999)}'
+    # 执行测试
+    for i, target in enumerate(targets):
+        logger.info(f"Targets: {targets}  Target: {target} ({i+1}/{len(targets)})")
+        run_target_test(resource_root, cmd_args, target, verbose, timestamp)
+        logger.info("")
 
 
 if __name__ == "__main__":

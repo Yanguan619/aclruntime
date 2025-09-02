@@ -2,8 +2,8 @@ import re
 import platform
 import distro
 import oec
-from oec import TestCase,BaseTest,State
-
+from oec import TestCase,State
+from oec.BaseTest import BaseTest
 
 
 class OSInfomationCase(BaseTest):

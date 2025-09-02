@@ -16,6 +16,10 @@ logger = getLogger("oec-ascend")
 
 Context:TestContext = TestContext()
 
+def reset_context():
+    global Context
+    Context = TestContext()
+    return Context
 
 class BaseTest(TestInterface):
     def __init__(

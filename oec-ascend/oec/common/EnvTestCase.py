@@ -1,6 +1,7 @@
 # encoding: utf-8
 import os
-from oec import BaseTest,TestCase,State
+from oec import TestCase,State
+from oec.BaseTest import BaseTest
 from oec.Utils import merge_env_variables
 class SetEnvTestCase(TestCase):
     def execute_command(self):

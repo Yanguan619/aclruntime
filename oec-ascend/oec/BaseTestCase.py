@@ -86,7 +86,7 @@ class TestCase(BaseTest):
         return_code = None
         with open(self.get_log_file_path(), "w+") as f:
             env = self.context.env.copy()
-            env["OEC_OUTPUT_PATH"] = f"{self.context.output_dir}/tmp/{self.offering}/{self.name}"
+            env["OEC_OUTPUT_PATH"] = f"{self.context.output_dir}/tmp/{self.name}"
             env["OEC_DATA_PATH"] = self.context.data_path
             env["OEC_WORKDIR"] = self.context.work_path
             env["OEC_PRODUCT"] = self.context.procut

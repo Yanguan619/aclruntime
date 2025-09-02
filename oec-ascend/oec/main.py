@@ -40,7 +40,7 @@ def init_logger(level=logging.INFO):
     logger.addHandler(stderr)
 
 
-def argparse_handler():
+def argparse_handler(resource_root):
     parser = argparse.ArgumentParser(
         prog="oec-ascend",
         description="Ascend Operating System Compatibility Verification Tool",
@@ -49,13 +49,17 @@ def argparse_handler():
         "-p",
         "--product",
         required=True,
-        choices=oec.BaseTypes.ALL_PRODUCTS,
+        choices=['A2', 'A3', 'A5', 'A300'],
     )
+    targets = []
+    for _, dirs,_ in os.walk(resource_root,topdown=True):
+        targets = dirs
+        break
     parser.add_argument(
         "-t",
         "--target",
         required=True,
-        choices=oec.BaseTypes.ALL_TARGETS,
+        choices=targets,
         help="offering of testcase.",
     )
     
@@ -225,7 +229,8 @@ def init_env_test_case(offering):
 
 
 def main():
-    cmd_args = argparse_handler()
+    resource_root = os.path.realpath(os.path.dirname(__file__) + "/test_cases")
+    cmd_args = argparse_handler(resource_root)
     target = cmd_args.target
     product = cmd_args.product
     verbose = False
@@ -257,7 +262,7 @@ def main():
     Context.set_cann_path(cann_path)
     Context.set_output(output)
     Context.set_work_path(work_dir)
-    resource =f"{os.path.dirname(__file__)}/test_cases/{target}"
+    resource = f"{resource_root}/{target}"
     resource = os.path.realpath(resource)
     
     init_env_test_case(target)

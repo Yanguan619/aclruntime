@@ -390,4 +390,4 @@ if __name__ == "__main__":
         commands = generate_install_commands(results, py_req)
         print("\n" + commands)
         
-        sys.exit(253 if all_ok == "warning" else 1)  # 非零退出码表示错误
+        sys.exit(191 if all_ok == "warning" else 1)  # 非零退出码表示错误

@@ -36,7 +36,7 @@ check_glibc() {
         return 0
     else
         echo "错误: glibc版本过低 (当前: $glibc_version < 要求: $required_version)"
-        return 253
+        return 191
     fi
 }
 

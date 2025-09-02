@@ -119,7 +119,8 @@ def find_ascend_test_in_dir(path: str):
                 name = f"{testcase_name}{'_' if postfix else ''}{postfix}",
                 cmd=["bash", name],
                 origin_file=f"{prefix}/{name}",
-                cwd=prefix
+                cwd=prefix,
+                timeout=3600 #默认超时时间为1小时
                 )
 
 

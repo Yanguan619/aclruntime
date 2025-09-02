@@ -1,6 +1,6 @@
 unsupported=(A300)
 if [[ ${unsupported[@]}~=${OEC_PRODUCT} ]]; then
-    exit 255
+    exit 192
 fi
 source $ASCEND_HOME_PATH/bin/setenv.bash
 

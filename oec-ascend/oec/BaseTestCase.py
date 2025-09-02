@@ -183,8 +183,8 @@ class TestCase(BaseTest):
             code_map = {
                 124: (State.TIMEOUT, f"code: {return_code}, timeout. Log: {Utils.get_file_path(self.get_log_file_path())}"),
                 127: (State.FAIL, f"code: {return_code}, command not found. Log: {Utils.get_file_path(self.get_log_file_path())}"),
-                253: (State.WARNING, f"code: {return_code}, warning. Log: {Utils.get_file_path(self.get_log_file_path())}"),
-                255: (State.UNSUPPORTED, f"code: {return_code}, unsupported."),
+                191: (State.WARNING, f"code: {return_code}, warning. Log: {Utils.get_file_path(self.get_log_file_path())}"),
+                192: (State.UNSUPPORTED, f"code: {return_code}, unsupported."),
             }
             failed = (State.FAIL, f"code: {return_code}, failed. Log: {Utils.get_file_path(self.get_log_file_path())}")
             state = code_map.get(return_code, failed)

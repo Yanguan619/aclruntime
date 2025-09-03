@@ -326,7 +326,7 @@ int main(int argc, char* argv[]) {
     baseLine["Ascend910B2"] = 1950.33;
     baseLine["Ascend910B3"] = 1941.3;
     baseLine["Ascend910B4"] = 1407.368;
-    baseLine["Ascend910_9392"] = 1902.866;
+    baseLine["Ascend910_9392"] = 2000.866;
     
     if (baseLine.find(socName) != baseLine.end()){
         double base = baseLine[socName];

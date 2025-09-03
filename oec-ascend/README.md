@@ -43,7 +43,7 @@ ais_bench_net_test是用于HCCL相关用例测试的python工具，如果您不�
 
 ```
 wget https://ascend-cann-open.obs.cn-north-4.myhuaweicloud.com/cann-os/oec_ascend_compatibility-1.0.0-py3-none-any.whl
-pip install oec_ascend_compatibility-1.0.0-py3-none-any.whl
+pip3 install oec_ascend_compatibility-1.0.0-py3-none-any.whl
 ```
 #### 运行
 

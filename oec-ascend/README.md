@@ -18,14 +18,14 @@ oec-ascend （昇腾软件操作系统兼容性验证工具）包含一套基础
 ### 环境准备
 请准备一台安装有昇腾NPU的环境，x86_64/ARM64,建议运行内存大小大于500GB
 
-当前仅支持在 A2/A3/A300产品上运行，其他产品上运行后的行为是未定义的。
+当前仅支持在 A2/A3/A300产品上运行，**其他产品上运行后的行为是未定义的**。
 
 ### 必要步骤
 
 1. 访问 [昇腾社区资源中心](https://www.hiascend.com/developer/download/community) ，获取昇腾驱动固件和CANN软件安装包。
 2. 请参考 [昇腾社区文档](https://www.hiascend.com/document)，安装昇腾驱动，固件软件。
 3. 请参考 [昇腾社区文档](https://www.hiascend.com/document)，安装Ascend-cann-Toolkit，Ascend-cann-kernels，Ascend-cann-nnal等CANN软件。
-4. 安装后检查您的安装流程是否有遗漏，请务必确保CANN软件和驱动软件运行**所需要的依赖已经正确安装
+4. 安装后检查您的安装流程是否有遗漏，请务必确保CANN软件和驱动软件运行**所需要的依赖已经正确安装**
 #### 系统依赖
 除了安装Ascend驱动固件，CANN软件包所必须安装的依赖外，您**还需要安装 cmake, g++** 用于支持部分测试用例在您的系统架构下自动构建。请参考您的操作系统的操作指南，安装这些第三方依赖
 

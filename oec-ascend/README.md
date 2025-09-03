@@ -13,6 +13,10 @@
 - 算子
 - 模型开发
 - 集成测试
+## 支持的产品
+1. A2: Atlas A2训练系列产品，Atlas 800I A2推理产品
+2. A3: Atlas A3训练系列产品，Atlas A3 推理系列产品
+3. A300: 安装有 Atlas 300I Pro、Atlas 300V Pro、Atlas 300I Duo的推理服务器
 
 ## 安装前准备
 1. 请准备一台安装有昇腾NPU的环境。**建议运行内存大于500GB。**
@@ -37,14 +41,12 @@ wget https://ascend-cann-open.obs.cn-north-4.myhuaweicloud.com/cann-os/oec_ascen
 pip3 install oec_ascend_compatibility-1.0.0-py3-none-any.whl
 oec-ascend --product A2 --target cann
 ```
-** 参数说明 **
+**参数说明**
+
 >--product,-p    被测试的环境产品形态, 请根据您的产品形态输入对应的值，当前支持A2/A3/A5/A300，其中A5为预留参数，当前A5测试范围和A2相同。
 
 >--target, -t    被测试环境中需要测试功能组件，当前支持 all/cann。all测试所有功能组件，cann仅测试CANN组件，当前这两个选项效果完全相同，后续会添加hdk等组件扩展工具能力。
-## 支持的产品
-1. A2: Atlas A2训练系列产品，Atlas 800I A2推理产品
-2. A3: Atlas A3训练系列产品，Atlas A3 推理系列产品
-3. A300: 安装有 Atlas 300I Pro、Atlas 300V Pro、Atlas 300I Duo的推理服务器**建议运行内存大于500GB。**
+
 ## 查看运行报告
 工具会在运行目录下生成"output/<时间戳>\<target>/"目录存放测试报告，日志和临时文件，请下载该路径下的report.xlsx 文件到本地使用表格软件打开查看，时间戳为兼容性验证工具启动时的时间，可以在工具运行的打屏信息中找到报告的的生成路径。
 

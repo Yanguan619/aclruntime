@@ -1,3 +1,9 @@
+unsupported=(A300)
+for product in "${unsupported[@]}"; do
+    if [[ "$product" == "$OEC_PRODUCT" ]]; then
+        exit 192
+    fi
+done
 output_path="$OEC_OUTPUT_PATH"
 src_path=$(pwd)
 mkdir -p "$output_path" 
@@ -7,5 +13,4 @@ make
 
 cd bin
 ./testcase
-echo $?
 exit $?

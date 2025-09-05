@@ -7,5 +7,4 @@ make
 
 cd bin
 ./testcase
-echo $?
 exit $?

@@ -1,3 +1,10 @@
+
+unsupported=(A3)
+for product in "${unsupported[@]}"; do
+    if [[ "$product" == "$OEC_PRODUCT" ]]; then
+        exit 192
+    fi
+done
 set -e
 mkdir -p "$OEC_OUTPUT_PATH"
 current_dir=$(pwd)/IRBuild

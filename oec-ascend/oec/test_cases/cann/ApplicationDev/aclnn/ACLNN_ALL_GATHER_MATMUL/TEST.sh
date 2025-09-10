@@ -1,5 +1,15 @@
+set -e
 output_path="$OEC_OUTPUT_PATH"
-device_num=$2
+device_num=$(python3 -c "
+try:
+    import acl
+    count,ret = acl.rt.get_device_count()
+    assert ret == 0
+    print(count)
+except:
+    print('unknow')
+")
+echo device_num = $device_num 
 src_path=$(pwd)
 mkdir -p "$output_path" 
 cd "${output_path}"

@@ -4,7 +4,9 @@ echo  ===============================================
 
 cd $1
 echo try to find Ascend-cann packages in $1
-install_path=$(realpath $2)
+test_path="$(realpath $2)"
+install_path="${test_path}/Ascend"
+install_tmpdir="${install_path}"
 mkdir -p "$install_path"
 mkdir -p "$install_tmpdir"
 export TMP_DIR="$install_tmpdir"

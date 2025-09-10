@@ -36,14 +36,16 @@ void exeop(atb::Operation *operation, atb::VariantPack &pack, uint64_t &workspac
     std::cout<<"sleep(1)" <<std::endl;
 }
 #define CHECK_STATUS(err_code) if(status){return err_code;}
+#define CHECK_ST(err_code) if(st){return err_code;}
 int main() {
     int deviceId = 0;
     aclError status = aclrtSetDevice(deviceId);
-    CHECK_STATUS(1);
+    CHECK_STATUS(10);
     atb::infer::ElewiseParam param;
     param.elewiseType = atb::infer::ElewiseParam::ELEWISE_ADD;
     atb::Operation *op =nullptr;
     atb::Status st = atb::CreateOperation(param, &op);
+    CHECK_ST(15);
     atb::Tensor a;
     a.desc.dtype = ACL_FLOAT16;
     a.desc.format = ACL_FORMAT_ND;
@@ -72,34 +74,41 @@ int main() {
     variantPack.outTensors = {output};
     atb::Context *context = nullptr;
     st = atb::CreateContext(&context);
+    CHECK_ST(18);
     aclrtStream stream = nullptr;
     status = aclrtCreateStream(&stream);
-    CHECK_STATUS(2);
+    CHECK_STATUS(20);
     context->SetExecuteStream(stream);
     uint64_t workspaceSize = 0;
     warmup(op, variantPack, workspaceSize, context);
     exeop(op, variantPack, workspaceSize, context);
     exeop(op, variantPack, workspaceSize, context);
+    st = op->Setup(variantPack, workspaceSize, context);
+    std::cout<<st<<std::endl;
+    CHECK_ST(25);
     void *workspace =nullptr;
     status = aclrtMalloc(&workspace, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
-    CHECK_STATUS(3);
+    CHECK_STATUS(30);
     st = op->Execute(variantPack, (uint8_t *)workspace, workspaceSize, context);
-     status = aclrtDestroyStream(stream);
-    CHECK_STATUS(4);
+    CHECK_ST(27);
+    status = aclrtDestroyStream(stream);
+    CHECK_STATUS(40);
     status = aclrtFree(workspace);
-    CHECK_STATUS(5);
+    CHECK_STATUS(50);
     st =atb::DestroyOperation(op);
+    CHECK_ST(53);
     st = atb::DestroyContext(context);
+    CHECK_ST(56);
     status = aclrtFree(a.deviceData);
-    CHECK_STATUS(6);
+    CHECK_STATUS(60);
     a.deviceData = nullptr;
     a.dataSize = 0;
     status = aclrtFree(b.deviceData);
-    CHECK_STATUS(7);
+    CHECK_STATUS(70);
     b.deviceData = nullptr;
     b.dataSize = 0;
     status = aclrtFree(output.deviceData);
-    CHECK_STATUS(7);
+    CHECK_STATUS(80);
     output.deviceData = nullptr;
     output.dataSize = 0;
     std::cout<<"SUCCESS"<<std::endl;

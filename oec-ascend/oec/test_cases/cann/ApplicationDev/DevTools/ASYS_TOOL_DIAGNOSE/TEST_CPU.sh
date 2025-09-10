@@ -1,4 +1,3 @@
-set -e
 unsupported=(A300)
 for product in "${unsupported[@]}"; do
     if [[ "$product" == "$OEC_PRODUCT" ]]; then

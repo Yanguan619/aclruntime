@@ -1,4 +1,3 @@
-set -e
 bash build.sh
 source $ASCEND_HOME_PATH/bin/setenv.bash
 cd "$OEC_OUTPUT_PATH/tmp/resnet50"

@@ -1,4 +1,5 @@
 #!/bin/bash
+exit 192 #//
 set -e
 echo `date`
 NNAL_path="$ASCEND_HOME_PATH/../../nnal/atb/set_env.sh"

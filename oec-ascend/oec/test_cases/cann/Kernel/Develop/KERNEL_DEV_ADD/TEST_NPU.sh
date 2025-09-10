@@ -1,3 +1,4 @@
+set -e
 cd AddKernelInvocationNeo
 SOC_VERSION=$(python3 -c "
 try:

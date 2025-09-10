@@ -1,4 +1,5 @@
 #! /bin/bash
+set -e
 src_path=$(pwd)
 argv=4
 data_path="$OEC_DATA_PATH"

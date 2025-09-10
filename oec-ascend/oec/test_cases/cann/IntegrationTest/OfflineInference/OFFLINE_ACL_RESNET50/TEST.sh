@@ -1,4 +1,5 @@
 
+set -e
 data="$OEC_DATA_PATH"
 output="$OEC_OUTPUT_PATH"
 npu=$(python3 -c "

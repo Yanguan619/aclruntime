@@ -1,4 +1,5 @@
 
+set -e
 current_dir=$(pwd)
 mkdir -p "$OEC_OUTPUT_PATH"
 

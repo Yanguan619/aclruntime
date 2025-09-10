@@ -1,3 +1,4 @@
+set -e
 output_path="$OEC_OUTPUT_PATH"
 src_path=$(pwd)
 mkdir -p "$output_path" 

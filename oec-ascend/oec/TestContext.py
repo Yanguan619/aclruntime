@@ -117,7 +117,7 @@ class TestContext(object):
         
         total = len(self.get_used_tests())
         finished = total - self.distribution[State.NOT_RUNNING] - self.distribution[State.RUNNING]
-        ran = finished - self.distribution[State.WARNING]
+        ran = finished - self.distribution[State.WARNING] - self.distribution[State.UNSUPPORTED]
         if total == 0:
             return "wait for start"
 

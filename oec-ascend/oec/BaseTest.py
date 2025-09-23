@@ -116,6 +116,11 @@ class BaseTest(TestInterface):
             return True
         return False
 
+    def is_supported(self):
+        if self.state in [State.UNSUPPORTED]:
+            return False
+        return True 
+    
     def set_reason(self, str):
         raise NotImplementedError()
 

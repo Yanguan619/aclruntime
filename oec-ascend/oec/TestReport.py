@@ -55,7 +55,7 @@ def gen_report(path: str, context: TestContext):
 
         @property
         def total(self):
-            return sum([test.count() for test in self.tests])
+            return sum([test.count() if test.is_supported() else 0 for test in self.tests])
         
         @property
         def failed(self):

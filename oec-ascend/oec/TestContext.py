@@ -29,7 +29,6 @@ class TestContext(object):
         self._cann_path = ""
         self._work_path = ""
         self._output_dir:str = ""
-        self._relative_output:str = ""
         self._defaut_log_dir:str = ""
         self._used_tests = {}
         self._test_order = []
@@ -90,7 +89,6 @@ class TestContext(object):
         log_dir = os.path.join(output_path, "logs")
         make_log_dir(log_dir)
         self._output_dir = output_path
-        self._relative_output = timestamp
         self._defaut_log_dir = log_dir
     
     def set_work_path(self,work_path:str):
@@ -139,9 +137,6 @@ class TestContext(object):
         all = [self._console_output[k] for k in self._console_position]
         return '\n'.join(all)
 
-    @property
-    def relative_output(self):
-        return self._relative_output
 
     @property
     def distribution(self):

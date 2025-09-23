@@ -10,7 +10,7 @@ import threading
 from datetime import datetime
 from importlib import import_module
 from logging import getLogger
-
+import shutil
 from oec.BaseTestCase import TestCase
 from oec.TestContext import TestContext
 import oec.BaseTest as BaseTestModule
@@ -279,7 +279,8 @@ def run_target_test(resource_root, cmd_args, target, verbose, timestamp):
     if not verbose:
         Context.finished = True
         state_monitor.join()
-
+    logger.info(f"Clean up tmp.")
+    shutil.rmtree(f"{Context.output_dir}/tmp")
     logger.info(f"Complete!")
 
     gen_report(resource, Context)

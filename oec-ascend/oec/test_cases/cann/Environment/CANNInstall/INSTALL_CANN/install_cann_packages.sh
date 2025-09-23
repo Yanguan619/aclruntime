@@ -12,9 +12,9 @@ mkdir -p "$install_tmpdir"
 export TMP_DIR="$install_tmpdir"
 function install(){
     package=$1
-    count=$(find . -type f -name "*$package*" | wc -l)
+    count=$(ls | grep "$package" | wc -l)
     if [ "$count" -ne 1 ]; then
-        echo "ERROR: numer of $package is not equal to 1"
+        echo "ERROR: numer of $package is not equal to 1, count = $count ."
         exit 1
     fi
     echo  ===============================================

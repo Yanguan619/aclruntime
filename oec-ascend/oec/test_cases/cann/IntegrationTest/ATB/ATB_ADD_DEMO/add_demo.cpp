@@ -62,6 +62,7 @@ int main() {
     b.dataSize = Utils::GetTensorSize(b);
     atb::Tensor output;
     output.desc.dtype = ACL_FLOAT16;
+    output.desc.format = ACL_FORMAT_ND;
     output.desc.shape.dimNum=2;
     output.desc.shape.dims[0] = 3;
     output.desc.shape.dims[1] = 3;
@@ -87,14 +88,18 @@ int main() {
     std::cout<<st<<std::endl;
     CHECK_ST(25);
     void *workspace =nullptr;
-    status = aclrtMalloc(&workspace, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
-    CHECK_STATUS(30);
+    if(workspaceSize > 0){
+        status = aclrtMalloc(&workspace, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
+        CHECK_STATUS(30);
+    }
     st = op->Execute(variantPack, (uint8_t *)workspace, workspaceSize, context);
     CHECK_ST(27);
     status = aclrtDestroyStream(stream);
     CHECK_STATUS(40);
-    status = aclrtFree(workspace);
-    CHECK_STATUS(50);
+    if(workspace){
+        status = aclrtFree(workspace);
+        CHECK_STATUS(50);
+    }
     st =atb::DestroyOperation(op);
     CHECK_ST(53);
     st = atb::DestroyContext(context);

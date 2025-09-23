@@ -19,7 +19,7 @@
 3. A300: 安装有 Atlas 300I Pro、Atlas 300V Pro、Atlas 300I Duo的推理服务器
 
 ## 安装前准备
-1. 请准备一台安装有昇腾NPU的环境。**建议运行内存大于500GB。**
+1. 请准备一台安装有昇腾NPU的环境。**建议运行内存大于96GB，剩余硬盘空间大于100GB**
 2. 请参考 [昇腾社区文档](https://www.hiascend.com/document)，安装昇腾驱动，固件软件。
 3. 请参考 [昇腾社区文档](https://www.hiascend.com/document)，安装toolkit，kernels，nnal。
 4. 安装 cmake, g++。其中cmake建议版本大于 3.16，g++需要与环境上的gcc版本配套。
@@ -27,12 +27,13 @@
 ais_bench_net_test工具用于测试和验证HCCL相关功能
 请参考[ais_bench_net_test工具安装与卸载文档](https://gitee.com/ascend/tools/tree/develop/ais-bench_workload/tool/net_test#%E5%B7%A5%E5%85%B7%E5%AE%89%E8%A3%85%E4%B8%8E%E5%8D%B8%E8%BD%BD)安装ais_bench_net_test
 
-### 创建测试目录并上传CANN软件包
+### 创建并上传CANN软件到测试目录
+选取一个剩余空间充足的硬盘（建议剩余硬盘空间大于100GB）继续以下操作
 ```bash
 mkdir -p cann_test
 cd cann_test
 ```
-上传需要验证安装和卸载的toolkit,kernels,nnal的**run格式安装包**到cann_test路径下,并给软件安装包**添加执行权限**
+上传toolkit,kernels,nnal的**run格式安装包**到cann_test路径下,并给软件安装包**添加执行权限**，请勿修改软件包名称。
 ## 安装运行 oec-ascend工具
 ### 通过whl包安装
 **注意**：请按照CANN软件安装指南中的说明配置当前环境安装的CANN的环境变量，如果不配置环境变量，默认使用usr/local/Ascend目录下的CANN软件包

@@ -63,7 +63,8 @@ class TestCase(BaseTest):
         return self._exclude
     
     def get_relative_log_file_path(self):
-        return f"{self._context.relative_output}{os.sep}logs{os.sep}{self.name}.log"
+        
+        return os.path.relpath(self.get_log_file_path(), self.context.work_path)
     
     def get_log_file_path(self):
         return os.path.join(self.get_log_dir_path(), f"{self.name}.log")

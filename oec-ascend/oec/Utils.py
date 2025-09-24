@@ -1,5 +1,8 @@
 import os
 from datetime import timedelta
+import shutil
+import psutil
+
 
 def merge_env_variables(env_output, var_list):
     """
@@ -58,3 +61,41 @@ def get_file_path(path: str):
     cwd = os.getcwd()
     relpath = os.path.relpath(path, cwd)
     return path if len(path) < len(relpath) else relpath
+
+
+def check_disk_space(v):
+    """
+    检查当前运行目录所在磁盘的剩余空间
+    如果剩余空间小于v GB返回False，否则返回True
+    """
+    try:
+        # 获取当前工作目录所在磁盘
+        current_dir = os.getcwd()
+        
+        # 获取磁盘使用情况
+        disk_usage = shutil.disk_usage(current_dir)
+        
+        # 计算剩余空间（字节转换为GB）
+        free_space_gb = disk_usage.free / (1024 ** 3)
+        
+        return free_space_gb >= v
+    
+    except Exception as e:
+        return False
+
+def check_memory(v):
+    """
+    检查系统可用内存
+    如果可用内存小于v GB返回False，否则返回True
+    """
+    try:
+        # 获取内存信息
+        memory = psutil.virtual_memory()
+        
+        # 计算可用内存（字节转换为GB）
+        available_memory_gb = memory.available / (1024 ** 3)
+        
+        return available_memory_gb >= v
+    
+    except Exception as e:
+        return False

@@ -18,6 +18,7 @@ import oec.BaseTest as BaseTestModule
 from oec.common.EnvTestCase import SetEnvTestCase
 from oec.TestReport import gen_report
 import oec.common.env_test as env
+from oec.Utils import check_disk_space, check_memory
 logger = getLogger("oec-ascend")
 
 
@@ -227,7 +228,36 @@ def init_env_test_case(offering):
         with_case_info=False
     )
 
+
+def get_confirmation(prompt):
+    """
+    Boolean return version
+    - Returns True for y/yes
+    - Returns False for n/no
+    - Prompts for re-entry for other inputs
+    """
+    logger.warning(f"{prompt} Do you want to continue? [yes/no]")
+    while True:
+        response = input().strip().lower()
+        if response in ('y', 'yes'):
+            return
+        elif response in ('n', 'no'):
+            exit(550)
+        else:
+            logger.warning("\033[33mInvalid input. Do you want to continue? [yes/no]\033[0m")
+            
+            
+
+
 def run_target_test(resource_root, cmd_args, target, verbose, timestamp):
+    # 检查剩余系统资源
+    # 剩余资源阈值
+    disk_space = 100#GB 
+    memory_space = 96#GB
+    if not check_disk_space(disk_space):
+        get_confirmation(f"The available disk space of the current directory is less than {disk_space}GB, which may cause exceptions.")
+    if not check_memory(memory_space):
+        get_confirmation(f"The currently available running memory is less than {memory_space}GB, which may cause exceptions.")
     # 重置上下文
     Context = BaseTestModule.reset_context()
     

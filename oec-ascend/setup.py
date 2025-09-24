@@ -5,7 +5,7 @@ setup(
     version="1.0.0",
     packages=find_packages(),
     include_package_data=True,
-    install_requires=["openpyxl", "pandas", "distro", "packaging"],
+    install_requires=["openpyxl", "pandas", "distro", "packaging", "psutil"],
     author="spicy-bittern",
     author_email=" ",
     description="Ascend Operating System Compatibility Verification Tool",

@@ -34,7 +34,7 @@ class TestCase(BaseTest):
         self._exclude = exclude
         self.__reason = None
         self._log = ""
-        self._retrun_code = 0
+        self._return_code = 0
         self._cwd = cwd
         self._timeout = timeout
         if isinstance(self._include, str):
@@ -122,7 +122,7 @@ class TestCase(BaseTest):
             f.seek(0)
             log = f.read(-1)
             return_code = process.returncode
-            self._retrun_code = return_code
+            self._return_code = return_code
             self._log = log
 
         self.check_result(log, return_code)

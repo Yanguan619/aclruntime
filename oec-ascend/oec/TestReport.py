@@ -10,13 +10,11 @@ from logging import getLogger
 logger = getLogger("oec-ascend")
 
 
-# path = "resource/report0.xlsx"
 def gen_report(path: str, context: TestContext):
     log_dir = context.get_output_dir()
     src_path = os.path.join(path, "base_report.xlsx")
     path = os.path.join(log_dir, "report.xlsx")
 
-    # copy(src_path,path)
     df = pd.read_excel(src_path, header=None)
 
     excel = openpyxl.load_workbook(src_path)

@@ -29,7 +29,7 @@ class TestContext(object):
         self._cann_path = ""
         self._work_path = ""
         self._output_dir:str = ""
-        self._defaut_log_dir:str = ""
+        self._default_log_dir:str = ""
         self._used_tests = {}
         self._test_order = []
         self._infomation = {}
@@ -89,7 +89,7 @@ class TestContext(object):
         log_dir = os.path.join(output_path, "logs")
         make_log_dir(log_dir)
         self._output_dir = output_path
-        self._defaut_log_dir = log_dir
+        self._default_log_dir = log_dir
     
     def set_work_path(self,work_path:str):
         self._work_path = work_path   
@@ -154,10 +154,10 @@ class TestContext(object):
         return self.output_dir
 
     def get_log_dir(self):
-        return self._defaut_log_dir
+        return self._default_log_dir
 
     def set_log_dir(self, path: str):
-        self._defaut_log_dir = path
+        self._default_log_dir = path
 
     def add_test(self, test: TestInterface):
         if test.name in self._all_tests:

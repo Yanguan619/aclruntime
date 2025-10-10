@@ -41,11 +41,14 @@ def merge_env_variables(env_output, var_list):
 
 def elapsed_time_str(delta:timedelta):
 
-    hours = delta.seconds // 3600
-    minutes = (delta.seconds // 60) % 60
-    seconds = round(delta.seconds % 60 + delta.microseconds // 10000 * 0.01,1)
-    x = [delta.days,hours,minutes,seconds]
-    y = ['d','h','m','s']
+    sec = round((delta.seconds + delta.microseconds * pow(10, -6)) * 10) #避免浮点数造成精度问题
+    dot = sec % 10
+    seconds = (sec // 10) % 60
+    minutes = (sec // 60 // 10) % 60
+    hours = sec // 3600 // 10
+    days = delta.days + 1 if hours == 24 else delta.days
+    x = [days, hours, minutes, seconds, dot]
+    y = ['d', 'h', 'm', '.', 's']
     for i in range(len(x)):
         if x[i] > 0 or i == len(x) - 1:
             x = x[i:]

@@ -1,0 +1,1 @@
+python3 ./test_acl_vpc.py "${OEC_DATA_PATH}"

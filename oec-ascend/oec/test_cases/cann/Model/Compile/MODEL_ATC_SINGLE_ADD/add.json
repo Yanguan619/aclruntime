@@ -1,0 +1,25 @@
+[
+    {
+      "op": "Add",
+      "name": "add",
+      "input_desc": [
+        {
+          "format": "ND",
+          "shape": [3,3],
+          "type": "int32"
+        },
+        {
+          "format": "ND",
+          "shape": [3,3],
+          "type": "int32"
+        }
+      ],
+      "output_desc": [
+        {
+          "format": "ND",
+          "shape": [3,3],
+          "type": "int32"
+        }
+      ]
+    }
+]

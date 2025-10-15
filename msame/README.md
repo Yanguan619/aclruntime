@@ -3,7 +3,7 @@
 请检查以下条件要求是否满足，如不满足请按照备注进行相应处理。如果CANN版本升级，请同步检查第三方依赖是否需要重新安装（5.0.4及以上版本第三方依赖和5.0.4以下版本有差异，需要重新安装）。
 | 条件 | 要求 | 备注 |
 |---|---|---|
-| CANN版本 | >=5.0.3.alpha001| 请参考CANN样例仓介绍中的[安装步骤](https://gitee.com/ascend/samples#%E5%AE%89%E8%A3%85)完成CANN安装 |
+| CANN版本 | >=5.0.3.alpha001| 请参考CANN样例仓介绍中的[“版本配套说明”安装部分](https://gitee.com/ascend/samples#%E7%89%88%E6%9C%AC%E9%85%8D%E5%A5%97%E8%AF%B4%E6%98%8E)，完成CANN安装 |
 | 硬件要求 | Atlas200DK/Atlas300([ai1s](https://support.huaweicloud.com/productdesc-ecs/ecs_01_0047.html#ecs_01_0047__section78423209366))  | 当前已在Atlas200DK和Atlas300测试通过，产品说明请参考[硬件平台](https://ascend.huawei.com/zh/#/hardware/product) ，其他产品可能需要另做适配|
  
 备注1：5.0.3.alpha001前的版本，请使用[msame.zip](https://obs-9be7.obs.cn-east-2.myhuaweicloud.com/xuyetao/msame.zip)   

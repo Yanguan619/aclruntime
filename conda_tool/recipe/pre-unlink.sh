@@ -46,7 +46,3 @@ if [ -f $UNINSTALL_FILE ];then
 else
     echo "$UNINSTALL_FILE is no existed, uninstall fail!"
 fi
-
-
-
-

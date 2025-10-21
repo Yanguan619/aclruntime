@@ -31,8 +31,7 @@ function process_meta_file()
     #sed -i "2s/\'*\'/${package_name}/g" $file
     sed -i "2s/name\ \= '.*'/name\ \= '${package_name}'/g" $file
     sed -i "4s/build\_name\ \= '.*'/build\_name\ \= '${build_name}'/g" $file
-    sed -i "6s/version\ \= '.*'/version\ \= '${version}'/g" $file
-    
+    sed -i "6s/version\ \= '.*'/version\ \= '${version}'/g" $file 
 }
 
 function process_pre_post_file()

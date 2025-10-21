@@ -7,20 +7,18 @@ CONDA_PACKAGE_PATH=$WORK_DIR/build/linux-aarch64
 
 declare -a file_name
 
-if [ -z "$(ls -A ${SRC_DIR})" ];then
-    echo "software is empty exit!!!"
-fi
-
-if [ -z "$(ls -A ${HOOK_FILE})" ];then
-    echo "build hook file is empty exit!!!"
-fi
-
-for  file in $SRC_DIR/* ;do
-    if [ -f $file ];then
-        name=$(basename $file)
-        file_name+=("$name")
+function check_build_file()
+{
+    if [ -z "$(ls -A ${SRC_DIR})" ];then
+        echo "src package is empty exit!!!"
+        exit
     fi
-done 
+
+    if [ -z "$(ls -A ${HOOK_FILE})" ];then
+        echo "build hook file is empty exit!!!"
+        exit
+    fi
+}
 
 function process_meta_file()
 {
@@ -28,7 +26,6 @@ function process_meta_file()
     package_name=$2
     build_name=$3
     version=$4
-    #sed -i "2s/\'*\'/${package_name}/g" $file
     sed -i "2s/name\ \= '.*'/name\ \= '${package_name}'/g" $file
     sed -i "4s/build\_name\ \= '.*'/build\_name\ \= '${build_name}'/g" $file
     sed -i "6s/version\ \= '.*'/version\ \= '${version}'/g" $file 
@@ -111,7 +108,17 @@ function clean_all()
     rm -rf $WORK_DIR/conda_packages/
 }
 
-function main()
+function get_run_package_name()
+{
+    for  file in $SRC_DIR/*;do
+        if [ -f $file ];then
+            name=$(basename $file)
+            file_name+=("$name")
+        fi
+    done
+}
+
+function build_conda_package()
 {
     for name in "${file_name[@]}"; do
         package_name=$(echo $name | awk -F "_" '{print $1}')
@@ -131,6 +138,13 @@ function main()
             exit 1
         fi
     done
+}
+
+function main()
+{
+    check_build_file
+    get_run_package_name
+    build_conda_package
     move_conda_package
     sync_conda_package_to_remote_server
     if [ $? == 0 ]; then

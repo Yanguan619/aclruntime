@@ -1,0 +1,33 @@
+#1 package name
+{% set name = 'ascend-cann-toolkit' %}
+#2 build name
+{% set build_name = '' %}
+#3 package version
+{% set version = '8.2.RC1' %}
+
+#project path
+{% set prefix = '/home/workspace/build' %}
+
+{% if target_platform == 'linux-aarch64' %}
+{% set arch = 'aarch64' %}
+{% elif target_platform == 'linux-64' %}
+{% set arch = 'x86_64' %}
+{% else %}
+{% set arch = 'unknown' %}
+{% endif %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  path: {{ prefix }}/src/Ascend-cann-{{ build_name }}_{{ version }}_linux-{{ arch }}.run
+
+build:
+  number: 0
+
+outputs:
+  - name: {{ name }}
+
+about:
+  {}

@@ -66,7 +66,7 @@ def check_package(pkg_info, installed_packages):
     pypi_name:str = pkg_info["pypi_name"].lower()
     installed_version = installed_packages.get(pypi_name)
     if not installed_version:
-        installed_version = installed_packages.get(pypi_name.replace('-', '_'))
+        installed_version = installed_packages.get(pypi_name.replace('_', '-'))
     # 包未安装
     if not installed_version:
         return (False, None, ["未安装"])

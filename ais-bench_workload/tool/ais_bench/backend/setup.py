@@ -76,54 +76,65 @@ cann_lib_path = None
 def get_cann_path():
     global cann_base_path
     global cann_lib_path
+    global cann_include_path
+
+    # get CANN path from env
     set_env_path = os.getenv("CANN_PATH", "")
     if not set_env_path:
         set_env_path = os.environ.get("ASCEND_TOOLKIT_HOME")
-        if not set_env_path:
-            set_env_path = "/usr/local/Ascend/ascend-toolkit/latest/"
-        else:
-            set_env_path = set_env_path.split(':')[0]
-    else:
-        set_env_path = set_env_path.split(':')[0]
-    if not is_legal_args_path_string(set_env_path):
-        raise TypeError(f"env CANN_PATH:{set_env_path} is illegal")
-    atlas_nnae_path = "/usr/local/Ascend/nnae/latest/"
-    atlas_toolkit_path = "/usr/local/Ascend/ascend-toolkit/latest/"
-    hisi_fwk_path = "/usr/local/Ascend/"
-    check_file_path = "runtime/lib64/stub/libascendcl.so"
-    if os.path.exists(os.path.join(set_env_path, check_file_path)):
-        cann_base_path = set_env_path
-    elif os.path.exists(atlas_nnae_path + check_file_path):
-        cann_base_path = atlas_nnae_path
-    elif os.path.exists(atlas_toolkit_path + check_file_path):
-        cann_base_path = atlas_toolkit_path
-    elif os.path.exists(hisi_fwk_path + check_file_path):
-        cann_base_path = hisi_fwk_path
-    cann_lib_path = f'{cann_base_path}/runtime/lib64/stub/'
 
-    if cann_base_path is None:
-        if platform.machine() == "x86_64":
-            check_file_path = "runtime/lib64/stub/x86_64/libascendcl.so"
-        elif platform.machine() == "aarch64":
-            check_file_path = "runtime/lib64/stub/aarch64/libascendcl.so"
-        if os.path.exists(os.path.join(set_env_path, check_file_path)):
-            cann_base_path = set_env_path
-        elif os.path.exists(atlas_nnae_path + check_file_path):
-            cann_base_path = atlas_nnae_path
-        elif os.path.exists(atlas_toolkit_path + check_file_path):
-            cann_base_path = atlas_toolkit_path
-        elif os.path.exists(hisi_fwk_path + check_file_path):
-            cann_base_path = hisi_fwk_path
+    if set_env_path:
+        if not is_legal_args_path_string(set_env_path):
+            raise TypeError(f"env CANN_PATH:{set_env_path} is illegal")
 
-        if cann_base_path is None:
-            raise RuntimeError('error find no cann path')
+    other_possible_cann_paths = [
+        "/usr/local/Ascend/cann/", #
+        "/usr/local/Ascend/nnae/latest/", # atlas_nnae_path old
+        "/usr/local/Ascend/ascend-toolkit/latest/", #  atlas_toolkit_path old
+        "/usr/local/Ascend/", # hisi_fwk_path old
+    ]
 
-        if platform.machine() == "x86_64":
-            cann_lib_path = f'{cann_base_path}/runtime/lib64/stub/x86_64/'
-        elif platform.machine() == "aarch64":
-            cann_lib_path = f'{cann_base_path}/runtime/lib64/stub/aarch64/'
+    if platform.machine() == "x86_64":
+        sub_paths = [
+            {"lib": "runtime/lib64/stub/x86_64/", "include": "runtime/include/"}, # old cann structure
+            {"lib": "x86_64-linux/lib64/", "include": "x86_64-linux/include/"}, # new cann structure
+        ]
+    elif platform.machine() == "aarch64":
+        sub_paths = [
+            {"lib": "runtime/lib64/stub/aarch64/", "include": "runtime/include/"}, # old cann structure
+            {"lib": "aarch64-linux/lib64/", "include": "aarch64-linux/include/"}, # new cann structure
+        ]
 
-    logger.info("find cann path: %s", cann_base_path)
+    def is_paths_exist(base_path, sub_paths):
+        for sub_path in sub_paths:
+            if os.path.exists(os.path.join(base_path, sub_path["lib"])) and \
+                os.path.exists(os.path.join(base_path, sub_path["include"])):
+                return True, base_path, os.path.join(base_path, sub_path["lib"]), \
+                    os.path.join(base_path, sub_path["include"]) # return base_path , lib_path, include_path
+        return False, None, None, None # return base_path , lib_path, include_path
+
+    is_exist = False
+    cann_base_path = set_env_path
+    cann_lib_path = None
+    cann_include_path = None
+
+    # get cann path from env
+    if set_env_path:
+        is_exist, cann_base_path, cann_lib_path, cann_include_path = is_paths_exist(set_env_path, sub_paths)
+
+    if not is_exist:
+        for other_path in other_possible_cann_paths:
+            is_exist, cann_base_path, cann_lib_path, cann_include_path = is_paths_exist(other_path, sub_paths)
+            if is_exist:
+                break
+        if not is_exist:
+            raise RuntimeError(f"Fail to find cann path in {set_env_path} and {other_possible_cann_paths}")
+
+    lib_so_to_check = "libascendcl.so"
+    if not os.path.exists(os.path.join(cann_lib_path, lib_so_to_check)):
+        raise RuntimeError(f"Fail to find cann lib path in {cann_lib_path}")
+
+    logger.info("Successfully find valid cann path: %s", cann_base_path)
 
 
 get_cann_path()
@@ -167,7 +178,7 @@ ext_modules = [
             'python/include/',
             'base/include/',
             'base/include/Base/ModelInfer/',
-            f'{cann_base_path}/runtime/include',
+            f'{cann_include_path}/',
         ],
         library_dirs=[
             cann_lib_path,

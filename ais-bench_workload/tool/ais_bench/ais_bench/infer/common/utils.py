@@ -177,14 +177,14 @@ def get_dump_relative_paths(output_dir, timestamp):
 
 def get_msprof_bin_path():
     ascend_toolkit_path = os.environ.get("ASCEND_TOOLKIT_HOME", CANN_PATH)
-    check_path_legality(ascend_toolkit_path, perm=FilePermChoice.READ, is_file=False)
+    # check_path_legality(ascend_toolkit_path, perm=FilePermChoice.READ, is_file=False) # trust file in cann toolkit
     msprof_bin_path = os.path.join(ascend_toolkit_path, MSPROF_BIN_FILE_SUB_PATH)
     return msprof_bin_path if os.path.exists(msprof_bin_path) else None  # trust file in cann toolkit
 
 
 def get_msaccucmp_path():
     ascend_toolkit_path = os.environ.get("ASCEND_TOOLKIT_HOME", CANN_PATH)
-    check_path_legality(ascend_toolkit_path, perm=FilePermChoice.READ, is_file=False)
+    # check_path_legality(ascend_toolkit_path, perm=FilePermChoice.READ, is_file=False) # trust file in cann toolkit
     msaccucmp_path = os.path.join(ascend_toolkit_path, MSACCUCMP_FILE_PATH)
     return msaccucmp_path if os.path.exists(msaccucmp_path) else None  # trust file in cann toolkit
 

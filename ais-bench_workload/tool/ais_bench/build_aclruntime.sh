@@ -46,6 +46,9 @@ main()
     elif [[ "${pip_info}" =~ "3.11" ]]; then
         name_info="${CUR_DIR}/aclruntime-0.0.2-cp311-cp311-linux_${arch_info}"
         build_whl "${name_info}.whl" "${name_info}.sha256" || { return $ret_failed; }
+    elif [[ "${pip_info}" =~ "3.12" ]]; then
+        name_info="${CUR_DIR}/aclruntime-0.0.2-cp312-cp312-linux_${arch_info}"
+        build_whl "${name_info}.whl" "${name_info}.sha256" || { return $ret_failed; }
     fi
     return $ret_ok
 }

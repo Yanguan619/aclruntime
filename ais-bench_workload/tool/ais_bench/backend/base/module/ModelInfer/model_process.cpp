@@ -105,6 +105,7 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath)
     struct timeval start = { 0 };
     struct timeval end = { 0 };
     gettimeofday(&start, nullptr);
+    INFO_LOG("aclmdlLoadFromFile %s", modelPath.c_str());
     aclError ret = aclmdlLoadFromFile(modelPath.c_str(), &modelId_);
     gettimeofday(&end, nullptr);
     if (ret != ACL_SUCCESS) {
@@ -113,9 +114,42 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath)
         return FAILED;
     }
     float time_cost = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
-    DEBUG_LOG("model aclmdlLoadFromFile cost : %f (ms)", time_cost);
+    INFO_LOG("aclmdlLoadFromFile cost : %f (ms)", time_cost);
     loadFlag_ = true;
     INFO_LOG("load model %s success", modelPath.c_str());
+    return SUCCESS;
+}
+
+Result ModelProcess::LoadModelFromMem(const void* modelData, size_t modelSize)
+{
+    if (loadFlag_) {
+        ERROR_LOG("has already loaded a model");
+        return FAILED;
+    }
+
+    if (modelData == nullptr || modelSize == 0) {
+        ERROR_LOG("invalid model data or size");
+        return FAILED;
+    }
+
+    struct timeval start = { 0 };
+    struct timeval end = { 0 };
+    gettimeofday(&start, nullptr);
+    INFO_LOG("loading model from memory, size: %zu bytes", modelSize);
+
+    aclError ret = aclmdlLoadFromMem(modelData, modelSize, &modelId_);
+
+    gettimeofday(&end, nullptr);
+    if (ret != ACL_SUCCESS) {
+        ACLERR_LOG(aclGetRecentErrMsg());
+        ERROR_LOG("load model from memory failed");
+        return FAILED;
+    }
+
+    float time_cost = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
+    INFO_LOG("model aclmdlLoadFromMem cost : %f (ms)", time_cost);
+    loadFlag_ = true;
+    INFO_LOG("load model from memory success");
     return SUCCESS;
 }
 

@@ -81,7 +81,25 @@ APP_ERROR ModelInferenceProcessor::Init(const std::string& modelPath, std::share
     }
 
     // initResource
-    CHECK_RET_EQ(processModel->LoadModelFromFile(modelPath), SUCCESS);
+    const void* modelData = nullptr;
+    size_t modelSize = 0;
+    if (modelSize > 0 && modelData != nullptr) {
+        // 从内存加载
+        if (modelData == nullptr) {
+            ERROR_LOG("modelData is null but modelSize > 0");
+            return APP_ERR_ACL_INVALID_PARAM;
+        }
+        INFO_LOG("Loading model from memory, size: %zu bytes, path: %s", modelSize, modelPath.c_str());
+        CHECK_RET_EQ(processModel->LoadModelFromMem(modelData, modelSize), SUCCESS);
+    } else {
+        // 从文件加载
+        if (modelPath.empty()) {
+            ERROR_LOG("modelPath is empty for file load");
+            return APP_ERR_ACL_INVALID_PARAM;
+        }
+        CHECK_RET_EQ(processModel->LoadModelFromFile(modelPath), SUCCESS);
+    }
+
 
     CHECK_RET_EQ(processModel->CreateDesc(), SUCCESS);
 

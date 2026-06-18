@@ -63,6 +63,8 @@ public:
     */
     UtilsResult::Result LoadModelFromFile(const std::string& modelPath);
 
+    UtilsResult::Result LoadModelFromMem(const void* modelData, size_t modelSize);
+
     /**
     * @brief unload model
     */

@@ -162,6 +162,7 @@ ext_modules = [
             'base/module/Tensor/TensorBuffer/TensorBuffer.cpp',
             'base/module/Tensor/TensorContext/TensorContext.cpp',
             'base/module/ModelInfer/model_process.cpp',
+            'base/module/ModelInfer/WeightPool.cpp',
             'base/module/ModelInfer/utils.cpp',
             'base/module/ModelInfer/SessionOptions.cpp',
             'base/module/ModelInfer/ModelInferenceProcessor.cpp',

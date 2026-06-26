@@ -18,8 +18,11 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <fstream>
+#include <vector>
 #include "utils.h"
 #include "model_process.h"
+#include "Base/ModelInfer/WeightPool.h"
 
 
 using namespace std;
@@ -96,12 +99,97 @@ ModelProcess::~ModelProcess()
     DestroyOutput(true);
 }
 
-Result ModelProcess::LoadModelFromFile(const string& modelPath)
+Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& weightDir)
 {
     if (loadFlag_) {
         ERROR_LOG("has already loaded a model");
         return FAILED;
     }
+
+    // External-weight path: load the OM bytes with aclmdlLoadWithConfig,
+    // registering stripped weights from weightDir through the shared
+    // WeightPool so prefill/decode reuse the same device buffers.
+    if (!weightDir.empty()) {
+        std::ifstream file(modelPath, std::ios::binary | std::ios::ate);
+        if (!file.is_open()) {
+            ERROR_LOG("open model file failed: %s", modelPath.c_str());
+            return FAILED;
+        }
+        std::streamsize modelSize = file.tellg();
+        file.seekg(0, std::ios::beg);
+        std::vector<uint8_t> modelData(modelSize);
+        if (modelSize > 0 && !file.read(reinterpret_cast<char*>(modelData.data()), modelSize)) {
+            ERROR_LOG("read model file failed: %s", modelPath.c_str());
+            return FAILED;
+        }
+
+        aclmdlConfigHandle* handle = aclmdlCreateConfigHandle();
+        if (handle == nullptr) {
+            ERROR_LOG("aclmdlCreateConfigHandle failed");
+            return FAILED;
+        }
+
+        std::vector<std::string> acquiredFiles;
+        Result wret = WeightPool::Instance().Acquire(weightDir, handle, acquiredFiles);
+        if (wret != SUCCESS) {
+            ERROR_LOG("WeightPool::Acquire failed for dir %s", weightDir.c_str());
+            aclmdlDestroyConfigHandle(handle);
+            return FAILED;
+        }
+
+        size_t loadType = ACL_MDL_LOAD_FROM_MEM;
+        aclError ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &loadType, sizeof(loadType));
+        if (ret != ACL_SUCCESS) {
+            ACLERR_LOG(aclGetRecentErrMsg());
+            ERROR_LOG("set ACL_MDL_LOAD_TYPE_SIZET failed ret=%d", ret);
+            WeightPool::Instance().Release(weightDir);
+            aclmdlDestroyConfigHandle(handle);
+            return FAILED;
+        }
+        void* memPtr = modelData.data();
+        ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &memPtr, sizeof(memPtr));
+        if (ret != ACL_SUCCESS) {
+            ERROR_LOG("set ACL_MDL_MEM_ADDR_PTR failed ret=%d", ret);
+            WeightPool::Instance().Release(weightDir);
+            aclmdlDestroyConfigHandle(handle);
+            return FAILED;
+        }
+        size_t memSize = static_cast<size_t>(modelSize);
+        ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &memSize, sizeof(memSize));
+        if (ret != ACL_SUCCESS) {
+            ERROR_LOG("set ACL_MDL_MEM_SIZET failed ret=%d", ret);
+            WeightPool::Instance().Release(weightDir);
+            aclmdlDestroyConfigHandle(handle);
+            return FAILED;
+        }
+
+        struct timeval start = { 0 };
+        struct timeval end = { 0 };
+        gettimeofday(&start, nullptr);
+        INFO_LOG("aclmdlLoadWithConfig %s (weights from %s, %zu files)",
+                 modelPath.c_str(), weightDir.c_str(), acquiredFiles.size());
+        ret = aclmdlLoadWithConfig(handle, &modelId_);
+        gettimeofday(&end, nullptr);
+        // modelData must outlive the load; per ACL semantics the model
+        // memory is referenced shallowly, so keep the bytes alive for the
+        // lifetime of this ModelProcess.
+        modelData_.swap(modelData);
+        aclmdlDestroyConfigHandle(handle);
+        if (ret != ACL_SUCCESS) {
+            ACLERR_LOG(aclGetRecentErrMsg());
+            ERROR_LOG("aclmdlLoadWithConfig failed, model file is %s", modelPath.c_str());
+            WeightPool::Instance().Release(weightDir);
+            return FAILED;
+        }
+        float time_cost = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
+        INFO_LOG("aclmdlLoadWithConfig cost : %f (ms)", time_cost);
+        weightDir_ = weightDir;
+        weightsAcquired_ = true;
+        loadFlag_ = true;
+        INFO_LOG("load model %s with external weights success", modelPath.c_str());
+        return SUCCESS;
+    }
+
     struct timeval start = { 0 };
     struct timeval end = { 0 };
     gettimeofday(&start, nullptr);
@@ -1256,6 +1344,12 @@ void ModelProcess::Unload()
         (void)aclmdlDestroyDesc(modelDesc_);
         modelDesc_ = nullptr;
     }
+    if (weightsAcquired_) {
+        WeightPool::Instance().Release(weightDir_);
+        weightsAcquired_ = false;
+    }
+    modelData_.clear();
+    modelData_.shrink_to_fit();
     loadFlag_ = false;
     INFO_LOG("unload model success, model Id is %u", modelId_);
 }

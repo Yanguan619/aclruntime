@@ -54,7 +54,7 @@ class InferIterationContent:
 
 class InferSession:
     def __init__(self, device_id: int, model_path: str, acl_json_path: str = None,
-                 debug: bool = False, loop: int = 1):
+                 debug: bool = False, loop: int = 1, weight_dir: str = None):
         """
         init InferSession
 
@@ -64,6 +64,13 @@ class InferSession:
             acl_json_path: set acl_json_path to enable profiling or dump function
             debug: enable debug log.  Default: False
             loop: loop count for one inference. Default: 1
+            weight_dir: directory holding external weight files stripped
+                from `model_path`. When set, the OM is loaded via
+                aclmdlLoadWithConfig with each weight file registered
+                through aclmdlSetExternalWeightAddress; weight buffers are
+                shared across sessions pointing at the same dir (via a
+                process-wide WeightPool), so prefill and decode OM files
+                that strip the same weights only pay device memory once.
         """
         check_model_path_legality(model_path)
         check_acl_json_path_legality(acl_json_path)
@@ -75,10 +82,13 @@ class InferSession:
         self.options = aclruntime.session_options()
         self.acl_json_path = acl_json_path
         self.debug = debug
+        self.weight_dir = weight_dir
         if acl_json_path is not None:
             self.options.acl_json_path = self.acl_json_path
         self.options.log_level = 1 if self.debug else 2
         self.options.loop = self.loop
+        if weight_dir is not None:
+            self.options.weight_dir = weight_dir
         self.session = aclruntime.InferenceSession(self.model_path, self.device_id, self.options)
         self.outputs_names = [meta.name for meta in self.session.get_outputs()]
         self.intensors_desc = self.session.get_inputs()

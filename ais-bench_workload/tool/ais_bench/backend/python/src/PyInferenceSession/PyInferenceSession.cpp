@@ -736,7 +736,8 @@ void RegistOptions(py::module &m)
     .def(py::init([]() { return std::make_shared<Base::SessionOptions>(); }))
     .def_readwrite("loop", &Base::SessionOptions::loop)
     .def_readwrite("log_level", &Base::SessionOptions::log_level)
-    .def_readwrite("acl_json_path", &Base::SessionOptions::aclJsonPath);
+    .def_readwrite("acl_json_path", &Base::SessionOptions::aclJsonPath)
+    .def_readwrite("weight_dir", &Base::SessionOptions::weightDir);
 
     py::class_<Base::InferOptions, std::shared_ptr<Base::InferOptions>>(m, "infer_options")
     .def(py::init([]() { return std::make_shared<Base::InferOptions>(); }))

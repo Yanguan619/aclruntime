@@ -17,6 +17,7 @@
 #ifndef MODEL_PROCESS_H_
 #define MODEL_PROCESS_H_
 #include <string>
+#include <vector>
 #include <sys/time.h>
 #include "acl/acl.h"
 #include "utils.h"
@@ -59,9 +60,17 @@ public:
     /**
     * @brief load model from file with mem
     * @param [in] modelPath: model path
+    * @param [in] weightDir: optional directory of external weight files.
+    *         When non-empty, the model bytes are loaded with
+    *         aclmdlLoadWithConfig after registering every weight file in
+    *         weightDir through aclmdlSetExternalWeightAddress. Weight
+    *         buffers are shared across ModelProcess instances via
+    *         WeightPool, so prefill and decode sessions can reuse the
+    *         same device allocations.
     * @return result
     */
-    UtilsResult::Result LoadModelFromFile(const std::string& modelPath);
+    UtilsResult::Result LoadModelFromFile(const std::string& modelPath,
+                                          const std::string& weightDir = "");
 
     UtilsResult::Result LoadModelFromMem(const void* modelData, size_t modelSize);
 
@@ -307,7 +316,13 @@ private:
     size_t numInputs_;
     size_t numOutputs_;
     size_t g_dymindex;
+    // Keeps the OM file bytes alive for the model lifetime when loaded via
+    // ACL_MDL_MEM_ADDR_PTR (shallow copy) for external-weight models.
+    std::vector<uint8_t> modelData_;
     std::map<std::string, aclAippInputFormat> str2aclAippInputFormat;
+    // External weight directory registered to the pool; released on Unload.
+    std::string weightDir_;
+    bool weightsAcquired_ = false;
     void model_description(aclError ret, size_t& numInputs, size_t& numOutputs,
         aclmdlIODims& dimsInput, aclmdlIODims& dimsOutput);
     UtilsResult::Result check_ret(aclError ret, size_t buffer_size_zero);

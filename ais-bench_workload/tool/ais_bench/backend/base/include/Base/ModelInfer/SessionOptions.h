@@ -25,6 +25,10 @@ public:
     int log_level = LOG_INFO_LEVEL;
     int loop = 1;
     std::string aclJsonPath = "";
+    // When non-empty, weights are loaded from this directory and shared
+    // (by file name) across sessions that point to the same directory,
+    // via aclmdlSetExternalWeightAddress + aclmdlLoadWithConfig.
+    std::string weightDir = "";
 };
 }
 #endif

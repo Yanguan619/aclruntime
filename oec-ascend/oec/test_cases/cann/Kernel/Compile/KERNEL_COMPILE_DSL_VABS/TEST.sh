@@ -1,1 +1,0 @@
-python3 dsl_vabs.py "$OEC_OUTPUT_PATH"

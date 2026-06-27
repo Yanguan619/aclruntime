@@ -1,2 +1,0 @@
-global-exclude backend/__init__.py
-global-exclude backend/setup.py

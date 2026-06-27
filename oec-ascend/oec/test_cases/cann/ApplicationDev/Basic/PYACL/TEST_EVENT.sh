@@ -1,1 +1,0 @@
-python3 ./test_acl_event.py

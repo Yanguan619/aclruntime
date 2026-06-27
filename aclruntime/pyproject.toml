@@ -1,0 +1,23 @@
+[project]
+name = "aclruntime"
+version = "0.0.3"
+description = "ACL runtime Python bindings with pybind11"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+
+[build-system]
+requires = ["scikit-build-core>=0.10.0", "pybind11>=2.8.0"]
+build-backend = "scikit_build_core.build"
+
+[tool.scikit-build]
+cmake.version = ">=3.14"
+
+[tool.scikit-build.wheel]
+cmake = true
+
+[tool.pybind11-stubgen]
+output_dir = "."
+root_module_suffix = ""
+
+[project.optional-dependencies]
+dev = ["pybind11-stubgen"]

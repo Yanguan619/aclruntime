@@ -1,7 +1,7 @@
+build
+*.egg-info
+dist
+.venv
 __pycache__
-.vscode
-oec-ascend/output
-oec-ascend/dist
-oec-ascend/oec_ascend_compatibility.egg-info
-oec-ascend/build
-oec-ascend/oec/data
+*.pyc
+*.sha256

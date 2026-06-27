@@ -1,1 +1,0 @@
-msnpureport config --get --device 0

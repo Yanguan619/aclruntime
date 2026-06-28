@@ -197,16 +197,14 @@ class InferSession:
         return ret
 
     def run(self, feeds, out_array=False):
+        inputs = feeds
         if len(feeds) > 0 and isinstance(feeds[0], np.ndarray):
             # if feeds is ndarray list, convert to baseTensor
-            inputs = []
-            for array in feeds:
-                basetensor = aclruntime.BaseTensor(
-                    array.__array_interface__["data"][0], array.nbytes
-                )
-                inputs.append(basetensor)
-        else:
-            inputs = feeds
+            inputs = [
+                aclruntime.BaseTensor(array.__array_interface__["data"][0], array.nbytes)
+                for array in feeds
+            ]
+
         outputs = self.session.run(self.outputs_names, inputs)
         if out_array:
             # convert to host tensor
@@ -215,6 +213,22 @@ class InferSession:
             return self.convert_tensors_to_arrays(outputs)
         else:
             return outputs
+
+    def run_from_tensors(self, feeds, out_array=True):
+        """Zero-copy inference with device-resident tensors.
+
+        Args:
+            feeds: List[aclruntime.Tensor], all on device.
+            out_array: if True, convert outputs to numpy (downloads to host).
+
+        Returns:
+            List[np.ndarray] if out_array else List[aclruntime.Tensor].
+        """
+        outputs = self.session.run_from_tensors(self.outputs_names, feeds)
+        if out_array:
+            self.convert_tensors_to_host(outputs)
+            return self.convert_tensors_to_arrays(outputs)
+        return outputs
 
     def run_pipeline(
         self,
@@ -272,14 +286,13 @@ class InferSession:
                 raise RuntimeError("type:{} invalid".format(type(feed)))
             inputs.append(infer_input)
 
-        if self.infer_mode_switch.get(mode) is not None:
-            self.infer_mode_switch.get(mode)(shapes, custom_sizes)
-        else:
+        if self.infer_mode_switch.get(mode) is None:
             raise RuntimeError(
                 'wrong infer_mode:{}, only support "static","dymbatch","dymhw", \
                 "dymdims","dymshape"'.format(mode)
             )
 
+        self.infer_mode_switch.get(mode)(shapes, custom_sizes)
         return self.run(inputs, out_array)
 
     def free_resource(self):
@@ -387,7 +400,15 @@ class InferSession:
         if self.infer_mode_switch.get(mode) is not None:
             self.infer_mode_switch.get(mode)(shapes, custom_sizes)
 
-        outputs = self._inner_iteration_run(inputs, in_out_list, iteration_times)
+        out_names = [out_desc.name for out_desc in self.get_outputs()]
+        outputs = self.session.run(out_names, inputs)
+        if iteration_times == 1:
+            return outputs
+        for _ in range(int(iteration_times - 1)):
+            for input_index, reused_index in enumerate(in_out_list):
+                if reused_index >= 0:
+                    inputs[input_index] = outputs[reused_index]
+            outputs = self.session.run(out_names, inputs)
 
         self.convert_tensors_to_host(outputs)
         # convert tensor to narray
@@ -421,19 +442,6 @@ class InferSession:
             acl_tensor.to_device(self.device_id)
             inputs.append(acl_tensor)
         return inputs, shapes
-
-    def _inner_iteration_run(self, inputs, in_out_list=None, iteration_times=1):
-        out_names = [out_desc.name for out_desc in self.get_outputs()]
-        outputs = self.session.run(out_names, inputs)
-        if iteration_times == 1:
-            return outputs
-        for _ in range(int(iteration_times - 1)):
-            for input_index, reused_index in enumerate(in_out_list):
-                if reused_index >= 0:
-                    inputs[input_index] = outputs[reused_index]
-            outputs = self.session.run(out_names, inputs)
-
-        return outputs
 
     def _static_prepare(self, shapes, custom_sizes):
         self.set_staticbatch()

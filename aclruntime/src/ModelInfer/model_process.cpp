@@ -159,6 +159,7 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& we
         size_t workSize = 0;
         size_t weightSize = 0;
         aclError qret = aclmdlQuerySize(modelPath.c_str(), &workSize, &weightSize);
+
         struct stat st;
         bool isStripped = (qret == ACL_SUCCESS && stat(modelPath.c_str(), &st) == 0 &&
                            weightSize > 0 && static_cast<size_t>(st.st_size) > weightSize * 2);
@@ -184,20 +185,21 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& we
         }
     }
 
+    // Load from device memory
     // External-weight path: load the OM bytes with aclmdlLoadWithConfig,
     // registering stripped weights from weightDir through the shared
     // WeightPool so prefill/decode reuse the same device buffers.
     if (!resolvedWeightDir.empty()) {
         std::ifstream file(modelPath, std::ios::binary | std::ios::ate);
         if (!file.is_open()) {
-            ERROR_LOG("open model file failed: %s", modelPath.c_str());
+            ERROR_LOG("Open model file failed: %s", modelPath.c_str());
             return FAILED;
         }
         std::streamsize modelSize = file.tellg();
         file.seekg(0, std::ios::beg);
         std::vector<uint8_t> modelData(modelSize);
         if (modelSize > 0 && !file.read(reinterpret_cast<char*>(modelData.data()), modelSize)) {
-            ERROR_LOG("read model file failed: %s", modelPath.c_str());
+            ERROR_LOG("Read model file failed: %s", modelPath.c_str());
             return FAILED;
         }
 
@@ -215,30 +217,30 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& we
             return FAILED;
         }
 
+        auto cfgFail = [&]() -> Result {
+            WeightPool::Instance().Release(resolvedWeightDir);
+            aclmdlDestroyConfigHandle(handle);
+            return FAILED;
+        };
+
         size_t loadType = ACL_MDL_LOAD_FROM_MEM;
         aclError ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &loadType, sizeof(loadType));
         if (ret != ACL_SUCCESS) {
             ACLERR_LOG(aclGetRecentErrMsg());
-            ERROR_LOG("set ACL_MDL_LOAD_TYPE_SIZET failed ret=%d", ret);
-            WeightPool::Instance().Release(resolvedWeightDir);
-            aclmdlDestroyConfigHandle(handle);
-            return FAILED;
+            ERROR_LOG("Set ACL_MDL_LOAD_TYPE_SIZET failed ret=%d", ret);
+            return cfgFail();
         }
         void* memPtr = modelData.data();
         ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &memPtr, sizeof(memPtr));
         if (ret != ACL_SUCCESS) {
             ERROR_LOG("set ACL_MDL_MEM_ADDR_PTR failed ret=%d", ret);
-            WeightPool::Instance().Release(resolvedWeightDir);
-            aclmdlDestroyConfigHandle(handle);
-            return FAILED;
+            return cfgFail();
         }
         size_t memSize = static_cast<size_t>(modelSize);
         ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &memSize, sizeof(memSize));
         if (ret != ACL_SUCCESS) {
             ERROR_LOG("set ACL_MDL_MEM_SIZET failed ret=%d", ret);
-            WeightPool::Instance().Release(resolvedWeightDir);
-            aclmdlDestroyConfigHandle(handle);
-            return FAILED;
+            return cfgFail();
         }
 
         struct timeval start = { 0 };
@@ -260,30 +262,30 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& we
             return FAILED;
         }
         float time_cost = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
-        INFO_LOG("aclmdlLoadWithConfig cost : %f (ms)", time_cost);
+        INFO_LOG("aclmdlLoadWithConfig success cost : %f (ms)", time_cost);
         weightDir_ = resolvedWeightDir;
         weightsAcquired_ = true;
         loadFlag_ = true;
-        INFO_LOG("load model %s with external weights success", Basename(modelPath).c_str());
         return SUCCESS;
     }
-
-    struct timeval start = { 0 };
-    struct timeval end = { 0 };
-    gettimeofday(&start, nullptr);
-    INFO_LOG("aclmdlLoadFromFile %s", Basename(modelPath).c_str());
-    aclError ret = aclmdlLoadFromFile(modelPath.c_str(), &modelId_);
-    gettimeofday(&end, nullptr);
-    if (ret != ACL_SUCCESS) {
-        ACLERR_LOG(aclGetRecentErrMsg());
-        ERROR_LOG("load model from file failed, model file is %s", modelPath.c_str());
-        return FAILED;
+    // Load from model_path
+    else {
+        struct timeval start = { 0 };
+        struct timeval end = { 0 };
+        gettimeofday(&start, nullptr);
+        INFO_LOG("aclmdlLoadFromFile %s", Basename(modelPath).c_str());
+        aclError ret = aclmdlLoadFromFile(modelPath.c_str(), &modelId_);
+        gettimeofday(&end, nullptr);
+        if (ret != ACL_SUCCESS) {
+            ACLERR_LOG(aclGetRecentErrMsg());
+            ERROR_LOG("Load model from file failed, model file is %s", modelPath.c_str());
+            return FAILED;
+        }
+        float time_cost = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
+        INFO_LOG("aclmdlLoadFromFile cost : %f (ms)", time_cost);
+        loadFlag_ = true;
+        return SUCCESS;
     }
-    float time_cost = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
-    INFO_LOG("aclmdlLoadFromFile cost : %f (ms)", time_cost);
-    loadFlag_ = true;
-    INFO_LOG("load model %s success", Basename(modelPath).c_str());
-    return SUCCESS;
 }
 
 Result ModelProcess::LoadModelFromMem(const void* modelData, size_t modelSize)

@@ -211,6 +211,10 @@ void RegistPyTensorModule(py::module &m)
     tensor.def_property_readonly("device", &Base::TensorBase::GetDeviceId);
     tensor.def_property_readonly("dtype", &Base::TensorBase::GetDataType);
     tensor.def_property_readonly("shape", &Base::TensorBase::GetShape);
+    tensor.def_property_readonly("data_ptr", [](Base::TensorBase &t) {
+        return reinterpret_cast<int64_t>(t.GetBuffer());
+    });
+    tensor.def_property_readonly("nbytes", &Base::TensorBase::GetByteSize);
     RegistPyTensorEnumType(m);
 }
 #endif

@@ -84,6 +84,14 @@ int PyInferenceSession::Destroy()
         ERROR_LOG("set context failed. ret=%d", ret);
         return ret;
     }
+    // Free input device pool
+    for (auto& mem : inputMemPool_) {
+        if (mem.ptrData != nullptr) {
+            MemoryHelper::MxbsFree(mem);
+            mem.ptrData = nullptr;
+        }
+    }
+    inputMemPool_.clear();
     ret = modelInfer_.DeInit();
     if (ret != APP_ERR_OK) {
         ERROR_LOG("deinit free memory failed. ret=%d", ret);
@@ -91,6 +99,32 @@ int PyInferenceSession::Destroy()
     }
     DEBUG_LOG("PyInferSession DestroySession successfully!");
     InitFlag_ = false;
+    return APP_ERR_OK;
+}
+
+APP_ERROR PyInferenceSession::EnsureInputPool(const std::vector<Base::BaseTensor>& feeds)
+{
+    if (inputMemPool_.size() < feeds.size()) {
+        inputMemPool_.resize(feeds.size());
+    }
+    for (size_t i = 0; i < feeds.size(); ++i) {
+        if (inputMemPool_[i].ptrData != nullptr && inputMemPool_[i].size >= feeds[i].size) {
+            continue; // existing buffer is large enough
+        }
+        // Free stale entry
+        if (inputMemPool_[i].ptrData != nullptr) {
+            MemoryHelper::MxbsFree(inputMemPool_[i]);
+            inputMemPool_[i] = MemoryData{};
+        }
+        // Allocate new device buffer
+        MemoryData mem(feeds[i].size, MemoryData::MemoryType::MEMORY_DEVICE, deviceId_);
+        auto ret = MemoryHelper::MxbsMalloc(mem);
+        if (ret != APP_ERR_OK) {
+            ERROR_LOG("input pool malloc failed i:%zu size:%zu ret:%d", i, feeds[i].size, ret);
+            return ret;
+        }
+        inputMemPool_[i] = std::move(mem);
+    }
     return APP_ERR_OK;
 }
 
@@ -401,25 +435,47 @@ std::vector<TensorBase> PyInferenceSession::InferBaseTensorVector(std::vector<st
     SetContext();
     DEBUG_LOG("start to ModelInference base_tensor");
 
-    std::vector<MemoryData> memorys;
-    memorys.reserve(feeds.size());
+    APP_ERROR ret = EnsureInputPool(feeds);
+    if (ret != APP_ERR_OK) {
+        throw std::runtime_error(GetError(ret));
+    }
+
     std::vector<BaseTensor> inputs;
     inputs.reserve(feeds.size());
-    for (const auto& info : feeds) {
-        memorys.push_back(CopyMemory2DeviceMemory(info.buf, info.size, deviceId_));
-        inputs.emplace_back(memorys.back().ptrData, memorys.back().size);
+    for (size_t i = 0; i < feeds.size(); ++i) {
+        // Use pooled device buffer; only a host-to-device memcpy is needed
+        MemoryData src(feeds[i].buf, feeds[i].size, MemoryData::MemoryType::MEMORY_HOST, -1);
+        ret = MemoryHelper::MxbsMemcpy(inputMemPool_[i], src, feeds[i].size);
+        if (ret != APP_ERR_OK) {
+            ERROR_LOG("input H2D memcpy failed i:%zu ret:%d", i, ret);
+            throw std::runtime_error(GetError(ret));
+        }
+        inputs.emplace_back(inputMemPool_[i].ptrData, inputMemPool_[i].size);
     }
 
     std::vector<TensorBase> outputs;
-    APP_ERROR ret = modelInfer_.Inference(inputs, output_names, outputs);
+    ret = modelInfer_.Inference(inputs, output_names, outputs);
     if (ret != APP_ERR_OK) {
-        for (auto& mem : memorys) {
-            MemoryHelper::Free(mem);
-        }
         throw std::runtime_error(GetError(ret));
     }
-    for (auto& mem : memorys) {
-        MemoryHelper::Free(mem);
+    // Input device buffers remain in pool for reuse; no explicit free needed.
+    return outputs;
+}
+
+std::vector<TensorBase> PyInferenceSession::RunFromTensors(
+    std::vector<std::string>& output_names,
+    std::vector<TensorBase>& feed_tensors)
+{
+    SetContext();
+    std::vector<BaseTensor> inputs;
+    inputs.reserve(feed_tensors.size());
+    for (auto& t : feed_tensors) {
+        inputs.emplace_back(t.GetBuffer(), t.GetByteSize());
+    }
+    std::vector<TensorBase> outputs;
+    APP_ERROR ret = modelInfer_.Inference(inputs, output_names, outputs);
+    if (ret != APP_ERR_OK) {
+        throw std::runtime_error(GetError(ret));
     }
     return outputs;
 }
@@ -430,23 +486,29 @@ std::vector<TensorBase> PyInferenceSession::FirstInnerInfer(std::vector<std::str
     SetContext();
     DEBUG_LOG("start to FirstInnerInfer base_tensor");
 
-    std::vector<MemoryData> memorys = {};
-    std::vector<BaseTensor> inputs = {};
-    for (auto &info : feeds) {
-        MemoryData mem = CopyMemory2DeviceMemory(info.buf, info.size, deviceId_);
-        memorys.push_back(mem);
-        BaseTensor tensor(mem.ptrData, mem.size);
-        inputs.push_back(tensor);
-    }
-
-    std::vector<TensorBase> outputs = {};
-    APP_ERROR ret = modelInfer_.FirstInference(inputs, output_names, outputs);
+    APP_ERROR ret = EnsureInputPool(feeds);
     if (ret != APP_ERR_OK) {
         throw std::runtime_error(GetError(ret));
     }
-    for (auto &mem : memorys) {
-        MemoryHelper::Free(mem);
+
+    std::vector<BaseTensor> inputs = {};
+    inputs.reserve(feeds.size());
+    for (size_t i = 0; i < feeds.size(); ++i) {
+        MemoryData src(feeds[i].buf, feeds[i].size, MemoryData::MemoryType::MEMORY_HOST, -1);
+        ret = MemoryHelper::MxbsMemcpy(inputMemPool_[i], src, feeds[i].size);
+        if (ret != APP_ERR_OK) {
+            ERROR_LOG("input H2D memcpy failed i:%zu ret:%d", i, ret);
+            throw std::runtime_error(GetError(ret));
+        }
+        inputs.emplace_back(inputMemPool_[i].ptrData, inputMemPool_[i].size);
     }
+
+    std::vector<TensorBase> outputs = {};
+    ret = modelInfer_.FirstInference(inputs, output_names, outputs);
+    if (ret != APP_ERR_OK) {
+        throw std::runtime_error(GetError(ret));
+    }
+    // Input device buffers remain in pool for reuse; no explicit free needed.
     return outputs;
 }
 
@@ -768,6 +830,7 @@ void RegistInferenceSession(py::module &m)
     model.def("run", &Base::PyInferenceSession::InferBaseTensorVector);
     model.def("first_inner_run", &Base::PyInferenceSession::FirstInnerInfer);
     model.def("inner_run", &Base::PyInferenceSession::InnerInfer);
+    model.def("run_from_tensors", &Base::PyInferenceSession::RunFromTensors);
     model.def("run_pipeline", &Base::PyInferenceSession::InferPipeline);
     model.def("run_pipeline", &Base::PyInferenceSession::InferPipelineBaseTensor);
     model.def("__str__", &Base::PyInferenceSession::GetDesc);

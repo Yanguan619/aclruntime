@@ -54,6 +54,8 @@ public:
 
     std::vector<TensorBase> InferBaseTensorVector(std::vector<std::string>& output_names,
                                                   std::vector<Base::BaseTensor>& feeds);
+    std::vector<TensorBase> RunFromTensors(std::vector<std::string>& output_names,
+                                           std::vector<TensorBase>& feeds);
     void OnlyInfer(std::vector<BaseTensor> &inputs, std::vector<std::string>& output_names,
                    std::vector<TensorBase>& outputs);
     void InferPipeline(std::vector<std::vector<std::string>>& infilesList, std::shared_ptr<InferOptions> inferOption,
@@ -115,6 +117,9 @@ public:
 private:
     void Init(const std::string &modelPath, std::shared_ptr<SessionOptions> options);
     int Destroy();
+    // Ensure input device pool has buffers large enough for the given feeds.
+    // Grows/replaces entries as needed; does nothing if already adequate.
+    APP_ERROR EnsureInputPool(const std::vector<Base::BaseTensor>& feeds);
 
 private:
     uint32_t deviceId_ = 0;
@@ -122,6 +127,9 @@ private:
     bool InitFlag_ = false;
     std::string modelPath_ = "";
     size_t contextIndex_ = 0;
+    // Pool of pre-allocated device buffers for model inputs, reused across
+    // inference calls to avoid repeated aclrtMalloc/aclrtFree.
+    std::vector<MemoryData> inputMemPool_;
 };
 }
 

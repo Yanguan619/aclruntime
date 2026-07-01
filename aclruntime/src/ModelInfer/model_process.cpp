@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <sstream>
 #include <atomic>
+#include <stdexcept>
 #include "ModelInfer/utils.h"
 #include "ModelInfer/model_process.h"
 #include "ModelInfer/WeightPool.h"
@@ -823,7 +824,6 @@ Result ModelProcess::PrintDesc()
     ret = aclmdlGetDynamicHW(modelDesc_, -1, &dynamicHW);
     if (ret != ACL_SUCCESS) {
         ACLERR_LOG(aclGetRecentErrMsg());
-        modelDesc_ = nullptr;
         return FAILED;
     }
     if (dynamicHW.hwCount != 0) {
@@ -1585,7 +1585,7 @@ Result ModelProcess::SetAIPPSrcImageSize(std::shared_ptr<Base::DynamicAippConfig
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("acl set AIPP SrcImage size failed, w: %d, h: %d, ret: %d", dyAippCfg->GetSrcImageSizeW(),
             dyAippCfg->GetSrcImageSizeH(), ret);
-        throw "AippData set failed!";
+        throw std::runtime_error("AippData set failed!");
         return FAILED;
     }
     return SUCCESS;
@@ -1599,7 +1599,7 @@ Result ModelProcess::SetAIPPInputFormat(std::shared_ptr<Base::DynamicAippConfig>
     if (ret != ACL_ERROR_NONE) {
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("acl set AIPP input format failed, ret %d", ret);
-        throw "AippData set failed!";
+        throw std::runtime_error("AippData set failed!");
         return FAILED;
     }
     return SUCCESS;
@@ -1631,7 +1631,7 @@ Result ModelProcess::SetAIPPCscParams(std::shared_ptr<Base::DynamicAippConfig> d
     if (ret != ACL_ERROR_NONE) {
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("acl set AIPP params failed, ret %d", ret);
-        throw "AippData set failed!";
+        throw std::runtime_error("AippData set failed!");
         return FAILED;
     }
     return SUCCESS;
@@ -1649,7 +1649,7 @@ Result ModelProcess::SetAIPPRbuvSwapSwitch(
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("acl set AIPP swap switch params failed rbuvSwap:%d ret %d",
             dyAippCfg->GetRbuvSwapSwitch(), ret);
-        throw "AippData set failed!";
+        throw std::runtime_error("AippData set failed!");
         return FAILED;
     }
     return SUCCESS;
@@ -1666,7 +1666,7 @@ Result ModelProcess::SetAIPPAxSwapSwitch(
     if (ret != ACL_ERROR_NONE) {
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("acl set AIPP Ax swap switch params failed, ret %d", ret);
-        throw "AippData set failed!";
+        throw std::runtime_error("AippData set failed!");
         return FAILED;
     }
     return SUCCESS;
@@ -1699,7 +1699,7 @@ Result ModelProcess::SetAIPPDtcPixelMean(
     if (ret != ACL_ERROR_NONE) {
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("acl set AIPP Dtc pixel mean params failed, ret %d", ret);
-        throw "AippData set failed!";
+        throw std::runtime_error("AippData set failed!");
         return FAILED;
     }
     return SUCCESS;
@@ -1732,7 +1732,7 @@ Result ModelProcess::SetAIPPDtcPixelMin(
     if (ret != ACL_ERROR_NONE) {
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("acl set AIPP dtc pixel min params failed, ret %d", ret);
-        throw "AippData set failed!";
+        throw std::runtime_error("AippData set failed!");
         return FAILED;
     }
     return SUCCESS;
@@ -1767,7 +1767,7 @@ Result ModelProcess::SetAIPPPixelVarReci(
     if (ret != ACL_ERROR_NONE) {
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("acl set AIPP pixel variance params failed, ret %d", ret);
-        throw "AippData set failed!";
+        throw std::runtime_error("AippData set failed!");
         return FAILED;
     }
     return SUCCESS;
@@ -1797,7 +1797,7 @@ Result ModelProcess::SetAIPPCropParams(
     if (ret != ACL_ERROR_NONE) {
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("acl set AIPP crop params failed, ret %d", ret);
-        throw "AippData set failed!";
+        throw std::runtime_error("AippData set failed!");
         return FAILED;
     }
     return SUCCESS;
@@ -1831,7 +1831,7 @@ Result ModelProcess::SetAIPPPaddingParams(
     if (ret != ACL_ERROR_NONE) {
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("acl set AIPP padding params failed, ret %d", ret);
-        throw "AippData set failed!";
+        throw std::runtime_error("AippData set failed!");
         return FAILED;
     }
     return SUCCESS;

@@ -28,18 +28,12 @@ namespace Base {
         }
     }
 
-    cnpy::NpyArray CreatePureInferArray(std::string fname, Base::TensorDesc inTensor)
+    cnpy::NpyArray CreatePureInferArray(const std::string& fname, const Base::TensorDesc& inTensor)
     {
         size_t size = inTensor.realsize;
         cnpy::NpyArray arr = {};
-        try {
-            arr.dataHolder = std::make_shared<std::vector<char>>(size);
-        } catch (std::exception &e) {
-            throw std::runtime_error("Create pure data: make dataHolder failed");
-        }
         arr.dataHolder = std::make_shared<std::vector<char>>(size);
         cnpy::DataUnion tmpTrans;
-        srand(time(NULL));
         for (size_t i = 0; i < size; ++i) {
             if (fname == "pure_infer_data_zero") {
                 tmpTrans.value = 0;
@@ -108,7 +102,7 @@ namespace Base {
 
             feeds->outputNames = outputNames;
             if (inferOption->outputDir != "") {
-                for (auto tail : {".npy", ".bin", ".NPY", ".BIN", ""}) {
+                for (auto tail : {".npy", ".bin", ".NPY", ".BIN"}) {
                     if (Utils::TailContain(files.front(), tail)) {
                         feeds->outputPrefix = Utils::GetPrefix(inferOption->outputDir, files.front(), tail);
                         break;

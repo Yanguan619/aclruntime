@@ -131,6 +131,13 @@ class InferSession:
             "dymshape": self._dymshape_prepare,
         }
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.free_resource()
+        return False
+
     @staticmethod
     def convert_tensors_to_host(tensors):
         for tensor in tensors:
@@ -150,22 +157,10 @@ class InferSession:
             aclruntime.InferenceSession.finalize()
 
     def __getattr__(self, name):
-        _passthrough_attrs = {
-            "set_context",
-            "set_staticbatch",
-            "set_dynamic_batchsize",
-            "set_dynamic_hw",
-            "set_dynamic_dims",
-            "set_dynamic_shape",
-            "set_custom_outsize",
-            "create_tensor_from_fileslist",
-            "get_max_dym_batchsize",
-            "get_dym_aipp_input_exist",
-            "check_dym_aipp_input_exist",
-        }
-        if name in _passthrough_attrs:
-            return getattr(self.session, name)
-        raise AttributeError(f"'InferSession' object has no attribute '{name}'")
+        # Forward unknown attributes to the underlying C++ InferenceSession.
+        # This avoids a fragile whitelist — any method added to aclruntime's
+        # pybind bindings is automatically available through InferSession.
+        return getattr(self.session, name)
 
     def get_inputs(self):
         """
@@ -199,9 +194,8 @@ class InferSession:
     def run(self, feeds, out_array=False):
         inputs = feeds
         if len(feeds) > 0 and isinstance(feeds[0], np.ndarray):
-            # if feeds is ndarray list, convert to baseTensor
             inputs = [
-                aclruntime.BaseTensor(array.__array_interface__["data"][0], array.nbytes)
+                aclruntime.Tensor(array, self.device_id)
                 for array in feeds
             ]
 
@@ -250,7 +244,7 @@ class InferSession:
         self.session.run_pipeline(infilelist, infer_options, extra_session)
 
     def reset_summaryinfo(self):
-        self.session.reset_sumaryinfo()
+        self.session.reset_summaryinfo()
 
     def infer(self, feeds, mode="static", custom_sizes=100000, out_array=True):
         """
@@ -258,41 +252,16 @@ class InferSession:
             feeds: input data
             mode: static dymdims dymshape...
         """
-        inputs = []
-        shapes = []
         check_list(feeds, max_len=MODEL_INPUT_TENSOR_COUNT_MAX, allow_empty=False)
         check_bool_value(out_array)
         check_custom_size(custom_sizes, mode)
-        for feed in feeds:
-            if isinstance(feed, np.ndarray):
-                infer_input = feed
-                if not infer_input.flags.c_contiguous:
-                    infer_input = np.ascontiguousarray(infer_input)
-                shapes.append(infer_input.shape)
-            elif type(feed) in NP_TYPE_LIST:
-                infer_input = np.array(feed)
-                if not infer_input.flags.c_contiguous:
-                    infer_input = np.ascontiguousarray(infer_input)
-                shapes.append([feed.size])
-            elif isinstance(feed, aclruntime.Tensor):
-                infer_input = feed
-                shapes.append(infer_input.shape)
-            elif hasattr(feed, "type") and feed.type() in TORCH_TENSOR_LIST:
-                infer_input = feed.numpy()
-                if not feed.is_contiguous():
-                    infer_input = np.ascontiguousarray(infer_input)
-                shapes.append(infer_input.shape)
-            else:
-                raise RuntimeError("type:{} invalid".format(type(feed)))
-            inputs.append(infer_input)
 
-        if self.infer_mode_switch.get(mode) is None:
-            raise RuntimeError(
-                'wrong infer_mode:{}, only support "static","dymbatch","dymhw", \
-                "dymdims","dymshape"'.format(mode)
-            )
+        inputs = self._convert_feeds_to_device_tensors(feeds)
 
-        self.infer_mode_switch.get(mode)(shapes, custom_sizes)
+        if mode == "dymshape":
+            shapes = [list(t.shape) for t in inputs]
+            self._dymshape_prepare(shapes, custom_sizes)
+
         return self.run(inputs, out_array)
 
     def free_resource(self):
@@ -415,32 +384,27 @@ class InferSession:
         return self.convert_tensors_to_arrays(outputs)
 
     def summary(self):
-        return self.session.sumary()
+        return self.session.summary()
+
+    def _convert_feed_to_ndarray(self, feed):
+        if isinstance(feed, np.ndarray):
+            return np.ascontiguousarray(feed) if not feed.flags.c_contiguous else feed
+        if type(feed) in NP_TYPE_LIST:
+            return np.array(feed)
+        if hasattr(feed, "type") and feed.type() in TORCH_TENSOR_LIST:
+            arr = feed.numpy()
+            return np.ascontiguousarray(arr) if not feed.is_contiguous() else arr
+        raise RuntimeError("type:{} invalid".format(type(feed)))
+
+    def _convert_feeds_to_device_tensors(self, feeds):
+        return [
+            aclruntime.Tensor(self._convert_feed_to_ndarray(f), self.device_id)
+            for f in feeds
+        ]
 
     def _create_device_inputs(self, feeds):
-        inputs = []
-        shapes = []
-        for feed in feeds:
-            if isinstance(feed, np.ndarray):
-                infer_input = feed
-                if not infer_input.flags.c_contiguous:
-                    infer_input = np.ascontiguousarray(infer_input)
-                shapes.append(infer_input.shape)
-            elif type(feed) in NP_TYPE_LIST:
-                infer_input = np.array(feed)
-                if not infer_input.flags.c_contiguous:
-                    infer_input = np.ascontiguousarray(infer_input)
-                shapes.append([feed.size])
-            elif hasattr(feed, "type") and feed.type() in TORCH_TENSOR_LIST:
-                infer_input = feed.numpy()
-                if not feed.is_contiguous():
-                    infer_input = np.ascontiguousarray(infer_input)
-                shapes.append(infer_input.shape)
-            else:
-                raise RuntimeError("type:{} invalid".format(type(feed)))
-            acl_tensor = aclruntime.Tensor(infer_input)
-            acl_tensor.to_device(self.device_id)
-            inputs.append(acl_tensor)
+        inputs = self._convert_feeds_to_device_tensors(feeds)
+        shapes = [list(t.shape) for t in inputs]
         return inputs, shapes
 
     def _static_prepare(self, shapes, custom_sizes):
@@ -475,11 +439,9 @@ class InferSession:
         if len(shapes) != len(indesc):
             raise RuntimeError("input datas and intensors nums not matched!")
         for i, shape in enumerate(shapes):
-            str_shape = [str(val) for val in shape]
-            dyshape = "{}:{}".format(indesc[i].name, ",".join(str_shape))
+            dyshape = "{}:{}".format(indesc[i].name, ",".join(str(v) for v in shape))
             dym_list.append(dyshape)
-        dyshapes = ";".join(dym_list)
-        self.session.set_dynamic_dims(dyshapes)
+        self.session.set_dynamic_dims(";".join(dym_list))
 
     def _dymshape_prepare(self, shapes, custom_sizes):
         dym_list = []
@@ -488,11 +450,9 @@ class InferSession:
             raise RuntimeError("input datas and intensors nums not matched!")
         outdesc = self.get_outputs()
         for i, shape in enumerate(shapes):
-            str_shape = [str(val) for val in shape]
-            dyshape = "{}:{}".format(indesc[i].name, ",".join(str_shape))
+            dyshape = "{}:{}".format(indesc[i].name, ",".join(str(v) for v in shape))
             dym_list.append(dyshape)
-        dyshapes = ";".join(dym_list)
-        self.session.set_dynamic_shape(dyshapes)
+        self.session.set_dynamic_shape(";".join(dym_list))
         if isinstance(custom_sizes, int):
             custom_sizes = [custom_sizes] * len(outdesc)
         elif not isinstance(custom_sizes, list):

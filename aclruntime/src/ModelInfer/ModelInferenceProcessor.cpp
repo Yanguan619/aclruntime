@@ -73,10 +73,10 @@ APP_ERROR ModelInferenceProcessor::Init(const std::string& modelPath, std::share
     contextIndex_ = contextIndex;
 
     try {
-        // make_shared必然会抛出异常
         processModel = std::make_shared<ModelProcess>();
         dyAippCfg = std::make_shared<DynamicAippConfig>();
-    } catch (...) {
+    } catch (const std::bad_alloc& e) {
+        ERROR_LOG("bad alloc during init: %s", e.what());
         return APP_ERR_ACL_BAD_ALLOC;
     }
 

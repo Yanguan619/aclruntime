@@ -80,6 +80,15 @@ APP_ERROR TensorContext::DestroyContext(const uint32_t &deviceId, const size_t& 
 
 APP_ERROR TensorContext::SetContext(const uint32_t &deviceId, const size_t contextIndex)
 {
+    // Thread-local cache: skip lock + aclrtSetCurrentContext when already on the right context.
+    // PyInferenceSession calls SetContext() before almost every operation (~30+ calls per
+    // inference pipeline), so this eliminates redundant ACL runtime calls on the hot path.
+    thread_local uint32_t cachedDeviceId = UINT32_MAX;
+    thread_local size_t cachedContextIndex = SIZE_MAX;
+    if (cachedDeviceId == deviceId && cachedContextIndex == contextIndex) {
+        return APP_ERR_OK;
+    }
+
     DeviceContext device = {};
     device.devId = deviceId;
     APP_ERROR ret = DeviceManager::GetInstance()->SetContext(device, contextIndex);
@@ -87,6 +96,8 @@ APP_ERROR TensorContext::SetContext(const uint32_t &deviceId, const size_t conte
         ERROR_LOG("set context failed. ret=%d", ret);
         return ret;
     }
+    cachedDeviceId = deviceId;
+    cachedContextIndex = contextIndex;
     return APP_ERR_OK;
 }
 

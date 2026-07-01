@@ -76,8 +76,9 @@ uint32_t TensorBase::DataTypeByteSize(TensorDataType type)
 
 std::string GetTensorDataTypeDesc(TensorDataType type)
 {
-    if (DATA_TYPE_TO_STRING_MAP.find(type) != DATA_TYPE_TO_STRING_MAP.end()) {
-        return DATA_TYPE_TO_STRING_MAP.find(type)->second;
+    auto it = DATA_TYPE_TO_STRING_MAP.find(type);
+    if (it != DATA_TYPE_TO_STRING_MAP.end()) {
+        return it->second;
     }
     return DATA_TYPE_TO_STRING_MAP.at(TENSOR_DTYPE_UNDEFINED);
 }

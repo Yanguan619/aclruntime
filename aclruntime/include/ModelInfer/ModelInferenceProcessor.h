@@ -191,6 +191,7 @@ public:
      */
     const std::vector<Base::TensorDesc>& GetInputs() const;
     const std::vector<Base::TensorDesc>& GetOutputs() const;
+    DynamicType GetDynamicType() const { return dynamicInfo_.dynamicType; }
 
     std::shared_ptr<SessionOptions> GetOptions();
 

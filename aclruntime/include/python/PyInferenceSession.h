@@ -112,6 +112,10 @@ public:
     int FreeResource();
     void SetContext();
 
+    // Auto-detect and set dynamic mode from input tensor shapes.
+    // No-op if dynamic type already configured or model is static.
+    APP_ERROR AutoSetDynamicFromTensors(const std::vector<TensorBase>& feeds);
+
     Base::ModelInferenceProcessor modelInfer_ = {};
 
 private:

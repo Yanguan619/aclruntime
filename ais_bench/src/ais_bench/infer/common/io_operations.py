@@ -29,9 +29,14 @@ from ais_bench.infer.common.utils import (
 )
 from ais_bench.infer.summary import summary
 
-PURE_INFER_FAKE_FILE = "pure_infer_data"
-PURE_INFER_FAKE_FILE_ZERO = "pure_infer_data_zero"
-PURE_INFER_FAKE_FILE_RANDOM = "pure_infer_data_random"
+import aclruntime
+
+# Sentinel filenames for pure-inference mode. Defined in aclruntime's C++ side
+# (pipeline.cpp) and re-exported as module attributes so the strings are
+# guaranteed to stay in sync across layers.
+PURE_INFER_FAKE_FILE = aclruntime.PURE_INFER_DATA
+PURE_INFER_FAKE_FILE_ZERO = aclruntime.PURE_INFER_DATA_ZERO
+PURE_INFER_FAKE_FILE_RANDOM = aclruntime.PURE_INFER_DATA_RANDOM
 PADDING_INFER_FAKE_FILE = "padding_infer_fake_file"
 
 

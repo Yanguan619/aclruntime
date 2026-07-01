@@ -91,7 +91,7 @@ void TensorToDvpp(TensorBase &tensor, const int32_t deviceId)
 }
 
 #ifdef COMPILE_PYTHON_MODULE
-TensorBase FromNumpy(py::buffer b)
+TensorBase FromNumpy(py::buffer b, int32_t deviceId)
 {
     py::buffer_info info = b.request();
     auto dataType = Base::TENSOR_DTYPE_UINT8;
@@ -103,6 +103,26 @@ TensorBase FromNumpy(py::buffer b)
         shape.push_back((uint32_t)s);
     }
     uint32_t bytes = TensorBase::DataTypeByteSize(dataType);
+
+    if (deviceId >= 0) {
+        // device tensor: one malloc (device) + one copy (H2D), skip host staging
+        MemoryData src(info.ptr, info.size * bytes, MemoryData::MemoryType::MEMORY_HOST, -1);
+        TensorBase dst(shape, dataType, MemoryData::MemoryType::MEMORY_DEVICE, deviceId, 0);
+        APP_ERROR ret = TensorBase::TensorBaseMalloc(dst);
+        if (ret != APP_ERR_OK) {
+            ERROR_LOG("TensorBase malloc failed. ret=%d", ret);
+            throw std::runtime_error(GetError(ret));
+        }
+        MemoryData deviceMem(dst.GetBuffer(), dst.GetByteSize(), MemoryData::MemoryType::MEMORY_DEVICE, deviceId);
+        ret = MemoryHelper::MxbsMemcpy(deviceMem, src, dst.GetByteSize());
+        if (ret != APP_ERR_OK) {
+            ERROR_LOG("TensorBase H2D copy failed. ret=%d", ret);
+            throw std::runtime_error(GetError(ret));
+        }
+        return dst;
+    }
+
+    // host tensor: original path
     MemoryData memoryData(info.ptr, info.size * bytes, MemoryData::MemoryType::MEMORY_HOST, -1);
     TensorBase src(memoryData, true, shape, dataType, 0);
     TensorBase dst(shape, dataType);
@@ -190,7 +210,8 @@ void RegistPyTensorModule(py::module &m)
         .def("reset", &Base::MemorySummary::Reset);
 
     auto tensor = py::class_<Base::TensorBase>(m, "Tensor", py::buffer_protocol());
-    tensor.def(py::init(&Base::FromNumpy));
+    tensor.def(py::init([](py::buffer b) { return Base::FromNumpy(b); }));
+    tensor.def(py::init([](py::buffer b, int32_t deviceId) { return Base::FromNumpy(b, deviceId); }));
     tensor.def_buffer(&Base::ToNumpy);
     tensor.def("to_device", &Base::TensorToDevice);
     tensor.def("to_host", &Base::TensorToHost);

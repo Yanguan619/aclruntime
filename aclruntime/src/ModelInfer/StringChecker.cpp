@@ -21,7 +21,7 @@
 
 namespace {
 const std::vector<std::string> INVALID_CHAR = {
-    "\n", "\f", "\r", "\b", "\t", "\v", "\007F", "\000D", "\0008", "\000A", "\000C", "\000B", "\0009",
+    "\n", "\f", "\r", "\b", "\t", "\v", "\x7F",
 };
 }
 

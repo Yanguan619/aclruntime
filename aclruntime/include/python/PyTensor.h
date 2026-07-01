@@ -43,7 +43,7 @@ void TensorToDvpp(TensorBase &tensor, const int32_t deviceId);
 TensorBase BatchVector(const std::vector<TensorBase> &tensors, const bool &keepDims = false);
 
 #ifdef COMPILE_PYTHON_MODULE
-TensorBase FromNumpy(py::buffer b);
+TensorBase FromNumpy(py::buffer b, int32_t deviceId = -1);
 py::buffer_info ToNumpy(const TensorBase &tensor);
 #endif
 }

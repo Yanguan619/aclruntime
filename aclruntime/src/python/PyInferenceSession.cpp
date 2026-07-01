@@ -184,14 +184,108 @@ void PyInferenceSession::Init(const std::string &modelPath, std::shared_ptr<Sess
     InitFlag_ = true;
 }
 
+APP_ERROR PyInferenceSession::AutoSetDynamicFromTensors(const std::vector<TensorBase>& feeds)
+{
+    // skip if dynamic type already configured by explicit user call
+    if (modelInfer_.GetDynamicType() != STATIC_BATCH) {
+        return APP_ERR_OK;
+    }
+    auto& inputsDesc = modelInfer_.GetInputs();
+    if (feeds.size() != inputsDesc.size()) {
+        return APP_ERR_OK;
+    }
+
+    // check whether the model has any dynamic (negative) dim
+    for (auto& desc : inputsDesc) {
+        for (auto dim : desc.shape) {
+            if (dim < 0) {
+                hasDynamic = true;
+                break;
+            }
+        }
+        if (hasDynamic) break;
+    }
+    if (!hasDynamic) {
+        return APP_ERR_OK;
+    }
+
+    // Heuristic: detect dynamic type from shape patterns.
+    // DYNAMIC_BATCH:  negative dim[0] while other dims match
+    // DYNAMIC_HW:     negative dim[2] && dim[3] (4D tensors)
+    // DYNAMIC_DIMS:   other negative dim patterns → build dim string
+    bool batchLike = true;
+    bool hwLike = true;
+    for (size_t i = 0; i < feeds.size(); ++i) {
+        auto feedShape = feeds[i].GetShape();
+        auto& descShape = inputsDesc[i].shape;
+        if (feedShape.size() != descShape.size()) {
+            batchLike = false;
+            hwLike = false;
+            break;
+        }
+        for (size_t j = 0; j < descShape.size(); ++j) {
+            if (descShape[j] >= 0) continue; // fixed dim
+            if (j == 0) {
+                hwLike = false; // dim[0] negative → not hw-like
+            } else if (j == 2 || j == 3) {
+                batchLike = false; // dim[2]/[3] negative → not batch-like
+            } else {
+                batchLike = false;
+                hwLike = false;
+            }
+        }
+    }
+
+    if (batchLike) {
+        uint64_t batch = feeds[0].GetShape()[0];
+        DEBUG_LOG("auto detect dymbatch: batch=%llu", batch);
+        return modelInfer_.SetDynamicBatchsize(static_cast<int>(batch));
+    }
+    if (hwLike) {
+        auto shape = feeds[0].GetShape();
+        int h = static_cast<int>(shape[2]);
+        int w = static_cast<int>(shape[3]);
+        DEBUG_LOG("auto detect dymhw: h=%d w=%d", h, w);
+        return modelInfer_.SetDynamicHW(w, h);
+    }
+
+    // fallback: dymdims
+    std::string dimStr;
+    for (size_t i = 0; i < feeds.size(); ++i) {
+        if (i > 0) dimStr += ";";
+        dimStr += inputsDesc[i].name + ":";
+        auto shape = feeds[i].GetShape();
+        for (size_t j = 0; j < shape.size(); ++j) {
+            if (j > 0) dimStr += ",";
+            dimStr += std::to_string(shape[j]);
+        }
+    }
+    return modelInfer_.SetDynamicDims(dimStr);
+}
+
 std::vector<TensorBase> PyInferenceSession::InferMap(std::vector<std::string>& output_names,
     std::map<std::string, TensorBase>& feeds)
 {
     SetContext();
     DEBUG_LOG("start to ModelInference feeds");
 
+    // build ordered vector for auto-detection
+    std::vector<TensorBase> ordered;
+    auto& inputsDesc = modelInfer_.GetInputs();
+    ordered.reserve(inputsDesc.size());
+    for (auto& desc : inputsDesc) {
+        auto it = feeds.find(desc.name);
+        if (it != feeds.end()) {
+            ordered.push_back(it->second);
+        }
+    }
+    APP_ERROR ret = AutoSetDynamicFromTensors(ordered);
+    if (ret != APP_ERR_OK) {
+        throw std::runtime_error(GetError(ret));
+    }
+
     std::vector<TensorBase> outputs = {};
-    APP_ERROR ret = modelInfer_.Inference(feeds, output_names, outputs);
+    ret = modelInfer_.Inference(feeds, output_names, outputs);
     if (ret != APP_ERR_OK) {
         throw std::runtime_error(GetError(ret));
     }
@@ -205,8 +299,13 @@ std::vector<TensorBase> PyInferenceSession::InferVector(std::vector<std::string>
     SetContext();
     DEBUG_LOG("start to ModelInference");
 
+    APP_ERROR ret = AutoSetDynamicFromTensors(feeds);
+    if (ret != APP_ERR_OK) {
+        throw std::runtime_error(GetError(ret));
+    }
+
     std::vector<TensorBase> outputs = {};
-    APP_ERROR ret = modelInfer_.Inference(feeds, output_names, outputs);
+    ret = modelInfer_.Inference(feeds, output_names, outputs);
     if (ret != APP_ERR_OK) {
         throw std::runtime_error(GetError(ret));
     }
@@ -581,7 +680,7 @@ void PyInferenceSession::InferPipeline(std::vector<std::vector<std::string>>& in
     SetContext();
     if (!CheckExtraSession(contextIndex_, extraSession)) {
         ERROR_LOG("infer wiht pipeline failed: cannot have session in same context");
-        return;
+        throw std::runtime_error("pipeline failed: cannot have session in same context");
     }
     size_t numThreads = extraSession.size() + 1;
     std::vector<ConcurrentQueue<std::shared_ptr<Feeds>>> h2dQueues(numThreads);
@@ -839,9 +938,11 @@ void RegistInferenceSession(py::module &m)
     model.def("options", &Base::PyInferenceSession::GetOptions, py::return_value_policy::reference);
 
     model.def("sumary", &Base::PyInferenceSession::GetSumaryInfo, py::return_value_policy::reference);
+    model.def("summary", &Base::PyInferenceSession::GetSumaryInfo, py::return_value_policy::reference);
     model.def("get_inputs", &Base::PyInferenceSession::GetInputs, py::return_value_policy::reference);
     model.def("get_outputs", &Base::PyInferenceSession::GetOutputs, py::return_value_policy::reference);
     model.def("reset_sumaryinfo", &Base::PyInferenceSession::ResetSumaryInfo);
+    model.def("reset_summaryinfo", &Base::PyInferenceSession::ResetSumaryInfo);
     model.def("set_context", &Base::PyInferenceSession::SetContext);
     model.def("set_staticbatch", &Base::PyInferenceSession::SetStaticBatch);
     model.def("set_dynamic_batchsize", &Base::PyInferenceSession::SetDynamicBatchsize);

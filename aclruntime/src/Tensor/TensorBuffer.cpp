@@ -187,22 +187,20 @@ APP_ERROR TensorBuffer::CopyBetweenDiffDevice(TensorBuffer &dst, const TensorBuf
         return ret;
     }
 
-    TensorBuffer host(src.size);
-    ret = TensorBuffer::TensorBufferMalloc(host);
+    // Direct device-to-device copy via ACL runtime (handles cross-device natively).
+    // Previously this routed through a host staging buffer (D2H + H2D), which
+    // temporarily doubled device memory and wasted bandwidth.
+    ret = src.SetContext();
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("TensorBuffer malloc failed. ret=%d", ret);
+        ERROR_LOG("set context failed. ret=%d", ret);
         return ret;
     }
 
-    ret = CopyBetweenHostDevice(host, src);
+    MemoryData dstMemory(dst.data.get(), dst.size, dst.type, dst.deviceId);
+    MemoryData srcMemory(src.data.get(), src.size, src.type, src.deviceId);
+    ret = MemoryHelper::MxbsMemcpy(dstMemory, srcMemory, dst.size);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("copy between host and device failed. ret=%d", ret);
-        return ret;
-    }
-
-    ret = CopyBetweenHostDevice(dst, host);
-    if (ret != APP_ERR_OK) {
-        ERROR_LOG("copy between host and device failed. ret=%d", ret);
+        ERROR_LOG("memory data memcpy failed. ret=%d", ret);
         return ret;
     }
     return APP_ERR_OK;

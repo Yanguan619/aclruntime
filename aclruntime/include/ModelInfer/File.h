@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <cctype>
+#include <cstdint>
 
 constexpr int DIR_CHECK_MODE = R_OK | W_OK | X_OK;
 constexpr const char PATH_SEPARATOR = '/';

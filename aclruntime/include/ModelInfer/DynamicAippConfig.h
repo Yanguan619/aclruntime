@@ -20,6 +20,7 @@
 #include <unordered_map>
 #include <vector>
 #include "ErrorCode.h"
+#include <cstdint>
 
 namespace Base {
 constexpr int CROP_SIZE_W_DEFAULT = 416;

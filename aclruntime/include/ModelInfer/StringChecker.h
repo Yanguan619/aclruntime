@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <unistd.h>
+#include <cstdint>
 #include "Log.h"
 
 // StringChecker 主要处理字符串类型相关操作

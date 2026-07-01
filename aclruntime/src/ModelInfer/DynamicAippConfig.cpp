@@ -15,6 +15,7 @@
  */
 
 #include "ModelInfer/DynamicAippConfig.h"
+#include <cstdint>
 
 namespace Base {
 DynamicAippConfig::DynamicAippConfig()

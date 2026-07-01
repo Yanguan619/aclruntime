@@ -17,6 +17,7 @@
 #include <iostream>
 #include <unordered_map>
 #include "ModelInfer/StringChecker.h"
+#include <cstdint>
 
 namespace {
 const std::vector<std::string> INVALID_CHAR = {

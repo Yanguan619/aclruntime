@@ -18,6 +18,7 @@
 
 #include <map>
 #include <algorithm>
+#include <stdexcept>
 
 #include "Tensor/TensorBuffer.h"
 #include "Tensor/TensorShape.h"

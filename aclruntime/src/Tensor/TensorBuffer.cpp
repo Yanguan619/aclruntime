@@ -17,6 +17,7 @@
 #include "Tensor/TensorBuffer.h"
 #include "Tensor/TensorContext.h"
 #include "Log.h"
+#include <stdexcept>
 
 namespace Base {
 APP_ERROR TensorBuffer::SetContext() const

@@ -196,6 +196,7 @@ APP_ERROR PyInferenceSession::AutoSetDynamicFromTensors(const std::vector<Tensor
     }
 
     // check whether the model has any dynamic (negative) dim
+    bool hasDynamic = false;
     for (auto& desc : inputsDesc) {
         for (auto dim : desc.shape) {
             if (dim < 0) {

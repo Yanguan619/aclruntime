@@ -210,7 +210,6 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& we
     // registering stripped weights from weightDir through the shared
     // WeightPool so prefill/decode reuse the same device buffers.
     if (!resolvedWeightDir.empty()) {
-        DEBUG_LOG("[MEM_CHECK] LoadModelFromFile: reading OM file, RSS=%zuMB", GetSystemMemoryUsedMB());
         std::ifstream file(modelPath, std::ios::binary | std::ios::ate);
         if (!file.is_open()) {
             ERROR_LOG("Open model file failed: %s", modelPath.c_str());
@@ -223,8 +222,6 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& we
             ERROR_LOG("Read model file failed: %s", modelPath.c_str());
             return FAILED;
         }
-        DEBUG_LOG("[MEM_CHECK] LoadModelFromFile: OM file read, size=%zu, RSS=%zuMB",
-                  modelSize, GetSystemMemoryUsedMB());
 
         aclmdlConfigHandle* handle = aclmdlCreateConfigHandle();
         if (handle == nullptr) {
@@ -232,7 +229,6 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& we
             return FAILED;
         }
 
-        DEBUG_LOG("[MEM_CHECK] LoadModelFromFile: before WeightPool::Acquire, RSS=%zuMB", GetSystemMemoryUsedMB());
         std::vector<std::string> acquiredFiles;
         Result wret = WeightPool::Instance().Acquire(resolvedWeightDir, handle, acquiredFiles);
         if (wret != SUCCESS) {
@@ -240,7 +236,6 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& we
             aclmdlDestroyConfigHandle(handle);
             return FAILED;
         }
-        DEBUG_LOG("[MEM_CHECK] LoadModelFromFile: after WeightPool::Acquire, RSS=%zuMB", GetSystemMemoryUsedMB());
 
         auto cfgFail = [&]() -> Result {
             WeightPool::Instance().Release(resolvedWeightDir);
@@ -278,6 +273,7 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& we
                 INFO_LOG("ACL_MDL_WITHOUT_GRAPH_INT32 enabled");
             }
         }
+        DEBUG_LOG("aclmdlSetConfigOpt end: RSS=%zuMB", GetSystemMemoryUsedMB());
 
         struct timeval start = { 0 };
         struct timeval end = { 0 };
@@ -285,14 +281,25 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& we
         DEBUG_LOG("[MEM_CHECK] Before aclmdlLoadWithConfig: RSS=%zuMB", GetSystemMemoryUsedMB());
         INFO_LOG("aclmdlLoadWithConfig %s (weights from %s, %zu files)",
                  Basename(modelPath).c_str(), Basename(resolvedWeightDir).c_str(), acquiredFiles.size());
+
+        DEBUG_LOG("aclmdlDestroyConfigHandle: RSS=%zuMB", GetSystemMemoryUsedMB());
         ret = aclmdlLoadWithConfig(handle, &modelId_);
+
         DEBUG_LOG("[MEM_CHECK] After aclmdlLoadWithConfig: RSS=%zuMB", GetSystemMemoryUsedMB());
+        DEBUG_LOG("aclmdlLoadWithConfig end: RSS=%zuMB", GetSystemMemoryUsedMB());
+
         gettimeofday(&end, nullptr);
         // modelData must outlive the load; per ACL semantics the model
         // memory is referenced shallowly, so keep the bytes alive for the
         // lifetime of this ModelProcess.
         modelData_.swap(modelData);
+
+        DEBUG_LOG("modelData_.swap(modelData): RSS=%zuMB", GetSystemMemoryUsedMB());
+
         aclmdlDestroyConfigHandle(handle);
+
+        DEBUG_LOG("aclmdlDestroyConfigHandle: RSS=%zuMB", GetSystemMemoryUsedMB());
+
         if (ret != ACL_SUCCESS) {
             ACLERR_LOG(aclGetRecentErrMsg());
             ERROR_LOG("aclmdlLoadWithConfig failed, model file is %s", modelPath.c_str());
@@ -390,24 +397,19 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& we
             // Original path: use aclmdlLoadFromFile for simplicity
             struct timeval start = { 0 };
             struct timeval end = { 0 };
-            gettimeofday(&start, nullptr);
-            INFO_LOG("aclmdlLoadFromFile %s", Basename(modelPath).c_str());
-            DEBUG_LOG("[MEM_CHECK] Before aclmdlLoadFromFile: RSS=%zuMB",
-                     GetSystemMemoryUsedMB());
-            aclError ret = aclmdlLoadFromFile(modelPath.c_str(), &modelId_);
-            gettimeofday(&end, nullptr);
-            DEBUG_LOG("[MEM_CHECK] After aclmdlLoadFromFile: RSS=%zuMB",
-                     GetSystemMemoryUsedMB());
-            if (ret != ACL_SUCCESS) {
-                ACLERR_LOG(aclGetRecentErrMsg());
-                ERROR_LOG("Load model from file failed, model file is %s", modelPath.c_str());
-                return FAILED;
-            }
-            float time_cost = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
-            INFO_LOG("aclmdlLoadFromFile cost : %f (ms)", time_cost);
-            loadFlag_ = true;
-            return SUCCESS;
+        gettimeofday(&start, nullptr);
+        INFO_LOG("aclmdlLoadFromFile %s", Basename(modelPath).c_str());
+        aclError ret = aclmdlLoadFromFile(modelPath.c_str(), &modelId_);
+        gettimeofday(&end, nullptr);
+        if (ret != ACL_SUCCESS) {
+            ACLERR_LOG(aclGetRecentErrMsg());
+            ERROR_LOG("Load model from file failed, model file is %s", modelPath.c_str());
+            return FAILED;
         }
+        float time_cost = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
+        INFO_LOG("aclmdlLoadFromFile cost : %f (ms)", time_cost);
+        loadFlag_ = true;
+        return SUCCESS;
     }
 }
 

@@ -5,7 +5,23 @@
 #include <fstream>
 #include <set>
 #include <vector>
+#include <sstream>
 #include "Log.h"
+
+// Memory tracking helper
+static size_t GetSystemMemoryUsedMB() {
+    std::ifstream status("/proc/self/status");
+    std::string line;
+    while (std::getline(status, line)) {
+        if (line.find("VmRSS:") == 0) {
+            size_t kb = 0;
+            std::istringstream iss(line.substr(6));
+            iss >> kb;
+            return kb / 1024;
+        }
+    }
+    return 0;
+}
 
 static const char* TAG_WEIGHT = "weight_pool";
 
@@ -110,6 +126,8 @@ UtilsResult::Result WeightPool::Acquire(const std::string& weightDir,
 
             size_t aligned = Align32(static_cast<size_t>(rawSize));
             void* devPtr = nullptr;
+            DEBUG_LOG("[%s] Allocating weight %s: raw=%zu, aligned=%zu, RSS=%zuMB",
+                      TAG_WEIGHT, name.c_str(), rawSize, aligned, GetSystemMemoryUsedMB());
             aclError ret = aclrtMallocAlign32(&devPtr, aligned, ACL_MEM_MALLOC_HUGE_FIRST);
             if (ret != ACL_SUCCESS) {
                 std::cerr << "[" << TAG_WEIGHT << "] aclrtMalloc failed for " << abspath
@@ -122,6 +140,9 @@ UtilsResult::Result WeightPool::Acquire(const std::string& weightDir,
                 aclrtFree(devPtr);
                 return UtilsResult::FAILED;
             }
+            // data vector will be freed here, releasing host memory
+            data.clear();
+            data.shrink_to_fit();
 
             WeightEntry e;
             e.devPtr = devPtr;

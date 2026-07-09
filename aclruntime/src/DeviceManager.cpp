@@ -16,8 +16,25 @@
 
 #include <iostream>
 #include <memory>
+#include <fstream>
+#include <sstream>
 #include "Log.h"
 #include "DeviceManager.h"
+
+// Memory tracking helper
+static size_t GetSystemMemoryUsedMB() {
+    std::ifstream status("/proc/self/status");
+    std::string line;
+    while (std::getline(status, line)) {
+        if (line.find("VmRSS:") == 0) {
+            size_t kb = 0;
+            std::istringstream iss(line.substr(6));
+            iss >> kb;
+            return kb / 1024;
+        }
+    }
+    return 0;
+}
 
 namespace Base {
 DeviceManager::~DeviceManager()
@@ -224,14 +241,17 @@ APP_ERROR DeviceManager::CreateContext(DeviceContext device, size_t& contextInde
 {
     std::lock_guard<std::mutex> lock(mtx_);
     auto deviceId = device.devId;
+    DEBUG_LOG("[MEM_CHECK] CreateContext start: device=%d, RSS=%zuMB", deviceId, GetSystemMemoryUsedMB());
     if (contexts_.find(deviceId) == contexts_.end()) {
         // open device
+        DEBUG_LOG("[MEM_CHECK] Before aclrtSetDevice: RSS=%zuMB", GetSystemMemoryUsedMB());
         APP_ERROR ret = aclrtSetDevice(deviceId);
         if (ret != APP_ERR_OK) {
             ACLERR_LOG(aclGetRecentErrMsg());
             ERROR_LOG("acl open device %d failed", deviceId);
             return ret;
         }
+        DEBUG_LOG("[MEM_CHECK] After aclrtSetDevice: RSS=%zuMB", GetSystemMemoryUsedMB());
         INFO_LOG("open device %d success", deviceId);
         contexts_[deviceId] = {};
         nextContextIndex_[deviceId] = 0;
@@ -247,12 +267,14 @@ APP_ERROR DeviceManager::CreateContext(DeviceContext device, size_t& contextInde
         }
     } else {
         INFO_LOG("create new context");
+        DEBUG_LOG("[MEM_CHECK] Before aclrtCreateContext: RSS=%zuMB", GetSystemMemoryUsedMB());
         APP_ERROR ret = aclrtCreateContext(&newContext, deviceId);
         if (ret != APP_ERR_OK) {
             ACLERR_LOG(aclGetRecentErrMsg());
             ERROR_LOG("acl create context failed");
             return ret;
         }
+        DEBUG_LOG("[MEM_CHECK] After aclrtCreateContext: RSS=%zuMB", GetSystemMemoryUsedMB());
     }
     if (nextContextIndex_.count(deviceId) == 0) {
         ERROR_LOG("device %d missing default context!", deviceId);
@@ -264,6 +286,7 @@ APP_ERROR DeviceManager::CreateContext(DeviceContext device, size_t& contextInde
     DEBUG_LOG("finish create context %lu in device %d", newContextIndex, deviceId);
     nextContextIndex_[deviceId]++;
 
+    DEBUG_LOG("[MEM_CHECK] CreateContext end: RSS=%zuMB", GetSystemMemoryUsedMB());
     return APP_ERR_OK;
 }
 

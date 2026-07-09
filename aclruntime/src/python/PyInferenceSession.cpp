@@ -29,6 +29,23 @@
 #include "ModelInfer/pipeline.h"
 #include "ModelInfer/File.h"
 
+// Memory tracking helper
+#include <fstream>
+#include <sstream>
+static size_t GetSystemMemoryUsedMB() {
+    std::ifstream status("/proc/self/status");
+    std::string line;
+    while (std::getline(status, line)) {
+        if (line.find("VmRSS:") == 0) {
+            size_t kb = 0;
+            std::istringstream iss(line.substr(6));
+            iss >> kb;
+            return kb / 1024;
+        }
+    }
+    return 0;
+}
+
 using namespace UtilsResult;
 constexpr int LOOP_MAX_SIZE = 100000;
 constexpr size_t CUSTOME_SIZE_MAX_SIZE = 17179869184; // 16GB
@@ -169,19 +186,26 @@ PyInferenceSession::~PyInferenceSession()
 
 void PyInferenceSession::Init(const std::string &modelPath, std::shared_ptr<SessionOptions> options)
 {
+    DEBUG_LOG("[MEM_CHECK] PyInferenceSession::Init start: RSS=%zuMB, model=%s",
+             GetSystemMemoryUsedMB(), modelPath.c_str());
     LogCtrl::SetLogLevel(options->log_level);
     DeviceManager::GetInstance()->SetAclJsonPath(options->aclJsonPath);
+    DEBUG_LOG("[MEM_CHECK] Before CreateContext: RSS=%zuMB", GetSystemMemoryUsedMB());
     APP_ERROR ret = TensorContext::GetInstance()->CreateContext(deviceId_, contextIndex_);
     if (ret != APP_ERR_OK) {
         throw std::runtime_error(GetError(ret));
     }
+    DEBUG_LOG("[MEM_CHECK] After CreateContext: RSS=%zuMB", GetSystemMemoryUsedMB());
     SetContext();
 
+    DEBUG_LOG("[MEM_CHECK] Before modelInfer_.Init: RSS=%zuMB", GetSystemMemoryUsedMB());
     ret = modelInfer_.Init(modelPath, options, deviceId_, contextIndex_);
     if (ret != APP_ERR_OK) {
         throw std::runtime_error(GetError(ret));
     }
+    DEBUG_LOG("[MEM_CHECK] After modelInfer_.Init: RSS=%zuMB", GetSystemMemoryUsedMB());
     InitFlag_ = true;
+    DEBUG_LOG("[MEM_CHECK] PyInferenceSession::Init end: RSS=%zuMB", GetSystemMemoryUsedMB());
 }
 
 APP_ERROR PyInferenceSession::AutoSetDynamicFromTensors(const std::vector<TensorBase>& feeds)
@@ -902,7 +926,8 @@ void RegistOptions(py::module &m)
     .def_readwrite("loop", &Base::SessionOptions::loop)
     .def_readwrite("log_level", &Base::SessionOptions::log_level)
     .def_readwrite("acl_json_path", &Base::SessionOptions::aclJsonPath)
-    .def_readwrite("weight_dir", &Base::SessionOptions::weightDir);
+    .def_readwrite("weight_dir", &Base::SessionOptions::weightDir)
+    .def_readwrite("without_graph", &Base::SessionOptions::withoutGraph);
 
     py::class_<Base::InferOptions, std::shared_ptr<Base::InferOptions>>(m, "infer_options")
     .def(py::init([]() { return std::make_shared<Base::InferOptions>(); }))

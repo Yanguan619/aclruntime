@@ -21,6 +21,7 @@
 #include <chrono>
 #include "acl/acl.h"
 #include "ModelInfer/utils.h"
+#include "ModelInfer/SessionOptions.h"
 #include "Tensor/TensorBase.h"
 #include "ModelInfer/DynamicAippConfig.h"
 
@@ -70,10 +71,14 @@ public:
     *         buffers are shared across ModelProcess instances via
     *         WeightPool, so prefill and decode sessions can reuse the
     *         same device allocations.
+    * @param [in] options: optional session options for memory optimization.
+    *         When withoutGraph is true, ACL_MDL_WITHOUT_GRAPH_INT32 is
+    *         set to release graph and pre-cached info after model load.
     * @return result
     */
     UtilsResult::Result LoadModelFromFile(const std::string& modelPath,
-                                          const std::string& weightDir = "");
+                                          const std::string& weightDir = "",
+                                          std::shared_ptr<Base::SessionOptions> options = nullptr);
 
     UtilsResult::Result LoadModelFromMem(const void* modelData, size_t modelSize);
 

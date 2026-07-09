@@ -29,6 +29,9 @@ public:
     // (by file name) across sessions that point to the same directory,
     // via aclmdlSetExternalWeightAddress + aclmdlLoadWithConfig.
     std::string weightDir = "";
+    // Release graph and pre-cached info after model load to save CPU memory.
+    // Corresponds to ACL_MDL_WITHOUT_GRAPH_INT32=1.
+    bool withoutGraph = false;
 };
 }
 #endif

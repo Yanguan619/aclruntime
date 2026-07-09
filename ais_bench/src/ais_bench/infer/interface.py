@@ -118,6 +118,9 @@ class InferSession:
         self.options.loop = self.loop
         if weight_dir is not None:
             self.options.weight_dir = weight_dir
+        # Enable graph release after load to save CPU memory (ACL_MDL_WITHOUT_GRAPH_INT32=1)
+        if hasattr(self.options, 'without_graph'):
+            self.options.without_graph = True
         self.session = aclruntime.InferenceSession(self.model_path, self.device_id, self.options)
         self.outputs_names = [meta.name for meta in self.session.get_outputs()]
         self.infer_mode_switch = {

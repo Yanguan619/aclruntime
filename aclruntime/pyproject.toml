@@ -11,6 +11,7 @@ build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
 cmake.version = ">=3.14"
+cmake.build-type = "Debug"  # Debug 版本，可看到调用栈
 
 [tool.scikit-build.wheel]
 cmake = true

@@ -29,6 +29,24 @@
 #include "ModelInfer/model_process.h"
 #include "ModelInfer/WeightPool.h"
 
+// Memory tracking helpers
+#include <fstream>
+#include <sstream>
+
+static size_t GetSystemMemoryUsedMB() {
+    std::ifstream status("/proc/self/status");
+    std::string line;
+    while (std::getline(status, line)) {
+        if (line.find("VmRSS:") == 0) {
+            size_t kb = 0;
+            std::istringstream iss(line.substr(6));
+            iss >> kb;
+            return kb / 1024;
+        }
+    }
+    return 0;
+}
+
 using namespace UtilsResult;
 using std::string;
 
@@ -147,7 +165,8 @@ ModelProcess::~ModelProcess()
     DestroyOutput(MemoryPolicy::FREE_MEMORY);
 }
 
-Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& weightDir)
+Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& weightDir,
+                                        std::shared_ptr<Base::SessionOptions> options)
 {
     if (loadFlag_) {
         ERROR_LOG("has already loaded a model");
@@ -244,6 +263,17 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& we
             return cfgFail();
         }
 
+        // Enable withoutGraph to release graph and pre-cached info after load
+        if (options && options->withoutGraph) {
+            int32_t withoutGraph = 1;
+            ret = aclmdlSetConfigOpt(handle, ACL_MDL_WITHOUT_GRAPH_INT32, &withoutGraph, sizeof(withoutGraph));
+            if (ret != ACL_SUCCESS) {
+                WARN_LOG("set ACL_MDL_WITHOUT_GRAPH_INT32 failed ret=%d (non-fatal)", ret);
+            } else {
+                INFO_LOG("ACL_MDL_WITHOUT_GRAPH_INT32 enabled");
+            }
+        }
+
         struct timeval start = { 0 };
         struct timeval end = { 0 };
         gettimeofday(&start, nullptr);
@@ -271,21 +301,106 @@ Result ModelProcess::LoadModelFromFile(const string& modelPath, const string& we
     }
     // Load from model_path
     else {
-        struct timeval start = { 0 };
-        struct timeval end = { 0 };
-        gettimeofday(&start, nullptr);
-        INFO_LOG("aclmdlLoadFromFile %s", Basename(modelPath).c_str());
-        aclError ret = aclmdlLoadFromFile(modelPath.c_str(), &modelId_);
-        gettimeofday(&end, nullptr);
-        if (ret != ACL_SUCCESS) {
-            ACLERR_LOG(aclGetRecentErrMsg());
-            ERROR_LOG("Load model from file failed, model file is %s", modelPath.c_str());
-            return FAILED;
+        // Check if withoutGraph optimization is requested
+        bool useWithoutGraph = (options && options->withoutGraph);
+
+        if (useWithoutGraph) {
+            // Read model file into memory for aclmdlLoadWithConfig
+            std::ifstream file(modelPath, std::ios::binary | std::ios::ate);
+            if (!file.is_open()) {
+                ERROR_LOG("Open model file failed: %s", modelPath.c_str());
+                return FAILED;
+            }
+            std::streamsize modelSize = file.tellg();
+            file.seekg(0, std::ios::beg);
+            std::vector<uint8_t> modelData(modelSize);
+            if (modelSize > 0 && !file.read(reinterpret_cast<char*>(modelData.data()), modelSize)) {
+                ERROR_LOG("Read model file failed: %s", modelPath.c_str());
+                return FAILED;
+            }
+
+            aclmdlConfigHandle* handle = aclmdlCreateConfigHandle();
+            if (handle == nullptr) {
+                ERROR_LOG("aclmdlCreateConfigHandle failed");
+                return FAILED;
+            }
+
+            auto cfgFail = [&]() -> Result {
+                aclmdlDestroyConfigHandle(handle);
+                return FAILED;
+            };
+
+            size_t loadType = ACL_MDL_LOAD_FROM_MEM;
+            aclError ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &loadType, sizeof(loadType));
+            if (ret != ACL_SUCCESS) {
+                ACLERR_LOG(aclGetRecentErrMsg());
+                ERROR_LOG("Set ACL_MDL_LOAD_TYPE_SIZET failed ret=%d", ret);
+                return cfgFail();
+            }
+            void* memPtr = modelData.data();
+            ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &memPtr, sizeof(memPtr));
+            if (ret != ACL_SUCCESS) {
+                ERROR_LOG("set ACL_MDL_MEM_ADDR_PTR failed ret=%d", ret);
+                return cfgFail();
+            }
+            size_t memSize = static_cast<size_t>(modelSize);
+            ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &memSize, sizeof(memSize));
+            if (ret != ACL_SUCCESS) {
+                ERROR_LOG("set ACL_MDL_MEM_SIZET failed ret=%d", ret);
+                return cfgFail();
+            }
+
+            // Enable withoutGraph to release graph and pre-cached info after load
+            int32_t withoutGraph = 1;
+            ret = aclmdlSetConfigOpt(handle, ACL_MDL_WITHOUT_GRAPH_INT32, &withoutGraph, sizeof(withoutGraph));
+            if (ret != ACL_SUCCESS) {
+                WARN_LOG("set ACL_MDL_WITHOUT_GRAPH_INT32 failed ret=%d (non-fatal)", ret);
+            } else {
+                INFO_LOG("ACL_MDL_WITHOUT_GRAPH_INT32 enabled");
+            }
+
+            struct timeval start = { 0 };
+            struct timeval end = { 0 };
+            gettimeofday(&start, nullptr);
+            INFO_LOG("aclmdlLoadWithConfig %s (withoutGraph)", Basename(modelPath).c_str());
+            DEBUG_LOG("[MEM_CHECK] Before aclmdlLoadWithConfig: RSS=%zuMB",
+                     GetSystemMemoryUsedMB());
+            ret = aclmdlLoadWithConfig(handle, &modelId_);
+            gettimeofday(&end, nullptr);
+            DEBUG_LOG("[MEM_CHECK] After aclmdlLoadWithConfig: RSS=%zuMB",
+                     GetSystemMemoryUsedMB());
+            aclmdlDestroyConfigHandle(handle);
+            if (ret != ACL_SUCCESS) {
+                ACLERR_LOG(aclGetRecentErrMsg());
+                ERROR_LOG("aclmdlLoadWithConfig failed, model file is %s", modelPath.c_str());
+                return FAILED;
+            }
+            float time_cost = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
+            INFO_LOG("aclmdlLoadWithConfig success cost : %f (ms)", time_cost);
+            loadFlag_ = true;
+            return SUCCESS;
+        } else {
+            // Original path: use aclmdlLoadFromFile for simplicity
+            struct timeval start = { 0 };
+            struct timeval end = { 0 };
+            gettimeofday(&start, nullptr);
+            INFO_LOG("aclmdlLoadFromFile %s", Basename(modelPath).c_str());
+            DEBUG_LOG("[MEM_CHECK] Before aclmdlLoadFromFile: RSS=%zuMB",
+                     GetSystemMemoryUsedMB());
+            aclError ret = aclmdlLoadFromFile(modelPath.c_str(), &modelId_);
+            gettimeofday(&end, nullptr);
+            DEBUG_LOG("[MEM_CHECK] After aclmdlLoadFromFile: RSS=%zuMB",
+                     GetSystemMemoryUsedMB());
+            if (ret != ACL_SUCCESS) {
+                ACLERR_LOG(aclGetRecentErrMsg());
+                ERROR_LOG("Load model from file failed, model file is %s", modelPath.c_str());
+                return FAILED;
+            }
+            float time_cost = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
+            INFO_LOG("aclmdlLoadFromFile cost : %f (ms)", time_cost);
+            loadFlag_ = true;
+            return SUCCESS;
         }
-        float time_cost = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
-        INFO_LOG("aclmdlLoadFromFile cost : %f (ms)", time_cost);
-        loadFlag_ = true;
-        return SUCCESS;
     }
 }
 
@@ -324,6 +439,8 @@ Result ModelProcess::LoadModelFromMem(const void* modelData, size_t modelSize)
 
 Result ModelProcess::CreateDesc()
 {
+    DEBUG_LOG("[MEM_CHECK] Before CreateDesc: RSS=%zuMB",
+             GetSystemMemoryUsedMB());
     modelDesc_ = aclmdlCreateDesc();
     if (modelDesc_ == nullptr) {
         ERROR_LOG("create model description failed");
@@ -337,6 +454,8 @@ Result ModelProcess::CreateDesc()
         return FAILED;
     }
 
+    DEBUG_LOG("[MEM_CHECK] After CreateDesc: RSS=%zuMB",
+             GetSystemMemoryUsedMB());
     INFO_LOG("create model description success");
 
     return SUCCESS;
@@ -856,7 +975,7 @@ Result ModelProcess::CreateDymInput(size_t index)
     }
     size_t buffer_size = aclmdlGetInputSizeByIndex(modelDesc_, index);
     void* inBufferDev = nullptr;
-    aclError ret = aclrtMalloc(&inBufferDev, buffer_size, ACL_MEM_MALLOC_HUGE_FIRST);
+    aclError ret = aclrtMallocAlign32(&inBufferDev, buffer_size, ACL_MEM_MALLOC_HUGE_FIRST);
     if (ret != ACL_SUCCESS) {
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("malloc device buffer failed. size is %zu", buffer_size);
@@ -995,6 +1114,8 @@ Result ModelProcess::CreateInput(void* inputDataBuffer, size_t bufferSize)
         }
     }
 
+    DEBUG_LOG("[MEM_CHECK] CreateInput: bufferSize=%zu, RSS=%zuMB",
+              bufferSize, GetSystemMemoryUsedMB());
     aclDataBuffer* inputData = aclCreateDataBuffer(inputDataBuffer, bufferSize);
     if (inputData == nullptr) {
         ERROR_LOG("can't create data buffer, create input failed");
@@ -1034,7 +1155,7 @@ Result ModelProcess::CreateZeroInput()
         size_t buffer_size_zero = aclmdlGetInputSizeByIndex(modelDesc_, i);
         void* inBufferDev = nullptr;
 
-        ret = aclrtMalloc(&inBufferDev, buffer_size_zero, ACL_MEM_MALLOC_HUGE_FIRST);
+        ret = aclrtMallocAlign32(&inBufferDev, buffer_size_zero, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             ACLERR_LOG(aclGetRecentErrMsg());
             ERROR_LOG("malloc device buffer failed. size is %zu", buffer_size_zero);
@@ -1123,6 +1244,8 @@ Result ModelProcess::CreateOutput()
         return FAILED;
     }
 
+    DEBUG_LOG("[MEM_CHECK] Before CreateOutput: RSS=%zuMB, outputNum=%zu",
+             GetSystemMemoryUsedMB(), outputNum);
     for (size_t i = 0; i < outputNum; ++i) {
         size_t buffer_size = 0;
         if (g_output_size.empty() == false) {
@@ -1131,12 +1254,14 @@ Result ModelProcess::CreateOutput()
             buffer_size = aclmdlGetOutputSizeByIndex(modelDesc_, i);
         }
         void* outputBuffer = nullptr;
-        aclError ret = aclrtMalloc(&outputBuffer, buffer_size, ACL_MEM_MALLOC_HUGE_FIRST);
+        aclError ret = aclrtMallocAlign32(&outputBuffer, buffer_size, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
             ACLERR_LOG(aclGetRecentErrMsg());
             ERROR_LOG("can't malloc buffer, size is %zu, create output failed", buffer_size);
             return FAILED;
         }
+        DEBUG_LOG("[MEM_CHECK] CreateOutput[%zu]: buffer_size=%zu, RSS=%zuMB",
+                  i, buffer_size, GetSystemMemoryUsedMB());
 
         aclDataBuffer* outputData = aclCreateDataBuffer(outputBuffer, buffer_size);
         if (outputData == nullptr) {
@@ -1158,6 +1283,8 @@ Result ModelProcess::CreateOutput()
             return FAILED;
         }
     }
+    DEBUG_LOG("[MEM_CHECK] After CreateOutput: RSS=%zuMB",
+             GetSystemMemoryUsedMB());
 
     INFO_LOG("create model output success");
     return SUCCESS;

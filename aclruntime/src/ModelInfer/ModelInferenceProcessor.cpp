@@ -18,6 +18,29 @@
 #include "acl/acl.h"
 #include "Log.h"
 
+// Memory tracking helper
+#include <fstream>
+#include <sstream>
+
+static size_t GetSystemMemoryUsedMB() {
+    std::ifstream status("/proc/self/status");
+    std::string line;
+    while (std::getline(status, line)) {
+        if (line.find("VmRSS:") == 0) {
+            size_t kb = 0;
+            std::istringstream iss(line.substr(6));
+            iss >> kb;
+            return kb / 1024;
+        }
+    }
+    return 0;
+}
+
+static std::string Basename(const std::string& path) {
+    size_t pos = path.rfind('/');
+    return (pos != std::string::npos) ? path.substr(pos + 1) : path;
+}
+
 using namespace UtilsResult;
 namespace Base {
 APP_ERROR ModelInferenceProcessor::GetModelDescInfo()
@@ -72,6 +95,9 @@ APP_ERROR ModelInferenceProcessor::Init(const std::string& modelPath, std::share
     deviceId_ = deviceId;
     contextIndex_ = contextIndex;
 
+    DEBUG_LOG("[MEM_CHECK] ModelInferenceProcessor::Init start: RSS=%zuMB, model=%s",
+             GetSystemMemoryUsedMB(), Basename(modelPath).c_str());
+
     try {
         processModel = std::make_shared<ModelProcess>();
         dyAippCfg = std::make_shared<DynamicAippConfig>();
@@ -89,15 +115,19 @@ APP_ERROR ModelInferenceProcessor::Init(const std::string& modelPath, std::share
             ERROR_LOG("modelData is null but modelSize > 0");
             return APP_ERR_ACL_INVALID_PARAM;
         }
+        DEBUG_LOG("[MEM_CHECK] Before LoadModelFromMem: RSS=%zuMB", GetSystemMemoryUsedMB());
         INFO_LOG("Loading model from memory, size: %zu bytes", modelSize);
         CHECK_RET_EQ(processModel->LoadModelFromMem(modelData, modelSize), SUCCESS);
+        DEBUG_LOG("[MEM_CHECK] After LoadModelFromMem: RSS=%zuMB", GetSystemMemoryUsedMB());
     } else {
         // 从文件加载（可选附带外部权重目录 weightDir，启用权重共享）
         if (modelPath.empty()) {
             ERROR_LOG("modelPath is empty for file load");
             return APP_ERR_ACL_INVALID_PARAM;
         }
-        CHECK_RET_EQ(processModel->LoadModelFromFile(modelPath, options->weightDir), SUCCESS);
+        DEBUG_LOG("[MEM_CHECK] Before LoadModelFromFile: RSS=%zuMB", GetSystemMemoryUsedMB());
+        CHECK_RET_EQ(processModel->LoadModelFromFile(modelPath, options->weightDir, options), SUCCESS);
+        DEBUG_LOG("[MEM_CHECK] After LoadModelFromFile: RSS=%zuMB", GetSystemMemoryUsedMB());
     }
 
 
@@ -107,11 +137,15 @@ APP_ERROR ModelInferenceProcessor::Init(const std::string& modelPath, std::share
 
     processModel->GetDynamicIndex(dynamicIndex_);
 
+    DEBUG_LOG("[MEM_CHECK] Before AllocDymAIPPIndexMem: RSS=%zuMB", GetSystemMemoryUsedMB());
     CHECK_RET_EQ(AllocDymAIPPIndexMem(), APP_ERR_OK);
+    DEBUG_LOG("[MEM_CHECK] After AllocDymAIPPIndexMem: RSS=%zuMB", GetSystemMemoryUsedMB());
 
     CHECK_RET_EQ(GetModelDescInfo(), APP_ERR_OK);
 
+    DEBUG_LOG("[MEM_CHECK] Before AllocDyIndexMem: RSS=%zuMB", GetSystemMemoryUsedMB());
     CHECK_RET_EQ(AllocDyIndexMem(), APP_ERR_OK);
+    DEBUG_LOG("[MEM_CHECK] After AllocDyIndexMem: RSS=%zuMB", GetSystemMemoryUsedMB());
 
     if (options_->log_level == LOG_DEBUG_LEVEL) {
         processModel->PrintDesc();
@@ -120,6 +154,8 @@ APP_ERROR ModelInferenceProcessor::Init(const std::string& modelPath, std::share
     processModel->SetExceptionCallBack();
 
     CHECK_RET_EQ(InitSumaryInfo(), APP_ERR_OK);
+
+    DEBUG_LOG("[MEM_CHECK] ModelInferenceProcessor::Init end: RSS=%zuMB", GetSystemMemoryUsedMB());
     return APP_ERR_OK;
 }
 

@@ -110,7 +110,7 @@ UtilsResult::Result WeightPool::Acquire(const std::string& weightDir,
 
             size_t aligned = Align32(static_cast<size_t>(rawSize));
             void* devPtr = nullptr;
-            aclError ret = aclrtMalloc(&devPtr, aligned, ACL_MEM_MALLOC_HUGE_FIRST);
+            aclError ret = aclrtMallocAlign32(&devPtr, aligned, ACL_MEM_MALLOC_HUGE_FIRST);
             if (ret != ACL_SUCCESS) {
                 std::cerr << "[" << TAG_WEIGHT << "] aclrtMalloc failed for " << abspath
                           << " ret=" << ret << std::endl;

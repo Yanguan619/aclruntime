@@ -288,7 +288,8 @@ Result ModelProcess::LoadModelFromFile(
              Basename(modelPath).c_str(), Basename(resolvedWeightDir).c_str(),
              acquiredFiles.size());
 
-    DEBUG_LOG("aclmdlDestroyConfigHandle: RSS=%zuMB", GetSystemMemoryUsedMB());
+    DEBUG_LOG("[MEM_CHECK] before aclmdlLoadWithConfig: RSS=%zuMB",
+              GetSystemMemoryUsedMB());
     ret = aclmdlLoadWithConfig(handle, &modelId_);
 
     DEBUG_LOG("[MEM_CHECK] After aclmdlLoadWithConfig: RSS=%zuMB",

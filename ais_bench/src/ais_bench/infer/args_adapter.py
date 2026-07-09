@@ -6,31 +6,31 @@ from typing import Optional
 @dataclass
 class AISBenchInferArgsAdapter:
     model: str
-    input: str
-    output: Optional[str]
-    output_dirname: Optional[str]
+    input: str | None
+    output: str | None
+    output_dirname: str | None
     outfmt: str
     loop: str
     debug: bool
     device: str
     dym_batch: int
-    dym_hw: Optional[str]
-    dym_dims: Optional[str]
-    dym_shape: Optional[str]
-    output_size: Optional[str]
+    dym_hw: str | None
+    dym_dims: str | None
+    dym_shape: str | None
+    output_size: str | None
     auto_set_dymshape_mode: bool
     auto_set_dymdims_mode: bool
-    batchsize: Optional[str]
+    batchsize: str | None
     pure_data_type: str
     profiler: bool
     dump: bool
-    acl_json_path: Optional[str]
+    acl_json_path: str | None
     output_batchsize_axis: str
     run_mode: str
     display_all_summary: bool
     warmup_count: str
-    dym_shape_range: Optional[str]
-    aipp_config: Optional[str]
+    dym_shape_range: str | None
+    aipp_config: str | None
     energy_consumption: bool
     npu_id: str
     backend: str

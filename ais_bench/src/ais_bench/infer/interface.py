@@ -14,7 +14,6 @@
 
 import time
 from dataclasses import dataclass
-from multiprocessing import Manager, Pool
 
 import aclruntime
 import numpy as np
@@ -121,8 +120,6 @@ class InferSession:
             self.options.weight_dir = weight_dir
         self.session = aclruntime.InferenceSession(self.model_path, self.device_id, self.options)
         self.outputs_names = [meta.name for meta in self.session.get_outputs()]
-        self.intensors_desc = self.session.get_inputs()
-        self.outtensors_desc = self.session.get_outputs()
         self.infer_mode_switch = {
             "static": self._static_prepare,
             "dymbatch": self._dymbatch_prepare,
@@ -166,15 +163,13 @@ class InferSession:
         """
         get inputs info of model
         """
-        self.intensors_desc = self.session.get_inputs()
-        return self.intensors_desc
+        return self.session.get_inputs()
 
     def get_outputs(self):
         """
         get outputs info of model
         """
-        self.outtensors_desc = self.session.get_outputs()
-        return self.outtensors_desc
+        return self.session.get_outputs()
 
     def set_loop_count(self, loop):
         options = self.session.options()
@@ -204,7 +199,9 @@ class InferSession:
             # convert to host tensor
             self.convert_tensors_to_host(outputs)
             # convert tensor to narray
-            return self.convert_tensors_to_arrays(outputs)
+            result = self.convert_tensors_to_arrays(outputs)
+            del outputs  # Release device tensors immediately
+            return result
         else:
             return outputs
 
@@ -221,7 +218,9 @@ class InferSession:
         outputs = self.session.run_from_tensors(self.outputs_names, feeds)
         if out_array:
             self.convert_tensors_to_host(outputs)
-            return self.convert_tensors_to_arrays(outputs)
+            result = self.convert_tensors_to_arrays(outputs)
+            del outputs  # Release device tensors immediately
+            return result
         return outputs
 
     def run_pipeline(
@@ -262,7 +261,9 @@ class InferSession:
             shapes = [list(t.shape) for t in inputs]
             self._dymshape_prepare(shapes, custom_sizes)
 
-        return self.run(inputs, out_array)
+        result = self.run(inputs, out_array)
+        del inputs  # Release device tensors immediately
+        return result
 
     def free_resource(self):
         if hasattr(self.session, "free_resource"):
@@ -483,6 +484,8 @@ class MultiDeviceSession:
         return self.summary
 
     def _run_multidevice(self, device_feeds, subprocess_func, log_label):
+        from multiprocessing import Manager, Pool
+
         subprocess_num = sum(len(device) for _, device in device_feeds.items())
         if subprocess_num > MAX_TOTAL_PROCESS_COUNT:
             raise RuntimeError(
@@ -544,6 +547,8 @@ class MultiDeviceSession:
         Parameters:
             device_feeds: device match [input datas1, input datas2...] (Dict)
         """
+        from multiprocessing import Manager, Pool
+
         check_dict(device_feeds, max_len=MAX_DEVICE_COUNT, allow_empty=False)
         check_custom_size(custom_sizes, mode)
         check_positive_integer(iteration_times)

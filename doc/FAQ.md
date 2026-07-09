@@ -121,3 +121,32 @@ $ python3 -m ais_bench --model=/home/search_bs1.om --output ./  --input ./1.bin,
 **处理步骤：**
 
 ​	出现该问题，请将model  input output等参数里的相对路径修改为绝对路径，这样可以临时规避。
+
+## 使用--acl_json_path参数无法dump数据
+
+```log
+root@davinci-mini:/data/workspace# python3.11 -m ais_bench --model vision_encoder.om --input input_0.bin --device 0 --output dump_data/npu --warmup_count 0 --acl_json_path 20260706095100/dump_data/npu/acl.json
+[INFO] acl init success
+[INFO] TDT(52728,python3.11):2026-07-06-10:33:04.735.072 [client_manager.cpp:462][GetClientRunMode][tid:52728] runningMode:0
+[INFO] TDT(52728,python3.11):2026-07-06-10:33:04.735.160 [client_manager.cpp:126][GetInstance][tid:52728] [ClientManager] Current mode:2
+[INFO] TDT(52728,python3.11):2026-07-06-10:33:04.735.206 [thread_mode_manager.cpp:70][Open][tid:52728] [ThreadModeManager] enter into open process deviceId[0] rankSize[0]
+[INFO] TDT(52728,python3.11):2026-07-06-10:33:04.736.448 [thread_mode_manager.cpp:280][HandleAICPUPackage][tid:52728] begin load aicpu package dstPath[/root/], srcpath[/usr/local/Ascend/cann-9.0.T3/opp/Ascend310P/aicpu/] file[Ascend310P-aicpu_syskernels.tar.gz]
+[INFO] TDT(52728,python3.11):2026-07-06-10:33:04.736.527 [package_worker.cpp:337][LoadAICPUPackageForThreadMode][tid:52728] Package checkcode is [52605468]
+[WARNING] TDT(52728,python3.11):2026-07-06-10:33:04.736.587 [package_worker.cpp:341][LoadAICPUPackageForThreadMode][tid:52728] Open aicpu_package_install.info verifyFile[/root/aicpu_package_install.info], strerror[File exists]
+[INFO] TDT(52728,python3.11):2026-07-06-10:33:04.736.903 [thread_mode_manager.cpp:280][HandleAICPUPackage][tid:52728] begin load aicpu package dstPath[/root/], srcpath[/usr/local/Ascend/cann-9.0.T3/opp/Ascend310P/aicpu/] file[Ascend310P-aicpu_extend_syskernels.tar.gz]
+[INFO] TDT(52728,python3.11):2026-07-06-10:33:04.736.963 [package_worker.cpp:337][LoadAICPUPackageForThreadMode][tid:52728] Package checkcode is [10729130]
+[WARNING] TDT(52728,python3.11):2026-07-06-10:33:04.737.012 [package_worker.cpp:341][LoadAICPUPackageForThreadMode][tid:52728] Open aicpu_package_install.info verifyFile[/root/extend_aicpu_package_install.info], strerror[File exists]
+[INFO] TDT(52728,python3.11):2026-07-06-10:33:04.737.093 [thread_mode_manager.cpp:56][OpenTfSo][tid:52728] access tf path /root/aicpu_kernels/0/aicpu_kernels_device/sand_box/ abnormal:No such file or directory.
+[WARNING] TDT(52728,python3.11):2026-07-06-10:33:04.737.194 [thread_mode_manager.cpp:115][StartCallAICPU][tid:52728] [ThreadModeManager] Can not open libaicpu_scheduler.so, deviceId[0], reason[/usr/lib64/libaicpu_scheduler.so: cannot open shared object file: No such file or directory]
+[INFO] TDT(52728,python3.11):2026-07-06-10:33:04.741.738 [thread_mode_manager.cpp:159][SetAICPUProfilingCallback][tid:52728] [ThreadModeManager] profiling callback is nullptr, skip set aicpu profiling callback
+[INFO] TDT(52728,python3.11):2026-07-06-10:33:04.776.025 [client_manager.cpp:195][SetProfilingCallback][tid:52728] [TsdClient] set profiling callback success
+[INFO] open device 0 success
+[INFO] create new context
+[ACL ERROR] E39999: Inner Error!
+E39999[PID: 52728] 2026-07-06-10:33:04.048.187 (E39999):  No TsdCloseEx symbol found in libtsdclient.so.[FUNC:TsdClientInit][FILE:runtime.cc][LINE:318]
+        TraceBack (most recent call last):
+       Failed to synchronize DataDumpLoadInfoTask, retCode=0x7150028[FUNC:DatadumpInfoLoad][FILE:context.cc][LINE:1710]
+       rtDatadumpInfoLoadWithFlag execution failed, reason=aicpu timeout[FUNC:FuncErrorReason][FILE:error_message_manage.cc][LINE:65]
+       Call rtDatadumpInfoLoad failed, length:213000, ret:507017[FUNC:ExecuteLoadDumpInfo][FILE:data_dumper.cc][LINE:868]
+       [Model][FromData]load model from data failed, ge result[507017][FUNC:ReportCallError][FILE:log_inner.cpp][LINE:148]
+```

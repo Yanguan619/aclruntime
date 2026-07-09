@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-#ifndef UTILS_H_
-#define UTILS_H_
-#include <algorithm>
-#include <cstddef>
-#include <cstring>
-#include <regex>
+#ifndef ACLRUNTIME_INCLUDE_MODELINFER_UTILS_H_
+#define ACLRUNTIME_INCLUDE_MODELINFER_UTILS_H_
 #include <dirent.h>
-#include <sys/time.h>
-#include <fstream>
-#include <iostream>
-#include <map>
-#include <sstream>
 #include <stdio.h>
-#include <string>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <time.h>
-#include <vector>
+
+#include <algorithm>
 #include <climits>
-#include "ModelInfer/File.h"
+#include <cstddef>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <regex>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include "Log.h"
+#include "ModelInfer/File.h"
 #include "ModelInfer/cnpy.h"
 #include "Tensor/TensorBase.h"
 
@@ -45,56 +46,68 @@ constexpr int MAX_SHAPE_VALUES = 6;
 constexpr size_t MAX_SHAPE_VALUE_LENGTH = 9;
 
 namespace UtilsResult {
-    typedef enum Result {
-        SUCCESS = 0,
-        FAILED = 1
-    } Result;
+typedef enum Result { SUCCESS = 0, FAILED = 1 } Result;
 }
 
 /**
-* Utils
-*/
+ * Utils
+ */
 class Utils {
-public:
+ public:
+  static void SplitString(std::string& s, std::vector<std::string>& v, char c);
 
-    static void SplitString(std::string& s, std::vector<std::string>& v, char c);
+  static void SplitStringSimple(std::string str, std::vector<std::string>& out,
+                                char split1, char split2, char split3);
 
-    static  void SplitStringSimple(std::string str, std::vector<std::string> &out, char split1,
-        char split2, char split3);
+  static void SplitStringWithSemicolonsAndColons(std::string str,
+                                                 std::vector<std::string>& out,
+                                                 char split1, char split2);
 
-    static void SplitStringWithSemicolonsAndColons(std::string str, std::vector<std::string> &out,
-        char split1, char split2);
+  static void SplitStringWithPunctuation(std::string str,
+                                         std::vector<std::string>& out,
+                                         char split);
 
-    static  void SplitStringWithPunctuation(std::string str, std::vector<std::string> &out, char split);
+  static UtilsResult::Result SplitStringGetNameDimsMulMap(
+      std::vector<std::string> in_dym_shape_str,
+      std::map<std::string, int64_t>& out_namedimsmul_map);
 
-    static UtilsResult::Result SplitStringGetNameDimsMulMap(std::vector<std::string> in_dym_shape_str,
-        std::map<std::string, int64_t> &out_namedimsmul_map);
+  static std::string modelName(std::string& s);
 
-    static std::string modelName(std::string& s);
+  static std::string TimeLine();
 
-    static std::string TimeLine();
+  static std::string printCurrentTime();
 
-    static std::string printCurrentTime();
+  static double printDiffTime(time_t begin, time_t end);
 
-    static double printDiffTime(time_t begin, time_t end);
+  static UtilsResult::Result ReadBinFileToMemory(const std::string fileName,
+                                                 char* ptr, const size_t size,
+                                                 size_t& offset);
+  static UtilsResult::Result FillFileContentToMemory(const std::string file,
+                                                     char* ptr,
+                                                     const size_t size,
+                                                     size_t& offset);
 
-    static UtilsResult::Result ReadBinFileToMemory(const std::string fileName,  char *ptr, const size_t size, size_t &offset);
-    static UtilsResult::Result FillFileContentToMemory(const std::string file, char* ptr, const size_t size, size_t &offset);
-
-    static std::string MergeStr(std::vector<std::string>& list, const std::string& delimiter);
-    static std::string GetPrefix(const std::string& outputDir, std::string filePath, const std::string& removeTail);
-    static std::string RemoveSlash(const std::string& name);
-    static std::string CreateDynamicShapeDims(const std::string& name, std::vector<size_t>& shapes);
-    static UtilsResult::Result TensorToNumpy(const std::string& outputFileName, Base::TensorBase& output);
-    static UtilsResult::Result TensorToBin(const std::string& outputFileName, Base::TensorBase& output);
-    static UtilsResult::Result TensorToTxt(const std::string& outputFileName, Base::TensorBase& output);
-    static bool TailContain(const std::string& str, const std::string& tail);
-    static bool IsValidInteger(const std::string& str);
-    static bool IsLegalDymString(const std::string& str);
-    static std::vector<std::string> SplitStringByComma(const std::string& str);
-    static bool IsDymShapeValid(const std::string& str);
-    static bool IsInputNameValidChar(const std::string& str);
-    static uint8_t CreateRandomNum();
+  static std::string MergeStr(std::vector<std::string>& list,
+                              const std::string& delimiter);
+  static std::string GetPrefix(const std::string& outputDir,
+                               std::string filePath,
+                               const std::string& removeTail);
+  static std::string RemoveSlash(const std::string& name);
+  static std::string CreateDynamicShapeDims(const std::string& name,
+                                            std::vector<size_t>& shapes);
+  static UtilsResult::Result TensorToNumpy(const std::string& outputFileName,
+                                           Base::TensorBase& output);
+  static UtilsResult::Result TensorToBin(const std::string& outputFileName,
+                                         Base::TensorBase& output);
+  static UtilsResult::Result TensorToTxt(const std::string& outputFileName,
+                                         Base::TensorBase& output);
+  static bool TailContain(const std::string& str, const std::string& tail);
+  static bool IsValidInteger(const std::string& str);
+  static bool IsLegalDymString(const std::string& str);
+  static std::vector<std::string> SplitStringByComma(const std::string& str);
+  static bool IsDymShapeValid(const std::string& str);
+  static bool IsInputNameValidChar(const std::string& str);
+  static uint8_t CreateRandomNum();
 };
 
-#endif
+#endif  // ACLRUNTIME_INCLUDE_MODELINFER_UTILS_H_

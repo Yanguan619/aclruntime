@@ -14,208 +14,214 @@
  * limitations under the License.
  */
 
-#include <typeinfo>
+#include "ModelInfer/cnpy.h"
+
+#include <algorithm>
 #include <complex>
 #include <cstdlib>
-#include <algorithm>
 #include <cstring>
 #include <regex>
-
-#include "ModelInfer/cnpy.h"
+#include <typeinfo>
 
 namespace {
 constexpr size_t UPPER_BOUND_FILE = 1 << 30;
 constexpr int RET_SUCCESS = 0;
-} // namespace
+}  // namespace
 
-char cnpy::BigEndianTest()
-{
-    int x = 1;
-    return ((reinterpret_cast<char*>(&x))[0]) ? '<' : '>';
+char cnpy::BigEndianTest() {
+  int x = 1;
+  return ((reinterpret_cast<char *>(&x))[0]) ? '<' : '>';
 }
 
-char cnpy::MapType(const std::type_info &t)
-{
-    if (t == typeid(float) || t == typeid(double) || t == typeid(long double)) {
-        return 'f';
-    }
+char cnpy::MapType(const std::type_info &t) {
+  if (t == typeid(float) || t == typeid(double) || t == typeid(long double)) {
+    return 'f';
+  }
 
-    if (t == typeid(int) || t == typeid(char) || t == typeid(short) || t == typeid(long) || t == typeid(long long)) {
-        return 'i';
-    }
+  if (t == typeid(int) || t == typeid(char) || t == typeid(short) ||
+      t == typeid(long) || t == typeid(long long)) {
+    return 'i';
+  }
 
-    if (t == typeid(unsigned char) || t == typeid(unsigned short) || t == typeid(unsigned long) ||
-        t == typeid(unsigned long long) || t == typeid(unsigned int)) {
-        return 'u';
-    }
+  if (t == typeid(unsigned char) || t == typeid(unsigned short) ||
+      t == typeid(unsigned long) || t == typeid(unsigned long long) ||
+      t == typeid(unsigned int)) {
+    return 'u';
+  }
 
-    if (t == typeid(bool)) {
-        return 'b';
-    }
+  if (t == typeid(bool)) {
+    return 'b';
+  }
 
-    if (t == typeid(std::complex<float>) || t == typeid(std::complex<double>) ||
-        t == typeid(std::complex<long double>)) {
-        return 'c';
-    }
+  if (t == typeid(std::complex<float>) || t == typeid(std::complex<double>) ||
+      t == typeid(std::complex<long double>)) {
+    return 'c';
+  }
 
-    return '?';
+  return '?';
 }
 
-template <> std::vector<char> &cnpy::operator += (std::vector<char> &lhs, const std::string rhs)
-{
-    lhs.insert(lhs.end(), rhs.begin(), rhs.end());
-    return lhs;
+template <>
+std::vector<char> &cnpy::operator+=(std::vector<char> &lhs,
+                                    const std::string rhs) {
+  lhs.insert(lhs.end(), rhs.begin(), rhs.end());
+  return lhs;
 }
 
-template <> std::vector<char> &cnpy::operator += (std::vector<char> &lhs, const char *rhs)
-{
-    size_t len = strlen(rhs);
-    lhs.reserve(len);
-    for (size_t byte = 0; byte < len; byte++) {
-        lhs.push_back(rhs[byte]);
-    }
-    return lhs;
+template <>
+std::vector<char> &cnpy::operator+=(std::vector<char> &lhs, const char *rhs) {
+  size_t len = strlen(rhs);
+  lhs.reserve(len);
+  for (size_t byte = 0; byte < len; byte++) {
+    lhs.push_back(rhs[byte]);
+  }
+  return lhs;
 }
 
-void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape, bool &fortranOrder)
-{
-    char buffer[256];
-    if (fp == nullptr) {
-        throw std::runtime_error("file stream is empty");
-    }
-    size_t res = fread(buffer, sizeof(char), 11, fp);
-    if (res != 11) { // 11 means buffer size
-        throw std::runtime_error("Parse npy header: failed fread");
-    }
-    std::string header = fgets(buffer, 256, fp);
-    if (header.size() == 0) {
-        throw std::runtime_error("npy header is empty");
-    }
-    if (header[header.size() - 1] != '\n') {
-        throw std::runtime_error("Parse npy header: the ending of header should be \n.");
-    }
+void cnpy::ParseNpyHeader(FILE *fp, size_t &wordSize,
+                          std::vector<size_t> &shape, bool &fortranOrder) {
+  char buffer[256];
+  if (fp == nullptr) {
+    throw std::runtime_error("file stream is empty");
+  }
+  size_t res = fread(buffer, sizeof(char), 11, fp);
+  if (res != 11) {  // 11 means buffer size
+    throw std::runtime_error("Parse npy header: failed fread");
+  }
+  std::string header = fgets(buffer, 256, fp);
+  if (header.size() == 0) {
+    throw std::runtime_error("npy header is empty");
+  }
+  if (header[header.size() - 1] != '\n') {
+    throw std::runtime_error(
+        "Parse npy header: the ending of header should be \n.");
+  }
 
-    size_t loc1;
-    size_t loc2;
+  size_t loc1;
+  size_t loc2;
 
-    loc1 = header.find("fortran_order");
-    if (loc1 == std::string::npos) {
-        throw std::runtime_error("Parse npy header: failed to find header keyword : 'fortranOrder'");
-    }
-    loc1 += 16; // 16 menas offset
-    fortranOrder = (header.substr(loc1, 4) == "True" ? true :false); // 4 means length of "True"
+  loc1 = header.find("fortran_order");
+  if (loc1 == std::string::npos) {
+    throw std::runtime_error(
+        "Parse npy header: failed to find header keyword : 'fortranOrder'");
+  }
+  loc1 += 16;  // 16 menas offset
+  fortranOrder =
+      (header.substr(loc1, 4) == "True" ? true
+                                        : false);  // 4 means length of "True"
 
-    loc1 = header.find("(");
-    loc2 = header.find(")");
-    if (loc1 == std::string::npos || loc2 == std::string::npos) {
-        throw std::runtime_error("Parse npy header: failed to find header keyword: '(' or ')'");
-    }
-    std::regex numRegex("[0-9][0-9]*");
-    std::smatch sm;
-    shape.clear();
+  loc1 = header.find("(");
+  loc2 = header.find(")");
+  if (loc1 == std::string::npos || loc2 == std::string::npos) {
+    throw std::runtime_error(
+        "Parse npy header: failed to find header keyword: '(' or ')'");
+  }
+  std::regex numRegex("[0-9][0-9]*");
+  std::smatch sm;
+  shape.clear();
 
-    if (loc2 <= loc1) {
-        throw std::runtime_error("')' is not bebind '(' in npy file header");
-    }
+  if (loc2 <= loc1) {
+    throw std::runtime_error("')' is not bebind '(' in npy file header");
+  }
 
-    std::string strShape = header.substr(loc1 + 1, loc2 - loc1 - 1);
-    while (std::regex_search(strShape, sm, numRegex)) {
-        shape.push_back(std::stoi(sm[0].str()));
-        strShape = sm.suffix().str();
-    }
+  std::string strShape = header.substr(loc1 + 1, loc2 - loc1 - 1);
+  while (std::regex_search(strShape, sm, numRegex)) {
+    shape.push_back(std::stoi(sm[0].str()));
+    strShape = sm.suffix().str();
+  }
 
-    loc1 = header.find("descr");
-    if (loc1 == std::string::npos) {
-        throw std::runtime_error("Parse npy header: failed to find header keyword : 'descr'");
-    }
-    loc1 += 9; // 9 menas offset
-    bool littleEndian = (header[loc1] == '<' || header[loc1] == '|' ? true : false);
-    if (!littleEndian) {
-        throw std::runtime_error("Parse npy header: should be little endian.");
-    }
+  loc1 = header.find("descr");
+  if (loc1 == std::string::npos) {
+    throw std::runtime_error(
+        "Parse npy header: failed to find header keyword : 'descr'");
+  }
+  loc1 += 9;  // 9 menas offset
+  bool littleEndian =
+      (header[loc1] == '<' || header[loc1] == '|' ? true : false);
+  if (!littleEndian) {
+    throw std::runtime_error("Parse npy header: should be little endian.");
+  }
 
-    std::string strWs = header.substr(loc1 + 2);
-    loc2 = strWs.find("'");
-    std::string tempWordSizeStr = strWs.substr(0, loc2);
-    int tempWordSize;
-    try {
-        tempWordSize = std::stoi(tempWordSizeStr);
-    } catch (const std::invalid_argument& e) {
-        throw std::runtime_error("Parse npy header: invalid word size in header");
-    } catch (const std::out_of_range& e) {
-        throw std::runtime_error("Parse npy header: word size out of range");
-    }
-    if (tempWordSize < 0) {
-        throw std::runtime_error("Parse npy header: invalid word size in header.");
-    }
-    wordSize = static_cast<size_t>(tempWordSize);
+  std::string strWs = header.substr(loc1 + 2);
+  loc2 = strWs.find("'");
+  std::string tempWordSizeStr = strWs.substr(0, loc2);
+  int tempWordSize;
+  try {
+    tempWordSize = std::stoi(tempWordSizeStr);
+  } catch (const std::invalid_argument &e) {
+    throw std::runtime_error("Parse npy header: invalid word size in header");
+  } catch (const std::out_of_range &e) {
+    throw std::runtime_error("Parse npy header: word size out of range");
+  }
+  if (tempWordSize < 0) {
+    throw std::runtime_error("Parse npy header: invalid word size in header.");
+  }
+  wordSize = static_cast<size_t>(tempWordSize);
 }
 
-cnpy::NpyArray LoadNpyFile(FILE *fp)
-{
-    std::vector<size_t> shape;
-    size_t wordSize;
-    bool fortranOrder;
-    cnpy::ParseNpyHeader(fp, wordSize, shape, fortranOrder);
-    if (wordSize > UPPER_BOUND_FILE) {
-        throw std::runtime_error("Load npy file: file size greater than upper bound");
-    }
+cnpy::NpyArray LoadNpyFile(FILE *fp) {
+  std::vector<size_t> shape;
+  size_t wordSize;
+  bool fortranOrder;
+  cnpy::ParseNpyHeader(fp, wordSize, shape, fortranOrder);
+  if (wordSize > UPPER_BOUND_FILE) {
+    throw std::runtime_error(
+        "Load npy file: file size greater than upper bound");
+  }
 
-    cnpy::NpyArray arr(shape, wordSize, fortranOrder);
-    size_t nread = fread(arr.Data<char>(), 1, arr.NumBytes(), fp);
-    if (nread != arr.NumBytes()) {
-        throw std::runtime_error("Load npy file: failed fread");
-    }
-    return arr;
+  cnpy::NpyArray arr(shape, wordSize, fortranOrder);
+  size_t nread = fread(arr.Data<char>(), 1, arr.NumBytes(), fp);
+  if (nread != arr.NumBytes()) {
+    throw std::runtime_error("Load npy file: failed fread");
+  }
+  return arr;
 }
 
-cnpy::NpyArray cnpy::NpyLoad(std::string fname)
-{
-    if (!File::CheckFileBeforeRead(fname, FileType::NUMPY)) {
-        throw std::runtime_error("Load npy file: fname is illegal" + fname);
-    }
+cnpy::NpyArray cnpy::NpyLoad(std::string fname) {
+  if (!File::CheckFileBeforeRead(fname, FileType::NUMPY)) {
+    throw std::runtime_error("Load npy file: fname is illegal" + fname);
+  }
 
-    FILE *fp = fopen(fname.c_str(), "rb");
+  FILE *fp = fopen(fname.c_str(), "rb");
 
-    if (!fp) {
-        throw std::runtime_error("Load npy file: Unable to open file" + fname);
-    }
+  if (!fp) {
+    throw std::runtime_error("Load npy file: Unable to open file" + fname);
+  }
 
-    NpyArray arr = LoadNpyFile(fp);
+  NpyArray arr = LoadNpyFile(fp);
 
-    int ret = fclose(fp);
-    if (ret != RET_SUCCESS) {
-        throw std::runtime_error("Load npy file: Unable to close file" + fname);
-    }
-    return arr;
+  int ret = fclose(fp);
+  if (ret != RET_SUCCESS) {
+    throw std::runtime_error("Load npy file: Unable to close file" + fname);
+  }
+  return arr;
 }
 
-cnpy::NpyArray cnpy::BinLoad(std::string fname)
-{
-    std::ifstream file;
-    if (!File::OpenFile(fname, file, std::ios::binary)) {
-        throw std::runtime_error("Load bin file: open file failed");
-    }
-    std::size_t size = 0;
-    file.seekg(0, std::ios::end);
-    try {
-        size = static_cast<std::size_t>(file.tellg());
-    } catch (std::exception &e) {
-        file.close();
-        throw std::runtime_error("Load bin file: file size out of range");
-    }
-
-    file.seekg(0, std::ios::beg);
-
-    NpyArray arr = {};
-    try {
-        arr.dataHolder = std::make_shared<std::vector<char>>(size);
-    } catch (std::exception &e) {
-        file.close();
-        throw std::runtime_error("Load bin file: make dataHolder failed");
-    }
-
-    file.read(arr.dataHolder->data(), size);
+cnpy::NpyArray cnpy::BinLoad(std::string fname) {
+  std::ifstream file;
+  if (!File::OpenFile(fname, file, std::ios::binary)) {
+    throw std::runtime_error("Load bin file: open file failed");
+  }
+  std::size_t size = 0;
+  file.seekg(0, std::ios::end);
+  try {
+    size = static_cast<std::size_t>(file.tellg());
+  } catch (std::exception &e) {
     file.close();
-    return arr;
+    throw std::runtime_error("Load bin file: file size out of range");
+  }
+
+  file.seekg(0, std::ios::beg);
+
+  NpyArray arr = {};
+  try {
+    arr.dataHolder = std::make_shared<std::vector<char>>(size);
+  } catch (std::exception &e) {
+    file.close();
+    throw std::runtime_error("Load bin file: make dataHolder failed");
+  }
+
+  file.read(arr.dataHolder->data(), size);
+  file.close();
+  return arr;
 }

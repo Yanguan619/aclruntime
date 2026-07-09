@@ -1,12 +1,13 @@
-#ifndef WEIGHT_POOL_H_
-#define WEIGHT_POOL_H_
+#ifndef ACLRUNTIME_INCLUDE_MODELINFER_WEIGHTPOOL_H_
+#define ACLRUNTIME_INCLUDE_MODELINFER_WEIGHTPOOL_H_
 
-#include <string>
-#include <vector>
 #include <map>
 #include <mutex>
-#include "acl/acl.h"
+#include <string>
+#include <vector>
+
 #include "ModelInfer/utils.h"
+#include "acl/acl.h"
 
 // Process-wide cache of device weight buffers, keyed by weight file
 // *basename*. External weights are registered on the OM config handle by
@@ -16,47 +17,47 @@
 // which live in separate directories but share the same decoder weights —
 // reuse the same device allocations and pay weight memory only once.
 class WeightPool {
-public:
-    struct WeightEntry {
-        void* devPtr = nullptr;
-        size_t size = 0;        // aligned size (32-byte aligned)
-        size_t rawSize = 0;     // original file size
-        int refCount = 0;
-    };
+ public:
+  struct WeightEntry {
+    void* devPtr = nullptr;
+    size_t size = 0;     // aligned size (32-byte aligned)
+    size_t rawSize = 0;  // original file size
+    int refCount = 0;
+  };
 
-    static WeightPool& Instance();
+  static WeightPool& Instance();
 
-    // List every regular file in `weightDir` (sorted), ensure each has a
-    // device buffer in the cache (allocated on the currently-set acl
-    // context), then register every (fileName, devPtr, size) on `handle`
-    // via aclmdlSetExternalWeightAddress. Returns SUCCESS on success and
-    // fills `acquiredFiles` with the file names registered. Reuses cached
-    // buffers when a file was already loaded by another session and only
-    // bumps the refcount in that case.
-    UtilsResult::Result Acquire(const std::string& weightDir,
-                                aclmdlConfigHandle* handle,
-                                std::vector<std::string>& acquiredFiles);
+  // List every regular file in `weightDir` (sorted), ensure each has a
+  // device buffer in the cache (allocated on the currently-set acl
+  // context), then register every (fileName, devPtr, size) on `handle`
+  // via aclmdlSetExternalWeightAddress. Returns SUCCESS on success and
+  // fills `acquiredFiles` with the file names registered. Reuses cached
+  // buffers when a file was already loaded by another session and only
+  // bumps the refcount in that case.
+  UtilsResult::Result Acquire(const std::string& weightDir,
+                              aclmdlConfigHandle* handle,
+                              std::vector<std::string>& acquiredFiles);
 
-    // Drop one reference to `weightDir`. For each file tracked for that
-    // dir the per-entry refcount is decremented; entries reaching zero are
-    // freed with aclrtFree (the caller must have the right context set).
-    void Release(const std::string& weightDir);
+  // Drop one reference to `weightDir`. For each file tracked for that
+  // dir the per-entry refcount is decremented; entries reaching zero are
+  // freed with aclrtFree (the caller must have the right context set).
+  void Release(const std::string& weightDir);
 
-private:
-    WeightPool() = default;
-    ~WeightPool();
-    WeightPool(const WeightPool&) = delete;
-    WeightPool& operator=(const WeightPool&) = delete;
+ private:
+  WeightPool() = default;
+  ~WeightPool();
+  WeightPool(const WeightPool&) = delete;
+  WeightPool& operator=(const WeightPool&) = delete;
 
-    static size_t Align32(size_t size) { return (size + 31UL) & ~31UL; }
+  static size_t Align32(size_t size) { return (size + 31UL) & ~31UL; }
 
-    std::mutex mutex_;
-    // weight file basename -> buffer entry
-    std::map<std::string, WeightEntry> cache_;
-    // weightDir -> list of weight basenames registered for that dir
-    std::map<std::string, std::vector<std::string>> dirFiles_;
-    // weightDir -> number of outstanding Acquire references
-    std::map<std::string, int> dirRefs_;
+  std::mutex mutex_;
+  // weight file basename -> buffer entry
+  std::map<std::string, WeightEntry> cache_;
+  // weightDir -> list of weight basenames registered for that dir
+  std::map<std::string, std::vector<std::string>> dirFiles_;
+  // weightDir -> number of outstanding Acquire references
+  std::map<std::string, int> dirRefs_;
 };
 
-#endif  // WEIGHT_POOL_H_
+#endif  // ACLRUNTIME_INCLUDE_MODELINFER_WEIGHTPOOL_H_

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef PY_INTER_FACE
-#define PY_INTER_FACE
+#ifndef ACLRUNTIME_INCLUDE_PYTHON_PYINTERFACE_H_
+#define ACLRUNTIME_INCLUDE_PYTHON_PYINTERFACE_H_
 
-#include "python/PyTensor.h"
 #include "python/PyInferenceSession.h"
+#include "python/PyTensor.h"
 
-#endif
+#endif  // ACLRUNTIME_INCLUDE_PYTHON_PYINTERFACE_H_

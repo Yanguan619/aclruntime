@@ -14,69 +14,69 @@
  * limitations under the License.
  */
 
-#ifndef TENSOR_BUFFER_H
-#define TENSOR_BUFFER_H
+#ifndef ACLRUNTIME_INCLUDE_TENSOR_TENSORBUFFER_H_
+#define ACLRUNTIME_INCLUDE_TENSOR_TENSORBUFFER_H_
 
-#include <vector>
-#include <string>
 #include <memory>
+#include <string>
+#include <vector>
 
-
-#include "MemoryHelper.h"
 #include "ErrorCode.h"
+#include "MemoryHelper.h"
 
 namespace Base {
 enum TensorBufferCopyType {
-    HOST_AND_HOST = 0,
-    HOST_AND_DEVICE,
-    DEVICE_AND_SAME_DEVICE,
-    DEVICE_AND_DIFF_DEVICE
+  HOST_AND_HOST = 0,
+  HOST_AND_DEVICE,
+  DEVICE_AND_SAME_DEVICE,
+  DEVICE_AND_DIFF_DEVICE
 };
 
 class TensorBuffer {
-public:
-    TensorBuffer() {}
-    TensorBuffer(uint32_t size, MemoryData::MemoryType type, int32_t deviceId)
-        : size(size), type(type), deviceId(deviceId) {}
-    TensorBuffer(uint32_t size, int32_t deviceId)
-        : size(size), deviceId(deviceId) {}
-    TensorBuffer(uint32_t size) : size(size) {}
-    TensorBuffer(void *ptr, uint32_t size) : size(size)
-    {
-        data.reset(ptr, [] (void *p) {});
+ public:
+  TensorBuffer() {}
+  TensorBuffer(uint32_t size, MemoryData::MemoryType type, int32_t deviceId)
+      : size(size), type(type), deviceId(deviceId) {}
+  TensorBuffer(uint32_t size, int32_t deviceId)
+      : size(size), deviceId(deviceId) {}
+  TensorBuffer(uint32_t size) : size(size) {}
+  TensorBuffer(void *ptr, uint32_t size) : size(size) {
+    data.reset(ptr, [](void *p) {});
+  }
+
+  bool IsDevice() const {
+    if (type == MemoryData::MemoryType::MEMORY_DEVICE ||
+        type == MemoryData::MemoryType::MEMORY_DVPP) {
+      return true;
     }
+    return false;
+  }
 
-    bool IsDevice() const
-    {
-        if (type == MemoryData::MemoryType::MEMORY_DEVICE || type == MemoryData::MemoryType::MEMORY_DVPP) {
-            return true;
-        }
-        return false;
-    }
+  bool IsHost() const { return !IsDevice(); }
 
-    bool IsHost() const
-    {
-        return !IsDevice();
-    }
+  APP_ERROR SetContext() const;
+  static APP_ERROR TensorBufferMalloc(TensorBuffer &buffer);
+  static APP_ERROR TensorBufferCopy(TensorBuffer &dst, const TensorBuffer &src);
 
-    APP_ERROR SetContext() const;
-    static APP_ERROR TensorBufferMalloc(TensorBuffer &buffer);
-    static APP_ERROR TensorBufferCopy(TensorBuffer &dst, const TensorBuffer &src);
+  static TensorBufferCopyType GetBufferCopyType(const TensorBuffer &buffer1,
+                                                const TensorBuffer &buffer2);
+  static APP_ERROR CheckCopyValid(const TensorBuffer &buffer1,
+                                  const TensorBuffer &buffer2);
+  static APP_ERROR CopyBetweenHost(TensorBuffer &dst, const TensorBuffer &src);
+  static APP_ERROR CopyBetweenHostDevice(TensorBuffer &dst,
+                                         const TensorBuffer &src);
+  static APP_ERROR CopyBetweenSameDevice(TensorBuffer &dst,
+                                         const TensorBuffer &src);
+  static APP_ERROR CopyBetweenDiffDevice(TensorBuffer &dst,
+                                         const TensorBuffer &src);
 
-    static TensorBufferCopyType GetBufferCopyType(const TensorBuffer &buffer1, const TensorBuffer &buffer2);
-    static APP_ERROR CheckCopyValid(const TensorBuffer &buffer1, const TensorBuffer &buffer2);
-    static APP_ERROR CopyBetweenHost(TensorBuffer &dst, const TensorBuffer &src);
-    static APP_ERROR CopyBetweenHostDevice(TensorBuffer &dst, const TensorBuffer &src);
-    static APP_ERROR CopyBetweenSameDevice(TensorBuffer &dst, const TensorBuffer &src);
-    static APP_ERROR CopyBetweenDiffDevice(TensorBuffer &dst, const TensorBuffer &src);
-
-public:
-    size_t size = 0;
-    MemoryData::MemoryType type = MemoryData::MemoryType::MEMORY_HOST;
-    int32_t deviceId = -1;
-    size_t contextIndex = 0;
-    std::shared_ptr<void> data = nullptr;
+ public:
+  size_t size = 0;
+  MemoryData::MemoryType type = MemoryData::MemoryType::MEMORY_HOST;
+  int32_t deviceId = -1;
+  size_t contextIndex = 0;
+  std::shared_ptr<void> data = nullptr;
 };
-}
+}  // namespace Base
 
-#endif
+#endif  // ACLRUNTIME_INCLUDE_TENSOR_TENSORBUFFER_H_

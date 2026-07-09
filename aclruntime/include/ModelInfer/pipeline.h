@@ -14,106 +14,110 @@
  * limitations under the License.
  */
 
-#ifndef PIPELINE_H
-#define PIPELINE_H
+#ifndef ACLRUNTIME_INCLUDE_MODELINFER_PIPELINE_H_
+#define ACLRUNTIME_INCLUDE_MODELINFER_PIPELINE_H_
 
-#include <memory>
-#include <vector>
-#include <unordered_map>
-#include <mutex>
 #include <condition_variable>
-#include <queue>
 #include <cstdint>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <unordered_map>
+#include <vector>
 
-#include "python/PyInferenceSession.h"
-#include "python/PyTensor.h"
-#include "Tensor/TensorBase.h"
 #include "ModelInfer/ModelInferenceProcessor.h"
-#include "Tensor/TensorContext.h"
 #include "ModelInfer/cnpy.h"
 #include "ModelInfer/utils.h"
+#include "Tensor/TensorBase.h"
+#include "Tensor/TensorContext.h"
+#include "python/PyInferenceSession.h"
+#include "python/PyTensor.h"
 
 using Arguments = std::unordered_map<std::string, std::string>;
 
 struct Feeds {
-    std::vector<std::string> outputNames;
-    std::shared_ptr<std::vector<Base::BaseTensor>> inputs = nullptr;
-    std::shared_ptr<std::vector<Base::TensorBase>> outputs = nullptr;
-    std::shared_ptr<std::vector<Base::MemoryData>> memory = nullptr;
-    std::shared_ptr<std::vector<std::shared_ptr<cnpy::NpyArray>>> arrayPtr = nullptr;
-    std::string autoDynamicShape;
-    std::string autoDynamicDims;
-    std::string outputPrefix;
+  std::vector<std::string> outputNames;
+  std::shared_ptr<std::vector<Base::BaseTensor>> inputs = nullptr;
+  std::shared_ptr<std::vector<Base::TensorBase>> outputs = nullptr;
+  std::shared_ptr<std::vector<Base::MemoryData>> memory = nullptr;
+  std::shared_ptr<std::vector<std::shared_ptr<cnpy::NpyArray>>> arrayPtr =
+      nullptr;
+  std::string autoDynamicShape;
+  std::string autoDynamicDims;
+  std::string outputPrefix;
 };
 
 template <typename T>
 class ConcurrentQueue {
-public:
-    explicit ConcurrentQueue(size_t depth = 3): depth_(depth) {}
+ public:
+  explicit ConcurrentQueue(size_t depth = 3) : depth_(depth) {}
 
-    T pop()
-    {
-        std::unique_lock<std::mutex> lock(mtx_);
-        cv_.wait(lock, [this] { return !queue_.empty(); });
-        T val = std::move(queue_.front());
-        queue_.pop();
-        lock.unlock();
-        cv_.notify_one();
-        return val;
-    }
+  T pop() {
+    std::unique_lock<std::mutex> lock(mtx_);
+    cv_.wait(lock, [this] { return !queue_.empty(); });
+    T val = std::move(queue_.front());
+    queue_.pop();
+    lock.unlock();
+    cv_.notify_one();
+    return val;
+  }
 
-    void push(T item)
-    {
-        std::unique_lock<std::mutex> lock(mtx_);
-        cv_.wait(lock, [this] { return queue_.size() < depth_; });
-        queue_.push(std::move(item));
-        lock.unlock();
-        cv_.notify_one();
-    }
+  void push(T item) {
+    std::unique_lock<std::mutex> lock(mtx_);
+    cv_.wait(lock, [this] { return queue_.size() < depth_; });
+    queue_.push(std::move(item));
+    lock.unlock();
+    cv_.notify_one();
+  }
 
-private:
-    std::mutex mtx_;
-    std::queue<T> queue_;
-    std::condition_variable cv_;
-    size_t depth_;
+ private:
+  std::mutex mtx_;
+  std::queue<T> queue_;
+  std::condition_variable cv_;
+  size_t depth_;
 };
 
-
 namespace Base {
-    void PrepareInputData(std::vector<std::string> &files, Base::PyInferenceSession* session,
-        std::shared_ptr<Feeds> &feeds, bool autoDymShape,
-        bool autoDymDims, const bool pure_infer, std::vector<std::string> &inputNames);
-    void FuncPrepare(ConcurrentQueue<std::shared_ptr<Feeds>> &h2dQueue,
-                     Base::PyInferenceSession* session,
-                     std::vector<std::vector<std::string>> &infilesList,
-                     std::shared_ptr<InferOptions> inferOption, size_t numThreads, size_t startIndex);
+void PrepareInputData(std::vector<std::string> &files,
+                      Base::PyInferenceSession *session,
+                      std::shared_ptr<Feeds> &feeds, bool autoDymShape,
+                      bool autoDymDims, const bool pure_infer,
+                      std::vector<std::string> &inputNames);
+void FuncPrepare(ConcurrentQueue<std::shared_ptr<Feeds>> &h2dQueue,
+                 Base::PyInferenceSession *session,
+                 std::vector<std::vector<std::string>> &infilesList,
+                 std::shared_ptr<InferOptions> inferOption, size_t numThreads,
+                 size_t startIndex);
 
-    void FuncPrepareBaseTensor(ConcurrentQueue<std::shared_ptr<Feeds>> &h2dQueue, uint32_t deviceId,
-                               Base::PyInferenceSession* session,
-                               std::vector<std::vector<Base::BaseTensor>>& inputsList,
-                               std::vector<std::vector<std::vector<size_t>>>& shapesList, bool autoDymShape,
-                               bool autoDymDims, std::vector<std::string>& outputNames);
+void FuncPrepareBaseTensor(
+    ConcurrentQueue<std::shared_ptr<Feeds>> &h2dQueue, uint32_t deviceId,
+    Base::PyInferenceSession *session,
+    std::vector<std::vector<Base::BaseTensor>> &inputsList,
+    std::vector<std::vector<std::vector<size_t>>> &shapesList,
+    bool autoDymShape, bool autoDymDims, std::vector<std::string> &outputNames);
 
-    void FuncH2d(ConcurrentQueue<std::shared_ptr<Feeds>> &h2dQueue,
-                 ConcurrentQueue<std::shared_ptr<Feeds>> &computeQueue,
-                 Base::PyInferenceSession* session);
+void FuncH2d(ConcurrentQueue<std::shared_ptr<Feeds>> &h2dQueue,
+             ConcurrentQueue<std::shared_ptr<Feeds>> &computeQueue,
+             Base::PyInferenceSession *session);
 
-    void FuncCompute(ConcurrentQueue<std::shared_ptr<Feeds>> &computeQueue,
-                     ConcurrentQueue<std::shared_ptr<Feeds>> &d2hQueue,
-                     Base::PyInferenceSession* session,
-                     InferSummaryInfo* summaryInfo);
+void FuncCompute(ConcurrentQueue<std::shared_ptr<Feeds>> &computeQueue,
+                 ConcurrentQueue<std::shared_ptr<Feeds>> &d2hQueue,
+                 Base::PyInferenceSession *session,
+                 InferSummaryInfo *summaryInfo);
 
-    void FuncD2h(ConcurrentQueue<std::shared_ptr<Feeds>> &d2hQueue,
-                 ConcurrentQueue<std::shared_ptr<Feeds>> &saveQueue,
-                 Base::PyInferenceSession* session);
+void FuncD2h(ConcurrentQueue<std::shared_ptr<Feeds>> &d2hQueue,
+             ConcurrentQueue<std::shared_ptr<Feeds>> &saveQueue,
+             Base::PyInferenceSession *session);
 
-    void FuncSave(ConcurrentQueue<std::shared_ptr<Feeds>> &saveQueue, std::shared_ptr<InferOptions> inferOption);
+void FuncSave(ConcurrentQueue<std::shared_ptr<Feeds>> &saveQueue,
+              std::shared_ptr<InferOptions> inferOption);
 
-    void FuncSaveTensorBase(ConcurrentQueue<std::shared_ptr<Feeds>> &saveQueue,
-                            std::vector<std::vector<TensorBase>> &result, Base::PyInferenceSession* session);
+void FuncSaveTensorBase(ConcurrentQueue<std::shared_ptr<Feeds>> &saveQueue,
+                        std::vector<std::vector<TensorBase>> &result,
+                        Base::PyInferenceSession *session);
 
-    cnpy::NpyArray CreatePureInferArray(const std::string& fname, const Base::TensorDesc& inTensor);
-}
+cnpy::NpyArray CreatePureInferArray(const std::string &fname,
+                                    const Base::TensorDesc &inTensor);
+}  // namespace Base
 
-
-#endif
+#endif  // ACLRUNTIME_INCLUDE_MODELINFER_PIPELINE_H_

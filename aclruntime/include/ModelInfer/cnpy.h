@@ -14,210 +14,227 @@
  * limitations under the License.
  */
 
-#ifndef CNPY_H
-#define CNPY_H
+#ifndef ACLRUNTIME_INCLUDE_MODELINFER_CNPY_H_
+#define ACLRUNTIME_INCLUDE_MODELINFER_CNPY_H_
 
 #include <fcntl.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <sys/stat.h>
-#include <string>
-#include <stdexcept>
-#include <sstream>
-#include <fstream>
-#include <vector>
-#include <cstdio>
-#include <typeinfo>
-#include <iostream>
 #include <zlib.h>
-#include <map>
-#include <memory>
-#include <stdint.h>
-#include <numeric>
+
+#include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <numeric>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <typeinfo>
+#include <vector>
+
+#include "Log.h"
 #include "ModelInfer/File.h"
 #include "ModelInfer/utils.h"
-#include "Log.h"
 
 namespace cnpy {
 const uint16_t OPEN_FILE_MODE = 640;
 const uint32_t MAX_OPEN_FILES_SIZE = 64 * 1024 * 1024;
 struct NpyArray {
-    NpyArray(const std::vector<size_t> &shape, size_t wordSize, bool fortranOrder)
-        : shape(shape), wordSize(wordSize), fortranOrder(fortranOrder), numVals(1)
-    {
-        numVals = std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1), std::multiplies<size_t>());
-        dataHolder = std::make_shared<std::vector<char>>(numVals * wordSize);
-    }
+  NpyArray(const std::vector<size_t> &shape, size_t wordSize, bool fortranOrder)
+      : shape(shape),
+        wordSize(wordSize),
+        fortranOrder(fortranOrder),
+        numVals(1) {
+    numVals =
+        std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1),
+                        std::multiplies<size_t>());
+    dataHolder = std::make_shared<std::vector<char>>(numVals * wordSize);
+  }
 
-    NpyArray() : shape(0), wordSize(0), fortranOrder(0), numVals(0) {}
+  NpyArray() : shape(0), wordSize(0), fortranOrder(0), numVals(0) {}
 
-    template <typename T> T *Data()
-    {
-        return reinterpret_cast<T *>(&(*dataHolder)[0]);
-    }
+  template <typename T>
+  T *Data() {
+    return reinterpret_cast<T *>(&(*dataHolder)[0]);
+  }
 
-    template <typename T> T *Data() const
-    {
-        return reinterpret_cast<T *>(&(*dataHolder)[0]);
-    }
+  template <typename T>
+  T *Data() const {
+    return reinterpret_cast<T *>(&(*dataHolder)[0]);
+  }
 
-    template <typename T> std::vector<T> AsVec() const
-    {
-        const T *p = Data<T>();
-        return std::vector<T>(p, p + numVals);
-    }
+  template <typename T>
+  std::vector<T> AsVec() const {
+    const T *p = Data<T>();
+    return std::vector<T>(p, p + numVals);
+  }
 
-    size_t NumBytes() const
-    {
-        return dataHolder->size();
-    }
+  size_t NumBytes() const { return dataHolder->size(); }
 
-    std::shared_ptr<std::vector<char>> dataHolder;
-    std::vector<size_t> shape;
-    size_t wordSize;
-    bool fortranOrder;
-    size_t numVals;
+  std::shared_ptr<std::vector<char>> dataHolder;
+  std::vector<size_t> shape;
+  size_t wordSize;
+  bool fortranOrder;
+  size_t numVals;
 };
 
 union DataUnion {
-    uint8_t value;
-    char bytes;
+  uint8_t value;
+  char bytes;
 };
 
 using npz_t = std::map<std::string, NpyArray>;
 
 char BigEndianTest();
 char MapType(const std::type_info &t);
-template <typename T> std::vector<char> CreateNpyHeader(const std::vector<size_t> &shape);
-void ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape, bool &fortranOrder);
+template <typename T>
+std::vector<char> CreateNpyHeader(const std::vector<size_t> &shape);
+void ParseNpyHeader(FILE *fp, size_t &wordSize, std::vector<size_t> &shape,
+                    bool &fortranOrder);
 NpyArray NpyLoad(std::string fname);
 NpyArray BinLoad(std::string fname);
 
-template <typename T> std::vector<char> &operator += (std::vector<char> &lhs, const T rhs)
-{
-    for (size_t byte = 0; byte < sizeof(T); byte++) {
-        char val = *(reinterpret_cast<const char*>(&rhs) + byte);
-        lhs.push_back(val);
-    }
-    return lhs;
+template <typename T>
+std::vector<char> &operator+=(std::vector<char> &lhs, const T rhs) {
+  for (size_t byte = 0; byte < sizeof(T); byte++) {
+    char val = *(reinterpret_cast<const char *>(&rhs) + byte);
+    lhs.push_back(val);
+  }
+  return lhs;
 }
 
-template <> std::vector<char> &operator += (std::vector<char> &lhs, const std::string rhs);
-template <> std::vector<char> &operator += (std::vector<char> &lhs, const char *rhs);
+template <>
+std::vector<char> &operator+=(std::vector<char> &lhs, const std::string rhs);
+template <>
+std::vector<char> &operator+=(std::vector<char> &lhs, const char *rhs);
 
 template <typename T>
-void NpySave(std::string fname, const T *data, const std::vector<size_t> shape, std::string mode = "w")
-{
-    FILE *fp = nullptr;
-    std::vector<size_t> trueDataShape;
-    if (data == nullptr) {
-        throw std::runtime_error("NpySave: origin data is null");
+void NpySave(std::string fname, const T *data, const std::vector<size_t> shape,
+             std::string mode = "w") {
+  FILE *fp = nullptr;
+  std::vector<size_t> trueDataShape;
+  if (data == nullptr) {
+    throw std::runtime_error("NpySave: origin data is null");
+  }
+  if (!File::CheckFileBeforeCreateOrWrite(fname)) {
+    throw std::runtime_error("NpySave: invalid file path");
+  }
+  if (mode == "w") {
+    if (access(fname.c_str(), F_OK) == 0 && remove(fname.c_str()) != 0) {
+      ERROR_LOG("existing file %s cannot be removed", fname.c_str());
+      throw std::runtime_error("NpySave: existing file wrong");
     }
-    if (!File::CheckFileBeforeCreateOrWrite(fname)) {
-        throw std::runtime_error("NpySave: invalid file path");
+    int fd = open(fname.c_str(), O_EXCL | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP);
+    close(fd);
+  }
+  if (mode == "a") {
+    chmod(fname.c_str(), S_IRUSR | S_IWUSR | S_IRGRP);
+    fp = fopen(fname.c_str(), "r+b");
+  }
+  if (fp) {
+    size_t wordSize;
+    bool fortranOrder;
+    ParseNpyHeader(fp, wordSize, trueDataShape, fortranOrder);
+    if (fortranOrder) {
+      throw std::runtime_error("NpySave: fortranOrder wrong");
     }
-    if (mode == "w") {
-        if (access(fname.c_str(), F_OK) == 0 && remove(fname.c_str()) != 0) {
-            ERROR_LOG("existing file %s cannot be removed", fname.c_str());
-            throw std::runtime_error("NpySave: existing file wrong");
-        }
-        int fd = open(fname.c_str(), O_EXCL | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP);
-        close(fd);
+    if (wordSize != sizeof(T)) {
+      ERROR_LOG(
+          "libnpy error: %s has word size %zu but saving npy appending data "
+          "sized %zu\n",
+          fname.c_str(), wordSize, sizeof(T));
+      throw std::runtime_error("NpySave: wordSize not matching");
     }
-    if (mode == "a") {
-        chmod(fname.c_str(), S_IRUSR | S_IWUSR | S_IRGRP);
-        fp = fopen(fname.c_str(), "r+b");
+    if (trueDataShape.size() != shape.size()) {
+      ERROR_LOG(
+          "libnpy error: saving npy attempting to append misdimensioned data "
+          "to %s\n",
+          fname.c_str());
+      throw std::runtime_error("NpySave: dimension not matching");
     }
-    if (fp) {
-        size_t wordSize;
-        bool fortranOrder;
-        ParseNpyHeader(fp, wordSize, trueDataShape, fortranOrder);
-        if (fortranOrder) {
-            throw std::runtime_error("NpySave: fortranOrder wrong");
-        }
-        if (wordSize != sizeof(T)) {
-            ERROR_LOG("libnpy error: %s has word size %zu but saving npy appending data sized %zu\n",
-                      fname.c_str(), wordSize, sizeof(T));
-            throw std::runtime_error("NpySave: wordSize not matching");
-        }
-        if (trueDataShape.size() != shape.size()) {
-            ERROR_LOG("libnpy error: saving npy attempting to append misdimensioned data to %s\n", fname.c_str());
-            throw std::runtime_error("NpySave: dimension not matching");
-        }
-        for (size_t i = 1; i < shape.size(); i++) {
-            if (shape[i] != trueDataShape[i]) {
-                ERROR_LOG("libnpy error: saving npy attempting to append misshaped data to %s", fname.c_str());
-                throw std::runtime_error("NpySave: shape not matching");
-            }
-        }
-        trueDataShape[0] += shape[0];
-    } else {
-        fp = fopen(fname.c_str(), "wb");
-        trueDataShape = shape;
-    }
-    std::vector<char> header = CreateNpyHeader<T>(trueDataShape);
-    size_t nels = std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1), std::multiplies<size_t>());
-    if (fp == nullptr) {
-        throw std::runtime_error("NpySave: file stream is null");
-    }
-    if (fseek(fp, 0, SEEK_SET) != 0) {
-        fclose(fp);
-        throw std::runtime_error("NpySave: fseek failed");
-    }
-    if (fwrite(&header[0], sizeof(char), header.size(), fp) != header.size()) {
-        throw std::runtime_error("NpySave: fwrite failed");
-    }
-    if (fseek(fp, 0, SEEK_END) != 0) {
-        throw std::runtime_error("NpySave: fseek failed");
-    }
-    if (fwrite(data, sizeof(T), nels, fp) != nels) {
-        throw std::runtime_error("NpySave: fwrite failed");
-    }
-    if (fclose(fp) != 0) {
-        throw std::runtime_error("NpySave: fclose failed");
-    }
-}
-
-template <typename T> void NpySave(std::string fname, const std::vector<T> data, std::string mode = "w")
-{
-    std::vector<size_t> shape;
-    shape.push_back(data.size());
-    NpySave(fname, &data[0], shape, mode);
-}
-
-
-template <typename T> std::vector<char> CreateNpyHeader(const std::vector<size_t> &shape)
-{
-    std::vector<char> dict;
-    dict += "{'descr': '";
-    dict += BigEndianTest();
-    dict += MapType(typeid(T));
-    dict += std::to_string(sizeof(T));
-    dict += "', 'fortran_order': False, 'shape': (";
-    dict+= std::to_string(shape[0]);
     for (size_t i = 1; i < shape.size(); i++) {
-        dict += ", ";
-        dict += std::to_string(shape[i]);
+      if (shape[i] != trueDataShape[i]) {
+        ERROR_LOG(
+            "libnpy error: saving npy attempting to append misshaped data to "
+            "%s",
+            fname.c_str());
+        throw std::runtime_error("NpySave: shape not matching");
+      }
     }
-    if (shape.size() == 1) {
-        dict += ",";
-    }
-    dict += "), }";
-    size_t remainder = 16 - (10 + dict.size()) % 16;
-    dict.insert(dict.end(), remainder, ' ');
-    dict.back() = '\n';
-
-    std::vector<char> header;
-    header += static_cast<char>(0x93);
-    header += "NUMPY";
-    header += static_cast<char>(0x01);
-    header += static_cast<char>(0x00);
-    header += static_cast<uint16_t>(dict.size());
-    header.insert(header.end(), dict.begin(), dict.end());
-
-    return header;
+    trueDataShape[0] += shape[0];
+  } else {
+    fp = fopen(fname.c_str(), "wb");
+    trueDataShape = shape;
+  }
+  std::vector<char> header = CreateNpyHeader<T>(trueDataShape);
+  size_t nels =
+      std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1),
+                      std::multiplies<size_t>());
+  if (fp == nullptr) {
+    throw std::runtime_error("NpySave: file stream is null");
+  }
+  if (fseek(fp, 0, SEEK_SET) != 0) {
+    fclose(fp);
+    throw std::runtime_error("NpySave: fseek failed");
+  }
+  if (fwrite(&header[0], sizeof(char), header.size(), fp) != header.size()) {
+    throw std::runtime_error("NpySave: fwrite failed");
+  }
+  if (fseek(fp, 0, SEEK_END) != 0) {
+    throw std::runtime_error("NpySave: fseek failed");
+  }
+  if (fwrite(data, sizeof(T), nels, fp) != nels) {
+    throw std::runtime_error("NpySave: fwrite failed");
+  }
+  if (fclose(fp) != 0) {
+    throw std::runtime_error("NpySave: fclose failed");
+  }
 }
-} // namespace cnpy
 
-#endif // CNPY_H
+template <typename T>
+void NpySave(std::string fname, const std::vector<T> data,
+             std::string mode = "w") {
+  std::vector<size_t> shape;
+  shape.push_back(data.size());
+  NpySave(fname, &data[0], shape, mode);
+}
+
+template <typename T>
+std::vector<char> CreateNpyHeader(const std::vector<size_t> &shape) {
+  std::vector<char> dict;
+  dict += "{'descr': '";
+  dict += BigEndianTest();
+  dict += MapType(typeid(T));
+  dict += std::to_string(sizeof(T));
+  dict += "', 'fortran_order': False, 'shape': (";
+  dict += std::to_string(shape[0]);
+  for (size_t i = 1; i < shape.size(); i++) {
+    dict += ", ";
+    dict += std::to_string(shape[i]);
+  }
+  if (shape.size() == 1) {
+    dict += ",";
+  }
+  dict += "), }";
+  size_t remainder = 16 - (10 + dict.size()) % 16;
+  dict.insert(dict.end(), remainder, ' ');
+  dict.back() = '\n';
+
+  std::vector<char> header;
+  header += static_cast<char>(0x93);
+  header += "NUMPY";
+  header += static_cast<char>(0x01);
+  header += static_cast<char>(0x00);
+  header += static_cast<uint16_t>(dict.size());
+  header.insert(header.end(), dict.begin(), dict.end());
+
+  return header;
+}
+}  // namespace cnpy
+
+#endif  // ACLRUNTIME_INCLUDE_MODELINFER_CNPY_H_

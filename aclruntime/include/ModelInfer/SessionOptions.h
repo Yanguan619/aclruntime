@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-#ifndef SESSION_OPTIONS_H
-#define SESSION_OPTIONS_H
+#ifndef ACLRUNTIME_INCLUDE_MODELINFER_SESSIONOPTIONS_H_
+#define ACLRUNTIME_INCLUDE_MODELINFER_SESSIONOPTIONS_H_
 
 #include "ModelInfer/utils.h"
 
 namespace Base {
 class SessionOptions {
-public:
-    int log_level = LOG_INFO_LEVEL;
-    int loop = 1;
-    std::string aclJsonPath = "";
-    // When non-empty, weights are loaded from this directory and shared
-    // (by file name) across sessions that point to the same directory,
-    // via aclmdlSetExternalWeightAddress + aclmdlLoadWithConfig.
-    std::string weightDir = "";
-    // Release graph and pre-cached info after model load to save CPU memory.
-    // Corresponds to ACL_MDL_WITHOUT_GRAPH_INT32=1.
-    bool withoutGraph = false;
+ public:
+  int log_level = LOG_INFO_LEVEL;
+  int loop = 1;
+  std::string aclJsonPath = "";
+  // When non-empty, weights are loaded from this directory and shared
+  // (by file name) across sessions that point to the same directory,
+  // via aclmdlSetExternalWeightAddress + aclmdlLoadWithConfig.
+  std::string weightDir = "";
+  // Release graph and pre-cached info after model load to save CPU memory.
+  // Corresponds to ACL_MDL_WITHOUT_GRAPH_INT32=1.
+  bool withoutGraph = false;
 };
-}
-#endif
+}  // namespace Base
+#endif  // ACLRUNTIME_INCLUDE_MODELINFER_SESSIONOPTIONS_H_

@@ -14,42 +14,43 @@
  * limitations under the License.
  */
 
-#ifndef PY_TENSOR_BASE
-#define PY_TENSOR_BASE
+#ifndef ACLRUNTIME_INCLUDE_PYTHON_PYTENSOR_H_
+#define ACLRUNTIME_INCLUDE_PYTHON_PYTENSOR_H_
 
-#include <vector>
-#include <string>
 #include <memory>
+#include <string>
+#include <vector>
 
 #ifdef COMPILE_PYTHON_MODULE
-#include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
 namespace py = pybind11;
 #endif
 
 #include "Tensor/TensorBase.h"
 
 template <typename T>
-inline void RegisterEnumTypeToModule(py::module& model, py::enum_<T>& enumClass, const char* name, T value)
-{
-    enumClass.value(name, value);
-    model.attr(name) = value;
+inline void RegisterEnumTypeToModule(py::module &model, py::enum_<T> &enumClass,
+                                     const char *name, T value) {
+  enumClass.value(name, value);
+  model.attr(name) = value;
 }
 
 namespace Base {
 void TensorToHost(TensorBase &tensor);
 void TensorToDevice(TensorBase &tensor, const int32_t deviceId);
 void TensorToDvpp(TensorBase &tensor, const int32_t deviceId);
-TensorBase BatchVector(const std::vector<TensorBase> &tensors, const bool &keepDims = false);
+TensorBase BatchVector(const std::vector<TensorBase> &tensors,
+                       const bool &keepDims = false);
 
 #ifdef COMPILE_PYTHON_MODULE
 TensorBase FromNumpy(py::buffer b, int32_t deviceId = -1);
 py::buffer_info ToNumpy(const TensorBase &tensor);
 #endif
-}
+}  // namespace Base
 
 #ifdef COMPILE_PYTHON_MODULE
 void RegistPyTensorModule(py::module &m);
 #endif
 
-#endif
+#endif  // ACLRUNTIME_INCLUDE_PYTHON_PYTENSOR_H_

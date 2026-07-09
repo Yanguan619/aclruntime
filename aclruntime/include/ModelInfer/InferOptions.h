@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-#ifndef INFER_OPTIONS_H
-#define INFER_OPTIONS_H
+#ifndef ACLRUNTIME_INCLUDE_MODELINFER_INFEROPTIONS_H_
+#define ACLRUNTIME_INCLUDE_MODELINFER_INFEROPTIONS_H_
 
 #include <string>
 #include <vector>
 
 namespace Base {
 class InferOptions {
-public:
-    std::string outputDir = "";
-    bool autoDymShape = false;
-    bool autoDymDims = false;
-    std::string outFmt = "";
-    bool pureInferMode = false;
-    std::vector<std::string> outputNames;
-    std::vector<std::vector<std::vector<std::size_t>>> shapesList;
+ public:
+  std::string outputDir = "";
+  bool autoDymShape = false;
+  bool autoDymDims = false;
+  std::string outFmt = "";
+  bool pureInferMode = false;
+  std::vector<std::string> outputNames;
+  std::vector<std::vector<std::vector<std::size_t>>> shapesList;
 };
-}
-#endif
+}  // namespace Base
+#endif  // ACLRUNTIME_INCLUDE_MODELINFER_INFEROPTIONS_H_

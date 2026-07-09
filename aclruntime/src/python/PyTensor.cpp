@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 #include "python/PyTensor.h"
+
+#include <exception>
+#include <map>
+
 #include "Tensor/TensorBuffer.h"
 #include "Tensor/TensorShape.h"
-
-#include <map>
-#include <exception>
 #ifdef COMPILE_PYTHON_MODULE
 #include <pybind11/stl.h>
 #endif
@@ -41,9 +42,7 @@ const std::map<Base::TensorDataType, std::string> DATA_TYPE_TO_FORMAT_MAP = {
     {Base::TENSOR_DTYPE_FLOAT16, "e"},
     {Base::TENSOR_DTYPE_FLOAT32, py::format_descriptor<float>::format()},
     {Base::TENSOR_DTYPE_DOUBLE64, py::format_descriptor<double>::format()},
-    {Base::TENSOR_DTYPE_BOOL, py::format_descriptor<bool>::format()}
-};
-
+    {Base::TENSOR_DTYPE_BOOL, py::format_descriptor<bool>::format()}};
 
 const std::map<std::string, Base::TensorDataType> FORMAT_TO_DATA_TYPE_MAP = {
     {py::format_descriptor<uint8_t>::format(), Base::TENSOR_DTYPE_UINT8},
@@ -57,185 +56,205 @@ const std::map<std::string, Base::TensorDataType> FORMAT_TO_DATA_TYPE_MAP = {
     {"e", Base::TENSOR_DTYPE_FLOAT16},
     {py::format_descriptor<float>::format(), Base::TENSOR_DTYPE_FLOAT32},
     {py::format_descriptor<double>::format(), Base::TENSOR_DTYPE_DOUBLE64},
-    {py::format_descriptor<bool>::format(), Base::TENSOR_DTYPE_BOOL}
-};
+    {py::format_descriptor<bool>::format(), Base::TENSOR_DTYPE_BOOL}};
 #endif
-}
+}  // namespace
 namespace Base {
-void TensorToHost(TensorBase &tensor)
-{
-    APP_ERROR ret = tensor.ToHost();
-    if (ret != APP_ERR_OK) {
-        throw std::runtime_error(GetError(ret));
-    }
+void TensorToHost(TensorBase &tensor) {
+  APP_ERROR ret = tensor.ToHost();
+  if (ret != APP_ERR_OK) {
+    throw std::runtime_error(GetError(ret));
+  }
 }
 
-void TensorToDevice(TensorBase &tensor, const int32_t deviceId)
-{
-    if (deviceId < 0 || static_cast<uint32_t>(deviceId) > DEVICE_ID_MAX) {
-        ERROR_LOG("device id should not be out of [0, %u]", DEVICE_ID_MAX);
-        throw std::runtime_error("device id is out of range");
-    }
-    APP_ERROR ret = tensor.ToDevice(deviceId);
-    if (ret != APP_ERR_OK) {
-        throw std::runtime_error(GetError(ret));
-    }
+void TensorToDevice(TensorBase &tensor, const int32_t deviceId) {
+  if (deviceId < 0 || static_cast<uint32_t>(deviceId) > DEVICE_ID_MAX) {
+    ERROR_LOG("device id should not be out of [0, %u]", DEVICE_ID_MAX);
+    throw std::runtime_error("device id is out of range");
+  }
+  APP_ERROR ret = tensor.ToDevice(deviceId);
+  if (ret != APP_ERR_OK) {
+    throw std::runtime_error(GetError(ret));
+  }
 }
 
-void TensorToDvpp(TensorBase &tensor, const int32_t deviceId)
-{
-    APP_ERROR ret = tensor.ToDvpp(deviceId);
-    if (ret != APP_ERR_OK) {
-        throw std::runtime_error(GetError(ret));
-    }
+void TensorToDvpp(TensorBase &tensor, const int32_t deviceId) {
+  APP_ERROR ret = tensor.ToDvpp(deviceId);
+  if (ret != APP_ERR_OK) {
+    throw std::runtime_error(GetError(ret));
+  }
 }
 
 #ifdef COMPILE_PYTHON_MODULE
-TensorBase FromNumpy(py::buffer b, int32_t deviceId)
-{
-    py::buffer_info info = b.request();
-    auto dataType = Base::TENSOR_DTYPE_UINT8;
-    if (FORMAT_TO_DATA_TYPE_MAP.find(info.format) != FORMAT_TO_DATA_TYPE_MAP.end()) {
-        dataType = FORMAT_TO_DATA_TYPE_MAP.find(info.format)->second;
-    }
-    std::vector<uint32_t> shape = {};
-    for (auto s : info.shape) {
-        shape.push_back((uint32_t)s);
-    }
-    uint32_t bytes = TensorBase::DataTypeByteSize(dataType);
+TensorBase FromNumpy(py::buffer b, int32_t deviceId) {
+  py::buffer_info info = b.request();
+  auto dataType = Base::TENSOR_DTYPE_UINT8;
+  if (FORMAT_TO_DATA_TYPE_MAP.find(info.format) !=
+      FORMAT_TO_DATA_TYPE_MAP.end()) {
+    dataType = FORMAT_TO_DATA_TYPE_MAP.find(info.format)->second;
+  }
+  std::vector<uint32_t> shape = {};
+  for (auto s : info.shape) {
+    shape.push_back((uint32_t)s);
+  }
+  uint32_t bytes = TensorBase::DataTypeByteSize(dataType);
 
-    if (deviceId >= 0) {
-        // device tensor: one malloc (device) + one copy (H2D), skip host staging
-        MemoryData src(info.ptr, info.size * bytes, MemoryData::MemoryType::MEMORY_HOST, -1);
-        TensorBase dst(shape, dataType, MemoryData::MemoryType::MEMORY_DEVICE, deviceId, 0);
-        APP_ERROR ret = TensorBase::TensorBaseMalloc(dst);
-        if (ret != APP_ERR_OK) {
-            ERROR_LOG("TensorBase malloc failed. ret=%d", ret);
-            throw std::runtime_error(GetError(ret));
-        }
-        MemoryData deviceMem(dst.GetBuffer(), dst.GetByteSize(), MemoryData::MemoryType::MEMORY_DEVICE, deviceId);
-        ret = MemoryHelper::MxbsMemcpy(deviceMem, src, dst.GetByteSize());
-        if (ret != APP_ERR_OK) {
-            ERROR_LOG("TensorBase H2D copy failed. ret=%d", ret);
-            throw std::runtime_error(GetError(ret));
-        }
-        return dst;
-    }
-
-    // host tensor: original path
-    MemoryData memoryData(info.ptr, info.size * bytes, MemoryData::MemoryType::MEMORY_HOST, -1);
-    TensorBase src(memoryData, true, shape, dataType, 0);
-    TensorBase dst(shape, dataType);
+  if (deviceId >= 0) {
+    // device tensor: one malloc (device) + one copy (H2D), skip host staging
+    MemoryData src(info.ptr, info.size * bytes,
+                   MemoryData::MemoryType::MEMORY_HOST, -1);
+    TensorBase dst(shape, dataType, MemoryData::MemoryType::MEMORY_DEVICE,
+                   deviceId, 0);
     APP_ERROR ret = TensorBase::TensorBaseMalloc(dst);
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("TensorBase malloc failed. ret=%d", ret);
-        throw std::runtime_error(GetError(ret));
+      ERROR_LOG("TensorBase malloc failed. ret=%d", ret);
+      throw std::runtime_error(GetError(ret));
     }
-    ret = TensorBase::TensorBaseCopy(dst, src);
+    MemoryData deviceMem(dst.GetBuffer(), dst.GetByteSize(),
+                         MemoryData::MemoryType::MEMORY_DEVICE, deviceId);
+    ret = MemoryHelper::MxbsMemcpy(deviceMem, src, dst.GetByteSize());
     if (ret != APP_ERR_OK) {
-        ERROR_LOG("TensorBase copy failed. ret=%d", ret);
-        throw std::runtime_error(GetError(ret));
+      ERROR_LOG("TensorBase H2D copy failed. ret=%d", ret);
+      throw std::runtime_error(GetError(ret));
     }
     return dst;
+  }
+
+  // host tensor: original path
+  MemoryData memoryData(info.ptr, info.size * bytes,
+                        MemoryData::MemoryType::MEMORY_HOST, -1);
+  TensorBase src(memoryData, true, shape, dataType, 0);
+  TensorBase dst(shape, dataType);
+  APP_ERROR ret = TensorBase::TensorBaseMalloc(dst);
+  if (ret != APP_ERR_OK) {
+    ERROR_LOG("TensorBase malloc failed. ret=%d", ret);
+    throw std::runtime_error(GetError(ret));
+  }
+  ret = TensorBase::TensorBaseCopy(dst, src);
+  if (ret != APP_ERR_OK) {
+    ERROR_LOG("TensorBase copy failed. ret=%d", ret);
+    throw std::runtime_error(GetError(ret));
+  }
+  return dst;
 }
 
-py::buffer_info ToNumpy(const TensorBase &tensor)
-{
-    int32_t dims = static_cast<int32_t>(tensor.GetShape().size());
-    auto shape = tensor.GetShape();
-    auto dtype = tensor.GetDataType();
-    uint32_t bytes = TensorBase::DataTypeByteSize(dtype);
+py::buffer_info ToNumpy(const TensorBase &tensor) {
+  int32_t dims = static_cast<int32_t>(tensor.GetShape().size());
+  auto shape = tensor.GetShape();
+  auto dtype = tensor.GetDataType();
+  uint32_t bytes = TensorBase::DataTypeByteSize(dtype);
 
-    std::vector<uint32_t> strides(dims);
-    uint32_t size = 1;
-    for (int32_t i = dims - 1; i >= 0; i--) {
-        strides[i] = bytes * size;
-        size *= shape[i];
-    }
-    // cpu tensor
-    if (tensor.IsDevice()) {
-        throw std::runtime_error("tensor is in npu. can't convert to numpy array");
-    }
+  std::vector<uint32_t> strides(dims);
+  uint32_t size = 1;
+  for (int32_t i = dims - 1; i >= 0; i--) {
+    strides[i] = bytes * size;
+    size *= shape[i];
+  }
+  // cpu tensor
+  if (tensor.IsDevice()) {
+    throw std::runtime_error("tensor is in npu. can't convert to numpy array");
+  }
 
-    std::string format = py::format_descriptor<uint8_t>::format();
-    if (DATA_TYPE_TO_FORMAT_MAP.find(dtype) != DATA_TYPE_TO_FORMAT_MAP.end()) {
-        format = DATA_TYPE_TO_FORMAT_MAP.find(dtype)->second;
-    }
-    py::buffer_info buf = {tensor.GetBuffer(), bytes, format, (int64_t)shape.size(), shape, strides};
-    return buf;
+  std::string format = py::format_descriptor<uint8_t>::format();
+  if (DATA_TYPE_TO_FORMAT_MAP.find(dtype) != DATA_TYPE_TO_FORMAT_MAP.end()) {
+    format = DATA_TYPE_TO_FORMAT_MAP.find(dtype)->second;
+  }
+  py::buffer_info buf = {tensor.GetBuffer(),    bytes, format,
+                         (int64_t)shape.size(), shape, strides};
+  return buf;
 }
 #endif
 
-TensorBase BatchVector(const std::vector<TensorBase> &tensors, const bool &keepDims)
-{
-    TensorBase output = {};
-    APP_ERROR ret = TensorBase::BatchVector(tensors, output, keepDims);
-    if (ret != APP_ERR_OK) {
-        ERROR_LOG("TensorBase concat batch vector failed. ret=%d", ret);
-        throw std::runtime_error(GetError(ret));
-    }
-    return output;
+TensorBase BatchVector(const std::vector<TensorBase> &tensors,
+                       const bool &keepDims) {
+  TensorBase output = {};
+  APP_ERROR ret = TensorBase::BatchVector(tensors, output, keepDims);
+  if (ret != APP_ERR_OK) {
+    ERROR_LOG("TensorBase concat batch vector failed. ret=%d", ret);
+    throw std::runtime_error(GetError(ret));
+  }
+  return output;
 }
-}
+}  // namespace Base
 
 #ifdef COMPILE_PYTHON_MODULE
-void RegistPyTensorEnumType(py::module &m)
-{
-    auto dtype = py::enum_<Base::TensorDataType>(m, "dtype");
-    RegisterEnumTypeToModule(m, dtype, "int8", Base::TensorDataType::TENSOR_DTYPE_INT8);
-    RegisterEnumTypeToModule(m, dtype, "uint8", Base::TensorDataType::TENSOR_DTYPE_UINT8);
-    RegisterEnumTypeToModule(m, dtype, "int16", Base::TensorDataType::TENSOR_DTYPE_INT16);
-    RegisterEnumTypeToModule(m, dtype, "uint16", Base::TensorDataType::TENSOR_DTYPE_UINT16);
-    RegisterEnumTypeToModule(m, dtype, "int32", Base::TensorDataType::TENSOR_DTYPE_INT32);
-    RegisterEnumTypeToModule(m, dtype, "uint32", Base::TensorDataType::TENSOR_DTYPE_UINT32);
-    RegisterEnumTypeToModule(m, dtype, "int64", Base::TensorDataType::TENSOR_DTYPE_INT64);
-    RegisterEnumTypeToModule(m, dtype, "uint64", Base::TensorDataType::TENSOR_DTYPE_UINT64);
-    RegisterEnumTypeToModule(m, dtype, "float16", Base::TensorDataType::TENSOR_DTYPE_FLOAT16);
-    RegisterEnumTypeToModule(m, dtype, "float32", Base::TensorDataType::TENSOR_DTYPE_FLOAT32);
-    RegisterEnumTypeToModule(m, dtype, "double", Base::TensorDataType::TENSOR_DTYPE_DOUBLE64);
-    RegisterEnumTypeToModule(m, dtype, "bool", Base::TensorDataType::TENSOR_DTYPE_BOOL);
+void RegistPyTensorEnumType(py::module &m) {
+  auto dtype = py::enum_<Base::TensorDataType>(m, "dtype");
+  RegisterEnumTypeToModule(m, dtype, "int8",
+                           Base::TensorDataType::TENSOR_DTYPE_INT8);
+  RegisterEnumTypeToModule(m, dtype, "uint8",
+                           Base::TensorDataType::TENSOR_DTYPE_UINT8);
+  RegisterEnumTypeToModule(m, dtype, "int16",
+                           Base::TensorDataType::TENSOR_DTYPE_INT16);
+  RegisterEnumTypeToModule(m, dtype, "uint16",
+                           Base::TensorDataType::TENSOR_DTYPE_UINT16);
+  RegisterEnumTypeToModule(m, dtype, "int32",
+                           Base::TensorDataType::TENSOR_DTYPE_INT32);
+  RegisterEnumTypeToModule(m, dtype, "uint32",
+                           Base::TensorDataType::TENSOR_DTYPE_UINT32);
+  RegisterEnumTypeToModule(m, dtype, "int64",
+                           Base::TensorDataType::TENSOR_DTYPE_INT64);
+  RegisterEnumTypeToModule(m, dtype, "uint64",
+                           Base::TensorDataType::TENSOR_DTYPE_UINT64);
+  RegisterEnumTypeToModule(m, dtype, "float16",
+                           Base::TensorDataType::TENSOR_DTYPE_FLOAT16);
+  RegisterEnumTypeToModule(m, dtype, "float32",
+                           Base::TensorDataType::TENSOR_DTYPE_FLOAT32);
+  RegisterEnumTypeToModule(m, dtype, "double",
+                           Base::TensorDataType::TENSOR_DTYPE_DOUBLE64);
+  RegisterEnumTypeToModule(m, dtype, "bool",
+                           Base::TensorDataType::TENSOR_DTYPE_BOOL);
 
-    auto memoryType = py::enum_<Base::MemoryData::MemoryType>(m, "type");
-    RegisterEnumTypeToModule(m, memoryType, "memory_host", Base::MemoryData::MemoryType::MEMORY_HOST);
-    RegisterEnumTypeToModule(m, memoryType, "memory_device", Base::MemoryData::MemoryType::MEMORY_DEVICE);
-    RegisterEnumTypeToModule(m, memoryType, "memory_dvpp", Base::MemoryData::MemoryType::MEMORY_DVPP);
+  auto memoryType = py::enum_<Base::MemoryData::MemoryType>(m, "type");
+  RegisterEnumTypeToModule(m, memoryType, "memory_host",
+                           Base::MemoryData::MemoryType::MEMORY_HOST);
+  RegisterEnumTypeToModule(m, memoryType, "memory_device",
+                           Base::MemoryData::MemoryType::MEMORY_DEVICE);
+  RegisterEnumTypeToModule(m, memoryType, "memory_dvpp",
+                           Base::MemoryData::MemoryType::MEMORY_DVPP);
 }
 
-void RegistPyTensorModule(py::module &m)
-{
-    py::class_<Base::MemorySummary, std::unique_ptr<Base::MemorySummary, py::nodelete>>(m, "MemorySummary")
-        .def(py::init([]() { return Base::GetMemorySummaryPtr(); }))
-        .def_readwrite("H2D_time_list", &Base::MemorySummary::H2DTimeList)
-        .def_readwrite("D2H_time_list", &Base::MemorySummary::D2HTimeList)
-        .def("reset", &Base::MemorySummary::Reset);
+void RegistPyTensorModule(py::module &m) {
+  py::class_<Base::MemorySummary,
+             std::unique_ptr<Base::MemorySummary, py::nodelete>>(
+      m, "MemorySummary")
+      .def(py::init([]() { return Base::GetMemorySummaryPtr(); }))
+      .def_readwrite("H2D_time_list", &Base::MemorySummary::H2DTimeList)
+      .def_readwrite("D2H_time_list", &Base::MemorySummary::D2HTimeList)
+      .def("reset", &Base::MemorySummary::Reset);
 
-    auto tensor = py::class_<Base::TensorBase>(m, "Tensor", py::buffer_protocol());
-    tensor.def(py::init([](py::buffer b) { return Base::FromNumpy(b); }));
-    tensor.def(py::init([](py::buffer b, int32_t deviceId) { return Base::FromNumpy(b, deviceId); }));
-    tensor.def_buffer(&Base::ToNumpy);
-    tensor.def("to_device", &Base::TensorToDevice);
-    tensor.def("to_host", &Base::TensorToHost);
-    tensor.def("to_dvpp", &Base::TensorToDvpp);
-    tensor.def("__str__", &Base::TensorBase::GetDesc);
-    tensor.def("__repr__", &Base::TensorBase::GetDesc);
+  auto tensor =
+      py::class_<Base::TensorBase>(m, "Tensor", py::buffer_protocol());
+  tensor.def(py::init([](py::buffer b) { return Base::FromNumpy(b); }));
+  tensor.def(py::init([](py::buffer b, int32_t deviceId) {
+    return Base::FromNumpy(b, deviceId);
+  }));
+  tensor.def_buffer(&Base::ToNumpy);
+  tensor.def("to_device", &Base::TensorToDevice);
+  tensor.def("to_host", &Base::TensorToHost);
+  tensor.def("to_dvpp", &Base::TensorToDvpp);
+  tensor.def("__str__", &Base::TensorBase::GetDesc);
+  tensor.def("__repr__", &Base::TensorBase::GetDesc);
 
-    m.def("batch", &Base::BatchVector, py::arg("inputs"), py::arg("keep_dims") = false);
+  m.def("batch", &Base::BatchVector, py::arg("inputs"),
+        py::arg("keep_dims") = false);
 
-    auto pyGetType = [] (const Base::TensorBase &tensor) {
-            auto type = tensor.GetTensorType();
-            if (type == Base::MemoryData::MEMORY_HOST_MALLOC || type == Base::MemoryData::MEMORY_HOST_NEW) {
-                return Base::MemoryData::MEMORY_HOST;
-            }
-            return type;
-    };
-    tensor.def_property_readonly("type", pyGetType);
-    tensor.def_property_readonly("device", &Base::TensorBase::GetDeviceId);
-    tensor.def_property_readonly("dtype", &Base::TensorBase::GetDataType);
-    tensor.def_property_readonly("shape", &Base::TensorBase::GetShape);
-    tensor.def_property_readonly("data_ptr", [](Base::TensorBase &t) {
-        return reinterpret_cast<int64_t>(t.GetBuffer());
-    });
-    tensor.def_property_readonly("nbytes", &Base::TensorBase::GetByteSize);
-    RegistPyTensorEnumType(m);
+  auto pyGetType = [](const Base::TensorBase &tensor) {
+    auto type = tensor.GetTensorType();
+    if (type == Base::MemoryData::MEMORY_HOST_MALLOC ||
+        type == Base::MemoryData::MEMORY_HOST_NEW) {
+      return Base::MemoryData::MEMORY_HOST;
+    }
+    return type;
+  };
+  tensor.def_property_readonly("type", pyGetType);
+  tensor.def_property_readonly("device", &Base::TensorBase::GetDeviceId);
+  tensor.def_property_readonly("dtype", &Base::TensorBase::GetDataType);
+  tensor.def_property_readonly("shape", &Base::TensorBase::GetShape);
+  tensor.def_property_readonly("data_ptr", [](Base::TensorBase &t) {
+    return reinterpret_cast<int64_t>(t.GetBuffer());
+  });
+  tensor.def_property_readonly("nbytes", &Base::TensorBase::GetByteSize);
+  RegistPyTensorEnumType(m);
 }
 #endif

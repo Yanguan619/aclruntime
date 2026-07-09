@@ -14,71 +14,75 @@
  * limitations under the License.
  */
 
-#ifndef MEMORY_HELPER_H
-#define MEMORY_HELPER_H
-#include <vector>
+#ifndef ACLRUNTIME_INCLUDE_MEMORYHELPER_H_
+#define ACLRUNTIME_INCLUDE_MEMORYHELPER_H_
 #include <mutex>
+#include <vector>
+
 #include "ErrorCode.h"
 
 namespace Base {
 struct MemoryData {
-    enum MemoryType {
-        MEMORY_HOST,
-        MEMORY_DEVICE,
-        MEMORY_DVPP,
-        MEMORY_HOST_MALLOC,
-        MEMORY_HOST_NEW,
-    };
+  enum MemoryType {
+    MEMORY_HOST,
+    MEMORY_DEVICE,
+    MEMORY_DVPP,
+    MEMORY_HOST_MALLOC,
+    MEMORY_HOST_NEW,
+  };
 
-    MemoryData() = default;
+  MemoryData() = default;
 
-    MemoryData(size_t size, MemoryType type = MEMORY_HOST, int32_t deviceId = 0)
-        : size(size), deviceId(deviceId), type(type) {}
+  MemoryData(size_t size, MemoryType type = MEMORY_HOST, int32_t deviceId = 0)
+      : size(size), deviceId(deviceId), type(type) {}
 
-    MemoryData(void* ptrData, size_t size, MemoryType type = MEMORY_HOST, int32_t deviceId = 0)
-        : ptrData(ptrData), size(size), deviceId(deviceId), type(type) {}
+  MemoryData(void* ptrData, size_t size, MemoryType type = MEMORY_HOST,
+             int32_t deviceId = 0)
+      : ptrData(ptrData), size(size), deviceId(deviceId), type(type) {}
 
-    void* ptrData = nullptr;
-    size_t size;
-    int32_t deviceId;
-    MemoryType type;
-    APP_ERROR (*memory_free)(void*) = nullptr; // 此处是使用void*作为函数传参，使用该函数的场所已保证传入参数是void*
+  void* ptrData = nullptr;
+  size_t size;
+  int32_t deviceId;
+  MemoryType type;
+  APP_ERROR (*memory_free)(void*) =
+      nullptr;  // 此处是使用void*作为函数传参，使用该函数的场所已保证传入参数是void*
 };
 
 class MemoryHelper {
-public:
-    // malloc memory
-    static APP_ERROR specificMalloc(MemoryData& data);
-    static APP_ERROR Malloc(MemoryData& data);
-    static APP_ERROR Free(MemoryData& data);
-    static APP_ERROR Memset(MemoryData& data, int32_t value, size_t count);
-    static APP_ERROR Memcpy(MemoryData& dest, const MemoryData& src, size_t count);
+ public:
+  // malloc memory
+  static APP_ERROR specificMalloc(MemoryData& data);
+  static APP_ERROR Malloc(MemoryData& data);
+  static APP_ERROR Free(MemoryData& data);
+  static APP_ERROR Memset(MemoryData& data, int32_t value, size_t count);
+  static APP_ERROR Memcpy(MemoryData& dest, const MemoryData& src,
+                          size_t count);
 
-    static APP_ERROR MxbsMalloc(MemoryData& data);
-    static APP_ERROR MxbsFree(MemoryData& data);
-    static APP_ERROR MxbsMemset(MemoryData& data, int32_t value, size_t count);
-    static APP_ERROR MxbsMemcpy(MemoryData& dest, const MemoryData& src, size_t count);
-    static APP_ERROR MxbsMallocAndCopy(MemoryData& dest, const MemoryData& src);
+  static APP_ERROR MxbsMalloc(MemoryData& data);
+  static APP_ERROR MxbsFree(MemoryData& data);
+  static APP_ERROR MxbsMemset(MemoryData& data, int32_t value, size_t count);
+  static APP_ERROR MxbsMemcpy(MemoryData& dest, const MemoryData& src,
+                              size_t count);
+  static APP_ERROR MxbsMallocAndCopy(MemoryData& dest, const MemoryData& src);
 
-private:
-    static bool IsDeviceToHost(const MemoryData& dest, const MemoryData& src);
-    static bool IsHostToHost(const MemoryData& dest, const MemoryData& src);
-    static bool IsDeviceToDevice(const MemoryData& dest, const MemoryData& src);
-    static bool IsHostToDevice(const MemoryData& dest, const MemoryData& src);
-    static void LogErrorInfo();
+ private:
+  static bool IsDeviceToHost(const MemoryData& dest, const MemoryData& src);
+  static bool IsHostToHost(const MemoryData& dest, const MemoryData& src);
+  static bool IsDeviceToDevice(const MemoryData& dest, const MemoryData& src);
+  static bool IsHostToDevice(const MemoryData& dest, const MemoryData& src);
+  static void LogErrorInfo();
 };
 
 struct MemorySummary {
-    std::vector<float> H2DTimeList;
-    std::vector<float> D2HTimeList;
-    void Reset()
-    {
-        H2DTimeList.clear();
-        D2HTimeList.clear();
-    }
-    std::mutex mtx_;
+  std::vector<float> H2DTimeList;
+  std::vector<float> D2HTimeList;
+  void Reset() {
+    H2DTimeList.clear();
+    D2HTimeList.clear();
+  }
+  std::mutex mtx_;
 };
 
 struct MemorySummary* GetMemorySummaryPtr();
 }  // namespace Base
-#endif
+#endif  // ACLRUNTIME_INCLUDE_MEMORYHELPER_H_

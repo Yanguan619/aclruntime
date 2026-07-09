@@ -17,6 +17,7 @@ import os
 import random
 from dataclasses import dataclass
 
+import aclruntime
 import numpy as np
 
 from ais_bench.infer.common.utils import (
@@ -28,8 +29,6 @@ from ais_bench.infer.common.utils import (
     save_data_to_files,
 )
 from ais_bench.infer.summary import summary
-
-import aclruntime
 
 # Sentinel filenames for pure-inference mode. Defined in aclruntime's C++ side
 # (pipeline.cpp) and re-exported as module attributes so the strings are

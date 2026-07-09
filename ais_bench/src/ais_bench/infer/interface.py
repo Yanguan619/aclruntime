@@ -119,7 +119,7 @@ class InferSession:
         if weight_dir is not None:
             self.options.weight_dir = weight_dir
         # Enable graph release after load to save CPU memory (ACL_MDL_WITHOUT_GRAPH_INT32=1)
-        if hasattr(self.options, 'without_graph'):
+        if hasattr(self.options, "without_graph"):
             self.options.without_graph = True
         self.session = aclruntime.InferenceSession(self.model_path, self.device_id, self.options)
         self.outputs_names = [meta.name for meta in self.session.get_outputs()]
@@ -192,10 +192,7 @@ class InferSession:
     def run(self, feeds, out_array=False):
         inputs = feeds
         if len(feeds) > 0 and isinstance(feeds[0], np.ndarray):
-            inputs = [
-                aclruntime.Tensor(array, self.device_id)
-                for array in feeds
-            ]
+            inputs = [aclruntime.Tensor(array, self.device_id) for array in feeds]
 
         outputs = self.session.run(self.outputs_names, inputs)
         if out_array:
@@ -401,10 +398,7 @@ class InferSession:
         raise RuntimeError("type:{} invalid".format(type(feed)))
 
     def _convert_feeds_to_device_tensors(self, feeds):
-        return [
-            aclruntime.Tensor(self._convert_feed_to_ndarray(f), self.device_id)
-            for f in feeds
-        ]
+        return [aclruntime.Tensor(self._convert_feed_to_ndarray(f), self.device_id) for f in feeds]
 
     def _create_device_inputs(self, feeds):
         inputs = self._convert_feeds_to_device_tensors(feeds)

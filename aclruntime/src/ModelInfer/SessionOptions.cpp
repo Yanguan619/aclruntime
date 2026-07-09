@@ -16,5 +16,4 @@
 
 #include "ModelInfer/SessionOptions.h"
 
-namespace Base {
-}
+namespace Base {}

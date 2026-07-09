@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef CORE_LOG_H
-#define CORE_LOG_H
+#ifndef ACLRUNTIME_INCLUDE_LOG_H_
+#define ACLRUNTIME_INCLUDE_LOG_H_
 
-#include <cstdio>
-#include <cstdarg>
 #include <csignal>
+#include <cstdarg>
+#include <cstdio>
 
-// Logging macros use printf-style formatting; no std:: prefix needed for C headers.
+// Logging macros use printf-style formatting; no std:: prefix needed for C
+// headers.
 
 #define FILELINE __FILE__, __FUNCTION__, __LINE__
 
@@ -32,37 +33,50 @@
 
 namespace Base {
 class LogCtrl {
-public:
-    static void SetLogLevel(int level)
-    {
-        frizyLogLevel = level;
-    }
-    static bool CheckLogLevel(int level)
-    {
-        return level >= frizyLogLevel;
-    }
-private:
-    LogCtrl() = delete;
-    ~LogCtrl() = delete;
+ public:
+  static void SetLogLevel(int level) { frizyLogLevel = level; }
+  static bool CheckLogLevel(int level) { return level >= frizyLogLevel; }
 
-    static int frizyLogLevel;
+ private:
+  LogCtrl() = delete;
+  ~LogCtrl() = delete;
+
+  static int frizyLogLevel;
 };
-}
+}  // namespace Base
 
-
-#define DEBUG_LOG(fmt, args...)  do { if (Base::LogCtrl::CheckLogLevel(LOG_DEBUG_LEVEL)) \
-    { printf("[DEBUG] " fmt "\n", ##args); fflush(stdout); } } while (0)
-#define INFO_LOG(fmt, args...)  do { if (Base::LogCtrl::CheckLogLevel(LOG_INFO_LEVEL)) \
-    { printf("[INFO] " fmt "\n", ##args); fflush(stdout); } } while (0)
-#define WARN_LOG(fmt, args...)  do { if (Base::LogCtrl::CheckLogLevel(LOG_WARNING_LEVEL)) \
-    { printf("[WARN] " fmt "\n", ##args); fflush(stdout); } } while (0)
-#define ERROR_LOG(fmt, args...)  do { if (Base::LogCtrl::CheckLogLevel(LOG_ERROR_LEVEL)) \
-    { printf("[ERROR] " fmt "\n", ##args); fflush(stdout); } } while (0)
+#define DEBUG_LOG(fmt, args...)                          \
+  do {                                                   \
+    if (Base::LogCtrl::CheckLogLevel(LOG_DEBUG_LEVEL)) { \
+      printf("[DEBUG] " fmt "\n", ##args);               \
+      fflush(stdout);                                    \
+    }                                                    \
+  } while (0)
+#define INFO_LOG(fmt, args...)                          \
+  do {                                                  \
+    if (Base::LogCtrl::CheckLogLevel(LOG_INFO_LEVEL)) { \
+      printf("[INFO] " fmt "\n", ##args);               \
+      fflush(stdout);                                   \
+    }                                                   \
+  } while (0)
+#define WARN_LOG(fmt, args...)                             \
+  do {                                                     \
+    if (Base::LogCtrl::CheckLogLevel(LOG_WARNING_LEVEL)) { \
+      printf("[WARN] " fmt "\n", ##args);                  \
+      fflush(stdout);                                      \
+    }                                                      \
+  } while (0)
+#define ERROR_LOG(fmt, args...)                          \
+  do {                                                   \
+    if (Base::LogCtrl::CheckLogLevel(LOG_ERROR_LEVEL)) { \
+      printf("[ERROR] " fmt "\n", ##args);               \
+      fflush(stdout);                                    \
+    }                                                    \
+  } while (0)
 #define PROMPT_MSG(fmt, args...) printf(fmt, ##args)
 
-inline void ACLERR_LOG(const char* ErrMsg)
-{
-    printf("[ACL ERROR] %s\n", ErrMsg);
+inline void ACLERR_LOG(const char* ErrMsg) {
+  printf("[ACL ERROR] %s\n", ErrMsg);
 }
 
-#endif  // CORE_LOG_H
+#endif  // ACLRUNTIME_INCLUDE_LOG_H_

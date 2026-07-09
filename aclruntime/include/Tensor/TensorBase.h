@@ -14,34 +14,34 @@
  * limitations under the License.
  */
 
-#ifndef TENSOR_CORE_H
-#define TENSOR_CORE_H
+#ifndef ACLRUNTIME_INCLUDE_TENSOR_TENSORBASE_H_
+#define ACLRUNTIME_INCLUDE_TENSOR_TENSORBASE_H_
 
-#include <vector>
-#include <string>
-#include <memory>
 #include <cstdint>
+#include <memory>
+#include <string>
+#include <vector>
 
-#include "MemoryHelper.h"
 #include "ErrorCode.h"
-#include "Tensor/TensorShape.h"
+#include "MemoryHelper.h"
 #include "Tensor/TensorBuffer.h"
+#include "Tensor/TensorShape.h"
 
 namespace Base {
 enum TensorDataType : int8_t {
-    TENSOR_DTYPE_UNDEFINED = -1,
-    TENSOR_DTYPE_FLOAT32 = 0,
-    TENSOR_DTYPE_FLOAT16 = 1,
-    TENSOR_DTYPE_INT8 = 2,
-    TENSOR_DTYPE_INT32 = 3,
-    TENSOR_DTYPE_UINT8 = 4,
-    TENSOR_DTYPE_INT16 = 6,
-    TENSOR_DTYPE_UINT16 = 7,
-    TENSOR_DTYPE_UINT32 = 8,
-    TENSOR_DTYPE_INT64 = 9,
-    TENSOR_DTYPE_UINT64 = 10,
-    TENSOR_DTYPE_DOUBLE64 = 11,
-    TENSOR_DTYPE_BOOL = 12
+  TENSOR_DTYPE_UNDEFINED = -1,
+  TENSOR_DTYPE_FLOAT32 = 0,
+  TENSOR_DTYPE_FLOAT16 = 1,
+  TENSOR_DTYPE_INT8 = 2,
+  TENSOR_DTYPE_INT32 = 3,
+  TENSOR_DTYPE_UINT8 = 4,
+  TENSOR_DTYPE_INT16 = 6,
+  TENSOR_DTYPE_UINT16 = 7,
+  TENSOR_DTYPE_UINT32 = 8,
+  TENSOR_DTYPE_INT64 = 9,
+  TENSOR_DTYPE_UINT64 = 10,
+  TENSOR_DTYPE_DOUBLE64 = 11,
+  TENSOR_DTYPE_BOOL = 12
 };
 
 std::string GetTensorDataTypeDesc(TensorDataType type);
@@ -49,64 +49,72 @@ std::string GetTensorDataTypeDesc(TensorDataType type);
 MemoryData CopyMemory2DeviceMemory(void *ptr, uint64_t size, int32_t deviceId);
 
 class TensorBase {
-public:
-    TensorBase();
-    virtual ~TensorBase() = default;
-    TensorBase(const TensorBase &tensor) = default;
-    // tensor构造函数
-    TensorBase(const MemoryData &memoryData, const bool &isBorrowed,
-        const std::vector<uint32_t> &shape, const TensorDataType &type, const size_t contextIndex);
-    TensorBase(const std::vector<uint32_t> &shape, const TensorDataType &type,
-        const MemoryData::MemoryType &bufferType, const int32_t &deviceId, const size_t contextIndex);
-    TensorBase(const std::vector<uint32_t> &shape, const TensorDataType &type, const int32_t &deviceId,
-               const size_t contextIndex);
-    TensorBase(const std::vector<uint32_t> &shape, const TensorDataType &type);
-    TensorBase(const std::vector<uint32_t> &shape);
-    TensorBase& operator=(const TensorBase &other);
-    static APP_ERROR TensorBaseMalloc(TensorBase &tensor);
-    static APP_ERROR TensorBaseCopy(TensorBase &dst, const TensorBase &src);
-    // 获取tensor部署的设备类型
-    MemoryData::MemoryType GetTensorType() const;
-    // buffer记录的数据量
-    size_t GetSize() const;
-    // buffer 字节数据量
-    size_t GetByteSize() const;
-    // tensor 的shape
-    std::vector<uint32_t> GetShape() const;
-    // tensor 的 device
-    int32_t GetDeviceId() const;
-    // tensor 数据类型
-    TensorDataType GetDataType() const;
-    // 判断是否在Host
-    bool IsHost() const;
-    // 判断是否在Device
-    bool IsDevice() const;
-    // 获取tensor指针
-    void* GetBuffer() const;
-    // host to device
-    APP_ERROR ToDevice(int32_t deviceId);
-    // host to dvpp
-    APP_ERROR ToDvpp(int32_t deviceId);
-    // device to host
-    APP_ERROR ToHost();
-    static APP_ERROR BatchConcat(const std::vector<TensorBase> &inputs, TensorBase &output);
-    static APP_ERROR BatchStack(const std::vector<TensorBase> &inputs, TensorBase &output);
-    // 设置TensorBase的contextIndex，可以不设置默认为0
-    void SetContextIndex(const size_t contextIndex);
+ public:
+  TensorBase();
+  virtual ~TensorBase() = default;
+  TensorBase(const TensorBase &tensor) = default;
+  // tensor构造函数
+  TensorBase(const MemoryData &memoryData, const bool &isBorrowed,
+             const std::vector<uint32_t> &shape, const TensorDataType &type,
+             const size_t contextIndex);
+  TensorBase(const std::vector<uint32_t> &shape, const TensorDataType &type,
+             const MemoryData::MemoryType &bufferType, const int32_t &deviceId,
+             const size_t contextIndex);
+  TensorBase(const std::vector<uint32_t> &shape, const TensorDataType &type,
+             const int32_t &deviceId, const size_t contextIndex);
+  TensorBase(const std::vector<uint32_t> &shape, const TensorDataType &type);
+  TensorBase(const std::vector<uint32_t> &shape);
+  TensorBase &operator=(const TensorBase &other);
+  static APP_ERROR TensorBaseMalloc(TensorBase &tensor);
+  static APP_ERROR TensorBaseCopy(TensorBase &dst, const TensorBase &src);
+  // 获取tensor部署的设备类型
+  MemoryData::MemoryType GetTensorType() const;
+  // buffer记录的数据量
+  size_t GetSize() const;
+  // buffer 字节数据量
+  size_t GetByteSize() const;
+  // tensor 的shape
+  std::vector<uint32_t> GetShape() const;
+  // tensor 的 device
+  int32_t GetDeviceId() const;
+  // tensor 数据类型
+  TensorDataType GetDataType() const;
+  // 判断是否在Host
+  bool IsHost() const;
+  // 判断是否在Device
+  bool IsDevice() const;
+  // 获取tensor指针
+  void *GetBuffer() const;
+  // host to device
+  APP_ERROR ToDevice(int32_t deviceId);
+  // host to dvpp
+  APP_ERROR ToDvpp(int32_t deviceId);
+  // device to host
+  APP_ERROR ToHost();
+  static APP_ERROR BatchConcat(const std::vector<TensorBase> &inputs,
+                               TensorBase &output);
+  static APP_ERROR BatchStack(const std::vector<TensorBase> &inputs,
+                              TensorBase &output);
+  // 设置TensorBase的contextIndex，可以不设置默认为0
+  void SetContextIndex(const size_t contextIndex);
 
-    // 组batch
-    static APP_ERROR BatchVector(const std::vector<TensorBase> &inputs, TensorBase &output,
-        const bool &keepDims = false);
-    // 详细信息
-    std::string GetDesc();
-    static uint32_t DataTypeByteSize(TensorDataType type);
-private:
-    static APP_ERROR CheckBatchTensors(const std::vector<TensorBase> &inputs, const bool &checkFirstDim);
-private:
-    std::shared_ptr<TensorBuffer> buffer_;
-    std::shared_ptr<TensorShape> shape_;
-    bool isInitFlag_ = false;
-    TensorDataType dataType_ = TENSOR_DTYPE_UINT8;
+  // 组batch
+  static APP_ERROR BatchVector(const std::vector<TensorBase> &inputs,
+                               TensorBase &output,
+                               const bool &keepDims = false);
+  // 详细信息
+  std::string GetDesc();
+  static uint32_t DataTypeByteSize(TensorDataType type);
+
+ private:
+  static APP_ERROR CheckBatchTensors(const std::vector<TensorBase> &inputs,
+                                     const bool &checkFirstDim);
+
+ private:
+  std::shared_ptr<TensorBuffer> buffer_;
+  std::shared_ptr<TensorShape> shape_;
+  bool isInitFlag_ = false;
+  TensorDataType dataType_ = TENSOR_DTYPE_UINT8;
 };
-}
-#endif
+}  // namespace Base
+#endif  // ACLRUNTIME_INCLUDE_TENSOR_TENSORBASE_H_

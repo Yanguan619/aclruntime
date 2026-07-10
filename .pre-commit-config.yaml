@@ -14,13 +14,11 @@ repos:
 
   # C++ 格式化：使用 clang-format
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v19.1.7   # 建议使用较新版本，可替换为最新稳定版
+    rev: v19.1.7
     hooks:
       - id: clang-format
-        # aclruntime
-        args: [--style=Google]   # 可选：Google, LLVM, Chromium, Mozilla, WebKit 等
-        # 如果需要指定文件类型，可以取消注释以下行：
-        # types_or: [c++, c, cuda]
+        args:
+          - "--style={BasedOnStyle: Google, IndentWidth: 4, AccessModifierOffset: -4}"
 
   # C++ 语法/风格检查：使用 cpplint
   - repo: https://github.com/cpplint/cpplint
@@ -29,19 +27,8 @@ repos:
       - id: cpplint
         args:
           - '--linelength=120'
-          # aclruntime 为引入的 Ascend ACL 运行时代码，沿用既有风格
-          # (缩进命名空间、非 const 引用、自定义头文件守卫等)，
-          # 以下类别与现有代码风格冲突，clang-format 已处理格式化。
           - '--filter=-build/include_what_you_use,-build/include_order,-build/include_subdir,-build/include,-build/namespaces,-build/namespaces_headers,-runtime/references,-runtime/explicit,-runtime/int,-runtime/string,-runtime/threadsafe_fn,-whitespace/indent_namespace,-whitespace/line_length,-readability/casting,-readability/alt_tokens,-readability/multiline_string,-readability/check,-legal/copyright,-readability/todo'
-        # 排除第三方库或生成的代码
         exclude: third_party/|build/
-
-  # 或者你也可以选择 clang-tidy（更强大但更慢）
-  # - repo: https://github.com/pocc/pre-commit-hooks
-  #   rev: v1.3.5
-  #   hooks:
-  #     - id: clang-tidy
-  #       args: [--checks=*,-fuchsia-*,-google-*]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.11.5

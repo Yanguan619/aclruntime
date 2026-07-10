@@ -73,7 +73,10 @@ APP_ERROR DeviceManager::InitDevices(std::string configFilePath) {
         return APP_ERR_OK;
     }
 
+    DEBUG_LOG("[MEM_CHECK] Before aclInit: RSS=%zuMB", GetSystemMemoryUsedMB());
     APP_ERROR ret = aclInit(aclJsonPath_.c_str());
+    DEBUG_LOG("[MEM_CHECK] After aclInit: RSS=%zuMB", GetSystemMemoryUsedMB());
+
     if (ret == ACL_ERROR_REPEAT_INITIALIZE) {
         WARN_LOG("acl repeat initialize");
         repeatInitAclFlag = false;
@@ -83,7 +86,12 @@ APP_ERROR DeviceManager::InitDevices(std::string configFilePath) {
         ERROR_LOG("acl init failed");
         return ret;
     }
+
+    DEBUG_LOG("[MEM_CHECK] Before ACL_RT_OVERFLOW_MODE_SATURATION: RSS=%zuMB",
+              GetSystemMemoryUsedMB());
     aclrtSetDeviceSatMode(ACL_RT_OVERFLOW_MODE_SATURATION);
+    DEBUG_LOG("[MEM_CHECK] After ACL_RT_OVERFLOW_MODE_SATURATION: RSS=%zuMB",
+              GetSystemMemoryUsedMB());
     INFO_LOG("acl init success");
 
     ret = aclrtGetDeviceCount(&deviceCount_);

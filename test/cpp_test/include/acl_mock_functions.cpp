@@ -6,7 +6,7 @@ MockACL* g_mockAcl = nullptr;  // 唯一实际定义
 extern "C" {
 
 #define DEFINE_MOCK_C_API(ReturnType, FuncName, ParamDecl, ParamNames) \
-  ReturnType FuncName ParamDecl { return g_mockAcl->FuncName ParamNames; }
+    ReturnType FuncName ParamDecl { return g_mockAcl->FuncName ParamNames; }
 
 DEFINE_MOCK_C_API(aclError, aclmdlLoadFromFile,
                   (const char* modelPath, uint32_t* modelId),

@@ -29,26 +29,13 @@
 #include <stdexcept>
 #include <vector>
 
+#include "Log.h"
 #include "ModelInfer/WeightPool.h"
 #include "ModelInfer/utils.h"
 
 // Memory tracking helpers
 #include <fstream>
 #include <sstream>
-
-static size_t GetSystemMemoryUsedMB() {
-    std::ifstream status("/proc/self/status");
-    std::string line;
-    while (std::getline(status, line)) {
-        if (line.find("VmRSS:") == 0) {
-            size_t kb = 0;
-            std::istringstream iss(line.substr(6));
-            iss >> kb;
-            return kb / 1024;
-        }
-    }
-    return 0;
-}
 
 using namespace UtilsResult;
 using std::string;
@@ -288,29 +275,18 @@ Result ModelProcess::LoadModelFromFile(
         struct timeval end = {0};
         gettimeofday(&start, nullptr);
 
-        INFO_LOG("aclmdlLoadWithConfig %s (weights from %s, %zu files)",
-                 Basename(modelPath).c_str(),
-                 Basename(resolvedWeightDir).c_str(), acquiredFiles.size());
-
-        DEBUG_LOG("[MEM_CHECK] Before aclmdlLoadWithConfig: RSS=%zuMB",
-                  GetSystemMemoryUsedMB());
-        ret = aclmdlLoadWithConfig(handle, &modelId_);
-        DEBUG_LOG("[MEM_CHECK] After aclmdlLoadWithConfig: RSS=%zuMB",
-                  GetSystemMemoryUsedMB());
+        // 使用时
+        ret = MemCheckedCall("aclmdlLoadWithConfig", aclmdlLoadWithConfig,
+                             handle, &modelId_);
 
         gettimeofday(&end, nullptr);
         // modelData must outlive the load; per ACL semantics the model
         // memory is referenced shallowly, so keep the bytes alive for the
         // lifetime of this ModelProcess.
+
         modelData_.swap(modelData);
-
-        DEBUG_LOG("modelData_.swap(modelData): RSS=%zuMB",
-                  GetSystemMemoryUsedMB());
-
-        aclmdlDestroyConfigHandle(handle);
-
-        DEBUG_LOG("aclmdlDestroyConfigHandle: RSS=%zuMB",
-                  GetSystemMemoryUsedMB());
+        MemCheckedCall("aclmdlDestroyConfigHandle", aclmdlDestroyConfigHandle,
+                       handle);
 
         if (ret != ACL_SUCCESS) {
             ACLERR_LOG(aclGetRecentErrMsg());

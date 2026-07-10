@@ -29,23 +29,6 @@
 #include "Tensor/TensorContext.h"
 #include "Tensor/TensorShape.h"
 
-// Memory tracking helper
-#include <fstream>
-#include <sstream>
-static size_t GetSystemMemoryUsedMB() {
-    std::ifstream status("/proc/self/status");
-    std::string line;
-    while (std::getline(status, line)) {
-        if (line.find("VmRSS:") == 0) {
-            size_t kb = 0;
-            std::istringstream iss(line.substr(6));
-            iss >> kb;
-            return kb / 1024;
-        }
-    }
-    return 0;
-}
-
 using namespace UtilsResult;
 constexpr int LOOP_MAX_SIZE = 100000;
 constexpr size_t CUSTOME_SIZE_MAX_SIZE = 17179869184;  // 16GB
@@ -205,21 +188,13 @@ void PyInferenceSession::Init(const std::string& modelPath,
     if (ret != APP_ERR_OK) {
         throw std::runtime_error(GetError(ret));
     }
-    DEBUG_LOG("[MEM_CHECK] After CreateContext: RSS=%zuMB",
-              GetSystemMemoryUsedMB());
     SetContext();
     // model init
-    DEBUG_LOG("[MEM_CHECK] Before modelInfer_.Init: RSS=%zuMB",
-              GetSystemMemoryUsedMB());
     ret = modelInfer_.Init(modelPath, options, deviceId_, contextIndex_);
     if (ret != APP_ERR_OK) {
         throw std::runtime_error(GetError(ret));
     }
-    DEBUG_LOG("[MEM_CHECK] After modelInfer_.Init: RSS=%zuMB",
-              GetSystemMemoryUsedMB());
     InitFlag_ = true;
-    DEBUG_LOG("[MEM_CHECK] PyInferenceSession::Init end: RSS=%zuMB",
-              GetSystemMemoryUsedMB());
 }
 
 APP_ERROR PyInferenceSession::AutoSetDynamicFromTensors(

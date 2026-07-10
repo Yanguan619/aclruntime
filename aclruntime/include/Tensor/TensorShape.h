@@ -19,44 +19,44 @@
 
 namespace Base {
 class TensorShape {
- public:
-  TensorShape() = default;
-  ~TensorShape() = default;
+public:
+    TensorShape() = default;
+    ~TensorShape() = default;
 
-  template <typename T>
-  TensorShape(std::vector<T> shape) {
-    shape_.clear();
-    for (auto s : shape) {
-      shape_.push_back((size_t)s);
+    template <typename T>
+    TensorShape(std::vector<T> shape) {
+        shape_.clear();
+        for (auto s : shape) {
+            shape_.push_back((size_t)s);
+        }
     }
-  }
 
-  uint32_t GetDims() const { return shape_.size(); }
+    uint32_t GetDims() const { return shape_.size(); }
 
-  void SetShape(std::vector<size_t> shape) { shape_ = shape; }
+    void SetShape(std::vector<size_t> shape) { shape_ = shape; }
 
-  std::vector<uint32_t> GetShape() const {
-    std::vector<uint32_t> shape = {};
-    for (auto s : shape_) {
-      shape.push_back((uint32_t)s);
+    std::vector<uint32_t> GetShape() const {
+        std::vector<uint32_t> shape = {};
+        for (auto s : shape_) {
+            shape.push_back((uint32_t)s);
+        }
+        return shape;
     }
-    return shape;
-  }
 
-  uint32_t GetSize() const {
-    size_t size = 1;
-    for (auto s : shape_) {
-      size *= s;
+    uint32_t GetSize() const {
+        size_t size = 1;
+        for (auto s : shape_) {
+            size *= s;
+        }
+        return size;
     }
-    return size;
-  }
 
-  size_t operator[](uint32_t idx) const { return shape_[idx]; }
+    size_t operator[](uint32_t idx) const { return shape_[idx]; }
 
-  size_t &operator[](uint32_t idx) { return shape_[idx]; }
+    size_t &operator[](uint32_t idx) { return shape_[idx]; }
 
- private:
-  std::vector<size_t> shape_ = {};
+private:
+    std::vector<size_t> shape_ = {};
 };
 }  // namespace Base
 

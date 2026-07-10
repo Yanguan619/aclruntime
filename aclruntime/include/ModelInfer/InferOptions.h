@@ -22,14 +22,14 @@
 
 namespace Base {
 class InferOptions {
- public:
-  std::string outputDir = "";
-  bool autoDymShape = false;
-  bool autoDymDims = false;
-  std::string outFmt = "";
-  bool pureInferMode = false;
-  std::vector<std::string> outputNames;
-  std::vector<std::vector<std::vector<std::size_t>>> shapesList;
+public:
+    std::string outputDir = "";
+    bool autoDymShape = false;
+    bool autoDymDims = false;
+    std::string outFmt = "";
+    bool pureInferMode = false;
+    std::vector<std::string> outputNames;
+    std::vector<std::vector<std::vector<std::size_t>>> shapesList;
 };
 }  // namespace Base
 #endif  // ACLRUNTIME_INCLUDE_MODELINFER_INFEROPTIONS_H_

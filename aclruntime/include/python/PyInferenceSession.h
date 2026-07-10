@@ -39,113 +39,113 @@ namespace py = pybind11;
 
 namespace Base {
 class PyInferenceSession {
- public:
-  PyInferenceSession(const std::string& modelPath, const uint32_t& deviceId,
-                     std::shared_ptr<SessionOptions> options);
-  ~PyInferenceSession();
+public:
+    PyInferenceSession(const std::string& modelPath, const uint32_t& deviceId,
+                       std::shared_ptr<SessionOptions> options);
+    ~PyInferenceSession();
 
-  std::vector<TensorBase> InferMap(std::vector<std::string>& output_names,
-                                   std::map<std::string, TensorBase>& feeds);
-  std::vector<TensorBase> InferVector(std::vector<std::string>& output_names,
-                                      std::vector<TensorBase>& feeds);
+    std::vector<TensorBase> InferMap(std::vector<std::string>& output_names,
+                                     std::map<std::string, TensorBase>& feeds);
+    std::vector<TensorBase> InferVector(std::vector<std::string>& output_names,
+                                        std::vector<TensorBase>& feeds);
 
-  std::vector<TensorBase> FirstInnerInfer(
-      std::vector<std::string>& output_names,
-      std::vector<Base::BaseTensor>& feeds);
-  std::vector<TensorBase> InnerInfer(const std::vector<int>& in_out_list,
-                                     std::vector<std::string>& output_names,
-                                     const bool get_outputs,
-                                     const bool mem_copy);
+    std::vector<TensorBase> FirstInnerInfer(
+        std::vector<std::string>& output_names,
+        std::vector<Base::BaseTensor>& feeds);
+    std::vector<TensorBase> InnerInfer(const std::vector<int>& in_out_list,
+                                       std::vector<std::string>& output_names,
+                                       const bool get_outputs,
+                                       const bool mem_copy);
 
-  std::vector<TensorBase> InferBaseTensorVector(
-      std::vector<std::string>& output_names,
-      std::vector<Base::BaseTensor>& feeds);
-  std::vector<TensorBase> RunFromTensors(std::vector<std::string>& output_names,
-                                         std::vector<TensorBase>& feeds);
-  void OnlyInfer(std::vector<BaseTensor>& inputs,
-                 std::vector<std::string>& output_names,
-                 std::vector<TensorBase>& outputs);
-  void InferPipeline(
-      std::vector<std::vector<std::string>>& infilesList,
-      std::shared_ptr<InferOptions> inferOption,
-      std::vector<std::shared_ptr<PyInferenceSession>>& extraSession);
-  std::vector<std::vector<TensorBase>> InferPipelineBaseTensor(
-      std::vector<std::string>& outputNames,
-      std::vector<std::vector<Base::BaseTensor>>& inputsList,
-      std::vector<std::vector<std::vector<size_t>>>& shapesList,
-      bool autoDymShape, bool autoDymDims);
+    std::vector<TensorBase> InferBaseTensorVector(
+        std::vector<std::string>& output_names,
+        std::vector<Base::BaseTensor>& feeds);
+    std::vector<TensorBase> RunFromTensors(
+        std::vector<std::string>& output_names, std::vector<TensorBase>& feeds);
+    void OnlyInfer(std::vector<BaseTensor>& inputs,
+                   std::vector<std::string>& output_names,
+                   std::vector<TensorBase>& outputs);
+    void InferPipeline(
+        std::vector<std::vector<std::string>>& infilesList,
+        std::shared_ptr<InferOptions> inferOption,
+        std::vector<std::shared_ptr<PyInferenceSession>>& extraSession);
+    std::vector<std::vector<TensorBase>> InferPipelineBaseTensor(
+        std::vector<std::string>& outputNames,
+        std::vector<std::vector<Base::BaseTensor>>& inputsList,
+        std::vector<std::vector<std::vector<size_t>>>& shapesList,
+        bool autoDymShape, bool autoDymDims);
 
-  std::vector<std::vector<uint64_t>> GetDynamicHW();
-  std::vector<int64_t> GetDynamicBatch();
+    std::vector<std::vector<uint64_t>> GetDynamicHW();
+    std::vector<int64_t> GetDynamicBatch();
 
-  const std::vector<Base::TensorDesc>& GetInputs();
-  const std::vector<Base::TensorDesc>& GetOutputs();
+    const std::vector<Base::TensorDesc>& GetInputs();
+    const std::vector<Base::TensorDesc>& GetOutputs();
 
-  uint32_t GetDeviceId() const;
-  std::size_t GetContextIndex() const;
-  std::string GetDesc();
-  std::string GetModelPath();
-  std::shared_ptr<SessionOptions> GetOptions();
+    uint32_t GetDeviceId() const;
+    std::size_t GetContextIndex() const;
+    std::string GetDesc();
+    std::string GetModelPath();
+    std::shared_ptr<SessionOptions> GetOptions();
 
-  const InferSummaryInfo& GetSumaryInfo() const;
-  void MergeSummaryInfo(const InferSummaryInfo& summaryInfo);
+    const InferSummaryInfo& GetSumaryInfo() const;
+    void MergeSummaryInfo(const InferSummaryInfo& summaryInfo);
 
-  int ResetSumaryInfo();
-  int SetStaticBatch();
-  int SetDynamicBatchsize(int batchsize);
-  int SetDynamicHW(int width, int height);
-  int SetDynamicDims(std::string dymdimsStr);
+    int ResetSumaryInfo();
+    int SetStaticBatch();
+    int SetDynamicBatchsize(int batchsize);
+    int SetDynamicHW(int width, int height);
+    int SetDynamicDims(std::string dymdimsStr);
 
-  int SetDynamicShape(std::string dymshapeStr);
-  int SetCustomOutTensorsSize(std::vector<size_t> customOutSize);
+    int SetDynamicShape(std::string dymshapeStr);
+    int SetCustomOutTensorsSize(std::vector<size_t> customOutSize);
 
-  uint64_t GetMaxDymBatchsize();
-  int SetDymAIPPInfoSet();
-  int GetDymAIPPInputExist();
-  int CheckDymAIPPInputExist();
+    uint64_t GetMaxDymBatchsize();
+    int SetDymAIPPInfoSet();
+    int GetDymAIPPInputExist();
+    int CheckDymAIPPInputExist();
 
-  int AippSetMaxBatchSize(uint64_t batchSize);
-  int SetInputFormat(std::string iptFmt);
-  int SetSrcImageSize(std::vector<int> srcImageSize);
-  int SetRbuvSwapSwitch(int rsSwitch);
-  int SetAxSwapSwitch(int asSwitch);
-  int SetCscParams(std::vector<int> cscParams);
-  int SetCropParams(std::vector<int> cropParams);
-  int SetPaddingParams(std::vector<int> padParams);
-  int SetDtcPixelMean(std::vector<int> meanParams);
-  int SetDtcPixelMin(std::vector<float> minParams);
-  int SetPixelVarReci(std::vector<float> reciParams);
+    int AippSetMaxBatchSize(uint64_t batchSize);
+    int SetInputFormat(std::string iptFmt);
+    int SetSrcImageSize(std::vector<int> srcImageSize);
+    int SetRbuvSwapSwitch(int rsSwitch);
+    int SetAxSwapSwitch(int asSwitch);
+    int SetCscParams(std::vector<int> cscParams);
+    int SetCropParams(std::vector<int> cropParams);
+    int SetPaddingParams(std::vector<int> padParams);
+    int SetDtcPixelMean(std::vector<int> meanParams);
+    int SetDtcPixelMin(std::vector<float> minParams);
+    int SetPixelVarReci(std::vector<float> reciParams);
 
-  TensorBase CreateTensorFromFilesList(Base::TensorDesc& dstTensorDesc,
-                                       std::vector<std::string>& filesList);
+    TensorBase CreateTensorFromFilesList(Base::TensorDesc& dstTensorDesc,
+                                         std::vector<std::string>& filesList);
 
-  static int Finalize();
-  int FreeResource();
-  void SetContext();
+    static int Finalize();
+    int FreeResource();
+    void SetContext();
 
-  // Auto-detect and set dynamic mode from input tensor shapes.
-  // No-op if dynamic type already configured or model is static.
-  APP_ERROR AutoSetDynamicFromTensors(const std::vector<TensorBase>& feeds);
+    // Auto-detect and set dynamic mode from input tensor shapes.
+    // No-op if dynamic type already configured or model is static.
+    APP_ERROR AutoSetDynamicFromTensors(const std::vector<TensorBase>& feeds);
 
-  Base::ModelInferenceProcessor modelInfer_ = {};
+    Base::ModelInferenceProcessor modelInfer_ = {};
 
- private:
-  void Init(const std::string& modelPath,
-            std::shared_ptr<SessionOptions> options);
-  int Destroy();
-  // Ensure input device pool has buffers large enough for the given feeds.
-  // Grows/replaces entries as needed; does nothing if already adequate.
-  APP_ERROR EnsureInputPool(const std::vector<Base::BaseTensor>& feeds);
+private:
+    void Init(const std::string& modelPath,
+              std::shared_ptr<SessionOptions> options);
+    int Destroy();
+    // Ensure input device pool has buffers large enough for the given feeds.
+    // Grows/replaces entries as needed; does nothing if already adequate.
+    APP_ERROR EnsureInputPool(const std::vector<Base::BaseTensor>& feeds);
 
- private:
-  uint32_t deviceId_ = 0;
-  Base::ModelDesc modelDesc_ = {};
-  bool InitFlag_ = false;
-  std::string modelPath_ = "";
-  size_t contextIndex_ = 0;
-  // Pool of pre-allocated device buffers for model inputs, reused across
-  // inference calls to avoid repeated aclrtMalloc/aclrtFree.
-  std::vector<MemoryData> inputMemPool_;
+private:
+    uint32_t deviceId_ = 0;
+    Base::ModelDesc modelDesc_ = {};
+    bool InitFlag_ = false;
+    std::string modelPath_ = "";
+    size_t contextIndex_ = 0;
+    // Pool of pre-allocated device buffers for model inputs, reused across
+    // inference calls to avoid repeated aclrtMalloc/aclrtFree.
+    std::vector<MemoryData> inputMemPool_;
 };
 }  // namespace Base
 

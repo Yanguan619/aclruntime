@@ -27,7 +27,7 @@ repos:
       - id: cpplint
         args:
           - '--linelength=120'
-          - '--filter=-build/include_what_you_use,-build/include_order,-build/include_subdir,-build/include,-build/namespaces,-build/namespaces_headers,-runtime/references,-runtime/explicit,-runtime/int,-runtime/string,-runtime/threadsafe_fn,-whitespace/indent_namespace,-whitespace/line_length,-readability/casting,-readability/alt_tokens,-readability/multiline_string,-readability/check,-legal/copyright,-readability/todo'
+          - '--filter=-build/include_what_you_use,-build/include_order,-build/include_subdir,-build/include,-build/namespaces,-build/namespaces_headers,-runtime/references,-runtime/explicit,-runtime/int,-runtime/string,-runtime/threadsafe_fn,-whitespace/indent,-whitespace/indent_namespace,-whitespace/line_length,-readability/casting,-readability/alt_tokens,-readability/multiline_string,-readability/check,-legal/copyright,-readability/todo'
         exclude: third_party/|build/
 
   - repo: https://github.com/astral-sh/ruff-pre-commit

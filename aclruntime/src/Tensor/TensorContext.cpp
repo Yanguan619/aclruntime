@@ -28,82 +28,82 @@ namespace Base {
 TensorContext::TensorContext() {
 #ifdef COMPILE_PYTHON_MODULE
 #endif
-  if (!DeviceManager::GetInstance()->IsInitDevices()) {
-    APP_ERROR ret = DeviceManager::GetInstance()->InitDevices();
-    if (ret != APP_ERR_OK) {
-      ERROR_LOG("device manager init devices failed. ret=%d", ret);
-      return;
+    if (!DeviceManager::GetInstance()->IsInitDevices()) {
+        APP_ERROR ret = DeviceManager::GetInstance()->InitDevices();
+        if (ret != APP_ERR_OK) {
+            ERROR_LOG("device manager init devices failed. ret=%d", ret);
+            return;
+        }
+        InitDeviceFlag_ = true;
     }
-    InitDeviceFlag_ = true;
-  }
 }
 
 APP_ERROR TensorContext::Finalize() {
-  if (InitDeviceFlag_) {
-    APP_ERROR ret = DeviceManager::GetInstance()->DestroyDevices();
-    if (ret != APP_ERR_OK) {
-      ERROR_LOG("device manager destroy devices failed. ret=%d", ret);
-      return ret;
+    if (InitDeviceFlag_) {
+        APP_ERROR ret = DeviceManager::GetInstance()->DestroyDevices();
+        if (ret != APP_ERR_OK) {
+            ERROR_LOG("device manager destroy devices failed. ret=%d", ret);
+            return ret;
+        }
+        InitDeviceFlag_ = false;
     }
-    InitDeviceFlag_ = false;
-  }
-  return APP_ERR_OK;
+    return APP_ERR_OK;
 }
 
 TensorContext::~TensorContext() { Finalize(); }
 
 APP_ERROR TensorContext::CreateContext(const uint32_t &deviceId,
                                        size_t &contextIndex) {
-  DeviceContext device = {};
-  device.devId = deviceId;
-  APP_ERROR ret =
-      DeviceManager::GetInstance()->CreateContext(device, contextIndex);
-  if (ret != APP_ERR_OK) {
-    ERROR_LOG("create context failed. ret=%d", ret);
-    return ret;
-  }
-  return APP_ERR_OK;
+    DeviceContext device = {};
+    device.devId = deviceId;
+    APP_ERROR ret =
+        DeviceManager::GetInstance()->CreateContext(device, contextIndex);
+    if (ret != APP_ERR_OK) {
+        ERROR_LOG("create context failed. ret=%d", ret);
+        return ret;
+    }
+    return APP_ERR_OK;
 }
 
 APP_ERROR TensorContext::DestroyContext(const uint32_t &deviceId,
                                         const size_t &contextIndex) {
-  APP_ERROR ret =
-      DeviceManager::GetInstance()->DestroyContext(deviceId, contextIndex);
-  if (ret != APP_ERR_OK) {
-    ERROR_LOG("destroy context failed. ret=%d", ret);
-    return ret;
-  }
-  return APP_ERR_OK;
+    APP_ERROR ret =
+        DeviceManager::GetInstance()->DestroyContext(deviceId, contextIndex);
+    if (ret != APP_ERR_OK) {
+        ERROR_LOG("destroy context failed. ret=%d", ret);
+        return ret;
+    }
+    return APP_ERR_OK;
 }
 
 APP_ERROR TensorContext::SetContext(const uint32_t &deviceId,
                                     const size_t contextIndex) {
-  // Thread-local cache: skip lock + aclrtSetCurrentContext when already on the
-  // right context. PyInferenceSession calls SetContext() before almost every
-  // operation (~30+ calls per inference pipeline), so this eliminates redundant
-  // ACL runtime calls on the hot path.
-  thread_local uint32_t cachedDeviceId = UINT32_MAX;
-  thread_local size_t cachedContextIndex = SIZE_MAX;
-  if (cachedDeviceId == deviceId && cachedContextIndex == contextIndex) {
-    return APP_ERR_OK;
-  }
+    // Thread-local cache: skip lock + aclrtSetCurrentContext when already on
+    // the right context. PyInferenceSession calls SetContext() before almost
+    // every operation (~30+ calls per inference pipeline), so this eliminates
+    // redundant ACL runtime calls on the hot path.
+    thread_local uint32_t cachedDeviceId = UINT32_MAX;
+    thread_local size_t cachedContextIndex = SIZE_MAX;
+    if (cachedDeviceId == deviceId && cachedContextIndex == contextIndex) {
+        return APP_ERR_OK;
+    }
 
-  DeviceContext device = {};
-  device.devId = deviceId;
-  APP_ERROR ret =
-      DeviceManager::GetInstance()->SetContext(device, contextIndex);
-  if (ret != APP_ERR_OK) {
-    ERROR_LOG("set context failed. ret=%d", ret);
-    return ret;
-  }
-  cachedDeviceId = deviceId;
-  cachedContextIndex = contextIndex;
-  return APP_ERR_OK;
+    DeviceContext device = {};
+    device.devId = deviceId;
+    APP_ERROR ret =
+        DeviceManager::GetInstance()->SetContext(device, contextIndex);
+    if (ret != APP_ERR_OK) {
+        ERROR_LOG("set context failed. ret=%d", ret);
+        return ret;
+    }
+    cachedDeviceId = deviceId;
+    cachedContextIndex = contextIndex;
+    return APP_ERR_OK;
 }
 
 std::shared_ptr<TensorContext> TensorContext::GetInstance() {
-  static std::shared_ptr<TensorContext> tensorContext =
-      std::make_shared<TensorContext>();
-  return tensorContext;
+    static std::shared_ptr<TensorContext> tensorContext =
+        std::make_shared<TensorContext>();
+    return tensorContext;
 }
 }  // namespace Base

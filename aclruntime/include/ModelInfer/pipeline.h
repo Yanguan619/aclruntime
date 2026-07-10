@@ -36,45 +36,45 @@
 using Arguments = std::unordered_map<std::string, std::string>;
 
 struct Feeds {
-  std::vector<std::string> outputNames;
-  std::shared_ptr<std::vector<Base::BaseTensor>> inputs = nullptr;
-  std::shared_ptr<std::vector<Base::TensorBase>> outputs = nullptr;
-  std::shared_ptr<std::vector<Base::MemoryData>> memory = nullptr;
-  std::shared_ptr<std::vector<std::shared_ptr<cnpy::NpyArray>>> arrayPtr =
-      nullptr;
-  std::string autoDynamicShape;
-  std::string autoDynamicDims;
-  std::string outputPrefix;
+    std::vector<std::string> outputNames;
+    std::shared_ptr<std::vector<Base::BaseTensor>> inputs = nullptr;
+    std::shared_ptr<std::vector<Base::TensorBase>> outputs = nullptr;
+    std::shared_ptr<std::vector<Base::MemoryData>> memory = nullptr;
+    std::shared_ptr<std::vector<std::shared_ptr<cnpy::NpyArray>>> arrayPtr =
+        nullptr;
+    std::string autoDynamicShape;
+    std::string autoDynamicDims;
+    std::string outputPrefix;
 };
 
 template <typename T>
 class ConcurrentQueue {
- public:
-  explicit ConcurrentQueue(size_t depth = 3) : depth_(depth) {}
+public:
+    explicit ConcurrentQueue(size_t depth = 3) : depth_(depth) {}
 
-  T pop() {
-    std::unique_lock<std::mutex> lock(mtx_);
-    cv_.wait(lock, [this] { return !queue_.empty(); });
-    T val = std::move(queue_.front());
-    queue_.pop();
-    lock.unlock();
-    cv_.notify_one();
-    return val;
-  }
+    T pop() {
+        std::unique_lock<std::mutex> lock(mtx_);
+        cv_.wait(lock, [this] { return !queue_.empty(); });
+        T val = std::move(queue_.front());
+        queue_.pop();
+        lock.unlock();
+        cv_.notify_one();
+        return val;
+    }
 
-  void push(T item) {
-    std::unique_lock<std::mutex> lock(mtx_);
-    cv_.wait(lock, [this] { return queue_.size() < depth_; });
-    queue_.push(std::move(item));
-    lock.unlock();
-    cv_.notify_one();
-  }
+    void push(T item) {
+        std::unique_lock<std::mutex> lock(mtx_);
+        cv_.wait(lock, [this] { return queue_.size() < depth_; });
+        queue_.push(std::move(item));
+        lock.unlock();
+        cv_.notify_one();
+    }
 
- private:
-  std::mutex mtx_;
-  std::queue<T> queue_;
-  std::condition_variable cv_;
-  size_t depth_;
+private:
+    std::mutex mtx_;
+    std::queue<T> queue_;
+    std::condition_variable cv_;
+    size_t depth_;
 };
 
 namespace Base {

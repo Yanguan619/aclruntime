@@ -20,13 +20,13 @@ const std::string PURE_INFER_DATA_ZERO = "pure_infer_data_zero";
 const std::string PURE_INFER_DATA_RANDOM = "pure_infer_data_random";
 
 PYBIND11_MODULE(aclruntime, m) {
-  RegistPyTensorModule(m);
-  RegistInferenceSession(m);
+    RegistPyTensorModule(m);
+    RegistInferenceSession(m);
 
-  // Export pure-infer sentinel filenames so Python side uses the canonical
-  // C++-defined strings instead of duplicating magic constants.
-  m.attr("PURE_INFER_DATA") = PURE_INFER_DATA;
-  m.attr("PURE_INFER_DATA_ZERO") = PURE_INFER_DATA_ZERO;
-  m.attr("PURE_INFER_DATA_RANDOM") = PURE_INFER_DATA_RANDOM;
+    // Export pure-infer sentinel filenames so Python side uses the canonical
+    // C++-defined strings instead of duplicating magic constants.
+    m.attr("PURE_INFER_DATA") = PURE_INFER_DATA;
+    m.attr("PURE_INFER_DATA_ZERO") = PURE_INFER_DATA_ZERO;
+    m.attr("PURE_INFER_DATA_RANDOM") = PURE_INFER_DATA_RANDOM;
 }
 }  // namespace

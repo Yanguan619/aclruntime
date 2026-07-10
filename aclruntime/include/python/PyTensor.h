@@ -32,8 +32,8 @@ namespace py = pybind11;
 template <typename T>
 inline void RegisterEnumTypeToModule(py::module &model, py::enum_<T> &enumClass,
                                      const char *name, T value) {
-  enumClass.value(name, value);
-  model.attr(name) = value;
+    enumClass.value(name, value);
+    model.attr(name) = value;
 }
 
 namespace Base {

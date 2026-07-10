@@ -23,21 +23,6 @@
 
 #include "Log.h"
 
-// Memory tracking helper
-static size_t GetSystemMemoryUsedMB() {
-    std::ifstream status("/proc/self/status");
-    std::string line;
-    while (std::getline(status, line)) {
-        if (line.find("VmRSS:") == 0) {
-            size_t kb = 0;
-            std::istringstream iss(line.substr(6));
-            iss >> kb;
-            return kb / 1024;
-        }
-    }
-    return 0;
-}
-
 namespace Base {
 DeviceManager::~DeviceManager() {
     std::lock_guard<std::mutex> lock(mtx_);
@@ -73,9 +58,7 @@ APP_ERROR DeviceManager::InitDevices(std::string configFilePath) {
         return APP_ERR_OK;
     }
 
-    DEBUG_LOG("[MEM_CHECK] Before aclInit: RSS=%zuMB", GetSystemMemoryUsedMB());
-    APP_ERROR ret = aclInit(aclJsonPath_.c_str());
-    DEBUG_LOG("[MEM_CHECK] After aclInit: RSS=%zuMB", GetSystemMemoryUsedMB());
+    auto ret = MemCheckedCall("aclInit", aclInit, aclJsonPath_.c_str());
 
     if (ret == ACL_ERROR_REPEAT_INITIALIZE) {
         WARN_LOG("acl repeat initialize");
@@ -87,11 +70,8 @@ APP_ERROR DeviceManager::InitDevices(std::string configFilePath) {
         return ret;
     }
 
-    DEBUG_LOG("[MEM_CHECK] Before ACL_RT_OVERFLOW_MODE_SATURATION: RSS=%zuMB",
-              GetSystemMemoryUsedMB());
-    aclrtSetDeviceSatMode(ACL_RT_OVERFLOW_MODE_SATURATION);
-    DEBUG_LOG("[MEM_CHECK] After ACL_RT_OVERFLOW_MODE_SATURATION: RSS=%zuMB",
-              GetSystemMemoryUsedMB());
+    MemCheckedCall("aclrtSetDeviceSatMode", aclrtSetDeviceSatMode,
+                   ACL_RT_OVERFLOW_MODE_SATURATION);
     INFO_LOG("acl init success");
 
     ret = aclrtGetDeviceCount(&deviceCount_);
@@ -251,16 +231,13 @@ APP_ERROR DeviceManager::CreateContext(DeviceContext device,
               GetSystemMemoryUsedMB());
     if (contexts_.find(deviceId) == contexts_.end()) {
         // open device
-        DEBUG_LOG("[MEM_CHECK] Before aclrtSetDevice: RSS=%zuMB",
-                  GetSystemMemoryUsedMB());
-        APP_ERROR ret = aclrtSetDevice(deviceId);
+        APP_ERROR ret =
+            MemCheckedCall("aclrtSetDevice", aclrtSetDevice, deviceId);
         if (ret != APP_ERR_OK) {
             ACLERR_LOG(aclGetRecentErrMsg());
             ERROR_LOG("acl open device %d failed", deviceId);
             return ret;
         }
-        DEBUG_LOG("[MEM_CHECK] After aclrtSetDevice: RSS=%zuMB",
-                  GetSystemMemoryUsedMB());
         INFO_LOG("open device %d success", deviceId);
         contexts_[deviceId] = {};
         nextContextIndex_[deviceId] = 0;
@@ -276,16 +253,13 @@ APP_ERROR DeviceManager::CreateContext(DeviceContext device,
         }
     } else {
         INFO_LOG("create new context");
-        DEBUG_LOG("[MEM_CHECK] Before aclrtCreateContext: RSS=%zuMB",
-                  GetSystemMemoryUsedMB());
-        APP_ERROR ret = aclrtCreateContext(&newContext, deviceId);
+        APP_ERROR ret = MemCheckedCall("aclrtCreateContext", aclrtCreateContext,
+                                       &newContext, deviceId);
         if (ret != APP_ERR_OK) {
             ACLERR_LOG(aclGetRecentErrMsg());
             ERROR_LOG("acl create context failed");
             return ret;
         }
-        DEBUG_LOG("[MEM_CHECK] After aclrtCreateContext: RSS=%zuMB",
-                  GetSystemMemoryUsedMB());
     }
     if (nextContextIndex_.count(deviceId) == 0) {
         ERROR_LOG("device %d missing default context!", deviceId);
@@ -297,9 +271,6 @@ APP_ERROR DeviceManager::CreateContext(DeviceContext device,
     DEBUG_LOG("finish create context %lu in device %d", newContextIndex,
               deviceId);
     nextContextIndex_[deviceId]++;
-
-    DEBUG_LOG("[MEM_CHECK] CreateContext end: RSS=%zuMB",
-              GetSystemMemoryUsedMB());
     return APP_ERR_OK;
 }
 

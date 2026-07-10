@@ -53,61 +53,63 @@ typedef enum Result { SUCCESS = 0, FAILED = 1 } Result;
  * Utils
  */
 class Utils {
- public:
-  static void SplitString(std::string& s, std::vector<std::string>& v, char c);
+public:
+    static void SplitString(std::string& s, std::vector<std::string>& v,
+                            char c);
 
-  static void SplitStringSimple(std::string str, std::vector<std::string>& out,
-                                char split1, char split2, char split3);
+    static void SplitStringSimple(std::string str,
+                                  std::vector<std::string>& out, char split1,
+                                  char split2, char split3);
 
-  static void SplitStringWithSemicolonsAndColons(std::string str,
-                                                 std::vector<std::string>& out,
-                                                 char split1, char split2);
+    static void SplitStringWithSemicolonsAndColons(
+        std::string str, std::vector<std::string>& out, char split1,
+        char split2);
 
-  static void SplitStringWithPunctuation(std::string str,
-                                         std::vector<std::string>& out,
-                                         char split);
+    static void SplitStringWithPunctuation(std::string str,
+                                           std::vector<std::string>& out,
+                                           char split);
 
-  static UtilsResult::Result SplitStringGetNameDimsMulMap(
-      std::vector<std::string> in_dym_shape_str,
-      std::map<std::string, int64_t>& out_namedimsmul_map);
+    static UtilsResult::Result SplitStringGetNameDimsMulMap(
+        std::vector<std::string> in_dym_shape_str,
+        std::map<std::string, int64_t>& out_namedimsmul_map);
 
-  static std::string modelName(std::string& s);
+    static std::string modelName(std::string& s);
 
-  static std::string TimeLine();
+    static std::string TimeLine();
 
-  static std::string printCurrentTime();
+    static std::string printCurrentTime();
 
-  static double printDiffTime(time_t begin, time_t end);
+    static double printDiffTime(time_t begin, time_t end);
 
-  static UtilsResult::Result ReadBinFileToMemory(const std::string fileName,
-                                                 char* ptr, const size_t size,
-                                                 size_t& offset);
-  static UtilsResult::Result FillFileContentToMemory(const std::string file,
-                                                     char* ptr,
-                                                     const size_t size,
-                                                     size_t& offset);
+    static UtilsResult::Result ReadBinFileToMemory(const std::string fileName,
+                                                   char* ptr, const size_t size,
+                                                   size_t& offset);
+    static UtilsResult::Result FillFileContentToMemory(const std::string file,
+                                                       char* ptr,
+                                                       const size_t size,
+                                                       size_t& offset);
 
-  static std::string MergeStr(std::vector<std::string>& list,
-                              const std::string& delimiter);
-  static std::string GetPrefix(const std::string& outputDir,
-                               std::string filePath,
-                               const std::string& removeTail);
-  static std::string RemoveSlash(const std::string& name);
-  static std::string CreateDynamicShapeDims(const std::string& name,
-                                            std::vector<size_t>& shapes);
-  static UtilsResult::Result TensorToNumpy(const std::string& outputFileName,
+    static std::string MergeStr(std::vector<std::string>& list,
+                                const std::string& delimiter);
+    static std::string GetPrefix(const std::string& outputDir,
+                                 std::string filePath,
+                                 const std::string& removeTail);
+    static std::string RemoveSlash(const std::string& name);
+    static std::string CreateDynamicShapeDims(const std::string& name,
+                                              std::vector<size_t>& shapes);
+    static UtilsResult::Result TensorToNumpy(const std::string& outputFileName,
+                                             Base::TensorBase& output);
+    static UtilsResult::Result TensorToBin(const std::string& outputFileName,
                                            Base::TensorBase& output);
-  static UtilsResult::Result TensorToBin(const std::string& outputFileName,
-                                         Base::TensorBase& output);
-  static UtilsResult::Result TensorToTxt(const std::string& outputFileName,
-                                         Base::TensorBase& output);
-  static bool TailContain(const std::string& str, const std::string& tail);
-  static bool IsValidInteger(const std::string& str);
-  static bool IsLegalDymString(const std::string& str);
-  static std::vector<std::string> SplitStringByComma(const std::string& str);
-  static bool IsDymShapeValid(const std::string& str);
-  static bool IsInputNameValidChar(const std::string& str);
-  static uint8_t CreateRandomNum();
+    static UtilsResult::Result TensorToTxt(const std::string& outputFileName,
+                                           Base::TensorBase& output);
+    static bool TailContain(const std::string& str, const std::string& tail);
+    static bool IsValidInteger(const std::string& str);
+    static bool IsLegalDymString(const std::string& str);
+    static std::vector<std::string> SplitStringByComma(const std::string& str);
+    static bool IsDymShapeValid(const std::string& str);
+    static bool IsInputNameValidChar(const std::string& str);
+    static uint8_t CreateRandomNum();
 };
 
 #endif  // ACLRUNTIME_INCLUDE_MODELINFER_UTILS_H_

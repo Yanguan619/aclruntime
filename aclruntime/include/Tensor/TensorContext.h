@@ -27,23 +27,24 @@ namespace Base {
 enum ContextMode { CONTEXT_IDEL = 0, CONTEXT_USING };
 
 struct ContextStatus {
-  uint32_t deviceId = 0;
-  ContextMode status = CONTEXT_IDEL;
+    uint32_t deviceId = 0;
+    ContextMode status = CONTEXT_IDEL;
 };
 
 class TensorContext {
- public:
-  TensorContext();
-  ~TensorContext();
-  static std::shared_ptr<TensorContext> GetInstance();
-  APP_ERROR CreateContext(const uint32_t &deviceId, size_t &contextIndex);
-  APP_ERROR SetContext(const uint32_t &deviceId, const size_t contextIndex = 0);
-  APP_ERROR DestroyContext(const uint32_t &deviceId,
-                           const size_t &contextIndex);
-  APP_ERROR Finalize();
+public:
+    TensorContext();
+    ~TensorContext();
+    static std::shared_ptr<TensorContext> GetInstance();
+    APP_ERROR CreateContext(const uint32_t &deviceId, size_t &contextIndex);
+    APP_ERROR SetContext(const uint32_t &deviceId,
+                         const size_t contextIndex = 0);
+    APP_ERROR DestroyContext(const uint32_t &deviceId,
+                             const size_t &contextIndex);
+    APP_ERROR Finalize();
 
- private:
-  bool InitDeviceFlag_ = false;
+private:
+    bool InitDeviceFlag_ = false;
 };
 }  // namespace Base
 #endif  // ACLRUNTIME_INCLUDE_TENSOR_TENSORCONTEXT_H_

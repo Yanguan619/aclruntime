@@ -24,7 +24,7 @@
 namespace {
 template <typename T>
 static int GetArrayLen(T& arr) {
-  return (sizeof(arr) / sizeof(arr[0]));
+    return (sizeof(arr) / sizeof(arr[0]));
 }
 
 std::map<int, int> GST_RETURN_CODE_MAP = {
@@ -77,10 +77,10 @@ std::map<int, std::pair<const std::string*, int>> ErrMsgMap = {
                     GetArrayLen(APP_ERR_INTERNAL_STRING))}};
 template <typename T>
 static std::string GetErrMsg(T& messages, int offset, int len) {
-  if (offset < 0 || len < 0) {
-    return "offset or len in error message should not be negative";
-  }
-  return (offset < len) ? messages[offset] : "Undefined error code";
+    if (offset < 0 || len < 0) {
+        return "offset or len in error message should not be negative";
+    }
+    return (offset < len) ? messages[offset] : "Undefined error code";
 }
 }  // namespace
 
@@ -91,18 +91,18 @@ static std::string GetErrMsg(T& messages, int offset, int len) {
  */
 namespace Base {
 std::string GetAppErrCodeInfo(const APP_ERROR err) {
-  if (err == APP_ERR_ACL_FAILURE) {
-    return "ACL: general failure";
-  }
-  int base = (err / RANGE_SIZE) * RANGE_SIZE;
-  int offset = err % RANGE_SIZE;
-  if (ErrMsgMap.find(base) != ErrMsgMap.end() && (offset >= 0)) {
-    auto array = ErrMsgMap[base].first;
-    auto arraySize = ErrMsgMap[base].second;
-    return GetErrMsg(array, offset, arraySize);
-  } else {
-    return "Error code unknown";
-  }
+    if (err == APP_ERR_ACL_FAILURE) {
+        return "ACL: general failure";
+    }
+    int base = (err / RANGE_SIZE) * RANGE_SIZE;
+    int offset = err % RANGE_SIZE;
+    if (ErrMsgMap.find(base) != ErrMsgMap.end() && (offset >= 0)) {
+        auto array = ErrMsgMap[base].first;
+        auto arraySize = ErrMsgMap[base].second;
+        return GetErrMsg(array, offset, arraySize);
+    } else {
+        return "Error code unknown";
+    }
 }
 
 /**
@@ -112,23 +112,23 @@ std::string GetAppErrCodeInfo(const APP_ERROR err) {
  * @return
  */
 std::string GetError(const APP_ERROR err, const std::string moduleName) {
-  if (moduleName.empty()) {
-    return "[" + std::to_string(err) + "]" + "[" + GetAppErrCodeInfo(err) +
-           "] ";
-  } else {
-    return "[" + moduleName + "][" + std::to_string(err) + "]" + "[" +
-           GetAppErrCodeInfo(err) + "] ";
-  }
+    if (moduleName.empty()) {
+        return "[" + std::to_string(err) + "]" + "[" + GetAppErrCodeInfo(err) +
+               "] ";
+    } else {
+        return "[" + moduleName + "][" + std::to_string(err) + "]" + "[" +
+               GetAppErrCodeInfo(err) + "] ";
+    }
 }
 
 APP_ERROR ConvertReturnCodeToLocal(ReturnCodeType type, int err) {
-  if (type == GST_FLOW_TYPE) {
-    if (GST_RETURN_CODE_MAP.find(err) != GST_RETURN_CODE_MAP.end()) {
-      return GST_RETURN_CODE_MAP[err];
-    } else {
-      DEBUG_LOG("returnCode type can not find error code(%d).", err);
+    if (type == GST_FLOW_TYPE) {
+        if (GST_RETURN_CODE_MAP.find(err) != GST_RETURN_CODE_MAP.end()) {
+            return GST_RETURN_CODE_MAP[err];
+        } else {
+            DEBUG_LOG("returnCode type can not find error code(%d).", err);
+        }
     }
-  }
-  return APP_ERR_OK;
+    return APP_ERR_OK;
 }
 }  // namespace Base

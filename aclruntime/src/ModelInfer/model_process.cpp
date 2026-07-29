@@ -414,6 +414,20 @@ Result ModelProcess::LoadModelFromFile(
             DEBUG_LOG("aclmdlSetConfigOpt end: RSS=%zuMB",
                       GetSystemMemoryUsedMB());
 
+            {
+                size_t workSize = 0;
+                size_t weightSize = 0;
+                aclError qret =
+                    aclmdlQuerySize(modelPath.c_str(), &workSize, &weightSize);
+                if (qret == ACL_SUCCESS) {
+                    INFO_LOG("model workspace=%s, weight=%s",
+                            FormatSize(workSize).c_str(),
+                            FormatSize(weightSize).c_str());
+                } else {
+                    DEBUG_LOG("aclmdlQuerySize failed ret=%d", (int)qret);
+                }
+            }
+
             struct timeval start = {0};
             struct timeval end = {0};
             gettimeofday(&start, nullptr);

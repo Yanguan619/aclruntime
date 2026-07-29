@@ -269,6 +269,34 @@ Result ModelProcess::LoadModelFromFile(
                 INFO_LOG("ACL_MDL_WITHOUT_GRAPH_INT32 enabled");
             }
         }
+
+        {
+            size_t wsOpt = ACL_WORKSPACE_MEM_OPTIMIZE_INPUTOUTPUT;
+            ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE,
+                                     &wsOpt, sizeof(wsOpt));
+            if (ret != ACL_SUCCESS) {
+                WARN_LOG(
+                    "set ACL_MDL_WORKSPACE_MEM_OPTIMIZE failed ret=%d "
+                    "(non-fatal)",
+                    ret);
+            } else {
+                INFO_LOG("ACL_MDL_WORKSPACE_MEM_OPTIMIZE enabled");
+            }
+        }
+        {
+            size_t workSize = 0;
+            size_t weightSize = 0;
+            aclError qret =
+                aclmdlQuerySize(modelPath.c_str(), &workSize, &weightSize);
+            if (qret == ACL_SUCCESS) {
+                INFO_LOG("model workspace=%s, weight=%s",
+                         FormatSize(workSize).c_str(),
+                         FormatSize(weightSize).c_str());
+            } else {
+                DEBUG_LOG("aclmdlQuerySize failed ret=%d", (int)qret);
+            }
+        }
+
         DEBUG_LOG("aclmdlSetConfigOpt end: RSS=%zuMB", GetSystemMemoryUsedMB());
 
         struct timeval start = {0};
@@ -369,6 +397,19 @@ Result ModelProcess::LoadModelFromFile(
                     ret);
             } else {
                 INFO_LOG("ACL_MDL_WITHOUT_GRAPH_INT32 enabled");
+            }
+            {
+                size_t wsOpt = ACL_WORKSPACE_MEM_OPTIMIZE_INPUTOUTPUT;
+                ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE,
+                                         &wsOpt, sizeof(wsOpt));
+                if (ret != ACL_SUCCESS) {
+                    WARN_LOG(
+                        "set ACL_MDL_WORKSPACE_MEM_OPTIMIZE failed ret=%d "
+                        "(non-fatal)",
+                        ret);
+                } else {
+                    INFO_LOG("ACL_MDL_WORKSPACE_MEM_OPTIMIZE enabled");
+                }
             }
             DEBUG_LOG("aclmdlSetConfigOpt end: RSS=%zuMB",
                       GetSystemMemoryUsedMB());

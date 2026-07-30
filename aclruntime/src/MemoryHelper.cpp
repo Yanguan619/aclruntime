@@ -25,9 +25,6 @@
 #include "acl/ops/acl_dvpp.h"
 
 namespace Base {
-using MemeoryDataFreeFuncPointer = APP_ERROR (*)(
-    void*);  // 此处是使用void*作为函数传参，使用该函数的场所已保证传入参数是void*
-
 APP_ERROR FreeFuncDelete(void* ptr) {
     delete[] static_cast<int8_t*>(ptr);
     return APP_ERR_OK;
@@ -82,7 +79,7 @@ APP_ERROR MemoryHelper::specificMalloc(MemoryData& data) {
             } else {
                 ret = APP_ERR_OK;
             }
-            data.memory_free = (MemeoryDataFreeFuncPointer)FreeFuncCFree;
+            data.memory_free = FreeFuncCFree;
             break;
         case MemoryData::MEMORY_HOST_NEW:
             try {
@@ -99,7 +96,7 @@ APP_ERROR MemoryHelper::specificMalloc(MemoryData& data) {
             } else {
                 ret = APP_ERR_OK;
             }
-            data.memory_free = (MemeoryDataFreeFuncPointer)FreeFuncDelete;
+            data.memory_free = FreeFuncDelete;
             break;
         default:
             LogErrorInfo();
@@ -210,17 +207,17 @@ APP_ERROR MemoryHelper::Memcpy(MemoryData& dest, const MemoryData& src,
         return APP_ERR_COMM_INVALID_POINTER;
     }
     APP_ERROR ret = APP_ERR_OK;
-    struct timeval start = {0};
-    struct timeval end = {0};
+    struct timeval start = {};
+    struct timeval end = {};
     float costTime;
-    const float sec_to_usec = 1000.0;
+    constexpr float MSEC_PER_SEC = 1000.0;
     if (IsDeviceToHost(dest, src)) {
         gettimeofday(&start, nullptr);
         ret = aclrtMemcpy(dest.ptrData, dest.size, src.ptrData, count,
                           ACL_MEMCPY_DEVICE_TO_HOST);
         gettimeofday(&end, nullptr);
-        costTime = sec_to_usec * (end.tv_sec - start.tv_sec) +
-                   (end.tv_usec - start.tv_usec) / sec_to_usec;
+        costTime = MSEC_PER_SEC * (end.tv_sec - start.tv_sec) +
+                   (end.tv_usec - start.tv_usec) / MSEC_PER_SEC;
         AddCostTime(costTime, "d2h");
     } else if (IsHostToHost(dest, src)) {
         ret = aclrtMemcpy(dest.ptrData, dest.size, src.ptrData, count,
@@ -233,8 +230,8 @@ APP_ERROR MemoryHelper::Memcpy(MemoryData& dest, const MemoryData& src,
         ret = aclrtMemcpy(dest.ptrData, dest.size, src.ptrData, count,
                           ACL_MEMCPY_HOST_TO_DEVICE);
         gettimeofday(&end, nullptr);
-        costTime = sec_to_usec * (end.tv_sec - start.tv_sec) +
-                   (end.tv_usec - start.tv_usec) / sec_to_usec;
+        costTime = MSEC_PER_SEC * (end.tv_sec - start.tv_sec) +
+                   (end.tv_usec - start.tv_usec) / MSEC_PER_SEC;
         AddCostTime(costTime, "h2d");
     }
     if (ret != APP_ERR_OK) {

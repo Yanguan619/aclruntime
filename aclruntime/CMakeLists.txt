@@ -14,6 +14,11 @@ else()
     set(_is_win FALSE)
 endif()
 
+# log
+find_package(spdlog REQUIRED)
+find_package(fmt REQUIRED)
+
+
 # --- CANN path discovery ---
 if(DEFINED CANN_BASE_PATH)
     set(_cann_base "${CANN_BASE_PATH}")
@@ -101,6 +106,7 @@ message(STATUS "CANN lib: ${_cann_lib}")
 message(STATUS "CANN inc: ${_cann_inc}")
 
 # --- pybind11 ---
+set(PYBIND11_FINDPYTHON ON)
 find_package(pybind11 REQUIRED)
 
 # --- Sources ---
@@ -108,7 +114,7 @@ file(GLOB_RECURSE _sources "src/*.cpp")
 
 pybind11_add_module(aclruntime MODULE ${_sources})
 
-target_include_directories(aclruntime PRIVATE
+target_include_directories(aclruntime SYSTEM PRIVATE
     "${_cann_inc}"
     "include"
 )
@@ -120,7 +126,7 @@ if(_is_linux)
         -Wall -Wextra -Wpedantic
         -Wno-unused-parameter
         -fPIC -fstack-protector-all -ftrapv -fstack-clash-protection
-        -D_FORTIFY_SOURCE=2
+
     )
     target_link_options(aclruntime PRIVATE
         -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack
@@ -136,9 +142,12 @@ target_link_libraries(aclruntime PRIVATE
     "${_cann_lib}/libascendcl${CMAKE_SHARED_LIBRARY_SUFFIX}"
     "${_cann_lib}/libacl_dvpp${CMAKE_SHARED_LIBRARY_SUFFIX}"
     "${_cann_lib}/libacl_cblas${CMAKE_SHARED_LIBRARY_SUFFIX}"
+    fmt::fmt
+    spdlog::spdlog
 )
 
 target_compile_definitions(aclruntime PRIVATE
+    SPDLOG_FMT_EXTERNAL
     ENABLE_DVPP_INTERFACE=1
     COMPILE_PYTHON_MODULE=1
 )

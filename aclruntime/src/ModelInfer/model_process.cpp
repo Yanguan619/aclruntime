@@ -33,10 +33,6 @@
 #include "ModelInfer/WeightPool.h"
 #include "ModelInfer/utils.h"
 
-// Memory tracking helpers
-#include <fstream>
-#include <sstream>
-
 using namespace UtilsResult;
 using std::string;
 
@@ -298,9 +294,9 @@ Result ModelProcess::LoadModelFromFile(
         }
 
         DEBUG_LOG("aclmdlSetConfigOpt end: RSS=%zuMB", GetSystemMemoryUsedMB());
+        struct timeval start = {};
 
-        struct timeval start = {0};
-        struct timeval end = {0};
+        struct timeval end = {};
         gettimeofday(&start, nullptr);
 
         // 使用时
@@ -428,8 +424,8 @@ Result ModelProcess::LoadModelFromFile(
                 }
             }
 
-            struct timeval start = {0};
-            struct timeval end = {0};
+            struct timeval start = {};
+            struct timeval end = {};
             gettimeofday(&start, nullptr);
             INFO_LOG("aclmdlLoadWithConfig %s (withoutGraph)",
                      Basename(modelPath).c_str());
@@ -456,8 +452,8 @@ Result ModelProcess::LoadModelFromFile(
             return SUCCESS;
         } else {
             // Original path: use aclmdlLoadFromFile for simplicity
-            struct timeval start = {0};
-            struct timeval end = {0};
+            struct timeval start = {};
+            struct timeval end = {};
             gettimeofday(&start, nullptr);
             INFO_LOG("aclmdlLoadFromFile %s", Basename(modelPath).c_str());
             aclError ret = aclmdlLoadFromFile(modelPath.c_str(), &modelId_);
@@ -488,8 +484,8 @@ Result ModelProcess::LoadModelFromMem(const void* modelData, size_t modelSize) {
         return FAILED;
     }
 
-    struct timeval start = {0};
-    struct timeval end = {0};
+            struct timeval start = {};
+            struct timeval end = {};
     gettimeofday(&start, nullptr);
     INFO_LOG("loading model from memory, size: %zu bytes", modelSize);
 
@@ -959,47 +955,45 @@ void ModelProcess::GetDimInfo(size_t gearCount, aclmdlIODims* dims) {
     }
 }
 
-void ModelProcess::model_description(aclError ret, size_t& numInputs,
+void ModelProcess::model_description(size_t& numInputs,
                                      size_t& numOutputs,
                                      aclmdlIODims& dimsInput,
                                      aclmdlIODims& dimsOutput) {
     for (size_t i = 0; i < numInputs; i++) {
-        DEBUG_LOG("the size of %zu input: %zu", i,
-                  aclmdlGetInputSizeByIndex(modelDesc_, i));
-        ret = aclmdlGetInputDims(modelDesc_, i, &dimsInput);
-        DEBUG_LOG("the dims of %zu input:", i);
+        std::stringstream ss;
+        ss << "Input[" << i << "]: ";
+        ss << "name=" << aclmdlGetInputNameByIndex(modelDesc_, i) << ", ";
+        ss << "shape=[";
+        aclmdlGetInputDims(modelDesc_, i, &dimsInput);
         for (size_t j = 0; j < dimsInput.dimCount; j++) {
-            PROMPT_MSG("%ld ", dimsInput.dims[j]);
+            if (j > 0) ss << ", ";
+            ss << dimsInput.dims[j];
         }
-        PROMPT_MSG("\n");
-        DEBUG_LOG("the name of %zu input: %s", i,
-                  aclmdlGetInputNameByIndex(modelDesc_, i));
-        DEBUG_LOG("the Format of %zu input: %u", i,
-                  aclmdlGetInputFormat(modelDesc_, i));
-        DEBUG_LOG("the DataType of %zu input: %u", i,
-                  aclmdlGetInputDataType(modelDesc_, i));
+        ss << "], ";
+        ss << "size=" << aclmdlGetInputSizeByIndex(modelDesc_, i) << ", ";
+        ss << "fmt=" << aclmdlGetInputFormat(modelDesc_, i) << ", ";
+        ss << "dtype=" << aclmdlGetInputDataType(modelDesc_, i);
+        DEBUG_LOG("%s", ss.str().c_str());
     }
     for (size_t i = 0; i < numOutputs; i++) {
-        DEBUG_LOG("the size of %zu output: %zu", i,
-                  aclmdlGetOutputSizeByIndex(modelDesc_, i));
-        ret = aclmdlGetOutputDims(modelDesc_, i, &dimsOutput);
-        DEBUG_LOG("the dims of %zu output:", i);
+        std::stringstream ss;
+        ss << "Output[" << i << "]: ";
+        ss << "name=" << aclmdlGetOutputNameByIndex(modelDesc_, i) << ", ";
+        ss << "shape=[";
+        aclmdlGetOutputDims(modelDesc_, i, &dimsOutput);
         for (size_t j = 0; j < dimsOutput.dimCount; j++) {
-            PROMPT_MSG("%ld ", dimsOutput.dims[j]);
+            if (j > 0) ss << ", ";
+            ss << dimsOutput.dims[j];
         }
-        PROMPT_MSG("\n");
-        DEBUG_LOG("the name of %zu output: %s", i,
-                  aclmdlGetOutputNameByIndex(modelDesc_, i));
-        DEBUG_LOG("the Format of %zu output: %u", i,
-                  aclmdlGetOutputFormat(modelDesc_, i));
-        DEBUG_LOG("the DataType of %zu output: %u", i,
-                  aclmdlGetOutputDataType(modelDesc_, i));
+        ss << "], ";
+        ss << "size=" << aclmdlGetOutputSizeByIndex(modelDesc_, i) << ", ";
+        ss << "fmt=" << aclmdlGetOutputFormat(modelDesc_, i) << ", ";
+        ss << "dtype=" << aclmdlGetOutputDataType(modelDesc_, i);
+        DEBUG_LOG("%s", ss.str().c_str());
     }
-    return;
 }
 
 Result ModelProcess::PrintDesc() {
-    aclError ret;
     DEBUG_LOG("start print model description");
     size_t numInputs = aclmdlGetNumInputs(modelDesc_);
     size_t numOutputs = aclmdlGetNumOutputs(modelDesc_);
@@ -1008,9 +1002,9 @@ Result ModelProcess::PrintDesc() {
 
     aclmdlIODims dimsInput;
     aclmdlIODims dimsOutput;
-    model_description(ret, numInputs, numOutputs, dimsInput, dimsOutput);
+    model_description(numInputs, numOutputs, dimsInput, dimsOutput);
     aclmdlBatch batch_info;
-    ret = aclmdlGetDynamicBatch(modelDesc_, &batch_info);
+    aclError ret = aclmdlGetDynamicBatch(modelDesc_, &batch_info);
     if (ret != ACL_SUCCESS) {
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("get DynamicBatch failed");
@@ -1495,7 +1489,7 @@ Result SaveTensorMemoryToFile(const aclTensorDesc* desc,
         ERROR_LOG("save tensor memory to file: open file failed.");
         return FAILED;
     }
-    outFile.write((char*)hostaddr, len);
+    outFile.write(static_cast<char*>(hostaddr), len);
     aclrtFreeHost(hostaddr);
     hostaddr = nullptr;
     outFile.close();
@@ -1793,7 +1787,7 @@ Result ModelProcess::GetAIPPIndexList(
 Result ModelProcess::SetInputAIPP(size_t index, void* pAippDynamicSet) {
     DEBUG_LOG("PREPARE aclmdlSetInputAIPP");
     aclError ret = aclmdlSetInputAIPP(modelId_, input_, index,
-                                      (aclmdlAIPP*)pAippDynamicSet);
+                                      static_cast<aclmdlAIPP*>(pAippDynamicSet));
     if (ret != ACL_ERROR_NONE) {
         ACLERR_LOG(aclGetRecentErrMsg());
         ERROR_LOG("acl set input AIPP failed, index:%d ret %d", int(index),

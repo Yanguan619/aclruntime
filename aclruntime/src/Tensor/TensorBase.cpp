@@ -104,7 +104,7 @@ TensorBase::TensorBase(const MemoryData &memoryData, const bool &isBorrowed,
     buffer_->contextIndex = contextIndex;
     buffer_->type = memoryData.type;
     buffer_->size = memoryData.size;
-    buffer_->deviceId = (int32_t)memoryData.deviceId;
+    buffer_->deviceId = static_cast<int32_t>(memoryData.deviceId);
     if (isBorrowed) {
         auto deleter = [](void *p) {};
         buffer_->data.reset(memoryData.ptrData, deleter);
@@ -415,9 +415,9 @@ APP_ERROR TensorBase::BatchConcat(const std::vector<TensorBase> &inputs,
     // copy
     uint32_t offset = 0;
     for (uint32_t i = 0; i < inputs.size(); i++) {
-        uint8_t *ptr = (uint8_t *)output.GetBuffer() + offset;
+        auto ptr = static_cast<uint8_t*>(output.GetBuffer()) + offset;
         offset += inputs[i].GetByteSize();
-        auto patch = TensorBuffer((void *)ptr, inputs[i].GetByteSize());
+        auto patch = TensorBuffer(ptr, inputs[i].GetByteSize());
         patch.type = inputs[i].GetTensorType();
         APP_ERROR ret =
             TensorBuffer::TensorBufferCopy(patch, *inputs[i].buffer_);
@@ -458,9 +458,9 @@ APP_ERROR TensorBase::BatchStack(const std::vector<TensorBase> &inputs,
     // copy
     uint32_t offset = 0;
     for (uint32_t i = 0; i < inputs.size(); i++) {
-        uint8_t *ptr = (uint8_t *)output.GetBuffer() + offset;
+        auto ptr = static_cast<uint8_t*>(output.GetBuffer()) + offset;
         offset += inputs[i].GetByteSize();
-        auto patch = TensorBuffer((void *)ptr, inputs[i].GetByteSize());
+        auto patch = TensorBuffer(ptr, inputs[i].GetByteSize());
         patch.type = inputs[i].GetTensorType();
         APP_ERROR ret =
             TensorBuffer::TensorBufferCopy(patch, *inputs[i].buffer_);

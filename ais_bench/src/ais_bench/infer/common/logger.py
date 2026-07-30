@@ -12,8 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 import sys
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="[%(levelname)s] %(message)s")
-logger = logging.getLogger(__name__)
+import aclruntime
+
+
+class SpdlogLogger:
+    def debug(self, fmt, *args):
+        if args:
+            fmt = fmt % args
+        aclruntime.log_debug(fmt)
+
+    def info(self, fmt, *args):
+        if args:
+            fmt = fmt % args
+        aclruntime.log_info(fmt)
+
+    def warning(self, fmt, *args):
+        if args:
+            fmt = fmt % args
+        aclruntime.log_warning(fmt)
+
+    def error(self, fmt, *args):
+        if args:
+            fmt = fmt % args
+        aclruntime.log_error(fmt)
+
+    def setLevel(self, level):
+        _PYTHON_TO_SPDLOG = {10: 0, 20: 1, 30: 2, 40: 3}
+        spdlog_level = _PYTHON_TO_SPDLOG.get(level, level)
+        aclruntime.set_log_level(spdlog_level)
+
+
+logger = SpdlogLogger()

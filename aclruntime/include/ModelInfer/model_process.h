@@ -360,7 +360,7 @@ private:
     // ACL_MDL_MEM_ADDR_PTR (shallow copy) for external-weight models.
     std::vector<uint8_t> modelData_;
     std::map<std::string, aclAippInputFormat> str2aclAippInputFormat;
-    void model_description(aclError ret, size_t& numInputs, size_t& numOutputs,
+    void model_description(size_t& numInputs, size_t& numOutputs,
                            aclmdlIODims& dimsInput, aclmdlIODims& dimsOutput);
     // External weight directory registered to the pool; released on Unload.
     std::string weightDir_;

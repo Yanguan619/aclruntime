@@ -135,7 +135,7 @@ void FuncPrepare(ConcurrentQueue<std::shared_ptr<Feeds>> &h2dQueue,
 }
 
 void FuncPrepareBaseTensor(
-    ConcurrentQueue<std::shared_ptr<Feeds>> &h2dQueue, uint32_t deviceId,
+    ConcurrentQueue<std::shared_ptr<Feeds>> &h2dQueue,
     Base::PyInferenceSession *session,
     std::vector<std::vector<Base::BaseTensor>> &inputsList,
     std::vector<std::vector<std::vector<size_t>>> &shapesList,

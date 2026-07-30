@@ -15,7 +15,6 @@
 import copy
 import fcntl
 import json
-import logging
 import math
 import os
 import shlex
@@ -23,6 +22,7 @@ import shutil
 import subprocess
 import sys
 import time
+
 from multiprocessing import Manager, Pool
 
 import numpy as np
@@ -80,9 +80,10 @@ from ais_bench.infer.interface_check import (
     check_list,
     check_output_dir_legality,
 )
+from ais_bench.infer.common.logger import logger as spdlog_logger
 from ais_bench.infer.summary import summary
 
-logger = logging.getLogger(__name__)
+logger = spdlog_logger
 
 
 def set_session_options(session, args):
@@ -152,7 +153,6 @@ def init_inference_session(args, acl_json_path):
     session = InferSession(args.device, args.model, acl_json_path, args.debug, args.loop)
 
     set_session_options(session, args)
-    logger.debug("session info:%s", session.session)
     return session
 
 
@@ -548,7 +548,7 @@ def main(args, index=0, msgq=None, device_list=None):
         logger.info(f"subprocess_{index} main run")
 
     if args.debug:
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(10)
 
     acl_json_path = get_acl_json_path(args)
     tmp_acl_json_path = None

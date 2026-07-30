@@ -26,8 +26,6 @@ const uint32_t MAX_QUEUE_LENGHT = 1000;
 }  // namespace
 namespace Base {
 TensorContext::TensorContext() {
-#ifdef COMPILE_PYTHON_MODULE
-#endif
     if (!DeviceManager::GetInstance()->IsInitDevices()) {
         APP_ERROR ret = DeviceManager::GetInstance()->InitDevices();
         if (ret != APP_ERR_OK) {

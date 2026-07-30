@@ -13,11 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#define SPDLOG_LEVEL_NAMES \
+    { "TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "OFF" }
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 #include "Log.h"
 
-const int LOG_BUFFER_SIZE = 1024;
+namespace {
+bool g_logInitialized = false;
+}
 
 namespace Base {
-int LogCtrl::frizyLogLevel = 2;
+void LogCtrl::Init() {
+    if (g_logInitialized) {
+        return;
+    }
+    g_logInitialized = true;
+
+    auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    consoleSink->set_pattern("[%^%l%$] %v");
+
+    auto logger = std::make_shared<spdlog::logger>("aclruntime",
+                                                   std::move(consoleSink));
+    spdlog::set_default_logger(logger);
+    spdlog::set_level(spdlog::level::info);
+    spdlog::flush_on(spdlog::level::err);
 }
+}  // namespace Base

@@ -278,7 +278,7 @@ private:
     std::map<size_t, MemoryData> dymAIPPIndexMemory_;
     std::map<size_t, aclmdlAIPP*> dymAIPPIndexSet_;
 
-    size_t dym_gear_count_;
+    size_t dym_gear_count_ = 0;
 
     std::shared_ptr<SessionOptions> options_;
     int32_t deviceId_;

@@ -1,0 +1,389 @@
+from __future__ import annotations
+import collections.abc
+import types
+import typing
+__all__: list[str] = ['BaseTensor', 'InferenceSession', 'LOG_DEBUG', 'LOG_ERROR', 'LOG_INFO', 'LOG_WARNING', 'MemorySummary', 'PURE_INFER_DATA', 'PURE_INFER_DATA_RANDOM', 'PURE_INFER_DATA_ZERO', 'Summary', 'Tensor', 'batch', 'bool', 'double', 'dtype', 'float16', 'float32', 'infer_options', 'int16', 'int32', 'int64', 'int8', 'log_debug', 'log_error', 'log_info', 'log_warning', 'memory_device', 'memory_dvpp', 'memory_host', 'model', 'session_options', 'set_log_level', 'tensor_desc', 'type', 'uint16', 'uint32', 'uint64', 'uint8']
+class BaseTensor:
+    buf: types.CapsuleType
+    def __init__(self, arg0: typing.SupportsInt | typing.SupportsIndex, arg1: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+    @property
+    def size(self) -> int:
+        ...
+    @size.setter
+    def size(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+class InferenceSession:
+    @staticmethod
+    def finalize() -> int:
+        ...
+    def __init__(self, arg0: str, arg1: typing.SupportsInt | typing.SupportsIndex, arg2: ...) -> None:
+        ...
+    def __repr__(self) -> str:
+        ...
+    def __str__(self) -> str:
+        ...
+    def aipp_set_ax_swap_switch(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> int:
+        ...
+    def aipp_set_crop_params(self, arg0: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex]) -> int:
+        ...
+    def aipp_set_csc_params(self, arg0: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex]) -> int:
+        ...
+    def aipp_set_dtc_pixel_mean(self, arg0: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex]) -> int:
+        ...
+    def aipp_set_dtc_pixel_min(self, arg0: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex]) -> int:
+        ...
+    def aipp_set_input_format(self, arg0: str) -> int:
+        ...
+    def aipp_set_max_batch_size(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> int:
+        ...
+    def aipp_set_padding_params(self, arg0: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex]) -> int:
+        ...
+    def aipp_set_pixel_var_reci(self, arg0: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex]) -> int:
+        ...
+    def aipp_set_rbuv_swap_switch(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> int:
+        ...
+    def aipp_set_src_image_size(self, arg0: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex]) -> int:
+        ...
+    def check_dym_aipp_input_exist(self) -> int:
+        ...
+    def create_tensor_from_fileslist(self, arg0: ..., arg1: collections.abc.Sequence[str]) -> Tensor:
+        ...
+    def first_inner_run(self, arg0: collections.abc.Sequence[str], arg1: collections.abc.Sequence[...]) -> list[Tensor]:
+        ...
+    def free_resource(self) -> int:
+        ...
+    def get_dym_aipp_input_exist(self) -> int:
+        ...
+    def get_inputs(self) -> list[...]:
+        ...
+    def get_max_dym_batchsize(self) -> int:
+        ...
+    def get_outputs(self) -> list[...]:
+        ...
+    def inner_run(self, arg0: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex], arg1: collections.abc.Sequence[str], arg2: bool, arg3: bool) -> list[Tensor]:
+        ...
+    def options(self) -> ...:
+        ...
+    def reset_sumaryinfo(self) -> int:
+        ...
+    def reset_summaryinfo(self) -> int:
+        ...
+    @typing.overload
+    def run(self, arg0: collections.abc.Sequence[str], arg1: collections.abc.Sequence[Tensor]) -> list[Tensor]:
+        ...
+    @typing.overload
+    def run(self, arg0: collections.abc.Sequence[str], arg1: collections.abc.Mapping[str, Tensor]) -> list[Tensor]:
+        ...
+    @typing.overload
+    def run(self, arg0: collections.abc.Sequence[str], arg1: collections.abc.Sequence[...]) -> list[Tensor]:
+        ...
+    def run_from_tensors(self, arg0: collections.abc.Sequence[str], arg1: collections.abc.Sequence[Tensor]) -> list[Tensor]:
+        ...
+    @typing.overload
+    def run_pipeline(self, arg0: collections.abc.Sequence[collections.abc.Sequence[str]], arg1: ..., arg2: collections.abc.Sequence[InferenceSession]) -> None:
+        ...
+    @typing.overload
+    def run_pipeline(self, arg0: collections.abc.Sequence[str], arg1: collections.abc.Sequence[collections.abc.Sequence[...]], arg2: collections.abc.Sequence[collections.abc.Sequence[collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex]]], arg3: bool, arg4: bool) -> list[list[Tensor]]:
+        ...
+    def set_context(self) -> None:
+        ...
+    def set_custom_outsize(self, arg0: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex]) -> int:
+        ...
+    def set_dym_aipp_info_set(self) -> int:
+        ...
+    def set_dynamic_batchsize(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> int:
+        ...
+    def set_dynamic_dims(self, arg0: str) -> int:
+        ...
+    def set_dynamic_hw(self, arg0: typing.SupportsInt | typing.SupportsIndex, arg1: typing.SupportsInt | typing.SupportsIndex) -> int:
+        ...
+    def set_dynamic_shape(self, arg0: str) -> int:
+        ...
+    def set_staticbatch(self) -> int:
+        ...
+    def sumary(self) -> Summary:
+        ...
+    def summary(self) -> Summary:
+        ...
+class MemorySummary:
+    def __init__(self) -> None:
+        ...
+    def reset(self) -> None:
+        ...
+    @property
+    def D2H_time_list(self) -> list[float]:
+        ...
+    @D2H_time_list.setter
+    def D2H_time_list(self, arg0: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex]) -> None:
+        ...
+    @property
+    def H2D_time_list(self) -> list[float]:
+        ...
+    @H2D_time_list.setter
+    def H2D_time_list(self, arg0: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex]) -> None:
+        ...
+class Summary:
+    def __init__(self) -> None:
+        ...
+    @property
+    def exec_time_list(self) -> list[tuple[float, float]]:
+        ...
+    @exec_time_list.setter
+    def exec_time_list(self, arg0: collections.abc.Sequence[tuple[typing.SupportsFloat | typing.SupportsIndex, typing.SupportsFloat | typing.SupportsIndex]]) -> None:
+        ...
+class Tensor:
+    def __buffer__(self, flags):
+        """
+        Return a buffer object that exposes the underlying memory of the object.
+        """
+    @typing.overload
+    def __init__(self, arg0: collections.abc.Buffer) -> None:
+        ...
+    @typing.overload
+    def __init__(self, arg0: collections.abc.Buffer, arg1: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+    def __release_buffer__(self, buffer):
+        """
+        Release the buffer object that exposes the underlying memory of the object.
+        """
+    def __repr__(self) -> str:
+        ...
+    def __str__(self) -> str:
+        ...
+    def to_device(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+    def to_dvpp(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+    def to_host(self) -> None:
+        ...
+    @property
+    def data_ptr(self) -> int:
+        ...
+    @property
+    def device(self) -> int:
+        ...
+    @property
+    def dtype(self) -> ...:
+        ...
+    @property
+    def nbytes(self) -> int:
+        ...
+    @property
+    def shape(self) -> list[int]:
+        ...
+    @property
+    def type(self) -> ...:
+        ...
+class dtype:
+    """
+    Members:
+    
+      int8
+    
+      uint8
+    
+      int16
+    
+      uint16
+    
+      int32
+    
+      uint32
+    
+      int64
+    
+      uint64
+    
+      float16
+    
+      float32
+    
+      double
+    
+      bool
+    """
+    __members__: typing.ClassVar[dict[str, dtype]]  # value = {'int8': <dtype.int8: 2>, 'uint8': <dtype.uint8: 4>, 'int16': <dtype.int16: 6>, 'uint16': <dtype.uint16: 7>, 'int32': <dtype.int32: 3>, 'uint32': <dtype.uint32: 8>, 'int64': <dtype.int64: 9>, 'uint64': <dtype.uint64: 10>, 'float16': <dtype.float16: 1>, 'float32': <dtype.float32: 0>, 'double': <dtype.double: 11>, 'bool': <dtype.bool: 12>}
+    bool: typing.ClassVar[dtype]  # value = <dtype.bool: 12>
+    double: typing.ClassVar[dtype]  # value = <dtype.double: 11>
+    float16: typing.ClassVar[dtype]  # value = <dtype.float16: 1>
+    float32: typing.ClassVar[dtype]  # value = <dtype.float32: 0>
+    int16: typing.ClassVar[dtype]  # value = <dtype.int16: 6>
+    int32: typing.ClassVar[dtype]  # value = <dtype.int32: 3>
+    int64: typing.ClassVar[dtype]  # value = <dtype.int64: 9>
+    int8: typing.ClassVar[dtype]  # value = <dtype.int8: 2>
+    uint16: typing.ClassVar[dtype]  # value = <dtype.uint16: 7>
+    uint32: typing.ClassVar[dtype]  # value = <dtype.uint32: 8>
+    uint64: typing.ClassVar[dtype]  # value = <dtype.uint64: 10>
+    uint8: typing.ClassVar[dtype]  # value = <dtype.uint8: 4>
+    def __eq__(self, other: typing.Any) -> bool:
+        ...
+    def __getstate__(self) -> int:
+        ...
+    def __hash__(self) -> int:
+        ...
+    def __index__(self: numpy.dtype[typing.Any]) -> int:
+        ...
+    def __init__(self: numpy.dtype[typing.Any], value: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+    def __int__(self: numpy.dtype[typing.Any]) -> int:
+        ...
+    def __ne__(self, other: typing.Any) -> bool:
+        ...
+    def __repr__(self) -> str:
+        ...
+    def __setstate__(self: numpy.dtype[typing.Any], state: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+    def __str__(self) -> str:
+        ...
+    @property
+    def name(self) -> str:
+        ...
+    @property
+    def value(self) -> int:
+        ...
+class infer_options:
+    auto_dym_dims: bool
+    auto_dym_shape: bool
+    out_format: str
+    output_dir: str
+    pure_infer_mode: bool
+    def __init__(self) -> None:
+        ...
+    @property
+    def output_names(self) -> list[str]:
+        ...
+    @output_names.setter
+    def output_names(self, arg0: collections.abc.Sequence[str]) -> None:
+        ...
+    @property
+    def shapes_list(self) -> list[list[list[int]]]:
+        ...
+    @shapes_list.setter
+    def shapes_list(self, arg0: collections.abc.Sequence[collections.abc.Sequence[collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex]]]) -> None:
+        ...
+class session_options:
+    acl_json_path: str
+    weight_dir: str
+    without_graph: bool
+    def __init__(self) -> None:
+        ...
+    @property
+    def log_level(self) -> int:
+        ...
+    @log_level.setter
+    def log_level(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+    @property
+    def loop(self) -> int:
+        ...
+    @loop.setter
+    def loop(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+class tensor_desc:
+    datatype: numpy.dtype[typing.Any]
+    name: str
+    def __init__(self) -> None:
+        ...
+    @property
+    def format(self) -> int:
+        ...
+    @format.setter
+    def format(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+    @property
+    def realsize(self) -> int:
+        ...
+    @realsize.setter
+    def realsize(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+    @property
+    def shape(self) -> list[int]:
+        ...
+    @shape.setter
+    def shape(self, arg0: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex]) -> None:
+        ...
+    @property
+    def size(self) -> int:
+        ...
+    @size.setter
+    def size(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+class type:
+    """
+    Members:
+    
+      memory_host
+    
+      memory_device
+    
+      memory_dvpp
+    """
+    __members__: typing.ClassVar[dict[str, type]]  # value = {'memory_host': <type.memory_host: 0>, 'memory_device': <type.memory_device: 1>, 'memory_dvpp': <type.memory_dvpp: 2>}
+    memory_device: typing.ClassVar[type]  # value = <type.memory_device: 1>
+    memory_dvpp: typing.ClassVar[type]  # value = <type.memory_dvpp: 2>
+    memory_host: typing.ClassVar[type]  # value = <type.memory_host: 0>
+    def __eq__(self, other: typing.Any) -> bool:
+        ...
+    def __getstate__(self) -> int:
+        ...
+    def __hash__(self) -> int:
+        ...
+    def __index__(self) -> int:
+        ...
+    def __init__(self, value: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+    def __int__(self) -> int:
+        ...
+    def __ne__(self, other: typing.Any) -> bool:
+        ...
+    def __repr__(self) -> str:
+        ...
+    def __setstate__(self, state: typing.SupportsInt | typing.SupportsIndex) -> None:
+        ...
+    def __str__(self) -> str:
+        ...
+    @property
+    def name(self) -> str:
+        ...
+    @property
+    def value(self) -> int:
+        ...
+def batch(inputs: collections.abc.Sequence[Tensor], keep_dims: bool = False) -> Tensor:
+    ...
+def log_debug(arg0: str) -> None:
+    ...
+def log_error(arg0: str) -> None:
+    ...
+def log_info(arg0: str) -> None:
+    ...
+def log_warning(arg0: str) -> None:
+    ...
+def model(modelPath: str, deviceId: typing.SupportsInt | typing.SupportsIndex = 0, options: session_options = None) -> InferenceSession:
+    ...
+def set_log_level(arg0: typing.SupportsInt | typing.SupportsIndex) -> None:
+    """
+    Set spdlog level for aclruntime C++ logs
+    """
+LOG_DEBUG: int = 1
+LOG_ERROR: int = 4
+LOG_INFO: int = 2
+LOG_WARNING: int = 3
+PURE_INFER_DATA: str = 'pure_infer_data'
+PURE_INFER_DATA_RANDOM: str = 'pure_infer_data_random'
+PURE_INFER_DATA_ZERO: str = 'pure_infer_data_zero'
+bool: dtype  # value = <dtype.bool: 12>
+double: dtype  # value = <dtype.double: 11>
+float16: dtype  # value = <dtype.float16: 1>
+float32: dtype  # value = <dtype.float32: 0>
+int16: dtype  # value = <dtype.int16: 6>
+int32: dtype  # value = <dtype.int32: 3>
+int64: dtype  # value = <dtype.int64: 9>
+int8: dtype  # value = <dtype.int8: 2>
+memory_device: type  # value = <type.memory_device: 1>
+memory_dvpp: type  # value = <type.memory_dvpp: 2>
+memory_host: type  # value = <type.memory_host: 0>
+uint16: dtype  # value = <dtype.uint16: 7>
+uint32: dtype  # value = <dtype.uint32: 8>
+uint64: dtype  # value = <dtype.uint64: 10>
+uint8: dtype  # value = <dtype.uint8: 4>

@@ -41,7 +41,7 @@ namespace Base {
 PyInferenceSession::PyInferenceSession(const std::string& modelPath,
                                        const uint32_t& deviceId,
                                        std::shared_ptr<SessionOptions> options)
-    : deviceId_(deviceId), modelPath_(modelPath) {
+    : deviceId_(deviceId), modelDesc_(), InitFlag_(false), modelPath_(modelPath) {
     if (options->loop <= 0 || options->loop > LOOP_MAX_SIZE) {
         ERROR_LOG(
             "loop size out of range: loop must be greater than 0 and less than "
@@ -66,7 +66,7 @@ PyInferenceSession::PyInferenceSession(const std::string& modelPath,
         ERROR_LOG("acl json path illegal, please check.");
         throw std::runtime_error("please check acl json path");
     }
-    if (deviceId > DEVICE_ID_MAX || deviceId < 0) {
+    if (deviceId > DEVICE_ID_MAX) {
         ERROR_LOG("device id should not be out of [0, %zu]", DEVICE_ID_MAX);
         throw std::runtime_error("device id is out of range");
     }
@@ -252,7 +252,7 @@ APP_ERROR PyInferenceSession::AutoSetDynamicFromTensors(
 
     if (batchLike) {
         uint64_t batch = feeds[0].GetShape()[0];
-        DEBUG_LOG("auto detect dymbatch: batch=%llu", batch);
+        DEBUG_LOG("auto detect dymbatch: batch=%lu", static_cast<unsigned long>(batch));
         return modelInfer_.SetDynamicBatchsize(static_cast<int>(batch));
     }
     if (hwLike) {
@@ -667,7 +667,6 @@ PyInferenceSession::InferPipelineBaseTensor(
     DEBUG_LOG("start to ModelInference base_tensor in pipeline");
     std::vector<std::vector<TensorBase>> result{};
 
-    uint32_t deviceId = GetDeviceId();
     ConcurrentQueue<std::shared_ptr<Feeds>> h2dQueue;
     ConcurrentQueue<std::shared_ptr<Feeds>> computeQueue;
     ConcurrentQueue<std::shared_ptr<Feeds>> d2hQueue;
@@ -681,7 +680,7 @@ PyInferenceSession::InferPipelineBaseTensor(
                           this);
     std::thread saveThread(FuncSaveTensorBase, std::ref(saveQueue),
                            std::ref(result), this);
-    FuncPrepareBaseTensor(h2dQueue, deviceId, this, inputsList, shapesList,
+    FuncPrepareBaseTensor(h2dQueue, this, inputsList, shapesList,
                           autoDymShape, autoDymDims, outputNames);
 
     h2dThread.join();
@@ -855,7 +854,7 @@ TensorBase PyInferenceSession::CreateTensorFromFilesList(
     SetContext();
     std::vector<uint32_t> u32shape;
     for (size_t j = 0; j < dstTensorDesc.shape.size(); ++j) {
-        u32shape.push_back((uint32_t)(dstTensorDesc.shape[j]));
+        u32shape.push_back(static_cast<uint32_t>(dstTensorDesc.shape[j]));
     }
     // malloc
     TensorBase dstTensor = TensorBase(u32shape, dstTensorDesc.datatype,
@@ -867,7 +866,7 @@ TensorBase PyInferenceSession::CreateTensorFromFilesList(
     }
     // copy
     size_t offset = 0;
-    char* ptr = (char*)dstTensor.GetBuffer();
+    auto ptr = static_cast<char*>(dstTensor.GetBuffer());
     for (uint32_t i = 0; i < filesList.size(); i++) {
         Result ret = Utils::FillFileContentToMemory(
             filesList[i], ptr, dstTensor.GetByteSize(), offset);

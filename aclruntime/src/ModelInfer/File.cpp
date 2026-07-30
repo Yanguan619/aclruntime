@@ -51,7 +51,7 @@ std::string File::GetFullPath(const std::string& originPath) {
     }
 
     std::string fullPath =
-        std::move(std::string(cwd) + PATH_SEPARATOR + originPath);
+        std::string(cwd) + PATH_SEPARATOR + originPath;
     delete[] cwdBuf;
     cwdBuf = nullptr;
 

@@ -103,8 +103,8 @@ APP_ERROR DeviceManager::DestroyDevices() {
     initCounter_--;
     APP_ERROR ret;
     if (initCounter_ == 0) {
-        for (auto contexts : contexts_) {
-            for (auto context : contexts.second) {
+        for (const auto& contexts : contexts_) {
+            for (const auto& context : contexts.second) {
                 ret = aclrtDestroyContext(context.second);
                 if (ret != APP_ERR_OK) {
                     ACLERR_LOG(aclGetRecentErrMsg());
@@ -126,11 +126,11 @@ APP_ERROR DeviceManager::DestroyDevices() {
         contexts_.clear();
         if (repeatInitAclFlag) {
             DEBUG_LOG("not repeat acl init");
-            APP_ERROR ret = aclFinalize();
-            if (ret != APP_ERR_OK) {
+            APP_ERROR aclRet = aclFinalize();
+            if (aclRet != APP_ERR_OK) {
                 ACLERR_LOG(aclGetRecentErrMsg());
                 ERROR_LOG("finalize acl failed");
-                return ret;
+                return aclRet;
             }
         }
         INFO_LOG("end to finalize acl");
@@ -306,7 +306,7 @@ APP_ERROR DeviceManager::SetContext(DeviceContext device,
  * @param: device
  * @return: reset_device_result
  */
-APP_ERROR DeviceManager::ResetDevice(DeviceContext device) {
+APP_ERROR DeviceManager::ResetDevice(DeviceContext /*device*/) {
     return APP_ERR_OK;
 }
 
@@ -321,7 +321,7 @@ APP_ERROR DeviceManager::CheckDeviceId(int32_t deviceId) {
         return APP_ERR_COMM_INVALID_PARAM;
     }
 
-    if (deviceId > (int32_t)deviceCount_ - 1) {
+    if (deviceId > static_cast<int32_t>(deviceCount_) - 1) {
         ERROR_LOG("deviceId(%d) is bigger than or equal to deviceCount(%u)",
                   deviceId, deviceCount_);
         return APP_ERR_COMM_INVALID_PARAM;

@@ -95,7 +95,7 @@ TensorBase FromNumpy(py::buffer b, int32_t deviceId) {
     }
     std::vector<uint32_t> shape = {};
     for (auto s : info.shape) {
-        shape.push_back((uint32_t)s);
+        shape.push_back(static_cast<uint32_t>(s));
     }
     uint32_t bytes = TensorBase::DataTypeByteSize(dataType);
 
@@ -162,7 +162,7 @@ py::buffer_info ToNumpy(const TensorBase &tensor) {
         format = DATA_TYPE_TO_FORMAT_MAP.find(dtype)->second;
     }
     py::buffer_info buf = {tensor.GetBuffer(),    bytes, format,
-                           (int64_t)shape.size(), shape, strides};
+                           static_cast<int64_t>(shape.size()), shape, strides};
     return buf;
 }
 #endif

@@ -31,11 +31,6 @@ static std::string FormatSize(size_t bytes) {
     return buf;
 }
 
-static std::string Basename(const std::string& path) {
-    size_t pos = path.rfind('/');
-    return (pos != std::string::npos) ? path.substr(pos + 1) : path;
-}
-
 WeightPool& WeightPool::Instance() {
     static WeightPool instance;
     return instance;

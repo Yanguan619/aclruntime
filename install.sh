@@ -9,10 +9,10 @@ check_deps()
         echo "zlib development headers not found, installing..."
         if command -v apt-get &>/dev/null; then
             sudo apt-get install -y zlib1g-dev
+        elif command -v dnf &>/dev/null; then
+            sudo dnf install -y zlib-devel gcc-c++
         elif command -v yum &>/dev/null; then
             sudo yum install -y zlib-devel
-        elif command -v dnf &>/dev/null; then
-            sudo dnf install -y zlib-devel
         elif command -v zypper &>/dev/null; then
             sudo zypper install -y zlib-devel
         else
@@ -24,12 +24,7 @@ check_deps()
 main()
 {
     check_deps
-
-    # 先卸载现有的包
-    echo "Uninstalling old packages..."
     pip uninstall aclruntime ais_bench -y || true
-
-    # 重新安装
     pip install -r $CURDIR/requirements.txt
 }
 

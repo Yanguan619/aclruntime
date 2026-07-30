@@ -22,11 +22,6 @@
 #include "Log.h"
 
 namespace {
-template <typename T>
-static int GetArrayLen(T& arr) {
-    return (sizeof(arr) / sizeof(arr[0]));
-}
-
 std::map<int, int> GST_RETURN_CODE_MAP = {
     {APP_ERR_FLOW_CUSTOM_SUCCESS_2, APP_ERR_OK},
     {APP_ERR_FLOW_CUSTOM_SUCCESS_1, APP_ERR_OK},
@@ -42,45 +37,31 @@ std::map<int, int> GST_RETURN_CODE_MAP = {
     {APP_ERR_FLOW_CUSTOM_ERROR_1, APP_ERR_PLUGIN_TOOLKIT_FLOW_NOT_SUPPORTED},
     {APP_ERR_FLOW_CUSTOM_ERROR_2, APP_ERR_PLUGIN_TOOLKIT_FLOW_NOT_SUPPORTED},
 };
-std::map<int, std::pair<const std::string*, int>> ErrMsgMap = {
-    {APP_ERR_ACL_ERR_BASE, std::make_pair(APP_ERR_ACL_LOG_STRING,
-                                          GetArrayLen(APP_ERR_ACL_LOG_STRING))},
-    {APP_ERR_COMM_BASE, std::make_pair(APP_ERR_COMMON_LOG_STRING,
-                                       GetArrayLen(APP_ERR_COMMON_LOG_STRING))},
-    {APP_ERR_DVPP_BASE, std::make_pair(APP_ERR_DVPP_LOG_STRING,
-                                       GetArrayLen(APP_ERR_DVPP_LOG_STRING))},
-    {APP_ERR_INFER_BASE, std::make_pair(APP_ERR_INFER_LOG_STRING,
-                                        GetArrayLen(APP_ERR_INFER_LOG_STRING))},
-    {APP_ERR_QUEUE_BASE, std::make_pair(APP_ERR_QUEUE_LOG_STRING,
-                                        GetArrayLen(APP_ERR_QUEUE_LOG_STRING))},
-    {APP_ERR_COMMANDER_BASE,
-     std::make_pair(APP_ERR_COMMANDER_STRING,
-                    GetArrayLen(APP_ERR_COMMANDER_STRING))},
-    {APP_ERR_STREAM_BASE,
-     std::make_pair(APP_ERR_STREAM_LOG_STRING,
-                    GetArrayLen(APP_ERR_STREAM_LOG_STRING))},
-    {APP_ERR_PLUGIN_TOOLKIT_BASE,
-     std::make_pair(APP_ERR_PLUGIN_TOOLKIT_LOG_STRING,
-                    GetArrayLen(APP_ERR_PLUGIN_TOOLKIT_LOG_STRING))},
-    {APP_ERR_DEVICE_MANAGER_BASE,
-     std::make_pair(APP_ERR_DEVICE_MANAGER_LOG_STRING,
-                    GetArrayLen(APP_ERR_DEVICE_MANAGER_LOG_STRING))},
-    {APP_ERR_EXTRA_BASE,
-     std::make_pair(APP_ERR_EXTRA_STRING, GetArrayLen(APP_ERR_EXTRA_STRING))},
-    {APP_ERR_BAD_ALLOC,
-     std::make_pair(APP_ERR_INFER_STRING, GetArrayLen(APP_ERR_INFER_STRING))},
-    {APP_ERR_STORAGE_OVER_LIMIT,
-     std::make_pair(APP_ERR_STORAGE_STRING,
-                    GetArrayLen(APP_ERR_STORAGE_STRING))},
-    {APP_ERR_INTERNAL_ERROR,
-     std::make_pair(APP_ERR_INTERNAL_STRING,
-                    GetArrayLen(APP_ERR_INTERNAL_STRING))}};
-template <typename T>
-static std::string GetErrMsg(T& messages, int offset, int len) {
-    if (offset < 0 || len < 0) {
-        return "offset or len in error message should not be negative";
+std::map<int, const std::map<int, std::string>*> ErrMsgMap = {
+    {APP_ERR_ACL_ERR_BASE, &APP_ERR_ACL_LOG_MAP},
+    {APP_ERR_COMM_BASE, &APP_ERR_COMMON_LOG_MAP},
+    {APP_ERR_DVPP_BASE, &APP_ERR_DVPP_LOG_MAP},
+    {APP_ERR_INFER_BASE, &APP_ERR_INFER_LOG_MAP},
+    {APP_ERR_QUEUE_BASE, &APP_ERR_QUEUE_LOG_MAP},
+    {APP_ERR_COMMANDER_BASE, &APP_ERR_COMMANDER_MAP},
+    {APP_ERR_STREAM_BASE, &APP_ERR_STREAM_LOG_MAP},
+    {APP_ERR_PLUGIN_TOOLKIT_BASE, &APP_ERR_PLUGIN_TOOLKIT_LOG_MAP},
+    {APP_ERR_DEVICE_MANAGER_BASE, &APP_ERR_DEVICE_MANAGER_LOG_MAP},
+    {APP_ERR_EXTRA_BASE, &APP_ERR_EXTRA_MAP},
+    {APP_ERR_BAD_ALLOC, &APP_ERR_INFER_MAP},
+    {APP_ERR_STORAGE_OVER_LIMIT, &APP_ERR_STORAGE_MAP},
+    {APP_ERR_INTERNAL_ERROR, &APP_ERR_INTERNAL_MAP}};
+
+static std::string GetErrMsg(const std::map<int, std::string>& messages,
+                              int offset) {
+    if (offset < 0) {
+        return "offset in error message should not be negative";
     }
-    return (offset < len) ? messages[offset] : "Undefined error code";
+    auto it = messages.find(offset);
+    if (it != messages.end()) {
+        return it->second;
+    }
+    return "Undefined error code";
 }
 }  // namespace
 
@@ -96,10 +77,9 @@ std::string GetAppErrCodeInfo(const APP_ERROR err) {
     }
     int base = (err / RANGE_SIZE) * RANGE_SIZE;
     int offset = err % RANGE_SIZE;
-    if (ErrMsgMap.find(base) != ErrMsgMap.end() && (offset >= 0)) {
-        auto array = ErrMsgMap[base].first;
-        auto arraySize = ErrMsgMap[base].second;
-        return GetErrMsg(array, offset, arraySize);
+    auto it = ErrMsgMap.find(base);
+    if (it != ErrMsgMap.end() && (offset >= 0)) {
+        return GetErrMsg(*it->second, offset);
     } else {
         return "Error code unknown";
     }

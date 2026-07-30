@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 #include "python/PyInterface.h"
+#include "Log.h"
 namespace {
 const std::string PURE_INFER_DATA = "pure_infer_data";
 const std::string PURE_INFER_DATA_ZERO = "pure_infer_data_zero";
 const std::string PURE_INFER_DATA_RANDOM = "pure_infer_data_random";
 
 PYBIND11_MODULE(aclruntime, m) {
+    Base::LogCtrl::Init();
     RegistPyTensorModule(m);
     RegistInferenceSession(m);
 
@@ -28,5 +30,16 @@ PYBIND11_MODULE(aclruntime, m) {
     m.attr("PURE_INFER_DATA") = PURE_INFER_DATA;
     m.attr("PURE_INFER_DATA_ZERO") = PURE_INFER_DATA_ZERO;
     m.attr("PURE_INFER_DATA_RANDOM") = PURE_INFER_DATA_RANDOM;
+
+    // Log control
+    m.def("set_log_level", &Base::LogCtrl::SetLogLevel, "Set spdlog level for aclruntime C++ logs");
+    m.def("log_debug", [](const std::string& msg) { spdlog::debug(msg); });
+    m.def("log_info", [](const std::string& msg) { spdlog::info(msg); });
+    m.def("log_warning", [](const std::string& msg) { spdlog::warn(msg); });
+    m.def("log_error", [](const std::string& msg) { spdlog::error(msg); });
+    m.attr("LOG_DEBUG") = LOG_DEBUG_LEVEL;
+    m.attr("LOG_INFO") = LOG_INFO_LEVEL;
+    m.attr("LOG_WARNING") = LOG_WARNING_LEVEL;
+    m.attr("LOG_ERROR") = LOG_ERROR_LEVEL;
 }
 }  // namespace

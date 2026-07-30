@@ -19,16 +19,6 @@
 #include "Log.h"
 #include "acl/acl.h"
 
-// Memory tracking helper
-#include <fstream>
-#include <functional>
-#include <sstream>
-
-static std::string Basename(const std::string& path) {
-    size_t pos = path.rfind('/');
-    return (pos != std::string::npos) ? path.substr(pos + 1) : path;
-}
-
 using namespace UtilsResult;
 namespace Base {
 APP_ERROR ModelInferenceProcessor::GetModelDescInfo() {
@@ -38,7 +28,7 @@ APP_ERROR ModelInferenceProcessor::GetModelDescInfo() {
     size_t numInputs = processModel->GetNumInputs();
     modelDesc_.inTensorsDesc.clear();
     modelDesc_.inTensorsDesc.reserve(numInputs);
-    int index = 0;
+    size_t index = 0;
     for (size_t i = 0; i < numInputs; i++) {
         // dynamicindex not as intensors, it is args info
         if (i == dynamicIndex_) {
@@ -55,7 +45,7 @@ APP_ERROR ModelInferenceProcessor::GetModelDescInfo() {
         info.realsize = info.size;
         info.datatype = (TensorDataType)datatype;
         modelDesc_.inTensorsDesc.push_back(info);
-        modelDesc_.innames2Index[info.name] = static_cast<size_t>(index);
+        modelDesc_.innames2Index[info.name] = index;
         index++;
     }
 

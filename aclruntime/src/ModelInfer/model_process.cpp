@@ -267,7 +267,7 @@ Result ModelProcess::LoadModelFromFile(
             }
         }
 
-        {
+        if (!options || options->workspaceMemOptimize) {
             size_t wsOpt = ACL_WORKSPACE_MEM_OPTIMIZE_INPUTOUTPUT;
             ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE,
                                      &wsOpt, sizeof(wsOpt));
@@ -279,6 +279,10 @@ Result ModelProcess::LoadModelFromFile(
             } else {
                 INFO_LOG("ACL_MDL_WORKSPACE_MEM_OPTIMIZE enabled");
             }
+        } else {
+            INFO_LOG(
+                "ACL_MDL_WORKSPACE_MEM_OPTIMIZE disabled (workspace_mem_"
+                "optimize=false)");
         }
         size_t workSize = 0;
         size_t weightSize = 0;
@@ -433,7 +437,7 @@ Result ModelProcess::LoadModelFromFile(
             } else {
                 INFO_LOG("ACL_MDL_WITHOUT_GRAPH_INT32 enabled");
             }
-            {
+            if (!options || options->workspaceMemOptimize) {
                 size_t wsOpt = ACL_WORKSPACE_MEM_OPTIMIZE_INPUTOUTPUT;
                 ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE,
                                          &wsOpt, sizeof(wsOpt));
@@ -445,6 +449,10 @@ Result ModelProcess::LoadModelFromFile(
                 } else {
                     INFO_LOG("ACL_MDL_WORKSPACE_MEM_OPTIMIZE enabled");
                 }
+            } else {
+                INFO_LOG(
+                    "ACL_MDL_WORKSPACE_MEM_OPTIMIZE disabled "
+                    "(workspace_mem_optimize=false)");
             }
             DEBUG_LOG("aclmdlSetConfigOpt end: RSS=%zuMB",
                       GetSystemMemoryUsedMB());

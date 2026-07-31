@@ -920,7 +920,8 @@ void RegistOptions(py::module& m) {
         .def_readwrite("acl_json_path", &Base::SessionOptions::aclJsonPath)
         .def_readwrite("weight_dir", &Base::SessionOptions::weightDir)
         .def_readwrite("without_graph", &Base::SessionOptions::withoutGraph)
-        .def_readwrite("workspace_share_group", &Base::SessionOptions::workspaceShareGroup);
+        .def_readwrite("workspace_share_group", &Base::SessionOptions::workspaceShareGroup)
+        .def_readwrite("workspace_mem_optimize", &Base::SessionOptions::workspaceMemOptimize);
 
     py::class_<Base::InferOptions, std::shared_ptr<Base::InferOptions>>(
         m, "infer_options")

@@ -84,6 +84,7 @@ class InferSession:
         loop: int = 1,
         weight_dir: str = None,
         workspace_share_group: str = None,
+        workspace_mem_optimize: bool = None,
     ):
         """
         init InferSession
@@ -106,6 +107,11 @@ class InferSession:
                 ACL_MDL_WORKSPACE_ADDR_PTR / SIZE (process-wide
                 WorkspacePool). Only safe when models do NOT run
                 concurrently (e.g. prefill + decode).
+            workspace_mem_optimize: whether to enable ACL workspace
+                input/output overlap (ACL_MDL_WORKSPACE_MEM_OPTIMIZE).
+                Default None -> auto: enabled unless workspace_share_group
+                is set (external shared workspace would otherwise be
+                double-allocated by ACL). Set explicitly to override.
         """
         check_model_path_legality(model_path)
         check_acl_json_path_legality(acl_json_path)
@@ -119,6 +125,7 @@ class InferSession:
         self.debug = debug
         self.weight_dir = weight_dir
         self.workspace_share_group = workspace_share_group
+        self.workspace_mem_optimize = workspace_mem_optimize
         if acl_json_path is not None:
             self.options.acl_json_path = self.acl_json_path
         self.options.log_level = 1 if self.debug else 2
@@ -127,6 +134,12 @@ class InferSession:
             self.options.weight_dir = weight_dir
         if workspace_share_group is not None:
             self.options.workspace_share_group = workspace_share_group
+        if workspace_mem_optimize is None:
+            # External shared workspace must not overlap with I/O: ACL would
+            # otherwise allocate its own workspace on top of ours.
+            self.options.workspace_mem_optimize = workspace_share_group is None
+        else:
+            self.options.workspace_mem_optimize = workspace_mem_optimize
         # Enable graph release after load to save CPU memory (ACL_MDL_WITHOUT_GRAPH_INT32=1)
         if hasattr(self.options, "without_graph"):
             self.options.without_graph = True

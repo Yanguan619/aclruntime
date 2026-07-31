@@ -544,7 +544,7 @@ APP_ERROR ModelInferenceProcessor::RepeatInference(
             return ret;
         }
         if (loopTimes > 1) {
-            fprintf(stdout, "\rloop inference exec: (%d/%d)", i + 1,
+            fprintf(stdout, "\r\x1b[2Kloop inference exec: (%d/%d)", i + 1,
                     loopTimes);
             fflush(stdout);
         }
@@ -578,7 +578,8 @@ APP_ERROR ModelInferenceProcessor::FirstInferenceInner(
             return ret;
         }
         if (options_->loop > 1) {
-            PROMPT_MSG("\n");
+            fprintf(stdout, "\n");
+            fflush(stdout);
         }
     }
     processModel->InitReuseOutput();
@@ -589,13 +590,14 @@ APP_ERROR ModelInferenceProcessor::FirstInferenceInner(
             return ret;
         }
         if (options_->loop > 1) {
-            fprintf(stdout, "\rloop inference exec: (%d/%d)", i + 1,
+            fprintf(stdout, "\r\x1b[2Kloop inference exec: (%d/%d)", i + 1,
                     options_->loop);
             fflush(stdout);
         }
     }
     if (options_->loop > 1) {
-        PROMPT_MSG("\n");
+        fprintf(stdout, "\n");
+        fflush(stdout);
     }
     return APP_ERR_OK;
 }
@@ -615,7 +617,8 @@ APP_ERROR ModelInferenceProcessor::ModelInference_Inner(
             return ret;
         }
         if (options_->loop > 1) {
-            PROMPT_MSG("\n");
+            fprintf(stdout, "\n");
+            fflush(stdout);
         }
     }
     for (int i = 0; i < options_->loop; i++) {
@@ -625,13 +628,14 @@ APP_ERROR ModelInferenceProcessor::ModelInference_Inner(
             return ret;
         }
         if (options_->loop > 1) {
-            fprintf(stdout, "\rloop inference exec: (%d/%d)", i + 1,
+            fprintf(stdout, "\r\x1b[2Kloop inference exec: (%d/%d)", i + 1,
                     options_->loop);
             fflush(stdout);
         }
     }
     if (options_->loop > 1) {
-        PROMPT_MSG("\n");
+        fprintf(stdout, "\n");
+        fflush(stdout);
     }
     ret = GetOutputs(outputNames, outputTensors);
     if (ret != APP_ERR_OK) {

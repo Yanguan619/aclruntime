@@ -10,7 +10,7 @@ check_deps()
         if command -v apt-get &>/dev/null; then
             sudo apt-get install -y zlib1g-dev
         elif command -v dnf &>/dev/null; then
-            sudo dnf install -y zlib-devel gcc-c++
+            sudo dnf install -y zlib-devel gcc-c++ spdlog-devel
         elif command -v yum &>/dev/null; then
             sudo yum install -y zlib-devel
         elif command -v zypper &>/dev/null; then

@@ -32,6 +32,10 @@ public:
     // Release graph and pre-cached info after model load to save CPU memory.
     // Corresponds to ACL_MDL_WITHOUT_GRAPH_INT32=1.
     bool withoutGraph = false;
+    // When non-empty, models sharing the same group name reuse the same
+    // device workspace memory via ACL_MDL_WORKSPACE_ADDR_PTR / SIZE.
+    // Only safe when models do not run concurrently (e.g. prefill + decode).
+    std::string workspaceShareGroup = "";
 };
 }  // namespace Base
 #endif  // ACLRUNTIME_INCLUDE_MODELINFER_SESSIONOPTIONS_H_

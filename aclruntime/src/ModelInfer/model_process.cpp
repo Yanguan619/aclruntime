@@ -31,6 +31,7 @@
 
 #include "Log.h"
 #include "ModelInfer/WeightPool.h"
+#include "ModelInfer/WorkspacePool.h"
 #include "ModelInfer/utils.h"
 
 using namespace UtilsResult;
@@ -279,9 +280,9 @@ Result ModelProcess::LoadModelFromFile(
                 INFO_LOG("ACL_MDL_WORKSPACE_MEM_OPTIMIZE enabled");
             }
         }
+        size_t workSize = 0;
+        size_t weightSize = 0;
         {
-            size_t workSize = 0;
-            size_t weightSize = 0;
             aclError qret =
                 aclmdlQuerySize(modelPath.c_str(), &workSize, &weightSize);
             if (qret == ACL_SUCCESS) {
@@ -291,6 +292,40 @@ Result ModelProcess::LoadModelFromFile(
             } else {
                 DEBUG_LOG("aclmdlQuerySize failed ret=%d", (int)qret);
             }
+        }
+
+        // Workspace sharing via WorkspacePool
+        if (options && !options->workspaceShareGroup.empty() && workSize > 0) {
+            void* wsAddr = nullptr;
+            size_t wsSize = 0;
+            Result wsret = WorkspacePool::Instance().Acquire(
+                options->workspaceShareGroup, workSize, wsAddr, wsSize);
+            if (wsret != SUCCESS) {
+                ERROR_LOG("WorkspacePool::Acquire failed for group '%s'",
+                          options->workspaceShareGroup.c_str());
+                return cfgFail();
+            }
+            ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR,
+                                     &wsAddr, sizeof(wsAddr));
+            if (ret != ACL_SUCCESS) {
+                ACLERR_LOG(aclGetRecentErrMsg());
+                ERROR_LOG("set ACL_MDL_WORKSPACE_ADDR_PTR failed ret=%d", ret);
+                WorkspacePool::Instance().Release(
+                    options->workspaceShareGroup);
+                return cfgFail();
+            }
+            ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET,
+                                     &wsSize, sizeof(wsSize));
+            if (ret != ACL_SUCCESS) {
+                ACLERR_LOG(aclGetRecentErrMsg());
+                ERROR_LOG("set ACL_MDL_WORKSPACE_SIZET failed ret=%d", ret);
+                WorkspacePool::Instance().Release(
+                    options->workspaceShareGroup);
+                return cfgFail();
+            }
+            INFO_LOG("workspace share group '%s' (size=%s)",
+                     options->workspaceShareGroup.c_str(),
+                     FormatSize(wsSize).c_str());
         }
 
         DEBUG_LOG("aclmdlSetConfigOpt end: RSS=%zuMB", GetSystemMemoryUsedMB());
@@ -324,6 +359,10 @@ Result ModelProcess::LoadModelFromFile(
         INFO_LOG("aclmdlLoadWithConfig success cost : %f (ms)", time_cost);
         weightDir_ = resolvedWeightDir;
         weightsAcquired_ = true;
+        if (options && !options->workspaceShareGroup.empty()) {
+            workspaceShareGroup_ = options->workspaceShareGroup;
+            workspaceAcquired_ = true;
+        }
         loadFlag_ = true;
         return SUCCESS;
     } else {
@@ -410,9 +449,9 @@ Result ModelProcess::LoadModelFromFile(
             DEBUG_LOG("aclmdlSetConfigOpt end: RSS=%zuMB",
                       GetSystemMemoryUsedMB());
 
+            size_t workSize = 0;
+            size_t weightSize = 0;
             {
-                size_t workSize = 0;
-                size_t weightSize = 0;
                 aclError qret =
                     aclmdlQuerySize(modelPath.c_str(), &workSize, &weightSize);
                 if (qret == ACL_SUCCESS) {
@@ -422,6 +461,40 @@ Result ModelProcess::LoadModelFromFile(
                 } else {
                     DEBUG_LOG("aclmdlQuerySize failed ret=%d", (int)qret);
                 }
+            }
+
+            // Workspace sharing via WorkspacePool
+            if (options && !options->workspaceShareGroup.empty() && workSize > 0) {
+                void* wsAddr = nullptr;
+                size_t wsSize = 0;
+                Result wsret = WorkspacePool::Instance().Acquire(
+                    options->workspaceShareGroup, workSize, wsAddr, wsSize);
+                if (wsret != SUCCESS) {
+                    ERROR_LOG("WorkspacePool::Acquire failed for group '%s'",
+                              options->workspaceShareGroup.c_str());
+                    return cfgFail();
+                }
+                ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR,
+                                         &wsAddr, sizeof(wsAddr));
+                if (ret != ACL_SUCCESS) {
+                    ACLERR_LOG(aclGetRecentErrMsg());
+                    ERROR_LOG("set ACL_MDL_WORKSPACE_ADDR_PTR failed ret=%d", ret);
+                    WorkspacePool::Instance().Release(
+                        options->workspaceShareGroup);
+                    return cfgFail();
+                }
+                ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET,
+                                         &wsSize, sizeof(wsSize));
+                if (ret != ACL_SUCCESS) {
+                    ACLERR_LOG(aclGetRecentErrMsg());
+                    ERROR_LOG("set ACL_MDL_WORKSPACE_SIZET failed ret=%d", ret);
+                    WorkspacePool::Instance().Release(
+                        options->workspaceShareGroup);
+                    return cfgFail();
+                }
+                INFO_LOG("workspace share group '%s' (size=%s)",
+                         options->workspaceShareGroup.c_str(),
+                         FormatSize(wsSize).c_str());
             }
 
             struct timeval start = {};
@@ -448,6 +521,10 @@ Result ModelProcess::LoadModelFromFile(
             float time_cost = 1000 * (end.tv_sec - start.tv_sec) +
                               (end.tv_usec - start.tv_usec) / 1000.000;
             INFO_LOG("aclmdlLoadWithConfig success cost : %f (ms)", time_cost);
+            if (options && !options->workspaceShareGroup.empty()) {
+                workspaceShareGroup_ = options->workspaceShareGroup;
+                workspaceAcquired_ = true;
+            }
             loadFlag_ = true;
             return SUCCESS;
         } else {
@@ -1595,6 +1672,10 @@ void ModelProcess::Unload() {
     if (weightsAcquired_) {
         WeightPool::Instance().Release(weightDir_);
         weightsAcquired_ = false;
+    }
+    if (workspaceAcquired_) {
+        WorkspacePool::Instance().Release(workspaceShareGroup_);
+        workspaceAcquired_ = false;
     }
     modelData_.clear();
     modelData_.shrink_to_fit();

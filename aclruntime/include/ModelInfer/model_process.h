@@ -365,5 +365,8 @@ private:
     // External weight directory registered to the pool; released on Unload.
     std::string weightDir_;
     bool weightsAcquired_ = false;
+    // Workspace share group; released on Unload.
+    std::string workspaceShareGroup_;
+    bool workspaceAcquired_ = false;
 };
 #endif  // ACLRUNTIME_INCLUDE_MODELINFER_MODEL_PROCESS_H_

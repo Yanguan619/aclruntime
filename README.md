@@ -183,6 +183,15 @@ python3 -m ais_bench --model *.om
 ```
 其中，*为OM离线模型文件名。OM离线模型文件是通过ATC工具将TensorFlow、PyTorch、ONNX等框架的模型文件转换生成，详细介绍请参见《[ATC工具使用指南](https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasatc_16_0001.html)》。
 
+可运行示例：
+
+```bash
+wget https://github.com/ultralytics/yolov5/releases/download/v6.0/yolov5s.onnx
+
+atc --model=yolov5s.onnx --framework=5 --output=yolov5s_v6.0_bs8 --input_format=NCHW --input_shape="images:8,3,640,640" --log=error --soc_version=Ascend310P3
+python3 -m ais_bench --model yolov5s_v6.0_bs8.om --loop 100
+```
+
 #### 参数说明
 
 ais_bench推理工具可以通过配置不同的参数，来应对各种测试场景以及实现其他辅助功能。

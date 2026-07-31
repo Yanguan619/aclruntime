@@ -521,6 +521,26 @@ APP_ERROR ModelInferenceProcessor::GetOutputs(
     return APP_ERR_OK;
 }
 
+APP_ERROR ModelInferenceProcessor::LoopInference(int loopTimes) {
+    for (int i = 0; i < loopTimes; i++) {
+        APP_ERROR ret = Execute();
+        if (ret != APP_ERR_OK) {
+            ERROR_LOG("execute Infer failed ret:%d", ret);
+            return ret;
+        }
+        if (loopTimes > 1) {
+            fprintf(stdout, "\r\x1b[2Kloop inference exec: (%d/%d)", i + 1,
+                    loopTimes);
+            fflush(stdout);
+        }
+    }
+    if (loopTimes > 1) {
+        fprintf(stdout, "\n");
+        fflush(stdout);
+    }
+    return APP_ERR_OK;
+}
+
 APP_ERROR ModelInferenceProcessor::RepeatInference(
     const std::vector<int>& inOutRelation,
     std::vector<std::string>& outputNames,
@@ -537,21 +557,9 @@ APP_ERROR ModelInferenceProcessor::RepeatInference(
     } else {
         loopTimes = 1;
     }
-    for (int i = 0; i < loopTimes; i++) {
-        ret = Execute();
-        if (ret != APP_ERR_OK) {
-            ERROR_LOG("execute Infer failed ret:%d", ret);
-            return ret;
-        }
-        if (loopTimes > 1) {
-            fprintf(stdout, "\r\x1b[2Kloop inference exec: (%d/%d)", i + 1,
-                    loopTimes);
-            fflush(stdout);
-        }
-    }
-    if (loopTimes > 1) {
-        fprintf(stdout, "\n");
-        fflush(stdout);
+    ret = LoopInference(loopTimes);
+    if (ret != APP_ERR_OK) {
+        return ret;
     }
     if (get_outputs) {
         ret = GetOutputs(outputNames, outputTensors);
@@ -583,23 +591,7 @@ APP_ERROR ModelInferenceProcessor::FirstInferenceInner(
         }
     }
     processModel->InitReuseOutput();
-    for (int i = 0; i < options_->loop; i++) {
-        ret = Execute();
-        if (ret != APP_ERR_OK) {
-            ERROR_LOG("execute Infer failed ret:%d", ret);
-            return ret;
-        }
-        if (options_->loop > 1) {
-            fprintf(stdout, "\r\x1b[2Kloop inference exec: (%d/%d)", i + 1,
-                    options_->loop);
-            fflush(stdout);
-        }
-    }
-    if (options_->loop > 1) {
-        fprintf(stdout, "\n");
-        fflush(stdout);
-    }
-    return APP_ERR_OK;
+    return LoopInference(options_->loop);
 }
 
 APP_ERROR ModelInferenceProcessor::ModelInference_Inner(
@@ -621,21 +613,9 @@ APP_ERROR ModelInferenceProcessor::ModelInference_Inner(
             fflush(stdout);
         }
     }
-    for (int i = 0; i < options_->loop; i++) {
-        ret = Execute();
-        if (ret != APP_ERR_OK) {
-            ERROR_LOG("execute Infer failed ret:%d", ret);
-            return ret;
-        }
-        if (options_->loop > 1) {
-            fprintf(stdout, "\r\x1b[2Kloop inference exec: (%d/%d)", i + 1,
-                    options_->loop);
-            fflush(stdout);
-        }
-    }
-    if (options_->loop > 1) {
-        fprintf(stdout, "\n");
-        fflush(stdout);
+    ret = LoopInference(options_->loop);
+    if (ret != APP_ERR_OK) {
+        return ret;
     }
     ret = GetOutputs(outputNames, outputTensors);
     if (ret != APP_ERR_OK) {
@@ -884,6 +864,11 @@ APP_ERROR ModelInferenceProcessor::SetDtcPixelMin(
 APP_ERROR ModelInferenceProcessor::SetPixelVarReci(
     std::vector<float> reciParams) {
     CHECK_RET_EQ(dyAippCfg->SetPixelVarReci(reciParams), APP_ERR_OK);
+    return APP_ERR_OK;
+}
+
+APP_ERROR ModelInferenceProcessor::SetAippParams(const AippParams& params) {
+    CHECK_RET_EQ(dyAippCfg->SetParams(params), APP_ERR_OK);
     return APP_ERR_OK;
 }
 

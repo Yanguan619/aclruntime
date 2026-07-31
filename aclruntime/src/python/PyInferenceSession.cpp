@@ -849,6 +849,15 @@ int PyInferenceSession::SetPixelVarReci(std::vector<float> reciParams) {
     return APP_ERR_OK;
 }
 
+int PyInferenceSession::SetAippParams(const AippParams& params) {
+    SetContext();
+    APP_ERROR ret = modelInfer_.SetAippParams(params);
+    if (ret != APP_ERR_OK) {
+        throw std::runtime_error(GetError(ret));
+    }
+    return APP_ERR_OK;
+}
+
 TensorBase PyInferenceSession::CreateTensorFromFilesList(
     Base::TensorDesc& dstTensorDesc, std::vector<std::string>& filesList) {
     SetContext();
@@ -968,7 +977,6 @@ void RegistInferenceSession(py::module& m) {
               py::return_value_policy::reference);
     model.def("get_outputs", &Base::PyInferenceSession::GetOutputs,
               py::return_value_policy::reference);
-    model.def("reset_sumaryinfo", &Base::PyInferenceSession::ResetSumaryInfo);
     model.def("reset_summaryinfo", &Base::PyInferenceSession::ResetSumaryInfo);
     model.def("set_context", &Base::PyInferenceSession::SetContext);
     model.def("set_staticbatch", &Base::PyInferenceSession::SetStaticBatch);
@@ -1027,5 +1035,55 @@ void RegistAippConfig(
               &Base::PyInferenceSession::SetDtcPixelMin);
     model.def("aipp_set_pixel_var_reci",
               &Base::PyInferenceSession::SetPixelVarReci);
+
+    model.def(
+        "aipp_set_params",
+        [](Base::PyInferenceSession& session, py::dict params) {
+            Base::AippParams aippParams;
+            if (params.contains("max_batch_size")) {
+                aippParams.maxBatchSize = params["max_batch_size"].cast<uint64_t>();
+            }
+            if (params.contains("input_format")) {
+                aippParams.inputFormat =
+                    params["input_format"].cast<std::string>();
+            }
+            if (params.contains("src_image_size")) {
+                aippParams.srcImageSize =
+                    params["src_image_size"].cast<std::vector<int>>();
+            }
+            if (params.contains("rbuv_swap_switch")) {
+                aippParams.rbuvSwapSwitch =
+                    params["rbuv_swap_switch"].cast<int>();
+            }
+            if (params.contains("ax_swap_switch")) {
+                aippParams.axSwapSwitch = params["ax_swap_switch"].cast<int>();
+            }
+            if (params.contains("csc_params")) {
+                aippParams.cscParams =
+                    params["csc_params"].cast<std::vector<int>>();
+            }
+            if (params.contains("crop_params")) {
+                aippParams.cropParams =
+                    params["crop_params"].cast<std::vector<int>>();
+            }
+            if (params.contains("padding_params")) {
+                aippParams.paddingParams =
+                    params["padding_params"].cast<std::vector<int>>();
+            }
+            if (params.contains("dtc_pixel_mean")) {
+                aippParams.dtcPixelMean =
+                    params["dtc_pixel_mean"].cast<std::vector<int>>();
+            }
+            if (params.contains("dtc_pixel_min")) {
+                aippParams.dtcPixelMin =
+                    params["dtc_pixel_min"].cast<std::vector<float>>();
+            }
+            if (params.contains("pixel_var_reci")) {
+                aippParams.pixelVarReci =
+                    params["pixel_var_reci"].cast<std::vector<float>>();
+            }
+            return session.SetAippParams(aippParams);
+        },
+        py::arg("params"));
 }
 #endif

@@ -228,6 +228,7 @@ public:
     APP_ERROR SetDtcPixelMean(std::vector<int> meanParams);
     APP_ERROR SetDtcPixelMin(std::vector<float> minParams);
     APP_ERROR SetPixelVarReci(std::vector<float> reciParams);
+    APP_ERROR SetAippParams(const AippParams& params);
 
 private:
     APP_ERROR SetDynamicInfo();
@@ -251,6 +252,7 @@ private:
     APP_ERROR UpdateInputsData(const std::vector<int>& inOutRelation,
                                const bool mem_copy);
     APP_ERROR SetAippConfigData();
+    APP_ERROR LoopInference(int loopTimes);
     APP_ERROR Execute();
     APP_ERROR GetOutputs(const std::vector<std::string>& outputNames,
                          std::vector<TensorBase>& outputTensors);

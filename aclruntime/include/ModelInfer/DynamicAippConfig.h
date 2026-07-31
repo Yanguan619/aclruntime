@@ -17,6 +17,7 @@
 #ifndef ACLRUNTIME_INCLUDE_MODELINFER_DYNAMICAIPPCONFIG_H_
 #define ACLRUNTIME_INCLUDE_MODELINFER_DYNAMICAIPPCONFIG_H_
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -117,6 +118,21 @@ struct PixelVarReci {
     float dtcPixelVarReciChn3;
 };
 
+// 批量设置动态AIPP参数,字段与Set*接口一一对应,未设置的字段不生效
+struct AippParams {
+    std::optional<uint64_t> maxBatchSize;
+    std::optional<std::string> inputFormat;
+    std::optional<std::vector<int>> srcImageSize;
+    std::optional<int> rbuvSwapSwitch;
+    std::optional<int> axSwapSwitch;
+    std::optional<std::vector<int>> cscParams;
+    std::optional<std::vector<int>> cropParams;
+    std::optional<std::vector<int>> paddingParams;
+    std::optional<std::vector<int>> dtcPixelMean;
+    std::optional<std::vector<float>> dtcPixelMin;
+    std::optional<std::vector<float>> pixelVarReci;
+};
+
 class DynamicAippConfig {
 public:
     DynamicAippConfig();
@@ -133,6 +149,7 @@ public:
     APP_ERROR SetDtcPixelMean(std::vector<int> meanParams);
     APP_ERROR SetDtcPixelMin(std::vector<float> minParams);
     APP_ERROR SetPixelVarReci(std::vector<float> reciParams);
+    APP_ERROR SetParams(const AippParams& params);
 
     uint64_t GetMaxBatchSize();
     std::string GetInputFormat();

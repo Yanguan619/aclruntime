@@ -1,10 +1,11 @@
 from __future__ import annotations
 import collections.abc
-import types
+import numpy
 import typing
+import typing_extensions
 __all__: list[str] = ['BaseTensor', 'InferenceSession', 'LOG_DEBUG', 'LOG_ERROR', 'LOG_INFO', 'LOG_WARNING', 'MemorySummary', 'PURE_INFER_DATA', 'PURE_INFER_DATA_RANDOM', 'PURE_INFER_DATA_ZERO', 'Summary', 'Tensor', 'batch', 'bool', 'double', 'dtype', 'float16', 'float32', 'infer_options', 'int16', 'int32', 'int64', 'int8', 'log_debug', 'log_error', 'log_info', 'log_warning', 'memory_device', 'memory_dvpp', 'memory_host', 'model', 'session_options', 'set_log_level', 'tensor_desc', 'type', 'uint16', 'uint32', 'uint64', 'uint8']
 class BaseTensor:
-    buf: types.CapsuleType
+    buf: typing_extensions.CapsuleType
     def __init__(self, arg0: typing.SupportsInt | typing.SupportsIndex, arg1: typing.SupportsInt | typing.SupportsIndex) -> None:
         ...
     @property
@@ -39,6 +40,8 @@ class InferenceSession:
         ...
     def aipp_set_padding_params(self, arg0: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex]) -> int:
         ...
+    def aipp_set_params(self, params: dict) -> int:
+        ...
     def aipp_set_pixel_var_reci(self, arg0: collections.abc.Sequence[typing.SupportsFloat | typing.SupportsIndex]) -> int:
         ...
     def aipp_set_rbuv_swap_switch(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> int:
@@ -64,8 +67,6 @@ class InferenceSession:
     def inner_run(self, arg0: collections.abc.Sequence[typing.SupportsInt | typing.SupportsIndex], arg1: collections.abc.Sequence[str], arg2: bool, arg3: bool) -> list[Tensor]:
         ...
     def options(self) -> ...:
-        ...
-    def reset_sumaryinfo(self) -> int:
         ...
     def reset_summaryinfo(self) -> int:
         ...
@@ -133,20 +134,12 @@ class Summary:
     def exec_time_list(self, arg0: collections.abc.Sequence[tuple[typing.SupportsFloat | typing.SupportsIndex, typing.SupportsFloat | typing.SupportsIndex]]) -> None:
         ...
 class Tensor:
-    def __buffer__(self, flags):
-        """
-        Return a buffer object that exposes the underlying memory of the object.
-        """
     @typing.overload
-    def __init__(self, arg0: collections.abc.Buffer) -> None:
+    def __init__(self, arg0: typing_extensions.Buffer) -> None:
         ...
     @typing.overload
-    def __init__(self, arg0: collections.abc.Buffer, arg1: typing.SupportsInt | typing.SupportsIndex) -> None:
+    def __init__(self, arg0: typing_extensions.Buffer, arg1: typing.SupportsInt | typing.SupportsIndex) -> None:
         ...
-    def __release_buffer__(self, buffer):
-        """
-        Release the buffer object that exposes the underlying memory of the object.
-        """
     def __repr__(self) -> str:
         ...
     def __str__(self) -> str:

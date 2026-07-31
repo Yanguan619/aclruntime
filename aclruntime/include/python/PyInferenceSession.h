@@ -115,6 +115,7 @@ public:
     int SetDtcPixelMean(std::vector<int> meanParams);
     int SetDtcPixelMin(std::vector<float> minParams);
     int SetPixelVarReci(std::vector<float> reciParams);
+    int SetAippParams(const AippParams& params);
 
     TensorBase CreateTensorFromFilesList(Base::TensorDesc& dstTensorDesc,
                                          std::vector<std::string>& filesList);

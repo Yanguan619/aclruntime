@@ -170,6 +170,77 @@ APP_ERROR DynamicAippConfig::SetPixelVarReci(
     return APP_ERR_OK;
 }
 
+APP_ERROR DynamicAippConfig::SetParams(const AippParams& params) {
+    APP_ERROR ret = APP_ERR_OK;
+    if (params.maxBatchSize.has_value()) {
+        ret = SetMaxBatchSize(params.maxBatchSize.value());
+        if (ret != APP_ERR_OK) {
+            return ret;
+        }
+    }
+    if (params.inputFormat.has_value()) {
+        ret = SetInputFormat(params.inputFormat.value());
+        if (ret != APP_ERR_OK) {
+            return ret;
+        }
+    }
+    if (params.srcImageSize.has_value()) {
+        ret = SetSrcImageSize(params.srcImageSize.value());
+        if (ret != APP_ERR_OK) {
+            return ret;
+        }
+    }
+    if (params.rbuvSwapSwitch.has_value()) {
+        ret = SetRbuvSwapSwitch(params.rbuvSwapSwitch.value());
+        if (ret != APP_ERR_OK) {
+            return ret;
+        }
+    }
+    if (params.axSwapSwitch.has_value()) {
+        ret = SetAxSwapSwitch(params.axSwapSwitch.value());
+        if (ret != APP_ERR_OK) {
+            return ret;
+        }
+    }
+    if (params.cscParams.has_value()) {
+        ret = SetCscParams(params.cscParams.value());
+        if (ret != APP_ERR_OK) {
+            return ret;
+        }
+    }
+    if (params.cropParams.has_value()) {
+        ret = SetCropParams(params.cropParams.value());
+        if (ret != APP_ERR_OK) {
+            return ret;
+        }
+    }
+    if (params.paddingParams.has_value()) {
+        ret = SetPaddingParams(params.paddingParams.value());
+        if (ret != APP_ERR_OK) {
+            return ret;
+        }
+    }
+    if (params.dtcPixelMean.has_value()) {
+        ret = SetDtcPixelMean(params.dtcPixelMean.value());
+        if (ret != APP_ERR_OK) {
+            return ret;
+        }
+    }
+    if (params.dtcPixelMin.has_value()) {
+        ret = SetDtcPixelMin(params.dtcPixelMin.value());
+        if (ret != APP_ERR_OK) {
+            return ret;
+        }
+    }
+    if (params.pixelVarReci.has_value()) {
+        ret = SetPixelVarReci(params.pixelVarReci.value());
+        if (ret != APP_ERR_OK) {
+            return ret;
+        }
+    }
+    return APP_ERR_OK;
+}
+
 uint64_t DynamicAippConfig::GetMaxBatchSize() { return maxBatchSize; }
 
 std::string DynamicAippConfig::GetInputFormat() { return inputFormat; }

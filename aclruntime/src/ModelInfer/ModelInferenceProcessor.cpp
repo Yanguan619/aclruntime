@@ -544,12 +544,14 @@ APP_ERROR ModelInferenceProcessor::RepeatInference(
             return ret;
         }
         if (loopTimes > 1) {
-            PROMPT_MSG("\rloop inference exec: (%d/%d)", i + 1, loopTimes);
+            fprintf(stdout, "\rloop inference exec: (%d/%d)", i + 1,
+                    loopTimes);
             fflush(stdout);
         }
     }
     if (loopTimes > 1) {
-        PROMPT_MSG("\n");
+        fprintf(stdout, "\n");
+        fflush(stdout);
     }
     if (get_outputs) {
         ret = GetOutputs(outputNames, outputTensors);
@@ -587,7 +589,8 @@ APP_ERROR ModelInferenceProcessor::FirstInferenceInner(
             return ret;
         }
         if (options_->loop > 1) {
-            PROMPT_MSG("\rloop inference exec: (%d/%d)", i + 1, options_->loop);
+            fprintf(stdout, "\rloop inference exec: (%d/%d)", i + 1,
+                    options_->loop);
             fflush(stdout);
         }
     }
@@ -622,7 +625,8 @@ APP_ERROR ModelInferenceProcessor::ModelInference_Inner(
             return ret;
         }
         if (options_->loop > 1) {
-            PROMPT_MSG("\rloop inference exec: (%d/%d)", i + 1, options_->loop);
+            fprintf(stdout, "\rloop inference exec: (%d/%d)", i + 1,
+                    options_->loop);
             fflush(stdout);
         }
     }

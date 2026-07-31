@@ -50,13 +50,17 @@ UtilsResult::Result WorkspacePool::Acquire(const std::string& group,
                      it->second.refCount);
             return UtilsResult::SUCCESS;
         }
-        aclrtFree(it->second.devPtr);
-        it->second.devPtr = nullptr;
-        it->second.size = 0;
-        INFO_LOG("[%s] reallocating workspace for group '%s': %s -> %s",
-                 TAG_WS, group.c_str(),
-                 FormatSize(it->second.size).c_str(),
-                 FormatSize(requiredSize).c_str());
+        // Do NOT reallocate — previously loaded models already hold a
+        // reference to the old devPtr. Replacing it would create a
+        // dangling pointer for those models. The caller must load models
+        // in descending workspace size order or use separate groups.
+        ERROR_LOG("[%s] workspace for group '%s' (%s) is too small for "
+                  "requested %s. Load models in descending workspace size "
+                  "order, or use a separate group.",
+                  TAG_WS, group.c_str(),
+                  FormatSize(it->second.size).c_str(),
+                  FormatSize(requiredSize).c_str());
+        return UtilsResult::FAILED;
     }
 
     void* devPtr = nullptr;

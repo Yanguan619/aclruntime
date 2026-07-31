@@ -32,15 +32,6 @@ public:
     // Release graph and pre-cached info after model load to save CPU memory.
     // Corresponds to ACL_MDL_WITHOUT_GRAPH_INT32=1.
     bool withoutGraph = false;
-    // When non-empty, models sharing the same group name reuse the same
-    // device workspace memory via ACL_MDL_WORKSPACE_ADDR_PTR / SIZE.
-    // Only safe when models do not run concurrently (e.g. prefill + decode).
-    std::string workspaceShareGroup = "";
-    // When true, set ACL_MDL_WORKSPACE_MEM_OPTIMIZE=INPUTOUTPUT so ACL
-    // overlaps workspace with input/output buffers (saves device memory).
-    // MUST be disabled when an external shared workspace is provided,
-    // otherwise ACL allocates its workspace on top of ours (double alloc).
-    bool workspaceMemOptimize = true;
 };
 }  // namespace Base
 #endif  // ACLRUNTIME_INCLUDE_MODELINFER_SESSIONOPTIONS_H_

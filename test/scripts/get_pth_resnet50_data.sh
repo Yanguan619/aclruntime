@@ -14,6 +14,7 @@
 
 #!/bin/bash
 CUR_PATH=$(dirname $(readlink -f "$0"))
+TEST_ROOT=$CUR_PATH/..
 
 try_download_url() {
     local _url=$1
@@ -254,7 +255,7 @@ convert_multi_dymaipp_om()
 main()
 {
     SOC_VERSION=${1:-"Ascend310P3"}
-    TESTDATA_PATH=$CUR_PATH/testdata/resnet50/model
+    TESTDATA_PATH=$TEST_ROOT/testdata/resnet50/model
     [ -d $TESTDATA_PATH ] || { mkdir -p $TESTDATA_PATH;chmod 750 $TESTDATA_PATH; }
 
     model_url="https://download.pytorch.org/models/resnet50-0676ba61.pth"
@@ -263,8 +264,7 @@ main()
         try_download_url $model_url $resnet_pth_file || { echo "donwload stubs failed";return 1; }
     fi
 
-    cp $CUR_PATH/create_multi_inputs_onnx.py $TESTDATA_PATH/create_multi_inputs_onnx.py
-    resnet_onnx_file="$TESTDATA_PATH/pth_resnet50.onnx"
+    cp $CUR_PATH/create_multi_inputs_onnx.py $TESTDATA_PATH/create_multi_inputs_onnx.py    resnet_onnx_file="$TESTDATA_PATH/pth_resnet50.onnx"
     two_dymaipp_onnx_file="$TESTDATA_PATH/multi_dym_aipp_model.onnx"
     input_tensor_name="actual_input_1"
     if [ ! -f $resnet_onnx_file ]; then
@@ -284,8 +284,8 @@ main()
     fi
 
     AIPPCONFIG_FILE_PATH=$TESTDATA_PATH/aipp_resnet50.aippconfig
-    DYM_AIPPCONFIG_FILE_PATH=$CUR_PATH/dym_aipp_cfg.config
-    MULTI_DYM_AIPPCONFIG_FILE_PATH=$CUR_PATH/multi_dym_aipp_cfg.config
+    DYM_AIPPCONFIG_FILE_PATH=$TEST_ROOT/dym_aipp_cfg.config
+    MULTI_DYM_AIPPCONFIG_FILE_PATH=$TEST_ROOT/multi_dym_aipp_cfg.config
     get_aippConfig_file $AIPPCONFIG_FILE_PATH || { echo "get aipp file failed";return 1; }
 
     staticbatch="1 2 4 8 16"

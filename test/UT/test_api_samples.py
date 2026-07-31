@@ -57,7 +57,7 @@ class TestClass:
     def init(self):
         self.sample_dir = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
-            "../../../ais_bench/api_samples",
+            "../../examples",
         )
         sys.path.append(self.sample_dir)
         self.get_aclruntime_sample_func()

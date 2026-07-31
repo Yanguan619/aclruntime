@@ -20,6 +20,7 @@ declare -i ret_failed=1
 declare -i ret_invalid_args=1
 
 CUR_PATH=$(dirname $(readlink -f "$0"))
+SCRIPTS_DIR=$CUR_PATH/scripts
 
 . $CUR_PATH/utils.sh # 导入通用函数
 source $CUR_PATH/test_config.sh # 导入DT配置
@@ -56,9 +57,9 @@ function env_set()
 
 function data_generate()
 { # all generated data in $CUR_PATH/testdata
-    bash -x $CUR_PATH/get_pth_resnet50_data.sh $SOC_VERSION
-    bash -x $CUR_PATH/get_add_model_data.sh
-    $PYTHON_COMMAND $CUR_PATH/generate_pipeline_datasets.py
+    bash -x $SCRIPTS_DIR/get_pth_resnet50_data.sh $SOC_VERSION
+    bash -x $SCRIPTS_DIR/get_add_model_data.sh
+    $PYTHON_COMMAND $SCRIPTS_DIR/generate_pipeline_datasets.py
 }
 
 function get_dt_list()

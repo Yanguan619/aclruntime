@@ -2,7 +2,8 @@ declare -i ret_ok=0
 declare -i ret_failed=1
 SOC_VERSION=""
 CUR_PATH=$(dirname $(readlink -f "$0"))
-MODEL_PATH="$CUR_PATH/testdata/add_model/model"
+TEST_ROOT=$CUR_PATH/..
+MODEL_PATH="$TEST_ROOT/testdata/add_model/model"
 ONNX_PATH="$MODEL_PATH/add_model.onnx"
 
 function get_npu_type()
@@ -85,6 +86,7 @@ main()
 {
     [ -d $MODEL_PATH ] || mkdir -p $MODEL_PATH
     if [[ ! -f $ONNX_PATH ]]; then
+        cd $CUR_PATH
         python3 generate_add_model.py || { echo "generate add onnx failed";return $ret_failed; }
         mv $CUR_PATH/add_model.onnx $MODEL_PATH/ || { echo "move onnx failed";return $ret_failed; }
     fi

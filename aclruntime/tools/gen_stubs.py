@@ -22,9 +22,14 @@ def main() -> None:
     parser.add_argument(
         "--build-dir", help="CMake build directory (adds to PYTHONPATH)"
     )
+    parser.add_argument(
+        "--output-dir",
+        help="Directory for the generated stub file (default: project root)",
+    )
     args = parser.parse_args()
 
     project_root = Path(__file__).resolve().parent.parent
+    output_dir = Path(args.output_dir).resolve() if args.output_dir else project_root
 
     env = dict(sys._environ) if hasattr(sys, "_environ") else {}
     if args.build_dir:
@@ -45,19 +50,19 @@ def main() -> None:
             "pybind11_stubgen",
             "aclruntime",
             "--output-dir",
-            str(project_root),
+            str(output_dir),
         ],
         env=env or None,
     )
 
-    stub_path = project_root / "aclruntime" / "__init__.pyi"
+    stub_path = output_dir / "aclruntime" / "__init__.pyi"
     if stub_path.exists():
-        target = project_root / "aclruntime.pyi"
+        target = output_dir / "aclruntime.pyi"
         stub_path.replace(target)
         print(f"Stubs generated: {target}")
     else:
         print("Stubs generated, but unexpected output structure.")
-        print(f"Look for generated files under {project_root / 'aclruntime'}")
+        print(f"Look for generated files under {output_dir / 'aclruntime'}")
 
 
 if __name__ == "__main__":

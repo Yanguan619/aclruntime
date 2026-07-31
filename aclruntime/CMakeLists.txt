@@ -153,14 +153,20 @@ target_compile_definitions(aclruntime PRIVATE
 )
 
 install(TARGETS aclruntime LIBRARY DESTINATION .)
-install(FILES "${CMAKE_SOURCE_DIR}/aclruntime.pyi" DESTINATION . OPTIONAL)
+install(FILES "${CMAKE_BINARY_DIR}/aclruntime.pyi" DESTINATION . OPTIONAL)
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/aclruntime.pyi")
+    install(FILES "${CMAKE_SOURCE_DIR}/aclruntime.pyi" DESTINATION . OPTIONAL)
+endif()
 
 # ── Optional: generate .pyi stubs via gen_stubs.py ──
+# Output goes to the build dir so building a wheel never overwrites the
+# committed, hand-maintained aclruntime.pyi in the source tree.
 find_package(Python COMPONENTS Interpreter QUIET)
 add_custom_command(TARGET aclruntime POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E env
         PYTHONPATH="$<TARGET_FILE_DIR:aclruntime>"
-        ${Python_EXECUTABLE} "${CMAKE_SOURCE_DIR}/tools/gen_stubs.py" || true
+        ${Python_EXECUTABLE} "${CMAKE_SOURCE_DIR}/tools/gen_stubs.py"
+        --output-dir "${CMAKE_BINARY_DIR}" || true
     WORKING_DIRECTORY $<TARGET_FILE_DIR:aclruntime>
     COMMENT "Generating pybind11 type stubs (if pybind11-stubgen + CANN available)"
 )

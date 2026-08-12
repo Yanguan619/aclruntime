@@ -3,7 +3,7 @@ import collections.abc
 import numpy
 import typing
 import typing_extensions
-__all__: list[str] = ['BaseTensor', 'InferenceSession', 'LOG_DEBUG', 'LOG_ERROR', 'LOG_INFO', 'LOG_WARNING', 'MemorySummary', 'PURE_INFER_DATA', 'PURE_INFER_DATA_RANDOM', 'PURE_INFER_DATA_ZERO', 'Summary', 'Tensor', 'batch', 'bool', 'double', 'dtype', 'float16', 'float32', 'infer_options', 'int16', 'int32', 'int64', 'int8', 'log_debug', 'log_error', 'log_info', 'log_warning', 'memory_device', 'memory_dvpp', 'memory_host', 'model', 'session_options', 'set_log_level', 'tensor_desc', 'type', 'uint16', 'uint32', 'uint64', 'uint8']
+__all__: list[str] = ['BaseTensor', 'InferenceSession', 'LOG_DEBUG', 'LOG_ERROR', 'LOG_INFO', 'LOG_WARNING', 'MemorySummary', 'PURE_INFER_DATA', 'PURE_INFER_DATA_RANDOM', 'PURE_INFER_DATA_ZERO', 'Summary', 'Tensor', 'batch', 'bool', 'double', 'dtype', 'float16', 'float32', 'get_run_mode', 'infer_options', 'int16', 'int32', 'int64', 'int8', 'log_debug', 'log_error', 'log_info', 'log_warning', 'memory_device', 'memory_dvpp', 'memory_host', 'model', 'session_options', 'set_log_level', 'tensor_desc', 'type', 'uint16', 'uint32', 'uint64', 'uint8']
 class BaseTensor:
     buf: typing_extensions.CapsuleType
     def __init__(self, arg0: typing.SupportsInt | typing.SupportsIndex, arg1: typing.SupportsInt | typing.SupportsIndex) -> None:
@@ -354,6 +354,12 @@ def log_warning(arg0: str) -> None:
     ...
 def model(modelPath: str, deviceId: typing.SupportsInt | typing.SupportsIndex = 0, options: session_options = None) -> InferenceSession:
     ...
+def get_run_mode() -> int:
+    """
+    Query ACL run mode. 0=ACL_DEVICE (RC, aclrtMallocHost memory is device-visible,
+    zero-copy inference possible), 1=ACL_HOST (EP, explicit H2D/D2H required),
+    -1=query failed.
+    """
 def set_log_level(arg0: typing.SupportsInt | typing.SupportsIndex) -> None:
     """
     Set spdlog level for aclruntime C++ logs

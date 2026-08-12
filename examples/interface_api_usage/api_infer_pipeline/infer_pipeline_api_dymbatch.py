@@ -35,8 +35,5 @@ def infer_pipeline_api_dymbatch():
     # execute inference, inputs is ndarray list and outputs is ndarray list
     outputs = session.infer_pipeline(feeds_list, mode="dymbatch")
     logger_print("outputs: %s" % outputs)
-    # free model resource and device context of session
-    session.free_resource()
-
 
 infer_pipeline_api_dymbatch()

@@ -984,7 +984,6 @@ class TestClass:
         for i in range(loop):
             try:
                 session = InferSession(TestCommonClass.default_device_id, model_path)
-                session.free_resource()
                 del session
             except Exception as e:
                 logger.info("session finalize {} time, exception: {}".format(i + 1, e))

@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import atexit
 import time
+import weakref
 from dataclasses import dataclass
 
 import aclruntime
@@ -65,6 +67,12 @@ MAX_DEVICE_COUNT = 32
 MAX_PROCESS_COUNT_PER_DEVICE = 32
 MAX_TOTAL_PROCESS_COUNT = 64
 
+# All live InferSession instances. Used by the atexit handler to release every
+# remaining session's device resources *before* finalizing the ACL runtime, so
+# their C++ destructors never touch an already-torn-down context at interpreter
+# shutdown.
+_LIVE_SESSIONS = weakref.WeakSet()
+
 
 @dataclass
 class InferIterationContent:
@@ -83,6 +91,7 @@ class InferSession:
         debug: bool = False,
         loop: int = 1,
         weight_dir: str = None,
+        options: "aclruntime.session_options" = None,
     ):
         """
         init InferSession
@@ -100,6 +109,8 @@ class InferSession:
                 shared across sessions pointing at the same dir (via a
                 process-wide WeightPool), so prefill and decode OM files
                 that strip the same weights only pay device memory once.
+            options: aclruntime.session_options to use directly.  Default:
+                None (create a fresh default session_options internally).
         """
         check_model_path_legality(model_path)
         check_acl_json_path_legality(acl_json_path)
@@ -108,7 +119,7 @@ class InferSession:
         self.device_id = device_id
         self.model_path = model_path
         self.loop = loop
-        self.options = aclruntime.session_options()
+        self.options = options if options is not None else aclruntime.session_options()
         self.acl_json_path = acl_json_path
         self.debug = debug
         self.weight_dir = weight_dir
@@ -122,7 +133,9 @@ class InferSession:
         if hasattr(self.options, "without_graph"):
             self.options.without_graph = True
         self.session = aclruntime.InferenceSession(self.model_path, self.device_id, self.options)
+        self.register_atexit_finalize()
         self.outputs_names = [meta.name for meta in self.session.get_outputs()]
+        self.zero_copy = self._detect_zero_copy()
         self.infer_mode_switch = {
             "static": self._static_prepare,
             "dymbatch": self._dymbatch_prepare,
@@ -130,13 +143,54 @@ class InferSession:
             "dymdims": self._dymdims_prepare,
             "dymshape": self._dymshape_prepare,
         }
+        _LIVE_SESSIONS.add(self)
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.free_resource()
+        if hasattr(self.session, "free_resource"):
+            self.session.free_resource()
+        # Detach so a later __del__ never re-enters FreeResource on the runtime.
+        self.session = None
         return False
+
+    @classmethod
+    def register_atexit_finalize(cls):
+        """Register process-level ACL finalize to run at interpreter exit.
+
+        TensorContext::Finalize() is guarded by InitDeviceFlag_, so a redundant
+        explicit finalize() call is a safe no-op. Registered lazily, when a
+        session is actually created, so library users who never create a
+        session are unaffected.
+        """
+        if getattr(cls, "_atexit_registered", False):
+            return
+        cls._atexit_registered = True
+        atexit.register(cls._finalize_acl)
+
+    @staticmethod
+    def _finalize_acl():
+        # Order matters: release every still-alive session's device resources
+        # first, then tear down the ACL runtime. If we finalized first, the
+        # sessions' C++ destructors would later call SetContext/Destroy on an
+        # already-destroyed context (resources freed by __del__ only happen on
+        # GC, which for objects still referenced at interpreter exit happens
+        # *after* atexit handlers run).
+        for sess in list(_LIVE_SESSIONS):
+            try:
+                if hasattr(sess, "session") and sess.session is not None:
+                    func = getattr(sess.session, "free_resource", None)
+                    if func is not None:
+                        func()
+                    # Detach the pybind object so a later __del__ (interpreter
+                    # teardown GC) never calls FreeResource again on the already
+                    # finalized runtime.
+                    sess.session = None
+            except Exception:
+                pass
+        if hasattr(aclruntime.InferenceSession, "finalize"):
+            aclruntime.InferenceSession.finalize()
 
     @staticmethod
     def convert_tensors_to_host(tensors):
@@ -150,11 +204,6 @@ class InferSession:
             # convert acltensor to numpy array
             arrays.append(np.array(tensor))
         return arrays
-
-    @staticmethod
-    def finalize():
-        if hasattr(aclruntime.InferenceSession, "finalize"):
-            aclruntime.InferenceSession.finalize()
 
     def __getattr__(self, name):
         # Forward unknown attributes to the underlying C++ InferenceSession.
@@ -179,9 +228,26 @@ class InferSession:
         options.loop = loop
 
     def create_tensor_from_arrays_to_device(self, arrays):
-        tensor = aclruntime.Tensor(arrays)
-        tensor.to_device(self.device_id)
-        return tensor
+        return self._make_input_tensor(arrays)
+
+    @staticmethod
+    def _detect_zero_copy():
+        """RC 形态下 host 内存对 device 可见，直接喂 host tensor 可免去 H2D；
+        EP 形态下必须显式拷贝。用 aclrtGetRunMode 自动区分，无需手动开关。
+        """
+        get_run_mode = getattr(aclruntime, "get_run_mode", None)
+        if get_run_mode is None:
+            return False
+        try:
+            # 0 = ACL_DEVICE = RC：host 内存对 device 可见，可零拷贝
+            return get_run_mode() == 0
+        except Exception:
+            return False
+
+    def _make_input_tensor(self, array):
+        if self.zero_copy:
+            return aclruntime.Tensor(array)
+        return aclruntime.Tensor(array, self.device_id)
 
     def load_aipp_config_file(self, config_file, batchsize):
         aipp_manager = DymAippManager(self.session, config_file, batchsize)
@@ -192,7 +258,7 @@ class InferSession:
     def run(self, feeds, out_array=False):
         inputs = feeds
         if len(feeds) > 0 and isinstance(feeds[0], np.ndarray):
-            inputs = [aclruntime.Tensor(array, self.device_id) for array in feeds]
+            inputs = [self._make_input_tensor(array) for array in feeds]
 
         outputs = self.session.run(self.outputs_names, inputs)
         if out_array:
@@ -245,29 +311,78 @@ class InferSession:
     def reset_summaryinfo(self):
         self.session.reset_summaryinfo()
 
-    def infer(self, feeds, mode="static", custom_sizes=100000, out_array=True):
+    def infer(
+        self,
+        feeds,
+        mode="static",
+        custom_sizes=100000,
+        out_array=True,
+        iteration_times=1,
+        in_out_list=None,
+    ):
         """
         Parameters:
             feeds: input data
             mode: static dymdims dymshape...
+            out_array: whether to return host numpy arrays (True) or device
+                tensors (False)
+            iteration_times: repeat the inference this many times, feeding
+                parts of the previous outputs back into the inputs through
+                in_out_list (iterative inference). Default 1: single pass.
+            in_out_list: relation between current input datas and last output
+                datas. [-1, 0, 1] means inputs[1] uses last outputs[0],
+                inputs[2] uses last outputs[1]. -1 keeps the original input.
         """
         check_list(feeds, max_len=MODEL_INPUT_TENSOR_COUNT_MAX, allow_empty=False)
         check_bool_value(out_array)
         check_custom_size(custom_sizes, mode)
+        check_positive_integer(iteration_times)
+        if iteration_times > ITERATION_TIMES_MAX:
+            raise ValueError(f"iteration times over max limit: {ITERATION_TIMES_MAX}")
+        if in_out_list is not None:
+            check_in_out_list(in_out_list, self.get_inputs(), self.get_outputs())
 
         inputs = self._convert_feeds_to_device_tensors(feeds)
+        shapes = [list(t.shape) for t in inputs]
 
-        if mode == "dymshape":
-            shapes = [list(t.shape) for t in inputs]
-            self._dymshape_prepare(shapes, custom_sizes)
+        # auto set mode
+        if self.infer_mode_switch.get(mode) is not None:
+            self.infer_mode_switch.get(mode)(shapes, custom_sizes)
 
-        result = self.run(inputs, out_array)
+        out_names = [out_desc.name for out_desc in self.get_outputs()]
+        outputs = self.session.run(out_names, inputs)
+        for _ in range(int(iteration_times - 1)):
+            if in_out_list:
+                for input_index, reused_index in enumerate(in_out_list):
+                    if reused_index >= 0:
+                        inputs[input_index] = outputs[reused_index]
+            outputs = self.session.run(out_names, inputs)
+
+        if out_array:
+            self.convert_tensors_to_host(outputs)
+            result = self.convert_tensors_to_arrays(outputs)
+            del outputs
+        else:
+            result = outputs
         del inputs  # Release device tensors immediately
         return result
 
-    def free_resource(self):
-        if hasattr(self.session, "free_resource"):
-            self.session.free_resource()
+    def __del__(self):
+        # Automatic release of this instance's device resources: runs when the
+        # object is garbage collected, so no explicit free_resource()/finalize()
+        # is needed. free_resource() is idempotent on the C++ side, so double
+        # release is safe. Never raise from __del__ (interpreter shutdown may
+        # have torn down globals).
+        try:
+            if hasattr(self, "session") and self.session is not None:
+                func = getattr(self.session, "free_resource", None)
+                if func is not None:
+                    func()
+                # Detach: makes __del__ idempotent and prevents a second
+                # FreeResource on the already-finalized runtime.
+                self.session = None
+        except Exception:
+            pass
 
     def infer_pipeline(self, feeds_list, mode="static", custom_sizes=100000):
         """
@@ -354,35 +469,14 @@ class InferSession:
             mode: static dymdims dymshape ...
             custom_sizes: only dymshape needs
         """
-        check_list(feeds, max_len=MODEL_INPUT_TENSOR_COUNT_MAX, allow_empty=False)
-        check_custom_size(custom_sizes, mode)
-        check_positive_integer(iteration_times)
-        if iteration_times > ITERATION_TIMES_MAX:
-            raise ValueError(f"iteration times over max limit: {ITERATION_TIMES_MAX}")
-        if not in_out_list:
-            in_out_list = []
-        if in_out_list is not None:
-            check_in_out_list(in_out_list, self.get_inputs(), self.get_outputs())
-
-        inputs, shapes = self._create_device_inputs(feeds)
-
-        # auto set mode
-        if self.infer_mode_switch.get(mode) is not None:
-            self.infer_mode_switch.get(mode)(shapes, custom_sizes)
-
-        out_names = [out_desc.name for out_desc in self.get_outputs()]
-        outputs = self.session.run(out_names, inputs)
-        if iteration_times == 1:
-            return outputs
-        for _ in range(int(iteration_times - 1)):
-            for input_index, reused_index in enumerate(in_out_list):
-                if reused_index >= 0:
-                    inputs[input_index] = outputs[reused_index]
-            outputs = self.session.run(out_names, inputs)
-
-        self.convert_tensors_to_host(outputs)
-        # convert tensor to narray
-        return self.convert_tensors_to_arrays(outputs)
+        return self.infer(
+            feeds,
+            mode=mode,
+            custom_sizes=custom_sizes,
+            out_array=True,
+            iteration_times=iteration_times,
+            in_out_list=in_out_list,
+        )
 
     def summary(self):
         return self.session.summary()
@@ -398,12 +492,7 @@ class InferSession:
         raise RuntimeError("type:{} invalid".format(type(feed)))
 
     def _convert_feeds_to_device_tensors(self, feeds):
-        return [aclruntime.Tensor(self._convert_feed_to_ndarray(f), self.device_id) for f in feeds]
-
-    def _create_device_inputs(self, feeds):
-        inputs = self._convert_feeds_to_device_tensors(feeds)
-        shapes = [list(t.shape) for t in inputs]
-        return inputs, shapes
+        return [self._make_input_tensor(self._convert_feed_to_ndarray(f)) for f in feeds]
 
     def _static_prepare(self, shapes, custom_sizes):
         self.set_staticbatch()

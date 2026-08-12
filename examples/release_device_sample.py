@@ -22,7 +22,6 @@ model_path = sys.argv[1]
 
 def infer_loop_create_session(loop_times):
     device_id = 0
-    session_list = []
     loop_list = list(range(loop_times))
     for _, _ in enumerate(
         tqdm(loop_list, file=sys.stdout, desc="constructing new InferSession:")
@@ -31,8 +30,8 @@ def infer_loop_create_session(loop_times):
         barray = bytearray(session.get_inputs()[0].realsize)
         ndata = np.frombuffer(barray)
         session.infer([ndata])
-        session_list.append(session)
-        session.free_resource()
+        # resources are released automatically when the session is destroyed
+        del session
 
 
 infer_loop_create_session(100)

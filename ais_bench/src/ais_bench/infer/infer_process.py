@@ -720,11 +720,9 @@ def main(args, index=0, msgq=None, device_list=None):
         # put result to msgq
         msgq.put([index, summary.infodict["throughput"], start_time, end_time])
 
-    session.free_resource()
-    for sess in extra_session:
-        sess.free_resource()
-
-    InferSession.finalize()
+    # No explicit free/ finalize: InferSession.__del__ frees each session's
+    # resources when it goes out of scope, and register_atexit_finalize()
+    # finalized the ACL runtime at interpreter exit.
 
     if args.dump_npy and acl_json_path is not None:
         convert(tmp_acl_json_path, real_dump_path, tmp_dump_path)

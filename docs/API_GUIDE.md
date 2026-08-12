@@ -32,8 +32,14 @@ outputs = session.infer(feeds=inputs, mode="static")
 exec_time = session.summary().exec_time_list[-1]
 ```
 ### 释放模型占用的内存
+资源释放是自动的，无需手动调用：
+- 会话对象被垃圾回收（`del session` 或离开作用域）时，会自动释放该实例的 device 侧资源（等价于 `__del__` 机制）。
+- 进程退出时，会自动释放当前进程与 AscendCL 相关的资源（`atexit` 机制，仅在创建过会话后注册）。
+
 ```python
-session.free_resource()
+session = InferSession(device_id, model_path)
+outputs = session.infer(...)
+del session  # 可选：立即释放实例资源；不写也 ok，退出时会自动释放
 ```
 
 ## interface python API 详细介绍
@@ -47,15 +53,13 @@ session.free_resource()
 |5<td rowspan='1'>[infer_iteration](#infer_iteration1)</td>|
 |6<td rowspan='2'>获取推理性能</td><td rowspan='1'>[summary](#summary1)</td>|
 |7<td rowspan='1'>[reset_summaryinfo](#reset_summaryinfo1)</td>|
-|8<td rowspan='2'>释放模型资源</td><td rowspan='1'>[free_resource](#free_resource1)</td>|
-|9<td rowspan='1'>[finalize](#finalize1)</td>|
-|10<td rowspan='4'>[MultiDeviceSession](#MultiDeviceSession1)</td><td rowspan='3'>进行模型推理</td><td rowspan='1'>[infer](#infer2)</td>|
-|11<td rowspan='1'>[infer_pipeline](#infer_pipeline2)</td>|
-|12<td rowspan='1'>[infer_iteration](#infer_iteration2)</td>|
-|13<td rowspan='1'>获取推理性能</td><td rowspan='1'>[summary](#summary2)</td>|
-|14<td rowspan='3'>[MemorySummary](#MemorySummary1)</td><td rowspan='3'>资源拷贝时间</td><td rowspan='1'>[get_h2d_time_list](#get_h2d_time_list1)</td>|
-|15<td rowspan='1'>[get_d2h_time_list](#get_d2h_time_list1)</td>|
-|16<td rowspan='1'>[reset](#reset1)</td>|
+|8<td rowspan='4'>[MultiDeviceSession](#MultiDeviceSession1)</td><td rowspan='3'>进行模型推理</td><td rowspan='1'>[infer](#infer2)</td>|
+|9<td rowspan='1'>[infer_pipeline](#infer_pipeline2)</td>|
+|10<td rowspan='1'>[infer_iteration](#infer_iteration2)</td>|
+|11<td rowspan='1'>获取推理性能</td><td rowspan='1'>[summary](#summary2)</td>|
+|12<td rowspan='3'>[MemorySummary](#MemorySummary1)</td><td rowspan='3'>资源拷贝时间</td><td rowspan='1'>[get_h2d_time_list](#get_h2d_time_list1)</td>|
+|13<td rowspan='1'>[get_d2h_time_list](#get_d2h_time_list1)</td>|
+|14<td rowspan='1'>[reset](#reset1)</td>|
 
 <a name="InferSession1"></a>
 
@@ -116,7 +120,7 @@ get_outputs()
 
 **函数原型**
 ```python
-infer(feeds, mode='static', custom_sizes=100000, out_array=True)
+infer(feeds, mode='static', custom_sizes=100000, out_array=True, iteration_times=1, in_out_list=None)
 ```
 **参数说明**
 |参数名|说明|是否必选|
@@ -125,6 +129,8 @@ infer(feeds, mode='static', custom_sizes=100000, out_array=True)
 |**mode**|str，指定加载的模型类型，可选'static'(静态模型)、'dymbatch'(动态batch模型)、'dymhw'(动态分辨率模型)、'dymdims'(动态dims模型)、'dymshape'(动态shape模型)|否|
 |**custom_sizes**|int or [int]，动态shape模型需要使用，推理输出数据所占的内存大小(单位byte)。<br> <ul>1、输入为int时，模型的每一个输出都会被预先分配custom_sizes大小的内存。<br> 2、输入为list:[int]时, 模型的每一个输出会被预先分配custom_sizes中对应元素大小的内存。|否|
 |**out_array**|bool，是否将模型推理的结果从device侧搬运到host侧|否|
+|**iteration_times**|int，迭代推理的次数。当 `iteration_times > 1` 时，上一次推理的输出会按 `in_out_list` 回灌到下 一次推理的输入中。默认1，即单次推理。|否|
+|**in_out_list**|[int]，可选，迭代推理时每次迭代中模型输入来源于第几个输出，输入和输出的顺序与`get_inputs()`和`get_outputs()`获取的list中的元素顺序一致。例如，[-1, 1, 0]表示第一个输入数据复用原来的输入数据(用-1表示)，第二个输入数据来源于第二个输出数据，第三个输入来源于第一个输出数据。仅 `iteration_times > 1` 时需要。|否|
 
 **返回值**
 + out_array == True，返回numpy.ndarray类型的推理输出结果，数据的内存在host侧。
@@ -208,39 +214,6 @@ summary()
 ```python
 reset_summaryinfo()
 ```
-**返回值**
-
-无
-
-<a name="free_resource1"></a>
-
-#### <font color=#DD4466>**free_resource函数**</font>
-
-**功能说明**
-
-用于释放InferSession相关的device侧资源，但是不会释放InferSession对应device内InferSession所在进程内和AscendCL相关的其他资源。
-
-**函数原型**
-```python
-free_resource()
-```
-
-**返回值**
-
-无
-
-<a name="finalize1"></a>
-
-#### <font color=#DD4466>**finalize函数**</font>
-**功能说明**
-
-用于释放InferSession对应device内InferSession所在进程和AscendCL相关的所有资源。**注意是类方法**，通过`InferSession.finalize()`方式调用，推荐在进程结束前手动调用，调用后在当前进程无法再执行device上的任务。
-
-**函数原型**
-```python
-finalize()
-```
-
 **返回值**
 
 无

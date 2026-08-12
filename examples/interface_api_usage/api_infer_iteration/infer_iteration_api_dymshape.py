@@ -39,8 +39,5 @@ def infer_iteration_api_dymshape():
         feeds, in_out_list, iteration_times, mode="dymshape", custom_sizes=100000
     )
     logger_print("outputs: %s" % outputs)
-    # free model resource and device context of session
-    session.free_resource()
-
 
 infer_iteration_api_dymshape()

@@ -35,8 +35,5 @@ def infer_pipeline_api_dymhw():
     # execute inference, inputs is ndarray list and outputs is ndarray list
     outputs = session.infer_pipeline(feeds_list, mode="dymhw")
     logger_print("outputs: %s" % outputs)
-    # free model resource and device context of session
-    session.free_resource()
-
 
 infer_pipeline_api_dymhw()

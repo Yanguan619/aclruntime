@@ -362,6 +362,16 @@ private:
     std::map<std::string, aclAippInputFormat> str2aclAippInputFormat;
     void model_description(size_t& numInputs, size_t& numOutputs,
                            aclmdlIODims& dimsInput, aclmdlIODims& dimsOutput);
+    // Shared implementation for loading OM bytes from memory through an
+    // aclmdlConfigHandle. Used by the external-weight and withoutGraph
+    // paths of LoadModelFromFile. When weightDir is non-empty the weight
+    // dir is registered via WeightPool on the config handle; on success it
+    // keeps the model bytes alive in modelData_ (ACL references them
+    // shallowly).
+    UtilsResult::Result LoadModelWithConfig(
+        const std::string& modelPath, std::vector<uint8_t>& modelData,
+        const std::string& weightDir,
+        std::shared_ptr<Base::SessionOptions> options);
     // External weight directory registered to the pool; released on Unload.
     std::string weightDir_;
     bool weightsAcquired_ = false;

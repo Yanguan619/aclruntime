@@ -188,11 +188,13 @@ Result ModelProcess::LoadModelFromFile(
         }
     }
 
-    // Load from device memory
     // External-weight path: load the OM bytes with aclmdlLoadWithConfig,
     // registering stripped weights from weightDir through the shared
-    // WeightPool so prefill/decode reuse the same device buffers.
-    if (!resolvedWeightDir.empty()) {
+    // WeightPool so prefill/decode reuse the same device buffers. The
+    // withoutGraph option is served by the same config-handle path.
+    bool useWithoutGraph = (options && options->withoutGraph);
+    if (!resolvedWeightDir.empty() || useWithoutGraph) {
+        // Read the OM bytes into memory, then load through a config handle.
         std::ifstream file(modelPath, std::ios::binary | std::ios::ate);
         if (!file.is_open()) {
             ERROR_LOG("Open model file failed: %s", modelPath.c_str());
@@ -206,303 +208,186 @@ Result ModelProcess::LoadModelFromFile(
             ERROR_LOG("Read model file failed: %s", modelPath.c_str());
             return FAILED;
         }
-
-        aclmdlConfigHandle* handle = aclmdlCreateConfigHandle();
-        if (handle == nullptr) {
-            ERROR_LOG("aclmdlCreateConfigHandle failed");
+        if (LoadModelWithConfig(modelPath, modelData, resolvedWeightDir,
+                                options) != SUCCESS) {
             return FAILED;
         }
-
-        std::vector<std::string> acquiredFiles;
-        Result wret = WeightPool::Instance().Acquire(resolvedWeightDir, handle,
-                                                     acquiredFiles);
-        if (wret != SUCCESS) {
-            ERROR_LOG("WeightPool::Acquire failed for dir %s",
-                      resolvedWeightDir.c_str());
-            aclmdlDestroyConfigHandle(handle);
-            return FAILED;
-        }
-
-        auto cfgFail = [&]() -> Result {
-            WeightPool::Instance().Release(resolvedWeightDir);
-            aclmdlDestroyConfigHandle(handle);
-            return FAILED;
-        };
-
-        size_t loadType = ACL_MDL_LOAD_FROM_MEM;
-        aclError ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET,
-                                          &loadType, sizeof(loadType));
-        if (ret != ACL_SUCCESS) {
-            ACLERR_LOG(aclGetRecentErrMsg());
-            ERROR_LOG("Set ACL_MDL_LOAD_TYPE_SIZET failed ret=%d", ret);
-            return cfgFail();
-        }
-        void* memPtr = modelData.data();
-        ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &memPtr,
-                                 sizeof(memPtr));
-        if (ret != ACL_SUCCESS) {
-            ERROR_LOG("set ACL_MDL_MEM_ADDR_PTR failed ret=%d", ret);
-            return cfgFail();
-        }
-        size_t memSize = static_cast<size_t>(modelSize);
-        ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &memSize,
-                                 sizeof(memSize));
-        if (ret != ACL_SUCCESS) {
-            ERROR_LOG("set ACL_MDL_MEM_SIZET failed ret=%d", ret);
-            return cfgFail();
-        }
-
-        // Enable withoutGraph to release graph and pre-cached info after load
-        if (options && options->withoutGraph) {
-            int32_t withoutGraph = 1;
-            ret = aclmdlSetConfigOpt(handle, ACL_MDL_WITHOUT_GRAPH_INT32,
-                                     &withoutGraph, sizeof(withoutGraph));
-            if (ret != ACL_SUCCESS) {
-                WARN_LOG(
-                    "set ACL_MDL_WITHOUT_GRAPH_INT32 failed ret=%d (non-fatal)",
-                    ret);
-            } else {
-                INFO_LOG("ACL_MDL_WITHOUT_GRAPH_INT32 enabled");
-            }
-        }
-
-        {
-            size_t wsOpt = ACL_WORKSPACE_MEM_OPTIMIZE_INPUTOUTPUT;
-            ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE,
-                                     &wsOpt, sizeof(wsOpt));
-            if (ret != ACL_SUCCESS) {
-                WARN_LOG(
-                    "set ACL_MDL_WORKSPACE_MEM_OPTIMIZE failed ret=%d "
-                    "(non-fatal)",
-                    ret);
-            } else {
-                INFO_LOG("ACL_MDL_WORKSPACE_MEM_OPTIMIZE enabled");
-            }
-        }
-        {
-            size_t workSize = 0;
-            size_t weightSize = 0;
-            aclError qret =
-                aclmdlQuerySize(modelPath.c_str(), &workSize, &weightSize);
-            if (qret == ACL_SUCCESS) {
-                INFO_LOG("model workspace=%s, weight=%s",
-                         FormatSize(workSize).c_str(),
-                         FormatSize(weightSize).c_str());
-            } else {
-                DEBUG_LOG("aclmdlQuerySize failed ret=%d", (int)qret);
-            }
-        }
-
-        DEBUG_LOG("aclmdlSetConfigOpt end: RSS=%zuMB", GetSystemMemoryUsedMB());
+    } else {
+        // Original path: use aclmdlLoadFromFile for simplicity
         struct timeval start = {};
-
         struct timeval end = {};
         gettimeofday(&start, nullptr);
-
-        // 使用时
-        ret = MemCheckedCall("aclmdlLoadWithConfig", aclmdlLoadWithConfig,
-                             handle, &modelId_);
-
+        INFO_LOG("aclmdlLoadFromFile %s", Basename(modelPath).c_str());
+        aclError ret = aclmdlLoadFromFile(modelPath.c_str(), &modelId_);
         gettimeofday(&end, nullptr);
-        // modelData must outlive the load; per ACL semantics the model
-        // memory is referenced shallowly, so keep the bytes alive for the
-        // lifetime of this ModelProcess.
-
-        modelData_.swap(modelData);
-        MemCheckedCall("aclmdlDestroyConfigHandle", aclmdlDestroyConfigHandle,
-                       handle);
-
         if (ret != ACL_SUCCESS) {
             ACLERR_LOG(aclGetRecentErrMsg());
-            ERROR_LOG("aclmdlLoadWithConfig failed, model file is %s",
+            ERROR_LOG("Load model from file failed, model file is %s",
                       modelPath.c_str());
-            WeightPool::Instance().Release(resolvedWeightDir);
             return FAILED;
         }
         float time_cost = 1000 * (end.tv_sec - start.tv_sec) +
                           (end.tv_usec - start.tv_usec) / 1000.000;
-        INFO_LOG("aclmdlLoadWithConfig success cost : %f (ms)", time_cost);
-        weightDir_ = resolvedWeightDir;
-        weightsAcquired_ = true;
-        loadFlag_ = true;
-        return SUCCESS;
-    } else {
-        // Load from model_path
-        // Check if withoutGraph optimization is requested
-        bool useWithoutGraph = (options && options->withoutGraph);
-
-        if (useWithoutGraph) {
-            // Read model file into memory for aclmdlLoadWithConfig
-            std::ifstream file(modelPath, std::ios::binary | std::ios::ate);
-            if (!file.is_open()) {
-                ERROR_LOG("Open model file failed: %s", modelPath.c_str());
-                return FAILED;
-            }
-            std::streamsize modelSize = file.tellg();
-            file.seekg(0, std::ios::beg);
-            std::vector<uint8_t> modelData(modelSize);
-            if (modelSize > 0 &&
-                !file.read(reinterpret_cast<char*>(modelData.data()),
-                           modelSize)) {
-                ERROR_LOG("Read model file failed: %s", modelPath.c_str());
-                return FAILED;
-            }
-
-            aclmdlConfigHandle* handle = aclmdlCreateConfigHandle();
-            if (handle == nullptr) {
-                ERROR_LOG("aclmdlCreateConfigHandle failed");
-                return FAILED;
-            }
-
-            auto cfgFail = [&]() -> Result {
-                aclmdlDestroyConfigHandle(handle);
-                return FAILED;
-            };
-
-            size_t loadType = ACL_MDL_LOAD_FROM_MEM;
-            aclError ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET,
-                                              &loadType, sizeof(loadType));
-            if (ret != ACL_SUCCESS) {
-                ACLERR_LOG(aclGetRecentErrMsg());
-                ERROR_LOG("Set ACL_MDL_LOAD_TYPE_SIZET failed ret=%d", ret);
-                return cfgFail();
-            }
-            void* memPtr = modelData.data();
-            ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &memPtr,
-                                     sizeof(memPtr));
-            if (ret != ACL_SUCCESS) {
-                ERROR_LOG("set ACL_MDL_MEM_ADDR_PTR failed ret=%d", ret);
-                return cfgFail();
-            }
-            size_t memSize = static_cast<size_t>(modelSize);
-            ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &memSize,
-                                     sizeof(memSize));
-            if (ret != ACL_SUCCESS) {
-                ERROR_LOG("set ACL_MDL_MEM_SIZET failed ret=%d", ret);
-                return cfgFail();
-            }
-
-            // Enable withoutGraph to release graph and pre-cached info after
-            // load
-            int32_t withoutGraph = 1;
-            ret = aclmdlSetConfigOpt(handle, ACL_MDL_WITHOUT_GRAPH_INT32,
-                                     &withoutGraph, sizeof(withoutGraph));
-            if (ret != ACL_SUCCESS) {
-                WARN_LOG(
-                    "set ACL_MDL_WITHOUT_GRAPH_INT32 failed ret=%d (non-fatal)",
-                    ret);
-            } else {
-                INFO_LOG("ACL_MDL_WITHOUT_GRAPH_INT32 enabled");
-            }
-            {
-                size_t wsOpt = ACL_WORKSPACE_MEM_OPTIMIZE_INPUTOUTPUT;
-                ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE,
-                                         &wsOpt, sizeof(wsOpt));
-                if (ret != ACL_SUCCESS) {
-                    WARN_LOG(
-                        "set ACL_MDL_WORKSPACE_MEM_OPTIMIZE failed ret=%d "
-                        "(non-fatal)",
-                        ret);
-                } else {
-                    INFO_LOG("ACL_MDL_WORKSPACE_MEM_OPTIMIZE enabled");
-                }
-            }
-            DEBUG_LOG("aclmdlSetConfigOpt end: RSS=%zuMB",
-                      GetSystemMemoryUsedMB());
-
-            {
-                size_t workSize = 0;
-                size_t weightSize = 0;
-                aclError qret =
-                    aclmdlQuerySize(modelPath.c_str(), &workSize, &weightSize);
-                if (qret == ACL_SUCCESS) {
-                    INFO_LOG("model workspace=%s, weight=%s",
-                            FormatSize(workSize).c_str(),
-                            FormatSize(weightSize).c_str());
-                } else {
-                    DEBUG_LOG("aclmdlQuerySize failed ret=%d", (int)qret);
-                }
-            }
-
-            struct timeval start = {};
-            struct timeval end = {};
-            gettimeofday(&start, nullptr);
-            INFO_LOG("aclmdlLoadWithConfig %s (withoutGraph)",
-                     Basename(modelPath).c_str());
-            DEBUG_LOG("[MEM_CHECK] Before aclmdlLoadWithConfig: RSS=%zuMB",
-                      GetSystemMemoryUsedMB());
-            ret = aclmdlLoadWithConfig(handle, &modelId_);
-            DEBUG_LOG("aclmdlLoadWithConfig end: RSS=%zuMB",
-                      GetSystemMemoryUsedMB());
-
-            gettimeofday(&end, nullptr);
-            DEBUG_LOG("[MEM_CHECK] After aclmdlLoadWithConfig: RSS=%zuMB",
-                      GetSystemMemoryUsedMB());
-            aclmdlDestroyConfigHandle(handle);
-            if (ret != ACL_SUCCESS) {
-                ACLERR_LOG(aclGetRecentErrMsg());
-                ERROR_LOG("aclmdlLoadWithConfig failed, model file is %s",
-                          modelPath.c_str());
-                return FAILED;
-            }
-            float time_cost = 1000 * (end.tv_sec - start.tv_sec) +
-                              (end.tv_usec - start.tv_usec) / 1000.000;
-            INFO_LOG("aclmdlLoadWithConfig success cost : %f (ms)", time_cost);
-            loadFlag_ = true;
-            return SUCCESS;
-        } else {
-            // Original path: use aclmdlLoadFromFile for simplicity
-            struct timeval start = {};
-            struct timeval end = {};
-            gettimeofday(&start, nullptr);
-            INFO_LOG("aclmdlLoadFromFile %s", Basename(modelPath).c_str());
-            aclError ret = aclmdlLoadFromFile(modelPath.c_str(), &modelId_);
-            gettimeofday(&end, nullptr);
-            if (ret != ACL_SUCCESS) {
-                ACLERR_LOG(aclGetRecentErrMsg());
-                ERROR_LOG("Load model from file failed, model file is %s",
-                          modelPath.c_str());
-                return FAILED;
-            }
-            float time_cost = 1000 * (end.tv_sec - start.tv_sec) +
-                              (end.tv_usec - start.tv_usec) / 1000.000;
-            INFO_LOG("aclmdlLoadFromFile cost : %f (ms)", time_cost);
-            loadFlag_ = true;
-            return SUCCESS;
-        }
+        INFO_LOG("aclmdlLoadFromFile cost : %f (ms)", time_cost);
     }
+
+    loadFlag_ = true;
+    size_t workSize = 0;
+    size_t weightSize = 0;
+    if (aclmdlQuerySize(modelPath.c_str(), &workSize, &weightSize) ==
+        ACL_SUCCESS) {
+        INFO_LOG("Loaded model successfully (workspace=%s, weight=%s)",
+                 FormatSize(workSize).c_str(),
+                 FormatSize(weightSize).c_str());
+    } else {
+        INFO_LOG("Loaded model successfully");
+    }
+    return SUCCESS;
 }
 
-Result ModelProcess::LoadModelFromMem(const void* modelData, size_t modelSize) {
-    if (loadFlag_) {
-        ERROR_LOG("has already loaded a model");
+Result ModelProcess::LoadModelWithConfig(
+    const string& modelPath, std::vector<uint8_t>& modelData,
+    const string& weightDir, std::shared_ptr<Base::SessionOptions> options) {
+    aclmdlConfigHandle* handle = aclmdlCreateConfigHandle();
+    if (handle == nullptr) {
+        ERROR_LOG("aclmdlCreateConfigHandle failed");
         return FAILED;
     }
 
-    if (modelData == nullptr || modelSize == 0) {
-        ERROR_LOG("invalid model data or size");
-        return FAILED;
+    std::vector<std::string> acquiredFiles;
+    if (!weightDir.empty()) {
+        Result wret = WeightPool::Instance().Acquire(weightDir, handle,
+                                                     acquiredFiles);
+        if (wret != SUCCESS) {
+            ERROR_LOG("WeightPool::Acquire failed for dir %s",
+                      weightDir.c_str());
+            aclmdlDestroyConfigHandle(handle);
+            return FAILED;
+        }
     }
 
-            struct timeval start = {};
-            struct timeval end = {};
-    gettimeofday(&start, nullptr);
-    INFO_LOG("loading model from memory, size: %zu bytes", modelSize);
+    auto cfgFail = [&]() -> Result {
+        if (!weightDir.empty()) {
+            WeightPool::Instance().Release(weightDir);
+        }
+        aclmdlDestroyConfigHandle(handle);
+        return FAILED;
+    };
 
-    aclError ret = aclmdlLoadFromMem(modelData, modelSize, &modelId_);
-
-    gettimeofday(&end, nullptr);
+    size_t loadType = ACL_MDL_LOAD_FROM_MEM;
+    aclError ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET,
+                                      &loadType, sizeof(loadType));
     if (ret != ACL_SUCCESS) {
         ACLERR_LOG(aclGetRecentErrMsg());
-        ERROR_LOG("load model from memory failed");
+        ERROR_LOG("Set ACL_MDL_LOAD_TYPE_SIZET failed ret=%d", ret);
+        return cfgFail();
+    }
+    void* memPtr = modelData.data();
+    ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &memPtr,
+                             sizeof(memPtr));
+    if (ret != ACL_SUCCESS) {
+        ERROR_LOG("set ACL_MDL_MEM_ADDR_PTR failed ret=%d", ret);
+        return cfgFail();
+    }
+    size_t memSize = modelData.size();
+    ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &memSize,
+                             sizeof(memSize));
+    if (ret != ACL_SUCCESS) {
+        ERROR_LOG("set ACL_MDL_MEM_SIZET failed ret=%d", ret);
+        return cfgFail();
+    }
+
+    // Enable withoutGraph to release graph and pre-cached info after load
+    if (options && options->withoutGraph) {
+        int32_t withoutGraph = 1;
+        ret = aclmdlSetConfigOpt(handle, ACL_MDL_WITHOUT_GRAPH_INT32,
+                                 &withoutGraph, sizeof(withoutGraph));
+        if (ret != ACL_SUCCESS) {
+            WARN_LOG(
+                "set ACL_MDL_WITHOUT_GRAPH_INT32 failed ret=%d (non-fatal)",
+                ret);
+        } else {
+            INFO_LOG("ACL_MDL_WITHOUT_GRAPH_INT32 enabled");
+        }
+    }
+
+    {
+        size_t wsOpt = ACL_WORKSPACE_MEM_OPTIMIZE_INPUTOUTPUT;
+        ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE,
+                                 &wsOpt, sizeof(wsOpt));
+        if (ret != ACL_SUCCESS) {
+            WARN_LOG(
+                "set ACL_MDL_WORKSPACE_MEM_OPTIMIZE failed ret=%d "
+                "(non-fatal)",
+                ret);
+        } else {
+            INFO_LOG("ACL_MDL_WORKSPACE_MEM_OPTIMIZE enabled");
+        }
+    }
+
+    DEBUG_LOG("aclmdlSetConfigOpt end: RSS=%zuMB", GetSystemMemoryUsedMB());
+    struct timeval start = {};
+    struct timeval end = {};
+    gettimeofday(&start, nullptr);
+
+    ret = MemCheckedCall("aclmdlLoadWithConfig", aclmdlLoadWithConfig, handle,
+                         &modelId_);
+
+    gettimeofday(&end, nullptr);
+    // modelData must outlive the load; per ACL semantics the model
+    // memory is referenced shallowly, so keep the bytes alive for the
+    // lifetime of this ModelProcess.
+    modelData_.swap(modelData);
+    MemCheckedCall("aclmdlDestroyConfigHandle", aclmdlDestroyConfigHandle,
+                   handle);
+
+    if (ret != ACL_SUCCESS) {
+        ACLERR_LOG(aclGetRecentErrMsg());
+        ERROR_LOG("aclmdlLoadWithConfig failed, model file is %s",
+                  modelPath.c_str());
+        if (!weightDir.empty()) {
+            WeightPool::Instance().Release(weightDir);
+        }
         return FAILED;
     }
 
     float time_cost = 1000 * (end.tv_sec - start.tv_sec) +
                       (end.tv_usec - start.tv_usec) / 1000.000;
-    INFO_LOG("model aclmdlLoadFromMem cost : %f (ms)", time_cost);
+    INFO_LOG("aclmdlLoadWithConfig success cost : %f (ms)", time_cost);
+    weightDir_ = weightDir;
+    weightsAcquired_ = !weightDir.empty();
+    return SUCCESS;
+}
+
+Result ModelProcess::LoadModelFromMem(const void* modelData, size_t modelSize) {
+    if (loadFlag_) {
+        ERROR_LOG("Has already loaded a model");
+        return FAILED;
+    }
+
+    if (modelData == nullptr || modelSize == 0) {
+        ERROR_LOG("Invalid model data or size");
+        return FAILED;
+    }
+
+    struct timeval start = {};
+    struct timeval end = {};
+    gettimeofday(&start, nullptr);
+    INFO_LOG("Loading model from memory, size: %zu bytes", modelSize);
+    aclError ret = aclmdlLoadFromMem(modelData, modelSize, &modelId_);
+    gettimeofday(&end, nullptr);
+
+    if (ret != ACL_SUCCESS) {
+        ACLERR_LOG(aclGetRecentErrMsg());
+        ERROR_LOG("Load model from memory failed");
+        return FAILED;
+    }
+
+    float time_cost = 1000 * (end.tv_sec - start.tv_sec) +
+                      (end.tv_usec - start.tv_usec) / 1000.000;
+    INFO_LOG("Model aclmdlLoadFromMem cost : %f (ms)", time_cost);
     loadFlag_ = true;
-    INFO_LOG("load model from memory success");
+    INFO_LOG("Load model from memory success");
     return SUCCESS;
 }
 
